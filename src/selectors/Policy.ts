@@ -24,7 +24,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Card, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
 import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -262,16 +262,24 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
     return Object.fromEntries(nonFormulaReportFields);
 };
 
-const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
-    const policyIDs = new Set(domainNames.map(getPolicyIDFromDomainName).filter((policyID): policyID is string => !!policyID));
+/**
+ * Creates a selector returning only the policies the given cards belong to.
+ *
+ * Cards are matched on `fundID`, which is the workspace's `policyAccountID`, so a card on a company's own domain
+ * finds its workspace just like one on an `expensify-policy<ID>.exfy` domain does. Domains are still read as well,
+ * to keep a card that arrives without a `fundID` resolving as it did before.
+ */
+const createPoliciesForAssignedCardsSelector = (cards: Array<Pick<Card, 'domainName' | 'fundID'>>) => {
+    const workspaceAccountIDs = new Set(cards.map((card) => Number(card.fundID)).filter((workspaceAccountID) => !!workspaceAccountID));
+    const policyIDs = new Set(cards.map((card) => (card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined)).filter((policyID): policyID is string => !!policyID));
 
     return (policies: OnyxCollection<Policy>) => {
-        if (policyIDs.size === 0) {
+        if (workspaceAccountIDs.size === 0 && policyIDs.size === 0) {
             return {};
         }
 
         return Object.entries(policies ?? {}).reduce<NonNullable<OnyxCollection<Policy>>>((acc, [key, policy]) => {
-            if (policy?.id && policyIDs.has(policy.id.toUpperCase())) {
+            if ((!!policy?.policyAccountID && workspaceAccountIDs.has(policy.policyAccountID)) || (!!policy?.id && policyIDs.has(policy.id.toUpperCase()))) {
                 acc[key] = policy;
             }
             return acc;
@@ -559,7 +567,7 @@ export {
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,
-    createPoliciesForDomainCardsSelector,
+    createPoliciesForAssignedCardsSelector,
     createPoliciesByIDsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
