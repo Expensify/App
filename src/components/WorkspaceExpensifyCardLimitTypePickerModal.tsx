@@ -60,6 +60,43 @@ type WorkspaceExpensifyCardLimitTypePickerModalProps = {
     onSelected?: (limitType: CardLimitType) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
+/**
+ * Smart and Monthly are always offered. Fixed is hidden once spend is already at the limit, and Single Use only exists on virtual cards.
+ */
+function getVisibleExpensifyCardLimitTypes(card: Card, policy: OnyxEntry<Policy>): CardLimitType[] {
+    const limitTypes: CardLimitType[] = [CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY];
+    if (shouldShowExpensifyCardFixedLimitType(card, getDefaultExpensifyCardLimitType(policy))) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED);
+    }
+    if (card.nameValuePairs?.isVirtual) {
+        limitTypes.push(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE);
+    }
+    return limitTypes;
+}
+
+/**
+ * Inversion has to use the options this card can actually show. A fixed four-row height flips the menu when a shorter list still fits below the cell.
+ */
+function useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy}: Pick<WorkspaceExpensifyCardLimitTypePickerModalProps, 'card' | 'policy'>) {
+    const styles = useThemeStyles();
+    const {windowHeight} = useWindowDimensions();
+    const {isInLandscapeMode} = useResponsiveLayout();
+
+    // Padding sits outside the list, matching workspace member roles, so it is not clipped into a scrollbar.
+    const listHeight = styles.getSelectionListPopoverHeight({
+        itemCount: getVisibleExpensifyCardLimitTypes(card, policy).length || 1,
+        itemHeight: variables.optionRowHeight,
+        windowHeight,
+        isInLandscapeMode,
+        hasButton: false,
+        // One extra line so a wrapping Smart Limit description is not clipped.
+        extraHeight: variables.lineHeightNormal,
+    }).height;
+    const popoverHeight = listHeight + styles.pt4.paddingTop + styles.pb4.paddingBottom;
+
+    return {popoverHeight};
+}
+
 function WorkspaceExpensifyCardLimitTypePickerModal({
     isVisible,
     onClose,
@@ -75,18 +112,16 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
-    const {isInLandscapeMode} = useResponsiveLayout();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const anchorRef = useRef<View>(null);
+    const {popoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}` : undefined;
-    const shouldShowFixedOption = shouldShowExpensifyCardFixedLimitType(card, getDefaultExpensifyCardLimitType(policy));
-
+    const visibleLimitTypes = getVisibleExpensifyCardLimitTypes(card, policy);
     const availableLimitTypeItems: LimitTypeListItem[] = [
         {
             value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
@@ -114,7 +149,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
             keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
             isSelected: selectedLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
         },
-        ...(shouldShowFixedOption
+        ...(visibleLimitTypes.includes(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)
             ? [
                   {
                       value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
@@ -125,7 +160,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
                   } satisfies LimitTypeListItem,
               ]
             : []),
-        ...(card.nameValuePairs?.isVirtual
+        ...(visibleLimitTypes.includes(CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE)
             ? [
                   {
                       value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
@@ -142,18 +177,6 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
         onSelected?.(item.value);
         onClose();
     };
-
-    // Padding sits outside the list, matching workspace member roles, so it is not clipped into a scrollbar.
-    const listHeight = styles.getSelectionListPopoverHeight({
-        itemCount: availableLimitTypeItems.length || 1,
-        itemHeight: variables.optionRowHeight,
-        windowHeight,
-        isInLandscapeMode,
-        hasButton: false,
-        // One extra line so a wrapping Smart Limit description is not clipped.
-        extraHeight: variables.lineHeightNormal,
-    }).height;
-    const popoverHeight = listHeight + styles.pt4.paddingTop + styles.pb4.paddingBottom;
 
     return (
         <PopoverWithMeasuredContent
@@ -192,3 +215,4 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
 }
 
 export default WorkspaceExpensifyCardLimitTypePickerModal;
+export {useWorkspaceExpensifyCardLimitTypePickerPopover};

@@ -1,14 +1,11 @@
 import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import TextWithTooltip from '@components/TextWithTooltip';
-import WorkspaceExpensifyCardLimitTypePickerModal from '@components/WorkspaceExpensifyCardLimitTypePickerModal';
+import WorkspaceExpensifyCardLimitTypePickerModal, {useWorkspaceExpensifyCardLimitTypePickerPopover} from '@components/WorkspaceExpensifyCardLimitTypePickerModal';
 
 import useLocalize from '@hooks/useLocalize';
 
 import {getDefaultExpensifyCardLimitType, getTranslationKeyForLimitType} from '@libs/CardUtils';
 
-import variables from '@styles/variables';
-
-import CONST from '@src/CONST';
 import type {Card, Policy} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
@@ -28,12 +25,13 @@ function WorkspaceExpensifyCardLimitTypeCell({limitType, card, policy, canEdit, 
     const {translate} = useLocalize();
     const currentLimitType = limitType ?? getDefaultExpensifyCardLimitType(policy);
     const limitTypeLabel = translate(getTranslationKeyForLimitType(currentLimitType));
+    const {popoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
 
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: currentLimitType,
         onSave,
-        popoverHeight: variables.optionRowHeight * Object.keys(CONST.EXPENSIFY_CARD.LIMIT_TYPES).length,
+        popoverHeight,
     });
 
     return (
