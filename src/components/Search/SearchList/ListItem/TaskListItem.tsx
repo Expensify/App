@@ -87,14 +87,23 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={pressableWrapperStyle}
-            forwardedFSClass={fsClass}
+            pressableWrapperStyle={[
+                styles.mh5,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br2,
+                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+            ]}
         >
-            <TaskListItemRow
-                item={liveTaskItem}
-                showTooltip={showTooltip}
-            />
-        </BaseListItem>
+            <View
+                style={listItemWrapperStyle}
+                fsClass={fsClass}
+            >
+                <TaskListItemRow
+                    item={liveTaskItem}
+                    showTooltip={showTooltip}
+                />
+            </View>
+        </ListItemComposed>
     );
 }
 
