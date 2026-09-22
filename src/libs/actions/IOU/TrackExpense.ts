@@ -47,6 +47,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
+    getConciergeChatReportFields,
     getDefaultNotificationPreferenceForReport,
     getParsedComment,
     getReportOrDraftReport,
@@ -95,7 +96,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
@@ -200,7 +200,7 @@ type GetTrackExpenseInformationParams = {
     currentUserEmailParam: string;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
@@ -1925,7 +1925,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
-                      conciergeChat,
+                      conciergeChat: getConciergeChatReportFields(conciergeChat),
                       delegateAccountID,
                   })?.guidedSetupData
                 : undefined;

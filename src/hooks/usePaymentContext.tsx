@@ -4,8 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy} from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
+import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -34,7 +33,7 @@ type PaymentContextValue = {
     activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     conciergeReportID: string | undefined;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<Report>;
     defaultWorkspaceName: string;
     delegateEmail: string | undefined;
     delegateAccountID: number | undefined;

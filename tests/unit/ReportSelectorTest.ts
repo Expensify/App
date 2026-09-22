@@ -159,8 +159,18 @@ describe('getStableReportSelector', () => {
 });
 
 describe('conciergeChatSelector', () => {
-    // The 9 keys `ConciergeChatReport` is `Pick`-ed from `Report` (src/types/onyx/ConciergeChatReport.ts), sorted.
-    const CONCIERGE_CHAT_REPORT_KEYS = ['chatType', 'errorFields', 'parentReportActionID', 'parentReportID', 'permissions', 'policyID', 'reportID', 'type', 'writeCapability'].sort();
+    // The 9 keys of `ConciergeChatReport` (src/types/onyx/ConciergeChatReport.ts), sorted.
+    const CONCIERGE_CHAT_REPORT_KEYS = [
+        'chatType',
+        'conciergeReportID',
+        'errorFields',
+        'parentReportActionID',
+        'parentReportID',
+        'permissions',
+        'policyID',
+        'type',
+        'writeCapability',
+    ].sort();
 
     const fullReport = {
         reportID: '1',

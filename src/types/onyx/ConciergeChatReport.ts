@@ -1,9 +1,12 @@
-import type Report from './Report';
+import type ReportFields from '@src/types/utils/ReportFields';
 
 /**
- * The subset of a report the onboarding/openReport path actually reads. Fields are added only when a helper's own body
- * proves it needs them; conciergeChatSelector must produce every key.
+ * The subset of the Concierge chat report that the openReport onboarding path reads. Produced only by
+ * getConciergeChatReportFields; every key is required so a producer that misses one fails to compile.
+ * The report ID is deliberately not named `reportID`, so this object can never be passed where a full `Report` is expected.
  */
-type ConciergeChatReport = Pick<Report, 'reportID' | 'chatType' | 'policyID' | 'type' | 'permissions' | 'writeCapability' | 'errorFields' | 'parentReportID' | 'parentReportActionID'>;
+type ConciergeChatReport = {
+    conciergeReportID: string;
+} & ReportFields<'chatType' | 'policyID' | 'type' | 'permissions' | 'writeCapability' | 'errorFields' | 'parentReportID' | 'parentReportActionID'>;
 
 export default ConciergeChatReport;

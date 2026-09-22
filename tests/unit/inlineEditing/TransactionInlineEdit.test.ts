@@ -8,6 +8,7 @@ import {
     editTransactionTagInline,
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
+import {getConciergeChatReportFields} from '@libs/ReportUtils';
 
 import {
     updateMoneyRequestAmountAndCurrency,
@@ -683,7 +684,7 @@ describe('TransactionInlineEdit', () => {
         });
 
         describe('transaction thread creation', () => {
-            const CONCIERGE_CHAT: Report = {reportID: 'concierge-inline-edit-1'};
+            const CONCIERGE_CHAT = getConciergeChatReportFields({reportID: 'concierge-inline-edit-1'});
             const CREATED_THREAD: Report = {reportID: 'inline-edit-thread-1'};
 
             /** An IOU action with no childReportID, so no transaction thread can be resolved from it. */

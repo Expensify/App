@@ -64,7 +64,6 @@ import type {IOUAction, IOUActionParams} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {ReportNextStep} from '@src/types/onyx/Report';
@@ -203,7 +202,7 @@ type RequestMoneyInformation = {
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     isSelfTourViewed: boolean;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;

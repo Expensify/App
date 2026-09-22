@@ -97,6 +97,7 @@ import {
     getChatListItemReportName,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
+    getConciergeChatReportFields,
     getDefaultGroupAvatar,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
@@ -901,7 +902,7 @@ describe('ReportUtils', () => {
             const title = jest.fn();
 
             prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -932,7 +933,7 @@ describe('ReportUtils', () => {
             const description = jest.fn();
 
             prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -966,7 +967,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -987,7 +988,7 @@ describe('ReportUtils', () => {
 
         it('should send the Submit message and tasks to the Concierge DM for EMPLOYER', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
@@ -1001,7 +1002,7 @@ describe('ReportUtils', () => {
 
         it('should send nothing to the Concierge DM for EMPLOYER when onboarding is handled elsewhere', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
@@ -1021,7 +1022,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1042,7 +1043,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1063,7 +1064,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1084,7 +1085,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1105,7 +1106,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1126,7 +1127,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1149,7 +1150,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1169,7 +1170,7 @@ describe('ReportUtils', () => {
 
         it('should send tasks to server for MANAGE_TEAM without adding them to optimisticData', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1189,7 +1190,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1218,7 +1219,7 @@ describe('ReportUtils', () => {
             const updateSpy = jest.spyOn(Onyx, 'update');
 
             prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
@@ -1263,7 +1264,7 @@ describe('ReportUtils', () => {
             const description = jest.fn();
 
             prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1297,7 +1298,7 @@ describe('ReportUtils', () => {
 
         it('should produce empty guidedSetupData for LOOKING_AROUND intent with empty message', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1314,7 +1315,7 @@ describe('ReportUtils', () => {
 
         it('should not include sign-off message for LOOKING_AROUND intent', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1337,7 +1338,7 @@ describe('ReportUtils', () => {
 
         it('should include guidedSetupData for non-LOOKING_AROUND intents', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 onboardingMessage: {
@@ -1358,7 +1359,7 @@ describe('ReportUtils', () => {
 
         it('should auto-complete VIEW_TOUR task when isSelfTourViewed is true', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1387,7 +1388,7 @@ describe('ReportUtils', () => {
 
         it('should not auto-complete VIEW_TOUR task when isSelfTourViewed is false', () => {
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
@@ -1434,7 +1435,7 @@ describe('ReportUtils', () => {
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 delegateAccountID: DELEGATE_ACCOUNT_ID,
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
             });
 
             const commentActions = (result?.optimisticData ?? [])
@@ -1456,7 +1457,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
-                conciergeChat: conciergeChatReport,
+                conciergeChat: getConciergeChatReportFields(conciergeChatReport),
                 introSelected: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {

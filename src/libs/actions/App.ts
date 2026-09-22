@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -608,7 +607,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
@@ -777,7 +776,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy: OnyxEntry<OnyxTypes.Policy>;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
@@ -867,7 +866,7 @@ type SetUpPoliciesAndNavigateParams = {
     hasActiveAdminPolicies: boolean;
     lastWorkspaceNumber: number | undefined;
     translate: LocalizedTranslate;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     policyOwnerAccountID: number | undefined;
     policyOwnerDisplayName: string | undefined;
     hasOwnedPaidPolicy: boolean;

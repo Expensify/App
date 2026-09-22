@@ -41,7 +41,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -72,7 +71,7 @@ type PayInvoiceArgs = {
     methodID?: number;
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
@@ -115,7 +114,7 @@ type PayMoneyRequestFunctionParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
@@ -171,7 +170,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -827,7 +826,7 @@ function completePaymentOnboarding(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     currentUserAccountID: number,
-    conciergeChat: OnyxEntry<ConciergeChatReport>,
+    conciergeChat: OnyxEntry<OnyxTypes.Report>,
     delegateAccountID: number | undefined,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,

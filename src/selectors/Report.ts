@@ -1,6 +1,7 @@
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
+    getConciergeChatReportFields,
     getPolicyIDsWithEmptyReportsForAccount,
     isArchivedReport,
     isChatRoom,
@@ -357,25 +358,11 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
 }
 
 /**
- * Projection of the Concierge chat report for subscribers that only forward it into the onboarding/openReport action
- * path. The key set is `ConciergeChatReport`; the narrowed util chain in ReportUtils enforces that nothing downstream
- * reads more, and the `satisfies` guard enforces that every key is produced here.
+ * Selector for subscribers that only forward the Concierge chat report into the openReport onboarding path.
+ * Strips every field that path does not read, so `live*` and other frequently changing fields do not re-render them.
  */
 function conciergeChatSelector(report: OnyxEntry<Report>): ConciergeChatReport | undefined {
-    if (!report?.reportID) {
-        return undefined;
-    }
-    return {
-        reportID: report.reportID,
-        chatType: report.chatType,
-        policyID: report.policyID,
-        type: report.type,
-        permissions: report.permissions,
-        writeCapability: report.writeCapability,
-        errorFields: report.errorFields,
-        parentReportID: report.parentReportID,
-        parentReportActionID: report.parentReportActionID,
-    } satisfies Record<keyof ConciergeChatReport, unknown> & ConciergeChatReport;
+    return getConciergeChatReportFields(report);
 }
 
 function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {

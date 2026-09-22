@@ -91,7 +91,6 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
@@ -280,7 +279,7 @@ type HandleActionButtonPressParams = {
     isTrackIntentUser: boolean | undefined;
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -620,7 +619,7 @@ type GetPayActionCallbackParams = {
     chatReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
 };
