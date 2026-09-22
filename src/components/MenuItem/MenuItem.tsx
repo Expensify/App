@@ -706,6 +706,13 @@ function MenuItem({
 
     const hasPressableRightComponent = (iconRight ?? icons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 
+    // Every element that can render after the brick road indicator in the trailing container. The indicator only needs a
+    // trailing margin when one of these actually follows it, otherwise it should sit flush against the row's padding.
+    // The hover-only copy button is included on its static conditions (ignoring `isHovered`/`deviceHasHoverSupport`) so the
+    // indicator keeps a stable position instead of shifting 8px when the pointer enters the row.
+    const hasTrailingElementAfterBrickRoad =
+        (!title && !!rightLabel && !errorText) || shouldShowRightIcon || (shouldShowRightComponent && !!rightComponent) || shouldShowRadioButton || (copyable && !!copyValue && !interactive);
+
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
@@ -1106,7 +1113,7 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {!!brickRoadIndicator && (
-                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, (!!rightComponent || shouldShowRightIcon) && styles.mr2]}>
+                                                    <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, hasTrailingElementAfterBrickRoad && styles.mr2]}>
                                                         <Icon
                                                             src={icons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
