@@ -277,13 +277,7 @@ import {DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import deleteReport from './DeleteReport';
-
-type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
-
-type ActionSubscriber = {
-    reportID: string;
-    callback: SubscriberCallback;
-};
+import {notifyNewAction} from './reportActionSubscribers';
 
 type Video = Dimensions & {
     url: string;
@@ -816,35 +810,6 @@ function unsubscribeFromReportReasoningChannel(reportID: string) {
 function clearAgentZeroProcessingIndicator(reportID: string, agentAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: {[agentAccountID]: null}});
     AgentZeroReasoningStore.clearReasoning(reportID, agentAccountID);
-}
-
-// New action subscriber array for report pages
-let newActionSubscribers: ActionSubscriber[] = [];
-
-/**
- * Enables the Report actions file to let the ReportActionsList know that a new comment has arrived in realtime for the current report
- * Add subscriber for report id
- * @returns Remove subscriber for report id
- */
-function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallback): () => void {
-    newActionSubscribers.push({callback, reportID});
-    return () => {
-        newActionSubscribers = newActionSubscribers.filter((subscriber) => subscriber.reportID !== reportID);
-    };
-}
-
-/** Notify the ReportActionsList that a new comment has arrived */
-function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
-    if (!reportID) {
-        return;
-    }
-    const ids = Array.isArray(reportID) ? reportID : [reportID];
-    for (const id of ids) {
-        const actionSubscriber = newActionSubscribers.find((subscriber) => subscriber.reportID === id);
-        if (actionSubscriber) {
-            actionSubscriber.callback(isFromCurrentUser, reportAction);
-        }
-    }
 }
 
 /**
@@ -4146,7 +4111,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: OnyxEntry<Policy>;
+    policy: Policy;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
@@ -4158,7 +4123,8 @@ function updateReportField({
 }) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
-    const recentlyUsedValues = recentlyUsedReportFields?.[fieldKey] ?? [];
+    const recentlyUsedValuesForField = recentlyUsedReportFields?.[fieldKey];
+    const recentlyUsedValues = Array.isArray(recentlyUsedValuesForField) ? recentlyUsedValuesForField : [];
 
     const optimisticChangeFieldAction = buildOptimisticChangeFieldAction(reportField, previousReportField, accountID);
     const predictedNextStatus = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
@@ -8554,7 +8520,7 @@ function changeReportPolicyAndInviteSubmitter({
     }
 
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = currentUser;
-    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
+    const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, undefined, false, false));
     const {
         optimisticData: optimisticAddMembersData,
         successData: successAddMembersData,
@@ -9048,7 +9014,6 @@ export {
     navigateToConciergeChat,
     navigateToConciergeChatAndDeleteReport,
     clearCreateChatError,
-    notifyNewAction,
     openReport,
     openRoomMembersPage,
     readNewestAction,
@@ -9070,7 +9035,6 @@ export {
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,
-    subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
     clearAgentZeroProcessingIndicator,
     clearConciergeThinkingKickoff,

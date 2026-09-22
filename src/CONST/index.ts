@@ -3938,6 +3938,16 @@ const CONST = {
         TAG: 'TAG',
     },
 
+    /**
+     * How far a Business Central vendor is blocked. `_x0020_` is the unblocked value Business Central
+     * sends, `PAYMENT` still allows purchase invoices, and `ALL` forbids every transaction.
+     */
+    BUSINESS_CENTRAL_VENDOR_BLOCKED: {
+        NONE: '_x0020_',
+        PAYMENT: 'Payment',
+        ALL: 'All',
+    },
+
     UPDATE_PERSONAL_BANK_ACCOUNT: {
         PAGE_NAME: {
             LEGAL_NAME: 'legal-name',
@@ -5353,6 +5363,15 @@ const CONST = {
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
+
+        /**
+         * How a card's export account is resolved. Most integrations point a card's NVP at one entry in a flat account
+         * list, while Rillet and DualEntry resolve it through a program account that each card feed can override.
+         */
+        EXPORT_RESOLVER: {
+            SINGLE_ACCOUNT: 'singleAccount',
+            PROGRAM_ACCOUNT: 'programAccount',
+        },
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -7105,12 +7124,6 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
-    /** How many report fields are shown side by side in the report view on a wide layout */
-    REPORT_FIELDS_PER_ROW: 3,
-
-    /** Below this many options, a report field list is short enough to scan without a search input */
-    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
-
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -7263,6 +7276,7 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
@@ -8175,7 +8189,11 @@ const CONST = {
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
-            FADE_DURATION: 200,
+            FADE_DURATION: 150,
+
+            // How long the results area may keep showing the previous query's results while a new query loads. Past
+            // this, a slow query gives up the stale results and swaps to the skeleton so the wait is visible.
+            MAX_STALE_HOLD_DURATION: 500,
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,

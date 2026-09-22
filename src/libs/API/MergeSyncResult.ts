@@ -1,4 +1,4 @@
-type HrSyncSkippedEmployee = {
+type MergeSyncSkippedEmployee = {
     /** Full name of the employee */
     name: string;
 
@@ -9,7 +9,7 @@ type HrSyncSkippedEmployee = {
     reason: string;
 };
 
-type HrSyncResult = {
+type MergeSyncResult = {
     /** Number of employees added during the sync */
     addedEmployeesCount?: number;
 
@@ -17,7 +17,7 @@ type HrSyncResult = {
     removedEmployeesCount?: number;
 
     /** Employees that were skipped during the sync */
-    skippedEmployees?: HrSyncSkippedEmployee[];
+    skippedEmployees?: MergeSyncSkippedEmployee[];
 };
 
-export default HrSyncResult;
+export default MergeSyncResult;

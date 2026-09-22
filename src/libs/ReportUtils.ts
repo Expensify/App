@@ -4545,6 +4545,7 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserAccountID,
         reportActions,
         reports,
+        allReportActionsParam ?? allReportActions,
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
@@ -4552,12 +4553,11 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport(iouReportID);
-    const hasAllExpensesHeld = hasOnlyHeldExpenses(transactions);
     const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? getAllReportActions(iouReportID);
-    // An all-held report can't move to its next state, so it isn't a to-do. Keep it only for a report awaiting
-    // approval or payment where the current user placed a hold, since they can remove it. An open report stays
-    // excluded because only its owner can place a hold there, and that owner is the one who submits.
-    const isExcludedForHeldExpenses = hasAllExpensesHeld && (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(iouReportActions, transactions, currentUserAccountID));
+    // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
+    // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
+    // child is fully held.
+    const isFallbackReportExcludedForHeldExpenses = !iouReportActionToApproveOrPay && isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID);
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
@@ -4566,12 +4566,21 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasValidIOUAction =
         ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
         !hasOnlyPendingTransactions &&
-        !isExcludedForHeldExpenses;
+        !isFallbackReportExcludedForHeldExpenses;
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         if (isAssigneeExpenseAction) {
-            const assigneeBadge = getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+            const assigneeBadge = getBadgeFromIOUReport(
+                optionOrReport,
+                undefined,
+                policy,
+                optionReportMetadata,
+                invoiceReceiverPolicy,
+                currentUserLogin,
+                currentUserAccountID,
+                reportActions,
+            );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
                 ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
@@ -4821,6 +4830,18 @@ function didCurrentUserPlaceHoldOnReportExpense(reportActions: OnyxEntry<ReportA
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
         return !!transaction && isOnHoldTransactionUtils(transaction) && isHoldCreator(transaction, action.childReportID, currentUserAccountID);
     });
+}
+
+/**
+ * An all-held report can't move to its next state, so it isn't a to-do and doesn't get an action badge. Keep it only
+ * for a report awaiting approval or payment where the current user placed a hold, since they can remove it. An open
+ * report stays excluded because only its owner can place a hold there, and that owner is the one who submits.
+ */
+function isReportExcludedForHeldExpenses(iouReport: OnyxEntry<Report>, transactions: Transaction[], reportActions: OnyxEntry<ReportActions>, currentUserAccountID?: number): boolean {
+    if (!hasOnlyHeldExpenses(transactions)) {
+        return false;
+    }
+    return isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(reportActions, transactions, currentUserAccountID);
 }
 
 /**
@@ -10147,6 +10168,7 @@ function getAllReportErrors(
     reportActions: OnyxEntry<ReportActions>,
     allTransactions: OnyxCollection<Transaction>,
     currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): Errors {
@@ -10166,8 +10188,7 @@ function getAllReportErrors(
         ...reportActionErrors,
     };
 
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    if (reportErrorFields.export && !getConnectedIntegration(reportPolicy)) {
+    if (reportErrorFields.export && !getConnectedIntegration(policy)) {
         delete errorSources.export;
     }
 
@@ -10314,17 +10335,11 @@ function reasonForReportToBeInOptionList({
         !report?.reportID ||
         !report?.type ||
         report?.reportName === undefined ||
-        (!report?.participants &&
-            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
-            // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
-            !isChatRoom(report) &&
-            !isChatThreadReport &&
-            !isReportArchived &&
-            !isMoneyRequestReport(report) &&
-            !isTaskReport(report) &&
-            !isSelfDMReport &&
-            !isSystemChatReport &&
-            !isGroupChat(report))
+        // A DM's name and avatar come entirely from `participants`, so a DM without them has nothing to render.
+        // Every other report type gets its name and icon from elsewhere (the policy, the chat type, the parent action),
+        // and search-shaped endpoints routinely omit `participants` to keep their payloads small, so those reports
+        // stay in the list. Archived DMs are kept too, since they can no longer be repopulated.
+        (!report?.participants && isDM(report) && !isReportArchived)
     ) {
         return null;
     }
@@ -10792,7 +10807,7 @@ function getMoneyRequestOptions(
     }
 
     if (isInvoiceRoom(report)) {
-        if (canSendInvoiceFromWorkspace(policy) && isPolicyAdmin(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`])) {
+        if (canSendInvoiceFromWorkspace(policy) && isPolicyAdmin(policy)) {
             return [CONST.IOU.TYPE.INVOICE];
         }
         return [];
@@ -13501,7 +13516,15 @@ function generateReportAttributes({
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const hasViolationsToDisplayInLHN = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN;
-    const reportErrors = getAllReportErrors(report, reportActionsList, allTransactions, currentUserAccountID, isReportArchived, reports);
+    const reportErrors = getAllReportErrors(
+        report,
+        reportActionsList,
+        allTransactions,
+        currentUserAccountID,
+        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`],
+        isReportArchived,
+        reports,
+    );
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
@@ -14507,6 +14530,7 @@ export {
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,
+    isReportExcludedForHeldExpenses,
     isReportManuallyReimbursed,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
