@@ -10335,17 +10335,11 @@ function reasonForReportToBeInOptionList({
         !report?.reportID ||
         !report?.type ||
         report?.reportName === undefined ||
-        (!report?.participants &&
-            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
-            // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
-            !isChatRoom(report) &&
-            !isChatThreadReport &&
-            !isReportArchived &&
-            !isMoneyRequestReport(report) &&
-            !isTaskReport(report) &&
-            !isSelfDMReport &&
-            !isSystemChatReport &&
-            !isGroupChat(report))
+        // A DM's name and avatar come entirely from `participants`, so a DM without them has nothing to render.
+        // Every other report type gets its name and icon from elsewhere (the policy, the chat type, the parent action),
+        // and search-shaped endpoints routinely omit `participants` to keep their payloads small, so those reports
+        // stay in the list. Archived DMs are kept too, since they can no longer be repopulated.
+        (!report?.participants && isDM(report) && !isReportArchived)
     ) {
         return null;
     }

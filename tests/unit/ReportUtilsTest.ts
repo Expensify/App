@@ -8646,26 +8646,56 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
-        it('should return false when the report does not have participants', () => {
-            const report = LHNTestUtils.getFakeReport([]);
+        it('should return false when a DM does not have participants', () => {
+            // Given a DM with no participants, which takes its name and avatar from `participants` alone
+            const report: Report = {...LHNTestUtils.getFakeReport(), participants: undefined};
             const currentReportId = '';
-            const isInFocusMode = true;
-            expect(
-                shouldReportBeInOptionList({
-                    report,
-                    chatReport: mockedChatReport,
-                    currentReportId,
-                    isInFocusMode,
-                    isDefaultRoomsBetaEnabled: true,
-                    doesReportHaveViolations: false,
-                    excludeEmptyChats: false,
-                    draftComment: '',
-                    isReportArchived: undefined,
-                    hasGuidesEmails: false,
-                    conciergeReportID: undefined,
-                    derivedIsEmptyReport: undefined,
-                }),
-            ).toBeFalsy();
+
+            // When it is evaluated outside focus mode, so only the participants check can exclude it
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is excluded, because there would be nothing to render in the option item
+            expect(result).toBeFalsy();
+        });
+
+        it('should return true when a policy expense chat does not have participants', () => {
+            // Given a policy expense chat with no participants, as SearchForTodos returns it to keep its payload small
+            const report: Report = {...LHNTestUtils.getFakeReportWithPolicy(), participants: undefined};
+            const currentReportId = '';
+
+            // When it is evaluated for the option list
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is kept, because a workspace chat renders its name and icon from its policy
+            expect(result).toBeTruthy();
         });
 
         it('should return false when the report is the report that the user cannot access due to policy restrictions', () => {
