@@ -1535,6 +1535,7 @@ describe('Transaction', () => {
                 reports,
                 transactionViolations: {},
                 isTrackIntentUser: false,
+                isVendorMatchingBetaEnabled: false,
             });
             await waitForBatchedUpdates();
 
