@@ -10758,6 +10758,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     one: 'Testversion: Noch 1 Tag übrig!',
                     other: `Testversion: Noch ${count} Tage übrig!`,
                 }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Noch 1 Tag übrig!',
+                    other: `Noch ${count} Tage übrig!`,
+                }),
                 subtitle: 'Füge eine Zahlungskarte hinzu, um alle deine Lieblingsfunktionen weiterhin nutzen zu können.',
             },
             trialEnded: {

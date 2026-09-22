@@ -299,7 +299,7 @@
 "../../src/components/ReportActionAvatars/useReportActionAvatars.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/ReportActionAvatars/useReportPreviewSenderID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/IssueCardMessage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"rulesdir/no-direct-personal-details-list"	3

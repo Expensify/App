@@ -10710,6 +10710,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     one: 'Prova: 1 giorno rimanente!',
                     other: `Prova: ${count} giorni rimanenti!`,
                 }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: '1 giorno rimanente!',
+                    other: `${count} giorni rimanenti!`,
+                }),
                 subtitle: 'Aggiungi una carta di pagamento per continuare a usare tutte le tue funzionalità preferite.',
             },
             trialEnded: {

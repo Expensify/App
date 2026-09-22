@@ -3307,14 +3307,6 @@ const staticStyles = (theme: ThemeColors) =>
             transform: [{rotate: '180deg'}],
         },
 
-        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
-        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
-        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
-        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
-        flipUpsideDownInPlace: {
-            transform: [{scaleY: -1}],
-        },
-
         navigationScreenCardStyle: {
             height: '100%',
         },
@@ -6976,7 +6968,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
