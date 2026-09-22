@@ -139,15 +139,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
-    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const canUseCampfireIntegration = isBetaEnabled(CONST.BETAS.CAMPFIRE) || !!policy?.connections?.campfire;
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
-                    return canUseDualEntryIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
                     return canUseCampfireIntegration;
                 }
@@ -156,7 +152,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 }
                 return true;
             }),
-        [canUseDualEntryIntegration, canUseCampfireIntegration, canUseBusinessCentralIntegration],
+        [canUseCampfireIntegration, canUseBusinessCentralIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>

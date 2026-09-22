@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -42,6 +43,7 @@ import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, Transac
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -282,6 +284,13 @@ function GroupHeader({
                         {...commonProps}
                     />
                 );
+            case CONST.SEARCH.GROUP_BY.DAY:
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
+                        {...commonProps}
+                    />
+                );
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return (
                     <MonthListItemHeader
@@ -339,7 +348,7 @@ function GroupHeader({
     );
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
