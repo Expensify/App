@@ -2785,17 +2785,11 @@ describe('ReportActionsUtils', () => {
         });
     });
     describe('isDeletedAction', () => {
-        it('should keep an agent prompt update with a text fragment visible', () => {
+        it('should keep an agent prompt update with an empty message visible', () => {
             const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
                 reportActionID: '1',
-                message: [
-                    {
-                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                        style: 'normal',
-                        text: "owner@expensify.com updated this agent's instructions.",
-                    },
-                ],
+                message: [],
                 originalMessage: {
                     previousPrompt: 'Review every expense',
                     newPrompt: 'Review expenses over $100',
