@@ -26,6 +26,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 
+import ConciergeCloudsBackdrop from './ConciergeCloudsBackdrop';
 import ConciergePromptBox from './ConciergePromptBox';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
@@ -223,6 +224,7 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
 
     return (
         <WidgetContainer
+            backgroundContent={shouldUseNarrowLayout ? <ConciergeCloudsBackdrop /> : undefined}
             containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}
             titleContent={
                 <ConciergePromptBox
