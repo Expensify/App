@@ -889,8 +889,8 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.CLAUDE_MCP_HELP_URL);
     });
 
-    it('skips the connections prefetch and enables the CTA immediately when the destination does not need connection data', async () => {
-        // Given an admin whose only admin workspace is not the active one, which is the shape that used to trigger the prefetch
+    it('never fetches workspace connections and enables the CTA immediately', async () => {
+        // Given an admin whose only admin workspace is not the active one, which is the shape that used to trigger a connections prefetch
         await act(async () => {
             await setupOnyxBaseline({
                 isAdmin: true,
@@ -907,7 +907,7 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        // Then no connections are fetched, because this release's CTA destination is a fixed external link
+        // Then no connections are fetched, because the CTA destination is a fixed external link that needs no workspace data
         expect(mockOpenPolicyAccountingPage).not.toHaveBeenCalled();
 
         // When the CTA is pressed on the very first render

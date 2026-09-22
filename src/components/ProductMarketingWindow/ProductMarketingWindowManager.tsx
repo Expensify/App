@@ -1,13 +1,10 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
 import {dismissMarketingWindow} from '@libs/actions/User';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import openExternalLink from '@libs/openExternalLink';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
@@ -55,7 +52,6 @@ type ProductMarketingWindowManagerProps = {
  */
 function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindowManagerProps) {
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const {isBetaEnabled} = usePermissions();
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // Only the ID is selected out of the policy collection: returning the admin policies themselves makes
     // useOnyx deep-compare every policy object on each collection update, which costs tens of ms on large accounts.
@@ -65,7 +61,6 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
             return (activeAdminPolicies.find((policy) => policy.id === activePolicyID) ?? activeAdminPolicies.at(0))?.id;
         },
     });
-    const [targetAdminPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(targetAdminPolicyID)}`);
     // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
     // Responsive popover sheets and route-backed right-docked navigation remain exempt.
     const [isProductMarketingWindowCovered = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
@@ -98,13 +93,6 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const illustrationNames = announcement ? [announcement.admin.visual, announcement.member?.visual].flatMap((visual) => (visual?.type === 'illustration' ? [visual.name] : [])) : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    // Only announcements whose CTA destination depends on connection data pay for the prefetch, which also
-    // keeps the CTA disabled until it resolves.
-    const shouldPrefetchTargetPolicyConnections = !!variant?.shouldPrefetchAdminPolicyConnections && !!targetAdminPolicyID && targetAdminPolicyID !== activePolicyID;
-    const {isFetchNeeded, isLoadingFetchedFlag, hasBeenFetched} = usePolicyConnectionsPrefetch(targetAdminPolicy, shouldPrefetchTargetPolicyConnections);
-    const isAdminCtaPending = shouldPrefetchTargetPolicyConnections && (isLoadingFetchedFlag || (isFetchNeeded && hasBeenFetched === undefined));
-    const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading =
         isLoadingOnyxValue(
@@ -151,16 +139,9 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     };
 
     const completeCta = () => {
-        if (isAdminCtaPending) {
-            return;
-        }
         // Record the dismissal before leaving so the window doesn't flash again during navigation.
         persistDismissal();
-        const destination = variant.getCtaDestination({
-            adminPolicy: targetAdminPolicy,
-            isVendorMatchingBetaEnabled,
-            isAdminPolicyConnectionDataAvailable,
-        });
+        const destination = variant.ctaDestination;
         if (destination.type === 'externalLink') {
             openExternalLink(destination.url);
             return;
@@ -172,7 +153,6 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         <ProductMarketingWindow
             variant={variant}
             illustration={variant.visual.type === 'illustration' ? illustrations[variant.visual.name] : undefined}
-            isCtaDisabled={isAdminCtaPending}
             onCtaPress={completeCta}
             onDismiss={dismiss}
         />

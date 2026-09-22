@@ -5,7 +5,6 @@ import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,17 +19,6 @@ type ProductMarketingAnnouncementVisual =
           type: 'illustration';
           name: IllustrationName;
       };
-
-type ProductMarketingCtaContext = {
-    /** Admin workspace selected for the announcement. Undefined for member variants. */
-    adminPolicy?: Policy;
-
-    /** Whether the vendor-matching beta is enabled for the current account. */
-    isVendorMatchingBetaEnabled: boolean;
-
-    /** Whether connection hydration completed for the selected admin workspace. */
-    isAdminPolicyConnectionDataAvailable: boolean;
-};
 
 /** Where the primary CTA sends the user: an in-app route, or an external page opened in a new tab. */
 type ProductMarketingCtaDestination =
@@ -57,14 +45,8 @@ type ProductMarketingAnnouncementVariant = {
     /** Label of the primary CTA button. */
     ctaLabel: TranslationPaths;
 
-    /**
-     * Whether this variant's CTA destination depends on the selected admin workspace's connections.
-     * Only such variants pay for the connections prefetch, which also disables the CTA until it resolves.
-     */
-    shouldPrefetchAdminPolicyConnections?: boolean;
-
-    /** Builds the destination the primary CTA sends the user to using the selected audience and workspace context. */
-    getCtaDestination: (context: ProductMarketingCtaContext) => ProductMarketingCtaDestination;
+    /** Where the primary CTA sends the user. */
+    ctaDestination: ProductMarketingCtaDestination;
 };
 
 type ProductMarketingAnnouncementUpdateKey = ValueOf<typeof CONST.MARKETING_WINDOW_UPDATE_KEYS>;
@@ -87,7 +69,7 @@ const september2026Variant: ProductMarketingAnnouncementVariant = {
     heading: 'productMarketingWindow.heading',
     body: 'productMarketingWindow.body',
     ctaLabel: 'common.learnMore',
-    getCtaDestination: () => ({type: 'externalLink', url: CONST.CLAUDE_MCP_HELP_URL}),
+    ctaDestination: {type: 'externalLink', url: CONST.CLAUDE_MCP_HELP_URL},
 };
 
 /**
@@ -128,4 +110,4 @@ function getProductMarketingAnnouncementVariant(
 }
 
 export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed, getProductMarketingAnnouncementVariant};
-export type {ProductMarketingAnnouncement, ProductMarketingAnnouncementVariant, ProductMarketingCtaDestination};
+export type {ProductMarketingAnnouncement, ProductMarketingAnnouncementVariant};

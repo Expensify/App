@@ -10,14 +10,14 @@ const activeAnnouncement: ProductMarketingAnnouncement = {
         heading: 'productMarketingWindow.heading',
         body: 'productMarketingWindow.body',
         ctaLabel: 'common.learnMore',
-        getCtaDestination: () => ({type: 'route', route: ROUTES.WORKSPACES_LIST.getRoute()}),
+        ctaDestination: {type: 'route', route: ROUTES.WORKSPACES_LIST.getRoute()},
     },
     member: {
         visual: {type: 'illustration', name: 'MultiScan'},
         heading: 'productMarketingWindow.heading',
         body: 'productMarketingWindow.body',
         ctaLabel: 'common.learnMore',
-        getCtaDestination: () => ({type: 'externalLink', url: 'https://help.expensify.com'}),
+        ctaDestination: {type: 'externalLink', url: 'https://help.expensify.com'},
     },
 };
 const adminOnlyAnnouncement: ProductMarketingAnnouncement = {
