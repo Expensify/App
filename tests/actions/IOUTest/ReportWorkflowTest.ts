@@ -94,14 +94,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/deferredLayoutWrite', () => ({
@@ -5165,7 +5157,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`, [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}]);
             await waitForBatchedUpdates();
 
-            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions, undefined, {
+            const result = getIOUReportActionWithBadge(fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, mockChatReportActions, undefined, undefined, {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
             });
             expect(result.reportAction).toBeUndefined();
@@ -5821,7 +5813,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
@@ -5873,7 +5865,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -5929,7 +5921,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -5994,7 +5986,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeNonReimbursableTransaction.transactionID}`, fakeNonReimbursableTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -6053,7 +6045,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -6089,7 +6081,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -6150,7 +6142,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // RORY_EMAIL is not the designated payer, so they should not get the PAY badge
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID);
+            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined);
             expect(result).toBeUndefined();
         });
     });
