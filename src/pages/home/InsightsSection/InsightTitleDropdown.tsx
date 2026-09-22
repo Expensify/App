@@ -97,6 +97,7 @@ function InsightTitleDropdown({configs, selectedKey, onSelect}: InsightTitleDrop
                 anchorPosition={menuPosition}
                 anchorAlignment={ANCHOR_ALIGNMENT}
                 shouldShowRadioButton
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         </View>
     );

@@ -1,5 +1,6 @@
 import OptionRow from '@components/OptionRow';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -38,6 +39,9 @@ type BaseReactionListProps = ReactionListProps & {
      * Returns true if the reaction list is visible
      */
     isVisible?: boolean;
+
+    /** Whether to add bottom safe area padding to the list content */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 const keyExtractor: FlatListProps<PersonalDetails>['keyExtractor'] = (item, index) => `${item.login}+${index}`;
@@ -48,12 +52,13 @@ const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, inde
     offset: variables.listItemHeightNormal * index,
 });
 
-function BaseReactionList({hasUserReacted = false, users, isVisible = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
+function BaseReactionList({hasUserReacted = false, users, isVisible = false, addBottomSafeAreaPadding = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: pv2});
 
     if (!isVisible) {
         return null;
@@ -107,7 +112,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 getItemLayout={getItemLayout}
-                contentContainerStyle={pv2}
+                contentContainerStyle={contentContainerStyle}
                 style={[reactionListContainer, !shouldUseNarrowLayout && reactionListContainerFixedWidth]}
             />
         </>
