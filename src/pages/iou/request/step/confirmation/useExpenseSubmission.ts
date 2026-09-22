@@ -68,7 +68,6 @@ type UseExpenseSubmissionParams = {
     // Request type flags
     iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
     action: DeepValueOf<typeof CONST.IOU.ACTION>;
-    requestType: DeepValueOf<typeof CONST.IOU.REQUEST_TYPE> | undefined;
     isDistanceRequest: boolean;
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;

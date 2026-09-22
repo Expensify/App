@@ -216,7 +216,6 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         participants: [{accountID: 42, login: 'them@test.com', selected: true}],
         iouType: CONST.IOU.TYPE.REQUEST,
         action: CONST.IOU.ACTION.CREATE,
-        requestType: undefined,
         isDistanceRequest: false,
         isManualDistanceRequest: false,
         isOdometerDistanceRequest: false,
@@ -463,7 +462,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         action: CONST.IOU.ACTION.SUBMIT,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -509,7 +507,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                     buildParams({
                         transaction: distanceTransaction,
                         transactions: [distanceTransaction],
-                        requestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                         isDistanceRequest: true,
                         isManualDistanceRequest: true,
                     }),
@@ -541,7 +538,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                     buildParams({
                         transaction: distanceTransaction,
                         transactions: [distanceTransaction],
-                        requestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                         isDistanceRequest: true,
                         isManualDistanceRequest: true,
                     }),
@@ -678,7 +674,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -703,7 +698,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -728,7 +722,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -756,7 +749,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
