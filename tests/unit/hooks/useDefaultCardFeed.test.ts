@@ -170,4 +170,21 @@ describe('useDefaultCardFeed', () => {
             expect(result.current).toEqual({fundID: domainFundIDWithZero, programKey: CONST.COUNTRY.GB});
         });
     });
+
+    it('resolves legacy nested CURRENT settings on the workspace fund', async () => {
+        // Given a legacy workspace whose settings are nested under CURRENT instead of US
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceFundID}`, {
+            [CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT]: {isMonthlySettlementAllowed: true, monthlySettlementDate: 10},
+        });
+        await waitForBatchedUpdates();
+
+        // When the workspace resolves its default card feed
+        const {result} = renderHook(() => useDefaultCardFeed(policyID));
+
+        // Then it keeps the legacy program key so callers read the CURRENT block
+        await waitFor(() => {
+            expect(result.current).toEqual({fundID: workspaceFundID, programKey: CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT});
+        });
+    });
 });

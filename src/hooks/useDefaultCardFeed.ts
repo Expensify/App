@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useCallback} from 'react';
 
@@ -26,6 +26,21 @@ type DefaultCardFeed = {
     /** Which of the fund's programs (US/GB) to display, since one fund's settings can hold both */
     programKey: CardProgramKey;
 };
+
+/** Includes the legacy nested CURRENT program when no user-selectable US/GB program is configured. */
+function getConfiguredDefaultCardProgramKeys(cardSettings: OnyxEntry<ExpensifyCardSettings>): CardProgramKey[] {
+    const configuredProgramKeys = getConfiguredExpensifyCardProgramKeys(cardSettings);
+    if (configuredProgramKeys.length > 0) {
+        return configuredProgramKeys;
+    }
+
+    const currentProgramSettings = cardSettings?.[CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT];
+    if (currentProgramSettings && typeof currentProgramSettings === 'object' && !Array.isArray(currentProgramSettings)) {
+        return [CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT];
+    }
+
+    return [];
+}
 
 /**
  * Hook to get the default card feed for a given policyID: the fundID used to look up settings and cards, paired with the
@@ -48,7 +63,7 @@ function useDefaultCardFeed(policyID: string | undefined): DefaultCardFeed {
     const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedFundID}`);
     // A feed key saved before programs were persisted alongside the fund carries no program, so fall back to the fund's
     // first configured program to find the settlement account that decides whether the feed is still usable.
-    const lastSelectedFeedProgramKey = lastSelectedProgramKey ?? getConfiguredExpensifyCardProgramKeys(lastSelectedCardSettings).at(0);
+    const lastSelectedFeedProgramKey = lastSelectedProgramKey ?? getConfiguredDefaultCardProgramKeys(lastSelectedCardSettings).at(0);
     const lastSelectedProgramSettings = lastSelectedFeedProgramKey ? getCardSettings(lastSelectedCardSettings, lastSelectedFeedProgramKey) : lastSelectedCardSettings;
 
     const getDomainFeed = useCallback(
@@ -71,7 +86,7 @@ function useDefaultCardFeed(policyID: string | undefined): DefaultCardFeed {
                 .flatMap(([key, settings]) => {
                     // A legacy fund keeps its single US program flat on the root with no nested block, so it configures no
                     // program keys. Treat it as a US candidate so it stays matchable.
-                    const programKeys = getConfiguredExpensifyCardProgramKeys(settings);
+                    const programKeys = getConfiguredDefaultCardProgramKeys(settings);
                     const candidateProgramKeys: CardProgramKey[] = programKeys.length > 0 ? programKeys : [CONST.COUNTRY.US];
                     return candidateProgramKeys.map((programKey) => ({fundID: getFundIdFromSettingsKey(key), settings, programKey}));
                 });
@@ -103,7 +118,7 @@ function useDefaultCardFeed(policyID: string | undefined): DefaultCardFeed {
     // Resolve the program against the fund actually being returned: when the last-selected feed is unusable the fallbacks
     // below point at a different fund, whose configured programs need not include the last-selected one.
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
-    const configuredProgramKeys = getConfiguredExpensifyCardProgramKeys(cardSettings);
+    const configuredProgramKeys = getConfiguredDefaultCardProgramKeys(cardSettings);
     const storedProgramKey = configuredProgramKeys.find((key) => key === lastSelectedProgramKey);
 
     // A domain feed was matched per program, so that program is the answer. It outranks the stored key, which was chosen
