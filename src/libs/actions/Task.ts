@@ -3,7 +3,7 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import * as API from '@libs/API';
-import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
+import type {CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -26,13 +26,11 @@ import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -43,7 +41,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
+import {notifyNewAction} from './Report/reportActionSubscribers';
 import {setSelfTourViewed} from './Welcome';
 
 type EditTaskAssigneeOptions = {
@@ -108,11 +106,6 @@ type CreateTaskFromMarkdownParams = {
     delegateAccountID: number | undefined;
     /** The ancestors of the task */
     ancestors?: ReportUtils.Ancestor[];
-};
-
-type DeleteTaskOptions = {
-    ancestors?: ReportUtils.Ancestor[];
-    shouldNavigateBack?: boolean;
 };
 
 /**
@@ -1339,179 +1332,6 @@ function getShareDestination(
 }
 
 /**
- * Calculate the URL to navigate to after a task deletion
- * @param report - The task report being deleted
- * @returns The URL to navigate to
- */
-function getNavigationUrlOnTaskDelete(report: OnyxEntry<OnyxTypes.Report>, conciergeReportID: string | undefined, reportActions: OnyxEntry<OnyxTypes.ReportActions>): string | undefined {
-    if (!report) {
-        return undefined;
-    }
-
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, reportActions);
-    if (!shouldDeleteTaskReport) {
-        return undefined;
-    }
-
-    if (report?.parentReportID) {
-        return ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID);
-    }
-
-    // If no parent report, try to navigate to most recent report
-    const mostRecentReportID = getMostRecentReportID(report, conciergeReportID);
-    if (mostRecentReportID) {
-        return ROUTES.REPORT_WITH_ID.getRoute(mostRecentReportID);
-    }
-
-    return undefined;
-}
-
-/**
- * Cancels a task by setting the report state to SUBMITTED and status to CLOSED
- */
-function deleteTask(
-    report: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
-    isReportArchived: boolean,
-    currentUserAccountID: number,
-    hasOutstandingChildTask: boolean,
-    parentReportAction: OnyxEntry<ReportAction>,
-    conciergeReportID: string | undefined,
-    delegateEmail: string | undefined,
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    {ancestors = [], shouldNavigateBack = true}: DeleteTaskOptions = {},
-) {
-    if (!report) {
-        return;
-    }
-    const message = `deleted task: ${report.reportName}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, delegateEmail, message);
-    const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report, isReportArchived);
-
-    // If the task report is the last visible action in the parent report, we should navigate back to the parent report
-    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(report.reportID, reportActions, canUserPerformWriteAction);
-    const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
-        pendingAction: shouldDeleteTaskReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-        previousMessage: parentReportAction?.message,
-        message: [
-            {
-                translationKey: '',
-                type: 'COMMENT',
-                html: '',
-                text: '',
-                isEdited: true,
-                isDeletedParentAction: true,
-            },
-        ],
-        errors: undefined,
-        linkMetadata: [],
-    };
-    const optimisticReportActions = parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: optimisticReportAction} : {};
-
-    const optimisticLastReportData = optimisticReportLastData(parentReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), optimisticReportActions as ReportActions, canUserPerformWriteAction);
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                lastVisibleActionCreated: optimisticCancelReportAction.created,
-                lastMessageText: message,
-                lastActorAccountID: optimisticCancelReportAction.actorAccountID,
-                isDeletedParentAction: true,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {
-                ...optimisticLastReportData,
-                hasOutstandingChildTask,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            value: {
-                [optimisticReportActionID]: optimisticCancelReportAction as OnyxTypes.ReportAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: optimisticReportActions as OnyxTypes.ReportActions,
-        },
-    ];
-
-    // Update optimistic data for parent report action if the report is a child report and the task report has no visible child
-    const childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
-    if (childVisibleActionCount === 0) {
-        optimisticData.push(...ReportUtils.getOptimisticDataForAncestors(ancestors, parentReport?.lastVisibleActionCreated ?? '', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
-    }
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            value: {
-                [optimisticReportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: parentReportAction?.reportActionID ? {[parentReportAction.reportActionID]: {pendingAction: null}} : {},
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                stateNum: report.stateNum ?? '',
-                statusNum: report.statusNum ?? '',
-            } as OnyxTypes.Report,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {
-                hasOutstandingChildTask: parentReport?.hasOutstandingChildTask,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            value: {
-                [optimisticReportActionID]: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
-            value: parentReportAction?.reportActionID ? {[parentReportAction?.reportActionID]: {pendingAction: null}} : {},
-        },
-    ];
-
-    const parameters: CancelTaskParams = {
-        cancelledTaskReportActionID: optimisticReportActionID,
-        taskReportID: report.reportID,
-    };
-
-    API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
-    notifyNewAction(report.reportID, undefined, true);
-
-    const urlToNavigateBack = shouldNavigateBack ? getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions) : undefined;
-    if (urlToNavigateBack) {
-        Navigation.goBack();
-        return urlToNavigateBack;
-    }
-}
-
-/**
  * Closes the current open task modal and clears out the task info from the store.
  */
 function dismissModalAndClearOutTaskInfo(backTo?: Route) {
@@ -1603,46 +1423,6 @@ function canActionTask(
     }
 
     return false;
-}
-
-function clearTaskErrors(
-    report: OnyxEntry<OnyxTypes.Report>,
-    conciergeReportID: string | undefined,
-    currentUserAccountID: number,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    isSelfTourViewed: boolean | undefined,
-    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
-    currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
-    conciergePersonalDetail: OnyxEntry<PersonalDetails>,
-) {
-    const reportID = report?.reportID;
-    if (!reportID) {
-        return;
-    }
-
-    // Delete the task preview in the parent report
-    if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
-
-        navigateToConciergeChatAndDeleteReport(
-            reportID,
-            conciergeReportID,
-            currentUserAccountID,
-            introSelected,
-            isSelfTourViewed,
-            reportOwnerPersonalDetail,
-            currentUserPersonalDetail,
-            conciergePersonalDetail,
-            undefined,
-            undefined,
-        );
-        return;
-    }
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        pendingFields: null,
-        errorFields: null,
-    });
 }
 
 /** Onboarding task info resolved by the `useOnboardingTaskInformation` hook. */
@@ -1754,12 +1534,9 @@ export {
     startOutCreateTaskQuickAction,
     getAssignee,
     getShareDestination,
-    deleteTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
-    clearTaskErrors,
     canModifyTask,
-    getNavigationUrlOnTaskDelete,
     canActionTask,
     getFinishOnboardingTaskOnyxData,
     completeTestDriveTask,

@@ -225,7 +225,7 @@ function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, transl
             isLastInvite ? personalDetailsOnyxData : {optimisticData: personalDetailsOnyxData.optimisticData},
             `${translate('workspace.common.invitedYouToWorkspace', inviter.displayName ?? '', policy.name)}\n\n${translate('workspace.common.welcomeNote')}`,
             policy,
-            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false)),
+            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, undefined, false, false)),
             CONST.POLICY.ROLE.USER,
             inviter,
             policyExpenseChatReportActions,
