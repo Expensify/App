@@ -1,7 +1,10 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -53,16 +56,25 @@ function DateTimeSelector({errorText = '', name, value, onInputChange, ref}: Dat
     }, [fieldValue, name, onInputChange]);
 
     return (
-        <MenuItemWithTopDescription
-            title={value}
-            description={name}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={errorText}
-            onPress={() => {
+        <MenuItem.Root
+            onPress={callFunctionIfActionIsAllowed(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.getRoute(name, value)));
-            }}
-            shouldShowRightIcon
-        />
+            })}
+        >
+            <MenuItemField.Row
+                name={name}
+                value={value}
+            >
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 
