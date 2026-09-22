@@ -1,10 +1,10 @@
-import {deletePolicyDistanceRates, enablePolicyDistanceRates, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
+import {deletePolicyDistanceRates, enablePolicyDistanceRates, setEmployeeWorkArrangement, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {GovernmentMileageRate, Policy, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -363,6 +363,107 @@ describe('DistanceRate', () => {
             expect(onyxPolicy.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             // Disabling only stops future propagation
             expect(onyxPolicy.customUnits?.[customUnitID].rates[existingRateID]).toMatchObject({rate: 72.5, startDate: '2026-01-01'});
+        });
+    });
+
+    describe('setEmployeeWorkArrangement', () => {
+        const member1AccountID = 11;
+        const member2AccountID = 12;
+        const member1Email = 'member1@test.com';
+        const member2Email = 'member2@test.com';
+
+        function getPolicyFromOnyx(policyID: string): Promise<Policy> {
+            return new Promise<Policy>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                    // eslint-disable-next-line rulesdir/prefer-early-return
+                    callback: (value) => {
+                        if (value !== undefined) {
+                            Onyx.disconnect(connection);
+                            resolve(value);
+                        }
+                    },
+                });
+            });
+        }
+
+        function getReportActionsFromOnyx(reportID: string) {
+            return new Promise<ReportActions>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const,
+                    // eslint-disable-next-line rulesdir/prefer-early-return
+                    callback: (value) => {
+                        if (value !== undefined) {
+                            Onyx.disconnect(connection);
+                            resolve(value);
+                        }
+                    },
+                });
+            });
+        }
+
+        async function seedWorkArrangementPolicy(policy: Policy) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
+                [member2AccountID]: {accountID: member2AccountID, login: member2Email, displayName: 'Member Two'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', policyID: policy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} as Report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {});
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: 99});
+            await waitForBatchedUpdates();
+        }
+
+        it('should optimistically update the member and create one changelog action with pending ADD', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(20),
+                employeeList: {
+                    [member1Email]: {email: member1Email},
+                    [member2Email]: {email: member2Email, hasOfficeWorkArrangement: true},
+                },
+            };
+            await seedWorkArrangementPolicy(policy);
+
+            pause();
+            setEmployeeWorkArrangement(policy.id, [member1AccountID, member2AccountID], true);
+            await waitForBatchedUpdates();
+
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+            // Member2 already matches, so it is skipped without any optimistic footprint
+            expect(onyxPolicy.employeeList?.[member2Email]).toEqual({email: member2Email, hasOfficeWorkArrangement: true});
+
+            const reportActions = await getReportActionsFromOnyx('1');
+            const actions = Object.values(reportActions);
+            expect(actions).toHaveLength(1);
+            expect(actions.at(0)).toMatchObject({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                actorAccountID: 99,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', newValue: true, oldValue: false},
+            });
+
+            resetQueue();
+        });
+
+        it('should do nothing when every member already matches the requested arrangement', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(21),
+                employeeList: {[member1Email]: {email: member1Email, hasOfficeWorkArrangement: false}},
+            };
+            await seedWorkArrangementPolicy(policy);
+
+            pause();
+            setEmployeeWorkArrangement(policy.id, [member1AccountID, 999999001], false);
+            await waitForBatchedUpdates();
+
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: false});
+
+            const reportActions = await getReportActionsFromOnyx('1');
+            expect(reportActions).toEqual({});
+
+            resetQueue();
         });
     });
 });
