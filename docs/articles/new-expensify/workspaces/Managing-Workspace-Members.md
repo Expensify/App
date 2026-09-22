@@ -142,6 +142,16 @@ Mapping the **Submit to**, **Forward to**, **Over limit forward to**, and **Appr
 
 ---
 
+# Download a CSV of workspace members
+
+To download or export a list of workspace members to a CSV file:
+
+1. Go to **Workspaces > Members**.
+2. Click the **three-dot menu** in the top-right.
+3. Select **Download CSV**.
+
+The CSV file will be downloaded to your computer.
+
 # FAQ
 
 ## Why can't I add someone to a workspace?
