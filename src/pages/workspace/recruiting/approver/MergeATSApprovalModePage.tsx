@@ -112,13 +112,13 @@ function MergeATSApprovalModePage({
         }
 
         showConfirmModal({
-            title: translate('workspace.recruiting.approvalModeWarningTitle'),
+            title: translate('workspace.merge.approvalModeWarningTitle'),
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('workspace.recruiting.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />
+                    <RenderHTML html={translate('workspace.merge.approvalModeWarningPrompt', providerName, CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />
                 </View>
             ),
-            confirmText: translate('workspace.recruiting.approvalModeWarningConfirm'),
+            confirmText: translate('workspace.merge.approvalModeWarningConfirm'),
             cancelText: translate('common.cancel'),
         }).then((result) => {
             if (result?.action !== ModalActions.CONFIRM) {

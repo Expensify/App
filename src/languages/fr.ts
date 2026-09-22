@@ -8682,10 +8682,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
             syncing: 'Synchronisation des employés',
             approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
-            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
             approvalModeDescriptions: {
                 basic: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
                 manager: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
@@ -8761,10 +8757,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 advanced: `Le recruteur ou le coordinateur du candidat devient la personne qui approuve ses dépenses`,
                 custom: 'Définir manuellement les approbateurs dans Expensify',
             },
-            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Voulez-vous vraiment modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
         },
         merge: {
             connections: 'Connexions',
@@ -8790,6 +8782,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 custom: 'Approbation personnalisée',
                 advanced: 'Approbation avancée',
             },
+            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
