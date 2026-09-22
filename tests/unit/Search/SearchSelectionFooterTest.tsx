@@ -430,11 +430,10 @@ describe('SearchSelectionFooter', () => {
                 await waitForBatchedUpdates();
             });
 
-            // One request, asked for with totals, so the figure is fetched once instead of blinking through two searches.
-            expect(search).toHaveBeenCalledTimes(1);
-            expect(search).toHaveBeenCalledWith(expect.objectContaining({shouldCalculateTotals: true, offset: 0}));
+            // The query change is what re-runs the search, so the footer asks for nothing itself.
+            expect(search).not.toHaveBeenCalled();
 
-            // The choice also goes into the query, which is what saves it for the next visit...
+            // The choice goes into the query, which is what saves it for the next visit...
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
             expect(nextQuery).toContain('footerTotal:reimbursable');
             // ...and the hash holds, which is what keeps the rows, the scroll position and the selection in place.
@@ -442,8 +441,9 @@ describe('SearchSelectionFooter', () => {
             expect(mockOnDisplayChange).not.toHaveBeenCalled();
         });
 
-        it('skeletons the total while a search is recomputing it, leaving the count alone', async () => {
-            setSearchQuery('type:expense');
+        it("skeletons the total after applying one while another search's results are still on screen, leaving the count alone", async () => {
+            // Given the footer describing the whole search, with the results of another search still displayed
+            setSearchQuery('type:expense', 2);
             mockSelectedTransactions.current = {};
 
             const {rerender} = render(
@@ -454,40 +454,31 @@ describe('SearchSelectionFooter', () => {
             );
             await waitForBatchedUpdates();
 
+            // Then nothing is waited on until the footer asks for something
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
 
+            // When a different total is applied
             await act(async () => {
                 mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
                 await waitForBatchedUpdates();
             });
 
-            // The skeleton stands in from the moment the total is applied, so the figure for the old total is never left
-            // on screen while its replacement is fetched.
-            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
-
-            // From there the snapshot's own loading state carries the wait. The count keeps its value throughout.
-            const loadingResults = buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4);
-            loadingResults.search.isLoading = true;
-            rerender(
-                <SearchSelectionFooter
-                    searchResults={loadingResults}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
-            await waitForBatchedUpdates();
-
+            // Then the skeleton stands in for the figure it cannot describe yet, and the count holds its value
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
             expect(mockCapturedFooterProps.current?.count).toBe(10);
 
-            // Once it lands, the skeleton gives way to the figure.
+            // When this search's own results arrive
+            const nextResults = buildSearchResults(CONST.CURRENCY.USD, 10, 12000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4);
+            nextResults.search.hash = 2;
             rerender(
                 <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 12000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
+                    searchResults={nextResults}
                     onDisplayChange={mockOnDisplayChange}
                 />,
             );
             await waitForBatchedUpdates();
 
+            // Then the skeleton gives way to the figure
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: false, total: 12000}));
         });
 
