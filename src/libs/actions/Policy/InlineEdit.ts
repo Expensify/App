@@ -55,14 +55,14 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
     renamePolicyTag(policyData, {oldName, newName: sanitized}, 0, isVendorMatchingBetaEnabled);
 }
 
-function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, currentName: string): void {
+function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, displayedName: string, storedName?: string): void {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (sanitized === currentName || getCardNameError(newName)) {
+    if (sanitized === displayedName || getCardNameError(newName)) {
         return;
     }
 
-    updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, currentName);
+    updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, storedName);
 }
 
 function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, newName: string, currentName: string): void {
