@@ -39,7 +39,7 @@ import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {getDefaultReimbursableForPolicy, getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,7 +47,7 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
@@ -256,7 +256,7 @@ function SubmitDetailsPage({
     }, [defaultBillable]);
 
     useEffect(() => {
-        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 

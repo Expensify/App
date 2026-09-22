@@ -451,6 +451,33 @@ function getExistingTransactionID(linkedTrackedExpenseReportAction: ReportAction
     return getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID;
 }
 
+/**
+ * Resolve the `reimbursable` value a brand new expense should be created with.
+ *
+ * `defaultReimbursable` is optional on the policy blob and an absent value means "reimbursable",
+ * which is what the backend assumes too. When the workspace locks the field
+ * (`disabledFields.reimbursable`), members cannot change it afterwards, so the policy default is
+ * authoritative regardless of the chat/track context - otherwise a locked "always non-reimbursable"
+ * workspace would still create reimbursable expenses that nobody can correct.
+ */
+function getDefaultReimbursableForPolicy({
+    policy,
+    isPolicyExpenseChat,
+    isCreatingTrackExpense,
+}: {
+    policy: OnyxEntry<Policy>;
+    isPolicyExpenseChat: boolean;
+    isCreatingTrackExpense: boolean;
+}): boolean {
+    const policyDefaultReimbursable = policy?.defaultReimbursable ?? true;
+
+    if (isGroupPolicy(policy) && policy?.disabledFields?.reimbursable) {
+        return policyDefaultReimbursable;
+    }
+
+    return (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? policyDefaultReimbursable : true;
+}
+
 function calculateDefaultReimbursable({
     iouType,
     policy,
@@ -468,7 +495,7 @@ function calculateDefaultReimbursable({
     const isUnreported = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
     const reportPolicy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : policy;
-    return (isPolicyExpenseChat && isGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
+    return getDefaultReimbursableForPolicy({policy: reportPolicy, isPolicyExpenseChat, isCreatingTrackExpense});
 }
 
 function getInitialPerDiemTargetReport(
@@ -682,6 +709,7 @@ export {
     shouldShowPerDiemTabOption,
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
+    getDefaultReimbursableForPolicy,
     getInitialPerDiemTargetReport,
     getIsWorkspacesOnlyForTransaction,
     getReusableP2PReportID,

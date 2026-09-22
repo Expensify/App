@@ -235,7 +235,8 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!splitExpenseDraftTransactionDetails?.billable || isBillableEnabledOnPolicy(effectivePolicy));
     const currentReimbursable = splitExpenseDraftTransaction?.reimbursable ?? transaction?.reimbursable;
-    const isReimbursableDifferentFromPolicyDefault = effectivePolicy?.defaultReimbursable !== undefined && !!currentReimbursable !== effectivePolicy.defaultReimbursable;
+    // An absent `defaultReimbursable` means "reimbursable" - see MoneyRequestView for why we don't bail out here.
+    const isReimbursableDifferentFromPolicyDefault = !!currentReimbursable !== (effectivePolicy?.defaultReimbursable ?? true);
     const shouldShowReimbursable =
         (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) &&
         (effectivePolicy?.disabledFields?.reimbursable !== true || isReimbursableDifferentFromPolicyDefault) &&
