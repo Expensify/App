@@ -43,6 +43,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import SelectAllCheckbox from './SelectAllCheckbox';
+import SelectionBulkActionBar from './SelectionBulkActionBar';
 import SelectionDropdown from './SelectionDropdown';
 
 type SelectionToolbarProps = {
@@ -277,6 +278,20 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                         />
                     </View>
                 </OfflineWithFeedback>
+            )}
+            {!shouldUseNarrowLayout && !!selectedTransactionsOptions.length && (
+                <SelectionBulkActionBar
+                    chatReport={chatReport}
+                    report={report}
+                    selectedTransactionsOptions={selectedTransactionsOptions}
+                    selectedTransactionIDs={selectedTransactionIDs}
+                    hasPayInSelectionMode={hasPayInSelectionMode}
+                    onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                    selectionModeKYCSuccess={selectionModeKYCSuccess}
+                    onWorkspacePolicySelect={handleWorkspaceSelected}
+                    kycWallRef={kycWallRef}
+                    onClearSelection={() => clearSelectedTransactions(true)}
+                />
             )}
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}

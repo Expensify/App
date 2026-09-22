@@ -67,6 +67,7 @@ import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionLi
 import SelectionToolbar from './SelectionToolbar';
 import useMoneyRequestReportPagination from './useMoneyRequestReportPagination';
 import useMoneyRequestReportVisibleActions from './useMoneyRequestReportVisibleActions';
+import useShouldShowReportBulkActionBar from './useShouldShowReportBulkActionBar';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -112,6 +113,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     // The table is visible whenever it's wide, or — on narrow — only when focused (the RHP has closed).
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
+    const shouldReserveBulkActionBarSpace = useShouldShowReportBulkActionBar();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -606,7 +608,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onViewableItemsChanged={onViewableItemsChanged}
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
-                        contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
+                        contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
                            the same position the indicator occupies in the inverted ReportActionsList. */
