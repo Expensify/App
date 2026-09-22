@@ -232,7 +232,7 @@ function MoneyRequestReportUnifiedList({
         }
         onViewableItemsChanged({
             ...info,
-            viewableItems: info.viewableItems.map((item) => ({...item, index: item.index !== null ? item.index - reportActionIndexOffset : null})),
+            viewableItems: info.viewableItems.map((item) => ({...item, index: typeof item.index === 'number' ? item.index - reportActionIndexOffset : item.index})),
         });
     };
 
