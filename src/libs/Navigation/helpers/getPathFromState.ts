@@ -11,6 +11,7 @@ import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import joinPathSegments from './dynamicRoutesUtils/joinPathSegments';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
+import {collapseRepeatedSlashes} from './normalizePath';
 
 function isScreen(name: string): name is Screen {
     return name in normalizedConfigs;
@@ -167,11 +168,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
 
     const combinedPath = joinPathSegments(`${basePathWithoutQuery}`, `${suffixPath}`);
 
-    // Safety net for this hand-built dynamic branch: guarantee exactly one leading slash and no internal `//`,
-    // so the browser never parses a segment as a host and `history.pushState` can't throw a SecurityError.
-    // React Navigation's own `getPathFromState` already normalizes slashes, so the standard-screen branch
-    // doesn't need this.
-    const normalizedPath = `/${combinedPath}`.replaceAll(/\/{2,}/g, '/');
+    const normalizedPath = collapseRepeatedSlashes(`/${combinedPath}`);
     if (normalizedPath !== combinedPath) {
         // Log `screenName` only - the path can carry sensitive query params that shouldn't be shared.
         Log.alert('[Navigation] getPathFromStateWithDynamicRoute produced a malformed path', {screenName});
