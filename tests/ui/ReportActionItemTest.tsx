@@ -6,6 +6,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import {openLink} from '@libs/actions/Link';
 import {setHasRadio} from '@libs/NetworkState';
@@ -141,7 +142,7 @@ describe('ReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -160,6 +161,59 @@ describe('ReportActionItem', () => {
             </ComposeProviders>,
         );
     }
+
+    describe('Edited file attachments', () => {
+        const attachmentURL = 'https://www.expensify.com/chat-attachments/12345/w_abc.csv';
+
+        const renderComment = (html: string, text: string, isEdited = true) =>
+            renderItemWithAction(
+                createMock<ReportAction>({
+                    ...createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {}),
+                    message: [{type: 'COMMENT', html, text, isEdited}],
+                }),
+            );
+
+        it('renders a renamed attachment as a named card with the edited label once the server dropped its source attribute', async () => {
+            // Given an attachment-only comment renamed through an edit, as the server returns it
+            renderComment(`<a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">renamed_file.csv</a>`, '[Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the card carries the new name and the edited label is shown
+            expect(screen.getByText('renamed_file.csv')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it('shows the edited label for an attachment-only comment that still carries its source attribute', async () => {
+            // Given an attachment-only comment edited while offline, whose optimistic html keeps the attachment attributes
+            renderComment(`<a href="${attachmentURL}" data-expensify-source="${attachmentURL}" data-attachment-id="1">offline_rename.csv</a>`, '[Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the attachment path renders the card with the edited label
+            expect(screen.getByText('offline_rename.csv')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it('names the card from every text node when the label came back wrapped in emphasis', async () => {
+            // Given a stored anchor whose underscored label was parsed into emphasis tags
+            renderComment(`<a href="${attachmentURL}" target="_blank" rel="noreferrer noopener"><em>n_d_m_t</em><em>ch</em>__<em>ng</em>.csv</a>`, 'n_d_m_tch__ng.csv', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the card still shows a name instead of an empty label
+            expect(screen.getByText('n_d_m_tch__ng.csv')).toBeOnTheScreen();
+        });
+
+        it('keeps the text on both sides of a file when the comment was edited around it', async () => {
+            // Given an edited comment with text before and after the file
+            renderComment(`Help<br /><br /><a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">file.csv</a><br />Text`, 'Help\n\n[Attachment]\nText');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both text lines, the card and the edited label are all on screen
+            expect(screen.getByText('Help')).toBeOnTheScreen();
+            expect(screen.getByText('file.csv')).toBeOnTheScreen();
+            expect(screen.getByText(/Text/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+    });
 
     describe('Automatic actions', () => {
         const testCases = [

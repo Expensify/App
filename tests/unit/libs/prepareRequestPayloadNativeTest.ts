@@ -8,8 +8,9 @@ jest.mock('@libs/fileDownload/checkFileExists', () => ({
     checkFileExistsWithReason: mockCheckFileExists,
 }));
 
+const mockReadFileAsync = jest.fn<Promise<unknown>, unknown[]>(() => Promise.resolve(null));
 jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(() => Promise.resolve(null)),
+    readFileAsync: (...args: unknown[]) => mockReadFileAsync(...args),
 }));
 
 const mockValidateFormDataParameter = jest.fn();
@@ -132,6 +133,40 @@ describe('prepareRequestPayload (native)', () => {
         expect(mockLogReceiptDropped).not.toHaveBeenCalled();
         expect(formData.has('receipt')).toBe(false);
         expect(formData.get('amount')).toBe('100');
+    });
+
+    it('should append a queued offline file as a plain part that carries its own name and type', async () => {
+        // Given a file read back for an offline request as a React Native File, whose name and type are prototype getters
+        const uri = 'file:///data/user/0/app/files/Download/Receipts-Upload/report_123.csv';
+        class NativeFile {
+            uri = uri;
+
+            private readonly data = {name: 'report.csv', type: 'text/csv'};
+
+            get name() {
+                return this.data.name;
+            }
+
+            get type() {
+                return this.data.type;
+            }
+        }
+        mockReadFileAsync.mockResolvedValueOnce(new NativeFile());
+        const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+        // When the payload is prepared for a request that was queued offline
+        await prepareRequestPayload('AddTextAndAttachment', {file: {uri, source: uri, name: 'report.csv', type: 'text/csv'}}, true);
+
+        // Then the appended part carries the name and type as its own properties, which is what the multipart body is built from
+        const [, part] = appendSpy.mock.calls.find(([key]) => key === 'file') ?? [];
+        expect(Object.entries(part ?? {})).toEqual(
+            expect.arrayContaining([
+                ['uri', uri],
+                ['name', 'report.csv'],
+                ['type', 'text/csv'],
+            ]),
+        );
+        appendSpy.mockRestore();
     });
 
     it('should handle non-receipt data normally', async () => {

@@ -67,6 +67,9 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return;
                     }
 
+                    // A React Native File keeps its name and type on the prototype, and the multipart part is built from
+                    // the object's own properties, so without these the upload goes out unnamed and is stored as "file".
+                    Object.defineProperties(file, {name: {value: file.name, enumerable: true}, type: {value: file.type, enumerable: true}});
                     validateFormDataParameter(command, key, file);
                     formData.append(key, file);
                 });
