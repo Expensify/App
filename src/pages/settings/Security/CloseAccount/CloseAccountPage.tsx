@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,7 +70,7 @@ function CloseAccountPage() {
         [],
     );
 
-    const onSubmit = () => {
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>) => {
         if (ruleBotEnforcedPolicy) {
             showRuleBotGuardModal('closeAccount', ruleBotEnforcedPolicy.id);
             return;
@@ -79,7 +79,9 @@ function CloseAccountPage() {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            Navigation.navigate(ROUTES.SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE);
+            setDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {reasonForLeaving: values.reasonForLeaving}).then(() => {
+                Navigation.navigate(ROUTES.SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE);
+            });
         });
     };
 
@@ -143,8 +145,6 @@ function CloseAccountPage() {
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.REASON_FOR_LEAVING}
-                            // The validateCode page reads the reason from the draft, so it has to survive navigating there
-                            shouldSaveDraft
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             label={translate('closeAccountPage.enterMessageHere')}
