@@ -320,9 +320,6 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                         {
                             // This feature has a few behavioral differences in development mode. To prevent confusion
                             // for developers about possible regressions, we won't render buttons in development mode.
-                            // We also don't render them on adhoc builds, because those are served from a per-PR origin
-                            // (web) or an adhoc bundle ID (native) that isn't registered with Apple or Google, so signing
-                            // in always fails there.
                             // For more information about these differences and how to test in development mode,
                             // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
                             CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.ADHOC && (

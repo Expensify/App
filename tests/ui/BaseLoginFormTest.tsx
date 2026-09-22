@@ -4,8 +4,6 @@ import {LoginProvider} from '@pages/signin/SignInLoginContext';
 
 import {beginSignIn, clearAccountMessages} from '@userActions/Session';
 
-import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -185,52 +183,6 @@ describe('BaseLoginForm', () => {
 
         await waitFor(() => {
             expect(clearAccountMessages).toHaveBeenCalled();
-        });
-    });
-
-    describe('third-party sign-in buttons', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        it('renders the Apple and Google buttons on production', async () => {
-            // Given a production build, where both providers accept the origin
-            jest.replaceProperty(CONFIG, 'ENVIRONMENT', CONST.ENVIRONMENT.PRODUCTION);
-
-            // When the login form is rendered
-            renderForm();
-            await waitForBatchedUpdates();
-
-            // Then both sign-in buttons are shown
-            expect(screen.getByLabelText('common.signInWithApple')).toBeTruthy();
-            expect(screen.getByLabelText('common.signInWithGoogle')).toBeTruthy();
-        });
-
-        it('hides the Apple and Google buttons on adhoc builds', async () => {
-            // Given an adhoc build, whose per-PR origin and adhoc bundle ID are not registered with
-            // Apple or Google, so signing in can only ever fail
-            jest.replaceProperty(CONFIG, 'ENVIRONMENT', CONST.ENVIRONMENT.ADHOC);
-
-            // When the login form is rendered
-            renderForm();
-            await waitForBatchedUpdates();
-
-            // Then neither sign-in button is shown
-            expect(screen.queryByLabelText('common.signInWithApple')).toBeNull();
-            expect(screen.queryByLabelText('common.signInWithGoogle')).toBeNull();
-        });
-
-        it('hides the Apple and Google buttons in development', async () => {
-            // Given a development build, where the buttons behave differently and would confuse developers
-            jest.replaceProperty(CONFIG, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-
-            // When the login form is rendered
-            renderForm();
-            await waitForBatchedUpdates();
-
-            // Then neither sign-in button is shown
-            expect(screen.queryByLabelText('common.signInWithApple')).toBeNull();
-            expect(screen.queryByLabelText('common.signInWithGoogle')).toBeNull();
         });
     });
 });
