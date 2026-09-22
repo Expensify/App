@@ -1008,7 +1008,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
-            validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
             addHomeAddress: {title: 'Ajoutez votre adresse personnelle pour le suivi des distances', subtitle: 'Compte', cta: 'Ajouter'},
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
             unlockBankAccount: {
@@ -1024,12 +1023,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Payez votre facture avant le ${date} pour éviter une interruption de service`,
                 overdueTitle: 'Votre paiement est en retard, veuillez régler votre facture',
             },
-        },
-        discoverSection: {
-            title: 'Découvrir',
-            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des notes de frais.',
-            menuItemTitleAdmin: 'Découvrez comment inviter des membres, modifier les workflows d’approbation et rapprocher les cartes de société.',
-            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 min',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({

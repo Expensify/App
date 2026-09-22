@@ -967,7 +967,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
@@ -983,12 +982,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `请在 ${date} 前支付您的发票，以避免服务中断`,
                 overdueTitle: '您的付款已逾期，请支付您的发票',
             },
-        },
-        discoverSection: {
-            title: '发现',
-            menuItemTitleNonAdmin: '了解如何创建报销和提交报表。',
-            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司卡进行对账。',
-            menuItemDescription: '了解 Expensify 的强大功能，只需 2 分钟',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
