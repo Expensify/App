@@ -459,7 +459,7 @@
 "../../src/hooks/useExpensifyCardRulesList.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useFilteredOptions.ts"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useGeographicalStateAndCountryFromRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useHoldMenuSubmit.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useHtmlPaste/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
