@@ -9,6 +9,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import StateSelector from '@components/StateSelector';
 import TextInput from '@components/TextInput';
 
+import useClearedAddCardDraftCurrency from '@hooks/useClearedAddCardDraftCurrency';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -134,6 +135,8 @@ function PaymentCardForm({
     // selector actually offers so a EUR-locale user can't silently submit a EUR card and get pushed onto the SCA/3DS path.
     const defaultCurrency = preferredCurrency === CONST.PAYMENT_CARD_CURRENCY.EUR && !isBetaEnabled(CONST.BETAS.EUR_BILLING) ? CONST.PAYMENT_CARD_CURRENCY.USD : preferredCurrency;
 
+    const hasClearedDraftCurrency = useClearedAddCardDraftCurrency();
+
     const {translate} = useLocalize();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 
@@ -250,7 +253,7 @@ function PaymentCardForm({
         setCardNumber(validCardNumber);
     }, []);
 
-    if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata)) {
+    if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata) || !hasClearedDraftCurrency) {
         return null;
     }
 

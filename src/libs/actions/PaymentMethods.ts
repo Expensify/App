@@ -360,10 +360,14 @@ function clearPaymentCardFormErrorAndSubmit() {
         [INPUT_IDS.ADDRESS_STATE]: '',
         [INPUT_IDS.ACCEPT_TERMS]: '',
     });
-    // The currency picker writes its selection to the form draft, which FormProvider hydrates the currency field from.
-    // This reset runs whenever an add-card flow opens/closes, so dropping the draft currency lets each attempt default
-    // through usePreferredCurrency rather than reusing a currency picked then abandoned in an earlier attempt.
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {[INPUT_IDS.CURRENCY]: null});
+}
+
+/**
+ * The caller must not render the form until this resolves: FormProvider seeds its input values from the draft on its
+ * first render and only spread-merges later changes, so a key removed afterwards never leaves the form.
+ */
+function clearAddPaymentCardDraftCurrency() {
+    return Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {[INPUT_IDS.CURRENCY]: null});
 }
 
 /**
@@ -705,6 +709,7 @@ export {
     getMakeDefaultPaymentOnyxData,
     continueSetup,
     addSubscriptionPaymentCard,
+    clearAddPaymentCardDraftCurrency,
     clearPaymentCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,

@@ -1,4 +1,4 @@
-import {clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
+import {clearAddPaymentCardDraftCurrency} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,7 @@ function getAddPaymentCardDraft(): Promise<OnyxEntry<AddPaymentCardForm>> {
     });
 }
 
-describe('clearPaymentCardFormErrorAndSubmit', () => {
+describe('clearAddPaymentCardDraftCurrency', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -41,8 +41,7 @@ describe('clearPaymentCardFormErrorAndSubmit', () => {
         await Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT, {currency: CONST.PAYMENT_CARD_CURRENCY.GBP});
         await waitForBatchedUpdates();
 
-        clearPaymentCardFormErrorAndSubmit();
-        await waitForBatchedUpdates();
+        await clearAddPaymentCardDraftCurrency();
 
         const draft = await getAddPaymentCardDraft();
 

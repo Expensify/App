@@ -56,11 +56,9 @@ function ChangeBillingCurrency() {
 
     useEffect(() => {
         // Clear any stale submission error (e.g. an incorrect security code from a previous attempt) so reopening the page starts clean,
-        // and drop the currency draft when leaving the flow so reopening reflects the card's actual currency.
+        // and drop the currency draft so reopening reflects the card's actual currency.
         clearErrors(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
-        return () => {
-            clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
-        };
+        clearDraftValues(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM);
     }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
