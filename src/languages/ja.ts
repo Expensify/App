@@ -3309,7 +3309,7 @@ ${date} の ${merchant} への ${amount}`,
             agentSignInBlocked:
                 'エージェントアカウントには直接サインインすることはできません。エージェントを利用するには、ご自身のアカウントでサインインし、Copilot 経由でアクセスしてください。',
         },
-        cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。もう一度サインインしてください。',
+        cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。数分待ってから、もう一度お試しください。',
         loginForm: 'ログインフォーム',
         notYou: (user: string) => `${user}ではありませんか？`,
     },

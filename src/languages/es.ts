@@ -3257,7 +3257,7 @@ ${amount} para ${merchant} - ${date}`,
             agentSignInBlocked:
                 'No se puede iniciar sesión directamente en las cuentas de agente. Para usar un agente, inicia sesión con tu propia cuenta y accede a él a través de Copilot.',
         },
-        cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
+        cannotGetAccountDetails: 'No se pudieron obtener los detalles de la cuenta. Espera unos minutos e inténtalo de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
         notYou: (user) => `¿No eres ${user}?`,
     },

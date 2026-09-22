@@ -3351,7 +3351,7 @@ ${amount} für ${merchant} – ${date}`,
             agentSignInBlocked:
                 'Agent-Konten können nicht direkt verwendet werden. Um ein Agent-Konto zu nutzen, melden Sie sich mit Ihrem eigenen Konto an und greifen Sie über Copilot darauf zu.',
         },
-        cannotGetAccountDetails: 'Kontodetails konnten nicht abgerufen werden. Bitte melde dich erneut an.',
+        cannotGetAccountDetails: 'Kontodaten konnten nicht abgerufen werden. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         loginForm: 'Anmeldeformular',
         notYou: (user: string) => `Nicht ${user}?`,
     },
