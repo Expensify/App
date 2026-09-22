@@ -9,7 +9,10 @@ type UseListItemHighlightParams = {
     isSelected?: boolean;
 };
 
-/** Highlight animation plus the pressable styles that let it show through. */
+/**
+ * Highlight animation plus the pressable styles that let it show through.
+ * `isSelected` is not forwarded to the animation: selection is painted on the pressable, not the animated wrapper.
+ */
 function useListItemHighlight({shouldHighlight = false, isSelected = false}: UseListItemHighlightParams = {}) {
     const styles = useThemeStyles();
 

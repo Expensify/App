@@ -16,7 +16,10 @@ type UseSearchTableItemHighlightParams = {
     isLastItem?: boolean;
 };
 
-/** Highlight animation plus the pressable styles a search-table row needs: row paddings, bottom radius on the last wide row. */
+/**
+ * Highlight animation plus the pressable styles a search-table row needs: row paddings, bottom radius on the last wide row.
+ * `isSelected` is not forwarded to the animation: selection is painted on the pressable, not the animated wrapper.
+ */
 function useSearchTableItemHighlight({shouldHighlight = false, isSelected = false, isLastItem = false}: UseSearchTableItemHighlightParams = {}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
