@@ -165,7 +165,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
+    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct / DualEntry) being connected,
     // not on the export config actually scoping vendors. That way members on a supported workspace
     // still see the row so they can discover the feature even when the row is locked OFF (export
     // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
@@ -174,7 +174,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1) and Sage Intacct (R2) are GA. Xero, Rillet, and DualEntry require the vendorMatching beta.
+    // QBO (R1) and Sage Intacct (R2), and DualEntry are GA. Xero, Rillet, and Business Central require the vendorMatching beta.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -183,8 +183,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.XERO,
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+            CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
-    const isGenerallyAvailableVendorConnection = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
+    const isGenerallyAvailableVendorConnection =
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {

@@ -124,9 +124,10 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                 return getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
             }
             if (isMoneyRequestReport(report)) {
-                // generate subtitle from participants
+                // generate subtitle from participants; resolve the translation once, not per participant
+                const hiddenText = translate('common.hidden');
                 return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, translate}))
+                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation: hiddenText}))
                     .join(' & ');
             }
 

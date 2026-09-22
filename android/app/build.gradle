@@ -52,7 +52,10 @@ react {
     //
     //   A list of extra flags to pass to the 'bundle' commands.
     //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
-    // extraPackagerArgs = []
+    // Force `--minify true` for Repack. The RN gradle task hardcodes minifyEnabled=false when Hermes
+    // is on, an assumption from the Metro era. Under Repack the SWC minifier does real dead-code
+    // elimination and tree-shaking, and commander applies the last value passed.
+    extraPackagerArgs = ["--minify", "true"]
 
     /* Hermes Commands */
     //   The hermes compiler command to run. By default it is 'hermesc'
@@ -111,8 +114,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009048403
-        versionName "9.4.84-3"
+        versionCode 1009049102
+        versionName "9.4.91-2"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"

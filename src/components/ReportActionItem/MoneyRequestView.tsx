@@ -568,7 +568,7 @@ function MoneyRequestView({
     } else if (transactionVendor?.externalID) {
         transactionVendorName = transactionVendor.externalID;
     }
-    const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
+    const shouldShowVendor = hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
     const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
     const transactionTripID = transaction?.comment?.tripID;
