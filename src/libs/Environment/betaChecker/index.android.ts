@@ -7,7 +7,7 @@ import type {IsBetaBuild} from './types';
 
 /**
  * Distinguishes different Play Store deployment tracks based on the versionCode prefix. The scheme lives in
- * Mobile-Expensify/Android/build.gradle, which exposes it through BuildConfig; standalone builds have no such fields.
+ * Mobile-Expensify/Android/build.gradle, which exposes it through BuildConfig. Standalone builds have no such fields.
  */
 function isBetaTrackBuild(): boolean {
     const prefixMultiplier = Number(Config.VERSION_CODE_PREFIX_MULTIPLIER);
