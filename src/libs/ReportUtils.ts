@@ -1479,7 +1479,7 @@ function isReportIDApproved(reportID: string | undefined) {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | ReportFields<'type'> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
@@ -1487,7 +1487,7 @@ function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean
 /**
  * Checks if a report is an IOU report using report or reportID
  */
-function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | ReportFields<'type'> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
@@ -1822,7 +1822,7 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if report has a parent
  */
-function isThread(report: OnyxInputOrEntry<Report>): report is Thread {
+function isThread(report: OnyxInputOrEntry<Report> | ReportFields<'parentReportID' | 'parentReportActionID'>): report is Thread {
     return !!(report?.parentReportID && report?.parentReportActionID);
 }
 
@@ -2608,7 +2608,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report>, isReportArchived = false): boolean {
+function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | ReportFields<'type' | 'parentReportID' | 'parentReportActionID'>, isReportArchived = false): boolean {
     return isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report));
 }
 
@@ -2685,7 +2685,7 @@ function isAuditor(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the user can write in the provided report
  */
-function canWriteInReport(report: OnyxEntry<Report>): boolean {
+function canWriteInReport(report: OnyxEntry<Report> | ReportFields<'permissions'>): boolean {
     if (Array.isArray(report?.permissions) && report?.permissions.length > 0 && !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.AUDITOR)) {
         return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) || report?.permissions?.includes(CONST.REPORT.PERMISSIONS.COMMENT);
     }
@@ -2696,7 +2696,7 @@ function canWriteInReport(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the current user is allowed to comment on the given report.
  */
-function isAllowedToComment(report: OnyxEntry<Report>): boolean {
+function isAllowedToComment(report: OnyxEntry<Report> | ReportFields<'permissions' | 'writeCapability' | 'policyID'>): boolean {
     if (!canWriteInReport(report)) {
         return false;
     }
@@ -2744,7 +2744,7 @@ function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  */
-function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
+function isExpenseRequest(report: OnyxInputOrEntry<Report> | ReportFields<'parentReportID' | 'parentReportActionID'>): report is Thread {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, deprecatedAllReports);
@@ -2801,7 +2801,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
+function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | ReportFields<'type'> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -11029,7 +11029,7 @@ function isValidReportIDFromPath(reportIDFromPath: string | undefined): boolean 
 /**
  * Return the errors we have when creating a chat, a workspace room, or a new empty report
  */
-function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | undefined {
+function getCreationReportErrors(report: OnyxEntry<Report> | ReportFields<'errorFields'>): Errors | null | undefined {
     // We are either adding a workspace room, creating a chat, or we're creating a report, it isn't possible for all of these to have errors for the same report at the same time, so
     // simply looking up the first truthy value will get the relevant property if it's set.
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat ?? report?.errorFields?.createReport;
@@ -11038,7 +11038,7 @@ function getCreationReportErrors(report: OnyxEntry<Report>): Errors | null | und
 /**
  * Return true if the expense report is marked for deletion.
  */
-function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | string): boolean {
+function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | ReportFields<'type' | 'parentReportID' | 'parentReportActionID'> | string): boolean {
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     if (!isMoneyRequestReport(report)) {
         return false;
@@ -11104,7 +11104,7 @@ function navigateToLinkedReportAction(
  * not on its way out, it did not fail to be created, and the person looking is signed in. Permission to write is left
  * out on purpose, so this also covers read-only actions such as opening an attachment.
  */
-function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
+function canUserInteractWithReport(report: OnyxEntry<Report> | ReportFields<'errorFields' | 'type' | 'parentReportID' | 'parentReportActionID'>, isReportArchived: boolean | undefined) {
     const reportErrors = getCreationReportErrors(report);
 
     // If the expense report is marked for deletion, let us prevent any further interaction.
@@ -11115,55 +11115,11 @@ function canUserInteractWithReport(report: OnyxEntry<Report>, isReportArchived: 
     return !isArchivedNonExpenseReport(report, isReportArchived) && isEmptyObject(reportErrors) && report && !deprecatedIsAnonymousUser;
 }
 
-function canUserPerformWriteAction(report: OnyxEntry<Report>, isReportArchived: boolean | undefined) {
-    return canUserInteractWithReport(report, isReportArchived) && isAllowedToComment(report) && canWriteInReport(report);
-}
-
-/**
- * Same decision as canUserPerformWriteAction for callers that hold a projection of a report instead of the full object
- * (see ConciergeChatReport). Every key is required, so a projection that stops supplying one fails to compile.
- * Keep the logic in sync with canUserInteractWithReport, isAllowedToComment and canWriteInReport.
- */
-function canUserPerformWriteActionFromFields(
-    report: ReportFields<'errorFields' | 'type' | 'parentReportID' | 'parentReportActionID' | 'permissions' | 'writeCapability' | 'policyID'>,
+function canUserPerformWriteAction(
+    report: OnyxEntry<Report> | ReportFields<'errorFields' | 'type' | 'parentReportID' | 'parentReportActionID' | 'permissions' | 'writeCapability' | 'policyID'>,
     isReportArchived: boolean | undefined,
-): boolean {
-    const creationErrors = report.errorFields?.addWorkspaceRoom ?? report.errorFields?.createChat ?? report.errorFields?.createReport;
-    const isMoneyRequestType = report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE;
-    if (isMoneyRequestType && getReportAction(report.parentReportID, report.parentReportActionID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        return false;
-    }
-    if (isReportArchived) {
-        const parentReportAction =
-            report.parentReportID && report.parentReportActionID
-                ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
-                : undefined;
-        const isExpenseRequestThread =
-            !!report.parentReportID &&
-            !isEmptyObject(parentReportAction) &&
-            isExpenseReport(getReport(report.parentReportID, deprecatedAllReports)) &&
-            isTransactionThread(parentReportAction);
-        if (report.type !== CONST.REPORT.TYPE.EXPENSE && !isExpenseRequestThread) {
-            return false;
-        }
-    }
-    if (!isEmptyObject(creationErrors) || deprecatedIsAnonymousUser) {
-        return false;
-    }
-    const {permissions} = report;
-    if (Array.isArray(permissions) && permissions.length > 0 && !permissions.includes(CONST.REPORT.PERMISSIONS.AUDITOR)) {
-        if (!permissions.includes(CONST.REPORT.PERMISSIONS.WRITE) && !permissions.includes(CONST.REPORT.PERMISSIONS.COMMENT)) {
-            return false;
-        }
-    }
-    const capability = report.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
-    if (capability === CONST.REPORT.WRITE_CAPABILITIES.ALL) {
-        return true;
-    }
-    if (!allPolicies) {
-        return false;
-    }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]?.role === CONST.POLICY.ROLE.ADMIN;
+) {
+    return canUserInteractWithReport(report, isReportArchived) && isAllowedToComment(report) && canWriteInReport(report);
 }
 
 /**
@@ -12885,9 +12841,7 @@ function prepareOnboardingOnyxData({
         lastVisibleActionCreated: '',
         hasOutstandingChildTask: false,
     };
-    const canUserPerformWriteActionVariable = shouldPostTasksInAdminsRoom
-        ? canUserPerformWriteAction(adminsTargetChatReport, false)
-        : !!conciergeChat && canUserPerformWriteActionFromFields(conciergeChat, false);
+    const canUserPerformWriteActionVariable = canUserPerformWriteAction(shouldPostTasksInAdminsRoom ? adminsTargetChatReport : conciergeChat, false);
     const {lastMessageText = ''} = getLastVisibleMessageActionUtils(targetChatReportID, canUserPerformWriteActionVariable, {}, undefined, undefined, currentUserAccountID);
     if (lastMessageText) {
         const lastVisibleAction = getLastVisibleAction(targetChatReportID, canUserPerformWriteActionVariable, {}, undefined, undefined, currentUserAccountID);
@@ -14427,7 +14381,6 @@ export {
     canShowReportRecipientLocalTime,
     canUserInteractWithReport,
     canUserPerformWriteAction,
-    canUserPerformWriteActionFromFields,
     chatIncludesChronos,
     chatIncludesChronosWithID,
     chatIncludesConcierge,
