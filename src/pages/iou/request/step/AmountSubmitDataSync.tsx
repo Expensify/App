@@ -18,7 +18,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {conciergeChatSelector, isDraftReportSelector} from '@selectors/Report';
+import {isDraftReportSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useLayoutEffect} from 'react';
 
@@ -104,7 +104,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const duplicateTransactionIDs = isEditing && transactionID ? [transactionID] : [];

@@ -36,7 +36,6 @@ import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergeChatSelector} from '@selectors/Report';
 import React from 'react';
 
 import useTransactionThreadData from './useTransactionThreadData';
@@ -69,7 +68,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const activePolicy = usePolicy(activePolicyID);

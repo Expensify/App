@@ -13,7 +13,6 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {conciergeChatSelector} from '@selectors/Report';
 import {useCallback, useMemo} from 'react';
 
 import useDelegateAccountID from './useDelegateAccountID';
@@ -61,7 +60,7 @@ function useAutoCreateSubmitWorkspace() {
     );
     const [existingSubmitPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: existingSubmitPolicyIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const autoCreateSubmitWorkspace = useCallback(
         // Callers that already finished onboarding (e.g. the Submit plan welcome modal) don't need to

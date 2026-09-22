@@ -9,7 +9,6 @@ import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {conciergeChatSelector} from '@selectors/Report';
 import React, {createContext, useContext} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -68,7 +67,7 @@ function usePaymentContextValues(): PaymentContextValue {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
