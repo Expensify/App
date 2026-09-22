@@ -54,18 +54,25 @@ function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: I
     }
 }
 
-function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
-    let navigationIOUType: IOUType = iouType;
+/**
+ * `request` and `send` are deprecated OldDot aliases of `submit` and `pay`. They still arrive from old links, and
+ * `isValidMoneyRequestType` still accepts them, but the create flow rejects them: `withWritableReportOrNotFound`
+ * filters both out of the valid iouType list, so any create route built with one renders "Not found". Resolve an
+ * alias to the type NewDot actually renders before building a route with it.
+ */
+function getNonDeprecatedIOUType(iouType: IOUType): IOUType {
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
-            navigationIOUType = CONST.IOU.TYPE.SUBMIT;
-            break;
+            return CONST.IOU.TYPE.SUBMIT;
         case CONST.IOU.TYPE.SEND:
-            navigationIOUType = CONST.IOU.TYPE.PAY;
-            break;
+            return CONST.IOU.TYPE.PAY;
         default:
-            break;
+            return iouType;
     }
+}
+
+function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    const navigationIOUType = getNonDeprecatedIOUType(iouType);
 
     // The base is explicit because the picker can be opened from a create tab, the Inbox or Search drop zone.
     Navigation.navigate(
@@ -669,6 +676,7 @@ export {
     calculateSplitAmountFromPercentage,
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
+    getNonDeprecatedIOUType,
     insertTagIntoTransactionTagsString,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,

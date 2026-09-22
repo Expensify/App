@@ -229,6 +229,31 @@ describe('IOURequestRedirectToStartPage', () => {
         expect(dismissOrder).toBeLessThan(navigateOrder);
     });
 
+    // Regression test for the second half of the reported bug: /start/request/manual opened the create modal but its
+    // body rendered "Not found", because `request` is a deprecated OldDot alias that withWritableReportOrNotFound
+    // rejects. The redirect resolves the alias so the route it builds carries a type the create flow accepts.
+    it.each([
+        [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SUBMIT],
+        [CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.PAY],
+    ])('redirects the deprecated %s deeplink to the %s create route', async (deprecatedIOUType, expectedIOUType) => {
+        // Given a /start/<deprecated type>/manual link
+        renderRedirectPage({
+            iouType: deprecatedIOUType,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            reportID: '',
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        });
+        await waitForBatchedUpdatesWithAct();
+        await markNavigationReady();
+
+        // Then the create route is built with the modern iouType, not the deprecated alias
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        const navigatedRoute: string = jest.mocked(Navigation.navigate).mock.calls.at(0)?.[0] ?? '';
+        const optimisticReportID = /\/(\d+)\/manual$/.exec(navigatedRoute)?.at(1) ?? '';
+        expect(optimisticReportID).not.toBe('');
+        expect(navigatedRoute).toBe(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, expectedIOUType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
+    });
+
     // The readiness guard makes the redirect async, so the page can be unmounted while it is still pending. Nothing
     // should be dispatched in that case: dismissModal() tears down whatever modal is on top, so a late replay would
     // dismiss a modal this page never opened and push the start page over it.

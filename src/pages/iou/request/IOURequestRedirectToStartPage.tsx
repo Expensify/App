@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 
 import {clearMoneyRequest, startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+import {getNonDeprecatedIOUType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {isDistanceExpenseType} from '@libs/TransactionUtils';
@@ -22,8 +23,13 @@ type IOURequestRedirectToStartPageProps = WithWritableReportOrNotFoundProps<type
 
 function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPageProps) {
     const didRedirectRef = useRef(false);
-    const {iouType, iouRequestType} = route.params ?? {};
-    const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouType);
+    const {iouType: iouTypeParam, iouRequestType} = route.params ?? {};
+
+    // `/start/request/…` and `/start/send/…` still exist in OldDot links and in links people paste into chat. The
+    // create flow they redirect to renders "Not found" for those deprecated aliases, so resolve them here — this is
+    // the one place every `/start/…` link passes through before a create route is built.
+    const iouType = getNonDeprecatedIOUType(iouTypeParam);
+    const isIouTypeValid = Object.values(CONST.IOU.TYPE).includes(iouTypeParam);
     const isIouRequestTypeValid = Object.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
     const isSplitDistanceSubtype = iouType === CONST.IOU.TYPE.SPLIT && iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && isDistanceExpenseType(iouRequestType);
     const shouldShowNotFound = !isIouTypeValid || !isIouRequestTypeValid || isSplitDistanceSubtype;
