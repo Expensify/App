@@ -623,10 +623,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van een opmerking is ${formattedMaxLength} tekens.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van een taaknaam is ${formattedMaxLength} tekens.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'App bijwerken',
-        updatePrompt: 'Er is een nieuwe versie van deze app beschikbaar.\nWerk nu bij of start de app later opnieuw om de nieuwste wijzigingen te downloaden.',
-    },
     deeplinkWrapper: {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
@@ -1081,6 +1077,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Beoordeel 1 uitgave',
                 other: `Beoordeel ${count} uitgaven`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Beoordeel 1 domeinbeheerdersverzoek',
+                other: `Beoordeel ${count} domeinbeheerdersverzoeken`,
+            }),
         },
         upcomingTravel: 'Aankomende reizen',
         upcomingTravelSection: {
@@ -1164,6 +1164,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Vraag Concierge om je uitgaven te analyseren of om hulp te krijgen',
             inputPlaceholderMobile: 'Stel Concierge alles gerust een vraag',
         },
+    },
+    insightsPage: {
+        viewOnSpend: 'Bekijken in Uitgaven',
+        emptyState: {title: 'Niets om weer te geven', subtitle: 'Probeer je criteria hierboven aan te passen'},
+        noExpensesState: {title: 'Zie waar je geld naartoe gaat', subtitle: 'Zodra je uitgaven hebt, zie je bestedingspatronen, topverkopers en meer.'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -3331,7 +3336,7 @@ ${amount} voor ${merchant} - ${date}`,
             invalidFormatEmailLogin: 'Het ingevoerde e-mailadres is ongeldig. Corrigeer de notatie en probeer het opnieuw.',
             agentSignInBlocked: 'Je kunt niet rechtstreeks inloggen op agent-accounts. Log in met je eigen account en gebruik de agent via Copilot.',
         },
-        cannotGetAccountDetails: 'Accountgegevens konden niet worden opgehaald. Probeer opnieuw in te loggen.',
+        cannotGetAccountDetails: 'Accountgegevens ophalen is mislukt. Wacht een paar minuten en probeer het opnieuw.',
         loginForm: 'Aanmeldformulier',
         notYou: (user: string) => `Niet ${user}?`,
     },
@@ -6593,6 +6598,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
                 statementCloseDateTitle: 'Sluitingsdatum afschrift',
                 statementCloseDateDescription: 'Laat ons weten wanneer je creditcardafschrift wordt afgesloten, dan maken wij een bijpassend afschrift in Expensify aan.',
+                exportAccount: 'Account exporteren',
             },
             workflows: {
                 title: 'Workflows',
@@ -6847,6 +6853,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 other: (count: number) => `${count} tags`,
             }),
             showTagGLCodes: 'GL-codes tonen bij het selecteren van een tag',
+            showTagGLCodesSubtitle: 'Als een GL-code niet wordt weergegeven, is deze niet beschikbaar voor die tag in je boekhoudsysteem.',
         },
         taxes: {
             subtitle: 'Belastingnamen en -tarieven toevoegen en standaarden instellen.',
@@ -8706,6 +8713,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subsidiarySelectDescription: 'Kies de dochteronderneming in Campfire waarvan je gegevens wilt importeren.',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
             noSubsidiariesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Campfire en synchroniseer de verbinding opnieuw',
             importDescription: 'Kies welke boekhoudconfiguraties je wilt importeren uit Campfire.',
             accountTypesDescription: 'Je Campfire-accounts worden geïmporteerd als categorieën.',
             enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
@@ -10677,6 +10686,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title: ({count}: {count: number}) => ({
                     one: 'Proefperiode: nog 1 dag!',
                     other: `Proefperiode: nog ${count} dagen!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Nog 1 dag!',
+                    other: `Nog ${count} dagen!`,
                 }),
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
             },
