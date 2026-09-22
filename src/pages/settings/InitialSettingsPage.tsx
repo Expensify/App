@@ -1,4 +1,5 @@
 import AccountSwitcher from '@components/AccountSwitcher';
+import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -117,7 +118,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 />
             ) : (
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <AccountSwitcher isScreenFocused={isScreenFocused} />
+                    <AccountSwitcher
+                        isScreenFocused={isScreenFocused}
+                        shouldShowSwitchButton={shouldUseNarrowLayout}
+                    />
                 </View>
             )}
         </View>
@@ -158,7 +162,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 breadcrumbLabel={translate('initialSettingsPage.account')}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
-            />
+            >
+                {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
+                    /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
+                    <View style={styles.mr2}>
+                        <AccountSwitcherButton isScreenFocused={isScreenFocused} />
+                    </View>
+                )}
+            </TopBarWithLoadingBar>
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}

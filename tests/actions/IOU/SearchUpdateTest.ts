@@ -9,7 +9,7 @@ import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import {buildCannedSearchQuery} from '@src/libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -52,14 +52,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -577,6 +569,76 @@ describe('actions/IOU', () => {
             // The snapshot must carry its own `hash` or the never-visited page's `isSearchDataLoaded` gate stays
             // false and the page renders "Nothing to show" even though the transaction data was merged in.
             expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
+        });
+
+        it('writes the group-by:from drill-down snapshot under a hash that excludes the group limit', async () => {
+            // Given an active `group-by:from` search whose `limit` is meant to bound how many member groups show.
+            // `limit` is part of the query hash, so if the optimistic per-member snapshot kept it, the snapshot
+            // would land on a hash the group row never reads and expanding the row would show nothing.
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON('type:expense group-by:from limit:10');
+            if (!groupedQueryJSON) {
+                throw new Error('Failed to parse the group-by:from search query');
+            }
+            expect(groupedQueryJSON.limit).toBe(10);
+
+            // The drill-down query the group row builds: the grouping is replaced by a `from:<member>` filter.
+            const drillDownFlatFilters = groupedQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+            drillDownFlatFilters.push({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: RORY_ACCOUNT_ID}],
+            });
+            const buildDrillDownHash = (keepLimit: boolean) =>
+                actualSearchQueryUtils.buildSearchQueryJSON(
+                    actualSearchQueryUtils.buildSearchQueryString({
+                        ...groupedQueryJSON,
+                        groupBy: undefined,
+                        limit: keepLimit ? groupedQueryJSON.limit : undefined,
+                        flatFilters: drillDownFlatFilters,
+                    }),
+                )?.hash;
+            const hashWithoutLimit = buildDrillDownHash(false);
+            const hashWithLimit = buildDrillDownHash(true);
+            // The whole point of the fix only exists if `limit` actually changes the hash.
+            expect(hashWithoutLimit).toBeDefined();
+            expect(hashWithoutLimit).not.toBe(hashWithLimit);
+
+            // Only the active search should be patched, so no other recorded query can write the same hash.
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await waitForBatchedUpdates();
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // When an expense is created while that grouped search is open.
+            // `getSearchOnyxUpdate` reads the active search exactly once, and `mockReturnValueOnce` restores the
+            // suite-wide default afterwards so this override cannot leak into the following tests.
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(groupedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), reimbursable: true},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            // Then the per-member snapshot is written under the limit-free hash the group row reads,
+            // and nothing is written under the hash that would result from carrying `limit` over
+            const optimisticKeys = result?.optimisticData?.map((update) => update.key) ?? [];
+            expect(optimisticKeys).toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithoutLimit}`);
+            expect(optimisticKeys).not.toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithLimit}`);
+
+            // And that snapshot carries its own hash, without which the drill-down page stays gated on
+            // `isSearchDataLoaded` and renders "Nothing to show"
+            const drillDownUpdate = result?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithoutLimit}`);
+            expect(drillDownUpdate?.value).toHaveProperty('search.hash', hashWithoutLimit);
         });
 
         // Builds the snapshot update for a transaction whose `modifiedMerchant` starts at the given value, and
