@@ -356,8 +356,8 @@ describe('MoneyRequestViewReportFields', () => {
         // the caret and slide it 11px left the moment the list opens. Mirroring on the vertical axis turns the caret
         // over while leaving its box — and so the caret's distance from the field's right edge — untouched.
         const expandedStyles = getRenderedStyles();
-        expect(expandedStyles).toEqual(expect.arrayContaining([expect.objectContaining({...caretContainer, transform: 'scaleY(-1)'})]));
-        expect(expandedStyles).not.toEqual(expect.arrayContaining([expect.objectContaining({transform: 'rotate(180deg)'})]));
+        expect(expandedStyles).toEqual(expect.arrayContaining([expect.objectContaining({...caretContainer, transform: [{scaleY: -1}]})]));
+        expect(expandedStyles).not.toEqual(expect.arrayContaining([expect.objectContaining({transform: [{rotate: '180deg'}]})]));
     });
 
     it('sizes the option popover like the Spend dropdowns instead of matching the field width', async () => {
