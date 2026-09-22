@@ -194,6 +194,43 @@ describe('useSearchTagFilters', () => {
         });
     });
 
+    it('preserves pagination metadata when searching offline and refetches on reconnect after clearing', async () => {
+        setPartialTagFilterState('');
+        mockOpenSearchTagFiltersPage.mockResolvedValueOnce({hasMore: true, nextCursor: 'cursor-1'});
+
+        const {result, rerender} = renderHook(() => useSearchTagFilters(POLICY_ID));
+
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledTimes(1);
+        });
+
+        mockIsOffline = true;
+        rerender({});
+
+        act(() => {
+            result.current.searchTags('marketing');
+        });
+
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(true, 'cursor-1', 'marketing');
+
+        act(() => {
+            result.current.searchTags('');
+        });
+
+        expect(mockSetSearchTagFiltersPagination).toHaveBeenCalledWith(true, 'cursor-1', '');
+
+        mockIsOffline = false;
+        mockOpenSearchTagFiltersPage.mockClear();
+        rerender({});
+
+        await waitFor(() => {
+            expect(mockOpenSearchTagFiltersPage).toHaveBeenCalledWith(
+                expect.objectContaining({searchQuery: '', policyIDs: POLICY_ID, cursor: '', limit: CONST.SEARCH.TAG_FILTER_PAGE_SIZE}),
+                true,
+            );
+        });
+    });
+
     it('does not call the API when searching with a complete cached dataset', async () => {
         setCompleteTagFilterState('');
 

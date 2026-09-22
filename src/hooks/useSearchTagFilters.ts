@@ -124,7 +124,7 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
     const searchTags = (query: string) => {
         if (isOffline) {
             // When offline, update the search query so TagSelector can filter cached results locally
-            setSearchTagFiltersPagination(false, '', query);
+            setSearchTagFiltersPagination(stateRef.current.hasMore, stateRef.current.nextCursor, query);
             return;
         }
 
