@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, select all, select all on this page, select all reports, selection count, reports selected, Reports tab]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -95,7 +95,7 @@ The **Spend** page footer shows the **Total spend** for what you're viewing. Whe
 ### What the total spend footer shows
 
 - **Total spend:** the combined amount, shown with a currency code. With nothing selected, this covers the whole search result; when you select rows, it covers just your selection.
-- **Expenses:** the number of expenses currently selected (shown when you've made a selection).
+- **Expenses:** the number of expenses currently selected (shown when you've made a selection). This always counts expenses, including on the **Reports** tab.
 
 The total is shown in your default currency until you choose a different one.
 
@@ -121,6 +121,25 @@ The currency picker can't be opened in these cases:
 
 - You're offline, because converting the total requires a refresh from Expensify.
 - The totals are still loading.
+
+---
+
+## How to select every matching report on the Spend page
+
+The checkbox at the top of the list normally selects only the rows the page has already loaded. When your search matches more results than that, the checkbox opens a menu so you can choose how far the selection reaches.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
+2. Select **Reports**.
+3. Select the checkbox at the top of the list, or select **Select all** next to it.
+4. Choose one of the two options:
+   - **Select all on this page** selects only the reports the page has loaded.
+   - **Select all** selects every report that matches your search, including reports on later pages.
+
+After you choose **Select all**, the button at the top of the list briefly shows a loading state while Expensify counts the matching reports, then updates to the total — for example, **110 selected**. If you're offline, the button shows the number of reports currently loaded instead.
+
+## What the selection count on the Reports tab counts
+
+On the **Reports** tab, the button at the top of the list counts reports, while the footer counts expenses. The two figures are usually different, because one report can hold many expenses and some reports hold none.
 
 ---
 
@@ -203,6 +222,12 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
+
+## Why does the selection count on the Reports tab differ from the Expenses count in the footer?
+They count different things. On the **Reports** tab, the button at the top of the list counts reports and the footer counts expenses, so a selection can read **110 selected** while the footer reads **Expenses: 93**. One report can hold many expenses, and some reports hold none, so the two figures rarely match.
+
+## Why does the selection count spin briefly after I choose Select all?
+Expensify counts the matching reports across every page before it can label the button, so the button stays in a loading state until that count arrives. If you're offline, it stops waiting and shows the number of reports currently loaded instead.
 
 ## Why can't I change the total spend currency?
 The currency picker is only disabled in two cases: when you're offline, or while the totals are still loading. Both happen because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it.
