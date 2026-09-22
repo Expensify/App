@@ -19,11 +19,11 @@ type RenewSubscriptionProps = {
 
 function RenewSubscription({endDate}: RenewSubscriptionProps) {
     const {translate, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid']);
 
     return (
         <BaseWidgetItem
-            icon={icons.Calendar}
+            icon={icons.CalendarSolid}
             title={translate('homePage.timeSensitiveSection.renewSubscription.title')}
             subtitle={translate('homePage.timeSensitiveSection.renewSubscription.subtitle', {date: formatSubscriptionEndDate(endDate, dateFnsLocale)})}
             ctaText={translate('homePage.timeSensitiveSection.renewSubscription.cta')}
