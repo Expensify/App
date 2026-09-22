@@ -280,8 +280,8 @@ describe('AuthScreensInitHandler', () => {
 
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
 
-        // And the decision carries the values the comparison used, so one log row says which account the link named
-        // and how it differed from the session. Asserted on the payload, not on the message wording.
+        // And the log record carries the account fields the comparison used, so one row says which account the link
+        // named and how it differed from the session
         const decisionLogs = logInfoSpy.mock.calls.filter(([, , parameters]) => isRecord(parameters) && 'linkEmail' in parameters);
         expect(decisionLogs).toHaveLength(1);
         expect(decisionLogs.at(0)?.at(2)).toEqual({

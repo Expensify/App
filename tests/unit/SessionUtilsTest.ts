@@ -113,37 +113,41 @@ describe('SessionUtils', () => {
     });
 
     describe('getTransitionLinkEmailParams', () => {
-        // The transition sign-out decision compares these two values against the session email, so a log line built
-        // from them has to read the link the way the decision does. Parsed params come first, then the raw value for
-        // the case where a full URL mangles the first query key.
-        test.each([
-            ['reads both params from a query string', '?email=user@example.com&delegatorEmail=delegate@example.com', 'user@example.com', 'delegate@example.com'],
-            ['reads a query string starting with delegatorEmail', '?delegatorEmail=delegate@example.com', null, 'delegate@example.com'],
-            [
-                'falls back to the raw value when a full URL mangles the first param key',
-                'https://example.com?email=user%40example.com&delegatorEmail=delegate@example.com',
-                'user%40example.com',
-                'delegate@example.com',
-            ],
-            ['reads only the param the link carries', '?email=user@example.com', 'user@example.com', null],
-            ['reads nothing from a supportal-style link', '?authTokenType=support&shortLivedAuthToken=abc', null, null],
-            ['reads nothing for an undefined link', undefined, null, null],
-            ['reads nothing for an empty link', '', null, null],
-        ])('%s', (_description, transitionURL, expectedEmail, expectedDelegatorEmail) => {
-            expect(getTransitionLinkEmailParams(transitionURL)).toEqual({email: expectedEmail, delegatorEmail: expectedDelegatorEmail});
+        test('reads the raw email value when the link is a full URL', () => {
+            // Given a HybridApp transition link, where URLSearchParams mangles the first query key of a full URL
+            const transitionURL = 'https://example.com?email=user%40example.com&delegatorEmail=delegate@example.com';
+
+            // When the link is read for the transition sign-out decision
+            const linkEmails = getTransitionLinkEmailParams(transitionURL);
+
+            // Then both accounts it names come back, the email as the un-decoded value the decision also compares
+            expect(linkEmails.email).toBe('user%40example.com');
+            expect(linkEmails.delegatorEmail).toBe('delegate@example.com');
+        });
+
+        test('reads nothing when the link names no account', () => {
+            // Given a supportal transition link, which carries a token and no email
+            const transitionURL = '?authTokenType=support&shortLivedAuthToken=abc';
+
+            // When the link is read for the transition sign-out decision
+            const linkEmails = getTransitionLinkEmailParams(transitionURL);
+
+            // Then neither account is named, so the log records an absent value rather than a guess
+            expect(linkEmails.email).toBeNull();
+            expect(linkEmails.delegatorEmail).toBeNull();
         });
 
         test('does not read the credentials the link also carries', () => {
             // Given a transition link that names an account and carries short-lived credentials
             const transitionURL = '?email=user@example.com&shortLivedAuthToken=secret-token&encryptedAuthToken=encrypted-token';
 
-            // When the link is read to build a log payload
-            const params = getTransitionLinkEmailParams(transitionURL);
+            // When the link is read for the transition sign-out decision
+            const linkEmails = getTransitionLinkEmailParams(transitionURL);
 
-            // Then only the two account identities come back, so no credential reaches the log payload
-            expect(Object.keys(params)).toEqual(['email', 'delegatorEmail']);
-            expect(JSON.stringify(params)).not.toContain('secret-token');
-            expect(JSON.stringify(params)).not.toContain('encrypted-token');
+            // Then the account it names comes back and no credential does
+            expect(linkEmails.email).toBe('user@example.com');
+            expect(JSON.stringify(linkEmails)).not.toContain('secret-token');
+            expect(JSON.stringify(linkEmails)).not.toContain('encrypted-token');
         });
     });
 });

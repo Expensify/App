@@ -24,7 +24,6 @@ import React, {useEffect} from 'react';
 
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
-// Distinct prefix so a log query can separate this decision from the same one in AuthScreensInitHandler.
 const TRANSITION_SIGN_OUT_LOG = '[TransitionSignOut][LogOutPreviousUserPage]';
 
 // This page is responsible for handling transitions from OldDot. Specifically, it logs the current user

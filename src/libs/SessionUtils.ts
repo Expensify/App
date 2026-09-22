@@ -67,18 +67,13 @@ function getDelegatorEmailFromURL(url?: string): string | undefined {
 }
 
 type TransitionLinkEmailParams = {
-    /** The `email` the transition link names, or null when the link carries none */
     email: string | null;
-
-    /** The `delegatorEmail` the transition link names, or null when the link carries none */
     delegatorEmail: string | null;
 };
 
 /**
- * Read the account identities a transition link names. Uses the same lookups `isLoggingInAsNewUser` compares against
- * the session email, so the values match the decision. Parsed params come first, then the raw regex value for the
- * case where a full URL mangles the first query key. Read-only, for logging. It returns the two values that
- * comparison uses, and never the link itself or any token it carries.
+ * URLSearchParams mangles the first query key when it is handed a full URL rather than a query string, so fall back to
+ * the raw param value the way isLoggingInAsNewUser does.
  */
 function getTransitionLinkEmailParams(transitionURL?: string): TransitionLinkEmailParams {
     const params = new URLSearchParams(transitionURL);

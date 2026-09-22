@@ -52,7 +52,6 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import {useEffect, useRef} from 'react';
 
-// Distinct prefix so a log query can separate this decision from the same one in LogOutPreviousUserPage.
 const TRANSITION_SIGN_OUT_LOG = '[TransitionSignOut][AuthScreensInitHandler]';
 
 function initializePusher(

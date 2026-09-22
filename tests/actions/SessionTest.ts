@@ -548,9 +548,8 @@ describe('Session', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the reason reaches the log payload. Every caller shares one sentence, so a log line without the
-            // reason cannot say who asked for the sign-in redirect. Asserted on the payload rather than the wording,
-            // which a reviewer may rephrase.
+            // Then the reason reaches the log payload, because every caller shares one sentence and a log line
+            // without it cannot say who asked for the sign-in redirect
             const reasonLogs = logInfoSpy.mock.calls.filter(([, , parameters]) => isRecord(parameters) && 'signOutReason' in parameters);
             expect(reasonLogs).toHaveLength(1);
             expect(reasonLogs.at(0)?.at(2)).toEqual({signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER});
