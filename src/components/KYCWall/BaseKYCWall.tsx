@@ -2,6 +2,7 @@ import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -78,6 +79,7 @@ function KYCWall({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const ownerAccountID = iouReport?.ownerAccountID;
     const employeeLoginSelector = useCallback((personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsLoginSelector(ownerAccountID)(personalDetailsList), [ownerAccountID]);
@@ -91,6 +93,7 @@ function KYCWall({
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -181,6 +184,7 @@ function KYCWall({
                             employeeLogin,
                             doesSubmitterPersonalDetailExist ?? false,
                             getCurrencyDecimals,
+                            rules,
                             reportTransactions,
                         );
                         if (inviteResult?.policyExpenseChatReportID) {
@@ -192,7 +196,7 @@ function KYCWall({
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                             });
                         } else {
-                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, reportPreviewAction, getCurrencyDecimals, true, reportTransactions);
+                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, reportPreviewAction, getCurrencyDecimals, rules, true, reportTransactions);
                             savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
 
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
@@ -228,7 +232,17 @@ function KYCWall({
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, adminsChatReportID, policyID);
+                    completePaymentOnboarding(
+                        CONST.PAYMENT_SELECTED.BBA,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        currentUserAccountID,
+                        conciergeChat,
+                        delegateAccountID,
+                        adminsChatReportID,
+                        policyID,
+                    );
                     const workspaceReportRoute = workspaceChatReportID ? ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID) : undefined;
 
                     setNavigationActionToMicrotaskQueue(() => {
@@ -293,6 +307,8 @@ function KYCWall({
             conciergeChat,
             localCurrency,
             getCurrencyDecimals,
+            delegateAccountID,
+            rules,
         ],
     );
 

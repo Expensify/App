@@ -14,7 +14,6 @@ function EditCategoryTaxRulePage({route}: EditCategoryTaxRulePageProps) {
         <MerchantRulePageBase
             policyID={route.params.policyID}
             editCategoryTaxRuleFor={route.params.categoryName}
-            titleKey="workspace.rules.merchantRules.editRuleTitle"
             testID="EditCategoryTaxRulePage"
         />
     );

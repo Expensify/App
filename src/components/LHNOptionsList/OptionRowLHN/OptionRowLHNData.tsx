@@ -152,6 +152,7 @@ function OptionRowLHNData({
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -195,6 +196,7 @@ function OptionRowLHNData({
         currentUserLogin: login ?? '',
         isTrackIntentUser,
         formatPhoneNumber,
+        rules,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
@@ -231,6 +233,7 @@ function OptionRowLHNData({
             report: fullReport,
             isTrackIntentUser,
             policy,
+            rules,
         }) && finalOptionItem?.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
 
     return (

@@ -3,6 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SelectableListItem from '@components/SelectionList/ListItem/SelectableListItem';
 import type {ListItem, SelectableListItemProps} from '@components/SelectionList/ListItem/types';
+import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 
 import type * as DeviceCapabilitiesModule from '@libs/DeviceCapabilities';
 
@@ -29,6 +30,18 @@ jest.mock('@hooks/useLazyAsset', () => ({
     ...jest.requireActual<Record<string, unknown>>('@hooks/useLazyAsset'),
     useMemoizedLazyExpensifyIcons: (names: string[]) => Object.fromEntries(names.map((name) => [name, name])),
 }));
+
+// Reads the hover state the row provides through context, so hover tests can assert it from plain children.
+function HoverProbe() {
+    const isHovered = useListItemHovered();
+    return <View testID={`hovered-${isHovered}`} />;
+}
+
+// Reads the row state the pressable provides through ListItemContext.
+function RowStateProbe() {
+    const {isDisabled, isInteractive, shouldDisableAccessibleGrouping} = useListItemContext();
+    return <View testID={`row-state-${isDisabled}-${isInteractive}-${shouldDisableAccessibleGrouping}`} />;
+}
 
 const buildItem = (extra: Partial<ListItem> = {}): ListItem => ({
     text: 'Test User',
@@ -135,18 +148,16 @@ describe('SelectableListItem', () => {
     });
 
     it.each([
-        ['shows the RBR indicator for an unselected item with an error', buildItem({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}), undefined, true],
-        ['hides the RBR indicator when the item is selected', buildItem({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, isSelected: true}), undefined, false],
+        ['shows the RBR indicator for an unselected item with an error', buildItem({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}), true],
+        ['hides the RBR indicator when the item is selected', buildItem({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, isSelected: true}), false],
         [
             'shows the RBR indicator on a selected item that can show several indicators',
             buildItem({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, isSelected: true, canShowSeveralIndicators: true}),
-            undefined,
             true,
         ],
-        ['hides the RBR indicator when shouldDisplayRBR is false', buildItem({brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}), false, false],
-        ['renders no RBR indicator without a brickRoadIndicator', buildItem(), undefined, false],
-    ])('%s', async (_label, item, shouldDisplayRBR, isVisible) => {
-        renderItem({item, shouldDisplayRBR});
+        ['renders no RBR indicator without a brickRoadIndicator', buildItem(), false],
+    ])('%s', async (_label, item, isVisible) => {
+        renderItem({item});
         // The indicator icon is loaded lazily, so let the icon chunk resolve before asserting.
         await waitForBatchedUpdatesWithAct();
 
@@ -159,8 +170,8 @@ describe('SelectableListItem', () => {
         }
     });
 
-    it('passes the live hover state to render-prop children', () => {
-        renderItem({children: (hovered: boolean) => <View testID={`hovered-${hovered}`} />});
+    it('provides the live hover state to children through ListItemHoverContext', () => {
+        renderItem({children: <HoverProbe />});
 
         expect(screen.getByTestId('hovered-false')).toBeVisible();
 
@@ -172,10 +183,22 @@ describe('SelectableListItem', () => {
         expect(screen.getByTestId('hovered-false')).toBeVisible();
     });
 
-    it('renders the FooterComponent after the row content', () => {
-        renderItem({FooterComponent: <View testID="footer" />});
+    it.each([
+        ['the defaults for an enabled, interactive row', {}, 'row-state-false-true-false'],
+        ['the disabled state', {isDisabled: true}, 'row-state-true-true-false'],
+        ['the non-interactive state from the item', {item: buildItem({isInteractive: false})}, 'row-state-false-false-false'],
+        ['the disabled accessible grouping when the row is not accessible as one unit', {accessible: false}, 'row-state-false-true-true'],
+    ])('provides %s to children through ListItemContext', (_label, props, expectedTestID) => {
+        renderItem({children: <RowStateProbe />, ...props});
 
-        expect(getRenderedOrder(ROW_CONTENT_TEST_ID, 'footer')).toEqual([ROW_CONTENT_TEST_ID, 'footer']);
+        expect(screen.getByTestId(expectedTestID)).toBeVisible();
+    });
+
+    it('reports hover as false to children when shouldDisableHoverStyle is set', () => {
+        renderItem({children: <HoverProbe />, shouldDisableHoverStyle: true});
+
+        fireEvent(screen.getByTestId(ROW_TEST_ID), 'mouseEnter');
+        expect(screen.getByTestId('hovered-false')).toBeVisible();
     });
 
     it('resolves a function-form rightHandSideComponent with the item and focus state', () => {

@@ -96,7 +96,7 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
             policyID={policyID}
             featureName={featureName}
             policyFeature={policyFeature}
-            shouldBeBlocked={isReportFieldImportedFromIntegration(reportField)}
+            shouldBeBlocked={isReportFieldImportedFromIntegration(reportField, policy)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

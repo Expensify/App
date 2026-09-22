@@ -61,6 +61,9 @@ Yes. If you select **Workflows** when duplicating, all approval steps and settin
 ## Can I change which workspace settings are copied after duplication?
 No. Once the new workspace is created, you’ll need to manually adjust any settings you didn’t include during duplication.
 
+## Does duplicating a workspace copy my invoicing details?
+No. When you select **Invoices**, the new workspace has invoicing enabled, but the **Invoicing details**—including **Company name**, **Company website**, and the connected bank account—are not copied. Because these details are set up per workspace, you’ll need to enter them again in the new workspace before sending an invoice.
+
 ## Does duplicating a workspace affect the original one?
 No. The original workspace remains unchanged. Duplication creates a separate, independent workspace with the settings you selected.
 

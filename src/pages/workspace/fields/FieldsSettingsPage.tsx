@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -71,7 +71,7 @@ function FieldsSettingsPage({
         return <NotFoundPage />;
     }
 
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
@@ -116,41 +116,27 @@ function FieldsSettingsPage({
                     shouldSetModalVisibility={false}
                 />
                 <View style={styles.flexGrow1}>
-                    <MenuItemWithTopDescription
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        title={reportField.name}
-                        description={translate('common.name')}
-                        interactive={false}
+                    <MenuItemField
+                        value={reportField.name}
+                        name={translate('common.name')}
                     />
-                    <MenuItemWithTopDescription
-                        style={[styles.moneyRequestMenuItem]}
-                        titleStyle={styles.flex1}
-                        title={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
-                        description={translate('common.type')}
-                        interactive={false}
+                    <MenuItemField
+                        value={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
+                        name={translate('common.type')}
                     />
                     {isListFieldType && (
-                        <MenuItemWithTopDescription
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            description={translate('workspace.reportFields.listValues')}
-                            shouldShowRightIcon={canWrite}
-                            interactive={canWrite}
-                            onPress={() => Navigation.navigate(getListValuesRoute(policyID, reportFieldID))}
-                            title={listValues.join(', ')}
-                            numberOfLinesTitle={5}
+                        <MenuItemField
+                            name={translate('workspace.reportFields.listValues')}
+                            onPress={canWrite ? () => Navigation.navigate(getListValuesRoute(policyID, reportFieldID)) : undefined}
+                            value={listValues.join(', ')}
+                            numberOfLinesValue={5}
                         />
                     )}
                     {!isListFieldEmpty && (
-                        <MenuItemWithTopDescription
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            title={getReportFieldInitialValue(reportField, translate)}
-                            description={translate('common.initialValue')}
-                            shouldShowRightIcon={canWrite && !isDateFieldType}
-                            interactive={canWrite && !isDateFieldType}
-                            onPress={() => Navigation.navigate(getInitialValueRoute(policyID, reportFieldID))}
+                        <MenuItemField
+                            value={getReportFieldInitialValue(reportField, translate)}
+                            name={translate('common.initialValue')}
+                            onPress={canWrite && !isDateFieldType ? () => Navigation.navigate(getInitialValueRoute(policyID, reportFieldID)) : undefined}
                         />
                     )}
                     {canWrite && !isImportedReportField && (

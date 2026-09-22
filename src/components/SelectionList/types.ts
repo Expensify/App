@@ -134,14 +134,14 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         shouldUseUserSkeletonView?: boolean;
 
-        /** Whether to show the right caret icon */
-        shouldShowRightCaret?: boolean;
-
         /** Whether to place customListHeader in the list so it scrolls with data */
         shouldHeaderBeInsideList?: boolean;
 
         /** Custom accessibility label for the select all checkbox, providing context about what is being selected */
         selectAllAccessibilityLabel?: string;
+
+        /** Whether to place the footer (custom footer content or the confirm button) in the list so it scrolls with data instead of being fixed to the bottom */
+        shouldFooterBeInsideList?: boolean;
     };
 
 type SelectionListStyle = {

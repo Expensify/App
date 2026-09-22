@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 
 import CONST from '@src/CONST';
@@ -19,8 +20,10 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
+import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
+    Account,
     ApprovalRule,
     ConnectionLastSync,
     ConnectionName,
@@ -38,10 +41,12 @@ import type {
     Vendor,
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
+import type Rule from '@src/types/onyx/Rule';
+import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -84,6 +89,24 @@ type WorkspaceDetails = {
 
 type ConnectionWithLastSyncData = {
     lastSync?: ConnectionLastSync;
+};
+
+/** The report facts an approval workflow rule is matched against. */
+type ApprovalWorkflowContext = {
+    /** Email of the member who submitted the report. */
+    submitterEmail: string;
+
+    /** Email of the approver the report is currently with. Empty when the report has not been approved yet. */
+    currentApproverEmail?: string;
+
+    /** Total of the report, in the backend (cents) amount the rules' `amount` filters are written in. */
+    reportTotal: number;
+};
+
+/** The outcome of matching a report against the policy's approval workflow rules. */
+type ApprovalWorkflowRuleMatch = {
+    /** Email the matched rule forwards the report to. Undefined when the rule finalizes the report instead. */
+    forwardsTo?: string;
 };
 
 /**
@@ -677,8 +700,9 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
         return undefined;
     }
 
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -686,6 +710,21 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
     }
 
     return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+}
+
+/**
+ * Payer fields to merge into the successData of an ownership transfer. The backend keeps the former payer when the
+ * workspace has a bank account, so only reassign when there is none and the outgoing owner is the resolved payer.
+ */
+function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin: string): NullishDeep<Policy> {
+    if (!policy || policy.achAccount?.bankAccountID || getReimburserEmail(policy) !== policy.owner) {
+        return {};
+    }
+
+    return {
+        ...(policy.reimburser ? {reimburser: newOwnerLogin} : {}),
+        ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: newOwnerLogin}} : {}),
+    };
 }
 
 /**
@@ -707,8 +746,9 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     }
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -780,7 +820,7 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
 function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
     return (personalDetails: PersonalDetailsList | undefined): number => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, false, false);
 
         return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
             const accountID = policyMemberEmailsToAccountIDs[email];
@@ -832,14 +872,20 @@ const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, currentUserAccountID: number | undefined): boolean =>
+    !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
  *
  * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false, includeMemberWithPendingDelete = true): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(
+    employeeList: PolicyEmployeeList | undefined,
+    personalDetailsByLogins?: PersonalDetailsByLogin,
+    includeMemberWithErrors = false,
+    includeMemberWithPendingDelete = true,
+): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     for (const email of Object.keys(members)) {
@@ -855,7 +901,7 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
                 continue;
             }
         }
-        const personalDetail = getPersonalDetailByEmail(email);
+        const personalDetail = personalDetailsByLogins?.[email] ?? getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
             continue;
         }
@@ -885,7 +931,7 @@ function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, emp
     }
 
     const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
 
     for (const [email, accountID] of Object.entries(memberAccountIDs)) {
         if (email.toLowerCase() === normalizedEmail) {
@@ -1507,14 +1553,14 @@ function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
 /**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
- * Rules are available on Control always, and on Collect only when the rulesRevamp beta is enabled.
+ * Rules are available on both Control and Collect.
  */
-function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, isRulesRevampEnabled = false): boolean {
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
+        return isControlPolicy(policy) || isCollectPolicy(policy);
     }
     const corporateOnlyFeatures = new Set<PolicyFeatureName>([
         CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
@@ -1612,8 +1658,24 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+/**
+ * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
+ * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
+ * disabled, which hides Pay on its approved reports.
+ */
+function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | undefined {
+    switch (policy?.reimbursementChoice) {
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        default:
+            return policy?.reimbursementChoice;
+    }
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
 /**
@@ -1740,15 +1802,8 @@ function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-/**
- * @param isRulesRevampEnabled - Prefer `isBetaEnabled(CONST.BETAS.RULES_REVAMP)` from `usePermissions()`, not raw betas from Onyx.
- * Collect workspaces can only access Rules when this beta is enabled.
- */
-function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!isPaidGroupPolicy(policy)) {
-        return false;
-    }
-    if (isCollectPolicy(policy) && !isRulesRevampEnabled) {
         return false;
     }
     if (policy?.areRulesEnabled === true) {
@@ -1764,15 +1819,29 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+/**
+ * Whether Invoice Fields is enabled for the policy.
+ * Respects the `areInvoiceFieldsEnabled` toggle and verifies the policy has access to the feature (Control only).
+ */
+function isInvoiceFieldsEnabled(policy: OnyxEntry<Policy> | null): boolean {
+    return !!policy?.areInvoiceFieldsEnabled && canPolicyAccessFeature(policy ?? undefined, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED);
+}
+
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
+        return arePolicyRulesEnabled(policy, policyCategories);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED) {
+        return isInvoiceFieldsEnabled(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED) {
+        return isMCPEnabled(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
         return policy?.isHREnabled === true || isAnyHRConnected(policy);
@@ -1927,7 +1996,109 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined): string {
+/**
+ * True when this node is a single comparison instead of a combination of two children.
+ */
+function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
+    return typeof node.left === 'string';
+}
+
+function matchesApprovalWorkflowEmailComparison(node: ApprovalWorkflowFilterComparison, email: string | undefined): boolean {
+    const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
+    const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
+    return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
+}
+
+function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterComparison, amount: number): boolean {
+    const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
+    if (Number.isNaN(expectedAmount)) {
+        return false;
+    }
+
+    switch (node.operator) {
+        case CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO:
+            return amount === expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO:
+            return amount !== expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN:
+            return amount > expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO:
+            return amount >= expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN:
+            return amount < expectedAmount;
+        case CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO:
+            return amount <= expectedAmount;
+        default:
+            return false;
+    }
+}
+
+function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, context: ApprovalWorkflowContext): boolean {
+    if (!isApprovalWorkflowComparison(node)) {
+        const left = evaluateApprovalWorkflowFilter(node.left, context);
+        const right = evaluateApprovalWorkflowFilter(node.right, context);
+        return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR ? left || right : left && right;
+    }
+
+    switch (node.left) {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+            return matchesApprovalWorkflowEmailComparison(node, context.submitterEmail);
+
+        // A report with no current approver has not been approved by anybody yet, so a rule based on who
+        // approved it last cannot apply.
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
+            return !!context.currentApproverEmail && matchesApprovalWorkflowEmailComparison(node, context.currentApproverEmail);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+            return matchesApprovalWorkflowAmountComparison(node, Math.abs(context.reportTotal));
+
+        default:
+            return false;
+    }
+}
+
+/**
+ * True when every condition in the rule's filter tree is true for `context`.
+ */
+function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: ApprovalWorkflowContext): boolean {
+    return evaluateApprovalWorkflowFilter(rule.filters, context);
+}
+
+/**
+ * Check the policy's approval workflow rules to determine where the report goes next.
+ */
+function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext, rules: OnyxCollection<Rule>): ApprovalWorkflowRuleMatch | undefined {
+    if (!policy?.id || !context.submitterEmail) {
+        return undefined;
+    }
+
+    const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
+
+    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
+    const ruleKeys = Object.keys(rules ?? {}).sort();
+    for (const ruleKey of ruleKeys) {
+        const rule = rules?.[ruleKey];
+        if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        if (!Object.values(rule.triggers ?? {}).includes(trigger)) {
+            continue;
+        }
+        if (!evaluateApprovalWorkflowRule(rule, context)) {
+            continue;
+        }
+
+        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver};
+    }
+
+    return undefined;
+}
+
+function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal}, rules);
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
@@ -1943,8 +2114,8 @@ function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | 
     return employee?.submitsTo ?? defaultApprover ?? '';
 }
 
-function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined) {
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0) {
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, reportTotal);
     return managerEmail ? (getAccountIDsByLogins([managerEmail]).at(0) ?? -1) : -1;
 }
 
@@ -1952,7 +2123,13 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | und
  * Returns the email the expense report should submit to per workspace approval config
  * (approval rules, employee submitsTo, or default approver for basic/optional workflows).
  */
-function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): string {
+function getSubmitToEmail(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    shouldFallBackWhenManagerIsNotMember = false,
+): string {
     const approvalRules = policy?.rules?.approvalRules;
 
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
@@ -1962,7 +2139,12 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         }
     }
 
-    const managerEmail = getManagerAccountEmail(policy, ownerLogin);
+    const ruleMatch = getForwardsToFromRules(policy, {submitterEmail: ownerLogin ?? '', reportTotal: expenseReport?.total ?? 0}, rules);
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
+    const managerEmail = getManagerAccountEmail(policy, ownerLogin, rules, expenseReport?.total ?? 0);
 
     // Falls back to the default approver when the manager is unavailable.
     if (shouldFallBackWhenManagerIsNotMember && managerEmail && !policy?.employeeList?.[managerEmail] && !getHRAdvancedModeFinalApprover(policy)) {
@@ -1975,12 +2157,18 @@ function getSubmitToEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 /**
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
-function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined, shouldFallBackWhenManagerIsNotMember = false): number {
-    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, shouldFallBackWhenManagerIsNotMember);
+function getSubmitToAccountID(
+    policy: OnyxEntry<Policy>,
+    expenseReport: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
+    shouldFallBackWhenManagerIsNotMember = false,
+): number {
+    const submitToEmail = getSubmitToEmail(policy, expenseReport, ownerLogin, rules, shouldFallBackWhenManagerIsNotMember);
     return submitToEmail ? (getAccountIDsByLogins([submitToEmail]).at(0) ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined): number | undefined {
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>, submitterLogin: string | undefined, rules: OnyxCollection<Rule>): number | undefined {
     const approvalRules = policy?.rules?.approvalRules;
     const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport, submitterLogin) : '';
     const hasReliablePolicyRoute =
@@ -1992,7 +2180,7 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
         return undefined;
     }
 
-    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, true));
+    const submitToAccountID = getKnownAccountIDByLogin(getSubmitToEmail(policy, expenseReport, submitterLogin, rules, true));
     if (submitToAccountID === undefined || !isValidAccountRoute(submitToAccountID)) {
         return undefined;
     }
@@ -2003,8 +2191,17 @@ function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseRepor
 /**
  * Returns the email of the account to forward the report to depending on the approver's approval limit.
  * Used for advanced approval mode only.
+ *
+ * `submitterEmail` is needed to consult the workspace's approval workflow rules, which describe each hop in
+ * terms of who submitted the report as well as who is approving it. Without it only the legacy employeeList
+ * forwardsTo/overLimitForwardsTo is considered.
  */
-function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number, rules: OnyxCollection<Rule>, submitterEmail?: string): string {
+    const ruleMatch = submitterEmail ? getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: employeeEmail, reportTotal}, rules) : undefined;
+    if (ruleMatch) {
+        return ruleMatch.forwardsTo ?? '';
+    }
+
     if (!isControlOnAdvancedApprovalMode(policy)) {
         return '';
     }
@@ -2025,7 +2222,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? '';
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
@@ -2135,6 +2332,16 @@ function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: 
     }));
 }
 
+/** Only profit and loss accounts can take a currency conversion cost, so these are kept apart from the bank accounts. */
+function getXeroExpenseAccounts(expenseAccounts: Account[] | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
 function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
@@ -2186,6 +2393,17 @@ function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selecte
         text: name,
         keyForList: id,
         isSelected: id === selectedBankAccountId,
+    }));
+}
+
+function getNetSuiteExpenseAccountOptions(policy: Policy | undefined, selectedExpenseAccountId: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.netsuite?.options.data.expenseAccounts;
+
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: id === selectedExpenseAccountId,
     }));
 }
 
@@ -2381,9 +2599,20 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
+function getSageIntacctExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.intacct?.data?.expenseAccounts ?? [];
+    return expenseAccounts.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    return vendors.map(({id, value}) => ({
+    const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
+    return sortedVendors.map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
@@ -2515,10 +2744,14 @@ function isRilletVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config?.isConfigured;
 }
 
+function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config?.isConfigured;
+}
+
 /**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2534,25 +2767,33 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, and Rillet branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on the Xero and Rillet branches but not on QBO, Sage Intacct, or DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
- *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
+ *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
+ *   - DualEntry configured connection. GA, so no beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy)) {
+    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
+}
+
+/**
+ * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
+ */
+function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
 }
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, or Rillet) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, or DualEntry) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2589,6 +2830,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isRilletVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.RILLET;
+    }
+    if (isDualEntryVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
     }
     return undefined;
 }
@@ -2631,17 +2875,35 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
             email: vendor.email ?? '',
         }));
     }
+    if (isDualEntryVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, or Xero). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, or DualEntry). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
 function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return getActiveVendorMatchingVendors(policy) ?? [];
+}
+
+/**
+ * Sorts vendors alphabetically by name using the provided localeCompare.
+ * Uses vendor id as a stable tie-breaker when names match.
+ * Non-mutating: returns a new sorted array.
+ */
+function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+    return [...vendors].sort((a, b) => {
+        const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
+        if (nameComparison !== 0) {
+            return nameComparison;
+        }
+        return localeCompare(a.id, b.id);
+    });
 }
 
 /**
@@ -2711,7 +2973,19 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: rilletVendor.email ?? '',
         };
     }
-    return undefined;
+    return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Display name of a transaction's vendor, or an empty string when none is assigned. The workspace's synced vendor list
+ * wins so renames in the accounting system show through. The name stored on the transaction covers vendors since
+ * removed from that list.
+ */
+function getVendorDisplayName(policy: OnyxEntry<Policy>, vendor: TransactionCommentVendor | undefined): string {
+    if (!vendor?.externalID) {
+        return '';
+    }
+    return findVendorByID(policy, vendor.externalID)?.name ?? vendor.name ?? '';
 }
 
 /**
@@ -2756,6 +3030,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.rillet.noVendorsFound'),
                 subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+            return {
+                title: translate('workspace.dualEntry.noVendorsFound'),
+                subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -2780,6 +3059,15 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
         return [];
     }
     return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/** DualEntry export settings and expense matching must use vendors available to the selected company */
+function getDualEntryVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const connection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY];
+    const companyID = connection?.config?.subsidiaryID;
+    return (connection?.data?.vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && (!vendor.companyID || vendor.companyID === companyID))
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
 /**
@@ -3187,6 +3475,11 @@ function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.units?.time?.enabled;
 }
 
+/** MCP is on for every workspace unless an admin has explicitly turned it off, so an absent flag reads as enabled. */
+function isMCPEnabled(policy: OnyxEntry<Policy>): boolean {
+    return policy?.isMCPEnabled ?? true;
+}
+
 /**
  * Returns the policy's default hourly rate for the Time Tracking feature.
  */
@@ -3260,17 +3553,22 @@ export {
     getConnectedIntegration,
     getConnectionExporters,
     findVendorByID,
+    getVendorDisplayName,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getXeroSupplierByID,
     getXeroSuppliers,
+    getDualEntryVendors,
     isRilletVendorMatchingActive,
+    isDualEntryVendorMatchingActive,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
+    hasVendorFeatureOnAnyPolicy,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -3345,9 +3643,11 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
+    getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
     isTaxTrackingEnabled,
@@ -3363,6 +3663,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccounts,
+    getXeroExpenseAccounts,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -3376,12 +3677,14 @@ export {
     getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
+    getNetSuiteExpenseAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
+    getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -3416,6 +3719,8 @@ export {
     getDefaultChatEnabledPolicy,
     getDefaultChatEnabledPolicySelection,
     getForwardsToAccount,
+    getForwardsToFromRules,
+    evaluateApprovalWorkflowRule,
     getSubmitToAccountID,
     getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
@@ -3456,12 +3761,14 @@ export {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
+    isInvoiceFieldsEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     hasAcceptedTravelTerms,
     isNonUSDPolicy,
     isDefaultTagName,
     isTimeTrackingEnabled,
+    isMCPEnabled,
     getDefaultTimeTrackingRate,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,

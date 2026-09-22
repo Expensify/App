@@ -185,13 +185,36 @@ function getRateStatus(rate: Rate): string {
     return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
+function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRateID: string | undefined, currentUnit: Unit | undefined): number {
+    if (!sourceRateID || !currentUnit) {
+        return governmentRateAmount;
+    }
+
+    const snapshotCountry = sourceRateID.split('_').at(0);
+    const countryToUnit: Partial<Record<string, Unit>> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT;
+    const snapshotUnit = snapshotCountry ? countryToUnit[snapshotCountry] : undefined;
+
+    if (!snapshotUnit || snapshotUnit === currentUnit) {
+        return governmentRateAmount;
+    }
+
+    // If a rate is expressed in cents / km, converting to cents / mi means multiplying by a factor that cancels the kilometers:
+    // cents / km * km / mi = cents / mi. Do the opposite for a rate expressed in cents / mi.
+    const convertedAmount =
+        snapshotUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
+            ? governmentRateAmount * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
+            : governmentRateAmount / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS;
+
+    return Math.round(convertedAmount * 100) / 100;
+}
+
 /**
  * Whether a government-managed rate still matches the government-published snapshot it was copied from.
  * Returns true only when the rate amount, start date, and end date each match the snapshot in attributes.governmentRate.
  * The amount is compared within a small tolerance to absorb floating-point noise from the stored cents value.
  * A date omitted on both sides counts as a match; a date omitted on only one side does not.
  */
-function isGovernmentRateUnmodified(rate: Rate): boolean {
+function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     const governmentRate = rate.attributes?.governmentRate;
     // A snapshot without a rate amount (e.g. malformed data) can never be matched, otherwise `undefined === undefined` would
     // incorrectly report an unset rate as unmodified.
@@ -201,7 +224,8 @@ function isGovernmentRateUnmodified(rate: Rate): boolean {
 
     // The submit path stores the amount as `Number(value) * 100`, which can introduce tiny floating-point errors (e.g. restoring
     // 0.29 yields 28.999999999999996), so compare amounts within a tolerance rather than requiring strict equality.
-    const isRateAmountMatching = Math.abs(rate.rate - governmentRate.rate) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
+    const governmentRateAmount = getGovernmentRateAmountForUnit(governmentRate.rate, governmentRate.sourceRateID, currentUnit);
+    const isRateAmountMatching = Math.abs(rate.rate - governmentRateAmount) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
 
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }

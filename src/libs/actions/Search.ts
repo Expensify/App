@@ -35,7 +35,6 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -59,11 +58,11 @@ import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
-    isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -82,10 +81,12 @@ import type {
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
+    OnyxInputOrEntry,
     Policy,
     Report,
     ReportAction,
     ReportActions,
+    Rule,
     SaveSearch,
     Transaction,
     TransactionViolations,
@@ -104,8 +105,8 @@ import {SafeString} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
-import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+import type AdditionalPayOnyxData from './IOU/types/AdditionalPayOnyxData';
 
 import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
@@ -266,6 +267,7 @@ type HandleActionButtonPressParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -276,6 +278,7 @@ type HandleActionButtonPressParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     allViolations: OnyxCollection<TransactionViolations>;
+    rules: OnyxCollection<Rule>;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
@@ -307,6 +310,7 @@ function handleActionButtonPress({
     currentUserLogin,
     introSelected,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -317,6 +321,7 @@ function handleActionButtonPress({
     delegateAccountID,
     isTrackIntentUser,
     allViolations,
+    rules,
     conciergeChat,
     getCurrencyDecimals,
 }: HandleActionButtonPressParams) {
@@ -358,6 +363,7 @@ function handleActionButtonPress({
                 currentUserLogin,
                 introSelected,
                 betas,
+                isASAPSubmitBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
                 chatReport,
@@ -372,6 +378,7 @@ function handleActionButtonPress({
                 isTrackIntentUser,
                 conciergeChat,
                 getCurrencyDecimals,
+                rules,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
@@ -396,7 +403,7 @@ function handleActionButtonPress({
                 currentSearchKey,
                 currentUserAccountID,
                 currentUserLogin,
-                betas,
+                isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
@@ -405,6 +412,7 @@ function handleActionButtonPress({
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
                 allViolations,
+                rules,
                 getCurrencyDecimals,
             });
             return;
@@ -434,6 +442,7 @@ function handleActionButtonPress({
                             [policyForSubmit],
                             submitterLogin,
                             getCurrencyDecimals,
+                            rules,
                             currentSearchKey,
                             managerEmail,
                             managerAccountID,
@@ -450,6 +459,7 @@ function handleActionButtonPress({
                 [policyForSubmit],
                 submitterLogin,
                 getCurrencyDecimals,
+                rules,
                 currentSearchKey,
                 undefined,
                 undefined,
@@ -516,16 +526,16 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
-function getReportType(reportID?: string) {
-    if (isIOUReportUtil(reportID)) {
+function getReportType(report: OnyxInputOrEntry<Report> | SelectedReports) {
+    if (isIOUReportUtil(report?.reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
 
-    if (isInvoiceReport(reportID)) {
+    if (report?.type === CONST.REPORT.TYPE.INVOICE) {
         return CONST.REPORT.TYPE.INVOICE;
     }
 
-    if (isExpenseReport(reportID)) {
+    if (isExpenseReport(report?.reportID)) {
         return CONST.REPORT.TYPE.EXPENSE;
     }
 
@@ -596,6 +606,7 @@ type GetPayActionCallbackParams = {
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
     betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
     chatReport?: OnyxEntry<Report>;
@@ -610,6 +621,7 @@ type GetPayActionCallbackParams = {
     isTrackIntentUser: boolean | undefined;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
 };
 
 function getPayActionCallback({
@@ -625,6 +637,7 @@ function getPayActionCallback({
     currentUserLogin,
     introSelected,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
     chatReport,
@@ -639,13 +652,13 @@ function getPayActionCallback({
     isTrackIntentUser,
     conciergeChat,
     getCurrencyDecimals,
+    rules,
 }: GetPayActionCallbackParams) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
-
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -679,6 +692,7 @@ function getPayActionCallback({
         policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -690,6 +704,7 @@ function getPayActionCallback({
         isTrackIntentUser,
         conciergeChat,
         getCurrencyDecimals,
+        rules,
     });
 }
 
@@ -702,7 +717,7 @@ type GetApproveActionCallbackParams = {
     currentSearchKey: SearchKey | undefined;
     currentUserAccountID: number;
     currentUserLogin?: string;
-    betas?: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
@@ -711,6 +726,7 @@ type GetApproveActionCallbackParams = {
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
     allViolations: OnyxCollection<TransactionViolations>;
+    rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -723,7 +739,7 @@ function getApproveActionCallback({
     currentSearchKey,
     currentUserAccountID,
     currentUserLogin,
-    betas,
+    isASAPSubmitBetaEnabled,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     amountOwed,
@@ -732,6 +748,7 @@ function getApproveActionCallback({
     isTrackIntentUser,
     ownerLogin,
     allViolations,
+    rules,
     getCurrencyDecimals,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
@@ -740,16 +757,15 @@ function getApproveActionCallback({
 
     const reportPolicy = policy ?? snapshotPolicy;
     const hasViolations = hasViolationsReportUtils(item.reportID, allViolations, currentUserAccountID, currentUserLogin ?? '');
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
     approveMoneyRequest({
         expenseReport: snapshotReport,
         expenseReportPolicy: reportPolicy,
+        rules,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin ?? '',
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
@@ -836,10 +852,10 @@ function getOnyxLoadingData(
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
-                    // 0 stands for "failed with no usable response code", which covers a network-level rejection that
-                    // never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
+                    // NO_RESPONSE stands for "failed with no usable response code", which covers a network-level rejection
+                    // that never reaches the server. A real HTTP failure overwrites it below once the response lands. Every
                     // write of `errors` carries a code this way, so the error view never has to guess.
-                    ...(isSearchRequest && {hash, responseJsonCode: 0}),
+                    ...(isSearchRequest && {hash, responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -849,7 +865,7 @@ function getOnyxLoadingData(
     return {optimisticData, finallyData, failureData};
 }
 
-function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
+function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
     const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
@@ -858,7 +874,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: saveSearchName,
                     query: queryJSON.inputQuery,
@@ -872,7 +888,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: null,
+                [id]: null,
             },
         },
     ];
@@ -882,13 +898,13 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: null,
                 },
             },
         },
     ];
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: id, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
 function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, savedSearches: OnyxEntry<SaveSearch>) {
@@ -950,43 +966,50 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
         },
     ];
 
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
 }
 
-function deleteSavedSearch(hash: number) {
+function deleteSavedSearch(savedSearchID: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: null,
+                [savedSearchID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {
+                [savedSearchIDToSearchKey(savedSearchID)]: null,
             },
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: null,
                 },
             },
         },
     ];
 
-    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {savedSearchID}, {optimisticData, failureData, successData});
 }
 
 /**
@@ -1207,7 +1230,7 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
+    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1226,6 +1249,23 @@ function search({
             queryJSON,
             offset,
             allowPostSearchRecount: false,
+            searchKey,
+        });
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.optimisticData ?? [])];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.failureData ?? [])];
+    const finallyData = onyxLoadingData.finallyData;
+
+    if (searchKey) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {
+                [searchKey]: {
+                    query: query.inputQuery,
+                },
+            },
         });
     }
 
@@ -1261,6 +1301,7 @@ function search({
                                 hasMoreResults: !!response?.search?.hasMoreResults,
                                 previousLengthOfResults: prevReportsLength,
                                 allowPostSearchRecount: false,
+                                searchKey,
                             });
                         }
                     } else {
@@ -1271,6 +1312,7 @@ function search({
                             hasMoreResults: !!response?.search?.hasMoreResults,
                             previousLengthOfResults: reports.length,
                             allowPostSearchRecount: true,
+                            searchKey,
                         });
                     }
                 }
@@ -1399,12 +1441,15 @@ function clearFooterConversion() {
     Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
 }
 
+// Refactoring this to a params object would touch every call site and is out of scope here.
+// eslint-disable-next-line @typescript-eslint/max-params
 function submitMoneyRequestOnSearch(
     hash: number,
     reportList: Report[],
     policy: Policy[],
     submitterLogin: string | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<Rule>,
     currentSearchKey?: SearchKey,
     managerEmail?: string,
     managerAccountID?: number,
@@ -1516,7 +1561,7 @@ function submitMoneyRequestOnSearch(
 
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
-    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin, rules);
 
     // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
     // accountID from the approval chain, which would point the server at someone other than the chosen approver.
@@ -1646,6 +1691,8 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     });
 }
 
+// Refactoring this to a params object would touch every call site and is out of scope here.
+// eslint-disable-next-line @typescript-eslint/max-params
 function rejectMoneyRequestInBulk(
     reportID: string,
     comment: string,
@@ -1653,9 +1700,10 @@ function rejectMoneyRequestInBulk(
     transactionIDs: string[],
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<Rule>,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -1682,9 +1730,10 @@ function rejectMoneyRequestInBulk(
             policy,
             currentUserAccountIDParam,
             currentUserLogin,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
+            rules,
             shouldUseBulkAction: true,
         });
         if (data) {
@@ -1714,6 +1763,8 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 
+// Refactoring this to a params object would touch every call site and is out of scope here.
+// eslint-disable-next-line @typescript-eslint/max-params
 function rejectMoneyRequestsOnSearch(
     hash: number,
     selectedTransactions: Record<string, TransactionReportInfo>,
@@ -1722,9 +1773,10 @@ function rejectMoneyRequestsOnSearch(
     allReports: OnyxCollection<Report>,
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<Rule>,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
 
@@ -1760,7 +1812,19 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, hash);
+            rejectMoneyRequestInBulk(
+                reportID,
+                comment,
+                policy,
+                selectedTransactionIDs,
+                currentUserAccountIDParam,
+                currentUserLogin,
+                isASAPSubmitBetaEnabled,
+                delegateAccountID,
+                getCurrencyDecimals,
+                rules,
+                hash,
+            );
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
@@ -1769,10 +1833,13 @@ function rejectMoneyRequestsOnSearch(
                 existingRejectedReport = nextRejectedReport;
             };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, getCurrencyDecimals, {
-                    sharedRejectedToReportID,
-                    existingRejectedReport,
-                    setExistingRejectedReport,
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, isASAPSubmitBetaEnabled, delegateAccountID, getCurrencyDecimals, {
+                    rules,
+                    options: {
+                        sharedRejectedToReportID,
+                        existingRejectedReport,
+                        setExistingRejectedReport,
+                    },
                 });
             }
         }
@@ -1791,6 +1858,7 @@ function rejectMoneyRequestsOnSearch(
                         query: searchParams.q,
                         ...(searchParams?.rawQuery && {rawQuery: searchParams.rawQuery}),
                         ...(searchParams?.name && {name: searchParams.name}),
+                        ...(searchParams?.searchKey && {searchKey: searchParams.searchKey}),
                     });
                 } else {
                     urlToNavigateBack = undefined;
@@ -2129,7 +2197,7 @@ function getPayOption(
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const payableReports = selectedReports.filter((report) => report.canPay);
     const firstPayableReport = payableReports.at(0);
-    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report?.reportID);
+    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report);
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? payableReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
@@ -2146,7 +2214,7 @@ function getPayOption(
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID),
+                      getReportType(selectedTransactions[transactionIDKey].report) === getReportType(firstTransaction?.report),
               );
 
     return {

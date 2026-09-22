@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
@@ -43,6 +43,9 @@ const CURRENT_LOCATION_PUCK_IMAGE = 'current-location-puck-image';
 function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, waypoints, directionCoordinates: directionCoordinatesProp, isTrackingGPS}: GPSMapViewProps) {
     const directionCoordinates = utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinatesProp);
     const noWaypoints = !waypoints || waypoints.length === 0;
+
+    // Fitting the camera to bounds around a single point zooms it in as far as it goes, so such a trip is centered at a fixed zoom instead
+    const singlePointCoordinate = utils.getSinglePointCoordinate(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -126,6 +129,15 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
             return;
         }
 
+        if (singlePointCoordinate) {
+            cameraRef.current?.setCamera({
+                zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+                centerCoordinate: singlePointCoordinate,
+            });
+            return;
+        }
+
         const {southWest, northEast} = utils.getBounds(
             waypoints.map((waypoint) => waypoint.coordinate),
             directionCoordinates,
@@ -154,7 +166,7 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     };
 
     const getWaypointBounds = () => {
-        if (!waypoints || userInteractedWithMap || (!waypoints.length && !directionCoordinates?.length)) {
+        if (!waypoints || userInteractedWithMap || !!singlePointCoordinate || (!waypoints.length && !directionCoordinates?.length)) {
             return undefined;
         }
 
@@ -166,6 +178,8 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     };
 
     const waypointsBounds = getWaypointBounds();
+    const waypointsCenterCoordinate = userInteractedWithMap ? undefined : singlePointCoordinate;
+    const waypointsZoomLevel = waypointsCenterCoordinate ? CONST.MAPBOX.SINGLE_MARKER_ZOOM : undefined;
 
     const onUserLocationUpdate = (update: Mapbox.Location) => {
         const coords = update.coords;
@@ -181,8 +195,8 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
     const defaultSettings: Mapbox.CameraStop | undefined = {
         bounds: waypointsBounds,
         padding: waypointsBounds ? cameraPadding : undefined,
-        centerCoordinate: shouldFollowFallbackLocation ? centerCoordinate : undefined,
-        zoomLevel: shouldFollowFallbackLocation ? CONST.MAPBOX.DEFAULT_ZOOM : undefined,
+        centerCoordinate: shouldFollowFallbackLocation ? centerCoordinate : waypointsCenterCoordinate,
+        zoomLevel: shouldFollowFallbackLocation ? CONST.MAPBOX.DEFAULT_ZOOM : waypointsZoomLevel,
     };
 
     const mapHeading = useSharedValue(0);
@@ -227,7 +241,8 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
                     followZoomLevel={CONST.MAPBOX.DEFAULT_ZOOM}
                     bounds={waypointsBounds ? {...waypointsBounds, ...cameraPadding} : undefined}
                     defaultSettings={defaultSettings}
-                    centerCoordinate={shouldFollowFallbackLocation ? centerCoordinate : undefined}
+                    centerCoordinate={shouldFollowFallbackLocation ? centerCoordinate : waypointsCenterCoordinate}
+                    zoomLevel={waypointsZoomLevel}
                 />
 
                 {/** Show fallback location if foreground location permissions are not granted */}
