@@ -363,40 +363,36 @@ describe('PaymentUtils', () => {
             expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
         });
 
-        it('drops partially setup accounts', () => {
+        it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.PENDING, CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED])(
+            'keeps partially setup accounts in %s state',
+            (state) => {
+                expect(
+                    getBusinessBankAccountOptions([
+                        createMockPaymentMethod({
+                            accountData: {
+                                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                                state,
+                            },
+                        }),
+                    ]),
+                ).toHaveLength(1);
+            },
+        );
+
+        it('drops DELETED accounts', () => {
             expect(
                 getBusinessBankAccountOptions([
                     createMockPaymentMethod({
                         accountData: {
                             type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-                            state: CONST.BANK_ACCOUNT.STATE.SETUP,
-                        },
-                    }),
-                ]),
-            ).toHaveLength(0);
-            expect(
-                getBusinessBankAccountOptions([
-                    createMockPaymentMethod({
-                        accountData: {
-                            type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-                            state: CONST.BANK_ACCOUNT.STATE.VERIFYING,
-                        },
-                    }),
-                ]),
-            ).toHaveLength(0);
-            expect(
-                getBusinessBankAccountOptions([
-                    createMockPaymentMethod({
-                        accountData: {
-                            type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-                            state: CONST.BANK_ACCOUNT.STATE.PENDING,
+                            state: CONST.BANK_ACCOUNT.STATE.DELETED,
                         },
                     }),
                 ]),
             ).toHaveLength(0);
         });
 
-        it('drops non-OPEN and non-LOCKED state', () => {
+        it('keeps every non-deleted state', () => {
             const methods: PaymentMethod[] = [
                 createMockPaymentMethod({
                     accountData: {
@@ -417,7 +413,7 @@ describe('PaymentUtils', () => {
                     },
                 }),
             ];
-            expect(getBusinessBankAccountOptions(methods)).toHaveLength(2);
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(3);
         });
 
         it('drops methods with null or undefined methodID', () => {
@@ -501,7 +497,7 @@ describe('PaymentUtils', () => {
             expect(result).toHaveLength(0);
         });
 
-        it('filters to only valid BUSINESS OPEN or LOCKED with methodID and maps rest correctly', () => {
+        it('filters to only BUSINESS accounts with a methodID and maps rest correctly', () => {
             const methods: PaymentMethod[] = [
                 createMockPaymentMethod({
                     accountData: {
@@ -528,8 +524,8 @@ describe('PaymentUtils', () => {
             ];
             const result = getBusinessBankAccountOptions(methods);
 
-            expect(result).toHaveLength(2);
-            expect(result.at(0)?.text).toBe('Valid Business');
+            // The personal account is dropped; the business ones are kept whatever their state.
+            expect(result.map((option) => option.text)).toEqual(['Valid Business', 'Setup', 'Locked']);
         });
     });
 });
