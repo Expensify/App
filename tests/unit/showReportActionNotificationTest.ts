@@ -7,6 +7,7 @@ import * as Report from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -100,6 +101,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             undefined,
             DERIVED_REPORT_NAME,
         );
@@ -129,6 +131,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             undefined,
             undefined,
         );
@@ -158,6 +161,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             DERIVED_REPORT_NAME,
             undefined,
         );
