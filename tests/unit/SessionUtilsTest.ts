@@ -119,7 +119,12 @@ describe('SessionUtils', () => {
         test.each([
             ['reads both params from a query string', '?email=user@example.com&delegatorEmail=delegate@example.com', 'user@example.com', 'delegate@example.com'],
             ['reads a query string starting with delegatorEmail', '?delegatorEmail=delegate@example.com', null, 'delegate@example.com'],
-            ['falls back to the raw value when a full URL mangles the first param key', 'https://example.com?email=user%40example.com&delegatorEmail=delegate@example.com', 'user%40example.com', 'delegate@example.com'],
+            [
+                'falls back to the raw value when a full URL mangles the first param key',
+                'https://example.com?email=user%40example.com&delegatorEmail=delegate@example.com',
+                'user%40example.com',
+                'delegate@example.com',
+            ],
             ['reads only the param the link carries', '?email=user@example.com', 'user@example.com', null],
             ['reads nothing from a supportal-style link', '?authTokenType=support&shortLivedAuthToken=abc', null, null],
             ['reads nothing for an undefined link', undefined, null, null],

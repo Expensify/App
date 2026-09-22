@@ -150,5 +150,13 @@ function isAgentEmail(email?: string): boolean {
     return AGENT_EMAIL_REGEX.test(email);
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, getPartnerCredentials, isLoggingInAsDelegate, isAgentEmail, getTransitionLinkEmailParams};
-export type {TransitionLinkEmailParams};
+export {
+    isLoggingInAsNewUser,
+    didUserLogInDuringSession,
+    resetDidUserLogInDuringSession,
+    checkIfShouldUseNewPartnerName,
+    getPartnerCredentials,
+    isLoggingInAsDelegate,
+    isAgentEmail,
+    getTransitionLinkEmailParams,
+};
