@@ -45,6 +45,7 @@ import {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
+    getDomainOrWorkspaceAccountID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
     getFeedNameForDisplay,
@@ -1410,6 +1411,23 @@ describe('CardUtils', () => {
             const cardFeeds = undefined;
             const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
             expect(selectedFeed).toBe(undefined);
+        });
+    });
+
+    describe('getDomainOrWorkspaceAccountID', () => {
+        it('Should return the domain account that owns a domain feed', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {domainID: 1234567});
+            expect(accountID).toBe(1234567);
+        });
+
+        it('Should return the workspace account when the feed has no domain', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {});
+            expect(accountID).toBe(7654321);
+        });
+
+        it('Should return the workspace account when there is no feed data', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, undefined);
+            expect(accountID).toBe(7654321);
         });
     });
 

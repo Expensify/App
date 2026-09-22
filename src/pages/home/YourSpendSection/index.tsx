@@ -52,7 +52,7 @@ function YourSpendSection() {
         <View testID="your-spend-section">
             <WidgetContainer
                 title={translate('homePage.yourSpend.title')}
-                containerStyles={[shouldUseNarrowLayout ? styles.pb2 : styles.pb5]}
+                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
                 <SpendSummaryRow
                     state={approvalRowState}
