@@ -215,7 +215,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             feed: [travelFeedID],
         });
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     const continueToggleFlow = () => {

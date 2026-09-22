@@ -118,6 +118,9 @@ type TransactionParams = {
     created?: string;
     merchant?: string;
     receipt?: OnyxEntry<Receipt>;
+
+    /** Receipt scan state for the optimistic transaction. Falls back to `receipt.state` when not set. */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
     taxCode?: string;
@@ -283,6 +286,31 @@ function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
+/** The fields a Scan confirmation lets the user fill in behind "Show more", plus the type that tells it is a scan. */
+type ManuallyEnteredScanFields = Pick<Transaction, 'iouRequestType' | 'isAmountSet' | 'isMerchantSet' | 'isCreatedSet'>;
+
+/**
+ * The Scan confirmation's amount / merchant / date are all-or-nothing: leave all three blank to let SmartScan read
+ * them, or fill all three in to submit as a manual expense whose receipt is never scanned over.
+ */
+function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
+    return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;
+}
+
+/** Whether the user filled in at least one of those three fields, which is what turns the scan into a manual expense. */
+function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
+    return isScanRequest(transaction) && (!!transaction?.isAmountSet || !!transaction?.isMerchantSet || !!transaction?.isCreatedSet);
+}
+
+/**
+ * Whether the user started filling the three fields in but stopped short, which blocks confirmation.
+ * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
+ * expenses and test receipts carry the same flags without ever having shown them.
+ */
+function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
+    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction);
+}
+
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     if (transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
         return true;
@@ -426,8 +454,7 @@ function isScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance expense, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
- * it's transactionID match what was already generated.
+ * @param [existingTransactionID] Reuse this ID when a distance expense already created an empty transaction.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
@@ -443,6 +470,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created = '',
         merchant = '',
         receipt,
+        receiptState,
         // Prevent RBR flip and transaction jump: initialize category to 'Uncategorized' instead of
         // empty string so optimistic missing category violation isn't added then removed during backend sync
         category = CONST.SEARCH.CATEGORY_DEFAULT_VALUE,
@@ -522,11 +550,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
             lodashSet(commentJSON, 'customUnit', customUnit);
         } else {
             const routeDistanceMeters = routes?.route0?.distance ?? existingTransaction?.routes?.route0?.distance;
-            lodashSet(commentJSON, 'customUnit', existingTransaction?.comment?.customUnit ?? {});
+            lodashSet(commentJSON, 'customUnit', {...existingTransaction?.comment?.customUnit});
             // Set the distance unit, which comes from the policy distance unit or the P2P rate data
             lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
             lodashSet(commentJSON, 'customUnit.quantity', distance);
-            lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            if (customUnitRateID) {
+                lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            }
             lodashSet(commentJSON, 'customUnit.name', existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE);
             if (typeof routeDistanceMeters === 'number') {
                 lodashSet(commentJSON, 'customUnit.routeDistanceMeters', routeDistanceMeters);
@@ -561,7 +591,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created: created || DateUtils.getDBTime(),
         pendingAction,
         receipt: receipt?.source
-            ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
+            ? {
+                  source: receipt.source,
+                  filename: receipt?.name ?? filename,
+                  state: receiptState ?? receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                  isTestDriveReceipt: receipt.isTestDriveReceipt,
+                  pageCount: receipt.pageCount,
+              }
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,
         category,
@@ -875,11 +911,17 @@ function getUpdatedTransaction({
                       policy,
                       storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
+                      hasTripChanged: waypointsActuallyChanged,
                   })
                 : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            } else if (waypointsActuallyChanged) {
+                // The exclusion described the trip being replaced, so it goes with it rather than showing a deduction that no longer applies.
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusion', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.reimbursableDistance', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusionMethod', null);
             }
 
             const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
@@ -2562,10 +2604,8 @@ function hasDuplicateTransactions(
     ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportTransactions: Transaction[],
 ): boolean {
-    const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = transactionsByIouReportID;
-
     return (
         reportTransactions.length > 0 &&
         reportTransactions.some((transaction) =>
@@ -3816,6 +3856,9 @@ export {
     getTagArrayFromName,
     getTagForDisplay,
     getTransactionViolations,
+    hasAllManuallyEnteredScanFields,
+    hasAnyManuallyEnteredScanField,
+    isPartiallyEnteredScanExpense,
     hasReceipt,
     hasUploadedReceipt,
     hasEReceipt,
@@ -3953,3 +3996,5 @@ export {
     isUnreportedManagedCardTransaction,
     getReservationNights,
 };
+
+export type {ManuallyEnteredScanFields};

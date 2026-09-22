@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canMemberWrite, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberAccountIDsForWorkspace, getReimbursementChoice, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -76,7 +76,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const policyBankAccountID = policy?.achAccount?.bankAccountID;
     const bankAccountFromList = policyBankAccountID ? bankAccountList?.[policyBankAccountID] : undefined;
     const bankAccountInfo = bankAccountFromList ?? bankAccountConnectedToWorkspace;
-    const bankAccountID = policyBankAccountID ?? bankAccountInfo?.accountData?.bankAccountID;
     const policyAchAccountState = policy?.achAccount?.state;
     const isBankAccountFullySetup = policyAchAccountState === CONST.BANK_ACCOUNT.STATE.OPEN || policyAchAccountState === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const bankAccountState = isBankAccountFullySetup ? policyAchAccountState : bankAccountConnectedToWorkspace?.accountData?.state;
@@ -103,8 +102,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const ownerDisplayName = usePersonalDetailByLogin(policy?.owner, displayNameSelector);
     const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';
     const authorizedPayerEmail = personalDetails?.[accountID]?.login ?? '';
-    const isManualReimbursement = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-    const isAutoReimbursement = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const isAutoReimbursement = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
     const isDeletedPolicyEmployee = (policyEmployee: PolicyEmployee) =>
         !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors);
@@ -185,7 +184,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const headerMessage = searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : '';
 
     const handleConfirm = () => {
-        if (!bankAccountID || !authorizedPayerEmail || !accountID || !policyID) {
+        if (!policyBankAccountID || !authorizedPayerEmail || !accountID || !policyID) {
             return;
         }
         if (!selectedPayer) {
@@ -200,7 +199,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.goBack();
             return;
         }
-        startWithLoading(() => shareBankAccountAndSetPayer(Number(bankAccountID), accountID, policyID));
+        startWithLoading(() => shareBankAccountAndSetPayer(policyBankAccountID, accountID, policyID));
     };
 
     const onButtonPress = () => {
@@ -279,7 +278,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        if (isManualReimbursement || !bankAccountID) {
+        // Auth accepts only the withdrawal account of the policy. If the policy has none, there is nothing to share.
+        if (isManualReimbursement || !policyBankAccountID) {
             onButtonPress();
             return;
         }
@@ -337,7 +337,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const shouldShowBlockingPage =
         (isEmptyObject(policy) && !isLoadingReportData) ||
         isPendingDeletePolicy(policy) ||
-        policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ||
         isAccountInSetupState;
 
     const totalNumberOfPayerCandidates = Object.entries(policy?.employeeList ?? {}).filter(([email, policyEmployee]) => {
@@ -402,7 +402,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                         <ErrorMessageRow
                                             errors={sharedBankAccountData?.errors}
                                             errorRowStyles={[styles.mv3]}
-                                            onDismiss={() => clearShareBankAccountErrors(Number(bankAccountID))}
+                                            onDismiss={() => clearShareBankAccountErrors(policyBankAccountID)}
                                         />
                                     }
                                     containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
