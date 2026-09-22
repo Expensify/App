@@ -89,6 +89,7 @@ function StepScreenWrapper({
                                         <Header.IconButton
                                             tooltipText={threeDotsMenuItems.at(0)?.text ?? ''}
                                             onPress={threeDotsMenuItems.at(0)?.onSelected}
+                                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- callers of this minimize path always pass a real icon component, never a string/avatar source
                                             iconSrc={threeDotsMenuItems.at(0)?.icon as IconAsset}
                                             sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
                                         />
