@@ -38,8 +38,7 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
     const integrationName = getOriginalMessage(action)?.label;
 
     if (hasReasoning(action)) {
-        // `AskToExplain` already supplies its own leading period, and the export message bakes a trailing period into the
-        // last link's text, so omit it here to read "…out-of-pocket expenses. Explain" not "…out-of-pocket expenses.. Explain".
+        // Omit the period inside the expense link because AskToExplain supplies it.
         const message = getExportIntegrationMessageHTML(translate, action, integrationName, true);
         return (
             <ReportActionItemMessageWithExplain
