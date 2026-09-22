@@ -310,6 +310,12 @@ const groupedExpenseQueryJSON: SearchQueryJSON = {
     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
 };
 
+const ungroupedExpenseQueryJSON: SearchQueryJSON = {
+    ...expenseReportQueryJSON,
+    inputQuery: 'type:expense status:all',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+};
+
 const groupedWithdrawalQueryJSON: SearchQueryJSON = {
     ...groupedExpenseQueryJSON,
     inputQuery: `type:expense groupBy:${CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID}`,
@@ -1561,6 +1567,74 @@ describe('useSearchBulkActions - export options', () => {
                 groupColumns: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID.filter(
                     (column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR && column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
                 ),
+            }),
+        );
+    });
+
+    it('leaves out a conversion amount column that the view only keeps to hold the sort', async () => {
+        // Given a Bank reconciliation search sorted by Amount debited, where no settlement converted currencies:
+        // the view keeps that column so the sort can still be changed, even though every cell in it is empty
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockCurrentSearchResults = makeWithdrawalGroupSearchResults();
+
+        // When the grouped view is exported
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: {...groupedWithdrawalQueryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED}}), {
+            wrapper: OnyxListItemProvider,
+        });
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // Then the CSV leaves it out, because a spreadsheet has no sort to keep
+        const {query} = getLastCSVExportParameters();
+        expect(query).toEqual(
+            expect.objectContaining({
+                groupColumns: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID.filter(
+                    (column) =>
+                        column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR &&
+                        column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED &&
+                        column !== CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                ),
+            }),
+        );
+    });
+
+    it('sends no group columns for an ungrouped export, and no columns a CSV cannot show', async () => {
+        // Given an ungrouped search, which has no group rows at all
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        // When it is exported
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: ungroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        // Then the payload carries no group columns, and the avatar the view shows is left out as it has no CSV value
+        const {query} = getLastCSVExportParameters();
+        expect(query).not.toHaveProperty('groupColumns');
+        expect(query).toEqual(
+            expect.objectContaining({
+                columns: [
+                    CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                    CONST.SEARCH.TABLE_COLUMNS.TYPE,
+                    CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    CONST.SEARCH.TABLE_COLUMNS.STATUS,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+                ],
             }),
         );
     });

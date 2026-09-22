@@ -73,6 +73,7 @@ import {
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, queryHasViolationFilter, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -359,6 +360,14 @@ function getAllMatchingExportQueryAndExclusions(
 
     const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
     return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
+}
+
+type CSVExportQueryJSON = Omit<SearchQueryJSON, 'columns'> & {columns: SearchColumnType[]; searchKey: SearchKey | undefined};
+
+const NON_EXPORTABLE_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.ACTION]);
+
+function getExportableColumns(columns: SearchColumnType[]): SearchColumnType[] {
+    return columns.filter((column) => !NON_EXPORTABLE_COLUMNS.has(column));
 }
 
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
@@ -1031,16 +1040,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
                 }
 
-                // Group rows have their own columns, so take the same list the view builds.
-                // The avatar is an icon with no CSV value.
                 groupColumnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
                     data: exportSearchData ?? {},
                     visibleColumns,
                     type: exportSearchType,
                     groupBy,
-                    sortBy: queryJSON?.sortBy,
-                }).filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+                });
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
@@ -1055,16 +1061,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 });
             }
 
+            const exportableColumns = getExportableColumns(columnsToExport);
+            const exportableGroupColumns = getExportableColumns(groupColumnsToExport);
+
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
-            for (const column of [...columnsToExport, ...groupColumnsToExport]) {
+            for (const column of [...exportableColumns, ...exportableGroupColumns]) {
                 exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column, exportSearchType));
             }
 
             // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
             // so the export must send it exactly as search() does or the exported set differs from the viewed set.
-            const jsonQuery = queryJSONToExport
-                ? serializeQueryJSONForBackend({...queryJSONToExport, columns: columnsToExport, groupColumns: groupColumnsToExport, searchKey: currentSearchKey}, exactMatchFilterKeys)
-                : (JSON.stringify(queryJSONToExport) ?? '');
+            const queryToExport: CSVExportQueryJSON | undefined = queryJSONToExport
+                ? {
+                      ...queryJSONToExport,
+                      columns: exportableColumns,
+                      // Only a grouped search has group rows, and the serializer leaves out an undefined key,
+                      // so an ungrouped export sends the same payload it always did.
+                      groupColumns: groupBy ? exportableGroupColumns : undefined,
+                      searchKey: currentSearchKey,
+                  }
+                : undefined;
+            const jsonQuery = queryToExport ? serializeQueryJSONForBackend(queryToExport, exactMatchFilterKeys) : (JSON.stringify(queryJSONToExport) ?? '');
 
             return {
                 jsonQuery,
