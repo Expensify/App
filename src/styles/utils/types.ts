@@ -9,6 +9,15 @@ import type {ValueOf} from 'type-fest';
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
+// The Strict TypeScript API omits these shorthand keys from ViewStyle. They remain valid at runtime and on the legacy types.
+type StyleShorthands = {
+    marginHorizontal?: ViewStyle['marginLeft'];
+    marginVertical?: ViewStyle['marginTop'];
+    paddingHorizontal?: ViewStyle['paddingLeft'];
+    paddingVertical?: ViewStyle['paddingTop'];
+};
+type StyleWithShorthands = ViewStyle & TextStyle & ImageStyle & StyleShorthands;
+
 type ColorValue = ValueOf<typeof colors>;
 type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
 type AvatarShape = ValueOf<typeof CONST.AVATAR_SHAPE>;
@@ -49,6 +58,8 @@ type TextColorStyle = {color: string};
 export type {
     AllStyles,
     ParsableStyle,
+    StyleShorthands,
+    StyleWithShorthands,
     ColorValue,
     AvatarShape,
     AvatarSizeName,

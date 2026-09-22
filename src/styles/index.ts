@@ -25,6 +25,7 @@ import {Platform, StyleSheet} from 'react-native';
 import {interpolate} from 'react-native-reanimated';
 
 import type {ThemeColors} from './theme/types';
+import type {StyleWithShorthands} from './utils/types';
 
 import colors from './theme/colors';
 import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
@@ -83,7 +84,7 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
-const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
+const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): StyleWithShorthands => ({
     borderRadius: variables.componentBorderRadiusLarge,
     borderColor: theme.borderFocus,
     borderStyle: 'dotted',
@@ -6919,7 +6920,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             ({
                 borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
                 marginHorizontal: isSmallScreenWidth ? 0 : 20,
-            }) satisfies ViewStyle,
+            }) satisfies StyleWithShorthands,
 
         twoFactorAuthCodesBoxPadding: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
             let paddingHorizontal = spacing.ph9;
@@ -6934,7 +6935,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
             return {
                 ...paddingHorizontal,
-            } satisfies ViewStyle;
+            } satisfies StyleWithShorthands;
         },
 
         anonymousRoomFooterFlexDirection: (isSmallSizeLayout: boolean) =>
@@ -6953,7 +6954,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 }),
             }) satisfies ViewStyle,
 
-        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): StyleWithShorthands => {
             let paddingHorizontal = spacing.ph5;
             let paddingVertical = spacing.pv5;
 
@@ -6965,7 +6966,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             return {
                 ...paddingVertical,
                 ...paddingHorizontal,
-            } satisfies ViewStyle;
+            } satisfies StyleWithShorthands;
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>

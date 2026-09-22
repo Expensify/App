@@ -1,4 +1,4 @@
-import type {ViewStyle} from 'react-native';
+import type {StyleWithShorthands} from './types';
 
 /**
  * Spacing utility styles with Bootstrap inspired naming.
@@ -929,4 +929,4 @@ export default {
     maxWidth100Percentage: {
         maxWidth: '100%',
     },
-} satisfies Record<string, ViewStyle>;
+} satisfies Record<string, StyleWithShorthands>;

@@ -1,5 +1,6 @@
 import type {ThemeStyles} from '@styles/index';
 import type {ThemeColors} from '@styles/theme/types';
+import type {StyleShorthands} from '@styles/utils/types';
 import variables from '@styles/variables';
 
 import type {ViewStyle} from 'react-native';
@@ -10,7 +11,7 @@ const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
 });
 
-const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle[] => [
+const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): Array<ViewStyle & StyleShorthands> => [
     styles.flexRow,
     getDefaultWrapperStyle(theme),
     {

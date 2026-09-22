@@ -36,6 +36,7 @@ import type {
     GetIconFillColorParams,
     ParsableStyle,
     SVGAvatarColorStyle,
+    StyleWithShorthands,
     TextColorStyle,
 } from './types';
 
@@ -1634,7 +1635,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * Computes styles for the text input icon container.
      * Applies horizontal padding if requested, and sets the top margin based on padding difference.
      */
-    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true, verticalPaddingDiff = 0): ViewStyle => {
+    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true, verticalPaddingDiff = 0): StyleWithShorthands => {
         const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
         return {
             ...paddingStyle,
@@ -1783,7 +1784,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getDotIndicatorTextStyles: (isErrorText = true): TextStyle => (isErrorText ? {...styles.offlineFeedbackText, color: styles.formError.color} : {...styles.offlineFeedbackText}),
 
-    getEmojiReactionBubbleStyle: (isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle => {
+    getEmojiReactionBubbleStyle: (isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): StyleWithShorthands => {
         let backgroundColor = theme.buttonDefaultBG;
 
         if (isHovered) {
@@ -1822,7 +1823,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         paddingBottom: 40 + safeAreaPaddingBottom,
     }),
 
-    getGoogleListViewStyle: (shouldDisplayBorder: boolean): ViewStyle => {
+    getGoogleListViewStyle: (shouldDisplayBorder: boolean): StyleWithShorthands => {
         if (shouldDisplayBorder) {
             return {
                 ...styles.borderTopRounded,
@@ -1868,7 +1869,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Returns style object for the user mention component based on whether the mention is ours or not.
      */
-    getMentionStyle: (isOurMention: boolean): TextStyle => {
+    getMentionStyle: (isOurMention: boolean): StyleWithShorthands => {
         const backgroundColor = isOurMention ? theme.ourMentionBG : theme.mentionBG;
         return {
             backgroundColor,
@@ -1953,7 +1954,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
-    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
+    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): StyleWithShorthands => ({
         minHeight: variables.tableRowHeight,
         borderTopLeftRadius: 0,
         borderTopRightRadius: 0,
@@ -2285,7 +2286,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             styleObj[key] = null;
             return styleObj;
         }, {} as Nullable<K>) as K,
-    getFeatureTrainingCarouselDotStyle: (size: number, color: string, isActive: boolean): ViewStyle => ({
+    getFeatureTrainingCarouselDotStyle: (size: number, color: string, isActive: boolean): StyleWithShorthands => ({
         width: size,
         height: size,
         borderRadius: size / 2,
