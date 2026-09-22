@@ -50,7 +50,7 @@ const QBD_CREDIT_CARD_ACCOUNTS = [
     {id: '80000104-1746639411', name: 'Visa Business (92000)', currency: 'USD'},
 ];
 
-function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '80000103-1746639410'): Policy {
+function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '80000103-1746639410', creditCardAccounts = QBD_CREDIT_CARD_ACCOUNTS): Policy {
     return createMock<Policy>({
         id: MOCK_POLICY_ID,
         name: 'Test Policy',
@@ -72,7 +72,7 @@ function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '
                     },
                 },
                 data: {
-                    creditCardAccounts: QBD_CREDIT_CARD_ACCOUNTS,
+                    creditCardAccounts,
                 },
             },
         },
@@ -172,6 +172,21 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
 
         const selectedOption = result?.data?.find((item) => item.isSelected);
         expect(selectedOption?.text).toBe(defaultCard);
+    });
+
+    it('keys each option by id when two accounts share a display name', () => {
+        const duplicateNameAccounts = [
+            {id: '80000105-1746639412', name: 'Corporate Card', currency: 'USD'},
+            {id: '80000106-1746639413', name: 'Corporate Card', currency: 'USD'},
+        ];
+        const policy = createQBDPolicy(undefined, '80000105-1746639412', duplicateNameAccounts);
+        const card = createCard('80000106-1746639413');
+
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        const keys = result?.data?.map((item) => item.keyForList) ?? [];
+        expect(keys).toHaveLength(duplicateNameAccounts.length + 1);
+        expect(new Set(keys).size).toBe(keys.length);
     });
 
     it('uses card.id (not card.name) as the option value for all items', () => {
@@ -333,7 +348,7 @@ describe('getExportMenuItem - QBO', () => {
         const selectedOption = result?.data?.find((item) => item.isSelected);
         expect(selectedOption?.value).toBe('qbo-cc-1');
         expect(selectedOption?.text).toBe('Amex Corporate');
-        expect(selectedOption?.keyForList).toBe('Amex Corporate');
+        expect(selectedOption?.keyForList).toBe('qbo-cc-1');
     });
 
     it('resolves a debit card export against the bank account list and its own NVP', () => {
