@@ -8571,6 +8571,21 @@ ${reportName}`,
                     other: (count: number) => `${count}件の候補`,
                 }),
             },
+            approverField: `第1承認者`,
+            finalApprover: `最終承認者`,
+            finalApproverOptional: '最終承認者（任意）',
+            approvalModeDescription: (providerName: string) => `${providerName} から Expensify にインポートされる新しいメンバーの承認者を設定します。`,
+            approverFieldDescription: (providerName: string) =>
+                `候補者の最初の承認者を選択します。${providerName} で割り当てられているリクルーターまたはコーディネーターのいずれかを指定してください。`,
+            approvalModeDescriptions: {
+                basic: '承認者を 1 名選択してください',
+                advanced: `候補者のリクルーターまたはコーディネーターが、その候補者の経費承認者になります`,
+                custom: 'Expensify で承認者を手動設定',
+            },
+            approvalModeWarningTitle: '承認モードを変更しますか？',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `このワークスペースの承認モードを変更してもよろしいですか？${providerName} 対応のさまざまなワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>でご確認ください。`,
+            approvalModeWarningConfirm: '承認モードを変更',
         },
         merge: {
             connections: '接続',

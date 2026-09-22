@@ -8734,6 +8734,21 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     other: (count: number) => `${count} Kandidat:innen`,
                 }),
             },
+            approverField: `Erste*r Genehmiger*in`,
+            finalApprover: `Endgültige genehmigende Person`,
+            finalApproverOptional: 'Endgültige Freigabe (optional)',
+            approvalModeDescription: (providerName: string) => `Legen Sie die genehmigende Person für neue Mitglieder fest, die von ${providerName} nach Expensify importiert werden.`,
+            approverFieldDescription: (providerName: string) =>
+                `Wählen Sie die erste approver:ent für Ihre Kandidat:innen: entweder ihre:n Recruiter:in oder ihre:n Koordinator:in, die bzw. der in ${providerName} zugewiesen ist.`,
+            approvalModeDescriptions: {
+                basic: 'Wählen Sie eine einzelne genehmigende Person',
+                advanced: `Die Personalvermittlerin/der Personalvermittler oder die Koordinatorin/der Koordinator der Kandidatin/des Kandidaten wird zur Genehmigerin/zum Genehmiger ihrer Spesen`,
+                custom: 'Genehmigende in Expensify manuell festlegen',
+            },
+            approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Sind Sie sicher, dass Sie den Genehmigungsmodus für diesen Arbeitsbereich ändern möchten? Erfahren Sie mehr über die verschiedenen von ${providerName} unterstützten Workflowmodi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
+            approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
         },
         merge: {
             connections: 'Verbindungen',

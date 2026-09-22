@@ -8750,6 +8750,21 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     other: (count: number) => `${count} candidat·s`,
                 }),
             },
+            approverField: `Premier approbateur`,
+            finalApprover: `Approbateur final`,
+            finalApproverOptional: 'Approbateur final (facultatif)',
+            approvalModeDescription: (providerName: string) => `Définissez l’approbateur pour les nouveaux membres importés de ${providerName} vers Expensify.`,
+            approverFieldDescription: (providerName: string) =>
+                `Choisissez le premier approbateur pour vos candidat·es : soit leur recruteur·se, soit leur coordinateur·rice assigné·e dans ${providerName}.`,
+            approvalModeDescriptions: {
+                basic: 'Choisir un seul approbateur',
+                advanced: `Le recruteur ou le coordinateur du candidat devient la personne qui approuve ses dépenses`,
+                custom: 'Définir manuellement les approbateurs dans Expensify',
+            },
+            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Voulez-vous vraiment modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
         },
         merge: {
             connections: 'Connexions',
