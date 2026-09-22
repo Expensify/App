@@ -179,7 +179,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const reportTransactions = useReportTransactions(report?.reportID);
 
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
