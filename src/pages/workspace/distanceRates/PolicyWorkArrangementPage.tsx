@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import WorkArrangementSelector from '@components/WorkArrangementSelector';
 
 import useLocalize from '@hooks/useLocalize';
@@ -72,12 +73,17 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
                     style={styles.flex1}
                     contentContainerStyle={styles.flex1}
                 >
-                    <View style={styles.ph5}>
-                        <WorkArrangementSelector
-                            isOffice={policyData?.isOfficeWorkArrangement}
-                            onSelect={onSelect}
-                        />
-                    </View>
+                    <ScrollView
+                        contentContainerStyle={styles.flexGrow1}
+                        addBottomSafeAreaPadding
+                    >
+                        <View style={styles.ph5}>
+                            <WorkArrangementSelector
+                                isOffice={policyData?.isOfficeWorkArrangement}
+                                onSelect={onSelect}
+                            />
+                        </View>
+                    </ScrollView>
                 </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
