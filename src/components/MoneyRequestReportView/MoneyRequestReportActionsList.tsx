@@ -44,7 +44,8 @@ import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} 
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
-import {openReport, subscribeToNewActionEvent} from '@userActions/Report';
+import {openReport} from '@userActions/Report';
+import {subscribeToNewActionEvent} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -605,8 +606,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onViewableItemsChanged={onViewableItemsChanged}
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
-                        // 20px between the report header and the first row of content, which is the report field inputs when the report has fields.
-                        contentContainerStyle={styles.pt5}
+                        contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
                            the same position the indicator occupies in the inverted ReportActionsList. */

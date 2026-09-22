@@ -63,7 +63,7 @@ function ExpenseReportListItemRowWide({
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear, isDateColumnCreated: true})]}>
                 <DateCell
                     date={item.created ?? ''}
                     showTooltip
