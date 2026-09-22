@@ -1,8 +1,8 @@
 import type {CampfireExportDate} from '@src/types/onyx/Policy';
 
-type UpdateCampfireExporterParams = {
+type UpdateCampfireExportDateParams = {
     policyID: string;
     value: CampfireExportDate;
 };
 
-export default UpdateCampfireExporterParams;
+export default UpdateCampfireExportDateParams;
