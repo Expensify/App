@@ -31,9 +31,7 @@ type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCRE
 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
-    useDocumentTitle(translate('common.insights'));
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {filters, isResolved} = useInsightsFilters();
