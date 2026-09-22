@@ -59,106 +59,134 @@ describe('useDomainsTabBadge', () => {
     });
 
     it('returns no badge when there are no pending requests and no errors', async () => {
+        // Given no domains carrying pending requests or errors
+
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then there is nothing to surface, so the badge stays empty and green
         expect(result.current.badgeText).toBeUndefined();
         expect(result.current.hasDomainErrors).toBe(false);
     });
 
     it('counts a single domain with a pending request and stays green', async () => {
+        // Given one administered domain with a single pending adminship request
         await setDomain(10, createDomain(10, {requesters: {[REQUESTER_A]: 'read'}}));
         await waitForBatchedUpdates();
 
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then the badge counts that one domain and, with no errors, stays green
         expect(result.current.badgeText).toBe('1');
         expect(result.current.hasDomainErrors).toBe(false);
     });
 
     it('counts one row per domain, not per request, when a domain has several requesters', async () => {
+        // Given one administered domain that has two pending requesters
         await setDomain(10, createDomain(10, {requesters: {[REQUESTER_A]: 'read', [REQUESTER_B]: 'read'}}));
         await waitForBatchedUpdates();
 
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then the count reflects the domain once, not each requester, so it reads 1
         expect(result.current.badgeText).toBe('1');
         expect(result.current.hasDomainErrors).toBe(false);
     });
 
     it('counts distinct domains that each have a pending request', async () => {
+        // Given two administered domains, each with its own pending requester
         await setDomain(10, createDomain(10, {requesters: {[REQUESTER_A]: 'read'}}));
         await setDomain(11, createDomain(11, {requesters: {[REQUESTER_B]: 'read'}}));
         await waitForBatchedUpdates();
 
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then each distinct domain adds to the count, so it reads 2
         expect(result.current.badgeText).toBe('2');
         expect(result.current.hasDomainErrors).toBe(false);
     });
 
     it('counts a domain with an error and colors the badge red', async () => {
+        // Given one administered domain with no pending requests but a domain error
         await setDomain(20, createDomain(20));
         await setDomainErrors(20, createDomainErrors());
         await waitForBatchedUpdates();
 
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then the errored domain is counted and the presence of errors turns the badge red
         expect(result.current.badgeText).toBe('1');
         expect(result.current.hasDomainErrors).toBe(true);
     });
 
     it('counts a domain once when it has both a pending request and an error', async () => {
+        // Given one administered domain that has both a pending request and an error
         await setDomain(10, createDomain(10, {requesters: {[REQUESTER_A]: 'read'}}));
         await setDomainErrors(10, createDomainErrors());
         await waitForBatchedUpdates();
 
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then the domain is counted once even though it qualifies on two fronts, and the error still turns it red
         expect(result.current.badgeText).toBe('1');
         expect(result.current.hasDomainErrors).toBe(true);
     });
 
     it('sums distinct domains across pending requests and errors', async () => {
+        // Given one domain that qualifies via a pending request and a different domain that qualifies via an error
         await setDomain(10, createDomain(10, {requesters: {[REQUESTER_A]: 'read'}}));
         await setDomain(20, createDomain(20));
         await setDomainErrors(20, createDomainErrors());
         await waitForBatchedUpdates();
 
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then both distinct domains are summed to 2 and the error keeps the badge red
         expect(result.current.badgeText).toBe('2');
         expect(result.current.hasDomainErrors).toBe(true);
     });
 
     it('does not count a pending request on a domain the user does not administer', async () => {
+        // Given a domain with a pending request that the current user does not administer
         await setDomain(30, createDomain(30, {isAdmin: false, requesters: {[REQUESTER_A]: 'read'}}));
         await waitForBatchedUpdates();
 
+        // When the badge hook renders
         const {result} = await renderDomainsTabBadge();
 
+        // Then the request is ignored because it is not actionable by this user, so no badge shows
         expect(result.current.badgeText).toBeUndefined();
         expect(result.current.hasDomainErrors).toBe(false);
     });
 
     it('clears the badge once the last pending request is resolved', async () => {
+        // Given an administered domain with a single pending request that currently shows a badge
         await setDomain(10, createDomain(10, {requesters: {[REQUESTER_A]: 'read'}}));
         await waitForBatchedUpdates();
 
         const {result} = await renderDomainsTabBadge();
         expect(result.current.badgeText).toBe('1');
 
-        // Resolving the request tombstones the requester entry, dropping it from the count.
+        // When that last request is resolved, which tombstones the requester entry and drops it from the count
         await act(async () => {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}10`, {domain_adminRequesters: {[REQUESTER_A]: null}});
             await waitForBatchedUpdates();
         });
 
+        // Then nothing remains to surface, so the badge clears
         expect(result.current.badgeText).toBeUndefined();
         expect(result.current.hasDomainErrors).toBe(false);
     });
 
     it('drops the red color once the domain error clears while a request remains', async () => {
+        // Given an administered domain that has both a pending request and an error, so the badge is red
         await setDomain(10, createDomain(10, {requesters: {[REQUESTER_A]: 'read'}}));
         await setDomainErrors(10, createDomainErrors());
         await waitForBatchedUpdates();
@@ -166,11 +194,13 @@ describe('useDomainsTabBadge', () => {
         const {result} = await renderDomainsTabBadge();
         expect(result.current.hasDomainErrors).toBe(true);
 
+        // When the error clears but the pending request stays
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}10`, {errors: {}});
             await waitForBatchedUpdates();
         });
 
+        // Then the domain is still counted for its request, but the badge reverts from red to green
         expect(result.current.badgeText).toBe('1');
         expect(result.current.hasDomainErrors).toBe(false);
     });
