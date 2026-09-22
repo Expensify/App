@@ -93,7 +93,7 @@ function Finish() {
                                     <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
                                 </MenuItem.Content>
                                 <MenuItem.Trailing>
-                                    <MenuItem.NewWindowIcon />
+                                    <MenuItem.Chevron />
                                 </MenuItem.Trailing>
                             </MenuItem.Row>
                         </MenuItem.Root>
