@@ -1621,58 +1621,92 @@ describe('SubscriptionUtils', () => {
         };
 
         it('should return true for an annual subscription with auto-renew off ending inside one month', () => {
-            // Given an annual subscription ending in 20 days with auto-renew off
-            // Then the owner is warned
+            // Given an annual subscription ending in 20 days with auto-renew off, the exact state Expensify Classic warns about
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says yes, because the owner would otherwise roll onto the pay-per-use rate without ever being told
             expect(shouldShowSubscriptionExpiringSoonUI(expiringSubscription)).toBeTruthy();
         });
 
         it('should return false when the end date is more than one month away', () => {
-            // Given the same subscription ending in 40 days
-            // Then it is too early to warn
-            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: toEndDate(addDays(new Date(), 40))})).toBeFalsy();
+            // Given the same subscription moved out to 40 days
+            const expiringLater = {...expiringSubscription, endDate: toEndDate(addDays(new Date(), 40))};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because warning this early would nag owners who still have plenty of time to act
+            expect(shouldShowSubscriptionExpiringSoonUI(expiringLater)).toBeFalsy();
         });
 
         it('should return false when the end date has already passed', () => {
             // Given a lapsed subscription that billing has not yet converted to pay-per-use, so `type` still reads annual
-            // Then no retroactive warning is shown
-            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: toEndDate(subDays(new Date(), 1))})).toBeFalsy();
+            const alreadyLapsed = {...expiringSubscription, endDate: toEndDate(subDays(new Date(), 1))};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because this is a pre-expiry warning and must never render a retroactive "your subscription expired on X"
+            expect(shouldShowSubscriptionExpiringSoonUI(alreadyLapsed)).toBeFalsy();
         });
 
         it('should return false when auto-renew is on', () => {
-            // Given auto-renew is on, the subscription renews rather than ending
-            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, autoRenew: true})).toBeFalsy();
+            // Given the same end date but auto-renew left on
+            const autoRenewing = {...expiringSubscription, autoRenew: true};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because the subscription renews rather than ending and there is nothing to warn about
+            expect(shouldShowSubscriptionExpiringSoonUI(autoRenewing)).toBeFalsy();
         });
 
         it('should return false when auto-renew is missing', () => {
-            // Given an absent `autoRenew`, which the API omits while the subscription still renews
-            // Then it is treated as on
+            // Given a partially loaded NVP with no `autoRenew` key, which is how the API represents a normally renewing subscription
             const withoutAutoRenew: PrivateSubscription = {...expiringSubscription};
             delete (withoutAutoRenew as Partial<PrivateSubscription>).autoRenew;
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because an absent value is treated as on and must not flash a warning at someone who is renewing
             expect(shouldShowSubscriptionExpiringSoonUI(withoutAutoRenew)).toBeFalsy();
         });
 
         it('should return false for a pay-per-use subscription', () => {
-            // Given switching to pay-per-use clears both `endDate` and `autoRenew`
-            // Then monthly accounts never qualify
-            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE})).toBeFalsy();
+            // Given a pay-per-use subscription, the type an account lands on once it switches away from annual
+            const payPerUse = {...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because monthly accounts have no end date to lose and no annual pricing to keep
+            expect(shouldShowSubscriptionExpiringSoonUI(payPerUse)).toBeFalsy();
         });
 
         it('should return false for an invoiced subscription', () => {
-            // Given invoiced customers are billed against a separate contract end date
-            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.INVOICING})).toBeFalsy();
+            // Given an invoiced subscription, which is billed against a separate contract end date
+            const invoiced = {...expiringSubscription, type: CONST.SUBSCRIPTION.TYPE.INVOICING};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because the Subscription settings page these surfaces link to is not available to invoiced customers
+            expect(shouldShowSubscriptionExpiringSoonUI(invoiced)).toBeFalsy();
         });
 
         it('should return false when there is no end date', () => {
-            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: ''})).toBeFalsy();
+            // Given an annual subscription whose `endDate` is empty
+            const withoutEndDate = {...expiringSubscription, endDate: ''};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, because there is no date to put in the copy and no way to know the warning window
+            expect(shouldShowSubscriptionExpiringSoonUI(withoutEndDate)).toBeFalsy();
         });
 
         it('should return false when there is no subscription', () => {
+            // Given an account whose nvp_private_subscription has not loaded yet
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says no, so the surfaces stay hidden rather than flashing on during app load
             expect(shouldShowSubscriptionExpiringSoonUI(undefined)).toBeFalsy();
         });
 
         it('should return true on the one-month boundary', () => {
-            // Given an end date exactly one month out, which is the inclusive edge of the Classic trigger
-            expect(shouldShowSubscriptionExpiringSoonUI({...expiringSubscription, endDate: toEndDate(addMonths(new Date(), 1))})).toBeTruthy();
+            // Given an end date exactly one month out, the inclusive edge of the Classic trigger
+            const onTheBoundary = {...expiringSubscription, endDate: toEndDate(addMonths(new Date(), 1))};
+
+            // When the shared predicate gates the three expiring-soon surfaces
+            // Then it says yes, pinning the boundary as inclusive so NewDot and Classic start warning on the same day
+            expect(shouldShowSubscriptionExpiringSoonUI(onTheBoundary)).toBeTruthy();
         });
     });
 });
