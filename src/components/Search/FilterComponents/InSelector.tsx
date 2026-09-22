@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {searchInServer} from '@libs/actions/Report';
@@ -49,6 +50,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -265,6 +267,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 shouldShowTextInput
                 style={selectionListStyle}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterView>
     );
