@@ -5,12 +5,17 @@ import type SaveTextFile from '@libs/saveTextFile/types';
 import type {ShareOptions} from 'react-native-share';
 
 const mockUnlink = jest.fn<Promise<void>, [string]>();
+const mockWriteFile = jest.fn<Promise<void>, [string, string, string]>();
 const mockShareOpen = jest.fn<Promise<{success: boolean; message: string}>, [ShareOptions]>();
 
 jest.mock('@libs/localFileCreate', () => jest.fn());
-jest.mock('react-native-blob-util', () => ({
+jest.mock('react-native-fs', () => ({
     __esModule: true,
-    default: {fs: {unlink: (path: string) => mockUnlink(path)}},
+    default: {
+        CachesDirectoryPath: '/cache',
+        writeFile: (path: string, content: string, encoding: string) => mockWriteFile(path, content, encoding),
+        unlink: (path: string) => mockUnlink(path),
+    },
 }));
 jest.mock('react-native-share', () => ({open: (options: ShareOptions) => mockShareOpen(options)}));
 
@@ -73,13 +78,13 @@ describe('saveTextFile', () => {
     });
 
     it('shares a temporary file on native and removes it after sharing', async () => {
+        mockWriteFile.mockResolvedValueOnce(undefined);
         mockShareOpen.mockResolvedValueOnce({success: true, message: ''});
         mockUnlink.mockResolvedValueOnce(undefined);
-        jest.mocked(localFileCreate).mockResolvedValueOnce({...file, path: '/cache/onyx-state.txt'});
 
         await saveTextFileNative(options);
 
-        expect(localFileCreate).toHaveBeenCalledWith(options.fileName, options.content, false);
+        expect(mockWriteFile).toHaveBeenCalledWith('/cache/onyx-state.txt', options.content, 'utf8');
         expect(mockShareOpen).toHaveBeenCalledWith({
             url: 'file:///cache/onyx-state.txt',
             failOnCancel: false,
@@ -89,9 +94,9 @@ describe('saveTextFile', () => {
 
     it('removes the native temporary file and propagates a share failure', async () => {
         const error = new Error('Share failed');
+        mockWriteFile.mockResolvedValueOnce(undefined);
         mockShareOpen.mockRejectedValueOnce(error);
         mockUnlink.mockResolvedValueOnce(undefined);
-        jest.mocked(localFileCreate).mockResolvedValueOnce({...file, path: '/cache/onyx-state.txt'});
 
         await expect(saveTextFileNative(options)).rejects.toBe(error);
 
