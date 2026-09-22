@@ -225,9 +225,13 @@ function IOURequestStartPage({
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
-    const [initialIsAmountSet] = useState(() => (isPayFlow ? transaction?.isAmountSet === true : false));
-    const [initialAmount] = useState(() => (isPayFlow ? transaction?.amount : undefined));
-    const hasAmountChanged = isPayFlow ? (transaction?.isAmountSet === true && !initialIsAmountSet) || transaction?.amount !== initialAmount : transaction?.isAmountSet === true;
+    const [payAmountBaseline, setPayAmountBaseline] = useState<{isAmountSet: boolean; amount: number | undefined}>();
+    if (isPayFlow && !isLoadingTransaction && !payAmountBaseline) {
+        setPayAmountBaseline({isAmountSet: transaction?.isAmountSet === true, amount: transaction?.amount});
+    }
+    const hasAmountChanged = isPayFlow
+        ? !!payAmountBaseline && ((transaction?.isAmountSet === true && !payAmountBaseline.isAmountSet) || transaction?.amount !== payAmountBaseline.amount)
+        : transaction?.isAmountSet === true;
 
     useFocusEffect(
         useCallback(() => {

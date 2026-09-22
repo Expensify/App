@@ -144,22 +144,36 @@ describe('IOURequestStartPage manual tab content', () => {
 
         /** Initial transaction draft properties (e.g. isAmountSet, amount) */
         transactionDraft?: Partial<Transaction>;
+
+        /** Whether to seed the draft before mounting the page. */
+        shouldSeedTransaction?: boolean;
+
+        /** Whether to wait for the initial Onyx subscription update after rendering. */
+        shouldWaitForInitialOnyxUpdate?: boolean;
     };
 
     /**
-     * Seeds the manual tab selection and a draft transaction of the given request type, then renders the page.
+     * Seeds the manual tab selection and optionally a draft transaction of the given request type, then renders the page.
      */
-    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT, transactionDraft}: RenderStartPageOptions) {
+    async function renderStartPage({
+        iouRequestType,
+        iouType = CONST.IOU.TYPE.SUBMIT,
+        transactionDraft,
+        shouldSeedTransaction = true,
+        shouldWaitForInitialOnyxUpdate = true,
+    }: RenderStartPageOptions) {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-                transactionID: TRANSACTION_ID,
-                iouRequestType,
-                // Matching the route's reportID keeps useResetIOUType's focus effect from rebuilding the draft,
-                // so the draft stays in the "not reset yet" state this test is about.
-                reportID: REPORT_ID,
-                ...transactionDraft,
-            });
+            if (shouldSeedTransaction) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    iouRequestType,
+                    // Matching the route's reportID keeps useResetIOUType's focus effect from rebuilding the draft,
+                    // so the draft stays in the "not reset yet" state this test is about.
+                    reportID: REPORT_ID,
+                    ...transactionDraft,
+                });
+            }
         });
 
         render(
@@ -184,7 +198,9 @@ describe('IOURequestStartPage manual tab content', () => {
             </OnyxListItemProvider>,
         );
 
-        await waitForBatchedUpdatesWithAct();
+        if (shouldWaitForInitialOnyxUpdate) {
+            await waitForBatchedUpdatesWithAct();
+        }
     }
 
     it('shows a loader instead of the embedded confirmation while a per diem draft is still pending its reset to manual', async () => {
@@ -296,6 +312,28 @@ describe('IOURequestStartPage manual tab content', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount: 5000});
         });
         await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
+    it('keeps the discard guard clean when the pay draft loads after the page mounts', async () => {
+        await renderStartPage({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            iouType: CONST.IOU.TYPE.PAY,
+            shouldSeedTransaction: false,
+            shouldWaitForInitialOnyxUpdate: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                transactionID: TRANSACTION_ID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                reportID: REPORT_ID,
+                isAmountSet: true,
+                amount: 5000,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
         expect(mockGetHasUnsavedChanges?.()).toBe(false);
     });
 
