@@ -47,6 +47,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         betas: OnyxEntry<Beta[]>;
         hasReportActions: boolean | undefined;
         conciergeChat: OnyxEntry<OnyxReport>;
+        isSupportalSession: boolean;
     }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
@@ -79,7 +80,20 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, hasReportActions, conciergeChat}) => ({
+    message: ({
+        reportID,
+        accountID,
+        login,
+        personalDetails,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        betas,
+        hasReportActions,
+        conciergeChat,
+        isSupportalSession,
+    }) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -99,6 +113,7 @@ const PromotedActions = {
                     hasCompletedGuidedSetupFlow,
                     betas,
                     conciergeChat,
+                    isSupportalSession,
                     shouldDismissModal: false,
                     shouldRevalidateExistingChat: true,
                     hasReportActions,

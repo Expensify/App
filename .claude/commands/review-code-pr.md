@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)
-description: Run the coding-standards rule linter on a PR diff. Use when user wants to review their changes against our custom rules.
+description: Run the app-coding-standards rule linter on an Expensify App PR diff. Use when user wants to review their App changes against our custom rules.
 ---
 
 Perform a comprehensive PR review using a specialized subagent:

@@ -7,7 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -72,6 +72,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
+    isPartiallyEnteredScanExpense,
     isScanRequest,
 } from '@libs/TransactionUtils';
 
@@ -146,7 +147,6 @@ function IOURequestStepConfirmationContent({
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
-    const allPolicyCategories = usePolicyCategories();
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
@@ -222,6 +222,7 @@ function IOURequestStepConfirmationContent({
     const isDraftPolicy = policy === policyDraft;
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
@@ -229,17 +230,7 @@ function IOURequestStepConfirmationContent({
 
     const reportAttributesDerived = useReportAttributes();
 
-    const policyCategories = useMemo(() => {
-        if (isDraftPolicy && draftPolicyID) {
-            return policyCategoriesDraft;
-        }
-
-        if (policyID) {
-            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-        }
-
-        return undefined;
-    }, [isDraftPolicy, draftPolicyID, policyID, policyCategoriesDraft, allPolicyCategories]);
+    const policyCategories = isDraftPolicy && draftPolicyID ? policyCategoriesDraft : policyCategoriesReal;
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -273,6 +264,21 @@ function IOURequestStepConfirmationContent({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    // The user can fill in the amount, merchant and date on the Scan tab instead of waiting for SmartScan, so the Scan
+    // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
+    // tracked expense being moved already carries real values, and its emptiness
+    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Splits are
+    // excluded too because StartSplitBill takes no amount/merchant/date (the details are filled in once the receipt
+    // has been scanned), and so are test receipts, whose values are fixed.
+    const canEnterScanFieldsManually =
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
+        !isMovingTransactionFromTrackExpense &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        !transaction?.receipt?.isTestReceipt &&
+        !transaction?.receipt?.isTestDriveReceipt;
+
+    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
+    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     const headerTitle = useMemo(() => {
@@ -313,18 +319,18 @@ function IOURequestStepConfirmationContent({
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
                     ? getParticipantsOption(participant, personalDetails, translate)
-                    : getReportOption(
+                    : getReportOption({
                           participant,
                           privateIsArchived,
-                          participantPolicy,
+                          policy: participantPolicy,
                           personalDetails,
                           conciergeReportID,
                           reportAttributesDerived,
-                          participantReportDraft,
-                          currentUserPersonalDetails.accountID,
-                          {translate, dateFnsLocale, convertToDisplayString},
+                          reportDraft: participantReportDraft,
+                          currentUserAccountID: currentUserPersonalDetails.accountID,
+                          localize: {translate, dateFnsLocale, convertToDisplayString},
                           rules,
-                      );
+                      });
             }) ?? [],
         [
             dateFnsLocale,
@@ -571,7 +577,7 @@ function IOURequestStepConfirmationContent({
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT, policy);
 
     const policyExpenseChatPolicyID =
         transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID ??
@@ -606,6 +612,7 @@ function IOURequestStepConfirmationContent({
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         reportID,
         policy,
@@ -660,7 +667,9 @@ function IOURequestStepConfirmationContent({
     const firstParticipant = participants.at(0);
 
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
-    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
+    // A self-DM participant is not a policy expense chat either, but it carries accountID 0, so leaving it in here
+    // sends `getChatByParticipants` looking for a chat with account 0 that can never exist.
+    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat && !isSelfDMDestination;
     const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
     const p2pRecipientAccountID = firstParticipant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -998,7 +1007,8 @@ function IOURequestStepConfirmationContent({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN || canEnterScanFieldsManually;
     return (
         <>
             <TelemetrySpanManager
@@ -1056,6 +1066,7 @@ function IOURequestStepConfirmationContent({
                 participants={participants}
                 draftTransactionIDs={draftTransactionIDs}
                 isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
+                canEnterScanFieldsManually={canEnterScanFieldsManually}
                 onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
@@ -1147,6 +1158,9 @@ function IOURequestStepConfirmationContent({
                                     receiptStitchError={stitchError}
                                     isPerDiemRequest={isPerDiemRequest}
                                     shouldShowSmartScanFields={shouldShowSmartScanFields}
+                                    canEnterScanFieldsManually={canEnterScanFieldsManually}
+                                    partiallyManuallyFilledScanID={partiallyManuallyFilledScanID}
+                                    onSwitchToTransaction={setCurrentTransactionID}
                                     action={action}
                                     isConfirmed={isConfirmed}
                                     isConfirming={isConfirming}

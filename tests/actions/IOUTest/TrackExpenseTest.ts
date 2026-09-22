@@ -17,9 +17,10 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
+
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -74,15 +75,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
@@ -167,7 +159,7 @@ describe('actions/IOU/TrackExpense', () => {
             const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
                 reports: {[selfDMReportKey]: selfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
@@ -228,7 +220,7 @@ describe('actions/IOU/TrackExpense', () => {
             const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: 'different-report-id',
                 reports: {[selfDMReportKey]: optimisticSelfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
@@ -404,7 +396,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1523,7 +1515,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 1,
-                firstPolicyID: policy.id,
+                firstPolicy: policy,
             });
             await waitForBatchedUpdates();
 
@@ -2360,7 +2352,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN});
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
@@ -2680,7 +2672,7 @@ describe('actions/IOU/TrackExpense', () => {
             PusherHelper.setup();
 
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2897,6 +2889,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [transaction],
                     iouReport,
@@ -2909,7 +2902,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -2974,6 +2966,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -2986,7 +2979,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -3021,6 +3013,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3033,7 +3026,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
@@ -3068,6 +3060,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3080,7 +3073,6 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
