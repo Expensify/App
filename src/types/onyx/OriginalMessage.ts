@@ -542,6 +542,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Report field type */
     fieldType?: string;
 
+    /** Account ID of the workspace member named in a member-scoped change log */
+    accountID?: number;
+
     field?: string;
 
     /** Array of field changes for consolidated employee updates */
