@@ -190,11 +190,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                <NavigationTabBarAvatar
-                    style={[styles.navigationTabBarItem, selectedTab === NAVIGATION_TABS.SETTINGS && styles.navigationTabBarItemSelected]}
-                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                    onPress={navigateToSettings}
-                />
+                {!isInsightsTabVisible && (
+                    <NavigationTabBarAvatar
+                        style={[styles.navigationTabBarItem, selectedTab === NAVIGATION_TABS.SETTINGS && styles.navigationTabBarItemSelected]}
+                        isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                        onPress={navigateToSettings}
+                    />
+                )}
             </View>
 
             {shouldShowFloatingButtons && (

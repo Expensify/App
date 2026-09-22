@@ -7,32 +7,47 @@ import ScrollView from '@components/ScrollView';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 
+import {getInsights} from '@libs/actions/Insights';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {InsightsDashboardID} from '@src/types/onyx';
 
 import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 
-import React from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+
+import buildInsightsJsonQuery from './insightsQueries';
+import useInsightsFilters from './useInsightsFilters';
 
 type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCREENS.INSIGHTS>;
 
-function InsightsPage({route}: InsightsPageProps) {
+function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     useDocumentTitle(translate('common.insights'));
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+    const {filters, isResolved} = useInsightsFilters();
 
-    const isKnownDashboard = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
+    const jsonQuery = query?.jsonQuery;
+    const hash = query?.hash;
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !isKnownDashboard) {
-        return <NotFoundPage />;
-    }
+    useEffect(() => {
+        if (!jsonQuery || hash === undefined || !isFocused || isOffline) {
+            return;
+        }
+        getInsights(dashboardID, hash, jsonQuery);
+    }, [dashboardID, hash, jsonQuery, isFocused, isOffline]);
 
     return (
         <ScreenWrapper
@@ -51,6 +66,20 @@ function InsightsPage({route}: InsightsPageProps) {
             />
         </ScreenWrapper>
     );
+}
+
+function InsightsPage({route}: InsightsPageProps) {
+    const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    useDocumentTitle(translate('common.insights'));
+
+    const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params?.dashboardID);
+
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !dashboardID) {
+        return <NotFoundPage />;
+    }
+
+    return <InsightsDashboard dashboardID={dashboardID} />;
 }
 
 export default InsightsPage;

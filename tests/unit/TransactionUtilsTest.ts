@@ -1201,6 +1201,114 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedAmount).toBe(170);
         });
 
+        it('does not carry a home and office exclusion onto edited waypoints', () => {
+            // A home and office exclusion is derived from where the trip started and ended, so an edited trip
+            // must not keep the deduction of the commute it used to be.
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {default: {customUnitRateID: 'rate', currency: CONST.CURRENCY.USD, rate: 10}},
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+
+            // Given a 10 mile home to office commute that was excluded in full
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 10,
+                        reimbursableDistance: 0,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                    },
+                    waypoints: {waypoint0: {address: 'Home'}, waypoint1: {address: 'Office'}},
+                },
+            });
+
+            // When its waypoints are edited to a 20 mile trip, the preview having been cleared with the routes
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {
+                    waypoints: {waypoint0: {address: 'Client site'}, waypoint1: {address: 'Another client'}},
+                    routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
+                },
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the whole 20 miles is reimbursable, rather than the old commute coming off it
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion ?? 0).toBe(0);
+            expect(updatedTransaction.modifiedAmount).toBe(200);
+        });
+
+        it('applies the fresh home and office decision to edited waypoints', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {default: {customUnitRateID: 'rate', currency: CONST.CURRENCY.USD, rate: 10}},
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+
+            // Given a commute that was excluded in full, and a decision for the edited trip saying it still
+            // leaves home, with a 4 mile usual commute
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                        commuterExclusion: 10,
+                        reimbursableDistance: 0,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                    },
+                    waypoints: {waypoint0: {address: 'Home'}, waypoint1: {address: 'Office'}},
+                },
+                commuterExclusionPreview: {
+                    policyID: fakePolicy.id,
+                    hasExclusion: true,
+                    isWholeTripExcluded: false,
+                    commuteDistanceMeters: 6437.376,
+                },
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {
+                    waypoints: {waypoint0: {address: 'Home'}, waypoint1: {address: 'Client site'}},
+                    routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
+                },
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then only the usual commute comes off the 20 mile trip, not the old full-trip exclusion
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(16);
+            expect(updatedTransaction.modifiedAmount).toBe(160);
+        });
+
         it('should negate modifiedAmount when isFromExpenseReport is true', () => {
             const transaction = generateTransaction();
             const newAmount = 500;
