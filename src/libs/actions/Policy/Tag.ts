@@ -103,7 +103,8 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
         }
 
         const tagListKey = policyTagKeys.at(index) ?? '';
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags?.[tagListKey] ?? [])])];
+        const recentlyUsedTagsForList = policyRecentlyUsedTags?.[tagListKey];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(Array.isArray(recentlyUsedTagsForList) ? recentlyUsedTagsForList : [])])];
     }
 
     return newOptimisticPolicyRecentlyUsedTags;

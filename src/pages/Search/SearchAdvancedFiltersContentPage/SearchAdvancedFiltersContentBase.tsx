@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
-import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterViewLabelKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
@@ -58,7 +58,7 @@ function SearchAdvancedFiltersContentBase() {
                 validFilterKey ? (
                     <>
                         <HeaderWithBackButton
-                            title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
+                            title={translate(getFilterViewLabelKey(validFilterKey, currentDraftFilters?.type))}
                             onBackButtonPress={goBack}
                         />
                         <View style={[styles.filterContentContainer]}>
