@@ -95,7 +95,7 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 
 ## Connect a Credit Card
 
-💳 For more information on connecting credit cards, check out this article: [Personal Cards](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Personal-Cards).
+💳 For more information on connecting credit cards, check out this article: [Manage Personal Cards](https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Manage-Personal-Cards).
 
 ---
 
