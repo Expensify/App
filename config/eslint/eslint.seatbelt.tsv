@@ -941,7 +941,6 @@
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-direct-personal-details-list"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/DynamicReportDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicReportParticipantsInvitePage.tsx"	"rulesdir/no-direct-personal-details-list"	2
@@ -1116,7 +1115,6 @@
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReportSubmitToContent.tsx"	"rulesdir/no-direct-personal-details-list"	2
-"../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/SavedSearchRenamePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Search/SearchAddApproverPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Search/SearchChangeApproverPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1291,7 +1289,6 @@
 "../../src/pages/workspace/accounting/xero/XeroTaxesConfigurationPage.tsx"	"no-restricted-syntax"	4
 "../../src/pages/workspace/accounting/xero/XeroTaxesConfigurationPage.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/workspace/accounting/xero/XeroTrackingCategoryConfigurationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/categories/CategorySettingsPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/workspace/categories/WorkspaceCategoriesPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/BankConnection/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1305,7 +1302,6 @@
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/copyPolicySettings/CopyPolicySettingsSelectFeaturesPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/deleteWorkspace/DeleteWorkspaceFlow.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/DynamicWorkspaceConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
