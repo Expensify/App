@@ -1,61 +1,44 @@
-import DropZoneUI from '@components/DropZone/DropZoneUI';
+import {DragAndDropStateContext} from '@components/DragAndDrop/Provider/DragAndDropContext';
 
-import useDragAndDrop from '@hooks/useDragAndDrop';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-
-import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
-
+import type {ReactNode, RefObject} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 
-import React from 'react';
-import {View as RNView} from 'react-native';
+import React, {useState} from 'react';
+
+import ReceiptScanDropTarget from './ReceiptScanDropTarget';
 
 type ReceiptScanDropZoneProps = {
-    targetRef: React.RefObject<View | HTMLDivElement | null>;
+    /** The page content that receipts can be dropped onto */
+    children: ReactNode;
+
+    /** Ref to the container receipts are dropped onto */
+    dropZoneRef: RefObject<View | HTMLDivElement | null>;
+
+    /** Whether the drop zone is disabled, keeping the scan logic unmounted */
+    isDisabled?: boolean;
+
     dropWrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function shouldAcceptDrop(event: DragEvent): boolean {
-    return !!event.dataTransfer?.types.some((type) => type === 'Files');
-}
-
-function ReceiptScanDropZone({targetRef, dropWrapperStyle}: ReceiptScanDropZoneProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan']);
-    const {initScanRequest, auxiliaryUI, isDragDisabled} = useReceiptScanDrop();
-
-    const {isDraggingOver} = useDragAndDrop({
-        dropZone: htmlDivElementRef(targetRef),
-        onDrop: initScanRequest,
-        shouldAcceptDrop,
-        isDisabled: isDragDisabled,
-    });
+/**
+ * Turns the page into a receipt scan drop zone and publishes the drag state to it, so components inside can react to a
+ * file being dragged over the page.
+ */
+function ReceiptScanDropZone({children, dropZoneRef, isDisabled = false, dropWrapperStyle}: ReceiptScanDropZoneProps) {
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     return (
-        <>
-            {isDraggingOver && (
-                <RNView
-                    pointerEvents="none"
-                    style={[styles.fullScreen, styles.pAbsolute, styles.invisibleOverlay]}
-                >
-                    <DropZoneUI
-                        icon={expensifyIcons.SmartScan}
-                        dropTitle={translate('dropzone.scanReceipts')}
-                        dropStyles={styles.receiptDropOverlay(true)}
-                        dropTextStyles={styles.receiptDropText}
-                        dropWrapperStyles={dropWrapperStyle}
-                        dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                    />
-                </RNView>
+        // eslint-disable-next-line react/jsx-no-constructed-context-values
+        <DragAndDropStateContext.Provider value={{isDraggingOver, dropZoneID: ''}}>
+            {children}
+            {!isDisabled && (
+                <ReceiptScanDropTarget
+                    targetRef={dropZoneRef}
+                    dropWrapperStyle={dropWrapperStyle}
+                    onDraggingOverChange={setIsDraggingOver}
+                />
             )}
-            {auxiliaryUI}
-        </>
+        </DragAndDropStateContext.Provider>
     );
 }
 

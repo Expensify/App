@@ -34,6 +34,7 @@ import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
 import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import ExpensifyCardAppleWalletIllustration from '@assets/images/expensifyCard/cardAppleWalletIllustration.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
@@ -125,6 +126,8 @@ import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustra
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import CardDenied from '@assets/images/simple-illustrations/simple-illustration__carddenied.svg';
+import CardIntoWallet from '@assets/images/simple-illustrations/simple-illustration__cardintowallet.svg';
 import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustration__cardreader-alt.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
@@ -152,6 +155,7 @@ import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustratio
 import Flag from '@assets/images/simple-illustrations/simple-illustration__flag.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
+import FolderSync from '@assets/images/simple-illustrations/simple-illustration__foldersync.svg';
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
@@ -275,6 +279,7 @@ const Illustrations = {
     // Expensify Card
     ExpensifyCardIllustration,
     ExpensifyCardProtectionIllustration,
+    ExpensifyCardAppleWalletIllustration,
 
     // Product Illustrations
     Abracadabra,
@@ -345,8 +350,11 @@ const Illustrations = {
     BuildingCross,
     BankCoin,
     Coins,
+    CardDenied,
+    CardIntoWallet,
     CreditCardsNew,
     FolderOpen,
+    FolderSync,
     HandCard,
     Hashtag,
     InvoiceBlue,

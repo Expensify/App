@@ -65,7 +65,6 @@ function BaseSelectionListImpl({
     footerContent,
     listEmptyContent,
     listFooterContent,
-    rightHandSideComponent,
     alternateNumberOfSupportedLines,
     selectedItems = getEmptyArray<string>(),
     style,
@@ -84,9 +83,9 @@ function BaseSelectionListImpl({
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
-    shouldShowRightCaret = false,
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
+    shouldFooterBeInsideList = false,
     selectAllAccessibilityLabel,
     shouldScrollToFocusedIndex = true,
     shouldScrollToFocusedIndexOnMount = true,
@@ -323,7 +322,6 @@ function BaseSelectionListImpl({
                 onLongPressRow={onLongPressRow}
                 onSelectionButtonPress={onSelectionButtonPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
                 isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}
@@ -336,7 +334,6 @@ function BaseSelectionListImpl({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldShowRightCaret={shouldShowRightCaret}
                 isFirstItem={index === 0}
                 isLastItem={index === data.length - 1}
                 shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
@@ -502,10 +499,21 @@ function BaseSelectionListImpl({
         />
     );
 
+    const footer = (
+        <Footer<ListItem>
+            footerContent={footerContent}
+            confirmButtonOptions={confirmButtonOptions}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+        />
+    );
+
+    const shouldShowEmptyState = data.length === 0 && (!!shouldShowLoadingPlaceholder || shouldShowListEmptyContent);
+    const isFooterInsideList = shouldFooterBeInsideList && !shouldShowEmptyState;
+
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
-            {data.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {shouldShowEmptyState ? (
                 <SelectionListEmptyState
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     customLoadingPlaceholder={customLoadingPlaceholder}
@@ -523,7 +531,16 @@ function BaseSelectionListImpl({
                         ref={listRef}
                         keyExtractor={(item) => item.keyForList}
                         extraData={extraData}
-                        ListFooterComponent={listFooterContent}
+                        ListFooterComponent={
+                            isFooterInsideList ? (
+                                <>
+                                    {listFooterContent}
+                                    {footer}
+                                </>
+                            ) : (
+                                listFooterContent
+                            )
+                        }
                         ListFooterComponentStyle={style?.listFooterContentStyle}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
@@ -549,11 +566,7 @@ function BaseSelectionListImpl({
                 </>
             )}
 
-            <Footer<ListItem>
-                footerContent={footerContent}
-                confirmButtonOptions={confirmButtonOptions}
-                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            />
+            {!isFooterInsideList && footer}
         </View>
     );
 }

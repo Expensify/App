@@ -442,6 +442,18 @@ type OriginalMessageChangeLog = {
     avatarURL?: string;
 };
 
+/** A workspace member named in an approval workflow change log */
+type PolicyChangeLogMember = {
+    /** Email of the member */
+    email: string;
+
+    /** Display name of the member */
+    name: string;
+
+    /** Account ID of the member */
+    accountID: number;
+};
+
 /** Model of change log */
 type OriginalMessagePolicyChangeLog = {
     /** Account IDs of users that either got invited or removed from the room */
@@ -725,6 +737,21 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
+
+    /** The workspace member whose approval workflow changed */
+    member?: PolicyChangeLogMember;
+
+    /** The member who approves reports over the approval limit */
+    overLimitForwardsTo?: PolicyChangeLogMember;
+
+    /** The member who approved reports over the approval limit before the change */
+    previousOverLimitForwardsTo?: PolicyChangeLogMember;
+
+    /** Amount in cents above which reports go to the over limit approver */
+    limit?: number;
+
+    /** The approval limit before the change */
+    previousLimit?: number;
 };
 
 /** Amount operators for spend rules */
@@ -953,6 +980,16 @@ type OriginalMessageConciergeAutoMatchVendor = {
 
     /** LLM-consumable explanation of why this vendor was matched — surfaced behind the "Explain" link */
     reasoning?: string;
+};
+
+/**
+ * Model of `concierge auto select distance rate` report action — posted on an expense report when the report's workspace changes and the distance rates of its expenses are
+ * re-selected automatically. The individual rate changes are described by a `MODIFIED_EXPENSE` action on each expense's transaction thread, so this action names no rate itself:
+ * one report can hold many distance expenses, and each can end up on a different rate.
+ */
+type OriginalMessageConciergeAutoSelectDistanceRate = {
+    /** Name of the workspace the report was moved to, whose rates were applied */
+    policyName?: string;
 };
 
 /** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */
@@ -1615,6 +1652,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE]: OriginalMessageConciergeAutoSelectDistanceRate;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;

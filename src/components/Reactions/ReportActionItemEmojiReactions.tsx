@@ -3,6 +3,7 @@ import type {Emoji} from '@assets/emojis/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -69,6 +70,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
     const reportActionID = reportAction.reportActionID;
@@ -92,7 +94,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
             });
             return;
         }
-        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, reportActions, ignoreSkinToneOnCompare);
+        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, reportActions, isOffline, ignoreSkinToneOnCompare);
     };
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone

@@ -33,7 +33,12 @@ const MOCK_REPORT_ACTION: ReportAction = {
     originalMessage: undefined,
 };
 
-const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
+const MOCK_TRANSACTION: Transaction = {
+    ...createRandomTransaction(0),
+
+    // The shared factory leaves this off, so name it here to exercise its branch of the draft property validator.
+    commuterExclusionPreview: {policyID: '1', hasExclusion: true, isWholeTripExcluded: false, commuteDistanceMeters: 100},
+};
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 const RORY_EMAIL = 'rory@email.com';
@@ -796,6 +801,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBeNull();
         });
@@ -809,6 +815,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
@@ -825,6 +832,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
@@ -840,6 +848,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
@@ -859,6 +868,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
@@ -886,6 +896,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
@@ -906,6 +917,7 @@ describe('DebugUtils', () => {
                 draftComment: '',
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
@@ -921,6 +933,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
@@ -933,6 +946,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
@@ -994,6 +1008,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1055,6 +1070,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
@@ -1068,6 +1084,7 @@ describe('DebugUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
