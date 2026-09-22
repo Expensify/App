@@ -120,15 +120,33 @@ describe('useReportActionsNewActionLiveTail', () => {
         mockIsInSidePanel = false;
     });
 
-    it('requests one post-render scroll for a sent comment instead of also scrolling immediately', () => {
+    it('requests one post-render scroll once the sent comment is rendered', () => {
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({hasNewerActions: false, hasNewestReportAction: true}),
+        });
+
+        act(() => {
+            newActionHandler?.(true, action);
+        });
+
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
+
+        rerender(buildParams({hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [action]}));
+
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+    });
+
+    it('does not scroll for a payload-less realtime echo', () => {
         const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true})));
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, undefined);
         });
 
-        expect(result.current.isScrollToBottomEnabled).toBe(true);
-        expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
     it('does not queue a bottom scroll that would compete with a report-preview target', () => {

@@ -19,7 +19,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -93,6 +93,16 @@ function useReportActionsNewActionLiveTail({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
+    const [pendingScrollActionID, setPendingScrollActionID] = useState<string>();
+
+    const setShouldScrollToBottom = useCallback((enabled: boolean) => {
+        setIsScrollToBottomEnabled(enabled);
+        if (!enabled) {
+            setPendingScrollActionID(undefined);
+        }
+    }, []);
+
+    const isPendingScrollActionRendered = !!pendingScrollActionID && renderedVisibleReportActions.some((item) => item.reportActionID === pendingScrollActionID);
 
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
@@ -100,6 +110,11 @@ function useReportActionsNewActionLiveTail({
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
+                    return;
+                }
+                // Pusher echoes omit the action payload and can represent edits or deletions. Local sends
+                // notify with the optimistic action, which lets us wait until that exact row is rendered.
+                if (!action) {
                     return;
                 }
                 if (!hasNewestReportAction && !isFromCurrentUser) {
@@ -147,7 +162,7 @@ function useReportActionsNewActionLiveTail({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    setIsScrollToBottomEnabled(true);
+                    setPendingScrollActionID(action.reportActionID);
                 }
             },
         });
@@ -205,9 +220,9 @@ function useReportActionsNewActionLiveTail({
         setIsFloatingMessageCounterVisible(false);
         // Defer so this effect does not synchronously chain a second render from setState (eslint react-hooks/set-state-in-effect).
         queueMicrotask(() => {
-            setIsScrollToBottomEnabled(true);
+            setShouldScrollToBottom(true);
         });
-    }, [hasNewestReportAction, treatAsNoPaginationAnchor, setIsFloatingMessageCounterVisible]);
+    }, [hasNewestReportAction, treatAsNoPaginationAnchor, setIsFloatingMessageCounterVisible, setShouldScrollToBottom]);
 
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -237,8 +252,8 @@ function useReportActionsNewActionLiveTail({
     }, [reportID]);
 
     return {
-        isScrollToBottomEnabled,
-        setIsScrollToBottomEnabled,
+        isScrollToBottomEnabled: isScrollToBottomEnabled || isPendingScrollActionRendered,
+        setIsScrollToBottomEnabled: setShouldScrollToBottom,
         completeLiveTailPruneAfterScrollToBottom,
     };
 }
