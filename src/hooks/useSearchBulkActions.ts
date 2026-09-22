@@ -78,8 +78,6 @@ import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {
     getColumnsToShow,
-    getCustomColumnDefault,
-    getCustomColumns,
     getSearchColumnTranslationKey,
     getSelectedGroupFilterEntry,
     getValidGroupBy,
@@ -1027,17 +1025,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
 
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
-                // Grouped export skips getColumnsToShow(), so inject Violations when the query asks for it
+                // The expense columns are picked by hand here, so inject Violations when the query asks for it
                 // (e.g. Violations by submitter, which has groupBy but no saved columns).
                 if (queryHasViolationFilter(queryJSON)) {
                     insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
                 }
 
-                // Group rows have their own configurable columns, so the export follows them the same way
-                // the expense rows follow the type columns. The avatar is an icon with no CSV value.
-                const groupPermittedColumns: string[] = getCustomColumns(groupBy);
-                const groupColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => groupPermittedColumns.includes(column));
-                groupColumnsToExport = (groupColumns.length > 0 ? groupColumns : getCustomColumnDefault(groupBy)).filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+                // Group rows have their own columns, so take the same list the view builds.
+                // The avatar is an icon with no CSV value.
+                groupColumnsToExport = getColumnsToShow({
+                    currentAccountID: accountID,
+                    data: exportSearchData ?? {},
+                    visibleColumns,
+                    type: exportSearchType,
+                    groupBy,
+                    sortBy: queryJSON?.sortBy,
+                }).filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
