@@ -91,7 +91,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             videoPlayerRef: VideoPlayer | null,
             videoViewRef: VideoView | null,
             parent: View | HTMLDivElement | null,
-            child: View | HTMLDivElement | null,
+            child: PlaybackStateContextValues['sharedElement'],
             shouldNotAutoPlay: boolean,
             {shouldUseSharedVideoElement, url, reportID},
         ) => {

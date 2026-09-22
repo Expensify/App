@@ -9,9 +9,10 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -127,8 +128,9 @@ function buildCardsData(
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
-            return Object.values(cardFeed as CardList)
-                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
+            return Object.values(cardFeed ?? {})
+                .filter(isCard)
+                .filter((card) => !userCardList?.[card.cardID] && filterCondition(card))
                 .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons, customCardNames));
         });
 
@@ -156,7 +158,7 @@ function getExpensifyCardFeedsForDisplay(
     domains?: OnyxCollection<Domain>,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardFeedsForDisplay {
-    const result = {} as CardFeedsForDisplay;
+    const result: CardFeedsForDisplay = {};
 
     for (const card of Object.values(allCards ?? {})) {
         if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
@@ -235,7 +237,7 @@ function getCardFeedsForDisplay(
     domains?: OnyxCollection<Domain>,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardFeedsForDisplay {
-    const cardFeedsForDisplay = {} as CardFeedsForDisplay;
+    const cardFeedsForDisplay: CardFeedsForDisplay = {};
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
         // sharedNVP_private_domain_member_123456 -> 123456
@@ -244,8 +246,8 @@ function getCardFeedsForDisplay(
             continue;
         }
 
-        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
-            const feed = key as CardFeedWithNumber;
+        for (const [key, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
+            const feed = key;
             const id = `${fundID}_${feed}`;
 
             if (cardFeedsForDisplay[id]) {
@@ -285,7 +287,7 @@ function getCardFeedsForDisplayPerPolicy(
     feedKeysWithCards: FeedKeysWithAssignedCards | undefined,
     policies: OnyxCollection<Policy>,
 ): Record<string, CardFeedForDisplay[]> {
-    const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
+    const cardFeedsForDisplayPerPolicy: Record<string, CardFeedForDisplay[]> = {};
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
         // sharedNVP_private_domain_member_123456 -> 123456
@@ -294,11 +296,11 @@ function getCardFeedsForDisplayPerPolicy(
             continue;
         }
 
-        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
+        for (const [key, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const preferredPolicy = feedData && 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
             const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
-            const feed = key as CardFeedWithNumber;
+            const feed = key;
             const id = `${fundID}_${feed}`;
             const feedEntry: CardFeedForDisplay = {
                 id,
@@ -338,16 +340,6 @@ function getCardFeedsForDisplayPerPolicy(
     }
 
     return cardFeedsForDisplayPerPolicy;
-}
-
-/**
- * Narrows a raw company-feed object key (widened to `string` by `Object.entries`) to `CardFeedWithNumber`.
- * This is not a full type guard that validates the key against the union — it only asserts that a non-empty
- * key belongs to `CardFeedWithNumber` (the map is keyed by that union at runtime), and rejects empty keys.
- * Used to avoid an unsafe `as` assertion when iterating the feed map.
- */
-function isCardFeedWithNumber(feedKey: string): feedKey is CardFeedWithNumber {
-    return !!feedKey;
 }
 
 /**
@@ -401,10 +393,8 @@ function getVisibleCompanyCardFeedsForSelector(
             continue;
         }
 
-        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, numericFundID))) {
-            // `getOriginalCompanyFeeds` is keyed by `CardFeedWithNumber`, but `Object.entries` widens the key to
-            // `string`. Narrow it back with a type guard instead of an unsafe `as` assertion.
-            if (!isCardFeedWithNumber(key)) {
+        for (const [key, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, numericFundID))) {
+            if (!key) {
                 continue;
             }
             const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
@@ -461,7 +451,7 @@ function getWorkspaceCardFeedsStatus(allFeeds: OnyxCollection<CardFeeds> | undef
         const domainID = Number(onyxKey.split('_').at(-1));
         acc[domainID] = getCardFeedStatus(feeds);
         return acc;
-    }, {} as CardFeedsStatusByDomainID);
+    }, {});
 }
 
 function getCombinedCardFeedsFromAllFeeds(
@@ -479,8 +469,7 @@ function getCombinedCardFeedsFromAllFeeds(
             return acc;
         }
 
-        for (const feedName of Object.keys(companyCards) as CardFeedWithNumber[]) {
-            const feedSettings = companyCards?.[feedName];
+        for (const [feedName, feedSettings] of ObjectUtils.typedEntries(companyCards)) {
             const oAuthAccountDetails = workspaceFeedsSettings?.oAuthAccountDetails?.[feedName];
             const customFeedName = workspaceFeedsSettings?.companyCardNicknames?.[feedName];
             const status = workspaceFeedsSettings?.cardFeedsStatus?.[feedName];
@@ -526,14 +515,13 @@ function getCombinedCardFeedsFromAllFeeds(
 }
 
 function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: OnyxCollection<WorkspaceCardsList>, cardFeed?: CardFeedWithNumber, cardID?: number) {
-    const feedsWithDomainIDs = Object.keys(cardFeeds) as CardFeedWithDomainID[];
+    const feedsWithDomainIDs = ObjectUtils.typedKeys(cardFeeds);
     return Object.values(cardLists ?? {})
         .flatMap((cardList) => Object.values(cardList ?? {}))
         .filter((card) => {
-            const feedKey = card.bank as CardFeedWithNumber;
-            const feedDomainID = card.fundID ?? CONST.DEFAULT_MISSING_ID;
-            const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
-            if (!feedsWithDomainIDs.includes(feedWithDomainID)) {
+            const feedKey = card.bank;
+            const feedWithDomainID = `${card.bank}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${card.fundID ?? CONST.DEFAULT_MISSING_ID}`;
+            if (!feedsWithDomainIDs.some((key) => key === feedWithDomainID)) {
                 return false;
             }
             if (cardFeed && cardFeed !== feedKey) {
@@ -556,8 +544,8 @@ function getCardsUsingCustomExportCount(
 } {
     const perFeedCount: Partial<Record<CardFeedWithNumber, number>> = {};
     let totalCount = 0;
-    for (const card of findMatchingCards(cardFeeds, cardLists)) {
-        const feedKey = card.bank as CardFeedWithNumber;
+    for (const card of findMatchingCards(cardFeeds, cardLists).filter((matchingCard): matchingCard is Card => typeof matchingCard.nameValuePairs === 'object')) {
+        const feedKey = card.bank;
         if (typeof card.nameValuePairs !== 'object') {
             continue;
         }
