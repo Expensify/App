@@ -667,7 +667,7 @@ function shouldShowTrialEndedUI(
  *
  * `endDate` is compared against now rather than trusting `type` alone: billing converts a lapsed subscription to
  * pay-per-use asynchronously, so the NVP can still read annual with an end date in the past. That makes this a
- * strictly pre-expiry warning — it never renders a retroactive "your subscription expired on X".
+ * strictly pre-expiry warning. It never renders a retroactive "your subscription expired on X".
  */
 function shouldShowSubscriptionExpiringSoonUI(privateSubscription: OnyxEntry<PrivateSubscription>): boolean {
     // An absent `autoRenew` means the subscription still renews, so only an explicit `false` qualifies.
@@ -675,7 +675,7 @@ function shouldShowSubscriptionExpiringSoonUI(privateSubscription: OnyxEntry<Pri
         return false;
     }
 
-    // `endDate` is a date-only string; anchor it to midnight the way `formatSubscriptionEndDate` does
+    // `endDate` is a date-only string. Anchor it to midnight the way `formatSubscriptionEndDate` does.
     const endDate = new Date(`${privateSubscription.endDate}T00:00:00`);
     const now = new Date();
 
