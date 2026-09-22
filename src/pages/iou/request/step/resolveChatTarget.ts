@@ -31,6 +31,7 @@ type ResolveChatTargetForSubmitCleanupParams = {
     report: OnyxEntry<Report>;
     fallbackOptimisticChatReportID: string;
     action: IOUAction;
+
     /** The participant's draft report, so a not-yet-created workspace chat still resolves. Pass an empty object when there is none. */
     participantReportDraft: OnyxEntry<Report> | EmptyObject;
 };
