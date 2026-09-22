@@ -9,7 +9,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 import {getCountryCode} from './CountryUtils';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {getPersonalDetailByLogin} from './PersonalDetailsStore';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
@@ -26,24 +27,6 @@ type FirstAndLastName = {
     firstName: string;
     lastName: string;
 };
-
-let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        const personalDetails = Object.values(val ?? {});
-        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
-            if (detail?.login) {
-                const key = detail.login.toLowerCase();
-                const existing = acc[key];
-                if (!existing || existing.isClosed || existing.isOptimisticPersonalDetail) {
-                    acc[key] = detail;
-                }
-            }
-            return acc;
-        }, {});
-    },
-});
 
 let hiddenTranslation = '';
 let youTranslation = '';
@@ -264,10 +247,7 @@ function getDisplayNameOrYou(displayName: string, accountID: number, currentUser
 }
 
 function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
-    if (!email) {
-        return undefined;
-    }
-    return emailToPersonalDetailsCache[email.toLowerCase()];
+    return getPersonalDetailByLogin(email);
 }
 
 /**
@@ -337,6 +317,20 @@ function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAcc
     );
 }
 
+type PersonalDetailsUpdate = OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>;
+
+// All writes are merges, and the builder is what turns one list update into one update per account after the reshape
+function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: personalDetails,
+    };
+}
+
+// The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
+type PersonalDetailsOnyxUpdate = ReturnType<typeof buildPersonalDetailsUpdate>;
+
 /**
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
  * They will have an "optimistic" accountID that must be cleaned up later.
@@ -366,21 +360,9 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsCleanup[accountID] = null;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsNew,
-        },
-    ];
+    const optimisticData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsNew)];
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsCleanup,
-        },
-    ];
+    const finallyData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsCleanup)];
 
     return {
         optimisticData,
@@ -607,6 +589,8 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
     return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
 }
 
+export type {PersonalDetailsOnyxUpdate};
+
 export {
     getDisplayNameOrDefault,
     getPersonalDetailForAccountID,
@@ -637,4 +621,5 @@ export {
     areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     temporaryGetDisplayNameOrDefault,
+    buildPersonalDetailsUpdate,
 };

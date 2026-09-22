@@ -30,7 +30,7 @@ describe('OnyxUpdates, when a Pusher apply fails', () => {
 
     beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
 
-    it('relies on pusherEventsPromise staying rejected to stop a follower whose gap check the failed update had suppressed', async () => {
+    it('holds the watermark to stop a follower whose gap check the failed update had suppressed', async () => {
         // Given the client is caught up to update 10 and update 20 from Pusher is held mid-apply
         await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
         await waitForBatchedUpdates();
@@ -57,13 +57,11 @@ describe('OnyxUpdates, when a Pusher apply fails', () => {
         // And update 20 then fails to apply
         failHeldApply(new Error('storage write failed'));
         await expect(heldApply).rejects.toThrow('storage write failed');
-        await expect(followerApply).rejects.toThrow('storage write failed');
+        await followerApply;
         await waitForBatchedUpdates();
 
-        // Then update 30 is never written either. Nothing checks that update IDs are contiguous before advancing the
-        // watermark, so were it written the watermark would move to 30 and updates 11 to 20 would be lost with no gap
-        // left to trigger recovery. Serializing on pusherEventsPromise is the only thing preventing that.
-        expect(handlerCallCount).toBe(1);
+        // Then update 30 still applies, and the watermark stays behind the update that failed
+        expect(handlerCallCount).toBe(2);
         expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
 
         // And both updates are back in the gap, so recovery can refetch them

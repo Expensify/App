@@ -1,8 +1,8 @@
 ---
 title: Attach and edit receipts on expenses
 description: Learn how to properly attach, verify, and troubleshoot receipts on expenses in New Expensify for audits and accounting.
-keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, add additional receipt, who can add a receipt, add additional receipt icon missing, expand receipt]
-internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses, and who is allowed to add a receipt versus only view one. Does not cover SmartScan configuration or receipt forwarding via email.
+keywords: [New Expensify, attach receipt, verify receipt, missing receipt, expense attachments, audit trail, receipt not showing, crop receipt, rotate receipt, trim receipt, receipt upload failed, receipt upload error, save receipt, delete expense, ereceipt, ereceipts, e-receipt, electronic receipt, digital receipt, auto-generated receipt, add additional receipt, who can add a receipt, add additional receipt icon missing, expand receipt, receipt on approved report, add receipt after approval, admin add receipt approved expense]
+internalScope: Audience is Expensify members and Workspace Admins. Covers attaching, replacing, and cropping receipts on expenses, who is allowed to add a receipt versus only view one, and the Workspace Admin exception that allows attaching or replacing a receipt on an Approved report. Does not cover SmartScan configuration or receipt forwarding via email.
 ---
 
 Make sure your receipts are attached correctly to individual expenses for audit and accounting compliance. This guide explains how to attach, verify, and troubleshoot receipts in New Expensify — and when to use report comments for additional documentation.
@@ -12,7 +12,8 @@ Make sure your receipts are attached correctly to individual expenses for audit 
 ## Who can attach receipts to an expense
 - **Attach, replace, or add an additional receipt**: The member who created the expense, a Workspace Admin, or the current approver. 
 - **Open a receipt to view it**: Anyone who can see the expense, including members who cannot edit it.
-- **Edit a receipt in an Approved or Paid report**: Requires the report to be unapproved first (see below).
+- **Attach or replace a receipt on an Approved report**: Only a Workspace Admin. The member who created the expense and the approver must have the report unapproved first (see below).
+- **Delete a receipt on an Approved report, or change any receipt on a Paid report**: Requires the report to be unapproved first (see below).
 
 On an expense in a personal chat, such as a 1:1 or group conversation, only the member who created the expense can attach, replace, or add a receipt. Everyone else in the conversation can still open the receipt to view it.
 
@@ -104,9 +105,30 @@ If a receipt was added to the report comments instead of the expense:
 
 ---
 
+## How to attach or replace a receipt on an Approved report
+
+Workspace Admins can attach a missing receipt or replace an existing one on an expense in an Approved report, without unapproving it first. Use this when a receipt is missing or incorrect and you do not want to send the report back through approval.
+
+**To attach a receipt to an expense that has none:**
+
+1. Open the Approved report and select the expense.
+2. Click **Add a receipt**.
+3. Choose a receipt image file from your device.
+
+**To replace a receipt that is already attached:**
+
+1. Open the Approved report and select the expense.
+2. Click the receipt image.
+3. Click **Replace**.
+4. Take a photo or upload a receipt image file from your device.
+
+**Note:** This applies to Workspace Admins only. The member who created the expense and the approver still need the report unapproved first. Deleting a receipt is not available on an Approved report, and no receipt changes are possible on a Paid report.
+
+---
+
 ## How to Edit Receipts in Approved or Paid Reports
 
-Approved and Paid reports are locked for editing. To make changes:
+Apart from a Workspace Admin attaching or replacing a receipt, Approved and Paid reports are locked for editing. To make other changes:
 
 1. (Admins only) Open the report.
 2. Click **More > Cancel Payment** (if Paid).
@@ -128,6 +150,12 @@ No. Each expense must have its own receipt. You can upload the same file more th
 
 ## Can someone else upload a receipt to my expense?
 Only the member who created the expense, a Workspace Admin, or the current approver can attach a receipt to an expense. Other members who can see the expense can open the receipt to view it, but they cannot add to it.
+
+## Can a receipt be added to an expense after the report is approved?
+Yes, but only by a Workspace Admin. A Workspace Admin can attach a missing receipt or replace an existing one on an Approved report without unapproving it. Everyone else needs the report unapproved first.
+
+## Can a Workspace Admin delete a receipt on an Approved report?
+No. A Workspace Admin can attach or replace a receipt on an Approved report, but deleting one requires the report to be unapproved first.
 
 ## Why can’t I see the Add additional receipt icon on an expense?
 The **Add additional receipt** icon is only shown to members who can edit the expense. You will not see it if you did not create the expense and you are not a Workspace Admin or the current approver. The **Expand** icon stays available so you can still open the receipt and view it.

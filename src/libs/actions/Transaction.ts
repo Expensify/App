@@ -12,6 +12,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -150,6 +151,10 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -366,10 +371,11 @@ function stringifyWaypointsForAPI(waypoints: WaypointCollection): string {
  * Used so we can generate a map view of the provided waypoints
  */
 
-function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
+function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT, policyID?: string) {
     const parameters: GetRouteParams = {
         transactionID,
         waypoints: stringifyWaypointsForAPI(waypoints),
+        policyID,
     };
 
     let command;
@@ -460,6 +466,10 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 }
 
@@ -713,7 +723,12 @@ function abandonReviewDuplicateTransactions() {
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        errors: null,
+        errorFields: {route: null, waypoints: null, routes: null, reject: null},
+        // Dropping a reject error also drops the pin that kept the expense listed on the report it was rejected from
+        rejectFailedFromReportID: null,
+    });
 }
 
 /**
@@ -865,6 +880,7 @@ type ChangeTransactionsReportProps = {
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -887,6 +903,7 @@ function getChangeTransactionsReportOnyxData({
     delegateAccountID,
     getCurrencyDecimals,
     getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1378,6 +1395,7 @@ function getChangeTransactionsReportOnyxData({
                 isInvoiceTransaction: false,
                 shouldRemoveRejectedExpenseViolation: true,
                 ownerLogin: undefined,
+                isVendorMatchingBetaEnabled,
             });
             optimisticData.push(violationData);
             failureData.push({
@@ -1882,6 +1900,7 @@ function getChangeTransactionsReportOnyxData({
             hasDependentTags: policyHasDependentTags,
             isInvoiceTransaction: false,
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
@@ -2038,6 +2057,39 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     });
 }
 
+/**
+ * Reports expenses without naming a destination: the backend puts each one in its owner's latest draft report, or a new
+ * report when they have none. Needed when a selection spans submitters, since any report the App picked would belong to
+ * just one of them. Carries no optimistic data because every update the normal move builds hangs off a destination only
+ * the backend knows.
+ */
+function autoReportTransactions(transactionIDs: string[]) {
+    if (transactionIDs.length === 0) {
+        return;
+    }
+
+    // There is no optimistic move to roll back, but a failure still has to reach the admin: the screen has closed and
+    // the selection is gone by then, so the error is surfaced on the expenses themselves via their red brick road.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionIDs.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {errors: null},
+    }));
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionIDs.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
+    }));
+
+    const parameters: ChangeTransactionsReportParams = {
+        transactionList: transactionIDs.join(','),
+        reportID: CONST.REPORT.AUTOMATIC_REPORT_ID,
+        transactionIDToReportActionAndThreadData: '{}',
+    };
+
+    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {successData, failureData});
+}
+
 function getDefaultP2PMileageRate() {
     API.read(READ_COMMANDS.GET_DEFAULT_P2P_MILEAGE_RATE, null);
 }
@@ -2059,6 +2111,7 @@ function getDuplicateTransactionDetails(transactionID?: string) {
 }
 
 export {
+    autoReportTransactions,
     saveWaypoint,
     removeWaypoint,
     getRoute,
