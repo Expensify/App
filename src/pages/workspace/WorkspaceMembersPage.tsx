@@ -202,12 +202,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
 
     /**
-     * Get members for the current workspace
+     * Get members for the current workspace.
+     * The dependency is the sorted member-email key (a string), not the employeeList object itself,
+     * so member-field edits (role, work arrangement, pending states) that preserve membership don't
+     * refetch — only actual joins/removals change the key.
      */
+    const clientMemberEmailsKey = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList)).sort().join(',');
+
     const getWorkspaceMembers = useCallback(() => {
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
-    }, [route.params.policyID, policy?.employeeList]);
+        openWorkspaceMembersPage(route.params.policyID, clientMemberEmailsKey.split(',').filter(Boolean));
+    }, [route.params.policyID, clientMemberEmailsKey]);
 
     useEffect(() => {
         getWorkspaceMembers();
