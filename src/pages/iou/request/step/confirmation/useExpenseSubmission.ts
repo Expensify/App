@@ -357,8 +357,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
+    // Only a workspace destination can enforce a workspace's distance rules.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,

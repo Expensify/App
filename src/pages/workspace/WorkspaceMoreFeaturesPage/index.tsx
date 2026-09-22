@@ -172,8 +172,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
     // vendors right now), so it can't double as the visibility gate.
     //
-    // When no source is active, keep the connected integration's discovery row.
-    // QBO (R1), Sage Intacct (R2), and DualEntry are GA. Xero and Rillet require the vendorMatching beta.
+    // Use the active vendor source so a stale GA connection cannot bypass the beta for another
+    // integration. When no source is active, keep the connected integration's discovery row.
+    // QBO (R1) and Sage Intacct (R2), and DualEntry are GA. Xero, Rillet, and Business Central require the vendorMatching beta.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -182,6 +183,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.XERO,
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+            CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
     const isGenerallyAvailableVendorConnection =
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO ||
