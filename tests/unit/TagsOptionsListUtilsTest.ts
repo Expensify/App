@@ -1,7 +1,7 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
-import {getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, sortTags} from '@libs/TagsOptionsListUtils';
+import {getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, hasEnabledTags, sortTags} from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1185,6 +1185,120 @@ describe('TagsOptionsListUtils', () => {
             });
 
             expect(result).toBe('Acme Corp');
+        });
+    });
+
+    describe('hasEnabledTags', () => {
+        type TagListValue = PolicyTagLists[keyof PolicyTagLists];
+        const buildTagLists = (...tagLists: PolicyTagLists[]): TagListValue[] => {
+            const result: TagListValue[] = [];
+            for (const tagList of tagLists) {
+                result.push(...Object.values(tagList));
+            }
+            return result;
+        };
+
+        it('returns true when at least one tag is enabled', () => {
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        disabled: {name: 'Disabled', enabled: false},
+                        enabled: {name: 'Enabled', enabled: true},
+                    },
+                },
+            });
+
+            expect(hasEnabledTags(tagLists)).toBe(true);
+        });
+
+        it('returns false when every tag is disabled', () => {
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        a: {name: 'A', enabled: false},
+                        b: {name: 'B', enabled: false},
+                    },
+                },
+            });
+
+            expect(hasEnabledTags(tagLists)).toBe(false);
+        });
+
+        it('returns false when the only enabled tag is pending deletion', () => {
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        enabled: {name: 'Enabled', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        disabled: {name: 'Disabled', enabled: false},
+                    },
+                },
+            });
+
+            expect(hasEnabledTags(tagLists)).toBe(false);
+        });
+
+        it('returns true when an enabled tag is pending an action other than deletion', () => {
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        enabled: {name: 'Enabled', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            });
+
+            expect(hasEnabledTags(tagLists)).toBe(true);
+        });
+
+        it('finds an enabled tag across multiple tag lists', () => {
+            const tagLists = buildTagLists(
+                {
+                    list1: {
+                        name: 'List 1',
+                        required: false,
+                        orderWeight: 0,
+                        tags: {a: {name: 'A', enabled: false}},
+                    },
+                },
+                {
+                    list2: {
+                        name: 'List 2',
+                        required: false,
+                        orderWeight: 1,
+                        tags: {b: {name: 'B', enabled: true}},
+                    },
+                },
+            );
+
+            expect(hasEnabledTags(tagLists)).toBe(true);
+        });
+
+        it('returns false for an empty list of tag lists', () => {
+            expect(hasEnabledTags([])).toBe(false);
+        });
+
+        it('ignores a tag list that has no tags', () => {
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {},
+                },
+            });
+
+            expect(hasEnabledTags(tagLists)).toBe(false);
         });
     });
 });
