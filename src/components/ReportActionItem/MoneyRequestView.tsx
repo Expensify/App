@@ -96,7 +96,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
+import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
     getBillable,
@@ -1111,6 +1111,7 @@ function MoneyRequestView({
     );
 
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
+    const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, transactionTag) : [];
 
     const [previousTransactionTag, setPreviousTransactionTag] = useState(transactionTag);
     const [previousTag, setPreviousTag] = useState<string | undefined>(undefined);
@@ -1129,12 +1130,7 @@ function MoneyRequestView({
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
-        let shouldShow = false;
-        if (hasDependentTags) {
-            shouldShow = shouldShowDependentTagList(index, transactionTag, tags);
-        } else {
-            shouldShow = !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
-        }
+        const shouldShow = hasDependentTags ? !!shouldShowTagList.at(index) : !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
 
         if (!shouldShow) {
             return null;

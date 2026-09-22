@@ -1,7 +1,8 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {getTagLists} from '@libs/PolicyUtils';
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
-import {getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, sortTags} from '@libs/TagsOptionsListUtils';
+import {getDependentTagVisibility, getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, sortTags} from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1185,6 +1186,86 @@ describe('TagsOptionsListUtils', () => {
             });
 
             expect(result).toBe('Acme Corp');
+        });
+    });
+
+    describe('getDependentTagVisibility', () => {
+        const companyTags: PolicyTags = {
+            acme: {name: 'Acme Corp', enabled: true},
+            other: {name: 'Other Co', enabled: true},
+        };
+        const departmentTags: PolicyTags = {
+            admin: {name: 'Acme Corp:Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}},
+            sales: {name: 'Acme Corp:Sales', enabled: false, rules: {parentTagsFilter: '^Acme Corp$'}},
+            support: {name: 'Other Co:Support', enabled: true, rules: {parentTagsFilter: '^Other Co$'}},
+            legacy: {name: 'Closed Co:Legacy', enabled: false, rules: {parentTagsFilter: '^Closed Co$'}},
+        };
+        const glCodeTags: PolicyTags = {
+            gl100: {name: 'Acme Corp:Admin:GL-100', enabled: true, rules: {parentTagsFilter: '^Acme Corp:Admin$'}},
+            gl200: {name: 'Acme Corp:Sales:GL-200', enabled: true, rules: {parentTagsFilter: '^Acme Corp:Sales$'}},
+        };
+        const tagLists = getTagLists({
+            company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+            department: {name: 'Department', required: false, orderWeight: 1, tags: departmentTags},
+            glCode: {name: 'GL code', required: false, orderWeight: 2, tags: glCodeTags},
+        });
+
+        it('returns one entry per tag list, in the order the lists are given', () => {
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp')).toHaveLength(3);
+            expect(getDependentTagVisibility([], 'Acme Corp')).toEqual([]);
+        });
+
+        it('shows the first tag list, which has no parent to wait for', () => {
+            expect(getDependentTagVisibility(tagLists, undefined).at(0)).toBe(true);
+            expect(getDependentTagVisibility(tagLists, '').at(0)).toBe(true);
+        });
+
+        it('hides a deeper tag list until its parent level has a value', () => {
+            expect(getDependentTagVisibility(tagLists, undefined)).toEqual([true, false, false]);
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp').at(2)).toBe(false);
+        });
+
+        it('shows a deeper tag list once an enabled tag matches the selected parent tag', () => {
+            expect(getDependentTagVisibility(tagLists, 'Other Co').at(1)).toBe(true);
+
+            // "Acme Corp" still has an enabled tag below it, even though its other tag is disabled
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp').at(1)).toBe(true);
+        });
+
+        it('hides a deeper tag list when every tag below the selected parent tag is disabled', () => {
+            expect(getDependentTagVisibility(tagLists, 'Closed Co').at(1)).toBe(false);
+        });
+
+        it('hides a deeper tag list when no tag matches the selected parent tag', () => {
+            expect(getDependentTagVisibility(tagLists, 'Unknown Co').at(1)).toBe(false);
+        });
+
+        it('matches a deeper tag list on the whole parent tag path', () => {
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp:Admin').at(2)).toBe(true);
+            expect(getDependentTagVisibility(tagLists, 'Acme Corp:Other').at(2)).toBe(false);
+        });
+
+        it('shows a deeper tag list for a tag without a parent filter, under any parent tag', () => {
+            const unfilteredTagLists = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {...departmentTags, freebie: {name: 'Unknown Co:Freebie', enabled: true}},
+                },
+            });
+
+            expect(getDependentTagVisibility(unfilteredTagLists, 'Unknown Co').at(1)).toBe(true);
+        });
+
+        it('hides a deeper tag list that has no tags', () => {
+            const emptySecondList = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {name: 'Department', required: false, orderWeight: 1, tags: {}},
+            });
+
+            expect(getDependentTagVisibility(emptySecondList, 'Acme Corp').at(1)).toBe(false);
         });
     });
 });

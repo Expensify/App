@@ -266,32 +266,57 @@ function getTagVisibility({
 }
 
 /**
- * Determines whether a dependent tag list should be shown based on the selected parent tag
- * and available enabled tags for the current level.
+ * Whether a tag list has an enabled tag under a parent tag path.
+ *
+ * Resolves on the first match, and skips disabled tags before touching their filter, because a parent filter is a
+ * regular expression the caller has to compile to evaluate it.
  */
-function shouldShowDependentTagList(tagListIndex: number, transactionTag: string | undefined, tags: PolicyTags | undefined): boolean {
-    if (tagListIndex === 0) {
-        return true;
+function hasEnabledTagUnderParentTag(tags: PolicyTags | undefined, parentTag: string): boolean {
+    for (const tagName in tags) {
+        if (!Object.hasOwn(tags, tagName)) {
+            continue;
+        }
+
+        const tag = tags[tagName];
+
+        if (!tag.enabled) {
+            continue;
+        }
+
+        const filterRegex = tag.rules?.parentTagsFilter;
+
+        if (!filterRegex || new RegExp(filterRegex).test(parentTag)) {
+            return true;
+        }
     }
 
+    return false;
+}
+
+/**
+ * Determines which tag lists are visible for a transaction tag, when the policy uses dependent tag lists.
+ *
+ * Answers every tag list in one call so the transaction tag is split once, and resolves a tag list on its first
+ * selectable tag below the parent - a parent filter is a regular expression, so evaluating fewer tags is the point.
+ *
+ * @returns one entry per tag list, in the order given
+ */
+function getDependentTagVisibility(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>, transactionTag: string | undefined): boolean[] {
     const tagParts = getTagArrayFromName(transactionTag ?? '');
-    const previousTagValue = tagParts.at(tagListIndex - 1);
-    if (!previousTagValue) {
-        return false;
-    }
 
-    const parentTag = tagParts.slice(0, tagListIndex).join(':');
-    const availableTags = Object.values(tags ?? {}).filter((policyTag) => {
-        const filterRegex = policyTag.rules?.parentTagsFilter;
-        if (!filterRegex) {
+    return policyTagList.map((tagList, index) => {
+        // The first tag list has no parent to wait for
+        if (index === 0) {
             return true;
         }
 
-        const regex = new RegExp(filterRegex);
-        return regex.test(parentTag ?? '');
-    });
+        // A deeper tag list waits for its parent level to have a value
+        if (!tagParts.at(index - 1)) {
+            return false;
+        }
 
-    return availableTags.some((tag) => tag.enabled);
+        return hasEnabledTagUnderParentTag(tagList?.tags, tagParts.slice(0, index).join(':'));
+    });
 }
 
 /**
@@ -380,5 +405,5 @@ function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
     });
 }
 
-export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
+export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, getDependentTagVisibility, getEnabledTags};
 export type {SelectedTagOption, TagOption};

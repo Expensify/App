@@ -4035,6 +4035,43 @@ describe('PolicyUtils', () => {
             });
             expect(hasDependentTags(policy, policyTagList)).toBe(true);
         });
+
+        it('returns true when a later tag list has a dependent tag', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            const policyTagList: PolicyTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0, tags: {acme: {name: 'Acme Corp', enabled: true}}},
+                Department: {name: 'Department', required: false, orderWeight: 1, tags: {admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}}}},
+            };
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('skips a tag list left as null or without tags by an Onyx merge', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            // An Onyx merge leaves a deleted tag list as null, and an empty one without the `tags` key
+            const mergedTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0},
+                Department: null,
+                GLCode: {name: 'GL code', required: false, orderWeight: 2, tags: {gl100: {name: 'GL-100', enabled: true, parentTagsFilter: '^Acme Corp:Admin$'}}},
+            };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns false when every tag list is empty or missing its tags', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            // A tag list arrives without the `tags` key when it holds no tags
+            const mergedTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0, tags: {}},
+                Department: {name: 'Department', required: false, orderWeight: 1},
+            };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
     });
 
     describe('hasIndependentTags', () => {

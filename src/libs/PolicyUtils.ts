@@ -2282,8 +2282,31 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
+
+    // Walks the records instead of `Object.values(...).some(...)`: a tag list can hold thousands of tags, and copying
+    // them into an array to ask whether any of them has a filter costs that copy on every caller render.
     // An empty tag list arrives without the `tags` key, despite the type.
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    for (const tagListName in policyTagList) {
+        if (!Object.hasOwn(policyTagList, tagListName)) {
+            continue;
+        }
+
+        const tags = policyTagList[tagListName]?.tags;
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (tag?.rules?.parentTagsFilter || tag?.parentTagsFilter) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
