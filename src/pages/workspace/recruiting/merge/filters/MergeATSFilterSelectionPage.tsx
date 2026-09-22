@@ -28,7 +28,7 @@ import type SCREENS from '@src/SCREENS';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import {useMergeATSFilters, useMergeATSFiltersActions} from './MergeATSFiltersDraftContext';
+import {useMergeATSFiltersDraftActions, useMergeATSFiltersDraftState} from './MergeATSFiltersDraftContext';
 
 type MergeATSFilterSelectionPageProps = PlatformStackScreenProps<RecruitingMergeImportSettingsNavigatorParamList, typeof SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER>;
 
@@ -61,8 +61,8 @@ function MergeATSFilterSelectionPage({
     const policy = usePolicy(policyID);
     const mergeATS = policy?.connections?.merge_ats;
 
-    const filters = useMergeATSFilters();
-    const {setFilter} = useMergeATSFiltersActions();
+    const filters = useMergeATSFiltersDraftState(policyID);
+    const {setFilter} = useMergeATSFiltersDraftActions();
     const [selectedValues, setSelectedValues] = useState<Set<string>>(() => new Set(filters[filterType]));
     const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
 
