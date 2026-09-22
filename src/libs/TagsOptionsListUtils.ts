@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Option} from './OptionsListUtils';
 
 import {insertTagIntoTransactionTagsString} from './IOUUtils';
-import {hasEnabledOptions} from './OptionsListUtils';
+import {hasEnabledOptions, isOptionEnabled} from './OptionsListUtils';
 import {
     getCleanedTagName,
     getGLCodeFromPolicyTag,
@@ -222,7 +222,7 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
 
             const tag = tags[tagName];
 
-            if (tag?.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            if (isOptionEnabled(tag)) {
                 return true;
             }
         }
