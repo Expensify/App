@@ -1,9 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -237,18 +238,19 @@ function WorkspacePageWithSections({
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
-                    title={headerText}
-                    onBackButtonPress={handleOnBackButtonPress}
-                    shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
-                    icon={icon ?? undefined}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    shouldUseHeadlineHeader={shouldUseHeadlineHeader}
-                    shouldDisplayHelpButton
-                >
-                    {headerContent}
-                </HeaderWithBackButton>
+                <Header>
+                    {(shouldUseNarrowLayout || shouldShowBackButton) && <Header.BackButton onPress={handleOnBackButtonPress} />}
+                    {!!icon && <Header.Icon src={icon} />}
+                    <Header.Title
+                        title={headerText}
+                        shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+                    />
+                    <Header.Right>
+                        {headerContent}
+                        {!!shouldShowThreeDotsButton && !!threeDotsMenuItems && <Header.ThreeDotsMenu items={threeDotsMenuItems} />}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
                         <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />

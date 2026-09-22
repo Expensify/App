@@ -1,7 +1,7 @@
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 
 import ContextMenuItem from '@components/ContextMenuItem';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
@@ -83,7 +83,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.share')}
                     onBackButtonPress={Navigation.goBack}
                 />

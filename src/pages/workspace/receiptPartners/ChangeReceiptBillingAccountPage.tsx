@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -148,7 +148,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                 testID="ChangeReceiptBillingAccountPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton title={translate('workspace.receiptPartners.uber.centralBillingAccount')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.receiptPartners.uber.centralBillingAccount')} />
                 <Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.centralBillingDescription')}</Text>
                 <SelectionList
                     data={data}

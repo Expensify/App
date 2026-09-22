@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -119,7 +119,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
             includeSafeAreaPaddingBottom={false}
             testID={ConnectExistingBusinessBankAccountPage.displayName}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('bankAccount.addBankAccount')}
                 subtitle={policyName}
                 onBackButtonPress={Navigation.goBack}

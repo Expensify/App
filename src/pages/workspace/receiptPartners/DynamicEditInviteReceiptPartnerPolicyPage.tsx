@@ -1,6 +1,6 @@
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -296,7 +296,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
             <ScreenWrapper testID="DynamicEditInviteReceiptPartnerPolicyPage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.receiptPartners.uber.manageInvites')}
                     onBackButtonPress={() => {
                         Navigation.goBack(backPath);

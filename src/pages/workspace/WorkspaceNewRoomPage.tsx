@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
@@ -293,7 +293,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
             testID="WorkspaceNewRoomPage"
         >
             {isLocked && (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('newRoomPage.createRoom')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ROOMS.getRoute(policyID))}
                 />
