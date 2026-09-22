@@ -4439,11 +4439,13 @@ describe('PolicyUtils', () => {
                 expect(isCertiniaVendorMatchingActive(undefined)).toBe(false);
             });
 
-            it('fails closed for PSA, missing hasPSA, and unconfigured connections', () => {
+            it('excludes PSA and unconfigured connections, treats missing hasPSA as FFA', () => {
                 expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true}))).toBe(false);
-                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: true}))).toBe(false);
                 expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: false, hasPSA: false}))).toBe(false);
                 expect(hasVendorFeature(buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true}), true)).toBe(false);
+
+                // The OAuth callback persists null when Salesforce omits hasPSA, and the rest of the product reads that as FFA
+                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: true}))).toBe(true);
             });
 
             it('normalizes synced vendors and resolves them by ID', () => {

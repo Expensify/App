@@ -2713,12 +2713,13 @@ function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 
 /**
  * True when a Certinia FFA connection is configured. Only FFA qualifies. A PSA connection's
- * account dimension is a PSA project rather than a vendor, and a missing `hasPSA` flag fails
- * closed. Mirrors `FinancialForce::hasVendorFeature` on the PHP side.
+ * account dimension is a PSA project rather than a vendor. A missing `hasPSA` flag is treated
+ * as FFA, matching how the rest of the product reads it. Mirrors `FinancialForce::hasVendorFeature`
+ * on the PHP side.
  */
 function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
-    return config?.isConfigured === true && config?.hasPSA === false;
+    return config?.isConfigured === true && config?.hasPSA !== true;
 }
 
 /**
