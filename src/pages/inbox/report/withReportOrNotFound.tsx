@@ -45,7 +45,6 @@ type WithReportOrNotFoundOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     isLoadingReportData: OnyxEntry<boolean>;
 };
@@ -81,7 +80,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // owns its target report as a distinct path param (`notificationReportID`) so it never collides
             // with a `reportID` inherited from the surrounding report chain in the URL.
             const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
-            const [betas] = useOnyx(ONYXKEYS.BETAS);
             const {isBetaEnabled} = usePermissions();
             const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
             const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -117,7 +115,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     reportID,
                     introSelected,
                     conciergeChat,
-                    betas,
                     hasReportActions,
                     currentUserAccountID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -155,7 +152,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 <WrappedComponent
                     {...props}
                     report={report}
-                    betas={betas}
                     policy={policy}
                     reportMetadata={reportMetadata}
                     reportLoadingState={reportLoadingState}

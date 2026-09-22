@@ -53,7 +53,6 @@ function useCompleteOnboarding() {
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -98,7 +97,6 @@ function useCompleteOnboarding() {
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: email,
                       shouldAddGuideWelcomeMessage: false,
-                      betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       hasOwnedPaidPolicy,

@@ -32,7 +32,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {Beta, IntroSelected, Report} from '@src/types/onyx';
+import type {IntroSelected, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -457,7 +457,6 @@ function openReportFromDeepLink(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
     callerAccountID: number,
 ) {
     const reportID = getReportIDFromLink(url);
@@ -479,7 +478,6 @@ function openReportFromDeepLink(
             personalDetails: undefined,
             parentReportActionID: '0',
             isFromDeepLink: true,
-            betas,
             hasReportActions: false,
             currentUserAccountID: callerAccountID,
         });
@@ -633,7 +631,7 @@ function openReportFromDeepLink(
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
                                 return;
                             }
 

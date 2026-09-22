@@ -155,7 +155,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const parentReportAction = useParentReportAction(report);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -454,7 +453,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                 reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -474,7 +472,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         reportID,
         introSelected,
         conciergeChat,
-        betas,
         currentUserAccountID,
         guidedSetupAndTourStatus?.isSelfTourViewed,
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,

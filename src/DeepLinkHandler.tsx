@@ -42,7 +42,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
+    const [, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
@@ -112,7 +112,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         conciergeReportID,
                         introSelected,
                         guidedSetupAndTourStatus?.isSelfTourViewed,
-                        betas,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
@@ -155,7 +154,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 conciergeReportID,
                 introSelected,
                 guidedSetupAndTourStatus?.isSelfTourViewed,
-                betas,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
@@ -170,7 +168,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, [
         conciergeReportID,
         introSelected,
-        betas,
         allReportsMetadata.status,
         sessionMetadata.status,
         conciergeReportIDMetadata.status,
@@ -213,7 +210,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         Report.openReport({
             reportID,
             introSelected,
-            betas,
             conciergeChat,
             // The public room already exists on the server, so no optimistic report is created and the personal details are never read.
             personalDetails: undefined,
@@ -222,16 +218,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
-    }, [
-        isLoadingApp,
-        allReports,
-        introSelected,
-        betas,
-        conciergeChat,
-        session?.accountID,
-        guidedSetupAndTourStatus?.isSelfTourViewed,
-        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-    ]);
+    }, [isLoadingApp, allReports, introSelected, conciergeChat, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
 
     return null;
 }

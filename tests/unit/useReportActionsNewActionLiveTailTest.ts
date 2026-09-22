@@ -92,7 +92,6 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         conciergeChat: undefined,
         isSelfTourViewed: undefined,
         hasCompletedGuidedSetupFlow: undefined,
-        betas: [],
         isOffline: false,
         reportScrollManager,
         setIsFloatingMessageCounterVisible: jest.fn(),

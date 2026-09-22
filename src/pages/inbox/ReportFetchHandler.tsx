@@ -119,7 +119,6 @@ function ReportFetchHandler() {
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -233,7 +232,6 @@ function ReportFetchHandler() {
             conciergeChat,
             reportActionID: reportActionIDFromRoute,
             participants: dmParticipants,
-            betas,
             personalDetails,
             hasReportActions,
             // Falsy means a page refresh / cold start, which is when openReport clears a manual unread marker.
@@ -258,7 +256,6 @@ function ReportFetchHandler() {
             hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
-            betas,
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
@@ -278,7 +275,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, conciergeChat, betas, personalDetails, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
+        openReport({reportID, introSelected, conciergeChat, personalDetails, hasReportActions, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -290,7 +287,6 @@ function ReportFetchHandler() {
             reportID: viewingPublicRoomReportID,
             introSelected,
             conciergeChat,
-            betas,
             personalDetails,
             hasReportActions: hasViewingPublicRoomReportActions,
             currentUserAccountID,
@@ -604,7 +600,6 @@ function ReportFetchHandler() {
             hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
-            betas,
             iouReport: report,
             transaction,
             personalDetails,
@@ -615,7 +610,6 @@ function ReportFetchHandler() {
         hasCompletedGuidedSetupFlow,
         currentUserEmail,
         currentUserAccountID,
-        betas,
         personalDetails,
         report,
         visibleTransactions,

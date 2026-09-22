@@ -36,7 +36,6 @@ type RAMOnlyReportLoadingState = OnyxEntry<{
 type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
-    betas: OpenReportActionParams['betas'];
     conciergeChat: OpenReportActionParams['conciergeChat'];
     isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
     hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
@@ -69,7 +68,6 @@ function useReportActionsNewActionLiveTail({
     conciergeChat,
     reportID,
     introSelected,
-    betas,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     isOffline,
@@ -122,7 +120,6 @@ function useReportActionsNewActionLiveTail({
                             reportID,
                             introSelected,
                             conciergeChat,
-                            betas,
                             hasReportActions: true,
                             currentUserAccountID,
                             isSelfTourViewed,

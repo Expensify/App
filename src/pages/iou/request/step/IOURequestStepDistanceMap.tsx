@@ -100,7 +100,6 @@ function IOURequestStepDistanceMap({
     });
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const transactionWaypoints = transaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
@@ -241,7 +240,6 @@ function IOURequestStepDistanceMap({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
     });

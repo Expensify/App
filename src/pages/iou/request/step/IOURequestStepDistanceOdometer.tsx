@@ -147,7 +147,6 @@ function IOURequestStepDistanceOdometer({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
@@ -266,7 +265,6 @@ function IOURequestStepDistanceOdometer({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
         personalOutputCurrency: personalPolicy?.outputCurrency,

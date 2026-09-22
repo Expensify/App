@@ -77,7 +77,6 @@ function KYCWall({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -236,7 +235,6 @@ function KYCWall({
                         CONST.PAYMENT_SELECTED.BBA,
                         introSelected,
                         isSelfTourViewed,
-                        betas,
                         currentUserAccountID,
                         conciergeChat,
                         delegateAccountID,
@@ -303,7 +301,6 @@ function KYCWall({
             allReportActions,
             lastPaymentMethod,
             isSelfTourViewed,
-            betas,
             conciergeChat,
             localCurrency,
             getCurrencyDecimals,

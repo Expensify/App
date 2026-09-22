@@ -28,7 +28,6 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
     const icons = useMemoizedLazyExpensifyIcons(['BankLock']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -41,7 +40,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
 
     const handleCtaPress = () => {
         pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
     };
 
     return (

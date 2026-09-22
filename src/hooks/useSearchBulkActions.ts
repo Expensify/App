@@ -535,7 +535,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {
         introSelected,
         isSelfTourViewed,
-        betas,
         activePolicyID,
         activePolicy,
         conciergeChat,
@@ -1629,7 +1628,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     payInvoice({
                         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                        betas,
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1659,7 +1657,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 payMoneyRequest({
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                    betas,
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
@@ -1703,7 +1700,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             areAllMatchingItemsSelected,
             queryJSON,
             isOffline,
-            betas,
             isBetaEnabled,
             isDelegateAccessRestricted,
             selectedReports.length,

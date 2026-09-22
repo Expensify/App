@@ -201,7 +201,6 @@ type GetTrackExpenseInformationParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
@@ -890,7 +889,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         activePolicy,
         conciergeChat,
         quickAction,
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
@@ -1050,7 +1048,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             // This workspace is created by AddTrackedExpenseToPolicy, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
             hasOwnedPaidPolicy: undefined,
-            betas,
             isSelfTourViewed,
             delegateAccountID,
         });
@@ -2494,7 +2491,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         conciergeChat,
         quickAction,
         recentWaypoints = [],
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
@@ -2667,7 +2663,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicy,
         conciergeChat,
         quickAction,
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
