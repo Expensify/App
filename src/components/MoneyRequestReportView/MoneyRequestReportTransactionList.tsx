@@ -39,8 +39,9 @@ import SCREENS from '@src/SCREENS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
@@ -192,7 +193,7 @@ type MoneyRequestReportTransactionListProps = {
     onContentSizeChange: (width: number, height: number) => void;
 
     /** FlashList onViewableItemsChanged callback. */
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** FlashList onEndReached callback. */
     onEndReached: () => void;

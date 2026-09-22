@@ -32,7 +32,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {IntroSelected, Report} from '@src/types/onyx';
+import type {IntroSelected, Report, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -432,6 +432,7 @@ function openReportFromDeepLink(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     callerAccountID: number,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -599,7 +600,7 @@ function openReportFromDeepLink(
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
                                 // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID)?.reportID;
+                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID, reportNameValuePairs)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
