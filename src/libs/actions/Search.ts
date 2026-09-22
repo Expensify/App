@@ -17,6 +17,7 @@ import type {
     OpenBulkChangeApproverPageParams,
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
+    OpenSearchTagFiltersPageResponse,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
     ReportExportParams,
@@ -1084,17 +1085,6 @@ function openSearchCategoryFiltersPage() {
 
     read(READ_COMMANDS.OPEN_SEARCH_CATEGORY_FILTERS_PAGE, null, {optimisticData, successData, finallyData});
 }
-
-type OpenSearchTagFiltersPageResponse = {
-    /** Whether more pages of tag filter results are available */
-    hasMore?: boolean;
-
-    /** Pagination cursor to pass for fetching the next page of tag filters */
-    nextCursor?: string;
-
-    /** Slice of tag filter results for this page */
-    tags?: SearchTagFilterItem[];
-};
 
 /**
  * Fetches a page of tag filter search results from the server.

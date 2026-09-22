@@ -604,6 +604,7 @@ export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams
 export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
+export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';

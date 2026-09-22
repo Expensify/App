@@ -1,5 +1,4 @@
 import {clearSearchTagFiltersState, openSearchTagFiltersPage, setSearchTagFiltersPagination} from '@libs/actions/Search';
-import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,14 +37,6 @@ type UseSearchTagFiltersResult = {
     /** The search query of the currently displayed results */
     searchQuery: string;
 };
-
-/** Logs tag filter request failures; aborted requests are expected when a newer search supersedes them */
-function logRequestFailure(message: string, error: Error) {
-    if (error.name === CONST.ERROR.REQUEST_CANCELLED) {
-        return;
-    }
-    Log.warn(message, {error});
-}
 
 /**
  * Hook for managing paginated tag filter search.
@@ -112,7 +103,8 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, currentQuery);
             })
-            .catch((error: Error) => logRequestFailure('Failed to load the next tag filters page', error))
+            // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
+            .catch(() => {})
             .finally(() => {
                 if (requestSeq !== requestSeqRef.current) {
                     return;
@@ -154,7 +146,8 @@ function useSearchTagFilters(policyIDs: string): UseSearchTagFiltersResult {
             .then(({hasMore: newHasMore, nextCursor: newCursor}) => {
                 setSearchTagFiltersPagination(newHasMore, newCursor, query);
             })
-            .catch((error: Error) => logRequestFailure('Failed to fetch tag filters', error))
+            // Failures are already logged by the network Logging middleware. Cancelled requests are expected when a newer search supersedes them.
+            .catch(() => {})
             .finally(() => {
                 if (requestSeq !== requestSeqRef.current) {
                     return;

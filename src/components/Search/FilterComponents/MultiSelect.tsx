@@ -19,7 +19,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReactNode} from 'react';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ListFilterView from './ListFilterViewWrapper';
@@ -95,10 +95,9 @@ function MultiSelect<T extends string>({
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const onSearchChangeRef = useRef(onSearchChange);
-    useEffect(() => {
-        onSearchChangeRef.current = onSearchChange;
-    }, [onSearchChange]);
+    const notifySearchChange = useEffectEvent((term: string) => {
+        onSearchChange?.(term);
+    });
 
     const isFirstRender = useRef(true);
     useEffect(() => {
@@ -106,7 +105,7 @@ function MultiSelect<T extends string>({
             isFirstRender.current = false;
             return;
         }
-        onSearchChangeRef.current?.(debouncedSearchTerm);
+        notifySearchChange(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
