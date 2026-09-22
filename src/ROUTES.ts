@@ -1269,6 +1269,12 @@ const DYNAMIC_ROUTES = {
         // while the user is on either the HR page or the members list, so both are entry screens.
         entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
     },
+    WORKSPACE_RECRUITING_SYNC_RESULTS: {
+        // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
+        // while the user is on either the recruiting page or the members list, so both are entry screens.
+        path: 'recruiting-sync-results',
+        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.MEMBERS],
+    },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
         entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
@@ -2286,6 +2292,7 @@ const ROUTES = {
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'settings/security/closeAccount/confirm',
     SETTINGS_MERGE_ACCOUNTS: {
         route: 'settings/security/merge-accounts',
         getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
@@ -2521,6 +2528,10 @@ const ROUTES = {
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string, isFromDomainCardDetail?: boolean) => `settings/wallet/card/${cardID}/activate${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
+    },
+    SETTINGS_WALLET_CARD_ADDED_TO_WALLET: {
+        route: 'settings/wallet/card/:cardID/added-to-wallet',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/added-to-wallet` as const,
     },
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
@@ -4436,6 +4447,10 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
         },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/custom-dimension/:dimensionID',
+        getRoute: (policyID: string, dimensionID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/custom-dimension/${dimensionID}` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',

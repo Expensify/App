@@ -1270,6 +1270,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
         importMembersRolePermissionWarning: 'Sie haben keine Berechtigung, einige Mitgliederrollen zuzuweisen. Alle betroffenen neuen Mitglieder wurden als Mitglieder eingeladen.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 Anbieter wurde übersprungen, weil er in diesem Workspace nicht existiert.',
+            other: `${count} Anbieter wurden übersprungen, weil sie in diesem Workspace nicht existieren.`,
+        }),
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -2186,6 +2190,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profil-Avatar',
         customInstructions: 'Benutzerdefinierte Anweisungen',
         copilotIntoAccount: 'Copilot in Konto',
+        viewUserHistory: 'Nutzerverlauf anzeigen',
+        viewAgentHistory: 'Agentenverlauf anzeigen',
         publicSection: {
             title: 'Öffentlich',
             subtitle: 'Diese Angaben werden in deinem öffentlichen Profil angezeigt. Jede:r kann sie sehen.',
@@ -2552,7 +2558,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
         downloadCodes: 'Codes herunterladen',
         copyCodes: 'Codes kopieren',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'Aus Sicherheitsgründen erfordert NetSuite zur Verbindung der Integration eine Zwei-Faktor-Authentifizierung.',
     },
     recoveryCodeForm: {
         error: {
@@ -2827,6 +2832,15 @@ const translations: TranslationDeepObject<typeof en> = {
             updateAddress: 'Adresse aktualisieren',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Zu ${platform} Wallet hinzugefügt`,
+        cardAddedToWalletPage: {
+            title: 'Alles bereit!',
+            description: 'Deine Karte wurde zu Apple Wallet hinzugefügt.',
+            firstSupportingText: 'Apple Pay ist eine einfachere Art, in Geschäften, in Apps und online mit deinem iPhone, deiner Apple Watch, deinem iPad und deinem Mac zu bezahlen.',
+            secondSupportingText: 'Nutze Apple Pay überall, wo du diese\nSymbole siehst.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Kontaktloses Bezahlen',
+            buttonText: 'Verstanden',
+        },
         cardDetailsLoadingFailure: 'Beim Laden der Kartendetails ist ein Fehler aufgetreten. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
         validateCardTitle: 'Stellen wir sicher, dass du es bist',
         enterSecurityCode: (contactMethod: string) =>
@@ -3144,6 +3158,7 @@ ${amount} für ${merchant} – ${date}`,
         agentName: 'Name der Agentin/des Agenten',
         instructions: 'Eigene Anweisungen schreiben',
         chatWithAgent: 'Mit Agent chatten',
+        viewAgentHistory: 'Agentenverlauf anzeigen',
         copilotIntoAccount: 'Copilot ins Konto',
         deleteAgent: 'Agent löschen',
         deleteAgentTitle: 'Agent löschen?',
@@ -3370,12 +3385,14 @@ ${amount} für ${merchant} – ${date}`,
         employees: {
             title: 'Wie viele Mitarbeitende haben Sie?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 Mitarbeitende',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 Mitarbeitende',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 Mitarbeitende',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–9 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10–50 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1.000 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Mehr als 1.000 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5–10 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1–10 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11–50 Mitarbeitende',
         },
         accounting: {
             title: 'Verwendest du eine Buchhaltungssoftware?',
@@ -8169,6 +8186,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 importColumnUpdatedCategory: 'Aktualisierte Kategorie',
                 importColumnUpdatedTag: 'Aktualisiertes Tag',
                 importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
+                importColumnUpdatedVendor: 'Lieferant aktualisiert',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
@@ -8679,12 +8697,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
-                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
-                added: 'Hinzugefügt',
-                removed: 'Entfernt',
-                skipped: 'Übersprungen',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 Mitarbeiter',
                     other: (count: number) => `${count} Mitarbeitende`,
                 }),
@@ -8715,6 +8728,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 Kandidat',
+                    other: (count: number) => `${count} Kandidat:innen`,
+                }),
+            },
         },
         merge: {
             connections: 'Verbindungen',
@@ -8743,6 +8762,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
             syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
+            syncResults: {
+                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
+                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
+                added: 'Hinzugefügt',
+                removed: 'Entfernt',
+                skipped: 'Übersprungen',
+            },
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
@@ -8773,6 +8799,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Dynamics 365 Business Central-Tochtergesellschaft aus, die mit diesem Workspace synchronisiert werden soll.',
             noCompaniesFound: 'Keine Unternehmen gefunden',
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Business Central hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {
@@ -9698,6 +9726,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
@@ -9718,6 +9747,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
+            created: 'Erstellt',
+            createdDate: 'Erstellungsdatum',
+            transactionStatus: {
+                label: 'Transaktionsstatus',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Ausstehend',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Gebucht',
+                hint: 'Gilt nur für Kartentransaktionen.',
+            },
         },
         display: {
             label: 'Anzeige',
@@ -9741,6 +9778,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorien',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Tage',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Monate',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',

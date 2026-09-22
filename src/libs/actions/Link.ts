@@ -2,7 +2,7 @@ import * as API from '@libs/API';
 import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
-import * as Environment from '@libs/Environment/Environment';
+import buildOldDotURL from '@libs/buildOldDotURL';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
+import openExternalLink from '@libs/openExternalLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -43,47 +44,14 @@ import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Rep
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
 
-let currentUserEmail = '';
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserEmail = value?.email ?? '';
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
-
-function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<string> {
-    const hashIndex = url.lastIndexOf('#');
-    const hasHashParams = hashIndex !== -1;
-    const hasURLParams = url.indexOf('?') !== -1;
-    let originURL = url;
-    let hashParams = '';
-    if (hasHashParams) {
-        originURL = url.substring(0, hashIndex);
-        hashParams = url.substring(hashIndex);
-    }
-
-    const authTokenParam = shortLivedAuthToken ? `authToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-    const paramsArray = [authTokenParam, emailParam];
-    const params = paramsArray.filter(Boolean).join('&');
-
-    return Environment.getOldDotEnvironmentURL().then((environmentURL) => {
-        const oldDotDomain = addTrailingForwardSlash(environmentURL);
-
-        // If the URL contains # or ?, we can assume they don't need to have the `?` token to start listing url parameters.
-        return `${oldDotDomain}${originURL}${hasURLParams ? '&' : '?'}${params}${hashParams}`;
-    });
-}
-
-/**
- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
-}
 
 function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     if (getIsOffline()) {
@@ -600,11 +568,10 @@ function openReportFromDeepLink(
 
                         const deeplinkRoute = route as Route;
 
-                        const navigateHandler = (reportParam?: OnyxEntry<Report>, isReplayAfterOnboarding = false): boolean => {
-                            // Skip if the user already left the deeplinked route. A link replayed after onboarding was never
-                            // opened in the first place, so the active route is wherever onboarding exited, not the link.
-                            if (!isReplayAfterOnboarding && deeplinkRoute && !Navigation.isActiveRoute(deeplinkRoute)) {
-                                return false;
+                        const navigateHandler = (reportParam?: OnyxEntry<Report>): boolean => {
+                            // Already on the deeplinked route, so the destination is reached without navigating.
+                            if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
+                                return true;
                             }
 
                             // Check if the report exists in the collection
@@ -628,7 +595,7 @@ function openReportFromDeepLink(
                             return true;
                         };
 
-                        const openDeepLink = (isReplayAfterOnboarding = false): boolean => {
+                        const openDeepLink = (): boolean => {
                             // If we log with deeplink with reportID and data for this report is not available yet,
                             // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
                             if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
@@ -639,7 +606,7 @@ function openReportFromDeepLink(
                                     callback: (report) => {
                                         if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
-                                            navigateHandler(report, isReplayAfterOnboarding);
+                                            navigateHandler(report);
                                         }
                                     },
                                 });
@@ -647,7 +614,7 @@ function openReportFromDeepLink(
                                 return false;
                             }
 
-                            return navigateHandler(undefined, isReplayAfterOnboarding);
+                            return navigateHandler();
                         };
 
                         // Shared with the onboarding branch below, which sits above this check and would otherwise let a parked link
@@ -661,7 +628,7 @@ function openReportFromDeepLink(
                                 return false;
                             }
 
-                            setDeepLinkToOpenAfterOnboarding(() => openDeepLink(true));
+                            setDeepLinkToOpenAfterOnboarding(openDeepLink);
                             return true;
                         };
 
@@ -745,7 +712,6 @@ export {
     openTravelDotLink,
     buildTravelDotURL,
     getTravelDotLink,
-    buildOldDotURL,
     openReportFromDeepLink,
     getShortLivedAuthTokenURL,
 };
