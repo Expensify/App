@@ -3572,7 +3572,10 @@ type TestToolsModalModalNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.TEST_TOOLS_MODAL.SERVER]: undefined;
+    [SCREENS.TEST_TOOLS_MODAL.SERVER]: {
+        // eslint-disable-next-line no-restricted-syntax -- not a new `backTo`: this screen reads the one TEST_TOOLS_MODAL.ROOT already carries
+        backTo?: Routes;
+    };
 };
 
 type MultifactorAuthenticationParamList = {

@@ -138,6 +138,20 @@ const mockTestToolsModalState = (backTo?: string) => {
     );
 };
 
+const mockReloadedServerPageState = (backTo: string) => {
+    mockGetRootState.mockReturnValue(
+        createMock<RootState>({
+            key: ROOT_STATE_KEY,
+            routes: [
+                {
+                    name: NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR,
+                    state: {routes: [{name: SCREENS.TEST_TOOLS_MODAL.SERVER, params: {backTo}}]},
+                },
+            ],
+        }),
+    );
+};
+
 describe('Server selection', () => {
     beforeEach(() => {
         mockActiveServer = CONST.SERVER.PRODUCTION;
@@ -151,12 +165,12 @@ describe('Server selection', () => {
     describe('the server row in the test tools', () => {
         it('shows the active server and opens the route it was given', () => {
             mockActiveServer = CONST.SERVER.STAGING;
-            render(<TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER} />);
+            render(<TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER.getRoute(ROUTES.SETTINGS_TROUBLESHOOT)} />);
 
             expect(screen.getByText('initialSettingsPage.troubleshoot.servers.staging.label')).toBeOnTheScreen();
 
             fireEvent.press(screen.getByLabelText('initialSettingsPage.troubleshoot.server'));
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_TOOLS_SERVER);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TEST_TOOLS_SERVER.getRoute(ROUTES.SETTINGS_TROUBLESHOOT));
         });
 
         it('no longer renders a staging toggle, so the server is only changed from the page', () => {
@@ -169,7 +183,7 @@ describe('Server selection', () => {
         it('states the pinned server without offering the page, so a QA build cannot advertise a choice it ignores', () => {
             mockActiveServer = CONST.SERVER.QA;
             mockIsPinnedByEnvironment = true;
-            render(<TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER} />);
+            render(<TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER.getRoute()} />);
 
             expect(screen.getByText('initialSettingsPage.troubleshoot.servers.qa.label')).toBeOnTheScreen();
             expect(screen.queryByLabelText('initialSettingsPage.troubleshoot.server')).not.toBeOnTheScreen();
@@ -201,7 +215,7 @@ describe('Server selection', () => {
             pressSave();
 
             expect(setActiveServer).toHaveBeenCalledWith(CONST.SERVER.STAGING);
-            expect(Navigation.goBack).toHaveBeenCalledWith();
+            expect(Navigation.goBack).toHaveBeenCalledWith(undefined, {compareParams: false});
         });
 
         it('drops the pick when the back caret is used, so only Save commits', () => {
@@ -212,7 +226,16 @@ describe('Server selection', () => {
             pressBack();
 
             expect(setActiveServer).not.toHaveBeenCalled();
-            expect(Navigation.goBack).toHaveBeenCalledWith();
+            expect(Navigation.goBack).toHaveBeenCalledWith(undefined, {compareParams: false});
+        });
+
+        it('returns to the page it was given, carrying its params, so a reload does not strip them from the URL', () => {
+            const testToolsWithOrigin = ROUTES.TEST_TOOLS_MODAL.getRoute(ROUTES.SETTINGS_TROUBLESHOOT);
+            render(<ServerSelector backToRoute={testToolsWithOrigin} />);
+
+            pressBack();
+
+            expect(Navigation.goBack).toHaveBeenCalledWith(testToolsWithOrigin, {compareParams: false});
         });
 
         it('reports every server as fixed on a build that pins one, the pinned server included', () => {
@@ -274,6 +297,14 @@ describe('Server selection', () => {
             toggleTestToolsModal();
             expect(Navigation.pop).toHaveBeenCalledWith(ROOT_STATE_KEY);
             expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+        });
+
+        it('still goes back to where the modal was opened from after a reload left only the server page', () => {
+            mockReloadedServerPageState(ROUTES.SETTINGS_TROUBLESHOOT);
+            toggleTestToolsModal();
+
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT);
+            expect(Navigation.pop).not.toHaveBeenCalled();
         });
     });
 });

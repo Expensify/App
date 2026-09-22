@@ -5069,7 +5069,11 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
     },
-    TEST_TOOLS_SERVER: 'test-tools/server',
+    TEST_TOOLS_SERVER: {
+        route: 'test-tools/server',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools/server' as const, backTo),
+    },
     WORKSPACES_VERIFY_DOMAIN: {
         route: 'workspaces/verify-domain/:domainAccountID',
         getRoute: (domainAccountID: number) => `workspaces/verify-domain/${domainAccountID}` as const,

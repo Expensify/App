@@ -37,7 +37,7 @@ import TestToolRow from './TestToolRow';
 import Text from './Text';
 
 type TestToolMenuProps = {
-    serverPageRoute: typeof ROUTES.SETTINGS_TROUBLESHOOT_SERVER | typeof ROUTES.TEST_TOOLS_SERVER;
+    serverPageRoute: typeof ROUTES.SETTINGS_TROUBLESHOOT_SERVER | ReturnType<typeof ROUTES.TEST_TOOLS_SERVER.getRoute>;
 };
 
 function TestToolMenu({serverPageRoute}: TestToolMenuProps) {

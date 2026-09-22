@@ -2231,13 +2231,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            initialRouteName: SCREENS.TEST_TOOLS_MODAL.ROOT,
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
                     path: ROUTES.TEST_TOOLS_MODAL.route,
                     exact: true,
                 },
                 [SCREENS.TEST_TOOLS_MODAL.SERVER]: {
-                    path: ROUTES.TEST_TOOLS_SERVER,
+                    path: ROUTES.TEST_TOOLS_SERVER.route,
                     exact: true,
                 },
             },

@@ -1,7 +1,11 @@
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
+
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
@@ -11,7 +15,9 @@ import TestToolMenu from './TestToolMenu';
 import TestToolsScreenWrapper from './TestToolsScreenWrapper';
 import Text from './Text';
 
-function TestToolsModalPage() {
+type TestToolsModalPageProps = PlatformStackScreenProps<TestToolsModalModalNavigatorParamList, typeof SCREENS.TEST_TOOLS_MODAL.ROOT>;
+
+function TestToolsModalPage({route}: TestToolsModalPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -32,7 +38,7 @@ function TestToolsModalPage() {
                     >
                         {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                     </Text>
-                    <TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER} />
+                    <TestToolMenu serverPageRoute={ROUTES.TEST_TOOLS_SERVER.getRoute(route.params?.backTo)} />
                 </PressableWithoutFeedback>
             </ScrollView>
         </TestToolsScreenWrapper>
