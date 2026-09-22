@@ -106,7 +106,6 @@ function MergeATSFiltersPage({
                                 <ToggleSettingOptionRow
                                     title={toggleTitle}
                                     switchAccessibilityLabel={toggleTitle}
-                                    // wrapperStyle={[]}
                                     toggleContainerStyles={[styles.pv3, styles.mh5]}
                                     isActive={!!filters[filterType]?.length}
                                     onToggle={(isEnabled) => toggleFilter(filterType, isEnabled)}
