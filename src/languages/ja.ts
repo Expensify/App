@@ -625,10 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大文字数は${formattedMaxLength}文字です。`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'アプリを更新',
-        updatePrompt: 'このアプリの新しいバージョンが利用可能です。\n今すぐアップデートするか、後でアプリを再起動して最新の変更をダウンロードしてください。',
-    },
     deeplinkWrapper: {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',

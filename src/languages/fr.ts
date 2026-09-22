@@ -624,11 +624,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du commentaire est de ${formattedMaxLength} caractères.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du titre de la tâche est de ${formattedMaxLength} caractères.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Mettre à jour l’application',
-        updatePrompt:
-            'Une nouvelle version de cette application est disponible.\nMettez-la à jour maintenant ou redémarrez l’application plus tard pour télécharger les dernières modifications.',
-    },
     deeplinkWrapper: {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
