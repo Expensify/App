@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem, UserSelectionListItemProps} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 import SelectableListItem from './SelectableListItem';
 
@@ -35,7 +35,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     pressableStyle,
-}: UserSelectionListItemProps<TItem>) {
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
@@ -66,7 +66,6 @@ function UserSelectionListItem<TItem extends ListItem>({
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={item.rightElement}
             pressableStyle={pressableStyle}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
