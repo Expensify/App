@@ -1714,11 +1714,15 @@ function parseCardFeedKey(feedKey: string | number | undefined): {fundID: number
 }
 
 /**
- * Resolves which program's country a newly issued card should be routed to. A fund's settings can hold both a US and a
- * GB program, so pass the selected program's country when the EU/UK beta is on. Without the beta only US exists, so keep sending US explicitly.
+ * Resolves the API feed country for a card program. The legacy CURRENT program is US-backed; other program keys already
+ * identify the corresponding API feed.
  */
-function getIssuedCardFeedCountry(isEuUkEnabled: boolean, selectedProgramKey: CardProgramKey): CardProgramKey {
-    return isEuUkEnabled ? selectedProgramKey : CONST.COUNTRY.US;
+function getFeedCountryForCardProgram(programKey: CardProgramKey): CardProgramKey {
+    if (programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) {
+        return CONST.COUNTRY.US;
+    }
+
+    return programKey;
 }
 
 /**
@@ -2428,7 +2432,7 @@ export {
     getCardProgramKeyFromValue,
     buildCardFeedKey,
     parseCardFeedKey,
-    getIssuedCardFeedCountry,
+    getFeedCountryForCardProgram,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getLinkedPolicyIDsForExpensifyCardProgram,
     getPreferredPolicyFromExpensifyCardSettings,

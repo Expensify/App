@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {getIssuedCardFeedCountry, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getFeedCountryForCardProgram, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
@@ -108,7 +108,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without validateCode when user has extended access
             // If this fails, the effect above will redirect to the validateCode page
-            const feedCountry = getIssuedCardFeedCountry(true, selectedProgramKey);
+            const feedCountry = getFeedCountryForCardProgram(selectedProgramKey);
             issueExpensifyCard(defaultFundID, policyID, feedCountry, '', assigneeTimeZone, data);
         } else {
             // Navigate to validateCode page

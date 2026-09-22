@@ -26,7 +26,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {buildCardFeedKey, getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {buildCardFeedKey, getFeedCountryForCardProgram, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -654,7 +654,6 @@ function revealTravelCardDetails(cardID: number, validateCode: string): Promise<
 function updateSettlementFrequency(
     workspaceAccountID: number,
     programKey: CardProgramKey,
-    feedCountry: string,
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
     currentMonthlySettlementDate?: number,
 ) {
@@ -690,7 +689,7 @@ function updateSettlementFrequency(
     const parameters: UpdateCardSettlementFrequencyParams = {
         policyAccountID: workspaceAccountID,
         settlementFrequency,
-        feedCountry,
+        feedCountry: getFeedCountryForCardProgram(programKey),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});

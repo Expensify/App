@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import {getIssuedCardFeedCountry} from '@libs/CardUtils';
+import {getFeedCountryForCardProgram} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,7 +65,7 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
-            const feedCountry = getIssuedCardFeedCountry(true, selectedProgramKey);
+            const feedCountry = getFeedCountryForCardProgram(selectedProgramKey);
             issueExpensifyCard(defaultFundID, policyID, feedCountry, validateCode, assigneeTimeZone, data);
         },
         [selectedProgramKey, data, defaultFundID, policyID, assigneeTimeZone],

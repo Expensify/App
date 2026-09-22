@@ -51,7 +51,7 @@ describe('actions/Card', () => {
     describe('updateSettlementFrequency', () => {
         it('optimistically stores a day of the month, not a date', async () => {
             // Given a workspace that settles daily
-            updateSettlementFrequency(workspaceAccountID, programKey, feedCountry, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
             await waitForBatchedUpdates();
 
             // When it is switched to monthly, the optimistic value is a plain day-of-month number. Storing a `Date`
@@ -62,7 +62,7 @@ describe('actions/Card', () => {
         });
 
         it('optimistically stores a day within the 1-31 range the settings page can render', async () => {
-            updateSettlementFrequency(workspaceAccountID, programKey, feedCountry, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
             await waitForBatchedUpdates();
 
             // `toMonthlySettlementDate` discards anything outside this range, so a value outside it would render no hint at all.
@@ -77,7 +77,7 @@ describe('actions/Card', () => {
             await waitForBatchedUpdates();
 
             // When it is switched to daily
-            updateSettlementFrequency(workspaceAccountID, programKey, feedCountry, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY, existingSettlementDay);
+            updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY, existingSettlementDay);
             await waitForBatchedUpdates();
 
             // Then the settlement date is cleared (merging `null` removes the key), which is what makes the page show "Daily"
@@ -85,7 +85,7 @@ describe('actions/Card', () => {
         });
 
         it('keeps the optimistic day once the request succeeds', async () => {
-            updateSettlementFrequency(workspaceAccountID, programKey, feedCountry, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
             await waitForBatchedUpdates();
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
@@ -100,7 +100,7 @@ describe('actions/Card', () => {
 
             // When switching to daily fails
             mockFetch.fail?.();
-            updateSettlementFrequency(workspaceAccountID, programKey, feedCountry, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY, existingSettlementDay);
+            updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY, existingSettlementDay);
             await waitForBatchedUpdates();
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
@@ -119,7 +119,7 @@ describe('actions/Card', () => {
         // If that is fixed, this expectation should flip to `toBeUndefined()`.
         it('leaves the optimistic day behind when a failed switch to monthly has no previous day to restore', async () => {
             mockFetch.fail?.();
-            updateSettlementFrequency(workspaceAccountID, programKey, feedCountry, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
             await waitForBatchedUpdates();
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
@@ -128,7 +128,7 @@ describe('actions/Card', () => {
         });
 
         it('asks the backend for the selected frequency', async () => {
-            updateSettlementFrequency(workspaceAccountID, programKey, feedCountry, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
             await waitForBatchedUpdates();
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
@@ -143,6 +143,15 @@ describe('actions/Card', () => {
                 }),
             );
             expect(getLastSettlementFrequencyRequestParams()).not.toHaveProperty('monthlySettlementDate');
+        });
+
+        it('derives the API feed country from the selected program', async () => {
+            updateSettlementFrequency(workspaceAccountID, CONST.COUNTRY.GB, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            await waitForBatchedUpdates();
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            expect(getLastSettlementFrequencyRequestParams()).toEqual(expect.objectContaining({feedCountry: CONST.COUNTRY.GB}));
         });
     });
 });
