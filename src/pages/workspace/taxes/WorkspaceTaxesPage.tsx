@@ -2,10 +2,11 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {WorkspaceTaxTableRowData} from '@components/Tables/WorkspaceTaxesTable';
 import WorkspaceTaxesTable from '@components/Tables/WorkspaceTaxesTable';
 import Text from '@components/Text';
@@ -384,22 +385,28 @@ function WorkspaceTaxesPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={() => {
-                        if (isMobileSelectionModeEnabled) {
-                            clearTableSelection();
-                            turnOffMobileSelectionMode();
-                            return;
-                        }
-                        Navigation.goBack();
-                    }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                <Header>
+                    {shouldUseNarrowLayout && (
+                        <Header.BackButton
+                            onPress={() => {
+                                if (isMobileSelectionModeEnabled) {
+                                    clearTableSelection();
+                                    turnOffMobileSelectionMode();
+                                    return;
+                                }
+                                Navigation.goBack();
+                            }}
+                        />
+                    )}
+                    <Header.Title
+                        title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
+                        shouldUseHeadlineHeader={!selectionModeHeader}
+                    />
+                    <Header.Right>
+                        {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 {(!hasVisibleTaxes || isLoading) && headerContent}
                 {isLoading && (

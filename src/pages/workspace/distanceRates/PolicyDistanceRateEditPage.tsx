@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -79,9 +79,8 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
                 testID="PolicyDistanceRateEditPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.distanceRates.rate')}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider

@@ -2,7 +2,7 @@ import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -82,10 +82,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
                 testID="PolicyDistanceRateTaxReclaimableEditPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.taxes.taxReclaimableOn')}
-                    shouldShowBackButton
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.taxes.taxReclaimableOn')} />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM}
                     submitButtonText={translate('common.save')}

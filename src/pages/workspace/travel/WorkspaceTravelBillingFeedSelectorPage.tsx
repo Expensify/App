@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -105,7 +105,7 @@ function WorkspaceTravelBillingFeedSelectorPage({route}: WorkspaceTravelBillingF
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.title')}
                     onBackButtonPress={goBack}
                 />

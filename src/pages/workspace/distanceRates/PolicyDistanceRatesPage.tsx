@@ -1,9 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
 import type {DistanceRateTableItemData} from '@components/Tables/WorkspaceDistanceRatesTable/WorkspaceDistanceRatesTableRow';
 import Text from '@components/Text';
@@ -463,22 +464,28 @@ function PolicyDistanceRatesPage({
                 testID="PolicyDistanceRatesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={() => {
-                        if (isMobileSelectionModeEnabled) {
-                            setSelectedDistanceRates([]);
-                            turnOffMobileSelectionMode();
-                            return;
-                        }
-                        Navigation.goBack();
-                    }}
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                <Header>
+                    {shouldUseNarrowLayout && (
+                        <Header.BackButton
+                            onPress={() => {
+                                if (isMobileSelectionModeEnabled) {
+                                    setSelectedDistanceRates([]);
+                                    turnOffMobileSelectionMode();
+                                    return;
+                                }
+                                Navigation.goBack();
+                            }}
+                        />
+                    )}
+                    <Header.Title
+                        title={translate(!selectionModeHeader ? 'workspace.common.distanceRates' : 'common.selectMultiple')}
+                        shouldUseHeadlineHeader={!selectionModeHeader}
+                    />
+                    <Header.Right>
+                        {!shouldDisplayButtonsInSeparateLine && headerButtons}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.ph5]}>{headerButtons}</View>}
                 {isLoading && (
                     <ActivityIndicator

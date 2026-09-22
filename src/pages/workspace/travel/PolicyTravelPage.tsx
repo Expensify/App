@@ -1,7 +1,8 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -121,23 +122,25 @@ function WorkspaceTravelPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.travel.title')}
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.goBack}
-                >
-                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
-                        <ButtonWithDropdownMenu
-                            onPress={() => {}}
-                            customText={translate('common.more')}
-                            options={secondaryActions}
-                            isSplitButton={false}
-                            shouldUseOptionIcon
-                        />
-                    )}
-                </HeaderWithBackButton>
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                    <Header.Title
+                        title={translate('workspace.moreFeatures.travel.title')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
+                            <ButtonWithDropdownMenu
+                                onPress={() => {}}
+                                customText={translate('common.more')}
+                                options={secondaryActions}
+                                isSplitButton={false}
+                                shouldUseOptionIcon
+                            />
+                        )}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 <ScrollViewWithContext addBottomSafeAreaPadding>
                     <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
                 </ScrollViewWithContext>

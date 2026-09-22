@@ -1,7 +1,7 @@
 import BankAccountVerificationView from '@components/BankAccountVerificationView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@components/SettlementAccountSelector';
 import type {BankAccountListItem} from '@components/SettlementAccountSelector';
@@ -134,7 +134,7 @@ function WorkspaceTravelBillingSettlementAccountPage({route}: WorkspaceTravelBil
                 shouldShowOfflineIndicator={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={getHeaderTitle()}
                         onBackButtonPress={() => Navigation.goBack()}
                     />
