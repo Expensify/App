@@ -16,6 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {selectPartiallySetupBankAccount} from '@libs/PaymentUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getReportOrDraftReport, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtils} from '@libs/ReportUtils';
 
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {bankAccountStatesSelector} from '@selectors/BankAccount';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 
@@ -60,6 +62,7 @@ function PayActionButton() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [bankAccountStates] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: bankAccountStatesSelector});
 
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
@@ -78,7 +81,14 @@ function PayActionButton() {
         }
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (hasHeldExpensesReportUtils(transactions)) {
+            return;
+        }
+
+        if (type === CONST.IOU.PAYMENT_TYPE.VBBA && selectPartiallySetupBankAccount({state: methodID ? bankAccountStates?.[methodID] : undefined, methodID, policyID: policy?.id})) {
+            return;
+        }
+
+        if (hasHeldExpensesReportUtils(transactions)) {
             onHoldMenuOpen(type, shouldShowPayButton, methodID);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
