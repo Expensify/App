@@ -1082,6 +1082,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Überprüfen Sie 1 Ausgabe',
                 other: `Überprüfen Sie ${count} Ausgaben`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Prüfen Sie 1 Domain-Admin-Anfrage',
+                other: `Prüfen Sie ${count} Domain-Admin-Anfragen`,
+            }),
         },
         upcomingTravel: 'Bevorstehende Reisen',
         upcomingTravelSection: {
@@ -1165,6 +1169,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Bitten Sie Concierge, Ihre Ausgaben zu analysieren oder Unterstützung zu erhalten',
             inputPlaceholderMobile: 'Stellen Sie Concierge eine Frage',
         },
+    },
+    insightsPage: {
+        viewOnSpend: 'In Ausgaben anzeigen',
+        emptyState: {title: 'Nichts anzuzeigen', subtitle: 'Versuchen Sie, Ihre Kriterien oben anzupassen'},
+        noExpensesState: {title: 'Sehen Sie, wohin Ihr Geld fließt', subtitle: 'Sobald Sie Ausgaben haben, finden Sie Ausgabentrends, Top-Händler und mehr.'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -3342,7 +3351,7 @@ ${amount} für ${merchant} – ${date}`,
             agentSignInBlocked:
                 'Agent-Konten können nicht direkt verwendet werden. Um ein Agent-Konto zu nutzen, melden Sie sich mit Ihrem eigenen Konto an und greifen Sie über Copilot darauf zu.',
         },
-        cannotGetAccountDetails: 'Kontodetails konnten nicht abgerufen werden. Bitte melde dich erneut an.',
+        cannotGetAccountDetails: 'Kontodaten konnten nicht abgerufen werden. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         loginForm: 'Anmeldeformular',
         notYou: (user: string) => `Nicht ${user}?`,
     },
@@ -8784,6 +8793,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Campfire aus, von der Sie Daten importieren möchten.',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
             noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
             importDescription: 'Wählen Sie aus, welche Kodierungskonfigurationen aus Campfire importiert werden sollen.',
             accountTypesDescription: 'Ihre Campfire-Konten werden als Kategorien importiert.',
             enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
