@@ -9,7 +9,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {IOUAction} from '@src/CONST';
 import type {
-    CardList,
     Login,
     PersonalDetails,
     PersonalDetailsList,
@@ -21,7 +20,6 @@ import type {
     ReportAttributesDerivedValue,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
-    WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -291,8 +289,6 @@ type GetOptionsConfig = {
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
     currentUserLogin?: string;
-    cardList?: OnyxEntry<CardList>;
-    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     isTrackIntentUser?: boolean;

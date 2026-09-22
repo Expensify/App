@@ -425,7 +425,6 @@ async function computeBothSurfaces({
         sortedActions: sortedData?.sortedActions,
         transactionThreadIDs: sortedData?.transactionThreadIDs,
         lastActions: sortedData?.lastActions,
-        cardList,
         localeCompare,
         formatPhoneNumber,
         conciergeReportID: CONCIERGE_REPORT_ID,

@@ -1,6 +1,6 @@
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
-import {clearFilteredOptionListCache, createFilteredOptionList, getValidOptions} from '@libs/OptionsListUtils';
+import {clearAlternateTextCache, clearFilteredOptionListCache, createFilteredOptionList, getValidOptions} from '@libs/OptionsListUtils';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -324,5 +324,45 @@ describe('OptionsListChatPreview', () => {
                 undefined,
             ),
         );
+    });
+
+    test('[OptionsListChatPreview] getValidOptions with chat previews, preview cache cold', async () => {
+        await waitForBatchedUpdates();
+        const optionList = buildOptionList();
+        await measureFunction(() => {
+            clearAlternateTextCache();
+            return getValidOptions(
+                {reports: optionList.reports, personalDetails: optionList.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                getPreviewOptionsConfig(MAX_ELEMENTS),
+                translateLocal,
+                undefined,
+            );
+        });
+    });
+
+    test('[OptionsListChatPreview] getValidOptions with chat previews and a wider result cap, preview cache cold', async () => {
+        await waitForBatchedUpdates();
+        const optionList = buildOptionList();
+        await measureFunction(() => {
+            clearAlternateTextCache();
+            return getValidOptions(
+                {reports: optionList.reports, personalDetails: optionList.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                getPreviewOptionsConfig(WIDE_MAX_ELEMENTS),
+                translateLocal,
+                undefined,
+            );
+        });
     });
 });

@@ -1,4 +1,4 @@
-import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -206,8 +206,6 @@ function useSearchSelectorBase({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const cardList = useCardList();
-    const workspaceCardList = useWorkspaceCardList();
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -313,8 +311,6 @@ function useSearchSelectorBase({
                     transactionThreadIDs,
                     lastActions,
                     currentUserLogin: currentUserEmail,
-                    cardList,
-                    workspaceCardList,
                     localeCompare,
                     formatPhoneNumber,
                     conciergeReportID,
@@ -356,8 +352,6 @@ function useSearchSelectorBase({
                         sortedActions,
                         transactionThreadIDs,
                         lastActions,
-                        cardList,
-                        workspaceCardList,
                         localeCompare,
                         formatPhoneNumber,
                         isTrackIntentUser,
@@ -403,8 +397,6 @@ function useSearchSelectorBase({
                         sortedActions,
                         transactionThreadIDs,
                         lastActions,
-                        cardList,
-                        workspaceCardList,
                         localeCompare,
                         formatPhoneNumber,
                         isTrackIntentUser,
@@ -447,8 +439,6 @@ function useSearchSelectorBase({
                         sortedActions,
                         transactionThreadIDs,
                         lastActions,
-                        cardList,
-                        workspaceCardList,
                         localeCompare,
                         formatPhoneNumber,
                         isTrackIntentUser,

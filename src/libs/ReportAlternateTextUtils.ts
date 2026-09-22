@@ -1151,7 +1151,7 @@ type GetReportAlternateTextParams = {
     lastActionReport: OnyxEntry<Report>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
-    card: Card | undefined;
+    card?: Card | undefined;
     lastMessageTextFromReport?: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     policy: OnyxEntry<Policy>;

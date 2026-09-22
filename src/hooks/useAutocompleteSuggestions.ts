@@ -1,5 +1,4 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
@@ -134,8 +133,6 @@ function useAutocompleteSuggestions({
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const cardList = useCardList();
-    const workspaceCardList = useWorkspaceCardList();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
@@ -284,8 +281,6 @@ function useAutocompleteSuggestions({
                 sortedActions,
                 transactionThreadIDs,
                 lastActions,
-                cardList,
-                workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
                 conciergeReportID,
@@ -336,8 +331,6 @@ function useAutocompleteSuggestions({
                 sortedActions,
                 transactionThreadIDs,
                 lastActions,
-                cardList,
-                workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
                 conciergeReportID,
