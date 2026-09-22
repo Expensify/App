@@ -154,6 +154,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {cardList: assignableCards, ...workspaceCards} = getAllCardsForWorkspace(workspaceAccountID, cardList, cardFeeds, expensifyCardSettings);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
+    const memberLoginToCopy = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
     const reimburserEmail = getReimburserEmail(policy);
     const isReimburser = !!reimburserEmail && reimburserEmail === memberLogin;
     const isExpensifyCardholder = hasActiveExpensifyCard(policy, memberLogin);
@@ -198,14 +199,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         confirmModalPrompt = translate('workspace.people.removeMemberPromptExpensifyCard', {
             memberName: displayName,
         });
+    } else if (isReimburser) {
+        confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
+            memberName: displayName,
+        });
     } else if (isTechnicalContact) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptTechContact', {
             memberName: displayName,
             workspaceOwner: policyOwnerDisplayName,
-        });
-    } else if (isReimburser) {
-        confirmModalPrompt = translate('workspace.people.removeMemberPromptReimburser', {
-            memberName: displayName,
         });
     } else if (isUserExporter) {
         confirmModalPrompt = translate('workspace.people.removeMemberPromptExporter', {
@@ -388,13 +389,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             )}
                         </View>
                         <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                interactive={false}
-                                copyable
-                            />
+                            <MenuItemField
+                                name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                value={memberLoginToCopy}
+                            >
+                                <MenuItem.Copy value={memberLoginToCopy} />
+                            </MenuItemField>
                             <MenuItemWithTopDescription
                                 disabled={!canEditSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}

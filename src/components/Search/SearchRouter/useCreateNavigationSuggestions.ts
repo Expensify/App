@@ -23,7 +23,7 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 // eslint-disable-next-line no-restricted-imports -- TravelDot booking requires a paid workspace, matching the existing FAB behavior.
-import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
@@ -37,7 +37,10 @@ import {primaryLoginSelector} from '@src/selectors/Account';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import {emailSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
+import type {Policy} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import {useState} from 'react';
@@ -103,7 +106,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
@@ -114,7 +116,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy([...groupPoliciesWithChatEnabled], activePolicy);
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
     const isTravelVisible = !!activePolicy?.isTravelEnabled;
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
@@ -142,8 +143,8 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
         );
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
-        onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicy?.id) {
+        onCreateReport: (policy: OnyxEntry<Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+            if (!policy?.id) {
                 return;
             }
 
@@ -157,8 +158,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 currentUserPersonalDetails,
                 false,
                 isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                defaultChatEnabledPolicy,
-                allBetas,
+                policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,

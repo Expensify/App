@@ -14,12 +14,13 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -91,7 +92,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useEffectEvent, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -113,13 +114,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
-    const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const policyMemberEmailsToAccountIDs = useMemo(
+        () => getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true),
+        [policy?.employeeList, employeePersonalDetails],
+    );
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
-    const {isOffline} = useNetwork();
-    const prevIsOffline = usePrevious(isOffline);
+    const getWorkspaceMembers = () => {
+        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
+        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
+    };
+    const {isOffline} = useNetwork({onReconnect: getWorkspaceMembers});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -202,25 +210,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails, outstandingReportsForPolicy, privateIsArchivedMap]);
 
-    /**
-     * Get members for the current workspace
-     */
-    const getWorkspaceMembers = useCallback(() => {
-        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
-    }, [route.params.policyID, policy?.employeeList]);
-
+    const getWorkspaceMembersEvent = useEffectEvent(() => getWorkspaceMembers());
     useEffect(() => {
-        getWorkspaceMembers();
-    }, [getWorkspaceMembers]);
-
-    useEffect(() => {
-        const isReconnecting = prevIsOffline && !isOffline;
-        if (!isReconnecting) {
-            return;
-        }
-        getWorkspaceMembers();
-    }, [isOffline, prevIsOffline, getWorkspaceMembers]);
+        getWorkspaceMembersEvent();
+    }, []);
 
     /**
      * Open the modal to invite a user
@@ -481,7 +474,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
     }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, invitedEmails, policyID]);
 
-    useHRSyncResultsPage(connectionSyncProgress, isFocused);
+    useMergeSyncResultsPage(policyID);
 
     const headerMessage = useMemo(() => {
         if (isOfflineAndNoMemberDataAvailable) {
