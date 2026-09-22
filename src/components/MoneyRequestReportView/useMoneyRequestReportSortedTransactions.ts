@@ -1,5 +1,3 @@
-import {useMemo, useState} from 'react';
-
 import type {SearchSortBy, SortOrder} from '@components/Search/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -22,6 +20,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {useMemo, useState} from 'react';
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
