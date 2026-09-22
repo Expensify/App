@@ -4,7 +4,28 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
+    paths:
+      [
+        'src/**',
+        'modules/*/src/**',
+        'tests/perf-test/**',
+        'tests/utils/**',
+        'jest/**',
+        '__mocks__/**',
+        'assets/emojis/**',
+        'patches/**',
+        'config/babel/**',
+        'babel.config.js',
+        'jest.config.js',
+        'modules/*/package.json',
+        'package.json',
+        'package-lock.json',
+        '.nvmrc',
+        '.github/workflows/reassurePerformanceTests.yml',
+        '.github/workflows/seedJestPerfCache.yml',
+        '.github/actions/javascript/validateReassureOutput/**',
+        '.github/actions/composite/setupNode/**',
+      ]
 
 # Cancel a run still measuring an earlier push to the same PR. pull_request-only, so github.ref is
 # refs/pull/<n>/merge and the group is one PR.
@@ -14,7 +35,6 @@ concurrency:
 
 jobs:
   baseline-perf-tests:
-    if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -125,7 +145,6 @@ jobs:
           include-hidden-files: true
 
   branch-perf-tests:
-    if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -181,7 +200,6 @@ jobs:
           include-hidden-files: true
 
   validate-perf-tests:
-    if: ${{ github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [baseline-perf-tests, branch-perf-tests]
     steps:
