@@ -52,6 +52,9 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import {useEffect, useRef} from 'react';
 
+// Distinct prefix so a log query can separate this decision from the same one in LogOutPreviousUserPage.
+const TRANSITION_SIGN_OUT_LOG = '[TransitionSignOut][AuthScreensInitHandler]';
+
 function initializePusher(
     currentUserAccountID: number | undefined,
     currentUserEmail: string | undefined,
@@ -171,6 +174,13 @@ function AuthScreensInitHandler() {
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
+            const {email: linkEmail, delegatorEmail: linkDelegatorEmail} = SessionUtils.getTransitionLinkEmailParams(currentUrl);
+            Log.info(`${TRANSITION_SIGN_OUT_LOG} Signing out the current session because the transition link names another account`, false, {
+                sessionEmail: session?.email,
+                linkEmail,
+                linkDelegatorEmail,
+                authTokenType: getSearchParamFromUrl(currentUrl, 'authTokenType'),
+            });
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();

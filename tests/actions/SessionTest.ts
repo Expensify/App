@@ -12,6 +12,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
@@ -19,6 +20,7 @@ import PushNotification from '@libs/Notification/PushNotification';
 import {isRecord} from '@libs/ObjectUtils';
 import openExternalLink from '@libs/openExternalLink';
 import reauthenticate from '@libs/Reauthentication';
+import * as TrackAuthenticationError from '@libs/telemetry/trackAuthenticationError';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -131,6 +133,7 @@ describe('Session', () => {
         // Given no signed-in user — beforeEach calls Onyx.clear(), so NetworkStore's credentials are null
 
         const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+        const trackAuthenticationErrorSpy = jest.spyOn(TrackAuthenticationError, 'default').mockImplementation(() => {});
 
         // When reauthenticate is called with no credentials stored
         const result = await reauthenticate('TestCommand');
@@ -140,7 +143,19 @@ describe('Session', () => {
         expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.NO_CREDENTIALS, 'No credentials available');
 
+        // And the exit reports through Sentry like the two branches below it do, so a session that lost its
+        // credentials leaves an event behind instead of only a log line
+        expect(trackAuthenticationErrorSpy).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+                functionName: 'reauthenticate',
+                command: 'TestCommand',
+                errorMessage: 'No credentials available',
+            }),
+        );
+
         redirectToSignInSpy.mockRestore();
+        trackAuthenticationErrorSpy.mockRestore();
     });
 
     test('reauthenticate aborts when RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN is true', async () => {
@@ -513,6 +528,37 @@ describe('Session', () => {
     });
 
     describe('SignOutAndRedirectToSignIn', () => {
+        test('SignOutAndRedirectToSignIn names the reason it was called with in the log payload', async () => {
+            // Given a signed-in user and a sign-in redirect that a caller can ask for by reason
+            await TestHelper.signInWithTestUser();
+            setHasRadio(false);
+            await waitForBatchedUpdates();
+
+            jest.mocked(HttpUtils.xhr).mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                }),
+            );
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+
+            // When a caller asks for the sign-in redirect for one specific reason
+            signOutAndRedirectToSignIn(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+
+            await waitForBatchedUpdates();
+
+            // Then the reason reaches the log payload. Every caller shares one sentence, so a log line without the
+            // reason cannot say who asked for the sign-in redirect. Asserted on the payload rather than the wording,
+            // which a reviewer may rephrase.
+            const reasonLogs = logInfoSpy.mock.calls.filter(([, , parameters]) => isRecord(parameters) && 'signOutReason' in parameters);
+            expect(reasonLogs).toHaveLength(1);
+            expect(reasonLogs.at(0)?.at(2)).toEqual({signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER});
+
+            redirectToSignInSpy.mockRestore();
+            logInfoSpy.mockRestore();
+        });
+
         test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
             await TestHelper.signInWithTestUser();
             setHasRadio(false);

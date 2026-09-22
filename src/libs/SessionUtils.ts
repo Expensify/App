@@ -66,6 +66,30 @@ function getDelegatorEmailFromURL(url?: string): string | undefined {
     return delegatorMatches?.[1];
 }
 
+type TransitionLinkEmailParams = {
+    /** The `email` the transition link names, or null when the link carries none */
+    email: string | null;
+
+    /** The `delegatorEmail` the transition link names, or null when the link carries none */
+    delegatorEmail: string | null;
+};
+
+/**
+ * Read the account identities a transition link names. Uses the same lookups `isLoggingInAsNewUser` compares against
+ * the session email, so the values match the decision. Parsed params come first, then the raw regex value for the
+ * case where a full URL mangles the first query key. Read-only, for logging. It returns the two values that
+ * comparison uses, and never the link itself or any token it carries.
+ */
+function getTransitionLinkEmailParams(transitionURL?: string): TransitionLinkEmailParams {
+    const params = new URLSearchParams(transitionURL);
+    const emailParamRegex = /[?&]email=([^&]*)/g;
+
+    return {
+        email: params.get('email') ?? emailParamRegex.exec(transitionURL ?? '')?.[1] ?? null,
+        delegatorEmail: params.get('delegatorEmail') ?? getDelegatorEmailFromURL(transitionURL) ?? null,
+    };
+}
+
 let loggedInDuringSession: boolean | undefined;
 
 // To tell if the user logged in during this session we will check the value of session.authToken once when the app's JS inits. When the user logs out
@@ -126,4 +150,5 @@ function isAgentEmail(email?: string): boolean {
     return AGENT_EMAIL_REGEX.test(email);
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, getPartnerCredentials, isLoggingInAsDelegate, isAgentEmail};
+export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, getPartnerCredentials, isLoggingInAsDelegate, isAgentEmail, getTransitionLinkEmailParams};
+export type {TransitionLinkEmailParams};

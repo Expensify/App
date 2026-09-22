@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName, getPartnerCredentials, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, getPartnerCredentials, getTransitionLinkEmailParams, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -109,6 +109,36 @@ describe('SessionUtils', () => {
             ['should return true when delegatorEmail value contains encoded characters', '?delegatorEmail=user%40example.com', true],
         ])('%s', (_description, transitionURL, expectedResult) => {
             expect(isLoggingInAsDelegate(transitionURL)).toBe(expectedResult);
+        });
+    });
+
+    describe('getTransitionLinkEmailParams', () => {
+        // The transition sign-out decision compares these two values against the session email, so a log line built
+        // from them has to read the link the way the decision does. Parsed params come first, then the raw value for
+        // the case where a full URL mangles the first query key.
+        test.each([
+            ['reads both params from a query string', '?email=user@example.com&delegatorEmail=delegate@example.com', 'user@example.com', 'delegate@example.com'],
+            ['reads a query string starting with delegatorEmail', '?delegatorEmail=delegate@example.com', null, 'delegate@example.com'],
+            ['falls back to the raw value when a full URL mangles the first param key', 'https://example.com?email=user%40example.com&delegatorEmail=delegate@example.com', 'user%40example.com', 'delegate@example.com'],
+            ['reads only the param the link carries', '?email=user@example.com', 'user@example.com', null],
+            ['reads nothing from a supportal-style link', '?authTokenType=support&shortLivedAuthToken=abc', null, null],
+            ['reads nothing for an undefined link', undefined, null, null],
+            ['reads nothing for an empty link', '', null, null],
+        ])('%s', (_description, transitionURL, expectedEmail, expectedDelegatorEmail) => {
+            expect(getTransitionLinkEmailParams(transitionURL)).toEqual({email: expectedEmail, delegatorEmail: expectedDelegatorEmail});
+        });
+
+        test('does not read the credentials the link also carries', () => {
+            // Given a transition link that names an account and carries short-lived credentials
+            const transitionURL = '?email=user@example.com&shortLivedAuthToken=secret-token&encryptedAuthToken=encrypted-token';
+
+            // When the link is read to build a log payload
+            const params = getTransitionLinkEmailParams(transitionURL);
+
+            // Then only the two account identities come back, so no credential reaches the log payload
+            expect(Object.keys(params)).toEqual(['email', 'delegatorEmail']);
+            expect(JSON.stringify(params)).not.toContain('secret-token');
+            expect(JSON.stringify(params)).not.toContain('encrypted-token');
         });
     });
 });

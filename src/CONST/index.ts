@@ -2294,6 +2294,7 @@ const CONST = {
             REPORTS_COUNT: 'reports_count',
             PERSONAL_DETAILS_COUNT: 'personal_details_count',
             USER_ROLE: 'user_role',
+            AUTH_TOKEN_TYPE: 'auth_token_type',
             NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
             AUTHENTICATION_FUNCTION: 'authentication_function',
             AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
