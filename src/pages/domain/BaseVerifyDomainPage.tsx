@@ -2,7 +2,7 @@ import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import RenderHTML from '@components/RenderHTML';
@@ -113,7 +113,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('domain.verifyDomain.title')}
                 onBackButtonPress={() => {
                     if (navigationRef.current?.canGoBack()) {

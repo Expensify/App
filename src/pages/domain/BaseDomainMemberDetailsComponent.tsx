@@ -1,5 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
@@ -64,7 +64,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID={BaseDomainMemberDetailsComponent.displayName}
             >
-                <HeaderWithBackButton title={displayName} />
+                <HeaderWithBackButtonAndTitle title={displayName} />
 
                 <ScrollView addBottomSafeAreaPadding>
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>

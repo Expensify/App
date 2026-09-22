@@ -4,11 +4,12 @@ import type {DomainMemberBulkActionType, DropdownOption} from '@components/Butto
 import DecisionModal from '@components/DecisionModal';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {DomainMemberRowData} from '@components/Tables/DomainMembersTable';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -292,13 +293,16 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="DomainMembersPage"
                 >
-                    <HeaderWithBackButton
-                        title={translate('domain.domainMembers')}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldUseHeadlineHeader
-                        shouldDisplayHelpButton
-                    />
+                    <Header>
+                        {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                        <Header.Title
+                            title={translate('domain.domainMembers')}
+                            shouldUseHeadlineHeader
+                        />
+                        <Header.Right>
+                            <SidePanelButton />
+                        </Header.Right>
+                    </Header>
                     <ScrollView
                         keyboardShouldPersistTaps="handled"
                         addBottomSafeAreaPadding

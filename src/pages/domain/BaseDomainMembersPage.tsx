@@ -1,5 +1,6 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
@@ -76,15 +77,17 @@ function BaseDomainMembersPage({
                 shouldShowOfflineIndicatorInWideScreen
                 testID="BaseDomainMembersPage"
             >
-                <HeaderWithBackButton
-                    title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
-                    onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader={!useSelectionModeHeader}
-                    shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                </HeaderWithBackButton>
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={onBackButtonPress ?? Navigation.goBack} />}
+                    <Header.Title
+                        title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
+                        shouldUseHeadlineHeader={!useSelectionModeHeader}
+                    />
+                    <Header.Right>
+                        {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <DomainMembersTable
                     domainAccountID={domainAccountID}

@@ -1,10 +1,12 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
+import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -113,13 +115,17 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
-                    title={domainName}
-                    shouldUseHeadlineHeader
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
-                    shouldDisplayHelpButton={shouldUseNarrowLayout}
-                    shouldDisplayAccountButton
-                />
+                <Header>
+                    <Header.BackButton onPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)} />
+                    <Header.Title
+                        title={domainName ?? ''}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        {shouldUseNarrowLayout && <SidePanelButton />}
+                        <AccountAvatarButton />
+                    </Header.Right>
+                </Header>
 
                 <ScrollView contentContainerStyle={styles.flexColumn}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>

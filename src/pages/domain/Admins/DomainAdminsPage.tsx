@@ -1,6 +1,7 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {DomainAdminRequestRowData, DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
 import DomainAdminsTable from '@components/Tables/DomainAdminsTable';
 
@@ -201,15 +202,17 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 testID="DomainAdminsPage"
             >
-                <HeaderWithBackButton
-                    title={translate('domain.admins.title')}
-                    onBackButtonPress={Navigation.goBack}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    shouldDisplayHelpButton
-                >
-                    {!shouldDisplayButtonsInSeparateLine && headerContent}
-                </HeaderWithBackButton>
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                    <Header.Title
+                        title={translate('domain.admins.title')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        {!shouldDisplayButtonsInSeparateLine && headerContent}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <DomainAdminsTable
                     domainAccountID={domainAccountID}

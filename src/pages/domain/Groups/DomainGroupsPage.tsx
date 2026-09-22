@@ -1,6 +1,7 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
 import DomainGroupsTable from '@components/Tables/DomainGroupsTable';
 
@@ -110,15 +111,17 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 testID="DomainGroupsPage"
             >
-                <HeaderWithBackButton
-                    title={translate('domain.groups.title')}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.popToSidebar}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                >
-                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
-                </HeaderWithBackButton>
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.popToSidebar} />}
+                    <Header.Title
+                        title={translate('domain.groups.title')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{createGroupHeaderButton}</View>}
 
                 <DomainGroupsTable

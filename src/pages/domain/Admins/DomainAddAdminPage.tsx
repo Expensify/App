@@ -1,5 +1,5 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -169,7 +169,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('domain.admins.addAdmin')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
                 />

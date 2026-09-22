@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -64,7 +64,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                 shouldEnableMaxHeight
                 testID="DomainGroupDetailsPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={group?.name}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID))}
                 />

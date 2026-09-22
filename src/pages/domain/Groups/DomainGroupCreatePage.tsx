@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -89,7 +89,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                 testID="DomainGroupCreatePage"
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('domain.groups.createNewGroupButton')}
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID));

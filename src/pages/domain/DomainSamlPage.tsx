@@ -2,11 +2,12 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
@@ -92,13 +93,16 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                 shouldForceFullScreen
                 shouldDisplaySearchRouter
             >
-                <HeaderWithBackButton
-                    title={translate('domain.saml')}
-                    shouldUseHeadlineHeader
-                    onBackButtonPress={Navigation.goBack}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                />
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                    <Header.Title
+                        title={translate('domain.saml')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
 
                 <ScrollView
                     keyboardShouldPersistTaps="handled"

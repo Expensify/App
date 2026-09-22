@@ -5,7 +5,7 @@
  */
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -134,7 +134,7 @@ function BaseDomainGroupPreferredWorkspacePage({
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('domain.groups.preferredWorkspace')}
                         onBackButtonPress={onBackButtonPress}
                     />
