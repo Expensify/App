@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -146,7 +146,7 @@ function WorkspaceCompanyCardsSettingsPage({
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton title={translate('common.settings')} />
+                    <HeaderWithBackButtonAndTitle title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         <MenuItemField
                             value={feedName}
