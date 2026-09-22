@@ -25,9 +25,7 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
 
     // If they do not match it might be due to encoding, so check the raw value
     // Capture the un-encoded text in the email param
-    const emailParamRegex = /[?&]email=([^&]*)/g;
-    const matches = emailParamRegex.exec(transitionURL ?? '');
-    const linkedEmail = matches?.[1] ?? null;
+    const linkedEmail = getEmailFromTransitionURL(transitionURL) ?? null;
 
     if (linkedEmail === sessionEmail) {
         return false;
@@ -64,6 +62,16 @@ function getDelegatorEmailFromURL(url?: string): string | undefined {
     const delegatorEmailParamRegex = /[?&]delegatorEmail=([^&]*)/g;
     const delegatorMatches = delegatorEmailParamRegex.exec(url ?? '');
     return delegatorMatches?.[1];
+}
+
+/**
+ * Looks for *email* param in given URL using regex. URLSearchParams can't be used here because
+ * transitionURL is a full URL, not a query string, so it mangles the first param's key.
+ */
+function getEmailFromTransitionURL(url?: string): string | undefined {
+    const emailParamRegex = /[?&]email=([^&]*)/g;
+    const matches = emailParamRegex.exec(url ?? '');
+    return matches?.[1];
 }
 
 let loggedInDuringSession: boolean | undefined;
@@ -126,4 +134,13 @@ function isAgentEmail(email?: string): boolean {
     return AGENT_EMAIL_REGEX.test(email);
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, getPartnerCredentials, isLoggingInAsDelegate, isAgentEmail};
+export {
+    isLoggingInAsNewUser,
+    didUserLogInDuringSession,
+    resetDidUserLogInDuringSession,
+    checkIfShouldUseNewPartnerName,
+    getPartnerCredentials,
+    isLoggingInAsDelegate,
+    isAgentEmail,
+    getEmailFromTransitionURL,
+};

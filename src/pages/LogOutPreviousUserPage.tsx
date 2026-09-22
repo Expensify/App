@@ -11,7 +11,7 @@ import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFro
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
-import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import {getEmailFromTransitionURL, isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -50,8 +50,6 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
-        const linkEmail = new URLSearchParams(transitionURL ?? undefined).get('email');
-
         if (isLoggingInAsNewUser) {
             if (isSupportalLogin) {
                 // We don't want to close react-native app in this particular case.
@@ -80,6 +78,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 });
                 return;
             }
+
+            const linkEmail = getEmailFromTransitionURL(transitionURL ?? undefined);
 
             showConfirmModal({
                 title: translate('deeplinkWrapper.switchAccount.title'),
