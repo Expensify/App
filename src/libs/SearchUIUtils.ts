@@ -3003,7 +3003,16 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
 function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: QueryFilterKey, filterValue: string | number): SearchQueryJSON | undefined {
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
+    // `limit` caps the number of groups on the parent query. Once `groupBy` is dropped it would cap the rows inside this
+    // group instead, so it must not be carried over to the drill-down query.
+    const newQueryJSON: SearchQueryJSON = {
+        ...queryJSON,
+        groupBy: undefined,
+        limit: undefined,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        flatFilters: newFlatFilters,
+    };
     const specificGroupQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     if (!specificGroupQueryJSON || filterKey !== CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
         return specificGroupQueryJSON;
@@ -3137,7 +3146,15 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
             {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: end},
         ],
     });
-    const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, flatFilters: newFlatFilters};
+    // See buildSpecificGroupQuery: `limit` bounds the group count, so it is dropped along with `groupBy`.
+    const newQueryJSON: SearchQueryJSON = {
+        ...queryJSON,
+        groupBy: undefined,
+        limit: undefined,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        flatFilters: newFlatFilters,
+    };
     const transactionsQueryJSON = buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
     return {transactionsQueryJSON, start, end};
 }
