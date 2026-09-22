@@ -53,6 +53,7 @@ const mockUseOnyx = jest.fn<[unknown], [key: string]>(() => [undefined]);
 const mockShouldUseNarrowLayout = jest.fn(() => false);
 const mockUseNetwork = jest.fn<{isOffline: boolean}, []>(() => ({isOffline: false}));
 const mockIsBetaEnabled = jest.fn<boolean, [beta: string]>(() => false);
+const mockIsBetaEnabledOrUnknown = jest.fn<boolean | undefined, [beta: string]>(() => false);
 const currentUserAccountID = 1;
 
 jest.mock('@components/Search/SearchContext', () => ({
@@ -126,7 +127,7 @@ jest.mock('@hooks/useNetwork', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta)}),
+    default: () => ({isBetaEnabled: (beta: string) => mockIsBetaEnabled(beta), isBetaEnabledOrUnknown: (beta: string) => mockIsBetaEnabledOrUnknown(beta)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -219,6 +220,7 @@ const workspaceIcons = {
     Gear: mockIcon,
     Bolt: mockIcon,
     Bot: mockIcon,
+    UserPlus: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
@@ -268,6 +270,7 @@ beforeEach(() => {
     mockUseOnyx.mockImplementation(() => [undefined]);
     mockUseNetwork.mockReturnValue({isOffline: false});
     mockIsBetaEnabled.mockReturnValue(false);
+    mockIsBetaEnabledOrUnknown.mockReturnValue(false);
     mockUseSettingsNavigationMenuData.mockReturnValue({
         accountMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.account', items: []},
         generalMenuItemsData: {sectionTranslationKey: 'initialSettingsPage.general', items: []},
@@ -708,6 +711,7 @@ describe('Workspace Search Router navigation source', () => {
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,
+            isRecruitingBetaEnabled: false,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -826,9 +830,11 @@ describe('Workspace Search Router navigation source', () => {
             expect.objectContaining({
                 policy: activePolicy,
                 isVendorMatchingBetaEnabled: true,
+                isRecruitingBetaEnabled: true,
             }),
         );
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
+        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });
 });
 
@@ -913,24 +919,13 @@ describe('Spend Search Router navigation source', () => {
         const clearSelectedTransactions = jest.fn();
         const searchQuery = 'type:expense sortBy:date sortOrder:desc';
 
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, clearSelectedTransactions, jest.fn());
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, undefined, clearSelectedTransactions);
 
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(setSearchContext).toHaveBeenCalledWith(false);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
         expect(clearSelectedTransactions.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0) ?? 0);
         expect(jest.mocked(setSearchContext).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0);
-    });
-
-    it('passes the query it navigates to as the search key target, so the update can be deferred until the query changes', () => {
-        const setCurrentSearchKey = jest.fn();
-        const searchQuery = 'type:expense sortBy:date sortOrder:desc';
-        // The last query stays valid for the default query, so it is the one we navigate to.
-        const lastSearchQuery = 'type:expense sortBy:date sortOrder:desc merchant:test';
-
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn(), setCurrentSearchKey);
-
-        expect(setCurrentSearchKey).toHaveBeenCalledWith(CONST.SEARCH.SEARCH_KEYS.EXPENSES, lastSearchQuery);
     });
 
     it('navigates with the last query when it is still valid for the default query', () => {
@@ -938,9 +933,9 @@ describe('Spend Search Router navigation source', () => {
         // The last query adds a filter but keeps the default query's type and (empty) filter keys, so it stays valid.
         const lastSearchQuery = 'type:expense sortBy:date sortOrder:desc merchant:test';
 
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn(), jest.fn());
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn());
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastSearchQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: lastSearchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('falls back to the default query when the last query drops one of its filters', () => {
@@ -948,9 +943,9 @@ describe('Spend Search Router navigation source', () => {
         // The last query drops the default's merchant filter, so it is no longer valid and the default is used.
         const lastSearchQuery = 'type:expense category:Food';
 
-        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn(), jest.fn());
+        navigateToCannedSpendSearch(CONST.SEARCH.SEARCH_KEYS.EXPENSES, searchQuery, lastSearchQuery, jest.fn());
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     });
 
     it('composes Spend suggestions from the menu hook with icons, context, exclusions, and approval gating', () => {

@@ -11,9 +11,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -35,6 +37,8 @@ const anchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
+const TOOLTIP_HORIZONTAL_MARGIN = 48;
+
 function InboxTabSelector() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -43,7 +47,8 @@ function InboxTabSelector() {
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+    const reportAttributesDerived = useReportAttributes();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Feed', 'ChatBubbleUnread', 'Task']);
     const {showConfirmModal} = useConfirmModal();
     // Only show the tooltip if we have unread message > 3 months old.
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -60,6 +65,7 @@ function InboxTabSelector() {
         [CONST.INBOX_TAB.UNREAD]: unreadTabRef,
         [CONST.INBOX_TAB.TODO]: todoTabRef,
     };
+    const {windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -96,7 +102,7 @@ function InboxTabSelector() {
             }
             // From the To-dos tab only the chats listed there are marked read. The All and Unread tabs both cover every
             // unread chat, so they mark all of them.
-            markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined);
+            markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined, reportAttributesDerived);
         });
     };
 
@@ -114,6 +120,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
+            icon: icons.Feed,
             tabRef: allTabRef,
             // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
             // interaction (which suppresses the native browser context menu on web).
@@ -122,6 +129,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
+            icon: icons.ChatBubbleUnread,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
@@ -137,11 +145,15 @@ function InboxTabSelector() {
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 },
                 shiftVertical: 8,
+                wrapperStyle: styles.productTrainingTooltipWrapper,
+                computeHorizontalShiftForNative: true,
+                maxWidth: windowWidth - TOOLTIP_HORIZONTAL_MARGIN,
             },
         },
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
+            icon: icons.Task,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
@@ -151,7 +163,7 @@ function InboxTabSelector() {
     ];
 
     return (
-        <View>
+        <View style={styles.pt1}>
             <TabSelectorContextProvider activeTabKey={activeTab}>
                 <TabSelectorBase
                     tabs={tabs}
