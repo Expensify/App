@@ -49,6 +49,8 @@ export default {
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
     componentBorderRadiusNormal: 8,
+    /** Shared radius for the surfaces that wrap content on a different background: tables and content cards */
+    componentBorderRadiusCardAndTable: 12,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
     componentBorderRadiusCard: 20,

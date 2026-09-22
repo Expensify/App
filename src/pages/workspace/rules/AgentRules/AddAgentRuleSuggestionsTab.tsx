@@ -144,7 +144,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                                     styles.ph5,
                                     styles.pv5,
                                     styles.highlightBG,
-                                    styles.borderRadiusComponentNormal,
+                                    styles.borderRadiusComponentCardAndTable,
                                     isSelected && styles.activeComponentBG,
                                 ]}
                                 hoverStyle={!isSelected ? styles.hoveredComponentBG : undefined}
