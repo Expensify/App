@@ -575,16 +575,17 @@ function handleReplaceFullscreenUnderRHP(
         return null;
     }
 
-    const routesWithoutBuffer = stateAfterPop.routes.filter((route) => route.name !== SCREENS.PRE_MOUNT_BUFFER);
-    const rehydratedBaseState = stackRouter.getRehydratedState(
+    const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);
+    const routesWithoutBuffer = rehydratedStateAfterPop.routes.filter((route) => route.name !== SCREENS.PRE_MOUNT_BUFFER);
+    const stateAfterPush = stackRouter.getStateForAction(
         {
-            ...stateAfterPop,
+            ...rehydratedStateAfterPop,
             routes: routesWithoutBuffer,
             index: routesWithoutBuffer.length - 1,
-        } as PartialState<StackNavigationState<ParamListBase>>,
+        },
+        StackActions.push(targetRoute.name, pushParams),
         configOptions,
     );
-    const stateAfterPush = stackRouter.getStateForAction(rehydratedBaseState, StackActions.push(targetRoute.name, pushParams), configOptions);
     if (!stateAfterPush) {
         return null;
     }
