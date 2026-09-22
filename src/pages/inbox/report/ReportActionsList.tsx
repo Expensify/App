@@ -69,7 +69,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
-import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
+import {usePendingScrollToEditingReportActionID, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
@@ -269,7 +269,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     // A message put into edit mode from the composer (ArrowUp) can sit outside the list's render window, so its editor never mounts and never
     // takes focus. Scroll to it here, where the rendered indexes are known, so the row mounts and the message stays visible while it's edited.
-    const {pendingScrollToEditingReportActionID} = useReportActionActiveEdit();
+    const pendingScrollToEditingReportActionID = usePendingScrollToEditingReportActionID();
     const {clearPendingScrollToEditingAction} = useReportActionActiveEditActions();
     const reportScrollManager = useReportScrollManager();
 

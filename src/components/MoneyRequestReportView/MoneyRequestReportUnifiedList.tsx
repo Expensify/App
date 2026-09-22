@@ -3,6 +3,8 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {usePendingScrollToEditingReportActionID, useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
+
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
@@ -270,6 +272,38 @@ function MoneyRequestReportUnifiedList({
         });
         return () => cancelAnimationFrame(rafId);
     }, [linkedReportActionID, initialScrollIndex, listRef]);
+
+    // A message put into edit mode from the composer (ArrowUp) can sit outside this list's render window, so its
+    // editor never mounts and never takes focus. This list owns the report-action-ID-to-data-index mapping, so the
+    // scroll happens here — same request the inbox `ReportActionsList` handles for the non-money-request view.
+    const pendingScrollToEditingReportActionID = usePendingScrollToEditingReportActionID();
+    const {clearPendingScrollToEditingAction} = useReportActionActiveEditActions();
+
+    // Derived at render so the effect keys on a stable number rather than the churning items array.
+    const pendingScrollToEditingActionIndex = pendingScrollToEditingReportActionID
+        ? visibleReportActions.findIndex((action) => action.reportActionID === pendingScrollToEditingReportActionID)
+        : -1;
+
+    useEffect(() => {
+        if (!pendingScrollToEditingReportActionID) {
+            return;
+        }
+
+        clearPendingScrollToEditingAction();
+
+        if (pendingScrollToEditingActionIndex < 0) {
+            return;
+        }
+
+        const dataIndex = pendingScrollToEditingActionIndex + reportActionIndexOffset;
+
+        // Already on screen, so its editor has mounted and taken focus — scrolling would only yank the user.
+        if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+            return;
+        }
+
+        listRef?.current?.scrollToIndex({index: dataIndex, animated: false});
+    }, [clearPendingScrollToEditingAction, pendingScrollToEditingReportActionID, pendingScrollToEditingActionIndex, reportActionIndexOffset, listRef]);
 
     // Scroll a newly-created transaction into view, once per transaction. The rows are virtualized, so the row can't
     // drive this itself (an off-window row never mounts) — the list scrolls to it by index/layout instead, which

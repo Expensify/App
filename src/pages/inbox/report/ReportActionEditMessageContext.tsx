@@ -29,8 +29,6 @@ type ReportActionActiveEdit = {
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
     currentEditMessageSelection: TextSelection | null;
     editingState: ReportActionEditMessageState;
-    /** The report action ID the report actions list still has to scroll into view, if any */
-    pendingScrollToEditingReportActionID: string | null;
 };
 
 type ReportActionEditMessageContextActions = {
@@ -51,8 +49,16 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     editingReportAction: null,
     editingMessage: null,
     currentEditMessageSelection: null,
-    pendingScrollToEditingReportActionID: null,
 });
+
+/**
+ * The report action ID the report actions list still has to scroll into view, if any.
+ *
+ * Deliberately its own context holding a bare ID rather than a field on the edit-state value above: that value is a
+ * fresh object on every keystroke and selection change, so a list subscribing to it would rebuild its props for the
+ * whole history while the user types. A primitive value only notifies consumers when the requested ID itself changes.
+ */
+const ReportActionPendingScrollToEditingActionContext = createContext<string | null>(null);
 
 const ReportActionEditMessageActionsContext = createContext<ReportActionEditMessageContextActions>({
     setEditingMessage: noop,
@@ -150,7 +156,6 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
         editingReportAction,
         editingMessage,
         currentEditMessageSelection,
-        pendingScrollToEditingReportActionID,
     };
 
     const actions: ReportActionEditMessageContextActions = {
@@ -164,7 +169,9 @@ function ReportActionEditMessageContextProvider({reportID, effectiveTransactionT
 
     return (
         <ReportActionEditMessageContext.Provider value={reportActionEditMessageContextValue}>
-            <ReportActionEditMessageActionsContext.Provider value={actions}>{children}</ReportActionEditMessageActionsContext.Provider>
+            <ReportActionEditMessageActionsContext.Provider value={actions}>
+                <ReportActionPendingScrollToEditingActionContext.Provider value={pendingScrollToEditingReportActionID}>{children}</ReportActionPendingScrollToEditingActionContext.Provider>
+            </ReportActionEditMessageActionsContext.Provider>
         </ReportActionEditMessageContext.Provider>
     );
 }
@@ -195,5 +202,16 @@ function useReportActionActiveEditActions() {
     return useContext(ReportActionEditMessageActionsContext);
 }
 
-export {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread, useReportActionActiveEdit, useReportActionActiveEditActions};
+/** Subscribes to scroll requests only, so the subscribing list is left alone while the user types in the editor. */
+function usePendingScrollToEditingReportActionID() {
+    return useContext(ReportActionPendingScrollToEditingActionContext);
+}
+
+export {
+    ReportActionEditMessageContextProvider,
+    ReportScreenEditMessageProviderWithTransactionThread,
+    useReportActionActiveEdit,
+    useReportActionActiveEditActions,
+    usePendingScrollToEditingReportActionID,
+};
 export type {ReportActionEditMessageState};
