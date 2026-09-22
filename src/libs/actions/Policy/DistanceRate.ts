@@ -21,36 +21,23 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalDetail} from '@libs/PersonalDetailsStore';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getRoom} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GovernmentMileageRate, Policy, PolicyEmployee, ReportAction, TransactionViolation} from '@src/types/onyx';
-import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
 import {generateCustomUnitID} from './Policy';
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policies) => (allPolicies = policies),
-});
-
-let sessionAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => (sessionAccountID = session?.accountID),
-});
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
@@ -665,15 +652,15 @@ type WorkArrangementMemberUpdate = {
 /**
  * Set the work arrangement (office-based or no regular workspace) for one or more policy members.
  * The single command covers both individual and bulk updates: employeeAccountIDList carries every
- * affected accountID, and one optimistic POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT action is
+ * affected accountID, and one optimistic member work arrangement changelog action is
  * created per member in the workspace admins room.
  */
-function setEmployeeWorkArrangement(policyID: string, employeeAccountIDList: number[], isOffice: boolean) {
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    const policy = allPolicies?.[policyKey];
-    if (!policy) {
+function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], isOffice: boolean) {
+    const policyID = policy?.id;
+    if (!policyID) {
         return;
     }
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const newLabel = isOffice ? 'office-based' : 'no regular workspace';
     const updates: WorkArrangementMemberUpdate[] = [];
@@ -683,7 +670,7 @@ function setEmployeeWorkArrangement(policyID: string, employeeAccountIDList: num
         if (!login) {
             continue;
         }
-        const employee = policy.employeeList?.[login];
+        const employee = policy?.employeeList?.[login];
         if (!employee) {
             continue;
         }
@@ -694,7 +681,7 @@ function setEmployeeWorkArrangement(policyID: string, employeeAccountIDList: num
         updates.push({
             accountID,
             email: login,
-            name: getDisplayNameOrDefault(personalDetail, login),
+            name: personalDetail?.displayName ?? login,
             previousHasOfficeWorkArrangement,
             optimisticReportActionID: rand64(),
         });
@@ -705,20 +692,18 @@ function setEmployeeWorkArrangement(policyID: string, employeeAccountIDList: num
     }
 
     const created = DateUtils.getDBTime();
-    const employeeListOptimisticUpdate = Object.fromEntries(
-        updates.map((update) => [update.email, {hasOfficeWorkArrangement: isOffice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}]),
-    );
-    const employeeListSuccessUpdate = Object.fromEntries(updates.map((update) => [update.email, {pendingAction: null}]));
-    const employeeListFailureUpdate = Object.fromEntries(
-        updates.map((update) => [
-            update.email,
-            {
-                ...(policy.employeeList?.[update.email] ?? {}),
-                pendingAction: null,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
-            },
-        ]),
-    );
+    const employeeListOptimisticUpdate: Record<string, Pick<PolicyEmployee, 'hasOfficeWorkArrangement' | 'pendingAction'>> = {};
+    const employeeListSuccessUpdate: Record<string, Pick<PolicyEmployee, 'pendingAction'>> = {};
+    const employeeListFailureUpdate: Record<string, PolicyEmployee> = {};
+    for (const update of updates) {
+        employeeListOptimisticUpdate[update.email] = {hasOfficeWorkArrangement: isOffice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+        employeeListSuccessUpdate[update.email] = {pendingAction: null};
+        employeeListFailureUpdate[update.email] = {
+            ...(policy?.employeeList?.[update.email] ?? {}),
+            pendingAction: null,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+        };
+    }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -742,11 +727,11 @@ function setEmployeeWorkArrangement(policyID: string, employeeAccountIDList: num
         },
     ];
 
-    const adminsRoom = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID);
+    const adminsRoom = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID);
     if (adminsRoom?.reportID) {
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsRoom.reportID}` as const;
         const optimisticReportActions: Record<string, ReportAction> = {};
-        const successReportActions: Record<string, {pendingAction: PendingAction | null}> = {};
+        const successReportActions: Record<string, Pick<ReportAction, 'pendingAction'>> = {};
         const failureReportActions: Record<string, null> = {};
         for (const update of updates) {
             const previousLabel = update.previousHasOfficeWorkArrangement ? 'office-based' : 'no regular workspace';
@@ -754,7 +739,6 @@ function setEmployeeWorkArrangement(policyID: string, employeeAccountIDList: num
             optimisticReportActions[update.optimisticReportActionID] = {
                 reportActionID: update.optimisticReportActionID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
-                actorAccountID: sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
                 created,
                 shouldShow: true,
                 automatic: false,
