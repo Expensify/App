@@ -2,7 +2,7 @@ import PaymentCardCurrencyHeader from '@components/AddPaymentCard/PaymentCardCur
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -94,7 +94,7 @@ function ChangeBillingCurrency() {
 
     return (
         <ScreenWrapper testID="ChangeBillingCurrency">
-            <HeaderWithBackButton title={translate('billingCurrency.changeBillingCurrency')} />
+            <HeaderWithBackButtonAndTitle title={translate('billingCurrency.changeBillingCurrency')} />
             <View style={styles.containerWithSpaceBetween}>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM}

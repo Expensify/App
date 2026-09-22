@@ -1,5 +1,5 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SubscriptionPlanDowngradeBlocked from '@components/SubscriptionPlanDowngradeBlocked';
 
@@ -32,7 +32,7 @@ function DynamicSubscriptionPlanDowngradeBlockedPage() {
             shouldEnableMaxHeight
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.common.planType')}
                     onBackButtonPress={onClosePress}
                 />

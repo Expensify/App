@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import Modal from '@components/Modal';
 import type {AnimationOut} from '@components/Modal/ReanimatedModal/types';
 import RenderHTML from '@components/RenderHTML';
@@ -76,15 +76,11 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                     animationOut={isSmallScreenWidth ? animationOut : undefined}
                     innerContainerStyle={isSmallScreenWidth ? {...safeAreaPaddingBottomStyle, maxHeight} : {...styles.workspaceSection, ...safeAreaPaddingBottomStyle, maxHeight}}
                 >
-                    <HeaderWithBackButton
-                        title={translate('subscription.compareModal.comparePlans')}
-                        shouldShowCloseButton={!isSmallScreenWidth}
-                        onCloseButtonPress={onClose}
-                        shouldShowBackButton={isSmallScreenWidth}
-                        onBackButtonPress={onClose}
-                        style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
-                        shouldDisplayHelpButton={false}
-                    />
+                    <Header style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}>
+                        {isSmallScreenWidth && <Header.BackButton onPress={onClose} />}
+                        <Header.Title title={translate('subscription.compareModal.comparePlans')} />
+                        <Header.Right>{!isSmallScreenWidth && <Header.CloseButton onPress={onClose} />}</Header.Right>
+                    </Header>
                     <ScrollView>{renderPlans()}</ScrollView>
                 </Modal>
             )}

@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -67,7 +67,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     return (
         <ScreenWrapper testID="DynamicReportSettingsPage">
             <FullPageNotFoundView shouldShow={shouldDisableSettings}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.settings')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />

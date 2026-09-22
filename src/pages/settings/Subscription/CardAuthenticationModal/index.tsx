@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import LoadingIndicator from '@components/LoadingIndicator';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -88,15 +88,11 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                 includeSafeAreaPaddingBottom={false}
                 testID="CardAuthenticationModal"
             >
-                <HeaderWithBackButton
-                    title={headerTitle}
-                    shouldShowBorderBottom
-                    shouldShowCloseButton={!isSmallScreenWidth}
-                    onCloseButtonPress={onModalClose}
-                    shouldShowBackButton={isSmallScreenWidth}
-                    onBackButtonPress={onModalClose}
-                    shouldDisplayHelpButton={false}
-                />
+                <Header style={styles.borderBottom}>
+                    {isSmallScreenWidth && <Header.BackButton onPress={onModalClose} />}
+                    <Header.Title title={headerTitle ?? ''} />
+                    <Header.Right>{!isSmallScreenWidth && <Header.CloseButton onPress={onModalClose} />}</Header.Right>
+                </Header>
                 <View style={[styles.flex1]}>
                     <iframe
                         src={authenticationLink}

@@ -2,7 +2,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarPageFooter from '@components/AvatarPageFooter';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -152,7 +152,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('editAgentAvatarPage.title')}
                 onBackButtonPress={() => Navigation.goBack(fallbackRoute)}
             />

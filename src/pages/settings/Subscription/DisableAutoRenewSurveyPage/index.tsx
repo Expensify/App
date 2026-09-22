@@ -1,5 +1,5 @@
 import FeedbackSurvey from '@components/FeedbackSurvey';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -31,7 +31,7 @@ function DisableAutoRenewSurveyPage() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('subscription.subscriptionSettings.disableAutoRenew')}
                 onBackButtonPress={Navigation.goBack}
             />
