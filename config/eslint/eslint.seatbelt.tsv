@@ -1166,7 +1166,6 @@
 "../../src/pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/ShareBankAccount/ShareBankAccount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
