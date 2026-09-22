@@ -460,9 +460,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
-        // This should only run when the user confirms the selection. setMobileSelectionModeEnabled is left out of the
-        // dependencies below because it changes on every render, which would run this again straight away.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
 
     useEffect(
