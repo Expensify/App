@@ -25,20 +25,9 @@ type AddExistingExpenseTableProps = Pick<
     data: UnreportedExpenseTableRowData[];
     selectedKeys: string[];
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    isMobileSelectionModeEnabled: boolean;
-    onMobileSelectionModeChange: (isEnabled: boolean) => void;
 };
 
-function AddExistingExpenseTable({
-    data,
-    selectedKeys,
-    onRowSelectionChange,
-    isMobileSelectionModeEnabled,
-    onMobileSelectionModeChange,
-    onEndReached,
-    onEndReachedThreshold,
-    ListFooterComponent,
-}: AddExistingExpenseTableProps) {
+function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEndReached, onEndReachedThreshold, ListFooterComponent}: AddExistingExpenseTableProps) {
     const {translate, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -136,8 +125,6 @@ function AddExistingExpenseTable({
             shouldFooterRenderAsLastRow
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
-            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-            onMobileSelectionModeChange={onMobileSelectionModeChange}
             initialSortColumn="date"
             initialSortOrder={CONST.SEARCH.SORT_ORDER.DESC}
             compareItems={compareItems}

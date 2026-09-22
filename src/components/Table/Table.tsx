@@ -274,8 +274,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
-    isMobileSelectionModeEnabled,
-    onMobileSelectionModeChange,
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
     onRowSelectionChange,
@@ -284,18 +282,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
-    const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
-    // The app wide selection mode is shared with every other screen, so an unrelated screen can turn it off while this
-    // table is still using it. A table that passes its own mode in keeps it to itself instead.
-    const isMobileSelectionModeControlled = !!onMobileSelectionModeChange;
-    const isMobileSelectionEnabled = isMobileSelectionModeControlled ? !!isMobileSelectionModeEnabled : isGlobalMobileSelectionEnabled;
+    const isMobileSelectionEnabled = useMobileSelectionMode();
 
     const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
-        if (isMobileSelectionModeControlled) {
-            onMobileSelectionModeChange(isEnabled);
-            return;
-        }
-
         if (isEnabled) {
             turnOnMobileSelectionMode();
             return;

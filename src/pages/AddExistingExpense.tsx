@@ -12,12 +12,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -74,9 +76,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     // The table enables selection in this narrow pane modal off the real screen size, so the header has to match it.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    // This page keeps the selection mode to itself rather than using the app wide one, which the report behind this
-    // modal also reads and would turn off while the user is still picking expenses.
-    const [isMobileSelectionModeEnabled, setIsMobileSelectionModeEnabled] = useState(false);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const shouldShowSelectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const transactionsSelector = useCallback(
@@ -212,7 +212,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 onBackButtonPress={() => {
                     if (shouldShowSelectionModeHeader) {
                         setSelectedIds([]);
-                        setIsMobileSelectionModeEnabled(false);
+                        turnOffMobileSelectionMode();
                         return;
                     }
                     Navigation.goBack();
@@ -223,8 +223,6 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                     data={unreportedExpenses}
                     selectedKeys={selectedIds}
                     onRowSelectionChange={onRowSelectionChange}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    onMobileSelectionModeChange={setIsMobileSelectionModeEnabled}
                     onEndReached={fetchMoreUnreportedTransactions}
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={paginationFooterContent}

@@ -200,16 +200,6 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
          */
         shouldEnableSelectionInNarrowPaneModal?: boolean;
 
-        /**
-         * Whether the mobile selection mode is enabled. Pass this together with `onMobileSelectionModeChange` to keep the
-         * mode local to this table. Tables that leave both undefined share the app wide selection mode instead, which
-         * other screens can read and turn off.
-         */
-        isMobileSelectionModeEnabled?: boolean;
-
-        /** Callback fired when the table turns the mobile selection mode on or off. See `isMobileSelectionModeEnabled`. */
-        onMobileSelectionModeChange?: (isEnabled: boolean) => void;
-
         /** Whether the selection survives a change to the search string or the filters, e.g. when rows are confirmed in one batch. */
         shouldPreserveSelectionOnSearchAndFilter?: boolean;
 
