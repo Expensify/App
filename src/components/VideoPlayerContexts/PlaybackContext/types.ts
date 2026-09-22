@@ -20,7 +20,7 @@ type StopVideo = () => void;
  * Represents the original parent container of the video element.
  * Can be a React Native View, an HTML div, or null if not set.
  */
-type OriginalParent = View | HTMLDivElement | null;
+type OriginalParent = ComponentRef<typeof View> | HTMLDivElement | null;
 
 /**
  * Metadata describing a video element instance.

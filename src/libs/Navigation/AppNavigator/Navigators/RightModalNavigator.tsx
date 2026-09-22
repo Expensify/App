@@ -162,7 +162,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [containerNode, setContainerNode] = useState<View | null>(null);
+    const [containerNode, setContainerNode] = useState<React.ComponentRef<typeof View> | null>(null);
     const [setContainerNodeFromRef] = useState(() => (node: React.ComponentRef<typeof View> | null) => {
         setContainerNode(node);
     });
