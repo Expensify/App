@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, move to report, Auto report, company card expenses, multiple submitters, bulk move expenses]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -80,6 +80,25 @@ Each row represents an expense and includes:
    - An existing draft or submitted report
    - Remove from report 
 4. The expense is moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
+
+## How to move company card expenses that belong to more than one submitter
+
+When your selection includes company card expenses from two or more submitters, Expensify can't offer one person's reports as a destination for everyone else's expenses. Instead, **Move to report** offers a single option, **Auto report**, which files each expense for its own submitter.
+
+1. On the **Spend** page, select the expenses using the checkboxes.
+2. Click **Move to report** from the bulk action menu.
+3. In the right-hand panel, click **Auto report**.
+
+Each expense is added to its submitter's most recent draft report. If a submitter has no draft report, Expensify creates one for them. The right-hand panel closes and your selection clears.
+
+## What to know before using Auto report
+
+- **Auto report** appears only when your selection spans more than one submitter. When every expense belongs to the same submitter, you get the usual list of reports plus **Create report** instead.
+- Every expense in the selection must be a company card expense, including Expensify Card expenses. **Move to report** is hidden when the selection spans submitters and any expense isn't on a company card.
+- Per diem, manual distance, and odometer distance expenses can't be moved this way, because their rates and mileage rules depend on the destination workspace.
+- **Auto report** requires an internet connection. If you're offline, Expensify tells you that you can't take this action right now.
+- You can't choose the destination reports yourself. To move expenses into a specific report, select one submitter's expenses at a time.
+- If the move fails, an error appears on the affected expenses.
 
 ## How to add a new expense to the table
 - The expense appears in the table.  
@@ -203,6 +222,12 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
+
+## Why is Auto report the only option when I move expenses?
+Your selection includes company card expenses from more than one submitter. Any report Expensify listed would belong to a single submitter, so **Auto report** is offered instead. It adds each expense to its own submitter's most recent draft report, or creates a report for that submitter if they don't have one. To pick a destination report yourself, move one submitter's expenses at a time.
+
+## Why don't I see Move to report for my selection?
+When your selection spans more than one submitter, every expense must be a company card expense, and per diem, manual distance, and odometer distance expenses aren't supported. If any expense in the selection doesn't qualify, **Move to report** is hidden.
 
 ## Why can't I change the total spend currency?
 The currency picker is only disabled in two cases: when you're offline, or while the totals are still loading. Both happen because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it.
