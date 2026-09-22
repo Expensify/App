@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import GpsDraftDetailsRefSync from '@components/GpsDraftDetailsRefSync';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -24,11 +25,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
+import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 /**
@@ -59,7 +61,8 @@ function RequireTwoFactorAuthenticationOverlay() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-    const {signOut, leaveDelegateAccount, isActingAsDelegate} = useSignOut();
+    const {signOut, leaveDelegateAccount, isActingAsDelegate, isTrackingGPS} = useSignOut();
+    const gpsDraftDetailsRef = useRef<GpsDraftDetails | undefined>(undefined);
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -103,6 +106,7 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     return (
         <FocusTrapForModal active>
+            {isActingAsDelegate && isTrackingGPS && <GpsDraftDetailsRefSync gpsDraftDetailsRef={gpsDraftDetailsRef} />}
             <View
                 style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
                 testID="RequireTwoFactorAuthenticationOverlay"
@@ -126,7 +130,7 @@ function RequireTwoFactorAuthenticationOverlay() {
                             <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
                                 <Button
                                     size={CONST.BUTTON_SIZE.LARGE}
-                                    onPress={isActingAsDelegate ? () => leaveDelegateAccount() : () => signOut({shouldAlwaysConfirm: true})}
+                                    onPress={isActingAsDelegate ? () => leaveDelegateAccount({gpsDraftDetails: gpsDraftDetailsRef.current}) : () => signOut({shouldAlwaysConfirm: true})}
                                 >
                                     <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
                                 </Button>

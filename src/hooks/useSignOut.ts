@@ -15,11 +15,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
-
-import type {OnyxKey, OnyxValue} from 'react-native-onyx';
+import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 
 import {stopLocationUpdatesAsync} from 'expo-location';
-import Onyx from 'react-native-onyx';
 
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
@@ -31,22 +29,10 @@ type SignOutOptions = {
     shouldAlwaysConfirm?: boolean;
 };
 
-/**
- * Onyx has no promise-based read. GPS points are only needed after the user confirms leaving a delegated
- * account during an active trip (async post-modal callback), so useOnyx cannot supply them without
- * subscribing to the full GPS_DRAFT_DETAILS object and re-rendering Settings on every location tick.
- */
-function readOnce<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>> {
-    return new Promise((resolve) => {
-        const connection = Onyx.connectWithoutView({
-            key,
-            callback: (value) => {
-                Onyx.disconnect(connection);
-                resolve(value);
-            },
-        });
-    });
-}
+type LeaveDelegateAccountOptions = {
+    /** GPS draft details from a ref synced by GpsDraftDetailsRefSync; required when leaving during an active trip. */
+    gpsDraftDetails?: GpsDraftDetails;
+};
 
 function useSignOut() {
     const {translate} = useLocalize();
@@ -156,7 +142,7 @@ function useSignOut() {
         signOutAndRedirectToSignIn();
     };
 
-    const leaveDelegateAccount = async () => {
+    const leaveDelegateAccount = async ({gpsDraftDetails}: LeaveDelegateAccountOptions = {}) => {
         if (isOffline) {
             showOfflineModal();
             return;
@@ -186,7 +172,6 @@ function useSignOut() {
             if (gpsResult.action !== ModalActions.CONFIRM) {
                 return;
             }
-            const gpsDraftDetails = await readOnce(ONYXKEYS.GPS_DRAFT_DETAILS);
             await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
         }
 
@@ -198,6 +183,7 @@ function useSignOut() {
         signOutImmediately,
         leaveDelegateAccount,
         isActingAsDelegate,
+        isTrackingGPS,
     };
 }
 

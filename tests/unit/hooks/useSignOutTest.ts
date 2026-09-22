@@ -16,21 +16,10 @@ import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 
-import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
-
-import Onyx from 'react-native-onyx';
-
 const mockShowConfirmModal = jest.fn();
 const mockTranslate = jest.fn((key: string) => key);
 
 let mockIsOffline = false;
-
-const mockOnyxConnection = {id: 'mock-connection', callbackID: 'mock-callback-id'};
-
-function mockConnectWithoutViewImplementation(connectOptions: ConnectOptions<OnyxKey>) {
-    connectOptions.callback?.(undefined, connectOptions.key);
-    return mockOnyxConnection;
-}
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
@@ -51,19 +40,6 @@ jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
-
-jest.mock('react-native-onyx', () => {
-    const actual = jest.requireActual<{default: typeof Onyx}>('react-native-onyx');
-    return {
-        ...actual,
-        __esModule: true,
-        default: {
-            ...actual.default,
-            connectWithoutView: jest.fn(mockConnectWithoutViewImplementation),
-            disconnect: jest.fn(),
-        },
-    };
-});
 
 jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
@@ -97,8 +73,6 @@ jest.mock('@pages/iou/request/step/IOURequestStepDistanceGPS/const', () => ({
 }));
 
 const mockUseOnyx = jest.mocked(useOnyx);
-const mockConnectWithoutView = jest.mocked(Onyx.connectWithoutView);
-const mockOnyxDisconnect = jest.mocked(Onyx.disconnect);
 const mockSignOutAndRedirectToSignIn = jest.mocked(signOutAndRedirectToSignIn);
 const mockDelegateDisconnect = jest.mocked(disconnect);
 const mockGetSaveablePendingReceiptRequests = jest.mocked(getSaveablePendingReceiptRequests);
@@ -113,6 +87,14 @@ type MockOnyxState = {
 };
 
 const loadedOnyxMetadata = {status: 'loaded'} as const;
+
+const mockGpsDraftDetails: GpsDraftDetails = {
+    gpsPoints: [[{lat: 1, long: 2}]],
+    distanceInMeters: 0,
+    isTracking: true,
+    reportID: '1',
+    unit: 'mi',
+};
 
 function mockOnyxState({isTrackingGPS = false, isActingAsDelegate = false, stashedCredentials = {}, stashedSession = {email: 'copilot@expensify.com'}}: MockOnyxState = {}) {
     mockUseOnyx.mockImplementation((key, options) => {
@@ -144,7 +126,6 @@ describe('useSignOut', () => {
         jest.clearAllMocks();
         mockIsOffline = false;
         mockOnyxState();
-        mockConnectWithoutView.mockImplementation(mockConnectWithoutViewImplementation);
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
     });
 
@@ -242,36 +223,15 @@ describe('useSignOut', () => {
     it('should show GPS switch-account warning before disconnecting from a delegated account', async () => {
         // Given a copilot is leaving while a GPS trip is in progress
         mockOnyxState({isActingAsDelegate: true, isTrackingGPS: true});
-        mockConnectWithoutView.mockImplementation((connectOptions) => {
-            if (connectOptions.key === ONYXKEYS.GPS_DRAFT_DETAILS) {
-                const gpsDraftDetails: GpsDraftDetails = {
-                    gpsPoints: [[{lat: 1, long: 2}]],
-                    distanceInMeters: 0,
-                    isTracking: true,
-                    reportID: '1',
-                    unit: 'mi',
-                };
-                connectOptions.callback?.(gpsDraftDetails, connectOptions.key);
-            } else {
-                connectOptions.callback?.(undefined, connectOptions.key);
-            }
-            return mockOnyxConnection;
-        });
 
         const {result} = renderHook(() => useSignOut());
 
-        // When they confirm leaving the delegated account
+        // When they confirm leaving the delegated account with GPS draft details from the overlay ref
         await act(async () => {
-            await result.current.leaveDelegateAccount();
+            await result.current.leaveDelegateAccount({gpsDraftDetails: mockGpsDraftDetails});
         });
 
-        // Then GPS points are read at call time and the trip is stopped before disconnect
-        expect(mockConnectWithoutView).toHaveBeenCalledWith(
-            expect.objectContaining({
-                key: ONYXKEYS.GPS_DRAFT_DETAILS,
-            }),
-        );
-        expect(mockOnyxDisconnect).toHaveBeenCalled();
+        // Then the GPS switch-account warning appears and the trip is stopped before disconnect
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: 'gps.switchAccountWarningTripInProgress.title',
