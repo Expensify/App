@@ -43,7 +43,6 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
     const shouldResolveReportID = !routeReportID && !reportIdFromPath && !isTransitioning;
 
     const {lastAccessedReportID} = useFindLastAccessedReport({
-        openOnAdminRoom: isOpenOnAdminRoom,
         enabled: shouldResolveReportID,
     });
 
