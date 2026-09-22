@@ -18,7 +18,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-import type {MouseEvent} from 'react';
+import type {ComponentRef, MouseEvent} from 'react';
 
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
@@ -30,7 +30,7 @@ const Stack = createPlatformStackNavigator<TestToolsModalModalNavigatorParamList
 function TestToolsModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const outerViewRef = useRef<View>(null);
+    const outerViewRef = useRef<ComponentRef<typeof View>>(null);
     const isAuthenticated = useIsAuthenticated();
 
     const handleOuterClick = useCallback(() => {

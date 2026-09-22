@@ -57,7 +57,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode, Ref} from 'react';
+import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -90,7 +90,7 @@ type NoIcon = {
 type MenuItemBaseProps = ForwardedFSClassProps &
     WithSentryLabel &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
-        ref?: PressableRef | Ref<View>;
+        ref?: PressableRef | Ref<ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
         interactive?: boolean;
 
@@ -573,8 +573,8 @@ function MenuItem({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
-    const popoverAnchor = useRef<View>(null);
-    const pressableRef = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
     const deviceHasHoverSupport = hasHoverSupport();
     const isCompactMenu = useIsCompactMenu();
@@ -872,19 +872,9 @@ function MenuItem({
                                                             />
                                                         ) : (
                                                             <ReportAvatar
-                                                                subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(
-                                                                    isHovered,
-                                                                    pressed,
-                                                                    theme.hoverComponentBG,
-                                                                    theme.buttonHoveredBG,
-                                                                )}
+                                                                backdropColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                                                 size={avatarSize}
-                                                                secondaryAvatarContainerStyle={[
-                                                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                                    pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
-                                                                    isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
-                                                                ]}
                                                                 reportID={iconReportID}
                                                             />
                                                         ))}
@@ -1107,7 +1097,7 @@ function MenuItem({
                                                             />
                                                         ) : (
                                                             <ReportAvatar
-                                                                subscriptAvatarBorderColor={isHovered ? theme.activeComponentBG : theme.componentBG}
+                                                                backdropColor={isHovered ? theme.activeComponentBG : theme.componentBG}
                                                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr2]}
                                                                 reportID={rightIconReportID}
                                                                 size={CONST.AVATAR_SIZE.SMALL}

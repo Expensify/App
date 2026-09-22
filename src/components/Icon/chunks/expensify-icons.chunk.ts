@@ -1,6 +1,7 @@
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
+import ApplePayMark from '@assets/images/apple-pay-mark.svg';
 import Apple from '@assets/images/apple.svg';
 import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
@@ -37,6 +38,7 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
 import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
@@ -68,6 +70,7 @@ import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
+import Contactless from '@assets/images/contactless.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
@@ -135,9 +138,13 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import BusinessCentralSquare from '@assets/images/integrationicons/business-central-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
+import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import ClaudeSquare from '@assets/images/integrationicons/claude-icon-square.svg';
+import CursorSquare from '@assets/images/integrationicons/cursor-icon-square.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
@@ -204,6 +211,7 @@ import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
+import PieChart from '@assets/images/pie-chart.svg';
 import Pin from '@assets/images/pin.svg';
 import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
@@ -330,8 +338,10 @@ const Expensicons = {
     Bug,
     Building,
     Buildings,
+    BusinessCentralSquare,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
     CarPlus,
     Cash,
@@ -468,6 +478,7 @@ const Expensicons = {
     Pencil,
     Percent,
     Phone,
+    PieChart,
     Pin,
     Play,
     Plus,
@@ -528,6 +539,9 @@ const Expensicons = {
     Wrench,
     XeroSquare,
     GustoSquare,
+    ChatGPTSquare,
+    ClaudeSquare,
+    CursorSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -592,6 +606,8 @@ const Expensicons = {
     TreasureChestGreenWithSparkle,
     UserShield,
     Compass,
+    ApplePayMark,
+    Contactless,
     CampfireSquare,
 };
 

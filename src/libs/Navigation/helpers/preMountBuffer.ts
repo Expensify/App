@@ -9,6 +9,7 @@ import {CommonActions, TabActions} from '@react-navigation/native';
 import {DeviceEventEmitter} from 'react-native';
 
 import hasNativeSwipeBackGesture from './hasNativeSwipeBackGesture';
+import {isPreMountBufferHostName} from './isNavigatorName';
 
 // Always set and cleared together - the route name is only meaningful while the flag is true.
 let isFullscreenPreInsertedUnderRHP = false;
@@ -123,8 +124,7 @@ function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.ge
     }
     const rhpRoute = stateAfter.routes.at(-1);
     const bufferRoute = stateAfter.routes.at(-2);
-    const isTopModalBufferHost = rhpRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || rhpRoute?.name === NAVIGATORS.SHARE_MODAL_NAVIGATOR;
-    if (!isTopModalBufferHost || bufferRoute?.name !== SCREENS.PRE_MOUNT_BUFFER) {
+    if (!isPreMountBufferHostName(rhpRoute?.name) || bufferRoute?.name !== SCREENS.PRE_MOUNT_BUFFER) {
         return;
     }
 
@@ -175,11 +175,14 @@ function removeBufferRouteOnly() {
  *
  * Defaults to true (assume dismissible) when the state can't be read, so the buffer never gets
  * silently skipped on uncertain data.
+ *
+ * The Share modal is a flat stack, so the nested probe below only sees a depth when a focused Share screen
+ * renders its own navigator. A pre-insert from a Share screen with inner tabs would then skip the buffer.
  */
 function canNativeSwipeDismissRHP(): boolean {
     const rootState = navigationRef.getRootState();
     const rhpRoute = rootState?.routes.at(-1);
-    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (!isPreMountBufferHostName(rhpRoute?.name)) {
         return true;
     }
 
@@ -238,9 +241,9 @@ function removePreInsertedFullscreenIfNeeded() {
     }
 
     const topRoute = rootState.routes.at(-1);
-    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    const isModalHostStillOnTop = isPreMountBufferHostName(topRoute?.name);
 
-    if (isRHPStillOnTop && routeNameToRemove) {
+    if (isModalHostStillOnTop && routeNameToRemove) {
         // Call this before dispatching below, so its listener teardown happens before this dispatch
         // can trigger it.
         removeBufferRouteOnly();

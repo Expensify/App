@@ -44,6 +44,7 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -117,7 +118,6 @@ function SecondaryOverlay() {
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
-const loadBetaOverridesPage = () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/BetaOverridesPage').default;
 
 type RightModalDialogFrameProps = {
     /** Whether the RHP container should carry dialog semantics (role=dialog + aria-modal) — true on wide layout. */
@@ -127,7 +127,7 @@ type RightModalDialogFrameProps = {
     style: React.ComponentProps<typeof Animated.View>['style'];
 
     /** Callback ref for the container node so the provider can observe node identity changes. */
-    onContainerRef: (node: View | null) => void;
+    onContainerRef: (node: ComponentRef<typeof View> | null) => void;
 
     /** RHP stack navigator rendered inside the dialog frame. */
     children: React.ReactNode;
@@ -163,8 +163,8 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [containerNode, setContainerNode] = useState<View | null>(null);
-    const [setContainerNodeFromRef] = useState(() => (node: View | null) => {
+    const [containerNode, setContainerNode] = useState<ComponentRef<typeof View> | null>(null);
+    const [setContainerNodeFromRef] = useState(() => (node: ComponentRef<typeof View> | null) => {
         setContainerNode(node);
     });
     const isExecutingRef = useRef<boolean>(false);
@@ -478,10 +478,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
                                 getComponent={loadSearchSavePage}
                                 options={modalStackScreenOptions}
-                            />
-                            <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.BETA_OVERRIDES}
-                                getComponent={loadBetaOverridesPage}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}

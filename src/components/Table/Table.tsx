@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import Modal from '@components/Modal';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getPlatform from '@libs/getPlatform';
 import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
@@ -268,18 +268,30 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInFilter,
     isItemInSearch,
     initialSortColumn,
+    initialSortOrder,
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
-    shouldPreserveSelectionOnSearch,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
+    shouldPreserveSelectionOnSearchAndFilter,
+    shouldFooterRenderAsLastRow,
     onRowSelectionChange,
     onSearchStringChange,
+    onSortingChange,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
     const isMobileSelectionEnabled = useMobileSelectionMode();
+
+    const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
+        if (isEnabled) {
+            turnOnMobileSelectionMode();
+            return;
+        }
+
+        turnOffMobileSelectionMode();
+    };
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
@@ -304,8 +316,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     } = useSorting<DataType, ColumnKey>({
         compareItems,
         initialSortColumn,
+        initialSortOrder,
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
+        onSortingChange,
     });
     const sortedData = sortMiddleware(searchedData);
 
@@ -321,7 +335,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectedKeys,
         onRowSelectionChange,
         shouldEnableSelectionInNarrowPaneModal,
-        shouldPreserveSelectionOnSearch,
+        isSelectionModeEnabled: isMobileSelectionEnabled,
+        setSelectionModeEnabled: setMobileSelectionModeEnabled,
+        shouldPreserveSelectionOnSearchAndFilter,
     });
     const selectionData = selectionMiddleware(sortedData);
 
@@ -441,7 +457,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
             return;
         }
 
-        turnOnMobileSelectionMode();
+        setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
@@ -474,6 +490,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         activeFilters: currentFilters,
         activeSorting,
         initialSortColumn,
+        initialSortOrder: initialSortOrder ?? CONST.SEARCH.SORT_ORDER.ASC,
         narrowLayoutSortColumn,
         activeSearchString,
         tableMethods,
@@ -483,6 +500,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         isDefaultViewEmpty,
         shouldUseNarrowTableLayout,
+        shouldFooterRenderAsLastRow,
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
         isMobileSelectionEnabled,
@@ -531,11 +549,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 }}
             >
                 <View style={bottomSafeAreaPaddingStyle}>
-                    <MenuItem
+                    <MenuItemAction
                         icon={icons.CheckSquare}
                         title={translate('common.select')}
                         onPress={handleMobileSelectionPress}
-                        pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                     />
                 </View>
             </Modal>
