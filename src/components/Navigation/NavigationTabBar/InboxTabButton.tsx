@@ -7,7 +7,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -18,7 +17,7 @@ import React from 'react';
 
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
-import useWideInboxNavigation from './useWideInboxNavigation';
+import useWideInboxNavigation, {startNavigateToInboxTabSpan} from './useWideInboxNavigation';
 
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -32,8 +31,8 @@ type WideInboxTabButtonProps = {
 };
 
 // The last-viewed report deep link only exists in the wide layout, so the report and report-action
-// Onyx subscriptions live here and are only created when the wide layout is rendered. In the narrow
-// layout tapping Inbox always routes to ROUTES.INBOX, so these subscriptions are never set up.
+// Onyx subscriptions live in the hook and are only created when the wide layout is rendered. In the
+// narrow layout tapping Inbox always routes to ROUTES.INBOX, so these subscriptions are never set up.
 function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLabel}: WideInboxTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -93,12 +92,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             return;
         }
 
-        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
-            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-            forceTransaction: true,
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: false},
-        });
+        startNavigateToInboxTabSpan({isWideLayout: false});
         Navigation.navigate(ROUTES.INBOX);
     };
 

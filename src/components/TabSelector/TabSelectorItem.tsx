@@ -52,6 +52,7 @@ function TabSelectorItem({
     badgeText,
     isBadgeCondensed = false,
     badgeStyles,
+    isBadgeError = false,
     isDisabled = false,
     disabledAction,
     pendingAction,
@@ -119,7 +120,8 @@ function TabSelectorItem({
                     <View style={styles.ml2}>
                         <Badge
                             text={badgeText}
-                            success
+                            success={!isBadgeError}
+                            error={isBadgeError}
                             isCondensed={isBadgeCondensed}
                             badgeStyles={[badgeStyles, styles.ml0]}
                         />

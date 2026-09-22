@@ -15,6 +15,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
@@ -35,6 +37,8 @@ const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+const TOOLTIP_HORIZONTAL_MARGIN = 48;
 
 function InboxTabSelector() {
     const {translate} = useLocalize();
@@ -54,14 +58,15 @@ function InboxTabSelector() {
     );
 
     // Anchor the popover to the tab it was opened from (not the whole tab row) so it opens at that tab's left edge.
-    const allTabRef = useRef<View | HTMLDivElement>(null);
-    const unreadTabRef = useRef<View | HTMLDivElement>(null);
-    const todoTabRef = useRef<View | HTMLDivElement>(null);
+    const allTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
+    const unreadTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
+    const todoTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const tabRefs = {
         [CONST.INBOX_TAB.ALL]: allTabRef,
         [CONST.INBOX_TAB.UNREAD]: unreadTabRef,
         [CONST.INBOX_TAB.TODO]: todoTabRef,
     };
+    const {windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -142,6 +147,8 @@ function InboxTabSelector() {
                 },
                 shiftVertical: 8,
                 wrapperStyle: styles.productTrainingTooltipWrapper,
+                computeHorizontalShiftForNative: true,
+                maxWidth: windowWidth - TOOLTIP_HORIZONTAL_MARGIN,
             },
         },
         {

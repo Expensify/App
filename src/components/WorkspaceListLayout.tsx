@@ -8,6 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearLastVisitedMoreDestination} from '@libs/MoreDestinationHistory';
 import Navigation from '@libs/Navigation/Navigation';
 
+import useDomainsTabBadge from '@pages/home/ForYouSection/useDomainsTabBadge';
+
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -43,6 +45,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
+    const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -57,6 +60,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             icon: icons.Globe,
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
+            badgeText: domainsBadgeText,
+            isBadgeCondensed: true,
+            isBadgeError: hasDomainErrors,
         },
     ];
 

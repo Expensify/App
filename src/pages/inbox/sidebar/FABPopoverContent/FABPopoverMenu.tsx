@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-import type {ActivityProps, RefObject} from 'react';
+import type {ActivityProps, ComponentRef, RefObject} from 'react';
 
 import React, {Activity, useState} from 'react';
 import {View} from 'react-native';
@@ -37,7 +37,7 @@ type FABPopoverMenuProps = {
     isVisible: boolean;
     onClose: () => void;
     onItemSelected: () => void;
-    anchorRef: RefObject<View | HTMLDivElement | null>;
+    anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
     animationInTiming?: number;
     animationOutTiming?: number;
 

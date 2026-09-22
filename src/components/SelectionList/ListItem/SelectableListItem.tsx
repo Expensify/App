@@ -21,12 +21,10 @@ function SelectableListItem<TItem extends ListItem>({
     onSelectRow,
     isDisabled = false,
     children,
-    rightHandSideComponent,
     isFocused,
     isSelected,
     showTooltip,
     wrapperStyle,
-    testID,
     forwardedFSClass,
     pressableStyle,
     pressableWrapperStyle,
@@ -81,7 +79,6 @@ function SelectableListItem<TItem extends ListItem>({
             shouldUseOptionRole={shouldUseOptionRole}
         >
             <View
-                testID={testID}
                 style={wrapperStyle}
                 fsClass={forwardedFSClass}
             >
@@ -89,7 +86,7 @@ function SelectableListItem<TItem extends ListItem>({
                 {children}
                 {shouldShowRBRIndicator(item, isSelected) && <ListItemComposed.RBRIndicator item={item} />}
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
-                {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
+                {item.actionElement}
             </View>
         </ListItemComposed>
     );

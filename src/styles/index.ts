@@ -47,6 +47,7 @@ import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
 import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
+import scrollbarGutterStable from './utils/scrollbarGutterStable';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
@@ -1723,7 +1724,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
-        },
+        } satisfies ViewStyle & {transformOrigin?: string},
 
         textInputLabel: {
             fontSize: fontScale.text,
@@ -3437,7 +3438,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         flipUpsideDown: {
-            transform: `rotate(180deg)`,
+            transform: [{rotate: '180deg'}],
         },
 
         navigationScreenCardStyle: {
@@ -4336,7 +4337,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemButton: {
-            minWidth: 68,
+            minWidth: variables.widgetItemButtonMinWidth,
         },
 
         gettingStartedRowIconContainer: {
@@ -4427,6 +4428,11 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
+        },
+
+        // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
+        homePageScrollView: {
+            ...scrollbarGutterStable,
         },
 
         cardSectionIllustration: {
@@ -4932,12 +4938,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         taskRightIconContainer: {
-            width: variables.componentSizeNormal,
+            width: variables.iconSizeNormal,
             marginLeft: 'auto',
-            ...spacing.mt1,
             ...pointerEventsAuto,
             ...display.dFlex,
-            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
         },
 
         shareCodeContainer: {
@@ -5286,16 +5292,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         rotate90: {
-            transform: 'rotate(90deg)',
+            transform: [{rotate: '90deg'}],
         },
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() && !isMobile() && {transform: [{scale: 0.5}], fontSize: 22, overflow: 'visible'}),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
-                    transform: 'scale(0.7)',
+                    transform: [{scale: 0.7}],
                     fontSize: 13,
                     lineHeight: 15,
                     overflow: 'visible',
@@ -7243,7 +7249,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
@@ -7538,6 +7544,8 @@ const plainStyles = (theme: ThemeColors) =>
                 color,
             }) satisfies TextStyle,
 
+        getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
+
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: 'row',
@@ -7575,6 +7583,14 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
+        conciergePromptBoxPlaceholderSkeleton: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: variables.composerTextInputPaddingLeft,
+            justifyContent: 'center',
+        },
+
         widgetItemIconContainer: {
             alignItems: 'center',
             justifyContent: 'center',
@@ -7608,6 +7624,32 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        insightsDashboardLayout: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsChartGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'stretch',
+            marginHorizontal: -variables.insightsCardGap / 2,
+            marginVertical: -variables.insightsCardGap / 2,
+        } satisfies ViewStyle,
+
+        insightsChartGridCell: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
+                padding: variables.insightsCardGap / 2,
+            }) satisfies ViewStyle,
+
+        insightsEmptyStateIllustration: {
+            width: variables.insightsEmptyStateIllustrationSize,
+            height: variables.insightsEmptyStateIllustrationSize,
+        } satisfies ImageStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

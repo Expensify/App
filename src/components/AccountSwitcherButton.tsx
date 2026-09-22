@@ -27,6 +27,8 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import type {ComponentRef} from 'react';
+
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
@@ -69,7 +71,7 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const delegators = account?.delegatedAccess?.delegators ?? [];
     const personalDetailsByLogin = usePersonalDetailsByLogins([delegate, ...delegators.map((delegator) => delegator.email)]);
 
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
 
