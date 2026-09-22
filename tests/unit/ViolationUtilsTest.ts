@@ -508,6 +508,7 @@ describe('getViolationsOnyxData', () => {
             };
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
@@ -535,6 +536,7 @@ describe('getViolationsOnyxData', () => {
             };
 
             const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
                 transactionViolations,
