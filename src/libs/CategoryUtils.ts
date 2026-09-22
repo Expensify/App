@@ -146,20 +146,19 @@ type CategoryNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
 /**
  * Validates a category name against every rule (required, unique, reserved, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
- * `currentName` when editing so renaming a category to its own name isn't flagged as a duplicate.
- * `currentName` may be HTML-encoded. Uniqueness compares decoded values so `Food &amp; Drink` and
- * `Food & Drink` are treated as the same name. Returns an error code, or undefined when the name is valid.
+ * `currentName` (the decoded display name) when editing so renaming a category to its own name isn't flagged
+ * as a duplicate. Uniqueness also matches HTML-encoded stored names such as `Food &amp; Drink` vs `Food & Drink`.
+ * Returns an error code, or undefined when the name is valid.
  */
 function getCategoryNameError(policyCategories: PolicyCategories | undefined, newName: string, currentName?: string): CategoryNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
-    const decodedCurrentName = currentName !== undefined ? getDecodedCategoryName(currentName) : undefined;
 
     if (StringUtils.isEmptyString(sanitized)) {
         return 'required';
     }
 
-    // Category keys may be HTML-encoded, so uniqueness compares decoded names.
-    if (sanitized !== decodedCurrentName && Object.keys(policyCategories ?? {}).some((name) => getDecodedCategoryName(name) === sanitized)) {
+    // Category keys may be HTML-encoded, so uniqueness compares decoded names. currentName is already decoded by the caller.
+    if (sanitized !== currentName && Object.keys(policyCategories ?? {}).some((name) => getDecodedCategoryName(name) === sanitized)) {
         return 'existing';
     }
 
