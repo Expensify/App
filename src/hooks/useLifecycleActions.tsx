@@ -11,12 +11,11 @@ import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
-    getNextApproverAccountID,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
-    isReportOwner,
+    shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -138,10 +137,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag', 'ArrowRight', 'DocumentCheck']);
 
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport, rules);
-    const isSubmitterSameAsNextApprover =
-        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
-    const isBlockSubmitDueToPreventSelfApproval = !!(isSubmitterSameAsNextApprover && policy?.preventSelfApproval);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules);
 
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
