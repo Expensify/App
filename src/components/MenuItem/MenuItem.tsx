@@ -607,8 +607,11 @@ function MenuItem({
         contextMenuHint,
     });
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
-    const resolvedIconWidth = iconWidth ?? (shouldUseNavigationRowStyles ? variables.iconSizeSmall : undefined);
-    const resolvedIconHeight = iconHeight ?? (shouldUseNavigationRowStyles ? variables.iconSizeSmall : undefined);
+    // Navigation rows shrink their icon on wide layouts, where the rows are compact. Narrow layouts keep the
+    // standard size because the rows are full-width and touch targets.
+    const shouldUseCompactNavigationIcon = shouldUseNavigationRowStyles && !shouldUseNarrowLayout;
+    const resolvedIconWidth = iconWidth ?? (shouldUseCompactNavigationIcon ? variables.iconSizeSmall : undefined);
+    const resolvedIconHeight = iconHeight ?? (shouldUseCompactNavigationIcon ? variables.iconSizeSmall : undefined);
 
     const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
     // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
