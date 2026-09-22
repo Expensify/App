@@ -1,6 +1,6 @@
 # `react-native-tab-view` patches
 
-### [react-native-tab-view+4.3.0+001+fix-tab-animation.patch](react-native-tab-view+4.3.0+001+fix-tab-animation.patch)
+### [react-native-tab-view+4.3.2+001+fix-tab-animation.patch](react-native-tab-view+4.3.2+001+fix-tab-animation.patch)
 
 - Reason: 
 
@@ -13,7 +13,7 @@
 - E/App issue: 🛑
 - PR Introducing Patch: [#39854](https://github.com/Expensify/App/pull/39854)
 
-### [react-native-tab-view+4.3.0+002+fix-glitching-on-initial-load.patch](react-native-tab-view+4.3.0+002+fix-glitching-on-initial-load.patch)
+### [react-native-tab-view+4.3.2+002+fix-glitching-on-initial-load.patch](react-native-tab-view+4.3.2+002+fix-glitching-on-initial-load.patch)
 
 - Reason: 
     ```
@@ -23,8 +23,9 @@
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12627#issuecomment-2945055209
 - E/App issue: https://github.com/Expensify/App/issues/62346
 - PR Introducing Patch: [#63570](https://github.com/Expensify/App/pull/63570)
+- Note: On the port to 4.3.2, the hunk touching `lib/typescript/src/PanResponderAdapter.d.ts.map` was dropped. That declaration source map is editor-only and the patch never changed the `PanResponderAdapter.d.ts` it maps to, so leaving it at upstream content is correct. The runtime fix (`lib/module/PanResponderAdapter.js` + its `.js.map`) is unchanged.
 
-### [react-native-tab-view+4.3.0+003+fix-web-onTabSelect-on-mount.patch](react-native-tab-view+4.3.0+003+fix-web-onTabSelect-on-mount.patch)
+### [react-native-tab-view+4.3.2+003+fix-web-onTabSelect-on-mount.patch](react-native-tab-view+4.3.2+003+fix-web-onTabSelect-on-mount.patch)
 
 - Reason: 
     ```
@@ -35,7 +36,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/71913#issuecomment-3584103273
 - PR Introducing Patch: [#76586](https://github.com/Expensify/App/pull/76586)
 
-### [react-native-tab-view+4.3.0+004+fix-native-onTabSelect-on-mount.patch](react-native-tab-view+4.3.0+004+fix-native-onTabSelect-on-mount.patch)
+### [react-native-tab-view+4.3.2+004+fix-native-onTabSelect-on-mount.patch](react-native-tab-view+4.3.2+004+fix-native-onTabSelect-on-mount.patch)
 
 - Reason:
     ```
@@ -46,7 +47,7 @@
 - Upstream PR/issue: 🛑 (must merge https://github.com/react-navigation/react-navigation/pull/12627 first)
 - E/App issue: https://github.com/Expensify/App/issues/83010
 
-### [react-native-tab-view+4.3.0+005+fix-pager-scrollleft-91610.patch](react-native-tab-view+4.3.0+005+fix-pager-scrollleft-91610.patch)
+### [react-native-tab-view+4.3.2+005+fix-pager-scrollleft-91610.patch](react-native-tab-view+4.3.2+005+fix-pager-scrollleft-91610.patch)
 
 - Reason:
     ```
