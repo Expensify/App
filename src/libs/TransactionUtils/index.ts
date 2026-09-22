@@ -729,7 +729,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transaction
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
     // A zero amount is a deliberate, valid choice for an expense created in the self DM, so it isn't a missing field there.
     // A failed scan is the exception: the amount is genuinely unknown, so it must keep being flagged.
-    const isZeroAmountAllowed = (isUnreportedTransaction(transaction) || isSelfDM(transactionReport)) && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+    const isZeroAmountAllowed = (isExpenseUnreported(transaction ?? undefined) || isSelfDM(transactionReport)) && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
     return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && !isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
