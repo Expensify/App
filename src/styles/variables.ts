@@ -11,6 +11,24 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
 }
 
+/** Rendered width of the Expensify wordmark in the flat navigation bar's header. */
+const flatNavigationBarLogoWidth = 92;
+
+/** expensify-wordmark.svg has a 78x19 viewBox, so deriving the height keeps the wordmark exactly that wide. */
+const flatNavigationBarLogoHeight = (flatNavigationBarLogoWidth * 19) / 78;
+
+/**
+ * Height the narrow Spend tab row occupies: its wrapper's 4px top padding, the tab buttons, and tabSelector's 12px
+ * bottom padding. The search list's top offset subtracts this when the row is hidden.
+ */
+const searchTabRowHeight = 4 + 40 + 12;
+
+/**
+ * How much the narrow Spend header shrinks when the tab row is hidden: the row itself, plus the 4px the search input
+ * gains back by sitting 4px below the header instead of 8px.
+ */
+const searchHiddenTabRowOffset = searchTabRowHeight + 4;
+
 const avatarSizes = {
     avatarSizeXxxxSmall: 12,
     avatarSizeXxxSmall: 16,
@@ -51,7 +69,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
-    componentBorderRadiusCard: 20,
+    componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
     componentBorderRadiusCircle: 999,
     componentBorderWidth: 8,
@@ -111,6 +129,9 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    rhpFloatingCardMargin: 12,
+    // The frame width compensates for this border.
+    rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
     receiptPaneRHPMaxWidth: 465,
@@ -127,10 +148,20 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
     inboxSideBarWidth: 360,
-    superWideRHPLeftMargin: 147,
+    superWideRHPLeftMargin: 360,
+    // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
+    rhpWidth: 440,
+    // Decoupled from rhpWidth so the expense report's right pane can differ from the skinny RHP.
+    wideRHPRightPaneWidth: 460,
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
+    flatNavigationBarWidth: 200,
+    flatNavigationBarItemHeight: 40,
+    flatNavigationBarAccountItemHeight: 56,
+    flatNavigationBarHeaderPaddingRight: 12,
+    flatNavigationBarLogoWidth,
+    flatNavigationBarLogoHeight,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
@@ -165,9 +196,12 @@ export default {
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
     sectionMenuItemHeight: 52,
-    sectionMenuItemHeightCompact: 44,
+    // Wide layouts match the global navigation bar's row height; narrow layouts keep the taller touch target.
+    sectionMenuItemHeightCompact: 40,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
+    // Lighter scrim opacity for the floating RHP overlay (web), scoped so other modal backdrops keep `overlayOpacity`.
+    rhpOverlayOpacity: 0.5,
     // fontSizeExtraSmall is fixed at 9, so the line height must never scale below the font's natural line height (~1.18em = 10.62),
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
     lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
@@ -239,6 +273,8 @@ export default {
     signInLogoWidthLargeScreen: 144,
     signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
+    searchTabRowHeight,
+    searchHiddenTabRowOffset,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
     tabSelectorScrollMarginInline: 20,

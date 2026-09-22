@@ -3232,6 +3232,12 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Fique no controle vendo apenas chats não lidos ou que precisam da sua atenção. Não se preocupe, você pode mudar isso a qualquer momento em <a href="${priorityModePageUrl}">configurações</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Exportações, provisões, extratos e conciliação',
+        savedSearchesDescription: 'Volte para uma busca que você salvou',
+        insightsDescription: 'Veja para onde vão seus gastos',
+        workspacesDescription: 'Gerencie seus espaços de trabalho e domínios',
+    },
     inboxTabs: {
         all: 'Todos',
         todo: 'Pendências',
@@ -9764,6 +9770,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         tabs: {
             expenseReports: 'Relatórios de despesas',
             reports: 'Relatórios',
+            allReports: 'Todos os relatórios',
             expenses: 'Despesas',
             submit: 'Rascunhos',
             approve: 'Precisa de aprovação',

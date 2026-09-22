@@ -19,6 +19,7 @@ function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobi
 
     return (
         <SearchPageHeaderCommon
+            shouldUseGroupTitle
             queryJSONType={queryJSON.type}
             shouldShowLoadingBar={shouldShowLoadingBar}
         />

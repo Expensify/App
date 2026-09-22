@@ -147,7 +147,7 @@ function HomePage() {
                     />
                     <ScrollView
                         style={styles.homePageScrollView}
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={styles.homePageContentContainer(shouldUseNarrowLayout)}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

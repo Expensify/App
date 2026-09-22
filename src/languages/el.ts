@@ -3305,6 +3305,12 @@ ${amount} για ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Μείνετε οργανωμένοι βλέποντας μόνο μη αναγνωσμένες συνομιλίες ή συνομιλίες που χρειάζονται την προσοχή σας. Μη σας ανησυχεί, μπορείτε να το αλλάξετε οποιαδήποτε στιγμή από τις <a href="${priorityModePageUrl}">ρυθμίσεις</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Εξαγωγές, δεδουλευμένα, καταστάσεις και συμφωνία',
+        savedSearchesDescription: 'Επιστρέψτε σε μια αποθηκευμένη αναζήτηση',
+        insightsDescription: 'Δείτε πού πηγαίνουν οι δαπάνες σας',
+        workspacesDescription: 'Διαχειριστείτε τους χώρους εργασίας και τους τομείς σας',
+    },
     inboxTabs: {
         all: 'Όλα',
         todo: 'Εκκρεμότητες',
@@ -9755,6 +9761,7 @@ ${reportName}`,
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
+            allReports: 'Όλες οι αναφορές',
             expenses: 'Έξοδα',
             submit: 'Πρόχειρα',
             approve: 'Χρειάζεται έγκριση',

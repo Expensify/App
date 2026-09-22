@@ -45,20 +45,24 @@ function useWideModalStackScreenOptions() {
             let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
             if (!isSmallScreenWidth) {
+                // Each card draws its own bordered modal, so the container must overflow or the border and shadow get cut off.
                 if (superWideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
                         // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
                         cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
+                        containerStyle: styles.overflowVisible,
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                        containerStyle: styles.overflowVisible,
                     });
                     // single RHPs displayed above the wide RHP need to be positioned
                 } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
+                        containerStyle: styles.overflowVisible,
                     });
                 }
             }
@@ -71,6 +75,8 @@ function useWideModalStackScreenOptions() {
                     contentStyle: styles.navigationScreenCardStyle,
                 },
                 web: {
+                    // The RHP has its own scrim (BaseOverlay), so stacked screens must not fade in react-navigation's dark backdrop too.
+                    cardOverlayEnabled: false,
                     cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
                     transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,

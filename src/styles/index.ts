@@ -83,6 +83,20 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
+// Shared chrome of every RHP card in the stacked report flow, where the frame is invisible and each card draws its own inset bordered modal. Only the width differs.
+const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
+    position: 'absolute',
+    top: variables.rhpFloatingCardMargin,
+    bottom: variables.rhpFloatingCardMargin,
+    right: 0,
+    height: 'auto',
+    borderRadius: variables.componentBorderRadiusLarge,
+    borderWidth: variables.rhpFloatingCardBorderWidth,
+    borderColor: theme.border,
+    overflow: 'hidden',
+    boxShadow: theme.shadow,
+});
+
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
     borderRadius: variables.componentBorderRadiusLarge,
     borderColor: theme.borderFocus,
@@ -106,6 +120,8 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
 
+type OverlayPositionValue = number | Animated.Value | Animated.AnimatedAddition<number> | Animated.AnimatedSubtraction<string | number>;
+
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
@@ -125,6 +141,12 @@ type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+
+/**
+ * Horizontal padding inside a navigation row, shared by the global navigation bar and the Account, Workspace and
+ * Domain editor menus so their labels line up. Also used to indent the global bar's nested rows to their parent's label.
+ */
+const navigationRowPaddingHorizontal = 12;
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
@@ -191,7 +213,7 @@ const headlineItalicFont = {
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
         height: '100%',
     }) satisfies ViewStyle;
 
@@ -616,6 +638,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...fontFamilyScale.strong,
         },
 
+        textRegular: {
+            ...fontFamilyScale.regular,
+        },
+
         fontWeightNormal: {
             fontWeight: FontUtils.fontWeight.normal,
         },
@@ -725,7 +751,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            width: variables.flatNavigationBarWidth + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -733,9 +759,16 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
+            borderTopWidth: 0.5,
+            borderTopColor: theme.hoverComponentBG,
             backgroundColor: theme.appBG,
+        },
+
+        // Only the navigator's own tab bar opts into this. Every preloaded screen renders its own bar at the same
+        // spot, so applying it to all of them would stack one shadow per bar. The token's upward offset plus its
+        // negative spread keep the shadow clear of the bar's bottom edge, and so out of the safe area below it.
+        navigationTabBarTopShadow: {
+            boxShadow: theme.shadowTop,
         },
 
         navigationTabBarItem: {
@@ -783,6 +816,96 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        flatNavigationBarContainer: {
+            height: '100%',
+            width: variables.flatNavigationBarWidth,
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        // The wordmark's glyphs sit high in its viewBox, so a couple of pixels down optically centers it against the create button.
+        flatNavigationBarLogo: {
+            paddingTop: 2,
+        },
+
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: variables.contentHeaderHeight,
+            paddingLeft: 20,
+            paddingRight: variables.flatNavigationBarHeaderPaddingRight,
+        },
+
+        flatNavigationBarItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: variables.flatNavigationBarItemHeight,
+            paddingHorizontal: navigationRowPaddingHorizontal,
+            marginHorizontal: 8,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        /**
+         * Selected and hover backgrounds shared by every navigation row: the flat navigation bar, the Inbox LHN, and
+         * the Workspace, Domain and Account editor menus. hoverComponentBG and highlightBG are the product-300 and
+         * product-200 ramp steps in both themes.
+         */
+        navigationRowSelected: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        navigationRowHovered: {
+            backgroundColor: theme.highlightBG,
+        },
+
+        // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
+        // at the same x as the labels of the rows above them.
+        flatNavigationBarSubItem: {
+            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeSmall,
+        },
+
+        // Bold is reserved for the active row, so the rest fall back to the regular weight.
+        flatNavigationBarLabelRegular: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+        },
+
+        flatNavigationBarLabel: {
+            flex: 1,
+            marginLeft: 12,
+            fontSize: variables.fontSizeNormal,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        },
+
+        flatNavigationBarDividerContainer: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+        },
+
+        flatNavigationBarDivider: {
+            height: 1,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarFooter: {
+            paddingBottom: 12,
+        },
+
+        // The account row is taller than a standard row so the 40px avatar keeps 8px of breathing room. The height is
+        // fixed so the row never resizes with its contents.
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
+            paddingVertical: 8,
+        },
+
+        flatNavigationBarAccountAvatar: {
+            width: variables.avatarSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         button: {
@@ -2749,13 +2872,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCard,
+            borderTopRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCard,
+            borderBottomRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBorder: {
@@ -2858,6 +2981,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderBottom: {
             borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        // Table separators on mobile, where a full pixel reads too heavy against the compact rows.
+        borderBottomHairline: {
+            borderBottomWidth: 0.5,
+            borderColor: theme.border,
+        },
+
+        borderTopHairline: {
+            borderTopWidth: 0.5,
             borderColor: theme.border,
         },
 
@@ -3309,6 +3443,23 @@ const staticStyles = (theme: ThemeColors) =>
 
         navigationScreenCardStyle: {
             height: '100%',
+        },
+
+        // Invisible frame for the stacked report flow. Each card inside draws its own bordered modal, so the frame must not clip or the shadows get cut off.
+        RHPCenteredFrame: {
+            right: variables.rhpFloatingCardMargin,
+            height: '100%',
+        },
+
+        // Anchors the floating RHP card on web wide layout in place of `r0` and `h100`. Width comes from the call site.
+        RHPFloatingCard: {
+            top: variables.rhpFloatingCardMargin,
+            right: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: variables.rhpFloatingCardBorderWidth,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
         },
 
         invisible: {
@@ -4181,7 +4332,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             overflow: 'hidden',
         },
 
@@ -4282,13 +4433,6 @@ const staticStyles = (theme: ThemeColors) =>
         // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
         homePageScrollView: {
             ...scrollbarGutterStable,
-        },
-
-        homePageContentContainer: {
-            flexGrow: 1,
-            paddingTop: 0,
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -4949,6 +5093,17 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
             alignItems: 'center',
             marginBottom: 8,
+        },
+
+        // Mirrors rulesNewMenuItem, the workspace "New rule" card, with this page's own corner radius.
+        moreMenuCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
         },
 
         rulesNewMenuItem: {
@@ -6461,17 +6616,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
+            ...getRHPExtendedCardFrame(theme),
             width: animatedWideRHPWidth,
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: variables.sideBarWidth,
+            ...getRHPExtendedCardFrame(theme),
+            width: variables.rhpWidth,
         },
 
         flexibleHeight: {
@@ -6529,6 +6680,15 @@ const staticStyles = (theme: ThemeColors) =>
             height: 12,
             width: 12,
             zIndex: 10,
+        },
+
+        // The flat navigation bar's rows are compact, so the dot's colored core drops from 8px to 6px. The stroke
+        // keeps its width, and the dot shrinks toward the icon's top-right corner rather than its own center.
+        flatNavigationBarStatusIndicator: {
+            right: -2,
+            top: -3,
+            height: 10,
+            width: 10,
         },
         modalStackNavigatorContainer: {
             height: '100%',
@@ -6804,9 +6964,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         // See https://github.com/Expensify/App/issues/99035
         getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
             ({
-                position: 'absolute',
-                height: '100%',
-                right: 0,
+                ...getRHPExtendedCardFrame(theme),
                 width,
             }) satisfies ViewStyle,
 
@@ -6861,7 +7019,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
@@ -6891,18 +7049,26 @@ const dynamicStyles = (theme: ThemeColors) =>
             progress,
             positionLeftValue,
             positionRightValue,
+            positionTopValue,
+            positionBottomValue,
+            maxOpacity,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
-            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionLeftValue: OverlayPositionValue;
+            positionRightValue: OverlayPositionValue;
+            positionTopValue: number;
+            positionBottomValue: number;
+            maxOpacity: number;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: positionLeftValue,
                 right: positionRightValue,
+                top: positionTopValue,
+                bottom: positionBottomValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 0.5],
-                    outputRange: [0, variables.overlayOpacity],
+                    outputRange: [0, maxOpacity],
                     extrapolate: 'clamp',
                 }),
             }) satisfies ViewStyle,
@@ -7192,14 +7358,14 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
-        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+        searchListContentContainerStyles: (hasFilterBars: boolean, isTabRowHidden = false) => ({
+            paddingTop: (hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop) - (isTabRowHidden ? variables.searchHiddenTabRowOffset : 0),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingLeft: 16,
-            paddingRight: 16,
+            paddingLeft: navigationRowPaddingHorizontal,
+            paddingRight: navigationRowPaddingHorizontal,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
@@ -7432,10 +7598,18 @@ const plainStyles = (theme: ThemeColors) =>
             height: variables.componentSizeNormal,
         },
 
+        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexGrow: 1,
+                paddingTop: 4,
+                paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
+                paddingBottom: 20,
+            }) satisfies ViewStyle,
+
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? 12 : 20,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
@@ -7488,4 +7662,4 @@ const styles = (theme: ThemeColors) =>
 type ThemeStyles = ReturnType<typeof styles>;
 
 export default styles;
-export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams, OverlayPositionValue};

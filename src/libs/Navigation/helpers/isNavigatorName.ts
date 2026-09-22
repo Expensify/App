@@ -10,6 +10,7 @@ const FULL_SCREENS_SET = new Set([
     NAVIGATORS.TAB_NAVIGATOR,
     SCREENS.HOME,
     SCREENS.INSIGHTS,
+    SCREENS.MORE,
     NAVIGATORS.WORKSPACE_NAVIGATOR,
 ]);
 // Root-level navigators that render as an overlay/modal on top of the current screen. These do NOT go through the
@@ -29,7 +30,7 @@ const PRE_MOUNT_BUFFER_HOSTS_SET = new Set<string>([NAVIGATORS.RIGHT_MODAL_NAVIG
 const SIDEBARS_SET = new Set(Object.values(SPLIT_TO_SIDEBAR));
 const ONBOARDING_SCREENS_SET = new Set(Object.values(SCREENS.ONBOARDING));
 const SPLIT_NAVIGATORS_SET = new Set(Object.values(SIDEBAR_TO_SPLIT));
-const WORKSPACES_TAB_SET = new Set(Object.values([NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, SCREENS.WORKSPACES_LIST, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]));
+const WORKSPACES_TAB_SET = new Set(Object.values([NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST, NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]));
 
 /**
  * Functions defined below are used to check whether a screen belongs to a specific group.

@@ -3271,6 +3271,12 @@ ${amount} dla ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Eksporty, rozliczenia międzyokresowe, wyciągi i uzgodnienia',
+        savedSearchesDescription: 'Wróć do zapisanego wyszukiwania',
+        insightsDescription: 'Zobacz, na co idą Twoje wydatki',
+        workspacesDescription: 'Zarządzaj przestrzeniami roboczymi i domenami',
+    },
     inboxTabs: {
         all: 'Wszystko',
         todo: 'Zadania do wykonania',
@@ -9788,6 +9794,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         tabs: {
             expenseReports: 'Raporty wydatków',
             reports: 'Raporty',
+            allReports: 'Wszystkie raporty',
             expenses: 'Wydatki',
             submit: 'Szkice',
             approve: 'Wymaga zatwierdzenia',

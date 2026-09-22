@@ -3359,6 +3359,12 @@ const translations = {
         prompt: (priorityModePageUrl: string) =>
             `Stay on top of things by only seeing unread chats or chats that need your attention. Don’t worry, you can change this at any point in <a href="${priorityModePageUrl}">settings</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Exports, accruals, statements and reconciliation',
+        savedSearchesDescription: 'Jump back to a search you saved',
+        insightsDescription: 'See where your spend is going',
+        workspacesDescription: 'Manage your workspaces and domains',
+    },
     inboxTabs: {
         all: 'All',
         todo: 'To-dos',
@@ -9700,6 +9706,7 @@ const translations = {
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            allReports: 'All reports',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',

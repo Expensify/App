@@ -30,7 +30,9 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWithLHBWidth + (getPlatform() === CONST.PLATFORM.WEB ? variables.navigationTabBarSize : 0);
+// Chrome to the left of the Search central pane, used to right-align the skeleton's trailing elements.
+// Search has no sidebar of its own, so on web this is just the global navigation bar.
+const leftPaneWidth = getPlatform() === CONST.PLATFORM.WEB ? variables.flatNavigationBarWidth : 0;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;

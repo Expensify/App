@@ -16,8 +16,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {clearLastVisitedMoreDestination, setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -134,6 +137,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
 function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const {filters, isResolved} = useInsightsFilters();
 
@@ -159,6 +163,11 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         onRequestConditionsChanged();
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
+    // Remember the dashboard so the More menu can return the user to it.
+    useEffect(() => {
+        setLastVisitedInsightsDashboard(dashboardID);
+    }, [dashboardID]);
+
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
 
@@ -171,6 +180,15 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         >
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
+                // Insights has no tab of its own on narrow layouts - it is reached through More.
+                onBackButtonPress={
+                    shouldUseNarrowLayout
+                        ? () => {
+                              clearLastVisitedMoreDestination();
+                              Navigation.navigate(ROUTES.MORE);
+                          }
+                        : undefined
+                }
                 shouldDisplayHelpButton
             />
             <InsightsDashboardContent

@@ -1,0 +1,48 @@
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
+@@ -48,6 +48,7 @@ function Card({
+   gestureVelocityImpact = GESTURE_VELOCITY_IMPACT,
+   overlay = defaultOverlay,
+   animated,
++  active,
+   interpolationIndex,
+   opening,
+   closing,
+@@ -375,7 +376,11 @@ function Card({
+         children: /*#__PURE__*/_jsxs(Animated.View, {
+           pointerEvents: "box-none",
+           needsOffscreenAlphaCompositing: hasOpacityStyle(cardStyle),
+-          style: [styles.container, cardStyle],
++          style: [styles.container, {
++            // Avoid unfocused larger pages increasing scroll area
++            // e.g. when a smaller screen is pushed over a larger one on web
++            overflow: active ? undefined : 'hidden'
++          }, cardStyle],
+           children: [shadowEnabled && shadowStyle && !isTransparent ? /*#__PURE__*/_jsx(Animated.View, {
+             pointerEvents: "none",
+             style: [styles.shadow, gestureDirection === 'horizontal' ? [styles.shadowHorizontal, styles.shadowStart] : gestureDirection === 'horizontal-inverted' ? [styles.shadowHorizontal, styles.shadowEnd] : gestureDirection === 'vertical' ? [styles.shadowVertical, styles.shadowTop] : [styles.shadowVertical, styles.shadowBottom], {
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardA11yWrapper.js
+@@ -22,9 +22,6 @@ export const CardA11yWrapper = /*#__PURE__*/React.forwardRef(({
+     "aria-hidden": !focused,
+     pointerEvents: (animated ? inert : !focused) ? 'none' : 'box-none',
+     style: [StyleSheet.absoluteFill, {
+-      // This is necessary to avoid unfocused larger pages increasing scroll area
+-      // The issue can be seen on the web when a smaller screen is pushed over a larger one
+-      overflow: active ? undefined : 'hidden',
+       // We use visibility on web
+       display: Platform.OS !== 'web' && isHidden ? 'none' : 'flex',
+       zIndex: Platform.OS === 'web' ? 'auto' : undefined,
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+@@ -198,6 +198,7 @@ function CardContainerInner({
+     detachCurrentScreen: detachCurrentScreen,
+     children: /*#__PURE__*/_jsx(Card, {
+       animated: animated,
++      active: active,
+       interpolationIndex: interpolationIndex,
+       gestureDirection: gestureDirection,
+       layout: layout,

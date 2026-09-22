@@ -5,6 +5,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {generateReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
@@ -21,11 +25,34 @@ import QuickActionMenuItem from './FABPopoverContent/menuItems/QuickActionMenuIt
 import TrackDistanceMenuItem from './FABPopoverContent/menuItems/TrackDistanceMenuItem';
 import TravelMenuItem from './FABPopoverContent/menuItems/TravelMenuItem';
 
+type FloatingActionButtonAndPopoverProps = {
+    /** Replaces the default vertical padding, for callers that position the button themselves */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Set to false where only the create button belongs, such as the flat navigation bar header */
+    shouldShowReceiptButton?: boolean;
+
+    /** Renders the standard small success button instead of the floating action button */
+    shouldUseSmallSuccessButton?: boolean;
+
+    /** Replaces the default bottom-left menu placement, for callers that anchor the button elsewhere */
+    anchorPosition?: AnchorPosition;
+
+    /** How the menu lines up with `anchorPosition` */
+    anchorAlignment?: AnchorAlignment;
+};
+
 /**
  * Responsible for rendering the {@link FABPopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover() {
+function FloatingActionButtonAndPopover({
+    containerStyle,
+    shouldShowReceiptButton = true,
+    shouldUseSmallSuccessButton = false,
+    anchorPosition,
+    anchorAlignment,
+}: FloatingActionButtonAndPopoverProps = {}) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -63,12 +90,14 @@ function FloatingActionButtonAndPopover() {
     };
 
     return (
-        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
+        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4, containerStyle]}>
             <FABPopoverMenu
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 onClose={hideCreateMenu}
                 onItemSelected={hideCreateMenu}
                 anchorRef={fabRef}
+                anchorPosition={anchorPosition}
+                anchorAlignment={anchorAlignment}
                 animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
                 animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
             >
@@ -85,6 +114,8 @@ function FloatingActionButtonAndPopover() {
                 isActive={isCreateMenuActive}
                 fabRef={fabRef}
                 onPress={toggleCreateMenu}
+                shouldShowReceiptButton={shouldShowReceiptButton}
+                shouldUseSmallSuccessButton={shouldUseSmallSuccessButton}
             />
         </View>
     );

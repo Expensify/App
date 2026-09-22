@@ -1,4 +1,5 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
+import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
@@ -79,6 +80,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
                 <NavigationTabBar
                     selectedTab={selectedTab}
                     shouldShowFloatingButtons={!isHidden}
+                    shouldShowTopShadow
                 />
             </View>
         );
@@ -90,7 +92,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
             style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
             pointerEvents="box-none"
         >
-            <NavigationTabBar selectedTab={selectedTab} />
+            <FlatNavigationBar selectedTab={selectedTab} />
         </View>
     );
 }

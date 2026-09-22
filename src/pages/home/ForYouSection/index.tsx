@@ -24,6 +24,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 
+import ConciergeCloudsBackdrop from './ConciergeCloudsBackdrop';
 import ConciergePromptBox from './ConciergePromptBox';
 import ForYouBody from './ForYouBody';
 import shouldHideForYouSection from './shouldHideForYouSection';
@@ -228,6 +229,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     // The card always renders so the Concierge input stays on the home page.
     return (
         <WidgetContainer
+            backgroundContent={shouldUseNarrowLayout ? <ConciergeCloudsBackdrop /> : undefined}
             containerStyles={hasBodyContent ? undefined : [styles.pb3]}
             titleContent={
                 <ConciergePromptBox

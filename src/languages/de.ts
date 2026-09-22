@@ -3252,6 +3252,12 @@ ${amount} für ${merchant} – ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Behalten Sie den Überblick, indem Sie nur ungelesene Chats oder Chats sehen, die Ihre Aufmerksamkeit erfordern. Keine Sorge, Sie können dies jederzeit in den <a href="${priorityModePageUrl}">Einstellungen</a> ändern.`,
     },
+    morePage: {
+        accountingDescription: 'Exporte, Abgrenzungen, Abrechnungen und Abstimmung',
+        savedSearchesDescription: 'Zurück zu einer gespeicherten Suche',
+        insightsDescription: 'Sehen Sie, wohin Ihre Ausgaben fließen',
+        workspacesDescription: 'Verwalten Sie Ihre Arbeitsbereiche und Domains',
+    },
     inboxTabs: {
         all: 'Alle',
         todo: 'Aufgaben',
@@ -9842,6 +9848,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
+            allReports: 'Alle Berichte',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
