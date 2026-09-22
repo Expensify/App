@@ -1157,6 +1157,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Concierge に何でも聞いてください',
         },
     },
+    insightsPage: {
+        viewOnSpend: '支出で表示',
+        emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
+        noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
+    },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
         domains: 'ドメイン',

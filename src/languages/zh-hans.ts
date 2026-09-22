@@ -1123,6 +1123,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: '向 Concierge 提问任何问题',
         },
     },
+    insightsPage: {
+        viewOnSpend: '在支出中查看',
+        emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
+        noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
+    },
     allSettingsScreen: {
         subscription: '订阅',
         domains: '域名',
