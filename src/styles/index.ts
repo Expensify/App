@@ -5078,6 +5078,17 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
+        // Mirrors rulesNewMenuItem, the workspace "New rule" card, with this page's own corner radius.
+        moreMenuCard: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 16,
+            alignItems: 'center',
+            marginBottom: 8,
+            minHeight: variables.rulesNewMenuItemMinHeight,
+        },
+
         rulesNewMenuItem: {
             backgroundColor: theme.cardBG,
             borderRadius: 8,

@@ -3236,6 +3236,12 @@ ${amount} pour ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Gardez le contrôle en n’affichant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce réglage à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Exports, charges à payer, relevés et rapprochement',
+        savedSearchesDescription: 'Revenez à une recherche enregistrée',
+        insightsDescription: 'Voyez où passent vos dépenses',
+        workspacesDescription: 'Gérez vos espaces de travail et domaines',
+    },
     inboxTabs: {
         all: 'Tout',
         todo: 'Tâches',

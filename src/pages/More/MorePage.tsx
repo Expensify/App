@@ -9,7 +9,7 @@ import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -30,6 +30,8 @@ import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 import {ACCOUNTING_GROUP_ID, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +55,18 @@ function MorePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Connect', 'Bookmark', 'PieChart', 'Buildings']);
+    const illustrations = useMemoizedLazyIllustrations(['Accounting', 'MagnifyingGlassMoney', 'Chart', 'Building']);
+
+    // On narrow layouts these read as a set of choices rather than a sidebar, so they take the card treatment the
+    // workspace "New rule" flow uses: a filled card, a full-color illustration, and a chevron.
+    const cardProps = shouldUseNarrowLayout
+        ? {
+              shouldShowRightIcon: true,
+              displayInDefaultIconColor: true,
+              iconWidth: variables.iconSizeExtraLarge,
+              iconHeight: variables.iconSizeExtraLarge,
+          }
+        : {shouldUseNavigationRowStyles: true};
 
     useDocumentTitle(translate('common.more'));
 
@@ -75,9 +89,10 @@ function MorePage() {
     if (accounting.length > 0) {
         menuItems.push({
             key: 'accounting',
-            shouldUseNavigationRowStyles: true,
+            ...cardProps,
             title: translate('search.tabs.accounting'),
-            icon: icons.Connect,
+            description: shouldUseNarrowLayout ? translate('morePage.accountingDescription') : undefined,
+            icon: shouldUseNarrowLayout ? illustrations.Accounting : icons.Connect,
             onPress: () => {
                 const lastKey = getLastVisitedSearchKey(ACCOUNTING_GROUP_ID);
                 const item = accounting.find((search) => search.key === lastKey) ?? accounting.at(0);
@@ -96,9 +111,10 @@ function MorePage() {
     if (savedSearchEntries.length > 0) {
         menuItems.push({
             key: 'savedSearches',
-            shouldUseNavigationRowStyles: true,
+            ...cardProps,
             title: translate('search.savedSearchesMenuItemTitle'),
-            icon: icons.Bookmark,
+            description: shouldUseNarrowLayout ? translate('morePage.savedSearchesDescription') : undefined,
+            icon: shouldUseNarrowLayout ? illustrations.MagnifyingGlassMoney : icons.Bookmark,
             onPress: () => {
                 const lastKey = getLastVisitedSearchKey(SAVED_SEARCHES_GROUP_ID);
                 const entry = savedSearchEntries.find(([id]) => savedSearchIDToSearchKey(id) === lastKey) ?? savedSearchEntries.at(0);
@@ -121,9 +137,10 @@ function MorePage() {
     if (isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
         menuItems.push({
             key: 'insights',
-            shouldUseNavigationRowStyles: true,
+            ...cardProps,
             title: translate('common.insights'),
-            icon: icons.PieChart,
+            description: shouldUseNarrowLayout ? translate('morePage.insightsDescription') : undefined,
+            icon: shouldUseNarrowLayout ? illustrations.Chart : icons.PieChart,
             onPress: () => {
                 setLastVisitedMoreDestination(MORE_DESTINATIONS.INSIGHTS);
                 clearSelectedText();
@@ -136,9 +153,10 @@ function MorePage() {
 
     menuItems.push({
         key: 'workspaces',
-        shouldUseNavigationRowStyles: true,
+        ...cardProps,
         title: translate('common.workspacesTabTitle'),
-        icon: icons.Buildings,
+        description: shouldUseNarrowLayout ? translate('morePage.workspacesDescription') : undefined,
+        icon: shouldUseNarrowLayout ? illustrations.Building : icons.Buildings,
         brickRoadIndicator: workspacesBrickRoadIndicator,
         onPress: () => {
             setLastVisitedMoreDestination(MORE_DESTINATIONS.WORKSPACES);
@@ -164,7 +182,7 @@ function MorePage() {
                 <View style={[styles.mh3, styles.mt3, styles.pb4]}>
                     <MenuItemList
                         menuItems={menuItems}
-                        wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                        wrapperStyle={shouldUseNarrowLayout ? styles.moreMenuCard : styles.sectionMenuItem(shouldUseNarrowLayout)}
                         shouldUseSingleExecution
                     />
                 </View>

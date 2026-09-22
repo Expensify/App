@@ -3137,6 +3137,12 @@ ${amount} para ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
     },
+    morePage: {
+        accountingDescription: 'Exportaciones, devengos, extractos y conciliación',
+        savedSearchesDescription: 'Vuelve a una búsqueda que guardaste',
+        insightsDescription: 'Descubre a dónde va tu gasto',
+        workspacesDescription: 'Gestiona tus espacios de trabajo y dominios',
+    },
     inboxTabs: {
         all: 'Todo',
         todo: 'Pendientes',

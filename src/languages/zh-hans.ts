@@ -3111,6 +3111,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         title: '欢迎使用 #focus 模式！',
         prompt: (priorityModePageUrl: string) => `通过只查看未读聊天或需要你关注的聊天，随时掌握最新进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
     },
+    morePage: {
+        accountingDescription: '导出、应计、对账单和对账',
+        savedSearchesDescription: '返回已保存的搜索',
+        insightsDescription: '查看支出去向',
+        workspacesDescription: '管理您的工作区和域',
+    },
     inboxTabs: {
         all: '全部',
         todo: '待办事项',

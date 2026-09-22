@@ -3190,6 +3190,12 @@ ${date} の ${merchant} への ${amount}`,
         prompt: (priorityModePageUrl: string) =>
             `未読のチャットや対応が必要なチャットだけを表示して、状況を常に把握できるようにしましょう。いつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
+    morePage: {
+        accountingDescription: 'エクスポート、未払計上、明細、消込',
+        savedSearchesDescription: '保存した検索に戻る',
+        insightsDescription: '支出の行き先を確認',
+        workspacesDescription: 'ワークスペースとドメインを管理',
+    },
     inboxTabs: {
         all: 'すべて',
         todo: 'To-do リスト',
