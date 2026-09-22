@@ -1,8 +1,6 @@
 import type {MergeConnectionName} from '@libs/merge/MergeUtils';
 
-import type CONST from '@src/CONST';
-
-import type {ValueOf} from 'type-fest';
+import type {MergeApprovalMode, MergeATSApproverField} from '@src/types/onyx/Policy';
 
 type UpdateMergeApprovalModeParams = {
     policyID: string;
@@ -11,10 +9,10 @@ type UpdateMergeApprovalModeParams = {
     connectionName: MergeConnectionName;
 
     /** The new approval mode to apply to the Merge connection */
-    approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+    approvalMode: MergeApprovalMode;
 
     /** Merge ATS only: the ATS field the default approver is read from. Only sent in the modes that use it. */
-    approverField?: string;
+    approverField?: MergeATSApproverField;
 
     /** Merge ATS only: login of the member who acts as the final approver. Only sent in the modes that use it. */
     finalApprover?: string;

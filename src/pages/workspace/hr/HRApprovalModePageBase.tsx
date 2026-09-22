@@ -22,7 +22,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {MergeApprovalMode, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -30,7 +30,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+type ApprovalModeValue = ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | MergeApprovalMode;
 
 type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValue> = {
     testID: string;

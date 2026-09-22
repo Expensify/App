@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -100,7 +101,7 @@ function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
 function getHRApprovalMode(
     policy?: OnyxEntry<Policy>,
     connectionName?: HRConnectionName,
-): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null {
+): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | MergeApprovalMode | null {
     if (!connectionName || !policy?.connections) {
         return null;
     }

@@ -16,10 +16,8 @@ import type {MergeConnectionName} from '@libs/merge/MergeUtils';
 
 import CONST from '@src/CONST';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
-import type {ConnectionLastSync, MergeConnectionLastSync} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, MergeApprovalMode, MergeConnectionLastSync} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-
-import type {ValueOf} from 'type-fest';
 
 import createRandomPolicy from 'tests/utils/collections/policies';
 import {formatPhoneNumber, translateLocal} from 'tests/utils/TestHelper';
@@ -47,7 +45,7 @@ function makeLastSync(overrides: Partial<MergeConnectionLastSync> = {}): Connect
 /** The approval config fields the shared Merge utils read, which both Merge HR and Merge ATS have in common. */
 type MergeApprovalConfig = {
     /** Approval mode configured for the connection */
-    approvalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+    approvalMode?: MergeApprovalMode | null;
 
     /** Workspace member who acts as the final approver */
     finalApprover?: string | null;

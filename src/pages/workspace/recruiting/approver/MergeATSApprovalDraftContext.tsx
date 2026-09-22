@@ -8,24 +8,21 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {MergeApprovalMode, MergeATSApproverField} from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-
-import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 
-type ATSApprovalMode = ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
-
 type MergeATSApprovalDraftState = {
-    approvalMode?: ATSApprovalMode;
-    approverField: string;
+    approvalMode?: MergeApprovalMode;
+    approverField: MergeATSApproverField;
     finalApprover?: string;
 };
 
 type MergeATSApprovalDraftActions = {
-    setDraftApprovalMode: (approvalMode: ATSApprovalMode) => void;
-    setDraftApproverField: (approverField: string) => void;
+    setDraftApprovalMode: (approvalMode: MergeApprovalMode) => void;
+    setDraftApproverField: (approverField: MergeATSApproverField) => void;
     setDraftFinalApprover: (finalApprover: string | undefined) => void;
 };
 
@@ -60,4 +57,3 @@ function MergeATSApprovalDraftProvider({children}: ChildrenProps) {
 }
 
 export {MergeATSApprovalDraftProvider, useMergeATSApprovalDraftActions, useMergeATSApprovalDraftState};
-export type {ATSApprovalMode};

@@ -13,6 +13,7 @@ import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
+import type {MergeApprovalMode, MergeATSApproverField} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -94,22 +95,22 @@ function syncMerge(policy: OnyxEntry<Policy>, connectionName: MergeConnectionNam
 }
 
 type MergeApprovalConfigUpdate = {
-    approvalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
-    approverField?: string | null;
+    approvalMode?: MergeApprovalMode | null;
+    approverField?: MergeATSApproverField | null;
     finalApprover?: string | null;
 };
 
 type UpdateMergeApprovalModeOptions = {
     policyID: string;
     connectionName: MergeConnectionName;
-    approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
-    currentApprovalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | undefined;
+    approvalMode: MergeApprovalMode;
+    currentApprovalMode: MergeApprovalMode | undefined;
 
     /**
      * Merge ATS only
      */
-    approverField?: string;
-    currentApproverField?: string;
+    approverField?: MergeATSApproverField;
+    currentApproverField?: MergeATSApproverField;
     finalApprover?: string;
     currentFinalApprover?: string;
 };

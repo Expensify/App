@@ -12,6 +12,7 @@ import MERGE_ATS_PROVIDERS from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
+import type {MergeATSApproverField} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -26,14 +27,12 @@ type GetRecruitingCardsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
-function getApproverFieldName(approverField: string | undefined, translate: LocaleContextProps['translate']): string | undefined {
+function getApproverFieldName(approverField: MergeATSApproverField | undefined, translate: LocaleContextProps['translate']): string | undefined {
     switch (approverField) {
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER:
             return translate('workspace.recruiting.approverFields.recruiter');
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR:
             return translate('workspace.recruiting.approverFields.recruitingCoordinator');
-        default:
-            return approverField;
     }
 }
 

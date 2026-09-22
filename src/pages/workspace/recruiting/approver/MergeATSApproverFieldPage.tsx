@@ -21,6 +21,7 @@ import {getApproverFieldName} from '@pages/workspace/recruiting/utils';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {MergeATSApproverField} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import React from 'react';
@@ -31,7 +32,7 @@ import {useMergeATSApprovalDraftActions, useMergeATSApprovalDraftState} from './
 type MergeATSApproverFieldPageProps = PlatformStackScreenProps<MergeATSApprovalNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD>;
 
 type ApproverFieldListItem = ListItem & {
-    value: string;
+    value: MergeATSApproverField;
 };
 
 function MergeATSApproverFieldPage({
@@ -59,7 +60,7 @@ function MergeATSApproverFieldPage({
         };
     });
 
-    const selectApproverField = (approverField: string) => {
+    const selectApproverField = (approverField: MergeATSApproverField) => {
         setDraftApproverField(approverField);
         Navigation.goBack();
     };

@@ -629,17 +629,6 @@ describe('getRecruitingCards', () => {
             ).toBe(`workspace.merge.approvalModes.advanced • workspace.recruiting.approverFields.recruitingCoordinator -> ${APPROVER_LOGIN}`);
         });
 
-        it('shows an unrecognized ATS field as-is', () => {
-            // Given an approver field the app does not have a translation for, since the backend can add new ones
-            // When the default approver row is built
-            // Then the raw field name is shown rather than a missing translation
-            expect(
-                getDefaultApproverTitle({
-                    config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: 'hiringManager', finalApprover: APPROVER_LOGIN},
-                }),
-            ).toBe(`workspace.merge.approvalModes.advanced • hiringManager -> ${APPROVER_LOGIN}`);
-        });
-
         it('reads "not set" for the ATS field when advanced mode has none', () => {
             // Given a connection in advanced mode with no approver field chosen
             // When the default approver row is built

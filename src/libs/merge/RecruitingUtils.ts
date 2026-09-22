@@ -4,9 +4,10 @@ import CONST from '@src/CONST';
 import MERGE_ATS_PROVIDERS from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import type {MergeApprovalMode, MergeATSApproverField} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 
 import {hasMergeSyncError, isMergeConnected, isMergeSyncDone} from './MergeUtils';
 
@@ -92,12 +93,12 @@ function isMergeATSCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
 }
 
 /** Returns the approval mode configured for the Merge ATS connection, or null when it is not set. */
-function getMergeATSApprovalMode(policy?: OnyxEntry<Policy>): ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | undefined {
+function getMergeATSApprovalMode(policy?: OnyxEntry<Policy>): MergeApprovalMode | undefined {
     return policy?.connections?.merge_ats?.config?.approvalMode ?? undefined;
 }
 
 /** Returns the ATS field the default approver is read from (e.g. the recruiter field), or undefined when it is not set. */
-function getMergeATSApproverField(policy?: OnyxEntry<Policy>): string | undefined {
+function getMergeATSApproverField(policy?: OnyxEntry<Policy>): MergeATSApproverField | undefined {
     return policy?.connections?.merge_ats?.config?.approverField ?? undefined;
 }
 

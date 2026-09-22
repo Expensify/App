@@ -11,8 +11,7 @@ import type {HRApprovalModeProviderConfig} from '@pages/workspace/hr/HRApprovalM
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-
-import type {ValueOf} from 'type-fest';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import React from 'react';
 
@@ -25,7 +24,7 @@ function MergeHRApprovalModePage({
 }: MergeHRApprovalModePageProps) {
     const {translate} = useLocalize();
 
-    const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.MERGE.APPROVAL_MODE>> = {
+    const config: HRApprovalModeProviderConfig<MergeApprovalMode> = {
         testID: 'MergeHRApprovalModePage',
         isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         approvalModes: CONST.MERGE.APPROVAL_MODE,

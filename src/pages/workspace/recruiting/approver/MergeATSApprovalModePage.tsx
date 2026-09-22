@@ -29,11 +29,10 @@ import {getApproverFieldName} from '@pages/workspace/recruiting/utils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import {View} from 'react-native';
-
-import type {ATSApprovalMode} from './MergeATSApprovalDraftContext';
 
 import {useMergeATSApprovalDraftActions, useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
 import MergeATSFinalApproverMenuItem from './MergeATSFinalApproverMenuItem';
@@ -41,7 +40,7 @@ import MergeATSFinalApproverMenuItem from './MergeATSFinalApproverMenuItem';
 type MergeATSApprovalModePageProps = PlatformStackScreenProps<MergeATSApprovalNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE>;
 
 type ApprovalModeListItem = ListItem & {
-    value: ATSApprovalMode;
+    value: MergeApprovalMode;
 };
 
 function MergeATSApprovalModePage({
