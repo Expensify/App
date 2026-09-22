@@ -69,7 +69,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusXLarge: 28,
-    componentBorderRadiusCard: 20,
+    componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
     componentBorderRadiusCircle: 999,
     componentBorderWidth: 8,

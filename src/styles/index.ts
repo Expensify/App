@@ -2864,13 +2864,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tableTopRadius: {
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            borderTopLeftRadius: variables.componentBorderRadiusCard,
+            borderTopRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBottomRadius: {
-            borderBottomLeftRadius: variables.componentBorderRadius,
-            borderBottomRightRadius: variables.componentBorderRadius,
+            borderBottomLeftRadius: variables.componentBorderRadiusCard,
+            borderBottomRightRadius: variables.componentBorderRadiusCard,
         },
 
         tableBorder: {
@@ -4313,7 +4313,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         widgetContainer: {
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusCard,
             overflow: 'hidden',
         },
 
@@ -4409,13 +4409,6 @@ const staticStyles = (theme: ThemeColors) =>
         quickCreationActionsBarButtonText: {
             fontSize: variables.fontSizeSmall,
             lineHeight: 14,
-        },
-
-        homePageContentContainer: {
-            flexGrow: 1,
-            paddingTop: 0,
-            paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         cardSectionIllustration: {
@@ -7562,10 +7555,18 @@ const plainStyles = (theme: ThemeColors) =>
             height: variables.componentSizeNormal,
         },
 
+        homePageContentContainer: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexGrow: 1,
+                paddingTop: 4,
+                paddingHorizontal: shouldUseNarrowLayout ? 12 : 20,
+                paddingBottom: 20,
+            }) satisfies ViewStyle,
+
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
+                gap: shouldUseNarrowLayout ? 12 : 20,
                 width: '100%',
                 maxWidth: variables.centeredContentMaxWidth,
                 alignSelf: 'center',
