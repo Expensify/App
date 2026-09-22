@@ -208,12 +208,27 @@ function getTagListSections({
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList
-        .filter((tag) => tag?.tags)
-        .map(({tags}) => Object.values(tags))
-        .flat();
+    for (const tagList of policyTagList) {
+        const tags = tagList?.tags;
 
-    return hasEnabledOptions(policyTagValueList);
+        if (!tags) {
+            continue;
+        }
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (tag?.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /**
