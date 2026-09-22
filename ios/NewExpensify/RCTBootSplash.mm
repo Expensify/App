@@ -13,12 +13,61 @@
 #import <React/RCTSurfaceHostingView.h>
 #import <React/RCTRootView.h>
 
+#ifndef EXPENSIFY_PGO_GENERATE
+#define EXPENSIFY_PGO_GENERATE 0
+#endif
+
+#if EXPENSIFY_PGO_GENERATE
+#include <dlfcn.h>
+
+extern "C" void __llvm_profile_set_filename(const char *FilenamePat);
+extern "C" int __llvm_profile_write_file(void);
+extern "C" void __llvm_profile_reset_counters(void);
+
+using PGOSetFilename = void (*)(const char *);
+using PGOWriteFile = int (*)();
+using PGOResetCounters = void (*)();
+
+template <typename Function>
+static Function HermesPGOFunction(const char *symbol) {
+  return reinterpret_cast<Function>(dlsym(RTLD_DEFAULT, symbol));
+}
+#endif
+
+static NSString *const PGO_DIRECTORY_NAME = @"ExpensifyPGO";
+static NSString *const PGO_STATUS_MARKER = @"profile-status.txt";
+static CFStringRef const PGO_WRITE_NOTIFICATION = CFSTR("com.expensify.pgo.write-profiles");
+static CFStringRef const PGO_CLEAR_NOTIFICATION = CFSTR("com.expensify.pgo.clear-profiles");
+
 static RCTSurfaceHostingProxyRootView *_rootView = nil;
 
 static UIView *_loadingView = nil;
 static NSMutableArray<RCTPromiseResolveBlock> *_resolveQueue = [[NSMutableArray alloc] init];
 static bool _fade = false;
 static bool _nativeHidden = false;
+
+static long long CurrentTimeMilliseconds(void) {
+  return (long long)([[NSDate date] timeIntervalSince1970] * 1000);
+}
+
+@interface RCTBootSplash ()
++ (NSURL *)pgoDirectoryURL;
++ (void)writePGOStatus:(NSString *)status result:(int)result;
++ (void)writePGOProfiles;
++ (void)clearPGOProfiles;
+@end
+
+static void HandlePGONotification(__unused CFNotificationCenterRef center,
+                                  __unused void *observer,
+                                  CFStringRef name,
+                                  __unused const void *object,
+                                  __unused CFDictionaryRef userInfo) {
+  if (CFEqual(name, PGO_WRITE_NOTIFICATION)) {
+    [RCTBootSplash writePGOProfiles];
+  } else if (CFEqual(name, PGO_CLEAR_NOTIFICATION)) {
+    [RCTBootSplash clearPGOProfiles];
+  }
+}
 
 @implementation RCTBootSplash
 
@@ -30,6 +79,81 @@ RCT_EXPORT_MODULE();
 
 + (BOOL)requiresMainQueueSetup {
   return NO;
+}
+
++ (NSURL *)pgoDirectoryURL {
+  NSURL *cachesURL = [[[NSFileManager defaultManager] URLsForDirectory:NSCachesDirectory
+                                                            inDomains:NSUserDomainMask] firstObject];
+  NSURL *directoryURL = [cachesURL URLByAppendingPathComponent:PGO_DIRECTORY_NAME isDirectory:YES];
+  [[NSFileManager defaultManager] createDirectoryAtURL:directoryURL
+                           withIntermediateDirectories:YES
+                                            attributes:nil
+                                                 error:nil];
+  return directoryURL;
+}
+
++ (void)writePGOStatus:(NSString *)status result:(int)result {
+  NSString *contents = [NSString stringWithFormat:@"%lld,%@,%d", CurrentTimeMilliseconds(), status, result];
+  NSURL *statusURL = [[self pgoDirectoryURL] URLByAppendingPathComponent:PGO_STATUS_MARKER];
+  [contents writeToURL:statusURL atomically:YES encoding:NSUTF8StringEncoding error:nil];
+}
+
++ (void)initializePGOProfileCollection {
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    CFNotificationCenterRef notificationCenter = CFNotificationCenterGetDarwinNotifyCenter();
+    CFNotificationCenterAddObserver(notificationCenter, NULL, HandlePGONotification, PGO_WRITE_NOTIFICATION, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+    CFNotificationCenterAddObserver(notificationCenter, NULL, HandlePGONotification, PGO_CLEAR_NOTIFICATION, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+
+#if EXPENSIFY_PGO_GENERATE
+    NSString *profilePattern = [[[self pgoDirectoryURL] URLByAppendingPathComponent:@"newdot-%m.profraw"] path];
+    __llvm_profile_set_filename(profilePattern.fileSystemRepresentation);
+    PGOSetFilename setHermesFilename = HermesPGOFunction<PGOSetFilename>("expensify_llvm_profile_set_filename");
+    if (setHermesFilename != nullptr) {
+      setHermesFilename(profilePattern.fileSystemRepresentation);
+    }
+#endif
+  });
+}
+
++ (void)writePGOProfiles {
+#if EXPENSIFY_PGO_GENERATE
+  int appResult = __llvm_profile_write_file();
+  PGOWriteFile writeHermesFile = HermesPGOFunction<PGOWriteFile>("expensify_llvm_profile_write_file");
+  int hermesResult = writeHermesFile != nullptr ? writeHermesFile() : 1;
+  int result = appResult == 0 && hermesResult == 0 ? 0 : 1;
+  [self writePGOStatus:@"written" result:result];
+  NSLog(@"ExpensifyPGO: wrote LLVM profile with result=%d appResult=%d hermesResult=%d", result, appResult, hermesResult);
+#else
+  [self writePGOStatus:@"not-instrumented" result:1];
+  NSLog(@"ExpensifyPGO: ignored profile write in a non-instrumented build");
+#endif
+}
+
++ (void)clearPGOProfiles {
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+  NSURL *directoryURL = [self pgoDirectoryURL];
+  NSArray<NSURL *> *files = [fileManager contentsOfDirectoryAtURL:directoryURL
+                                      includingPropertiesForKeys:nil
+                                                         options:0
+                                                           error:nil];
+  for (NSURL *fileURL in files) {
+    if ([fileURL.lastPathComponent hasSuffix:@".profraw"] || [fileURL.lastPathComponent isEqualToString:PGO_STATUS_MARKER]) {
+      [fileManager removeItemAtURL:fileURL error:nil];
+    }
+  }
+
+#if EXPENSIFY_PGO_GENERATE
+  __llvm_profile_reset_counters();
+  PGOResetCounters resetHermesCounters = HermesPGOFunction<PGOResetCounters>("expensify_llvm_profile_reset_counters");
+  int result = resetHermesCounters != nullptr ? 0 : 1;
+  if (resetHermesCounters != nullptr) {
+    resetHermesCounters();
+  }
+  [self writePGOStatus:@"cleared" result:result];
+#else
+  [self writePGOStatus:@"not-instrumented" result:1];
+#endif
 }
 
 + (bool)isLoadingViewVisible {
