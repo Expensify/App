@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
