@@ -169,7 +169,7 @@ function AuthScreensInitHandler() {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-        const isSupportalTransition = currentUrl.includes('authTokenType=support');
+        const isSupportalTransition = getSearchParamFromUrl(currentUrl, 'authTokenType') === CONST.AUTH_TOKEN_TYPES.SUPPORT;
         // A non-supportal account switch waits for the user to confirm in LogOutPreviousUserPage instead of signing out here.
         if (isLoggingInAsNewUser && isTransitioning && isSupportalTransition) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
