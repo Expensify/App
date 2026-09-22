@@ -3,13 +3,12 @@ import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
-import {generateHexadecimalValue} from '@libs/NumberUtils';
 import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory} from '@src/types/onyx';
-import type {CustomUnit, PolicyFeatureName} from '@src/types/onyx/Policy';
+import type {CustomUnit, PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
@@ -68,7 +67,7 @@ const PARTS_TO_POLICY_FIELDS = {
     codingRules: ['rules'],
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
-    invoices: ['areInvoicesEnabled', 'invoice'],
+    invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
     // fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms are per-policy
     // and must not be copied — each target is re-provisioned with its own entity by the backend.
@@ -126,32 +125,53 @@ function findCustomUnitByName(policy: Policy | undefined, unitName: string): Cus
 
 /**
  * Returns the customUnits patch to merge into the target policy when distanceRates and/or perDiem are
- * being copied. The source unit data is written under the target's existing unit ID — a new ID is
- * generated only when the target has no unit of that type yet.
+ * being copied. This mirrors what Auth's CopyPolicySettings persists: the source unit is written under
+ * the target's existing unit ID, and each source rate keeps the target's rate ID when the target
+ * already has a rate of the same name.
+ *
+ * Units and rates the target doesn't have yet are left out. Auth mints their IDs and pushes them to
+ * Onyx as a merge, so optimistically inventing a different ID would leave the same unit or rate on
+ * screen twice once the server push lands.
+ *
+ * Skipping the optimistic update for those new rates is fine because the copy runs behind a blocking
+ * modal, so nothing is on screen waiting for them. Showing them optimistically would require sending
+ * an optimisticRateIDs parameter and having Auth use those IDs instead of minting its own, which we
+ * can add later if we need it.
  */
 function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDistanceSelected: boolean, isPerDiemSelected: boolean): {customUnits: Record<string, CustomUnit>} | undefined {
-    if (!isDistanceSelected && !isPerDiemSelected) {
-        return undefined;
-    }
-
+    const unitNames = [...(isDistanceSelected ? [CONST.CUSTOM_UNITS.NAME_DISTANCE] : []), ...(isPerDiemSelected ? [CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL] : [])];
     const patch: Record<string, CustomUnit> = {};
 
-    if (isDistanceSelected) {
-        const sourceDistance = findCustomUnitByName(sourcePolicy, CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        if (sourceDistance) {
-            const targetDistance = findCustomUnitByName(targetPolicy, CONST.CUSTOM_UNITS.NAME_DISTANCE);
-            const targetUnitID = targetDistance?.customUnitID ?? generateHexadecimalValue(13);
-            patch[targetUnitID] = {...sourceDistance, customUnitID: targetUnitID};
+    for (const unitName of unitNames) {
+        const sourceUnit = findCustomUnitByName(sourcePolicy, unitName);
+        const targetUnit = findCustomUnitByName(targetPolicy, unitName);
+        if (!sourceUnit || !targetUnit) {
+            continue;
         }
-    }
 
-    if (isPerDiemSelected) {
-        const sourcePerDiem = findCustomUnitByName(sourcePolicy, CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
-        if (sourcePerDiem) {
-            const targetPerDiem = findCustomUnitByName(targetPolicy, CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
-            const targetUnitID = targetPerDiem?.customUnitID ?? generateHexadecimalValue(13);
-            patch[targetUnitID] = {...sourcePerDiem, customUnitID: targetUnitID};
+        const targetRateIDByName = new Map<string, string>();
+        for (const targetRate of Object.values(targetUnit.rates ?? {})) {
+            if (!targetRate.name || !targetRate.customUnitRateID || targetRateIDByName.has(targetRate.name)) {
+                continue;
+            }
+            targetRateIDByName.set(targetRate.name, targetRate.customUnitRateID);
         }
+
+        const rates: Record<string, Rate> = {};
+        for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
+            const sourceRateName = sourceRate.name;
+            const targetRateID = sourceRateName ? targetRateIDByName.get(sourceRateName) : undefined;
+            if (!sourceRateName || !targetRateID) {
+                continue;
+            }
+
+            // Each target rate ID can only stand in for one source rate, so a second source rate of the
+            // same name falls through to the server push like any other rate the target doesn't have.
+            targetRateIDByName.delete(sourceRateName);
+            rates[targetRateID] = {...sourceRate, customUnitRateID: targetRateID};
+        }
+
+        patch[targetUnit.customUnitID] = {...sourceUnit, customUnitID: targetUnit.customUnitID, rates};
     }
 
     if (Object.keys(patch).length === 0) {
@@ -279,11 +299,17 @@ function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCateg
  * Returns the partial Policy patch derived from the selected `parts`, excluding fields whose
  * mapping is handled separately (customUnits, timeTracking, receiptPartners, categories, tags collection keys).
  */
-function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Policy> {
+function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts: Part[]): Partial<Policy> {
     const patch: Partial<Policy> = {};
+    const shouldCopyReportFields = parts.includes('reports');
+    const shouldCopyInvoiceFields = parts.includes('invoices');
+
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
             if (field === 'customUnits') {
+                continue;
+            }
+            if (field === 'fieldList') {
                 continue;
             }
             if (part === 'codingRules' && field === 'rules') {
@@ -293,6 +319,18 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, parts: Part[]): Partial<Pol
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }
     }
+
+    if (shouldCopyReportFields || shouldCopyInvoiceFields) {
+        const shouldCopyField = (field: NonNullable<Policy['fieldList']>[string]) => {
+            const isInvoiceField = field.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+            return (shouldCopyReportFields && !isInvoiceField) || (shouldCopyInvoiceFields && isInvoiceField);
+        };
+        const retainedTargetFields = Object.entries(targetPolicy.fieldList ?? {}).filter(([, field]) => !shouldCopyField(field));
+        const copiedSourceFields = Object.entries(sourcePolicy.fieldList ?? {}).filter(([, field]) => shouldCopyField(field));
+        const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
+        patch.fieldList = Object.fromEntries(mergedFields);
+    }
+
     return patch;
 }
 
@@ -338,7 +376,6 @@ function buildCopyPolicySettingsData(
     const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
 
-    const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, parts);
     const pendingFields = buildExpandedPendingFields(parts);
     const clearedPendingFields = buildClearedPendingFields(parts);
 
@@ -385,6 +422,7 @@ function buildCopyPolicySettingsData(
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
+        const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, targetPolicy, parts);
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;

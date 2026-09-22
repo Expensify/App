@@ -33,6 +33,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -67,7 +68,7 @@ function AboutPage() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     useDocumentTitle(translate('initialSettingsPage.about'));
@@ -119,7 +120,7 @@ function AboutPage() {
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
                 action: waitForNavigate(() => {
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                    navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
                 }),
             },
         ];

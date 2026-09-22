@@ -163,7 +163,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -355,6 +355,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: REPORT_ID,
         policyID: POLICY_ID,
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,
@@ -859,7 +860,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -904,7 +905,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -989,7 +990,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -1028,7 +1029,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -1292,9 +1293,11 @@ describe('useSearchBulkActions - export options', () => {
     });
 
     it('opens directly onto the single export option when Export is the only bulk action', async () => {
-        // Export is the only bulk action offered under select all, so there is no main menu to go back to. The one
-        // export option is surfaced directly instead of behind an "Export" row whose submenu would render a back
-        // arrow leading nowhere, with "Export" kept as a plain dropdown header so the option still has context.
+        // Export is the only bulk action offered under select all, so the dropdown has no main menu to go back to.
+        // The one export option is surfaced directly instead of behind an "Export" row whose submenu would render a
+        // back arrow leading nowhere, with "Export" kept as a plain dropdown header so the option still has context.
+        // This only applies to the dropdown: the bar renders each action as its own button, so `headerButtonsOptions`
+        // keeps the nested shape regardless.
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID}),
@@ -1303,10 +1306,10 @@ describe('useSearchBulkActions - export options', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
-            expect(result.current.headerButtonsOptions.map((option) => option.text)).toEqual(['export.currentView']);
+            expect(result.current.dropdownButtonsOptions.map((option) => option.text)).toEqual(['export.currentView']);
         });
 
-        const soleOption = result.current.headerButtonsOptions.at(0);
+        const soleOption = result.current.dropdownButtonsOptions.at(0);
         expect(soleOption?.value).toBe(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
         expect(soleOption?.subMenuItems).toBeUndefined();
         expect(soleOption?.backButtonText).toBeUndefined();
@@ -1320,13 +1323,13 @@ describe('useSearchBulkActions - export options', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(1);
+            expect(result.current.dropdownButtonsOptions.length).toBeGreaterThan(1);
         });
 
         // Every entry is an export option itself — there is no "Export" row wrapping them and so no back arrow.
-        expect(result.current.headerButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
-        expect(result.current.headerButtonsOptions.some((option) => option.text === 'common.export')).toBe(false);
-        expect(result.current.headerButtonsOptions.some((option) => !!option.subMenuItems)).toBe(false);
+        expect(result.current.dropdownButtonsOptions.every((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT)).toBe(true);
+        expect(result.current.dropdownButtonsOptions.some((option) => option.text === 'common.export')).toBe(false);
+        expect(result.current.dropdownButtonsOptions.some((option) => !!option.subMenuItems)).toBe(false);
         // "Export" moves to the dropdown header instead, so the options are still labeled without a back caret.
         expect(result.current.bulkActionsMenuHeaderText).toBe('common.export');
     });
@@ -1572,6 +1575,88 @@ describe('useSearchBulkActions - export options', () => {
                 expect(mockGetExportTemplates).toHaveBeenCalled();
             });
             expect(getIncludeMultipleTaxExportArgument()).toBe(false);
+        });
+    });
+
+    describe('Reconciliation - All Expenses eligibility', () => {
+        /** The includeReconciliationAllExpenses argument getExportTemplates was last called with */
+        function getIncludeReconciliationAllExpensesArgument() {
+            return mockGetExportTemplates.mock.calls.at(-1)?.at(8);
+        }
+
+        it('offers the template when the user is a workspace admin of the selected workspace and it has company cards enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('offers the template when the user is a card admin of the selected workspace and it has the Expensify Card enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.CARD_ADMIN, areExpensifyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
+        });
+
+        it('hides the template when the user is a member, not admin, of every workspace', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.USER, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('hides the template when the admin workspaces have no card product enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: false, areExpensifyCardsEnabled: false});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport()];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(mockGetExportTemplates).toHaveBeenCalled();
+            });
+            expect(getIncludeReconciliationAllExpensesArgument()).toBe(false);
+        });
+
+        it('offers the template when the user is a card-enabled workspace admin of any workspace, even if the selected rows belong to a workspace they are only a member of', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {id: POLICY_ID_2, role: CONST.POLICY.ROLE.USER, areCompanyCardsEnabled: true});
+
+            mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+            mockSelectedReports = [makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+            mockSelectedTransactions = {
+                tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+            };
+
+            renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+            await waitFor(() => {
+                expect(getIncludeReconciliationAllExpensesArgument()).toBe(true);
+            });
         });
     });
 });

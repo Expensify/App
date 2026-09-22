@@ -32,7 +32,7 @@ import {
 } from '@libs/ReportUtils';
 import {getAmount, isScanFailedTransactionMovedOnPayment} from '@libs/TransactionUtils';
 
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +45,11 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 
 import {getAllReports, getAllTransactions} from '.';
+
+type PutOnHoldOptions = {
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    ancestors?: Ancestor[];
+};
 
 /**
  * Put expense on HOLD
@@ -59,7 +64,7 @@ function putOnHold(
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     isTrackIntentUser: boolean | undefined,
     delegateAccountID: number | undefined,
-    ancestors: Ancestor[] = [],
+    {rules, ancestors = []}: PutOnHoldOptions,
 ) {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -142,7 +147,14 @@ function putOnHold(
         });
     }
 
-    optimisticData.push(...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
+    optimisticData.push(
+        ...getOptimisticDataForAncestors(
+            ancestors,
+            createdReportActionComment.created,
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            createdReportActionComment.delegateAccountID ?? currentUserAccountID,
+        ),
+    );
 
     const successData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
@@ -288,6 +300,7 @@ function putOnHold(
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
+            rules,
         });
 
         optimisticData.push({
@@ -351,12 +364,12 @@ function putTransactionsOnHold(
     allTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     isTrackIntentUser: boolean | undefined,
     delegateAccountID: number | undefined,
-    ancestors: Ancestor[] = [],
+    {rules, ancestors = []}: PutOnHoldOptions,
 ) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, currentUserLogin, currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, {rules, ancestors});
     }
 }
 
@@ -373,6 +386,7 @@ function unholdRequest(
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     isTrackIntentUser: boolean | undefined,
     delegateAccountID: number | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
@@ -496,6 +510,7 @@ function unholdRequest(
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
+            rules,
         });
 
         optimisticData.push({
@@ -676,24 +691,26 @@ function getReportFromHoldRequestsOnyxData({
     recipient,
     policy,
     createdTimestamp,
-    betas,
+    isASAPSubmitBetaEnabled,
     isApprovalFlow = false,
     delegateAccountID,
     getCurrencyDecimals,
     shouldMoveHeldTransactions = true,
     shouldMoveScanFailedTransactions = false,
+    rules,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     recipient: Participant;
     policy: OnyxEntry<OnyxTypes.Policy>;
     createdTimestamp?: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isApprovalFlow?: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     shouldMoveHeldTransactions?: boolean;
     shouldMoveScanFailedTransactions?: boolean;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -735,10 +752,11 @@ function getReportFromHoldRequestsOnyxData({
               currency: iouReport?.currency ?? '',
               nonReimbursableTotal: holdNonReimbursableAmount,
               parentReportActionID: newParentReportActionID,
-              betas,
+              isASAPSubmitBetaEnabled,
               reportTransactions,
               createdTimestamp,
               getCurrencyDecimals,
+              rules,
           })
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,

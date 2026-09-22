@@ -9,7 +9,7 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef, KeyboardEvent} from 'react';
+import type {ComponentRef, ForwardedRef, KeyboardEvent} from 'react';
 import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -40,7 +40,7 @@ const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>
                 return;
             }
 
-            const isFocused = (inputRef.current as RNTextInput)?.isFocused?.() ?? false;
+            const isFocused = (inputRef.current as ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
             if (!isFocused) {
                 return;
             }
@@ -70,19 +70,13 @@ type ValidateCodeInputProps = {
     /** Name attribute for the input */
     name?: string;
 
-    /** Input value */
     value?: string;
-
-    /** Should the input auto focus */
     autoFocus?: boolean;
-
-    /** Error text to display */
     errorText?: string;
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete: AutoCompleteVariant;
 
-    /* Should submit when the input is complete */
     shouldSubmitOnComplete?: boolean;
 
     /** Function to call when the input is changed  */
@@ -100,19 +94,13 @@ type ValidateCodeInputProps = {
     /** Specifies the max length of the input */
     maxLength?: number;
 
-    /** Specifies if the keyboard should be disabled */
     isDisableKeyboard?: boolean;
 
     /** Last pressed digit on BigDigitPad */
     lastPressedDigit?: string;
 
-    /** TestID for test */
     testID?: string;
-
-    /** Accessibility label for the input */
     accessibilityLabel?: string;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<ValidateCodeInputHandle>;
 
     /** Whether to mask the input characters (display as dots) */

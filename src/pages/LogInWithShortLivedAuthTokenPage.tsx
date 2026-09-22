@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
@@ -25,8 +26,15 @@ type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScre
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
     const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error, isSAML = false} = route?.params ?? {};
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const isLoadingLastVisitedPath = isLoadingOnyxValue(lastVisitedPathMetadata);
 
     useEffect(() => {
+        // Only a forced SAML re-auth keeps a last visited path, so it has to be read before the sign-in starts.
+        if (isLoadingLastVisitedPath) {
+            return;
+        }
+
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const token = shortLivedAuthToken || shortLivedToken;
 
@@ -45,10 +53,11 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
             return;
         }
 
-        // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
-        if (token && !account?.isLoading) {
+        // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts.
+        // A forced SAML re-auth leaves account.isLoading true until this sign-in, so it must not block a SAML token.
+        if (token && (isSAML || !account?.isLoading)) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            signInWithShortLivedAuthToken(token, isSAML);
+            signInWithShortLivedAuthToken(token, isSAML, isSAML ? lastVisitedPath : undefined);
             // For SAML sign-ins, navigate to HOME explicitly since the SAML flow
             // doesn't use exitTo deep link routing. For non-SAML flows, let the
             // navigation system handle exitTo routing naturally via setUpPoliciesAndNavigate.
@@ -73,11 +82,11 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
                 Navigation.navigate(exitTo as Route);
             });
         }
-        // The only dependencies of the effect are based on props.route
+        // Runs once the route and the last visited path are known, later Onyx changes must not restart the sign-in.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route]);
+    }, [route, isLoadingLastVisitedPath]);
 
-    if (account?.isLoading) {
+    if (account?.isLoading || isLoadingLastVisitedPath) {
         return <FullScreenLoadingIndicator />;
     }
 

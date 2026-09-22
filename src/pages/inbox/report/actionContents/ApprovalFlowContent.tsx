@@ -42,6 +42,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isPendingAdd = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
@@ -73,6 +74,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
                 isTrackIntentUser,
                 policy,
                 report: originalReport,
+                rules,
             })
         ) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
@@ -104,6 +106,7 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
                 isTrackIntentUser,
                 policy,
                 report: originalReport,
+                rules,
             })
         ) {
             return <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;

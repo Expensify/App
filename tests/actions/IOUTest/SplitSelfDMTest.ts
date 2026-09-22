@@ -44,16 +44,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 jest.mock('@src/libs/SearchQueryUtils', () => {
@@ -169,6 +159,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
@@ -207,7 +199,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -258,6 +249,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
@@ -296,7 +289,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -371,6 +363,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
@@ -410,7 +404,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -467,6 +460,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 1: Create the splits
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
@@ -505,7 +500,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -530,6 +524,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Step 3: Edit the splits (change amounts)
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
@@ -568,7 +564,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
@@ -622,6 +617,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         });
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
             allTransactionsList: allTransactions,
@@ -660,7 +657,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
-            betas: [CONST.BETAS.ALL],
             allPolicyTags: {},
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             transactionReport: selfDMReport,
