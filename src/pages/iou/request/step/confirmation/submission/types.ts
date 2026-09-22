@@ -7,6 +7,7 @@ type CreateTransactionParams = {
 };
 
 type SubmissionHandle = {
+    /** Submission entry point implemented by each submission-path variant. */
     createTransaction: (params: CreateTransactionParams) => void;
 };
 

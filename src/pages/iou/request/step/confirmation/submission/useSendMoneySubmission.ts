@@ -59,6 +59,7 @@ function useSendMoneySubmission({
 
         const {optimisticChatReportID, chatReportID} =
             resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+
         // An explicit optimistic ID means the selected recipient has no chat yet. Do not let a stale page-level
         // report override that ID in getSendMoneyParams when the recipient changed without remounting this screen.
         const sendMoneyReport = optimisticChatReportID ? undefined : report;

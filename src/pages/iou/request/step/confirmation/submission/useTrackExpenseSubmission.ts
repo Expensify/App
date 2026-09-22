@@ -132,6 +132,7 @@ function useTrackExpenseSubmission({
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+
     // A self-DM destination passes `undefined` as the chat to trackExpense, which then resolves the chat to the self-DM — a real report that is never a draft
     const destinationChatReportID = isSelfDMDestination ? undefined : currentChatReport?.reportID;
     const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationChatReportID}`, {selector: isDraftReportSelector});
@@ -142,34 +143,43 @@ function useTrackExpenseSubmission({
         if (!transactions.length) {
             return;
         }
+
         const participant = selectedParticipants.at(0);
         if (!participant) {
             return;
         }
+
         // trackExpense bails per-item on malformed CATEGORIZE/SHARE/SUBMIT too late for UI cleanup — reject the batch upfront.
         const requiresLinkedTracked = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.SUBMIT;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+
         onExpenseWriteWillStart?.();
+
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
+
         // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
         // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
         const trackReport = isSelfDMDestination ? undefined : report;
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
+
         let submittedCommand: string = WRITE_COMMANDS.TRACK_EXPENSE;
         if (isCategorizingTrackExpense) {
             submittedCommand = WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE;
         } else if (isSharingTrackExpense) {
             submittedCommand = WRITE_COMMANDS.SHARE_TRACKED_EXPENSE;
         }
+
         let lastOptimisticTransactionID: string | undefined;
         for (const item of transactions) {
             const {newAccountIDs, newLogins} =
                 item.accountant?.login && item.accountant.accountID ? getNewAccountIDsAndLogins({[item.accountant.login]: item.accountant.accountID}, personalDetails) : {};
             lastOptimisticTransactionID = rand64();
+
             const trackReceipt = receiptFiles[item.transactionID];
             logSubmittedReceiptMilestone({item, receipt: trackReceipt, optimisticTransactionID: lastOptimisticTransactionID, command: submittedCommand, iouType});
+
             const isLinkedTrackedExpenseReportArchived =
                 !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
             const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
@@ -281,6 +291,7 @@ function useTrackExpenseSubmission({
 
     function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true}: CreateTransactionParams) {
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
+
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
         const shouldCaptureGpsPoint =
             hasAnyReceiptFile &&

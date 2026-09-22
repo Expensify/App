@@ -160,11 +160,13 @@ function useRequestMoneySubmission({
         if (!participant) {
             return;
         }
+
         // requestMoney bails per-item on malformed SUBMIT too late for UI cleanup — reject the batch upfront.
         const requiresLinkedTracked = action === CONST.IOU.ACTION.SUBMIT;
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+
         onExpenseWriteWillStart?.();
 
         // For a brand-new P2P recipient, reuse the optimistic report ID the confirmation screen already
@@ -190,6 +192,7 @@ function useRequestMoneySubmission({
                 command: isMovingTransactionFromTrackExpense ? WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST : WRITE_COMMANDS.REQUEST_MONEY,
                 iouType,
             });
+
             const isTestReceipt = receipt?.isTestReceipt ?? false;
             const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
             const isLinkedTrackedExpenseReportArchived =
@@ -215,6 +218,7 @@ function useRequestMoneySubmission({
             const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
             const existingTransaction = existingTransactionID ? storedTransactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
             let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
+
             if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                 const distance = item.comment?.customUnit?.quantity;
                 const unit = item.comment?.customUnit?.distanceUnit;
@@ -319,6 +323,7 @@ function useRequestMoneySubmission({
                 allTransactionsCreated = false;
             }
         }
+
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
         performPostBatchCleanup({
             transactions,

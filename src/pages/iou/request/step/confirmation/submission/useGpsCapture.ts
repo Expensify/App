@@ -34,7 +34,6 @@ function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: nu
 }
 
 type SubmitWithGpsPointParams = {
-    /** Whether this submission needs a GPS point. Each caller derives it from its own guard. */
     shouldCaptureGpsPoint: boolean;
     shouldHandleNavigation: boolean;
     write: (shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) => void;
@@ -49,11 +48,13 @@ function useGpsCapture() {
             markSubmitExpenseEnd();
             return;
         }
+
         if (userLocation) {
             write(shouldHandleNavigation, {lat: userLocation.latitude, long: userLocation.longitude});
             markSubmitExpenseEnd();
             return;
         }
+
         // No markSubmitExpenseEnd() here - getCurrentPositionWithGeolocationSpan ends the span itself before
         // opening the geolocation one, and the write runs in its callback.
         getCurrentPositionWithGeolocationSpan((gpsCoords) => write(shouldHandleNavigation, gpsCoords));

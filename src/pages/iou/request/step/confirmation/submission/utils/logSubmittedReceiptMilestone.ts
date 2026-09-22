@@ -14,9 +14,6 @@ type LogSubmittedReceiptMilestoneParams = {
     iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
 };
 
-/**
- * Emits the `[Receipt] submitted` log for one expense as it leaves the confirmation page.
- */
 function logSubmittedReceiptMilestone({item, receipt, optimisticTransactionID, command, iouType}: LogSubmittedReceiptMilestoneParams) {
     if (!receipt?.receiptTraceId) {
         return;

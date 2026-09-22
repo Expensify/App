@@ -122,11 +122,14 @@ function usePerDiemSubmission({
             return;
         }
         const trimmedComment = transaction.comment?.comment?.trim() ?? '';
+
         onExpenseWriteWillStart?.();
+
         if (isTrackExpense) {
             // Mirror the action's bail: a submit it would no-op must not clean up or dismiss.
             if (!isEmptyObject(policy) && hasCompletePerDiemCustomUnit(transaction.comment?.customUnit)) {
                 const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+
                 submitPerDiemExpenseForSelfDM({
                     dateFnsLocale,
                     getCurrencyDecimals,
@@ -151,6 +154,7 @@ function usePerDiemSubmission({
                     delegateAccountID,
                     isTrackIntentUser,
                 });
+
                 if (shouldHandleNavigation) {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
                     dismissModalAndOpenReportInInboxTab(optimisticChatReportID, false, false);
@@ -160,6 +164,7 @@ function usePerDiemSubmission({
             } else {
                 Log.alert('[usePerDiemSubmission] Skipped per diem self-DM submit: missing policy or incomplete custom unit');
             }
+
             markSubmitExpenseEnd();
             return;
         }
@@ -171,10 +176,12 @@ function usePerDiemSubmission({
         } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
             existingChatReport = getReportOrDraftReport(participant.reportID);
         }
+
         // The recipient can be swapped without this screen remounting, so `existingChatReport` above
         // can still be whoever was selected before. Use the ID confirmation committed for the current
         // pick instead, so the pre-mounted report stays aligned with a brand-new P2P recipient.
         const transactionReportID = transaction.reportID;
+
         // Reuse it so the pre-mounted screen subscribes to the report created on submission.
         const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
         const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
@@ -233,7 +240,9 @@ function usePerDiemSubmission({
             isTrackIntentUser,
             rules,
         });
+
         const targetReportID = backToReport ?? activeReportID;
+
         // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
         const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 

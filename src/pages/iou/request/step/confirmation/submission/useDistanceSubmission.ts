@@ -127,6 +127,7 @@ function useDistanceSubmission({
             return;
         }
         const trimmedComment = transaction.comment?.comment?.trim() ?? '';
+
         onExpenseWriteWillStart?.();
 
         // Same reasoning as above: reuse the confirmation screen's optimistic report ID for a brand-new

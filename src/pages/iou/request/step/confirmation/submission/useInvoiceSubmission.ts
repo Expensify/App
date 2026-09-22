@@ -92,6 +92,7 @@ function useInvoiceSubmission({
             formatPhoneNumber,
             delegateAccountID,
         });
+
         if (shouldHandleNavigation) {
             cleanupAndNavigateAfterExpenseCreate({
                 report: undefined,
