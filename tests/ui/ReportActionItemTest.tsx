@@ -2106,6 +2106,42 @@ describe('ReportActionItem', () => {
             expect(screen.getByLabelText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
         });
 
+        it('IOU PAY VBBA omits the payment status when the expected date is invalid', async () => {
+            // Given an ACH payment action with the backend's unknown-date sentinel
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+                expectedDate: '???',
+            });
+
+            // When the payment action is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment message remains visible without an incomplete status sentence
+            expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
+            expect(screen.queryByText(/Waiting for payment to complete/i)).toBeNull();
+        });
+
         it('IOU PAY VBBA reads the expected date from an existing reimbursed action', async () => {
             // Given an ACH payment whose expected date only exists on the preceding reimbursed action
             const reportID = 'testReport';

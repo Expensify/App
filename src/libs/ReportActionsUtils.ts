@@ -496,6 +496,9 @@ function getPaymentMessageWithExpectedDate(translate: LocalizedTranslate, dateFn
     }
 
     const formattedExpectedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, dateFnsLocale);
+    if (!formattedExpectedDate) {
+        return paymentMessage;
+    }
     const expectedDateMessage = translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME);
     return translate('iou.paymentWithExpectedDate', {paymentMessage, expectedDateMessage});
 }
