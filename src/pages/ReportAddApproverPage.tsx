@@ -63,7 +63,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             return [];
         }
 
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
         // Resolve the translation once, not per member.
         const hiddenText = translate('common.hidden');
         return Object.values(employeeList)
