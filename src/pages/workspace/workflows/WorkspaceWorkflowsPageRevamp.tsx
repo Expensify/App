@@ -11,7 +11,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,16 +19,17 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {downloadMembersCSV} from '@libs/actions/Policy/Member';
 import {openPolicyWorkflowsPage} from '@libs/actions/Policy/Policy';
 import Tab from '@libs/actions/Tab';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
+import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canAccessSubmitWorkspaceFeatures, canMemberRead, isGroupPolicy as isGroupPolicyUtil} from '@libs/PolicyUtils';
+import {canMemberRead, isGroupPolicy as isGroupPolicyUtil, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRulesSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
 import {getPaymentMethods} from '@userActions/PaymentMethods';
@@ -41,7 +41,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsApprovalsTab from './tabs/WorkflowsApprovalsTab';
@@ -69,11 +69,9 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Send', 'ThumbsUp', 'MoneyBag', 'Wrench']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
+    const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
     const fetchData = useCallback(() => {
         openPolicyWorkflowsPage(policyID, true);
@@ -114,18 +112,29 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const persistedTab = WORKFLOWS_TABS_BY_KEY.get(lastSelectedTab ?? '') ?? WORKFLOWS_TAB.SUBMISSIONS;
     const requestedTab = routeTab ?? persistedTab;
 
+    const hasPersistedRouteTabRef = useRef(false);
+
     useEffect(() => {
         if (!routeTab) {
+            hasPersistedRouteTabRef.current = false;
             return;
         }
 
         // Persist the deep-linked tab first so reopening this page lands on it again.
         if (persistedTab !== routeTab) {
             Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, routeTab);
+            hasPersistedRouteTabRef.current = true;
             return;
         }
 
         // Onyx now holds the tab, so drop the param — `goBack` compares params, and a leftover one stops child flows returning here with the plain route from popping.
+        // Only clear the param this mount handed over: on a repeat visit Onyx already matches, so clearing it straight from mount
+        // rewrites the route while the navigation is still in flight and drops us out of the split navigator.
+        if (!hasPersistedRouteTabRef.current) {
+            return;
+        }
+
+        hasPersistedRouteTabRef.current = false;
         Navigation.setParams({tab: undefined});
     }, [routeTab, persistedTab]);
 
@@ -200,12 +209,12 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             return;
         }
         // Submit 2026 workspaces gate approvals behind the Submit approvals upgrade, so route them there instead of the importer.
-        if (canAccessSubmit2026Features) {
+        if (isSubmitPolicyWorkspace) {
             navigateToSubmitWorkspaceApprovalsUpgrade();
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(policyID));
-    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, policyID, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, policyID, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     // The Workflows CSV export reuses the Members export command so the downloaded file is identical to Members > Download CSV.
     const downloadWorkflowsAction = useCallback(() => {
@@ -233,7 +242,10 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         );
     }, [isOffline, showConfirmModal, translate, policyID]);
 
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
+    // A Dynamic External Workflow with "Hide People Table Columns" keeps the approval workflows out of the customer's
+    // hands entirely, so the importer that would edit them is blocked too.
+    const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy) || shouldHideApprovalWorkflows;
 
     const approvalSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [];
     // Importing modifies the workflows, so only offer it when editing is allowed.
@@ -245,32 +257,36 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
         });
     }
-    // Downloading is read-only, so it stays available even when editing is blocked.
-    approvalSecondaryActions.push({
-        icon: expensifyIcons.Download,
-        text: translate('spreadsheet.downloadWorkflows'),
-        onSelected: downloadWorkflowsAction,
-        value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
-    });
+    // Downloading is read-only, so the read-only HR modes keep it. Hiding the workflow drops it too, because the
+    // exported CSV is that workflow written out per member.
+    if (!shouldHideApprovalWorkflows) {
+        approvalSecondaryActions.push({
+            icon: expensifyIcons.Download,
+            text: translate('spreadsheet.downloadWorkflows'),
+            onSelected: downloadWorkflowsAction,
+            value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+        });
+    }
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
-    // Show the More dropdown whenever the user can manage workflows. When editing is blocked it renders download-only
-    // (the Import action is filtered out of approvalSecondaryActions above).
-    const headerButtons = canWriteApprovals ? (
-        <View style={[styles.flexRow, styles.gap2]}>
-            <ButtonWithDropdownMenu
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
-                options={approvalSecondaryActions}
-                isSplitButton={false}
-                wrapperStyle={styles.flexGrow0}
-            />
-        </View>
-    ) : undefined;
+    // Show the More dropdown whenever the user can manage workflows and at least one action survives the filters above.
+    // Hiding the workflow removes both actions, so the dropdown itself goes with them rather than opening empty.
+    const headerButtons =
+        canWriteApprovals && approvalSecondaryActions.length > 0 ? (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <ButtonWithDropdownMenu
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.MORE_DROPDOWN}
+                    options={approvalSecondaryActions}
+                    isSplitButton={false}
+                    wrapperStyle={styles.flexGrow0}
+                />
+            </View>
+        ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -319,4 +335,4 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     );
 }
 
-export default WorkspaceWorkflowsPageRevamp;
+export default withPolicy(WorkspaceWorkflowsPageRevamp);

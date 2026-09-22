@@ -66,6 +66,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -80,7 +81,6 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
             queryJSON,
             searchKey,
             offset: 0,
-            isOffline,
             isLoading: false,
             shouldUpdateLastSearchParams: false,
             // The query is a static canned search, so it doesn't need anything OpenApp delivers. Don't sit behind it.
@@ -114,6 +114,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
                       translate,
                       formatPhoneNumber,
                       bankAccountList: undefined,
+                      rules,
                       conciergeReportID,
                       convertToDisplayString,
                       reportAttributesDerivedValue: undefined,

@@ -6,16 +6,17 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {CodingRule} from '@src/types/onyx/Policy';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
 import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
+import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {findVendorByID, getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
@@ -82,7 +83,7 @@ function getMerchantTypeRulesTableData({
             keyForList: getMerchantTypeRuleKey(groupID),
             ruleID: getMerchantTypeRuleKey(groupID),
             groupID,
-            isMerchantType: true,
+            section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES,
             isRename: false,
             isSelectionDisabled: true,
             typeLabel,
@@ -124,6 +125,10 @@ function getMerchantCodingRulesTableData({
         vendor: translate(isOnXero ? 'common.supplier' : 'common.vendor').toLowerCase(),
     };
 
+    // A merchant rule outlives the category or tax rate it sets — the backend keeps the rule and only drops that one
+    // default — so no pending state is borrowed here. Only the rule's own delete counts, and it reads the same way as
+    // a category rule's: online the delete resolves in a moment, so the row goes rather than flashing greyed, while
+    // offline it stays and is styled as deleting since there is nothing to wait for.
     return Object.entries(codingRules)
         .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
         .map(([ruleID, rule]: [string, CodingRule]) => {
@@ -154,26 +159,17 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, commentMarkdown));
             }
             if (rule.tax?.field_id_TAX?.value) {
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
+                actions.push(
+                    translate(
+                        'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
+                        fieldLabels.tax,
+                        getTaxRateDisplayName(policy, rule.tax.field_id_TAX.externalID, rule.tax.field_id_TAX),
+                    ),
+                );
             }
             if (rule.vendorID) {
-                // Resolve the display name in three tiers so each case renders correctly:
-                //   1. Active-source hit — the vendor is in the active vendor-matching integration's list; render its name.
-                //   2. Active-source miss with a loaded list — the ID doesn't exist in that active list; render "unavailable"
-                //      so a rule targeting a stale/inactive-connection vendor never surfaces a misleading name.
-                //   3. No active vendor-matching source (e.g. admin switched the non-reimbursable export mode away from
-                //      vendor-matching) — fall back to `findVendorByID`'s permissive search across every connection's data
-                //      so the historical vendor name still renders instead of a raw external ID; otherwise the raw ID
-                //      as a last resort while the connection data hasn't loaded yet.
-                const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
-                let vendorValue: string;
-                if (activeVendorName) {
-                    vendorValue = activeVendorName;
-                } else if (isMatchingVendorListLoaded(policy)) {
-                    vendorValue = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
-                } else {
-                    vendorValue = findVendorByID(policy, rule.vendorID)?.name ?? rule.vendorID;
-                }
+                const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+                const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, vendorValue));
             }
             if (rule.reimbursable !== undefined) {
@@ -183,20 +179,21 @@ function getMerchantCodingRulesTableData({
                 actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
             }
             const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
+            const pendingAction = rule.pendingAction;
 
             return {
                 keyForList: ruleID,
                 ruleID,
-                isMerchantType: false,
+                section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                 isRename: hasOnlyMerchantRename,
                 typeLabel,
                 conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
                 ruleDescription,
                 searchTokens: [merchantName, ruleDescription],
-                pendingAction: rule.pendingAction,
+                pendingAction,
                 errors: rule.errors,
                 onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
-                disabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 action: () => onNavigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
             };
         });
@@ -205,20 +202,24 @@ function getMerchantCodingRulesTableData({
 function getExpenseDefaultsTableData({
     policy,
     policyID,
+    policyCategories,
     translate,
     isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyID: string;
+    /** Read for the pending state of a category a rule depends on, so the rule shows as deleting alongside it. */
+    policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
+    const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
     const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
-    return [...merchantRules, ...merchantTypeRules];
+    return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];
 }
 
 export {

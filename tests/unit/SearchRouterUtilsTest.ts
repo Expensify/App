@@ -210,22 +210,7 @@ describe('SearchRouterUtils', () => {
             return {seededQuery, submittedQuery: getQueryWithSubstitutions(seededQuery, substitutions)};
         }
 
-        it('resolves a workspace name containing a comma to its policy ID', () => {
-            const item: SearchQueryItem = {
-                keyForList: POLICY_ID,
-                roomType: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                policyID: POLICY_ID,
-                autocompleteID: POLICY_ID,
-                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
-            };
-
-            const {seededQuery, submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme,Inc'));
-
-            expect(seededQuery).toBe('type:expense workspace:"Acme,Inc"');
-            expect(submittedQuery).toBe(`type:expense workspace:${POLICY_ID}`);
-        });
-
-        it('resolves a workspace name containing both a quote and a comma to its policy ID', () => {
+        it('keeps a workspace name containing both a quote and a comma, and resolves it to its policy ID', () => {
             const item: SearchQueryItem = {
                 keyForList: POLICY_ID,
                 roomType: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -236,11 +221,11 @@ describe('SearchRouterUtils', () => {
 
             const {seededQuery, submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme "US",Inc'));
 
-            expect(seededQuery).toBe('type:expense workspace:"Acme US,Inc"');
+            expect(seededQuery).toBe('type:expense workspace:"Acme \\"US\\",Inc"');
             expect(submittedQuery).toBe(`type:expense workspace:${POLICY_ID}`);
         });
 
-        it('resolves a workspace name containing a quote and a space to its policy ID', () => {
+        it('keeps a workspace name containing a quote and a space, and resolves it to its policy ID', () => {
             const item: SearchQueryItem = {
                 keyForList: POLICY_ID,
                 roomType: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -249,8 +234,9 @@ describe('SearchRouterUtils', () => {
                 searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION,
             };
 
-            const {submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme "US" Inc'));
+            const {seededQuery, submittedQuery} = submitContextualSuggestion(item, buildPolicies('Acme "US" Inc'));
 
+            expect(seededQuery).toBe('type:expense workspace:"Acme \\"US\\" Inc"');
             expect(submittedQuery).toBe(`type:expense workspace:${POLICY_ID}`);
         });
 

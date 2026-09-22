@@ -6,6 +6,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -26,10 +29,7 @@ type ColumnItem = {
     /** Display label for the column */
     text: string;
 
-    /** Column identifier value */
     value: SearchCustomColumnIds;
-
-    /** Unique key used for list rendering */
     keyForList: SearchCustomColumnIds;
 
     /** Whether the column is currently enabled/visible */
@@ -46,7 +46,6 @@ type ColumnItem = {
 };
 
 type ColumnsSettingsListProps = {
-    /** All available column IDs that can be displayed */
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */
@@ -69,9 +68,22 @@ type ColumnsSettingsListProps = {
 
     /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
+
+    /** The active Search type, used to resolve type-specific column labels */
+    type?: SearchDataTypes;
 };
 
-function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns, requiredColumns, groupBy, groupColumns = [], defaultGroupColumns = [], onSave}: ColumnsSettingsListProps) {
+function ColumnsSettingsList({
+    allColumns,
+    defaultSelectedColumns,
+    currentColumns,
+    requiredColumns,
+    groupBy,
+    groupColumns = [],
+    defaultGroupColumns = [],
+    onSave,
+    type,
+}: ColumnsSettingsListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
@@ -87,8 +99,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         const unselected = columnsToSort
             .filter((col) => !col.isSelected)
             .sort((a, b) => {
-                const textA = translate(getSearchColumnTranslationKey(a.value));
-                const textB = translate(getSearchColumnTranslationKey(b.value));
+                const textA = translate(getSearchColumnTranslationKey(a.value, type));
+                const textB = translate(getSearchColumnTranslationKey(b.value, type));
                 return localeCompare(textA, textB);
             });
         return [...selected, ...unselected];
@@ -120,14 +132,14 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
             const isEffectivelySelected = isRequired || isSelected;
             const isDragDisabled = !isEffectivelySelected;
             return {
-                text: translate(getSearchColumnTranslationKey(columnId)),
+                text: translate(getSearchColumnTranslationKey(columnId, type)),
                 value: columnId,
                 keyForList: columnId,
                 isSelected: isEffectivelySelected,
                 isDisabled: isRequired,
                 isDragDisabled,
                 leftElement: (
-                    <View style={[styles.mr3, isDragDisabled && styles.cursorDisabled]}>
+                    <View style={[styles.mr3, isDragDisabled ? styles.cursorDisabled : styles.cursorGrab]}>
                         <Icon
                             src={icons.DragHandles}
                             fill={theme.icon}
@@ -166,8 +178,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                 const selectedCols = prevColumns.filter((col) => col.isSelected);
                 const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
                 const unselectedSorted = unselected.sort((a, b) => {
-                    const textA = translate(getSearchColumnTranslationKey(a.columnId));
-                    const textB = translate(getSearchColumnTranslationKey(b.columnId));
+                    const textA = translate(getSearchColumnTranslationKey(a.columnId, type));
+                    const textB = translate(getSearchColumnTranslationKey(b.columnId, type));
                     return localeCompare(textA, textB);
                 });
                 return [...selectedCols, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];
@@ -221,7 +233,6 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         return (
             <MultiSelectListItem
                 item={item}
-                keyForList={item.keyForList}
                 isFocused={isFocused}
                 showTooltip={false}
                 onSelectRow={onSelectItem}
@@ -297,12 +308,13 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button
-                    large
-                    success
-                    pressOnEnter
-                    text={translate('common.save')}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleSave}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

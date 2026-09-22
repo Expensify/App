@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
 
@@ -8,7 +8,6 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -29,11 +28,11 @@ import {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
 } from '@libs/ReportActionsUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import {isSplitChildTransaction} from '@libs/TransactionUtils';
 
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -43,7 +42,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
+import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
 
@@ -68,7 +67,6 @@ function AddPaymentCardButton() {
 }
 
 type ConciergeOptionsButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction<ConciergeOptionsActionName>;
 
     /** Report that owns this action for mutations (thread / merged-list cases use the original report) */
@@ -123,7 +121,6 @@ function ConciergeOptionsButtons({action, actionOwnerReport, reportID, options}:
 }
 
 type SuggestedFollowupButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Report that owns this action for mutations (thread / merged-list cases use the original report) */
@@ -179,7 +176,6 @@ function SuggestedFollowupButtons({action, actionOwnerReport, reportID, followup
 }
 
 type TrackExpenseButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER>;
 
     /** ID of the report that owns this action */
@@ -192,8 +188,6 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const personalDetail = useCurrentUserPersonalDetails();
     const activePolicy = useActivePolicy();
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -204,9 +198,10 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createFilteredPoliciesInfoSelector(personalDetail.email)});
+    const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(getOriginalMessage(action)?.transactionID)}`);
     const [actionOwnerReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(actionOwnerReportID)}`);
-    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login, isSubmit2026BetaEnabled)});
+    const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createHasWorkspaceToSubmitToSelector(personalDetail.login)});
 
     const baseDraftTransactionParams = {
         reportID: actionOwnerReportID,
@@ -223,7 +218,8 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
         currentUserEmail: personalDetail.email ?? '',
         currentUserLocalCurrency: personalDetail.localCurrencyCode ?? CONST.CURRENCY.USD,
         filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-        firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+        firstPolicy: filteredPoliciesInfo?.firstPolicy,
+        restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
     };
     const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
     const shouldShowSubmitButtons = !isSplitExpense || !!hasWorkspaceToSubmitTo;
@@ -231,18 +227,16 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const submit = (submitDestination?: ValueOf<typeof CONST.IOU.SUBMIT_DESTINATION>) => {
         createDraftTransactionAndNavigateToParticipantSelector({
             ...baseDraftTransactionParams,
-            isRestrictedToPreferredPolicy,
-            preferredPolicyID,
             actionName: CONST.IOU.ACTION.SUBMIT,
             submitDestination,
-            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', lastWorkspaceNumber, translate, personalDetail.displayName),
+            defaultWorkspaceName: submitDestination && generateDefaultWorkspaceName(personalDetail.email ?? '', personalDetail.displayName, lastWorkspaceNumber, translate),
         });
     };
 
     return (
         <ActionableItemButtons layout="vertical">
-            {/* On the Submit (submit2026) plan, the single "Submit it to someone" button splits into one button per destination. */}
-            {shouldShowSubmitButtons && isSubmit2026BetaEnabled && (
+            {/* "Submit it to someone" is one button per destination. */}
+            {shouldShowSubmitButtons && (
                 <>
                     {!isSplitExpense && (
                         <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
@@ -253,12 +247,6 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
                         <Button.Text>{translate('actionableMentionTrackExpense.submitToEmployer')}</Button.Text>
                     </Button>
                 </>
-            )}
-
-            {shouldShowSubmitButtons && !isSubmit2026BetaEnabled && (
-                <Button onPress={() => submit()}>
-                    <Button.Text>{translate('actionableMentionTrackExpense.submit')}</Button.Text>
-                </Button>
             )}
 
             {Permissions.canUseTrackFlows() && (
@@ -292,13 +280,11 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
 }
 
 type ChatActionableButtonsProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** ID of the original report from which the given reportAction is first created */
     originalReportID: string | undefined;
 
-    /** ID of the report currently being displayed */
     reportID: string | undefined;
 
     /** Whether Concierge is still composing the followup list for this action, so its placeholder should be shown */

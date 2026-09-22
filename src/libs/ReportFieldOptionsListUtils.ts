@@ -27,59 +27,79 @@ function getReportFieldOptionsSection({
     options,
     recentlyUsedOptions,
     selectedOptions,
+    initiallySelectedValue,
     searchValue,
     translate,
+    shouldPinSelectedOption = true,
+    shouldShowSectionTitles = true,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
     selectedOptions: Array<Partial<OptionData>>;
+    initiallySelectedValue: string;
     searchValue: string;
     translate: LocalizedTranslate;
+
+    /** Whether the selected value is lifted into its own section at the top of the list */
+    shouldPinSelectedOption?: boolean;
+
+    /** Whether the "Recent" and "All" section titles are rendered */
+    shouldShowSectionTitles?: boolean;
 }) {
     const reportFieldOptionsSections = [];
-    const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
-    const selectedKeySet = new Set(selectedOptionKeys);
+    // The live selection drives the checkmark (isSelected)...
+    const selectedKeySet = new Set(selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o));
+    // ...while the frozen initial selection drives the pinned "Selected" section, so selecting a value marks it without reordering the list until reopen.
+    const pinnedOptionKeys = shouldPinSelectedOption && initiallySelectedValue ? [initiallySelectedValue] : [];
+    const pinnedKeySet = new Set(pinnedOptionKeys);
 
     if (searchValue) {
         const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
+        // Keep the pinned option(s) at the top of the search results, matching the "Selected" section shown when not searching.
+        const pinnedSearchOptions: string[] = [];
+        const otherSearchOptions: string[] = [];
+        for (const option of searchOptions) {
+            (pinnedKeySet.has(option) ? pinnedSearchOptions : otherSearchOptions).push(option);
+        }
+        const orderedSearchOptions = [...pinnedSearchOptions, ...otherSearchOptions];
 
         reportFieldOptionsSections.push({
             // "Search" section
             title: '',
             sectionIndex: 0,
-            data: getReportFieldOptions(searchOptions, selectedKeySet),
+            data: getReportFieldOptions(orderedSearchOptions, selectedKeySet),
         });
 
         return reportFieldOptionsSections;
     }
 
     const enabledOptionSet = new Set(options);
-    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((o) => !selectedKeySet.has(o) && enabledOptionSet.has(o));
-    const filteredOptions = options.filter((o) => !selectedKeySet.has(o));
+    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((o) => !pinnedKeySet.has(o) && enabledOptionSet.has(o));
+    const filteredOptions = options.filter((o) => !pinnedKeySet.has(o));
 
-    if (selectedOptionKeys.length) {
+    if (pinnedOptionKeys.length) {
         reportFieldOptionsSections.push({
-            // "Selected" section
+            // "Selected" (pinned) section
             title: '',
             sectionIndex: 1,
-            data: getReportFieldOptions(selectedOptionKeys, selectedKeySet),
+            data: getReportFieldOptions(pinnedOptionKeys, selectedKeySet),
         });
     }
 
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
-            title: translate('common.recent'),
+            title: shouldShowSectionTitles ? translate('common.recent') : '',
             sectionIndex: 2,
-            data: getReportFieldOptions(filteredRecentlyUsedOptions),
+            data: getReportFieldOptions(filteredRecentlyUsedOptions, selectedKeySet),
         });
     }
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
-        title: translate('common.all'),
+        title: shouldShowSectionTitles ? translate('common.all') : '',
         sectionIndex: 3,
-        data: getReportFieldOptions(filteredOptions),
+        data: getReportFieldOptions(filteredOptions, selectedKeySet),
     });
 
     return reportFieldOptionsSections;

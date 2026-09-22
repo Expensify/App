@@ -1,10 +1,10 @@
 import Button from '@components/Button';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,7 +28,6 @@ import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useContext} from 'react';
 
 type ReimbursementQueuedContentProps = {
-    /** The reimbursement queued action */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>;
 
     /** The chat report this action belongs to */
@@ -39,7 +38,6 @@ type ReimbursementQueuedContentProps = {
 };
 
 function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQueuedContentProps) {
-    const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
@@ -60,14 +58,15 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
         <ReportActionItemBasicMessage message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}>
             <>
                 {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT && (
-                    <Button
-                        success
-                        style={[styles.w100, styles.requestPreviewBox]}
-                        text={translate('bankAccount.addBankAccount')}
-                        onPress={() => openPersonalBankAccountSetupView({exitReportID: Navigation.getTopmostReportId() ?? targetReport?.reportID, isUserValidated})}
-                        pressOnEnter
-                        large
-                    />
+                    <ActionableItemButtons layout="horizontal">
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            onPress={() => openPersonalBankAccountSetupView({exitReportID: Navigation.getTopmostReportId() ?? targetReport?.reportID, isUserValidated})}
+                        >
+                            <Button.KeyboardShortcut />
+                            <Button.Text>{translate('bankAccount.addBankAccount')}</Button.Text>
+                        </Button>
+                    </ActionableItemButtons>
                 )}
                 {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.WALLET && (
                     <KYCWall
@@ -80,16 +79,17 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
                         iouReport={iouReport}
                     >
                         {(triggerKYCFlow, buttonRef) => (
-                            <Button
-                                ref={buttonRef}
-                                success
-                                large
-                                style={[styles.w100, styles.requestPreviewBox]}
-                                text={translate('iou.enableWallet')}
-                                onPress={(event) => {
-                                    triggerKYCFlow({event});
-                                }}
-                            />
+                            <ActionableItemButtons layout="horizontal">
+                                <Button
+                                    ref={buttonRef}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    onPress={(event) => {
+                                        triggerKYCFlow({event});
+                                    }}
+                                >
+                                    <Button.Text>{translate('iou.enableWallet')}</Button.Text>
+                                </Button>
+                            </ActionableItemButtons>
                         )}
                     </KYCWall>
                 )}

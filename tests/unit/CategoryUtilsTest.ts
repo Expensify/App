@@ -1,7 +1,9 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
+    getCategoryDefaultTaxRate,
     getCategoryGLCode,
+    getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -12,6 +14,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -220,7 +223,7 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(result[keyOther]?.TestCategory3).toBeDefined();
     });
 
-    describe('processCategoryNameSegments and getDecodedLeafCategoryName', () => {
+    describe('category name formatting', () => {
         describe('processCategoryNameSegments', () => {
             it('returns a single segment for colon‑only names', () => {
                 expect(processCategoryNameSegments(':')).toEqual([':']);
@@ -243,6 +246,41 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
             it('returns the leaf for normal hierarchies (trimmed)', () => {
                 expect(getDecodedLeafCategoryName('Food: Meat')).toEqual('Meat');
                 expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
+            });
+        });
+
+        describe('getDecodedFullCategoryName', () => {
+            it('returns the full name for colon‑only categories', () => {
+                expect(getDecodedFullCategoryName(':')).toEqual(':');
+                expect(getDecodedFullCategoryName('::')).toEqual('::');
+            });
+
+            it('returns the full path for normal hierarchies', () => {
+                expect(getDecodedFullCategoryName('Food: Meat')).toEqual('Food: Meat');
+                expect(getDecodedFullCategoryName('A: B:')).toEqual('A: B:');
+                expect(getDecodedFullCategoryName('Meals and Entertainment: Other')).toEqual('Meals and Entertainment: Other');
+            });
+
+            it('normalizes separator spacing for display', () => {
+                expect(getDecodedFullCategoryName('A:B')).toEqual('A: B');
+                expect(getDecodedFullCategoryName('A:  B')).toEqual('A: B');
+            });
+
+            it('drops empty middle segments', () => {
+                expect(getDecodedFullCategoryName('Food: : Meat')).toEqual('Food: Meat');
+            });
+
+            it('keeps a single trailing colon on the last segment', () => {
+                expect(getDecodedFullCategoryName('A: B::')).toEqual('A: B:');
+            });
+
+            it('returns single segments and empty input unchanged', () => {
+                expect(getDecodedFullCategoryName('Plain')).toEqual('Plain');
+                expect(getDecodedFullCategoryName('')).toEqual('');
+            });
+
+            it('decodes HTML entities in every segment', () => {
+                expect(getDecodedFullCategoryName('Travel &amp; Lodging: Other')).toEqual('Travel & Lodging: Other');
             });
         });
     });
@@ -433,5 +471,32 @@ describe('getCategoryGLCode', () => {
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+});
+
+describe('getCategoryDefaultTaxRate', () => {
+    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
+        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        tax: {field_id_TAX: {externalID: taxID}},
+    });
+
+    it("returns the category's own rate", () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
+    });
+
+    it('falls back to the workspace rate when the category has no rule', () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+    });
+
+    it('ignores a rule that carries the name on some other condition', () => {
+        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
+        // rate the admin never set for this category.
+        const tagNamedAfterTheCategory: ExpenseRule = {
+            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
+        };
+        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
     });
 });

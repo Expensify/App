@@ -14,7 +14,7 @@ import {
     useDynamicYDomain,
     useLabelHitTesting,
 } from '@components/Charts/hooks';
-import {calculateMinDomainPadding, getYAxisLabelWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -39,7 +39,6 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 type BarChartProps = CartesianChartProps & {
-    /** Callback when a bar is pressed */
     onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
 
     /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
@@ -88,7 +87,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const totalDomainPadding = domainPadding.left + domainPadding.right;
     const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
 
-    const originalLabels = data.map((p) => p.label);
+    const originalLabels = data.map(getXAxisLabel);
 
     const measurements = useChartLabelMeasurements(data, fontManager, variables.iconSizeExtraSmall);
 

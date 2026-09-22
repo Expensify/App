@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -54,7 +54,7 @@ function SpendRuleRestrictionTypeToggleRevamp({restrictionAction, onSelect, icon
                     />
                 )}
                 <Text style={[styles.flex1, styles.pr3, styles.alignSelfCenter]}>{translate('workspace.rules.spendRules.restrictMerchants')}</Text>
-                <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal]}>
+                <View style={[styles.flexRow, styles.border, styles.borderRadiusNormal, styles.alignSelfStart]}>
                     <Button
                         onPress={() => onSelect(null)}
                         size={CONST.BUTTON_SIZE.SMALL}

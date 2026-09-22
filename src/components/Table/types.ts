@@ -6,7 +6,7 @@ import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './mid
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
-import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
 /**
  * Defines the required minimum shape for each row of data in the table
@@ -37,11 +37,53 @@ type TableColumnStyling = {
 };
 
 /**
+ * A run of text inside a cell, described well enough to measure how wide it renders.
+ */
+type MeasurableCellContent = {
+    /** The text rendered in the cell. */
+    text: string;
+
+    /** Font size the text renders at. Defaults to the app's normal text size. */
+    fontSize?: number;
+
+    /** Font weight the text renders at. Defaults to the normal weight. */
+    fontWeight?: string;
+};
+
+/**
+ * Describes how to size a column from its content, used when the table opts into dynamic column widths via
+ * `shouldUseDynamicColumns`. Columns that omit this are sized from their header label alone.
+ */
+type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
+    /**
+     * The text runs rendered in this column's cell for a row. The widest measurement across every row drives the
+     * column's content width, so return every run that can be the widest one (e.g. both lines of a two-line cell).
+     */
+    getContentToMeasure: (item: DataType) => MeasurableCellContent[];
+
+    /** Width of the cell's non-text content, e.g. an avatar plus its gap. */
+    extraWidth?: number;
+
+    /** Whether this column's values come from a fixed set (a role, a status), so it always fits them in full and never truncates. */
+    shouldFitContent?: boolean;
+
+    /** Smallest width this column may be squeezed to. Defaults to a readable width, or the column's content width when that is narrower. */
+    minWidth?: number;
+
+    /**
+     * Largest width this column may claim. Uncapped by default, so content that doesn't fit scrolls the table rather
+     * than truncating. Set this on a column that should truncate instead of widening the table any further.
+     */
+    maxWidth?: number;
+};
+
+/**
  * Defines the configuration for a single table column.
  *
  * @template ColumnKey - A string literal type representing the valid column keys.
+ * @template DataType - The type of items in the table's data array.
  */
-type TableColumn<ColumnKey extends string = string> = {
+type TableColumn<ColumnKey extends string = string, DataType extends TableData = TableData> = {
     /** Unique identifier for the column, used for sorting and data binding. */
     key: ColumnKey;
 
@@ -56,6 +98,9 @@ type TableColumn<ColumnKey extends string = string> = {
 
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
+
+    /** Optional configuration for sizing this column from its content. Only read when the table sets `shouldUseDynamicColumns`. */
+    dynamicSizing?: TableColumnDynamicSizing<DataType>;
 };
 
 type TableRow<DataType extends TableData> = DataType & {
@@ -156,7 +201,14 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         shouldEnableSelectionInNarrowPaneModal?: boolean;
 
         /** Column configuration defining what columns to display and how. */
-        columns: Array<TableColumn<ColumnKey>>;
+        columns: Array<TableColumn<ColumnKey, DataType>>;
+
+        /**
+         * Whether columns should be sized from their content instead of being split equally. Columns describe what to
+         * measure through `TableColumn.dynamicSizing`. Web-only and wide-layout-only: narrow layouts render as cards, and
+         * native can't measure text synchronously, so both keep the equal-width layout.
+         */
+        shouldUseDynamicColumns?: boolean;
 
         /** Optional filter configuration for dropdown filters. */
         filters?: FilterConfig<FilterKey>;
@@ -198,11 +250,13 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Ref to access table methods programmatically. */
         ref?: React.Ref<TableHandle<DataType, ColumnKey, FilterKey>>;
 
-        /** Callback when an option is selected */
         onRowSelectionChange?: (selectedRowKeys: string[]) => void;
 
         /** Optional callback fired when the active search string changes. */
         onSearchStringChange?: (searchString: string) => void;
+
+        /** Optional callback fired when the active sorting configuration changes. */
+        onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
     }>;
 
 export type {
@@ -214,6 +268,7 @@ export type {
     TableHandle,
     TableProps,
     SharedListProps,
+    ActiveSorting,
     CompareItemsCallback,
     IsItemInFilterCallback,
     IsItemInSearchCallback,

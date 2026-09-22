@@ -3,18 +3,21 @@
 import {beforeEach, jest, test} from '@jest/globals';
 
 import {openApp, reconnectApp} from '@libs/actions/App';
-import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
 import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
+import buildOldDotURL from '@libs/buildOldDotURL';
 import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 import {isRecord} from '@libs/ObjectUtils';
+import openExternalLink from '@libs/openExternalLink';
 import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
@@ -35,6 +38,7 @@ import {openAuthSessionAsync} from 'expo-web-browser';
 import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-fetch';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -52,12 +56,15 @@ jest.mock('expo-web-browser', () => ({
     openAuthSessionAsync: jest.fn(() => Promise.resolve({type: 'success'})),
 }));
 
-jest.mock('@libs/actions/Link', () => {
-    return {
-        buildOldDotURL: jest.fn(() => Promise.resolve('mockOldDotURL')),
-        openExternalLink: jest.fn(),
-    };
-});
+jest.mock('@libs/buildOldDotURL', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve('mockOldDotURL')),
+}));
+
+jest.mock('@libs/openExternalLink', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 
@@ -130,8 +137,8 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then it should redirect to sign in instead of attempting to call Authenticate with undefined credentials
-        expect(result).toBe(false);
-        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+        expect(result).toEqual({wasSuccessful: false});
+        expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.NO_CREDENTIALS, 'No credentials available');
 
         redirectToSignInSpy.mockRestore();
     });
@@ -148,7 +155,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then it aborts cleanly without redirecting to sign in
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).not.toHaveBeenCalled();
 
         redirectToSignInSpy.mockRestore();
@@ -173,7 +180,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then reauthenticate aborts without redirecting to sign in, so the SAML callback can complete
-        expect(result).toBe(false);
+        expect(result).toEqual({wasSuccessful: false});
         expect(redirectToSignInSpy).not.toHaveBeenCalled();
 
         // When the browser is cancelled/fails, the guard is cleared so future reauthentication isn't blocked
@@ -198,8 +205,8 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         // Then the legacy persisted flag does NOT block reauth. Reauth proceeds, finds no credentials, and redirects to sign in.
-        expect(result).toBe(false);
-        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+        expect(result).toEqual({wasSuccessful: false});
+        expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.NO_CREDENTIALS, 'No credentials available');
 
         redirectToSignInSpy.mockRestore();
     });
@@ -226,9 +233,9 @@ describe('Session', () => {
 
             // Then only the first request redirects to the SAML sign-in page; the rest are skipped, so the page
             // is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407
-            expect(results).toEqual([false, false, false]);
+            expect(results).toEqual([{wasSuccessful: false}, {wasSuccessful: false}, {wasSuccessful: false}]);
             expect(redirectToSignInSpy).toHaveBeenCalledTimes(1);
-            expect(redirectToSignInSpy).toHaveBeenCalledWith(undefined, true);
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
 
             redirectToSignInSpy.mockRestore();
         });
@@ -798,6 +805,60 @@ describe('Session', () => {
         });
     });
 
+    describe('validateTwoFactorAuth', () => {
+        test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
+                authToken: 'newAuthToken',
+                encryptedAuthToken: 'newEncryptedAuthToken',
+            });
+            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
+            const multiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const clearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            const writeWithNoDuplicatesSpy = jest.spyOn(API, 'writeWithNoDuplicatesConflictAction').mockResolvedValue(undefined);
+
+            SessionUtil.validateTwoFactorAuth('123456', false, {shouldKeepTwoFactorAuthFlowOpen: true});
+            await waitForBatchedUpdates();
+
+            expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
+            expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken');
+            expect(setAuthTokenSpy.mock.invocationCallOrder.at(0)).toBeLessThan(multiSetSpy.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
+            expect(multiSetSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    [ONYXKEYS.ACCOUNT]: {
+                        requiresTwoFactorAuth: true,
+                        twoFactorAuthSetupInProgress: true,
+                        needsTwoFactorAuthSetup: false,
+                        isLoading: false,
+                    },
+                    [ONYXKEYS.NVP_ONBOARDING]: {
+                        hasCompletedGuidedSetupFlow: false,
+                    },
+                }),
+            );
+            expect(clearSpy).toHaveBeenCalled();
+            expect(clearSpy.mock.calls.at(0)?.at(0)).toEqual(
+                expect.arrayContaining([
+                    ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                    ONYXKEYS.NVP_ONBOARDING,
+                    ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
+                    ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+                    ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+                    ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+                    ONYXKEYS.ACCOUNT,
+                    ONYXKEYS.SESSION,
+                ]),
+            );
+            // openApp must stay deferred until DynamicSuccessPage Got it
+            expect(writeWithNoDuplicatesSpy).not.toHaveBeenCalled();
+
+            makeRequestSpy.mockRestore();
+            setAuthTokenSpy.mockRestore();
+            multiSetSpy.mockRestore();
+            clearSpy.mockRestore();
+            writeWithNoDuplicatesSpy.mockRestore();
+        });
+    });
+
     describe('clearTwoFactorAuthSecretKey', () => {
         test('removes twoFactorAuthSecretKey from account state', async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: 'SOMESECRETKEY123'});
@@ -843,6 +904,50 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
+        });
+
+        test('signInWithShortLivedAuthToken rebuilds navigation from exitTo once the same login is signed in', async () => {
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'User@saml.example.com'});
+            await waitForBatchedUpdates();
+            jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            expect(resetRootSpy).toHaveBeenCalledTimes(1);
+            const [state] = resetRootSpy.mock.calls.at(0) ?? [];
+            expect(state?.stale).toBe(true);
+            expect(state?.routes.length).toBeGreaterThan(0);
+            jest.restoreAllMocks();
+        });
+
+        test('signInWithShortLivedAuthToken does not navigate to exitTo without a login to compare', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'user@saml.example.com'});
+            await waitForBatchedUpdates();
+            jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            expect(resetRootSpy).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
+        });
+
+        test('signInWithShortLivedAuthToken does not navigate to exitTo when another login signs in', async () => {
+            await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: 'user@saml.example.com'});
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
+            await waitForBatchedUpdates();
+            jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            expect(resetRootSpy).not.toHaveBeenCalled();
+            jest.restoreAllMocks();
         });
     });
 
@@ -951,7 +1056,7 @@ describe('Session', () => {
     });
 
     describe('setupNewDotAfterTransitionFromOldDot', () => {
-        const buildHybridAppSettings = (isDelegateAccess: boolean) => ({
+        const buildHybridAppSettings = (isDelegateAccess: boolean, shouldUseStagingServer?: boolean) => ({
             [ONYXKEYS.HYBRID_APP]: {
                 // false so `clearOnyxIfSigningIn` resolves without hitting redirectToSignIn
                 useNewDotSignInPage: false,
@@ -965,6 +1070,8 @@ describe('Session', () => {
                     oldDotAutoGeneratedPassword: 'odAutoPassword',
                 },
             },
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the handoff payload under test is the deprecated boolean
+            ...(shouldUseStagingServer === undefined ? {} : {[ONYXKEYS.SHOULD_USE_STAGING_SERVER]: shouldUseStagingServer}),
         });
 
         test('writes the passed credentials into CREDENTIALS and STASHED_CREDENTIALS instead of reading the module cache', async () => {
@@ -1024,6 +1131,77 @@ describe('Session', () => {
 
             onyxMultiSetSpy.mockRestore();
         });
+
+        test.each([
+            [true, CONST.SERVER.STAGING],
+            [false, CONST.SERVER.PRODUCTION],
+        ])('translates an incoming shouldUseStagingServer of %s into %s', async (shouldUseStagingServer, expectedServer) => {
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(false, shouldUseStagingServer), undefined, undefined);
+            await waitForBatchedUpdates();
+
+            await expect(getOnyxValue(ONYXKEYS.ACTIVE_SERVER)).resolves.toBe(expectedServer);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- asserting the conversion cleared the deprecated key means reading it
+            await expect(getOnyxValue(ONYXKEYS.SHOULD_USE_STAGING_SERVER)).resolves.toBeUndefined();
+        });
+
+        test('leaves ACTIVE_SERVER alone when the payload carries no server', async () => {
+            await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+            await waitForBatchedUpdates();
+
+            await SessionUtil.setupNewDotAfterTransitionFromOldDot(buildHybridAppSettings(false), undefined, undefined);
+            await waitForBatchedUpdates();
+
+            await expect(getOnyxValue(ONYXKEYS.ACTIVE_SERVER)).resolves.toBeUndefined();
+        });
+
+        /**
+         * The server preference is lifted out of the payload by name, but every other NVP OldDot sends goes
+         * through the same loop, so what the loop does with each kind of value is worth pinning down.
+         */
+        describe('the values OldDot sends', () => {
+            const transitionWith = async (values: Record<string, unknown>) => {
+                await Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, true);
+                await waitForBatchedUpdates();
+
+                const onyxUpdateSpy = jest.spyOn(Onyx, 'update').mockResolvedValue(undefined);
+
+                const hybridAppSettings = {...buildHybridAppSettings(false), ...values} as Parameters<typeof SessionUtil.setupNewDotAfterTransitionFromOldDot>[0];
+                await SessionUtil.setupNewDotAfterTransitionFromOldDot(hybridAppSettings, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const updates = onyxUpdateSpy.mock.calls.at(0)?.at(0) ?? [];
+                onyxUpdateSpy.mockRestore();
+
+                return updates;
+            };
+
+            test('merges a real value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: {classicRedirect: {dismissed: false}}});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: {classicRedirect: {dismissed: false}}}]));
+            });
+
+            test('merges false rather than reading it as absent', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: false});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: false}]));
+            });
+
+            test('passes null through, so OldDot can clear a key', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: null});
+
+                expect(updates).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_TRY_NEW_DOT, value: null}]));
+            });
+
+            test('skips undefined instead of writing a placeholder over the stored value', async () => {
+                const updates = await transitionWith({[ONYXKEYS.NVP_TRY_NEW_DOT]: undefined});
+
+                expect(updates.map((update) => update.key)).not.toContain(ONYXKEYS.NVP_TRY_NEW_DOT);
+            });
+        });
     });
     describe('isSupportAuthToken', () => {
         beforeEach(() => {
@@ -1050,6 +1228,73 @@ describe('Session', () => {
         });
     });
 
+    describe('GPS trip on the sign in redirect', () => {
+        const gpsTrip = {
+            gpsPoints: [[{lat: 1, long: 2}]],
+            distanceInMeters: 100,
+            isTracking: true,
+            reportID: '1',
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        };
+
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('keeps the in-progress trip when a SAML re-auth forces the redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            const accountID = (await getOnyxValue(ONYXKEYS.SESSION))?.accountID;
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...gpsTrip, accountID});
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
+            expect(draft?.isTracking).toBe(true);
+            expect(draft?.accountID).toBe(accountID);
+        });
+
+        test('discards the in-progress trip on a sign out redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, gpsTrip);
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS)).toBeUndefined();
+        });
+    });
+
+    describe('last visited path on the sign in redirect', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('keeps the last visited path when a SAML re-auth forces the redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBe('/search?q=status:outstanding');
+        });
+
+        test('discards the last visited path on a sign out redirect', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
+            await waitForBatchedUpdates();
+
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBeUndefined();
+        });
+    });
+
     describe('signIn', () => {
         test('sends the login and validate code arguments to the API, independent of the CREDENTIALS Onyx cache', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
@@ -1073,6 +1318,29 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('sends the stored authToken during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signIn('', undefined, '654321', 'user@expensify.com', 'stored-code', 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'stored-auth-token'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('does not send an authToken on the initial validate code submission', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // No 2FA code yet, even though a stored authToken is passed in - shouldn't be sent.
+            SessionUtil.signIn('112233', undefined, undefined, 'user@expensify.com', undefined, 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
             writeSpy.mockRestore();
         });
@@ -1116,6 +1384,28 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('sends the stored authToken during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, '654321', 'stored-code', 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'stored-auth-token'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('does not send an authToken on the initial validate code submission', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined, undefined, 'stored-auth-token');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
 
             writeSpy.mockRestore();
         });

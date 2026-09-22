@@ -1,15 +1,15 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {SearchKey} from './SearchUIUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isGroupPolicy} from './PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
-import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions, isArchivedReport, isOpenReport} from './ReportUtils';
+import {didCurrentUserPlaceHoldOnReportExpense, hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions, isArchivedReport, isOpenReport} from './ReportUtils';
 
 type CreateTodosReportsAndTransactionsParams = {
     /** Every report, keyed by report Onyx key - iterated to find the expense reports that belong in a to-do bucket */
@@ -44,6 +44,9 @@ type CreateTodosReportsAndTransactionsParams = {
 
     /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
     areTransactionsLoaded: boolean;
+
+    /** Every approval workflow rule, keyed by rule Onyx key - the submit predicate uses them to resolve rule-based approvers */
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -82,6 +85,9 @@ type TodoBucketContext = {
     /** Whether every transaction on the report is on hold - precomputed once so held reports are excluded from submit/approve/pay */
     allExpensesHeld: boolean;
 
+    /** Whether the current user placed the hold on one of the report's expenses - keeps an all-held report in their approve/pay to-do */
+    currentUserPlacedHold: boolean;
+
     /** The report owner's login, resolved from `ownerAccountID` - the submit predicate matches it against the submitter */
     ownerLogin: string | undefined;
 
@@ -96,6 +102,9 @@ type TodoBucketContext = {
 
     /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
     areTransactionsLoaded: boolean;
+
+    /** Every approval workflow rule, keyed by rule Onyx key - the submit predicate uses them to resolve rule-based approvers */
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -113,11 +122,13 @@ function reportMatchesTodoBucket(
         reportMetadata,
         allReportActions,
         allExpensesHeld,
+        currentUserPlacedHold,
         ownerLogin,
         bankAccountList,
         currentUserAccountID,
         login,
         areTransactionsLoaded,
+        rules,
     }: TodoBucketContext,
 ): boolean {
     switch (searchKey) {
@@ -133,9 +144,9 @@ function reportMatchesTodoBucket(
             }
 
             // isSubmitAction also allows workflow approvers to submit on the owner's behalf; the to-do only nudges the owner.
-            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
+            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, rules, policy, undefined, login, currentUserAccountID) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
-            return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
+            return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && (!allExpensesHeld || currentUserPlacedHold);
         case CONST.SEARCH.SEARCH_KEYS.PAY:
             return (
                 isPrimaryPayAction({
@@ -148,7 +159,7 @@ function reportMatchesTodoBucket(
                     reportNameValuePairs: reportNameValuePair,
                 }) &&
                 !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
-                !allExpensesHeld
+                (!allExpensesHeld || currentUserPlacedHold)
             );
         case CONST.SEARCH.SEARCH_KEYS.EXPORT: {
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
@@ -175,6 +186,7 @@ function createTodosReportsAndTransactions({
     currentUserAccountID,
     login,
     areTransactionsLoaded,
+    rules,
 }: CreateTodosReportsAndTransactionsParams) {
     const reportsToSubmit: Report[] = [];
     const reportsToApprove: Report[] = [];
@@ -194,18 +206,23 @@ function createTodosReportsAndTransactions({
             continue;
         }
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
         const context: TodoBucketContext = {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
             reportTransactions,
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
-            allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            allExpensesHeld,
+            currentUserPlacedHold:
+                allExpensesHeld &&
+                didCurrentUserPlaceHoldOnReportExpense(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], reportTransactions, currentUserAccountID),
             ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
             login,
             areTransactionsLoaded,
+            rules,
         };
         if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.SUBMIT, report, context)) {
             reportsToSubmit.push(report);
@@ -242,6 +259,7 @@ function getTodoReportsForSearchKey(
         currentUserAccountID,
         login,
         areTransactionsLoaded,
+        rules,
     }: CreateTodosReportsAndTransactionsParams,
 ) {
     const reports: Report[] = [];
@@ -252,18 +270,23 @@ function getTodoReportsForSearchKey(
             continue;
         }
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
+        const allExpensesHeld = hasOnlyHeldExpenses(reportTransactions);
         const context: TodoBucketContext = {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
             reportTransactions,
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
-            allExpensesHeld: hasOnlyHeldExpenses(reportTransactions),
+            allExpensesHeld,
+            currentUserPlacedHold:
+                allExpensesHeld &&
+                didCurrentUserPlaceHoldOnReportExpense(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`], reportTransactions, currentUserAccountID),
             ownerLogin: getLoginByAccountID(report.ownerAccountID, personalDetailsList),
             bankAccountList,
             currentUserAccountID,
             login,
             areTransactionsLoaded,
+            rules,
         };
 
         if (reportMatchesTodoBucket(searchKey, report, context)) {

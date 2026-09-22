@@ -27,10 +27,7 @@ type BaseImageProps = {
     /** Called when the image starts to load. */
     onLoadStart?: () => void;
 
-    /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
-
-    /** The image cache policy */
     cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 
     /** Priorities for completing loads. If more than one load is queued at a time,
@@ -49,10 +46,7 @@ type ImageOwnProps = BaseImageProps & {
     /** How should the image fit within its container */
     resizeMode?: ImageResizeMode;
 
-    /** The size of the loading indicator */
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
-    /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Event for when the image begins loading */
@@ -61,13 +55,11 @@ type ImageOwnProps = BaseImageProps & {
     /** Event for when the image finishes loading */
     onLoadEnd?: () => void;
 
-    /** Error handler */
     onError?: () => void;
 
     /** Progress events while the image is downloading */
     onProgress?: () => void;
 
-    /** The object position of image */
     objectPosition?: ImageObjectPosition;
 
     /**

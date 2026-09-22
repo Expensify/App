@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainGroupRowData} from '@components/Tables/DomainGroupsTable';
@@ -112,6 +112,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.groups.title')}
+                    shouldDisplayHelpButton
                     onBackButtonPress={Navigation.popToSidebar}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader

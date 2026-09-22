@@ -12,20 +12,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isGroupPolicy} from '@libs/PolicyUtils';
-import {isExpenseReport, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
-import {
-    getAmount as getTransactionAmount,
-    getCurrency as getTransactionCurrency,
-    isDeletedTransaction,
-    isExpenseUnreported,
-    isFailedScanAmountPlaceholder,
-    isScanning,
-} from '@libs/TransactionUtils';
+import {getTransactionDisplayAmount, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {getCurrency as getTransactionCurrency, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, Report} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useRef, useState} from 'react';
 
@@ -58,15 +49,10 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
 
     const effectiveReport = report ?? transactionItem.report;
     const effectivePolicy = policy ?? transactionItem.policy;
-    const isDeleted = isDeletedTransaction(transactionItem);
-    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isGroupPolicy(effectivePolicy);
-    const amount = getTransactionAmount(transactionItem, isFromExpenseReport, transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, isDeleted);
-    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(transactionItem);
+    const amount = getTransactionDisplayAmount(transactionItem, effectiveReport, effectivePolicy);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');
-    } else if (hasFailedScanAmountPlaceholder) {
-        amountToDisplay = '';
     }
 
     const iouType = getTransactionItemIouType({...transactionItem, report: effectiveReport});
@@ -77,9 +63,6 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const absoluteAmount = Math.abs(amount ?? 0);
     const isOriginalAmountNegative = (amount ?? 0) < 0;
     const [isNegative, setIsNegative] = useState(isOriginalAmountNegative);
-    // Tracks whether the user actually typed in this edit session, so that merely opening and
-    // closing the cell without input isn't mistaken for an explicit confirmation of the amount.
-    const hasUserTypedRef = useRef(false);
 
     const getNormalizedValue = (amountString: string, isAmountNegative: boolean) => {
         const parsedValue = parseFloatAnyLocale(amountString);
@@ -105,11 +88,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
                   onSave(normalizedValue);
               }
             : undefined,
-        // A failed-scan placeholder amount that the user actually typed into is treated as changed so that
-        // explicitly re-entering 0 still submits and clears the scan-failure error, mirroring submitEditAmount in
-        // IOUAmountSubmission.ts. Merely opening and blurring the cell without typing is left as a no-op.
-        (value, originalValue) =>
-            !(hasFailedScanAmountPlaceholder && hasUserTypedRef.current) && getNormalizedValue(value, isNegative) === getNormalizedValue(originalValue, isOriginalAmountNegative),
+        (value, originalValue) => getNormalizedValue(value, isNegative) === getNormalizedValue(originalValue, isOriginalAmountNegative),
     );
 
     // Ref used to programmatically focus the input when edit mode starts
@@ -122,12 +101,10 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
 
     const handleStartEditing = () => {
         setIsNegative(isOriginalAmountNegative);
-        hasUserTypedRef.current = false;
         startEditing();
     };
 
     const handleAmountChange = (amountString: string) => {
-        hasUserTypedRef.current = true;
         setLocalValue(amountString);
     };
 

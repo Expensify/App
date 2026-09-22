@@ -71,7 +71,7 @@ jest.mock('@libs/TransactionUtils', () => {
             transactionViolations.filter(
                 (violation) =>
                     !mockIsViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy, iouReportOwnerLogin) &&
-                    mockShouldShowViolation(iouReport, policy, violation.name, currentUserEmail, shouldShowRterForSettledReport, transaction),
+                    mockShouldShowViolation(iouReport, policy, violation.name, currentUserEmail, currentUserAccountID, shouldShowRterForSettledReport, transaction),
             ),
         );
 
@@ -511,7 +511,7 @@ describe('useTransactionViolations', () => {
             ];
 
             let capturedShouldShowRterParam: boolean | undefined;
-            jest.mocked(shouldShowViolation).mockImplementation((iouReport, policy, violationName, email, shouldShowRter) => {
+            jest.mocked(shouldShowViolation).mockImplementation((iouReport, policy, violationName, email, accountID, shouldShowRter) => {
                 capturedShouldShowRterParam = shouldShowRter;
                 return true;
             });

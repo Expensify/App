@@ -17,13 +17,15 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
-import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
     canMemberWrite,
     getAccountIDForSubmitManagerEmail,
+    getReimbursementChoice,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
+    isArchivedOrPendingDeletePolicy,
+    isGroupPolicy,
     isPaidGroupPolicy,
     isSubmitAndClose,
     isSubmitPolicy,
@@ -40,7 +42,6 @@ import {
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
-    getApprovalChain,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getReimbursableTotal,
@@ -48,6 +49,7 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
     isArchivedReport,
@@ -58,9 +60,11 @@ import {
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
+    isPayBlockedByArchivedState,
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
+    isReportExcludedForHeldExpenses,
     isReportPendingDelete,
     isSettled,
 } from '@libs/ReportUtils';
@@ -91,21 +95,21 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import type {AdditionalPayOnyxData} from './PayMoneyRequest';
+import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
 
 import {getAllReportNameValuePairs, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
-import {mergeAdditionalPayOnyxData} from './PayMoneyRequest';
+import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     expenseReportPolicy: OnyxEntry<OnyxTypes.Policy>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
     isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     full?: boolean;
@@ -122,6 +126,7 @@ type ApproveMoneyRequestFunctionParams = {
 type SubmitReportFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
@@ -132,6 +137,7 @@ type SubmitReportFunctionParams = {
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     submitterLogin: string | undefined;
     managerEmail?: string;
     /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
@@ -153,6 +159,12 @@ function canApproveIOU(
     iouTransactions?: OnyxTypes.Transaction[],
 ) {
     if (!isExpenseReport(iouReport)) {
+        return false;
+    }
+
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -184,8 +196,6 @@ function canApproveIOU(
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const reportNameValuePairs = getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-    const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
     if (hasOnlyPendingCardOrScanningTransactions) {
@@ -193,9 +203,7 @@ function canApproveIOU(
     }
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport ?? undefined, reportTransactions);
     const isClosedReport = isClosedReportUtil(iouReport);
-    return (
-        reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
-    );
+    return reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isPayAtEndExpenseReport && !isClosedReport;
 }
 
 function canIOUBePaid(
@@ -218,7 +226,7 @@ function canIOUBePaid(
         return false;
     }
 
-    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
         if (!onlyShowPayElsewhere) {
             return false;
         }
@@ -238,12 +246,16 @@ function canIOUBePaid(
     }
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
     const canPay =
         isReportPayer ||
-        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+        (isGroupPolicy(policy) &&
+            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
 
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
-    const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
+    const isAutoReimbursable = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport ?? undefined, transactions);
     const isProcessing = isProcessingReport(iouReport);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -270,10 +282,10 @@ function canIOUBePaid(
         isReportFinished &&
         !iouSettled &&
         (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || isOnlyNonReimbursablePayElsewhere) &&
-        !isChatReportArchived &&
+        !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
-        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy))
     );
 }
 
@@ -324,7 +336,14 @@ function getBadgeFromIOUReport(
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    iouReportActions: OnyxEntry<OnyxTypes.ReportActions>,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
+
+    if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
+        return undefined;
+    }
+
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
@@ -349,13 +368,13 @@ function getBadgeFromIOUReport(
         iouReport,
         chatReport,
         policy,
-        getReportTransactions(iouReport?.reportID),
+        reportTransactions,
         // TODO: https://github.com/Expensify/App/issues/66512
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
-        getAllReportActions(iouReport?.reportID),
+        iouReportActions,
     );
     if (isWaitingSubmitFromCurrentUser) {
         return CONST.REPORT.ACTION_BADGE.SUBMIT;
@@ -386,6 +405,7 @@ function getIOUReportActionWithBadge(
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     allReports?: OnyxCollection<OnyxTypes.Report>,
+    allReportActions?: OnyxCollection<OnyxTypes.ReportActions>,
 ): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -419,12 +439,18 @@ function getIOUReportActionWithBadge(
             continue;
         }
 
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
-        if (badge) {
-            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
-                earliestAction = action;
-                actionBadge = badge;
-            }
+        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+
+        // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
+        // still needs action from the current user.
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions);
+        if (!badge) {
+            continue;
+        }
+
+        if (!earliestAction || isOlderReportAction(action, earliestAction)) {
+            earliestAction = action;
+            actionBadge = badge;
         }
     }
 
@@ -448,11 +474,11 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         full,
@@ -504,7 +530,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
@@ -514,6 +540,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         : buildOptimisticNextStep({
               report: expenseReport,
               policy: expenseReportPolicy,
+              rules,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -751,9 +778,10 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             policy: expenseReportPolicy,
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
+            rules,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -839,6 +867,7 @@ function reopenReport(
     isASAPSubmitBetaEnabled: boolean,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isTrackIntentUser: boolean | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!expenseReport) {
         return;
@@ -852,6 +881,7 @@ function reopenReport(
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -1001,6 +1031,7 @@ function retractReport(
     isASAPSubmitBetaEnabled: boolean,
     delegateEmail: string | undefined,
     isTrackIntentUser: boolean | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!expenseReport) {
         return;
@@ -1014,6 +1045,7 @@ function retractReport(
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
         policy,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -1155,6 +1187,7 @@ function unapproveExpenseReport(
     delegateEmail: string | undefined,
     isTrackIntentUser: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -1172,6 +1205,7 @@ function unapproveExpenseReport(
         report: expenseReport,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
         policy,
+        rules,
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
@@ -1296,6 +1330,7 @@ function unapproveExpenseReport(
 function submitReport({
     expenseReport,
     policy,
+    rules,
     currentUserAccountIDParam,
     currentUserEmailParam,
     hasViolations,
@@ -1305,6 +1340,7 @@ function submitReport({
     onSubmitted,
     ownerBillingGracePeriodEnd,
     delegateEmail,
+    delegateAccountID,
     submitterLogin,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
@@ -1323,17 +1359,34 @@ function submitReport({
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
-    const approvalChain = getApprovalChain(policy, expenseReport, submitterLogin);
-    const managerIDFromChain = getKnownAccountIDByLogin(approvalChain.at(0));
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
-    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin);
-    const managerID = trimmedManagerEmail ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID) : submitReportManagerAccountID;
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin, rules);
+
+    // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
+    // accountID from the approval chain, which would point the server at someone other than the chosen approver.
+    const apiManagerAccountID = trimmedManagerEmail ? resolvedManagerAccountIDFromEmail : submitReportManagerAccountID;
+    const managerID = apiManagerAccountID ?? expenseReport.managerID;
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
+
+    // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
+    const reportTransactions = getReportTransactions(expenseReport.reportID);
+    const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
+    const hasHeldExpenses = heldTransactions.length > 0;
+
+    if (hasOnlyHeldExpenses(reportTransactions)) {
+        return;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+
+    const shouldSplitHeldExpenses = hasHeldExpenses && !isDEWPolicy && !!parentReport?.reportID;
+    const submittedTotal = shouldSplitHeldExpenses ? (expenseReport.unheldTotal ?? expenseReport.total ?? 0) : (expenseReport.total ?? 0);
+
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
-        expenseReport?.total ?? 0,
+        submittedTotal,
         expenseReport.currency ?? '',
         expenseReport.reportID,
         adminAccountID,
@@ -1341,7 +1394,6 @@ function submitReport({
         delegateEmail,
         getCurrencyDecimals,
     );
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline
     const shouldAddOptimisticSubmitAction = !isDEWPolicy || getIsOffline();
 
@@ -1351,6 +1403,7 @@ function submitReport({
               report: expenseReport,
               predictedNextStatus: isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED,
               policy,
+              rules,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,
@@ -1364,6 +1417,7 @@ function submitReport({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
         >
     > = [];
@@ -1454,7 +1508,9 @@ function submitReport({
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.TRANSACTION>
+    > = [];
     if (!isDEWPolicy) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1493,6 +1549,7 @@ function submitReport({
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME
         >
     > = [
@@ -1558,6 +1615,35 @@ function submitReport({
         });
     }
 
+    let optimisticHoldReportID: string | undefined;
+    let optimisticHoldActionID: string | undefined;
+    let optimisticHoldReportExpenseActionIDs: string | undefined;
+
+    // An all-held report is already blocked from being submitted, so this only has to handle the case where at
+    // least one unheld expense remains.
+    if (shouldSplitHeldExpenses) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+            chatReport: parentReport,
+            iouReport: expenseReport,
+            recipient: {accountID: expenseReport.ownerAccountID},
+            policy,
+            createdTimestamp: getReportOriginalCreationTimestamp(expenseReport),
+            isApprovalFlow: false,
+            isASAPSubmitBetaEnabled,
+            delegateAccountID,
+            getCurrencyDecimals,
+            rules,
+        });
+
+        optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
+        failureData.push(...holdReportOnyxData.failureData);
+
+        optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
+        optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+    }
+
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
     // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
@@ -1576,11 +1662,22 @@ function submitReport({
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(apiManagerAccountID !== undefined
+            ? {
+                  managerAccountID: apiManagerAccountID,
+              }
+            : {}),
         ...(trimmedManagerEmail
             ? {
                   managerEmail: trimmedManagerEmail,
+              }
+            : {}),
+        ...(optimisticHoldReportID
+            ? {
+                  optimisticHoldReportID,
+                  optimisticHoldActionID,
+                  optimisticHoldReportExpenseActionIDs,
               }
             : {}),
     };
@@ -1614,6 +1711,7 @@ function assignReportToMe(
     isASAPSubmitBetaEnabled: boolean,
     isTrackIntentUser: boolean | undefined,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber);
 
@@ -1623,6 +1721,7 @@ function assignReportToMe(
         shouldFixViolations: false,
         isUnapprove: true,
         policy,
+        rules,
         currentUserAccountIDParam: accountID,
         currentUserEmailParam: email,
         hasViolations,
@@ -1716,6 +1815,9 @@ type AddReportApproverOptions = {
     /** Policy associated with the expense report. */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
+    /** Approval-workflow rules for the policy. */
+    rules: OnyxCollection<OnyxTypes.Rule>;
+
     /** Whether the report currently has violations. */
     hasViolations: boolean;
 
@@ -1736,6 +1838,7 @@ function addReportApprover({
     accountID,
     email,
     policy,
+    rules,
     hasViolations,
     isASAPSubmitBetaEnabled,
     isTrackIntentUser,
@@ -1749,6 +1852,7 @@ function addReportApprover({
         shouldFixViolations: false,
         isUnapprove: true,
         policy,
+        rules,
         currentUserAccountIDParam: accountID,
         currentUserEmailParam: email,
         hasViolations,

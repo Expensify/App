@@ -18,11 +18,12 @@ import {useCallback} from 'react';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import usePreferredPolicy from './usePreferredPolicy';
 import useShouldShowEmptyReportConfirmation from './useShouldShowEmptyReportConfirmation';
 
 type UseCreateReportParams = {
-    /** Callback that creates the report and navigates after creation */
-    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
+    /** Callback that creates the report on the resolved workspace and navigates after creation */
+    onCreateReport: (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => void;
     /** Group paid policies with expense chat enabled */
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<OnyxTypes.Policy>>;
     /** Optional custom navigation to the workspace selector */
@@ -64,6 +65,7 @@ export default function useCreateReport({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {accountID} = useCurrentUserPersonalDetails();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
     // Gate visibility and routing on policy hydration. Without this, during Onyx cold-start
     // groupPoliciesWithChatEnabled.length === 0 would be true even for users who actually have
@@ -72,7 +74,10 @@ export default function useCreateReport({
     const isVisible = arePoliciesLoaded;
     const shouldNavigateToUpgradePath = groupPoliciesWithChatEnabled.length === 0;
 
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
+    // A domain security group can lock the user to a preferred workspace. It then takes precedence over the active policy and the selector is skipped.
+    const lockedPreferredPolicy = isRestrictedToPreferredPolicy ? groupPoliciesWithChatEnabled.find((policy) => policy?.id === preferredPolicyID) : undefined;
+    const isLockedToPreferredPolicy = !!lockedPreferredPolicy;
+    const defaultChatEnabledPolicy = lockedPreferredPolicy ?? getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy) ?? undefined;
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID, shouldSkipEmptyReportConfirmation);
@@ -80,7 +85,7 @@ export default function useCreateReport({
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
-        onConfirm: onCreateReport,
+        onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => onCreateReport(defaultChatEnabledPolicy, shouldDismissEmptyReportsConfirmation),
         shouldHandleNavigationBack,
     });
 
@@ -95,13 +100,15 @@ export default function useCreateReport({
                 const freshReportID = generateReportID();
                 const freshTransactionID = generateReportID();
                 Navigation.navigate(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CREATE,
-                        iouType: CONST.IOU.TYPE.CREATE,
-                        transactionID: freshTransactionID,
-                        reportID: freshReportID,
-                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CREATE,
+                            iouType: CONST.IOU.TYPE.CREATE,
+                            transactionID: freshTransactionID,
+                            reportID: freshReportID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
                 );
                 return;
             }
@@ -116,8 +123,9 @@ export default function useCreateReport({
             const hasMultipleNonPersonalWorkspaces = groupPoliciesWithChatEnabled.length > 1;
             const isDefaultBillingRestricted =
                 !!workspaceIDForReportCreation && shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
+            const shouldOfferAlternatives = !isLockedToPreferredPolicy && hasMultipleNonPersonalWorkspaces && (isDefaultPersonal || isDefaultBillingRestricted);
 
-            if (!workspaceIDForReportCreation || (isDefaultPersonal && hasMultipleNonPersonalWorkspaces) || (isDefaultBillingRestricted && hasMultipleNonPersonalWorkspaces)) {
+            if (!workspaceIDForReportCreation || shouldOfferAlternatives) {
                 if (onNavigateToWorkspaceSelection) {
                     onNavigateToWorkspaceSelection();
                 } else {
@@ -131,7 +139,7 @@ export default function useCreateReport({
                 if (shouldShowEmptyReportConfirmation) {
                     openCreateReportConfirmation();
                 } else {
-                    onCreateReport(false);
+                    onCreateReport(defaultChatEnabledPolicy, false);
                 }
                 return;
             }
@@ -148,6 +156,7 @@ export default function useCreateReport({
         userBillingGracePeriodEnds,
         amountOwed,
         accountID,
+        isLockedToPreferredPolicy,
         groupPoliciesWithChatEnabled.length,
         onNavigateToWorkspaceSelection,
         shouldShowEmptyReportConfirmation,

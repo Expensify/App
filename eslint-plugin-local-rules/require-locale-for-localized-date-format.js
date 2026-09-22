@@ -33,6 +33,16 @@ const LOCALIZED_TOKENS = [
     {token: 'eeee', label: 'eeee (weekday name)'},
     {token: 'eee', label: 'eee (short weekday)'},
     {token: 'do', label: 'do (ordinal day)'},
+    // date-fns' localized date/time formats. These exist precisely to defer the clock convention, ordering and
+    // separators to the locale, so they are meaningless without one.
+    {token: 'PPPP', label: 'PPPP (localized long date with weekday)'},
+    {token: 'PPP', label: 'PPP (localized long date)'},
+    {token: 'PP', label: 'PP (localized medium date)'},
+    {token: 'P', label: 'P (localized short date)'},
+    {token: 'pppp', label: 'pppp (localized full time)'},
+    {token: 'ppp', label: 'ppp (localized long time)'},
+    {token: 'pp', label: 'pp (localized medium time)'},
+    {token: 'p', label: 'p (localized short time)'},
     {token: 'aaaa', label: 'aaaa (AM/PM)'},
     {token: 'aaa', label: 'aaa (AM/PM)'},
     {token: 'aa', label: 'aa (AM/PM)'},

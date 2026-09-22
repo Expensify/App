@@ -5,12 +5,15 @@ import run from '@github/actions/javascript/awaitStagingDeploys/awaitStagingDepl
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 
+import createMock from '../utils/createMock';
+import materializeOctokitNamespace from '../utils/materializeOctokitNamespace';
+
 type Workflow = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     workflow_id: string;
-    branch: string;
+    branch?: string;
     owner: string;
 };
 
@@ -23,6 +26,7 @@ const INCOMPLETE_WORKFLOW: WorkflowStatus = {status: 'in_progress'};
 
 type MockListResponse = {
     data: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         workflow_runs: WorkflowStatus[];
     };
 };
@@ -34,7 +38,8 @@ const mockGetInput = jest.fn();
 const mockListDeploysForTag: MockedFunctionListResponse = jest.fn();
 const mockListDeploys: MockedFunctionListResponse = jest.fn();
 const mockListPreDeploys: MockedFunctionListResponse = jest.fn();
-const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
+const mockListWorkflowRuns = jest.fn<(args: Workflow) => Promise<MockListResponse>>().mockImplementation((args) => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const defaultReturn = Promise.resolve({data: {workflow_runs: []}});
 
     if (!args.workflow_id) {
@@ -56,6 +61,23 @@ const mockListWorkflowRuns = jest.fn().mockImplementation((args: Workflow) => {
     return defaultReturn;
 });
 
+type ListWorkflowRunsMethod = typeof GithubUtils.octokit.actions.listWorkflowRuns;
+
+function listWorkflowRuns(...parameters: Parameters<ListWorkflowRunsMethod>): ReturnType<ListWorkflowRunsMethod> {
+    const [args] = parameters;
+    if (!args) {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        return Promise.resolve(createMock<Awaited<ReturnType<ListWorkflowRunsMethod>>>({data: {workflow_runs: []}}));
+    }
+
+    return mockListWorkflowRuns({
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        workflow_id: String(args.workflow_id),
+        branch: args.branch,
+        owner: args.owner,
+    }).then((response) => createMock<Awaited<ReturnType<ListWorkflowRunsMethod>>>(response));
+}
+
 // CONST's default export is a plain mutable object shared by reference with every other importer (unlike named
 // exports on a module namespace, which are read-only live bindings), so it can be overridden in place rather than
 // needing mock.module. Lower the poll rate to speed up the test.
@@ -70,7 +92,8 @@ beforeAll(() => {
     // copied onto the stub rather than asserted away.
     GithubUtils.initOctokitWithToken('fake_token');
     const {endpoint, defaults} = GithubUtils.octokit.actions.listWorkflowRuns;
-    jest.spyOn(GithubUtils.octokit.actions, 'listWorkflowRuns').mockImplementation(Object.assign(mockListWorkflowRuns, {endpoint, defaults}));
+    GithubUtils.octokit.actions = materializeOctokitNamespace(GithubUtils.octokit.actions);
+    jest.spyOn(GithubUtils.octokit.actions, 'listWorkflowRuns').mockImplementation(Object.assign(listWorkflowRuns, {endpoint, defaults}));
 });
 
 beforeEach(() => {
@@ -84,11 +107,13 @@ describe('awaitStagingDeploys', () => {
         // First ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [],
             },
         });
@@ -96,11 +121,13 @@ describe('awaitStagingDeploys', () => {
         // Second ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [],
             },
         });
@@ -108,11 +135,13 @@ describe('awaitStagingDeploys', () => {
         // Third ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
@@ -120,11 +149,13 @@ describe('awaitStagingDeploys', () => {
         // Fourth ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW],
             },
         });
@@ -144,16 +175,19 @@ describe('awaitStagingDeploys', () => {
         // First ping
         mockListDeploysForTag.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
@@ -161,16 +195,19 @@ describe('awaitStagingDeploys', () => {
         // Second ping
         mockListDeploysForTag.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
@@ -178,16 +215,19 @@ describe('awaitStagingDeploys', () => {
         // Third ping
         mockListDeploysForTag.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW],
             },
         });
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });

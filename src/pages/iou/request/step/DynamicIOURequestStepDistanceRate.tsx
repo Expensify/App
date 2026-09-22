@@ -7,6 +7,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getGroupPaidPolicies, isGroupPolicyByType, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {getCurrency, getDistanceInMeters, getDistanceRateTaxUpdates, getRateID, isDistanceRequest as isDistanceRequestTransactionUtils, isExpenseUnreported} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -83,6 +85,7 @@ function DynamicIOURequestStepDistanceRate({
     const personalPolicy = usePersonalPolicy();
     const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -124,7 +127,8 @@ function DynamicIOURequestStepDistanceRate({
     const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [formError, setFormError] = useState('');
 
@@ -170,7 +174,12 @@ function DynamicIOURequestStepDistanceRate({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
-    const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
+    // Pin the rate that was selected when the list opened to the top so it stays visible and doesn't move
+    // while browsing. Freeze it for the open cycle so picking an over-limit rate (which keeps the list
+    // mounted via pendingRateID) doesn't repin the list.
+    const initiallySelectedRateID = currentRateID || DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID;
+    const pinnedRateID = useInitialSelection(initiallySelectedRateID, {resetOnFocus: true});
+    const orderedOptions = moveInitialSelectionToTop(options, pinnedRateID ? [pinnedRateID] : []);
 
     function selectDistanceRate(customUnitRateID: string) {
         // Validate that the new rate combined with the existing distance doesn't exceed the backend limit.
@@ -217,11 +226,11 @@ function DynamicIOURequestStepDistanceRate({
                     transaction.transactionID,
                     splitDraftTransaction,
                     {customUnitRateID},
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                     policy,
                     personalPolicy?.outputCurrency,
                     allPolicies,
-                    getCurrencyDecimals,
-                    getCurrencySymbol,
                 );
                 saveAndNavigateBack();
                 return;
@@ -231,6 +240,7 @@ function DynamicIOURequestStepDistanceRate({
                 // Persist preference so the default stays in sync across the workspace (the same way as in the setMoneyRequestDistanceRate)
                 setLastSelectedDistanceRate(policy, customUnitRateID);
                 updateMoneyRequestDistanceRate({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
@@ -253,6 +263,7 @@ function DynamicIOURequestStepDistanceRate({
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
@@ -281,11 +292,13 @@ function DynamicIOURequestStepDistanceRate({
             )}
 
             <SelectionList
-                data={options}
+                data={orderedOptions}
                 ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={initiallyFocusedOption}
+                initiallyFocusedItemKey={pinnedRateID}
+                shouldScrollToFocusedIndexOnMount={false}
+                shouldUpdateFocusedIndex
             />
         </StepScreenWrapper>
     );

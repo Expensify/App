@@ -1,4 +1,5 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
@@ -16,7 +17,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -32,15 +32,7 @@ type RateFieldProps = {
     mileageRate: MileageRate;
     expenseDate: string | undefined;
     customUnitRateID: string | undefined;
-    didConfirm: boolean;
-    isReadOnly: boolean;
-    isPolicyExpenseChat: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
@@ -54,20 +46,13 @@ function RateField({
     mileageRate,
     expenseDate,
     customUnitRateID,
-    didConfirm,
-    isReadOnly,
-    isPolicyExpenseChat,
     policy,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
     shouldShowRateAutoUpdatedTooltip,
 }: RateFieldProps) {
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, dateFnsLocale} = useLocalize();
     const {getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
@@ -121,15 +106,17 @@ function RateField({
 
                 if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                            action,
-                            iouType,
-                            transactionID,
-                            reportID,
-                            upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                            backTo: Navigation.getActiveRoute(),
-                            shouldSubmitExpense: !isTrackExpense,
-                        }),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action,
+                                iouType,
+                                transactionID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                                upgradeBackTo: Navigation.getActiveRoute(),
+                                shouldSubmitExpense: !isTrackExpense,
+                            }),
+                        ),
                     );
                 } else if (!policy && shouldSelectPolicy && isTrackExpense) {
                     Navigation.navigate(

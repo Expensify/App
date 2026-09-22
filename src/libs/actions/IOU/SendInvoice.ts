@@ -9,6 +9,9 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -24,7 +27,7 @@ import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -323,16 +326,8 @@ function buildOnyxDataForInvoice(
             redundantParticipants[accountID] = null;
         }
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticDataParams.personalDetailListAction,
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: successPersonalDetailListAction,
-        });
+        optimisticData.push(buildPersonalDetailsUpdate(optimisticDataParams.personalDetailListAction));
+        successData.push(buildPersonalDetailsUpdate(successPersonalDetailListAction));
     }
 
     successData.push(
@@ -641,12 +636,27 @@ function getSendInvoiceInformation({
     delegateAccountID,
     getCurrencyDecimals,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
+    const {
+        amount = 0,
+        currency = '',
+        created = '',
+        merchant = '',
+        category = '',
+        tag = '',
+        taxCode: transactionTaxCode = '',
+        taxAmount = 0,
+        taxValue,
+        billable,
+        comment,
+        participants,
+    } = transaction ?? {};
+    const taxCode = resolveCurrentTaxCode(policy, transactionTaxCode);
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    const receiverLogin = addSMSDomainIfPhoneNumber(receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '');
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
@@ -707,7 +717,6 @@ function getSendInvoiceInformation({
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !getAllPersonalDetails()[receiverAccountID];
     if (shouldCreateOptimisticPersonalDetails) {
-        const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
             displayName: formatPhoneNumber(receiverLogin),
@@ -716,6 +725,8 @@ function getSendInvoiceInformation({
         };
 
         optimisticPersonalDetailListAction = {[receiverAccountID]: receiver};
+    } else if (!receiver.login) {
+        receiver = {...receiver, login: receiverLogin};
     }
 
     // STEP 5: Build optimistic reportActions.

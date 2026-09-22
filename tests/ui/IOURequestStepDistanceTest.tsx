@@ -480,7 +480,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         await waitForBatchedUpdates();
     });
 
-    it('uses the explicit step-distance route as backTo in the edit flow (the tab navigator would otherwise add a tab suffix that breaks goBack)', async () => {
+    it('uses the explicit step-distance route as the waypoint base in the edit flow (the tab navigator would otherwise add a tab suffix that breaks goBack)', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         const report = createTestReport();
 
@@ -498,18 +498,14 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(
-                CONST.IOU.ACTION.EDIT,
-                CONST.IOU.TYPE.SUBMIT,
-                TRANSACTION_ID,
-                REPORT_ID,
-                '0',
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(0),
                 createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID), 'r/1' as Route),
             ),
         );
     });
 
-    it('uses the current active route as backTo in the create flow (no tab navigator, so the production getActiveRoute path is correct)', async () => {
+    it('uses the current active route as the waypoint base in the create flow (no tab navigator, so the production getActiveRoute path is correct)', async () => {
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         const report = createTestReport();
         const activeRoute = ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID);
@@ -536,9 +532,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
         fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID, '0', activeRoute),
-        );
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(0), activeRoute));
     });
 });
 

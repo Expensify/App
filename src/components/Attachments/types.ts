@@ -7,7 +7,6 @@ type Attachment = {
     /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentSource;
 
-    /** Report action ID of the attachment */
     reportActionID?: string;
 
     /** The attachment id, which is the concatenation of the report action id it is in and its order index within that report action. */
@@ -22,7 +21,6 @@ type Attachment = {
     /** File object can be an instance of File or Object */
     file?: FileObject;
 
-    /** Whether the attachment has been flagged */
     hasBeenFlagged?: boolean;
 
     /** The id of the transaction related to the attachment */

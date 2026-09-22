@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,14 +10,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import {getPreviousOnboardingRoute} from '@libs/getOnboardingStepCounter';
 import Navigation from '@libs/Navigation/Navigation';
-import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {setOnboardingCompanySize} from '@userActions/Welcome';
@@ -51,8 +49,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const onboardingFlowContext = useMemo(
         () => ({
@@ -62,12 +58,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             purposeSelected: purposeSelected ?? undefined,
             isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
             isAccountValidated: isCurrentUserValidated(loginList, session?.email),
-            hasJoinablePolicies: getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026) > 0,
+            hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
         }),
         [
             account?.hasAccessibleDomainPolicies,
             account?.isFromPublicDomain,
-            canUseSubmit2026,
             joinablePolicies,
             loginList,
             onboardingValues?.isMergeAccountStepSkipped,
@@ -93,15 +88,19 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
             .filter((size) => {
-                // Always hide the deprecated 1-10 option.
-                if (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                // Always hide deprecated options.
+                if (
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM ||
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO ||
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL
+                ) {
                     return false;
                 }
-                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-10.
+                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-9.
                 if (isVsb) {
                     return size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
                 }
-                // For SMB-qualified users, hide 1-4 and 5-10 since they already indicated 10+.
+                // For SMB-qualified users, hide 1-4 and 5-9 since they already indicated 10+.
                 if (isSmb) {
                     return size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
                 }

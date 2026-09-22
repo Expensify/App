@@ -166,7 +166,7 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to personal details page when user selects EMPLOYER with Submit2026 beta and is from public domain', async () => {
+    it('should navigate to personal details page when user selects EMPLOYER and is from public domain', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -174,7 +174,6 @@ describe('OnboardingPurpose Page', () => {
                 isFromPublicDomain: true,
                 hasAccessibleDomainPolicies: false,
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
         });
 
         const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
@@ -194,7 +193,7 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should create a Submit workspace when user selects EMPLOYER with Submit2026 beta and is from private domain with name set', async () => {
+    it('should create a Submit workspace when user selects EMPLOYER and is from private domain with name set', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -213,7 +212,6 @@ describe('OnboardingPurpose Page', () => {
                     validatedDate: 'fake-validatedDate',
                 },
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
                 firstName: 'Test',
                 lastName: 'User',
@@ -253,7 +251,6 @@ describe('OnboardingPurpose Page', () => {
                 isFromPublicDomain: true,
                 hasAccessibleDomainPolicies: false,
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
                 firstName: 'Test',
                 lastName: 'User',
@@ -292,7 +289,9 @@ describe('OnboardingPurpose Page', () => {
 
         await waitFor(() => {
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-            expect(navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
+            expect(navigate).toHaveBeenCalledWith(
+                ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+            );
         });
 
         onyxSetSpy.mockRestore();
@@ -360,7 +359,7 @@ describe('OnboardingPurpose Page', () => {
         const introSelectedValue = {
             choice: CONST.ONBOARDING_CHOICES.EMPLOYER,
             inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
-            companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
         };
 
         await act(async () => {

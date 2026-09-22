@@ -1,3 +1,4 @@
+import BulkActionBar from '@components/BulkActionBar';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -6,7 +7,9 @@ import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalMod
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import type {ContinueActionParams} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -18,6 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import useSortedActiveAdminPolicies from '@hooks/useSortedActiveAdminPolicies';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +33,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -37,7 +40,7 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import {useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -51,6 +54,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -59,7 +63,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    // Sends an unvalidated user to the verify-account (security code) screen and resumes the stored bulk pay once they validate.
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry) => retry?.());
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -67,6 +72,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         headerButtonsOptions,
+        dropdownButtonsOptions,
+        bulkActionsMenuHeaderText,
         selectedPolicyIDs,
         selectedTransactionReportIDs,
         selectedReportIDs,
@@ -90,7 +97,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleExpensifyCardStatementPDFModalHide,
         isExpensifyCardStatementMultiFeedAlertVisible,
         handleExpensifyCardStatementMultiFeedAlertClose,
-        exportDownloadStatusModal,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
@@ -101,10 +107,15 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         allReports,
         searchData,
     } = useSearchBulkActions({queryJSON});
-    const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
-    const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`);
+    const currentSelectedPolicyID =
+        selectedIOUReport?.policyID ??
+        searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`]?.policyID ??
+        selectedReports.find((report) => report.reportID === currentSelectedReportID)?.policyID ??
+        Object.values(selectedTransactions).find((transaction) => transaction.reportID === currentSelectedReportID)?.policyID ??
+        selectedPolicyIDs?.at(0);
+    const currentPolicy = usePolicy(currentSelectedPolicyID);
     const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const pendingPaymentAdditionalDataRef = useRef<BulkPaySelectionData | undefined>(undefined);
 
@@ -112,7 +123,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
+    const popoverUseScrollView = shouldPopoverUseScrollView(dropdownButtonsOptions);
     const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
         const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
             if (isExpenseReportType) {
@@ -139,22 +150,57 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         };
     }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
+    const payBulkSelectedItem = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) =>
+        handleBulkPayItemSelected({
+            item: subItem,
+            triggerKYCFlow,
+            isAccountLocked,
+            showLockedAccountModal,
+            policy: currentPolicy,
+            businessBankAccountOptions,
+            bankAccountList,
+            activeAdminPolicies,
+            isUserValidated,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+            confirmPayment,
+            userBillingGracePeriodEnds,
+            amountOwed,
+            ownerBillingGracePeriodEnd,
+            setPendingPaymentAdditionalData: (data) => {
+                pendingPaymentAdditionalDataRef.current = data;
+            },
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            isOffline,
+            verifyAccountAndResume,
+        });
+
     const allMatchingItemsCount = currentSearchResults?.search?.count;
+    // For expense-report searches `count` is the number of expenses, not reports, so it can't label the Reports tab.
+    // The matching-report total across all pages is server-provided. `selectedTransactions` only holds the loaded
+    // page, so it can't be derived locally. Read it from the snapshot here.
+    const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
+    const relevantAllMatchingCount = isExpenseReportType ? allMatchingReportsCount : allMatchingItemsCount;
     const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
     // The server count is the only source for how many items "select all" covers, so keep the button loading until it
     // arrives. Offline or on error it never will, so fall back to the count of the items we do have selected.
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof relevantAllMatchingCount !== 'number' && !isOffline && !hasSearchErrors;
     // Excluded items only map onto the server count for expenses. For expense reports an excluded transaction doesn't
-    // necessarily drop its whole report from the results, so the server count is used as-is there.
+    // necessarily drop its whole report from the results, so the report count is used as-is there.
     let selectedAllMatchingItemsCount: number;
-    if (typeof allMatchingItemsCount !== 'number') {
+    if (isExpenseReportType) {
+        // Show the matching-report total once it lands. Before then, or while offline, fall back to the loaded-page report count.
+        selectedAllMatchingItemsCount = typeof allMatchingReportsCount === 'number' ? allMatchingReportsCount : selectedItemsCount;
+    } else if (typeof allMatchingItemsCount !== 'number') {
         selectedAllMatchingItemsCount = selectedItemsCount;
     } else {
         selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
-    const selectionButtonText = translate('workspace.common.selected', {
-        count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
-    });
+    const selectedBulkActionsCount = areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount;
+    const shouldShowAllMatchingItemsSelected = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length === 0;
+    const selectionButtonText = shouldShowAllMatchingItemsSelected
+        ? translate('search.exportAll.allMatchingItemsSelected')
+        : translate('workspace.common.selected', {count: selectedBulkActionsCount});
 
     return (
         <>
@@ -195,37 +241,15 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                         <View style={[styles.pb3]}>
                             <ButtonWithDropdownMenu
                                 buttonRef={buttonRef}
-                                options={headerButtonsOptions}
+                                options={dropdownButtonsOptions}
+                                menuHeaderText={bulkActionsMenuHeaderText}
                                 customText={selectionButtonText}
                                 isLoading={isAllMatchingItemsCountLoading}
                                 shouldAlwaysShowDropdownMenu
-                                isDisabled={headerButtonsOptions.length === 0}
+                                isDisabled={dropdownButtonsOptions.length === 0}
                                 onPress={() => null}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected({
-                                        item: subItem,
-                                        triggerKYCFlow,
-                                        isAccountLocked,
-                                        showLockedAccountModal,
-                                        policy: currentPolicy,
-                                        businessBankAccountOptions,
-                                        bankAccountList,
-                                        activeAdminPolicies,
-                                        isUserValidated,
-                                        isDelegateAccessRestricted,
-                                        showDelegateNoAccessModal,
-                                        confirmPayment,
-                                        userBillingGracePeriodEnds,
-                                        amountOwed,
-                                        ownerBillingGracePeriodEnd,
-                                        setPendingPaymentAdditionalData: (data) => {
-                                            pendingPaymentAdditionalDataRef.current = data;
-                                        },
-                                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                                        isOffline,
-                                    })
-                                }
+                                onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 isSplitButton={false}
                                 style={[styles.w100, styles.ph5]}
@@ -238,48 +262,16 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             />
                         </View>
                     ) : (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <ButtonWithDropdownMenu
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                onPress={() => null}
-                                shouldAlwaysShowDropdownMenu
-                                customText={selectionButtonText}
-                                isLoading={isAllMatchingItemsCountLoading}
-                                options={headerButtonsOptions}
-                                shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected({
-                                        item: subItem,
-                                        triggerKYCFlow,
-                                        isAccountLocked,
-                                        showLockedAccountModal,
-                                        policy: currentPolicy,
-                                        businessBankAccountOptions,
-                                        bankAccountList,
-                                        activeAdminPolicies,
-                                        isUserValidated,
-                                        isDelegateAccessRestricted,
-                                        showDelegateNoAccessModal,
-                                        confirmPayment,
-                                        userBillingGracePeriodEnds,
-                                        amountOwed,
-                                        ownerBillingGracePeriodEnd,
-                                        setPendingPaymentAdditionalData: (data) => {
-                                            pendingPaymentAdditionalDataRef.current = data;
-                                        },
-                                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                                        isOffline,
-                                    })
-                                }
-                                isSplitButton={false}
-                                buttonRef={buttonRef}
-                                anchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                }}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DROPDOWN}
-                            />
-                        </View>
+                        <BulkActionBar
+                            selectedCount={selectedBulkActionsCount}
+                            customText={shouldShowAllMatchingItemsSelected ? selectionButtonText : undefined}
+                            isSelectedCountLoading={isAllMatchingItemsCountLoading}
+                            options={headerButtonsOptions}
+                            // No argument: the boolean flag only clears the report view's `selectedTransactionIDs`.
+                            onClearSelection={() => clearSelectedTransactions()}
+                            onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
+                            barRef={buttonRef}
+                        />
                     )
                 }
             </KYCWall>
@@ -339,7 +331,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                     isDM={areAllTransactionsFromDMReports}
                 />
             )}
-            {exportDownloadStatusModal}
         </>
     );
 }

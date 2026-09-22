@@ -1,10 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useExportedToFilterOptions from '@hooks/useExportedToFilterOptions';
+import useExportedToFilterOptions, {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
+
+import {isAdminOfCardEnabledPolicy} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate} from '@src/types/onyx';
+import type {ExportTemplate, Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -22,6 +24,11 @@ jest.mock('@libs/actions/Search', () => ({
 /** Builds a policy with a verified connection so getConnectedIntegrationNamesForPolicies detects it. */
 function buildPolicyWithConnection(policyID: string, connectionName: ConnectionName) {
     return {id: policyID, connections: {[connectionName]: {lastSync: {isConnected: true}}}} as const;
+}
+
+/** Narrows the policy argument recorded by the getExportTemplates mock, whose arguments are typed as unknown. */
+function isPolicy(value: unknown): value is Policy {
+    return typeof value === 'object' && value !== null && 'id' in value;
 }
 
 describe('useExportedToFilterOptions', () => {
@@ -130,5 +137,27 @@ describe('useExportedToFilterOptions', () => {
         const {result} = renderHook(() => useExportedToFilterOptions());
 
         expect(result.current.connectedIntegrationNames).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
+    });
+
+    it('keeps a card enabled admin policy eligible for the reconciliation template after the selector trims it', () => {
+        const policy = createMock<Policy>({id: '1', role: CONST.POLICY.ROLE.ADMIN, areCompanyCardsEnabled: true});
+
+        const trimmedPolicy = exportedToPoliciesSelector({[`${ONYXKEYS.COLLECTION.POLICY}1`]: policy})?.[`${ONYXKEYS.COLLECTION.POLICY}1`];
+
+        expect(isAdminOfCardEnabledPolicy(trimmedPolicy)).toBe(true);
+    });
+
+    it('passes a card enabled admin policy to getExportTemplates with its card product flags intact', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {id: '1', role: CONST.POLICY.ROLE.CARD_ADMIN, areExpensifyCardsEnabled: true});
+
+        renderHook(() => useExportedToFilterOptions());
+
+        const policiesPassedToGetExportTemplates = mockGetExportTemplates.mock.calls.flatMap((call: unknown[]) => {
+            const policy = call.at(4);
+            return isPolicy(policy) ? [policy] : [];
+        });
+
+        expect(policiesPassedToGetExportTemplates).toHaveLength(1);
+        expect(isAdminOfCardEnabledPolicy(policiesPassedToGetExportTemplates.at(0))).toBe(true);
     });
 });

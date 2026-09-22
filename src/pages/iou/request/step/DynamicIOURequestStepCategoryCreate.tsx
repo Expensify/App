@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -18,7 +19,7 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {pickReportForPolicy} from '@libs/IOUUtils';
+import {getSelectedWorkspacePolicyID, pickReportForPolicy} from '@libs/IOUUtils';
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,11 +56,12 @@ function DynamicIOURequestStepCategoryCreate({
     },
     transaction,
 }: DynamicIOURequestStepCategoryCreateProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {currentSearchHash} = useSearchQueryContext();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path);
@@ -70,8 +72,7 @@ function DynamicIOURequestStepCategoryCreate({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
 
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
-    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
-    const policyIdReal = getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, participantReport));
+    const policyIdReal = getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, participantReport));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
@@ -92,6 +93,7 @@ function DynamicIOURequestStepCategoryCreate({
     const policyID = policy?.id;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID ?? transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
@@ -99,6 +101,7 @@ function DynamicIOURequestStepCategoryCreate({
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
@@ -157,10 +160,12 @@ function DynamicIOURequestStepCategoryCreate({
         };
 
         if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy, undefined, undefined, getCurrencyDecimals);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
+                isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID ?? transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
@@ -176,7 +181,10 @@ function DynamicIOURequestStepCategoryCreate({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                violations: allTransactionViolations,
                 getCurrencyDecimals,
+                getCurrencySymbol,
+                rules,
             });
         } else {
             setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);

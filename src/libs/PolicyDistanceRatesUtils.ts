@@ -2,9 +2,11 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {GovernmentRateCountry, IOURequestType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {CustomUnit, Rate, RateAttributes} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
@@ -183,13 +185,36 @@ function getRateStatus(rate: Rate): string {
     return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
+function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRateID: string | undefined, currentUnit: Unit | undefined): number {
+    if (!sourceRateID || !currentUnit) {
+        return governmentRateAmount;
+    }
+
+    const snapshotCountry = sourceRateID.split('_').at(0);
+    const countryToUnit: Partial<Record<string, Unit>> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT;
+    const snapshotUnit = snapshotCountry ? countryToUnit[snapshotCountry] : undefined;
+
+    if (!snapshotUnit || snapshotUnit === currentUnit) {
+        return governmentRateAmount;
+    }
+
+    // If a rate is expressed in cents / km, converting to cents / mi means multiplying by a factor that cancels the kilometers:
+    // cents / km * km / mi = cents / mi. Do the opposite for a rate expressed in cents / mi.
+    const convertedAmount =
+        snapshotUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS
+            ? governmentRateAmount * CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS
+            : governmentRateAmount / CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS;
+
+    return Math.round(convertedAmount * 100) / 100;
+}
+
 /**
  * Whether a government-managed rate still matches the government-published snapshot it was copied from.
  * Returns true only when the rate amount, start date, and end date each match the snapshot in attributes.governmentRate.
  * The amount is compared within a small tolerance to absorb floating-point noise from the stored cents value.
  * A date omitted on both sides counts as a match; a date omitted on only one side does not.
  */
-function isGovernmentRateUnmodified(rate: Rate): boolean {
+function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     const governmentRate = rate.attributes?.governmentRate;
     // A snapshot without a rate amount (e.g. malformed data) can never be matched, otherwise `undefined === undefined` would
     // incorrectly report an unset rate as unmodified.
@@ -199,13 +224,74 @@ function isGovernmentRateUnmodified(rate: Rate): boolean {
 
     // The submit path stores the amount as `Number(value) * 100`, which can introduce tiny floating-point errors (e.g. restoring
     // 0.29 yields 28.999999999999996), so compare amounts within a tolerance rather than requiring strict equality.
-    const isRateAmountMatching = Math.abs(rate.rate - governmentRate.rate) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
+    const governmentRateAmount = getGovernmentRateAmountForUnit(governmentRate.rate, governmentRate.sourceRateID, currentUnit);
+    const isRateAmountMatching = Math.abs(rate.rate - governmentRateAmount) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
 
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
+/** The country publishing government mileage rates for a currency, or undefined when we can't auto-update them. */
+function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateCountry | undefined {
+    if (!currency) {
+        return undefined;
+    }
+
+    const currencyToCountry: Record<string, GovernmentRateCountry> = CONST.CUSTOM_UNITS.GOVERNMENT_RATE_CURRENCY_TO_COUNTRY;
+    return currencyToCountry[currency];
+}
+
+/** Whether we can auto-update government distance rates for this output currency. */
+function isCurrencySupportedForAutoUpdate(currency?: string): boolean {
+    return !!getGovernmentRateCountryForCurrency(currency);
+}
+
+/** The unit the currency's country publishes its mileage rates in. */
+function getExpectedUnitForCurrency(currency?: string): Unit | undefined {
+    const country = getGovernmentRateCountryForCurrency(currency);
+    return country ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT[country] : undefined;
+}
+
+/** Translation key for the country phrase in the auto-update copy, e.g. "the United States". */
+function getGovernmentRateCountryPhraseTranslationKey(currency?: string): TranslationPaths | undefined {
+    const country = getGovernmentRateCountryForCurrency(currency);
+    if (!country) {
+        return undefined;
+    }
+
+    return `workspace.distanceRates.governmentRateCountries.${country}`;
+}
+
 function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
     return !!policy?.id && !!policy.commuterExclusions;
+}
+
+/**
+ * Whether distance expenses on this workspace must come from a mapped route or a GPS track, which rules out the
+ * manual and odometer flows. Commuter exclusions are derived from the mapped route, so configuring them enforces
+ * the requirement on its own, whatever `requireMapOrGPS` is set to.
+ */
+function isMapOrGPSRequired(policy: Policy | null | undefined): boolean {
+    if (!policy?.id) {
+        return false;
+    }
+
+    return !!policy.requireMapOrGPS || isCommuterExclusionEnabled(policy);
+}
+
+/**
+ * The distance type an entry point should open the flow on. `lastDistanceExpenseType` only records what the member
+ * picked last time, so it goes stale the moment the workspace starts requiring GPS or map entry. Falling back to map
+ * matches what the start page renders anyway, since it hides the manual and odometer tabs, and it keeps a stale
+ * preference from blocking a flow the member is still allowed to start.
+ */
+function getDistanceExpenseTypeForPolicy(policy: Policy | null | undefined, lastDistanceExpenseType: IOURequestType | undefined): IOURequestType | undefined {
+    const isManualOrOdometer = lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || lastDistanceExpenseType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+
+    if (!isManualOrOdometer || !isMapOrGPSRequired(policy)) {
+        return lastDistanceExpenseType;
+    }
+
+    return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
 }
 
 export {
@@ -214,6 +300,12 @@ export {
     validateCreateDistanceRateForm,
     buildOnyxDataForPolicyDistanceRateUpdates,
     getRateStatus,
+    getGovernmentRateCountryForCurrency,
+    isCurrencySupportedForAutoUpdate,
+    getExpectedUnitForCurrency,
+    getGovernmentRateCountryPhraseTranslationKey,
     isCommuterExclusionEnabled,
+    isMapOrGPSRequired,
+    getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,
 };

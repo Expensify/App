@@ -2,12 +2,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {openLink} from '@libs/actions/Link';
+import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
@@ -24,7 +26,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Report, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -64,6 +66,7 @@ jest.mock('@libs/actions/Link', () => {
             const attrPath = Url.getPathFromURL(href);
             return (Url.hasSameExpensifyOrigin(href, CONSTreal.NEW_EXPENSIFY_URL) ||
                 Url.hasSameExpensifyOrigin(href, CONSTreal.STAGING_NEW_EXPENSIFY_URL) ||
+                Url.hasSameExpensifyOrigin(href, CONSTreal.QA_NEW_EXPENSIFY_URL) ||
                 href.startsWith(CONSTreal.DEV_NEW_EXPENSIFY_URL)) &&
                 !CONSTreal.PATHS_TO_TREAT_AS_EXTERNAL.find((p) => attrPath.startsWith(p))
                 ? attrPath
@@ -138,9 +141,9 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction) {
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -152,6 +155,7 @@ describe('ReportActionItem', () => {
                             displayAsGroup={false}
                             shouldDisplayNewMarker={false}
                             isFirstVisibleReportAction={false}
+                            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
@@ -424,7 +428,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -476,7 +479,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             } as const;
 
@@ -523,7 +525,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -571,7 +572,6 @@ describe('ReportActionItem', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: 'owner@test.com',
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             } as const;
 
@@ -1630,6 +1630,50 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/QuickBooks Online/)).toBeOnTheScreen();
         });
 
+        it('INTEGRATION_SYNC_FAILED action keeps the stored IES label after switching to QBO', async () => {
+            const policyID = 'iesPolicy';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    id: policyID,
+                    connections: {
+                        quickbooksOnline: {
+                            config: {
+                                credentials: {
+                                    scope: 'com.intuit.quickbooks.accounting',
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED, {
+                label: CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE,
+                errorMessage: 'Token expired',
+            });
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', policyID}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Intuit Enterprise Suite/)).toBeOnTheScreen();
+            expect(screen.queryByText(/QuickBooks Online/)).not.toBeOnTheScreen();
+        });
+
         it('COMPANY_CARD_CONNECTION_BROKEN action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN, {
                 feedName: 'Chase Visa',
@@ -1639,6 +1683,17 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/Chase Visa/)).toBeOnTheScreen();
+        });
+
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: 'Chase Visa',
+                policyID: 'pol123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
         });
 
         it('PLAID_BALANCE_FAILURE action', async () => {
@@ -2549,6 +2604,23 @@ describe('ReportActionItem', () => {
                 assertion: /fwd@test\.com/,
             },
             {
+                testTitle: 'UPDATE_OVER_LIMIT_FORWARDS_TO',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {
+                    member: {email: 'member@test.com', name: 'Member', accountID: 789},
+                    overLimitForwardsTo: {email: 'overlimit@test.com', name: 'Over Limit Approver', accountID: 456},
+                    limit: 10000,
+                    currency: 'USD',
+                },
+                assertion: /overlimit@test\.com/,
+            },
+            {
+                testTitle: 'UPDATE_APPROVAL_LIMIT',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                originalMessage: {member: {email: 'member@test.com', name: 'Member', accountID: 789}, limit: 20000, previousLimit: 10000, currency: 'USD'},
+                assertion: /member@test\.com/,
+            },
+            {
                 testTitle: 'UPDATE_AUTO_REIMBURSEMENT',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
                 originalMessage: {oldLimit: 0, newLimit: 50000, currency: 'USD'},
@@ -2722,6 +2794,12 @@ describe('ReportActionItem', () => {
                 assertion: /My Card/,
             },
             {
+                testTitle: 'isCardBrokenConnectionAction 30 days',
+                actionName: CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS,
+                originalMessage: {cardID: 100, cardName: 'My Card'},
+                assertion: /My Card connection has been broken for 30 days/,
+            },
+            {
                 testTitle: 'INDIVIDUAL_BUDGET_NOTIFICATION',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION,
                 originalMessage: {
@@ -2795,6 +2873,30 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN, {cardID: 100, cardName: 'Broken Card'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
+
+            const bankLoginLink = screen.getByText('Log into your bank');
+            fireEvent.press(bankLoginLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+        });
+
+        it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
+            const CARD_ID_KEY = '100';
+
+            jest.mocked(openLink).mockClear();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                    [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS, {cardID: 100, cardName: 'Broken Card'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Broken Card connection has been broken for 30 days/)).toBeOnTheScreen();
 
             const bankLoginLink = screen.getByText('Log into your bank');
             fireEvent.press(bankLoginLink);
@@ -2997,6 +3099,30 @@ describe('ReportActionItem', () => {
             expect(screen.getByText('Paris Trip 2026')).toBeOnTheScreen();
         });
 
+        it('isTripPreview renders trip dates from report name-value-pair tripData', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}tripReportDates`, {
+                    reportID: 'tripReportDates',
+                    reportName: 'Paris Trip',
+                    currency: 'USD',
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}tripReportDates`, {
+                    tripData: {
+                        tripID: 'trip-1',
+                        startDate: '2026-01-01T12:00:00Z',
+                        endDate: '2026-01-03T12:00:00Z',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReportDates'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
+        });
+
         it('isCreatedTaskReportAction renders TaskPreview', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {taskReportID: 'task123'});
             renderItemWithAction(action);
@@ -3160,6 +3286,88 @@ describe('ReportActionItem', () => {
         });
     });
 
+    describe('Concierge feedback prompt', () => {
+        const prompt = () => translateLocal('concierge.feedback.prompt');
+
+        function createConciergeComment(moderationDecision?: DecisionName) {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
+            action.actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+            action.message = [{type: 'COMMENT', html: 'Here you go', text: 'Here you go', ...(moderationDecision ? {moderationDecision: {decision: moderationDecision}} : {})}];
+            return action;
+        }
+
+        it('renders under the latest Concierge comment', async () => {
+            renderItemWithAction(createConciergeComment(), true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+        });
+
+        const THUMBS_UP_EMOJI_NAME = '+1';
+
+        function buildThumbsUpReaction(timestamp: string) {
+            return {
+                [THUMBS_UP_EMOJI_NAME]: {
+                    createdAt: timestamp,
+                    oldestTimestamp: timestamp,
+                    users: {[ACTOR_ACCOUNT_ID]: {id: String(ACTOR_ACCOUNT_ID), oldestTimestamp: timestamp, skinTones: {[CONST.EMOJI_DEFAULT_SKIN_TONE]: timestamp}}},
+                },
+            };
+        }
+
+        async function reactWithThumbsUp(action: ReportAction, timestamp: string) {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, buildThumbsUpReaction(timestamp));
+            });
+        }
+
+        it('shows the acknowledgement in a second copy of the chat that did not take the press', async () => {
+            // The side panel and the central pane each mount their own copy, and the reaction is what they share
+            const action = createConciergeComment();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+            });
+
+            renderItemWithAction(action, true);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+
+            await reactWithThumbsUp(action, DateUtils.getDBTime());
+
+            expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('does not acknowledge a rating that was already there when the chat was opened', async () => {
+            const action = createConciergeComment();
+            await reactWithThumbsUp(action, DateUtils.getDBTime());
+
+            renderItemWithAction(action, true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('does not render while moderation has the message hidden', async () => {
+            renderItemWithAction(createConciergeComment(CONST.MODERATION.MODERATOR_DECISION_HIDDEN), true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('renders once the user reveals the hidden message', async () => {
+            renderItemWithAction(createConciergeComment(CONST.MODERATION.MODERATOR_DECISION_HIDDEN), true);
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Reveal message'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+        });
+    });
+
     describe('ChatMessageContent moderation and actionable buttons', () => {
         it('flagged message shows "Reveal message" button when moderation decision is hidden', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
@@ -3190,7 +3398,7 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submitToEmployer' as TranslationPaths))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
         });
     });

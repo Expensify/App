@@ -14,7 +14,6 @@ import {
     buildOptimisticExpenseReport,
     buildOptimisticMarkedAsResolvedReportAction,
     buildOptimisticMoneyRequestEntities,
-    buildOptimisticMovedTransactionAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
     buildOptimisticReportLevelRejectAction,
@@ -32,7 +31,7 @@ import {
 import {getAmount, getCurrency} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -43,7 +42,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -85,6 +84,11 @@ type RejectMoneyRequestOptions = {
     setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
 };
 
+type RejectMoneyRequestRulesAndOptions = {
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    options?: RejectMoneyRequestOptions;
+};
+
 function dismissRejectUseExplanation() {
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
@@ -120,9 +124,10 @@ type PrepareRejectMoneyRequestDataParams = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserLogin: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
 };
@@ -134,9 +139,10 @@ function prepareRejectMoneyRequestData({
     policy,
     currentUserAccountIDParam,
     currentUserLogin,
-    betas,
+    isASAPSubmitBetaEnabled,
     delegateAccountID,
     getCurrencyDecimals,
+    rules,
     options,
     shouldUseBulkAction,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
@@ -157,7 +163,7 @@ function prepareRejectMoneyRequestData({
     const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
     const isUserOnSearchMoneyRequestReport = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT;
 
-    if (!report || !transaction) {
+    if (!report || !transaction || transaction.reportID !== report.reportID) {
         return undefined;
     }
 
@@ -170,10 +176,16 @@ function prepareRejectMoneyRequestData({
     let urlToNavigateBack;
     let reportPreviewAction: OnyxTypes.ReportAction | undefined;
     let createdIOUReportActionID;
-    let expenseMovedReportActionID;
     let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
+
+    // A reject starts from a clean slate, dropping the error and the report pin left behind by an earlier failed one.
+    const staleRejectErrorCleanup = {
+        errors: null,
+        errorFields: {reject: null},
+        rejectFailedFromReportID: null,
+    };
     const transactionCommentCleanup = (() => {
         if (!transaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE]) {
             return undefined;
@@ -209,7 +221,6 @@ function prepareRejectMoneyRequestData({
     const optimisticRejectReportAction = buildOptimisticRejectReportAction(delegateAccountID, baseTimestamp);
     const parsedComment = getParsedComment(comment);
     const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
-    let movedTransactionAction;
 
     // Build successData and failureData to prevent duplication
     const successData: Array<
@@ -246,6 +257,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: null,
+                        ...staleRejectErrorCleanup,
                         ...(transactionCommentCleanup ?? {}),
                     },
                 },
@@ -277,6 +289,8 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: transaction?.reportID ?? reportID,
+                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    rejectFailedFromReportID: reportID,
                 },
             });
 
@@ -300,6 +314,7 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        ...staleRejectErrorCleanup,
                         ...(transactionCommentCleanup ?? {}),
                     },
                 },
@@ -353,6 +368,8 @@ function prepareRejectMoneyRequestData({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID,
+                        errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                        rejectFailedFromReportID: reportID,
                     },
                 },
             );
@@ -497,8 +514,9 @@ function prepareRejectMoneyRequestData({
                 nonReimbursableTotal: transactionAmount,
                 optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
-                betas,
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
+                rules,
             });
             const [, createdActionForExpenseReport, iouAction] = buildOptimisticMoneyRequestEntities({
                 getCurrencyDecimals,
@@ -517,9 +535,9 @@ function prepareRejectMoneyRequestData({
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
-            movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
+            // The reject action posted below already tells the user this expense left the report,
+            // so a MOVED_TRANSACTION action in the same thread would repeat it
             createdIOUReportActionID = iouAction.reportActionID;
-            expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
             options?.setExistingRejectedReport?.(newExpenseReport);
@@ -669,6 +687,7 @@ function prepareRejectMoneyRequestData({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: rejectedToReportID,
+                    ...staleRejectErrorCleanup,
                     ...(transactionCommentCleanup ?? {}),
                 },
             },
@@ -691,6 +710,7 @@ function prepareRejectMoneyRequestData({
             value: {
                 pendingAction: null,
                 errorFields: null,
+                rejectFailedFromReportID: null,
             },
         });
 
@@ -710,6 +730,8 @@ function prepareRejectMoneyRequestData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 reportID: transaction?.reportID ?? reportID,
+                errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                rejectFailedFromReportID: reportID,
             },
         });
     } else {
@@ -727,6 +749,7 @@ function prepareRejectMoneyRequestData({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                ...staleRejectErrorCleanup,
                 ...(transactionCommentCleanup ?? {}),
             },
         });
@@ -744,14 +767,24 @@ function prepareRejectMoneyRequestData({
         });
 
         // Add failure data to revert report state
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                stateNum: report?.stateNum,
-                statusNum: report?.statusNum,
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: report?.stateNum,
+                    statusNum: report?.statusNum,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {
+                    errorFields: {reject: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotRejectExpense')},
+                    rejectFailedFromReportID: reportID,
+                },
+            },
+        );
 
         if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view
@@ -769,7 +802,6 @@ function prepareRejectMoneyRequestData({
         value: {
             [optimisticRejectReportAction.reportActionID]: optimisticRejectReportAction,
             [optimisticRejectReportActionComment.reportActionID]: optimisticRejectReportActionComment,
-            ...(movedTransactionAction ? {[movedTransactionAction.reportActionID]: movedTransactionAction} : {}),
         },
     });
 
@@ -924,7 +956,6 @@ function prepareRejectMoneyRequestData({
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
         createdIOUReportActionID,
-        expenseMovedReportActionID,
         expenseCreatedReportActionID,
     };
 
@@ -938,10 +969,10 @@ function rejectMoneyRequest(
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
     currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    options?: RejectMoneyRequestOptions,
+    {rules, options}: RejectMoneyRequestRulesAndOptions,
 ): Route | undefined {
     const data = prepareRejectMoneyRequestData({
         transactionID,
@@ -950,9 +981,10 @@ function rejectMoneyRequest(
         policy,
         currentUserAccountIDParam,
         currentUserLogin,
-        betas,
+        isASAPSubmitBetaEnabled,
         delegateAccountID,
         getCurrencyDecimals,
+        rules,
         options,
     });
     if (!data) {
@@ -1042,6 +1074,7 @@ function rejectExpenseReport(
     currentUserAvatarSource: AvatarSource | undefined,
     isTrackIntentUser: boolean | undefined,
     delegateAccountID: number | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
@@ -1073,12 +1106,14 @@ function rejectExpenseReport(
               predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
               isRejectedReport: true,
               isTrackIntentUser,
+              rules,
           })
         : buildOptimisticNextStep({
               report,
               predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
               bypassNextApproverID: targetAccountID,
               isTrackIntentUser,
+              rules,
           });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [

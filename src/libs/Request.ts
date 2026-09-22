@@ -12,13 +12,12 @@ import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {cancelSpan, endSpan} from './telemetry/activeSpans';
-import startStartupPhaseSpan, {getStartupPhaseSpanId} from './telemetry/startStartupPhaseSpan';
+import {cancelSpan, endSpanWithAttributes} from './telemetry/activeSpans';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
+import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
 let middlewares: Middleware[] = [];
-
-let responseApplyAttempt = 0;
 
 /** Reauthentication retries the same request object from inside the still-pending original call, so only its newest attempt may record the phase. */
 const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
@@ -33,11 +32,11 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
     let result = makeXHR(request);
 
-    // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal).
-    const shouldMeasureResponseApply = isStartupNetworkRequest(request.command);
-    const attempt = shouldMeasureResponseApply ? (responseApplyAttempt += 1) : 0;
-    const applySpanId = getStartupPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY, attempt);
-    if (shouldMeasureResponseApply) {
+    // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal), and nothing at all for Search.
+    const phaseSpanNames = getRequestPhaseSpanNames(request.command);
+    const attempt = phaseSpanNames ? getNextRequestPhaseAttempt(phaseSpanNames.APPLY) : 0;
+    const applySpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.APPLY, attempt) : '';
+    if (phaseSpanNames) {
         latestApplyAttemptByRequest.set(request, attempt);
         result = result.then((response) => {
             // The Reauthentication middleware below is about to retry this request, and that attempt measures the apply.
@@ -45,7 +44,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                 return response;
             }
 
-            startStartupPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY, attempt, request.command);
+            startRequestPhaseSpan(phaseSpanNames.APPLY, attempt, request.command);
             return response;
         });
     }
@@ -54,7 +53,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
         result = middleware(result, request, isFromSequentialQueue);
     }
 
-    if (shouldMeasureResponseApply) {
+    if (phaseSpanNames) {
         result = result.then(
             (response) => {
                 // The reauthentication retry already measured this request, and this attempt only waited for it.
@@ -63,12 +62,24 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                     return response;
                 }
 
-                // WRITE responses are staged by queueOnyxUpdates and reach Onyx only once SequentialQueue flushes them
-                // after this promise settles, so the phase has to be closed from the flush rather than awaited here.
-                getCurrentFlushPromise().then(() => {
-                    endSpan(applySpanId);
+                const endApplyPhase = () => {
+                    endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
+                    // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
+                    if (!isStartupNetworkRequest(request.command)) {
+                        return;
+                    }
                     trackStartupDataRender(request.command, attempt);
-                });
+                };
+
+                // Only WRITE responses are staged by queueOnyxUpdates (see OnyxUpdates.applyHTTPSOnyxUpdates), reaching Onyx once SequentialQueue
+                // flushes them after this promise settles. Everything else already applied inline, and the flush promise is shared, so awaiting it
+                // here would fold an unrelated write's flush into the phase.
+                if (request.data?.apiRequestType !== CONST.API_REQUEST_TYPE.WRITE) {
+                    endApplyPhase();
+                    return response;
+                }
+
+                getCurrentFlushPromise().then(endApplyPhase);
                 return response;
             },
             (error: unknown) => {
