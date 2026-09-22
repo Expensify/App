@@ -4,9 +4,10 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {WorkspaceExpensifyCardTableRowData} from '@components/Tables/WorkspaceExpensifyCardsTable';
 import WorkspaceExpensifyCardsTable from '@components/Tables/WorkspaceExpensifyCardsTable';
 import Text from '@components/Text';
@@ -323,15 +324,17 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             shouldEnableMaxHeight
             testID="WorkspaceExpensifyCardListPage"
         >
-            <HeaderWithBackButton
-                shouldUseHeadlineHeader={!selectionModeHeader}
-                title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplayHelpButton
-                onBackButtonPress={handleBackButtonPress}
-            >
-                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
-            </HeaderWithBackButton>
+            <Header>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={handleBackButtonPress} />}
+                <Header.Title
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                />
+                <Header.Right>
+                    {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
+                    <SidePanelButton />
+                </Header.Right>
+            </Header>
             {isCardListEmpty ? (
                 <>
                     {pageHeaderContent}

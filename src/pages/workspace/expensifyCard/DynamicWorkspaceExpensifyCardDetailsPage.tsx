@@ -3,7 +3,7 @@ import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
 import DecisionModal from '@components/DecisionModal';
 import FrozenCardHeader from '@components/FrozenCardHeader';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -324,7 +324,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="DynamicWorkspaceExpensifyCardDetailsPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('cardPage.expensifyCard')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
