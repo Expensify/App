@@ -1,6 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -63,7 +63,7 @@ function DynamicCategoryDescriptionHintPage({
                 testID="DynamicCategoryDescriptionHintPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.rules.categoryRules.descriptionHint')}
                     onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />

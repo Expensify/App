@@ -1,10 +1,11 @@
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import Section from '@components/Section';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
@@ -172,13 +173,16 @@ function MergeConnectionsPageBaseContent({policyID, category, cards, footer}: Me
                     onDone={() => setActiveSetupFlow(undefined)}
                 />
             )}
-            <HeaderWithBackButton
-                title={translate(`workspace.${category}.title`)}
-                shouldDisplayHelpButton
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader
-                onBackButtonPress={() => Navigation.goBack()}
-            />
+            <Header>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+                <Header.Title
+                    title={translate(`workspace.${category}.title`)}
+                    shouldUseHeadlineHeader
+                />
+                <Header.Right>
+                    <SidePanelButton />
+                </Header.Right>
+            </Header>
             <ScrollView
                 contentContainerStyle={styles.pt3}
                 addBottomSafeAreaPadding

@@ -1,10 +1,11 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
@@ -64,13 +65,16 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                 testID="WorkspaceMCPPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.mcp')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader
-                    shouldDisplayHelpButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+                    <Header.Title
+                        title={translate('workspace.common.mcp')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 <ScrollView
                     contentContainerStyle={styles.pt3}
                     addBottomSafeAreaPadding

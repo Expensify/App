@@ -3,7 +3,7 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -95,7 +95,7 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
 
     return (
         <>
-            <HeaderWithBackButton title={translate('workspace.common.duplicateWorkspace')} />
+            <HeaderWithBackButtonAndTitle title={translate('workspace.common.duplicateWorkspace')} />
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="always"

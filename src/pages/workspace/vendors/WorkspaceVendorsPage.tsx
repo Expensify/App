@@ -1,6 +1,7 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {WorkspaceVendorTableRowData} from '@components/Tables/WorkspaceVendorsTable';
 import WorkspaceVendorsTable from '@components/Tables/WorkspaceVendorsTable';
 
@@ -78,13 +79,16 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    title={translate('workspace.common.vendors')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+                    <Header.Title
+                        title={translate('workspace.common.vendors')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 <WorkspaceVendorsTable
                     vendors={vendorRows}
                     headerComponent={headerContent}

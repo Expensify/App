@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -56,7 +56,7 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
                 style={[styles.defaultModalContainer]}
                 testID="DynamicWorkspaceCategoriesSettingsPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.settings')}
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />

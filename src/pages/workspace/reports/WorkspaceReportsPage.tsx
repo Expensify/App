@@ -1,11 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -104,13 +105,16 @@ function WorkspaceReportFieldsPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    title={translate('common.reports')}
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.goBack}
-                />
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                    <Header.Title
+                        title={translate('common.reports')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

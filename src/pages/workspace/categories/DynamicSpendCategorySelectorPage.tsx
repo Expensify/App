@@ -1,5 +1,5 @@
 import CategoryPicker from '@components/CategoryPicker';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
 
@@ -58,9 +58,8 @@ function DynamicSpendCategorySelectorPage({route}: DynamicSpendCategorySelectorP
                 shouldEnableKeyboardAvoidingView={false}
                 testID="DynamicSpendCategorySelectorPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={label}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <CategoryPicker

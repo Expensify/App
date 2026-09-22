@@ -1,7 +1,8 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import type {SortOrder} from '@components/Table/middlewares/sorting';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
@@ -182,23 +183,25 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.rooms')}
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.goBack}
-                    shouldDisplayHelpButton
-                >
-                    {!shouldUseNarrowLayout && !isArchived && (
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                        >
-                            <Button.Icon src={headerIcons.Plus} />
-                            <Button.Text>{translate('common.create')}</Button.Text>
-                        </Button>
-                    )}
-                </HeaderWithBackButton>
+                <Header>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                    <Header.Title
+                        title={translate('workspace.common.rooms')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        {!shouldUseNarrowLayout && !isArchived && (
+                            <Button
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                            >
+                                <Button.Icon src={headerIcons.Plus} />
+                                <Button.Text>{translate('common.create')}</Button.Text>
+                            </Button>
+                        )}
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
 
                 <WorkspaceRoomsTable
                     rooms={rooms}

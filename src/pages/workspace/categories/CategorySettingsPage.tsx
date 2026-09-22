@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -235,7 +235,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                 style={[styles.defaultModalContainer]}
                 testID="CategorySettingsPage"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={decodedCategoryName}
                     onBackButtonPress={navigateBack}
                 />

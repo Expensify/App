@@ -1,5 +1,5 @@
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -108,7 +108,7 @@ function DynamicCreateCategoryPage({route}: DynamicCreateCategoryPageProps) {
                 testID="DynamicCreateCategoryPage"
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.categories.addCategory')}
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />
