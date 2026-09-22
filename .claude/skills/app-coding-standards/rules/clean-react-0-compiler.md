@@ -7,7 +7,7 @@ title: React Compiler compliance
 
 ### Reasoning
 
-React Compiler is enabled in this codebase (`babel-plugin-react-compiler` runs first in both Rspack and metro configs). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
+React Compiler is enabled in this codebase (`oxc-transform-react` runs on web, native and under Jest). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
 
 Manual memoization is therefore:
 
@@ -16,8 +16,8 @@ Manual memoization is therefore:
 3. **Noisy** — it clutters the codebase with dependency arrays that must be maintained, reviewed, and debugged
 
 The codebase enforces this via:
-- **Babel plugin**: `babel-plugin-react-compiler` in `babel.config.js`
-- **Lint post-processor**: `scripts/lint/processors/ReactCompilerFilter.ts` suppresses redundant lint rules when both React Compilers memoize the file
+- **Compiler**: `oxc-transform-react`, configured in `config/babel/oxcReactCompilerConfig.js`
+- **Lint post-processor**: `scripts/lint/processors/ReactCompilerFilter.ts` suppresses redundant lint rules when the compiler memoizes the file
 - **CI compliance check**: `scripts/react-compiler-compliance-check.ts` enforces that new components/hooks compile and that existing compiled files don't regress
 
 Reference: [React Compiler documentation](https://react.dev/learn/react-compiler)

@@ -56,7 +56,7 @@ Use the `/react-native-best-practices` skill when working on performance-sensiti
 
 ### Memoization
 
-React Compiler auto-memoizes code in components and hooks (excluding `tests/`). Two different compilers run it: `babel-plugin-react-compiler` on native/Jest (see `babel.config.js`) and `oxc-transform-react` on web (see `config/rsbuild/`). They do not behave identically. The compliance check and the ESLint processor run BOTH compilers via the shared helpers in `config/reactCompiler/` and only relax manual-memoization rules when both compilers memoize the file.
+React Compiler auto-memoizes code in components and hooks (excluding `tests/`). `oxc-transform-react` runs it on web (see `config/rsbuild/`), on native (see `config/repack/`) and under Jest (see `config/babel/oxcJestTransformer.js`). `babel-plugin-react-compiler` is left only on the Metro lane in `babel.config.js`, which HybridApp release builds still bundle through. The compliance check and the ESLint processor both use `config/reactCompiler/checkWithOxc.mjs`, and only relax manual-memoization rules when it memoizes the file.
 
 Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that compile with React Compiler.
 
@@ -70,7 +70,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 
 1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
 2. **TypeScript**: Run `npm run typecheck` after changes that may affect typing (types, interfaces, or function signatures). It runs the TypeScript 7 native compiler and is the required merge gate in CI.
-3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI: new components/hooks must compile, and existing compiled files must not regress. See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 4. **Spelling**: Run `npm run spell-changed` to catch spelling errors (it discovers changed files itself; pass an explicit file list only if you want to check specific files instead). CI validates with cspell, which remains the required merge gate.
 
 ### Testing
