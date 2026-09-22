@@ -17,7 +17,7 @@ import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 
 import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
-import type {ListItem} from './SelectionList/types';
+import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -100,6 +100,9 @@ type SelectionScreenProps<T = string> = {
         /** Callback to fire when the text input changes */
         onChangeText?: (text: string) => void;
     };
+
+    /** Footer save button. When omitted, tapping a row still commits immediately. */
+    confirmButtonOptions?: ConfirmButtonOptions<SelectorType<T>>;
 };
 
 function SelectionScreen<T = string>({
@@ -129,6 +132,7 @@ function SelectionScreen<T = string>({
     textInputOptions,
     shouldUpdateFocusedIndex = false,
     isRowMultilineSupported = false,
+    confirmButtonOptions,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -175,6 +179,7 @@ function SelectionScreen<T = string>({
                         alternateNumberOfSupportedLines={2}
                         isRowMultilineSupported={isRowMultilineSupported}
                         addBottomSafeAreaPadding
+                        confirmButtonOptions={confirmButtonOptions}
                     >
                         <ErrorMessageRow
                             errors={errors}
