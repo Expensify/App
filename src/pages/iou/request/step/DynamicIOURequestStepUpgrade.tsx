@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -383,7 +383,7 @@ function DynamicIOURequestStepUpgrade({
             shouldShowOfflineIndicatorInWideScreen={!isUpgraded && !showConfirmationForm}
         >
             {(!!isUpgraded || !showConfirmationForm) && (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.upgrade')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />

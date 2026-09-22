@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 
@@ -54,7 +54,7 @@ function SearchEditMultipleTaxPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleTaxPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={policy?.taxRates?.name ?? translate('common.tax')}
                 onBackButtonPress={Navigation.goBack}
             />

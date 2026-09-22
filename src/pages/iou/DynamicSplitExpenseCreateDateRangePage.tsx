@@ -3,7 +3,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
@@ -119,7 +119,7 @@ function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCrea
         <ScreenWrapper testID="SplitExpenseCreateDateRagePage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View style={[styles.flex1]}>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('iou.splitDates')}
                         onBackButtonPress={handleBackPress}
                     />

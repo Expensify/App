@@ -1,6 +1,6 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -302,7 +302,7 @@ function SearchChangeApproverPage() {
             // Show the non-blocking offline indicator if reports are available in Onyx, otherwise show the blocking offline view because this page requires the Onyx data
             shouldShowOfflineIndicator={!isLoadingBulkChangeApproverPage}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('iou.changeApprover.title')}
                 onBackButtonPress={Navigation.goBack}
             />

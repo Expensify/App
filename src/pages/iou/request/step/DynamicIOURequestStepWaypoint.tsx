@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
@@ -218,11 +218,9 @@ function DynamicIOURequestStepWaypoint({
             testID="DynamicIOURequestStepWaypoint"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate(waypointDescriptionKey)}
-                    shouldShowBackButton
                     onBackButtonPress={goBack}
-                    shouldSetModalVisibility={false}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}

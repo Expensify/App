@@ -1,5 +1,5 @@
 import CategoryPicker from '@components/CategoryPicker';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem} from '@components/SelectionList/types';
 
@@ -44,7 +44,7 @@ function SearchEditMultipleCategoryPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleCategoryPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.category')}
                 onBackButtonPress={Navigation.goBack}
             />

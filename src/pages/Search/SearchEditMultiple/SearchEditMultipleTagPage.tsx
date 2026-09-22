@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TagPicker from '@components/TagPicker';
 
@@ -95,7 +95,7 @@ function SearchEditMultipleTagPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleTagPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={headerTitle}
                 onBackButtonPress={Navigation.goBack}
             />

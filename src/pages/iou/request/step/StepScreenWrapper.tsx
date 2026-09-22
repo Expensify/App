@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 import callOrReturn from '@src/types/utils/callOrReturn';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
 
@@ -79,13 +80,24 @@ function StepScreenWrapper({
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                     <View style={[styles.flex1]}>
-                        <HeaderWithBackButton
-                            title={headerTitle}
-                            onBackButtonPress={onBackButtonPress}
-                            shouldShowThreeDotsButton={!!threeDotsMenuItems?.length}
-                            threeDotsMenuItems={threeDotsMenuItems}
-                            shouldMinimizeMenuButton={shouldMinimizeMenuButton}
-                        />
+                        <Header>
+                            <Header.BackButton onPress={onBackButtonPress} />
+                            <Header.Title title={headerTitle} />
+                            {!!threeDotsMenuItems?.length && (
+                                <Header.Right>
+                                    {threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
+                                        <Header.IconButton
+                                            tooltipText={threeDotsMenuItems.at(0)?.text ?? ''}
+                                            onPress={threeDotsMenuItems.at(0)?.onSelected}
+                                            iconSrc={threeDotsMenuItems.at(0)?.icon as IconAsset}
+                                            sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
+                                        />
+                                    ) : (
+                                        <Header.ThreeDotsMenu items={threeDotsMenuItems} />
+                                    )}
+                                </Header.Right>
+                            )}
+                        </Header>
                         {
                             // If props.children is a function, call it to provide the insets to the children
                             callOrReturn(children, {insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd})

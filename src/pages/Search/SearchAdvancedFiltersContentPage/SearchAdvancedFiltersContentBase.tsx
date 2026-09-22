@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 
@@ -57,7 +57,7 @@ function SearchAdvancedFiltersContentBase() {
             {({didScreenTransitionEnd}) =>
                 validFilterKey ? (
                     <>
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={translate(getFilterViewLabelKey(validFilterKey, currentDraftFilters?.type))}
                             onBackButtonPress={goBack}
                         />

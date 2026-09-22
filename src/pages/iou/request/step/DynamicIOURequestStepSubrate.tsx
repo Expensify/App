@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -226,23 +226,27 @@ function DynamicIOURequestStepSubrate({
             testID={DynamicIOURequestStepSubrate.displayName}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
-                <HeaderWithBackButton
-                    title={isEditPage ? translate('common.subrate') : tabTitles[iouType]}
-                    shouldShowBackButton
-                    onBackButtonPress={goBack}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                    shouldSetModalVisibility={false}
-                    threeDotsMenuItems={[
-                        {
-                            icon: expensifyIcons.Trashcan,
-                            text: translate('iou.deleteSubrate'),
-                            onSelected: () => {
-                                handleDeleteSubrate();
-                            },
-                            shouldCallAfterModalHide: true,
-                        },
-                    ]}
-                />
+                <Header>
+                    <Header.BackButton onPress={goBack} />
+                    <Header.Title title={isEditPage ? translate('common.subrate') : tabTitles[iouType]} />
+                    {shouldShowThreeDotsButton && (
+                        <Header.Right>
+                            <Header.ThreeDotsMenu
+                                items={[
+                                    {
+                                        icon: expensifyIcons.Trashcan,
+                                        text: translate('iou.deleteSubrate'),
+                                        onSelected: () => {
+                                            handleDeleteSubrate();
+                                        },
+                                        shouldCallAfterModalHide: true,
+                                    },
+                                ]}
+                                shouldSetModalVisibility={false}
+                            />
+                        </Header.Right>
+                    )}
+                </Header>
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM}
