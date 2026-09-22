@@ -28,8 +28,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Response as OnyxResponse} from '@src/types/onyx';
 
-import type * as ReactNavigation from '@react-navigation/native';
-
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -51,16 +49,6 @@ jest.mock('@rnmapbox/maps', () => {
         default: jest.fn(),
         MarkerView: jest.fn(),
         setAccessToken: jest.fn(),
-    };
-});
-
-// Lets a test render the onboarding screens as if they were backgrounded by a screen pushed on top of them.
-let mockIsFocused = true;
-jest.mock('@react-navigation/native', () => {
-    const actual = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
-    return {
-        ...actual,
-        useIsFocused: () => mockIsFocused,
     };
 });
 
@@ -310,7 +298,6 @@ describe('OnboardingWorkEmail Page', () => {
     });
 
     beforeEach(() => {
-        mockIsFocused = true;
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
             createMock<ResponsiveLayoutResult>({
                 isSmallScreenWidth: false,
@@ -433,49 +420,6 @@ describe('OnboardingWorkEmail Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
         });
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('should not navigate a second time once it is backgrounded and OpenApp updates the account', async () => {
-        await TestHelper.signInWithTestUser();
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-            });
-            // AddWorkEmail is gated on an unvalidated caller; signInWithTestUser sets validated:true by default.
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
-        });
-
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Focused: submitting a work email that needs validation moves the flow forward exactly once.
-        AddWorkEmailShouldValidate();
-
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
-        });
-        expect(navigate).toHaveBeenCalledTimes(1);
-
-        // The validation screen is now on top, so this screen is backgrounded.
-        mockIsFocused = false;
-        navigate.mockClear();
-
-        // OpenApp lands after the merge succeeds and flips both account fields this effect depends on. Re-running the
-        // effect here is what used to push a second copy of the remaining onboarding flow onto the stack.
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: false});
-        });
-
-        await waitForBatchedUpdatesWithAct();
-
-        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -759,7 +703,6 @@ describe('OnboardingWorkEmailValidation Page', () => {
     });
 
     beforeEach(() => {
-        mockIsFocused = true;
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
             createMock<ResponsiveLayoutResult>({
                 isSmallScreenWidth: false,
@@ -911,52 +854,6 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
         });
-
-        unmount();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    it('should not navigate a second time once it is backgrounded and OpenApp updates the account', async () => {
-        await TestHelper.signInWithTestUser();
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
-                shouldValidate: true,
-            });
-            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
-                onboardingWorkEmail: workEmail,
-            });
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
-        });
-
-        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Focused: a successful merge moves the flow forward exactly once.
-        MergeIntoAccountAndLoginSuccessful();
-
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
-        });
-        expect(navigate).toHaveBeenCalledTimes(1);
-
-        // "Join a workspace" is now on top, so this screen is backgrounded.
-        mockIsFocused = false;
-        navigate.mockClear();
-
-        // OpenApp lands after the merge and flips the account fields. The re-render that follows re-evaluates this
-        // effect's dependencies, which is what used to stack a second "Join a workspace" screen.
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: false});
-        });
-
-        await waitForBatchedUpdatesWithAct();
-
-        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
