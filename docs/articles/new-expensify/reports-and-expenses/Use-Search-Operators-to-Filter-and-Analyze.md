@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, has filter, submitted violation, approved violation, missing filter option]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -73,7 +73,7 @@ You can use the following operators to filter expenses:
 | `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
-| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, or `submitted-violation` | `has:receipt` |
+| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, `submitted-violation`, or `approved-violation`. Some values are available only when a workspace you belong to has the matching feature enabled. | `has:receipt` |
 | `expense-type:` | Filter by expense type (`cash`, `card`, `distance`, `per-diem`) | `expense-type:card` |
 | `receipt-type:` | Filter by receipt type (`ereceipt`, `itemized`) | `receipt-type:itemized` |
 | `reimbursable:` | Filter by whether an expense is reimbursable (`yes` or `no`) | `reimbursable:yes` |
@@ -85,6 +85,22 @@ You can use the following operators to filter expenses:
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
 - `type:expense -has:tag` – find expenses that have no tag assigned
+
+---
+
+## Why some has: values are not suggested for expenses
+
+The `receipt` and `attachment` values are always suggested. The other expense values are suggested only when at least one workspace you belong to has the matching feature enabled:
+
+- `category` – a workspace has **Categories** enabled.
+- `tag` – a workspace has **Tags** enabled.
+- `submitted-violation` and `approved-violation` – a workspace has **Rules** enabled.
+
+The same rule applies to the **Has** filter you select under **Filters** on the **Spend** page. If you do not belong to any workspace, only **Receipt** and **Attachment** are listed. A workspace you have asked to join does not count until your request is approved.
+
+A Workspace Admin turns these features on under **Workspaces > [Workspace Name] > More features**. [Learn how to set up workspace rules](/articles/new-expensify/workspaces/Workspace-Rules).
+
+Hiding a value only affects the suggestions. You can still type any `has:` value in the search bar, and a saved search that already uses one keeps returning results.
 
 ---
 
@@ -248,3 +264,7 @@ If the search operator isn’t recognized, the system will ignore it and return 
 ## Do I need to use quotes for everything?
 
 Only use quotes for values that include spaces, commas, or exact phrases, like `description:"client lunch"`, `workspace:"Acme, Inc"`, or `in:"#general"`.
+
+## Why don’t I see Tag, Category, Submitted violation, or Approved violation in the Has filter?
+
+Those options appear only when a workspace you belong to has **Tags**, **Categories**, or **Rules** enabled. If you do not belong to a workspace with the matching feature enabled, the option is hidden because no expense can match it.
