@@ -1,8 +1,7 @@
-import Visibility from '@libs/Visibility';
-
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
+import useAppReturnCount from './useAppReturnCount';
 import useIsTabFocused from './useIsTabFocused';
 
 /**
@@ -16,20 +15,11 @@ function useTabFocusedRefresh(tabName: string, refreshKey: string, refresh: () =
     const onRefresh = useEffectEvent(refresh);
 
     // Currency conversion and the like have nothing local to watch, so a return to the app re-reads them.
-    const [appReturnCount, setAppReturnCount] = useState(0);
+    const appReturnCount = useAppReturnCount();
 
     const wasTabFocusedRef = useRef(false);
     const lastRefreshKeyRef = useRef<string | undefined>(undefined);
     const isRefreshPendingRef = useRef(false);
-
-    useEffect(() => {
-        return Visibility.onVisibilityChange(() => {
-            if (!Visibility.isVisible()) {
-                return;
-            }
-            setAppReturnCount((count) => count + 1);
-        });
-    }, []);
 
     useEffect(() => {
         const wasTabFocused = wasTabFocusedRef.current;

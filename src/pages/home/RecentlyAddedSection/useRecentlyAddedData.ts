@@ -114,6 +114,8 @@ function useRecentlyAddedData(): RecentlyAddedData {
 
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
     // Read by key only, never iterated: the collection holds tens of thousands of entries.
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
+
     const [localTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [pendingTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: pendingTransactionIDsSelector});
 
@@ -142,7 +144,8 @@ function useRecentlyAddedData(): RecentlyAddedData {
         });
     };
 
-    useTabFocusedRefresh(SCREENS.HOME, [hash, isOffline].join('|'), fireSearch);
+    // The list below only patches in expenses made on this device. One made elsewhere arrives here.
+    useTabFocusedRefresh(SCREENS.HOME, [hash, isOffline, spendDataSignature?.expenses ?? 0].join('|'), fireSearch);
 
     const snapshotData = searchResults?.data;
 

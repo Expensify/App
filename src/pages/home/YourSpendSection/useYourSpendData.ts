@@ -541,53 +541,56 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const {state: approvalRowState, totals: approvalTotals} = useOfflineFrozenSpendRow(isOffline, isApprovalApplicable, approvalRowStateLive, approvalTotalsLive, approvalHash);
     const {state: paymentRowState, totals: paymentTotals} = useOfflineFrozenSpendRow(isOffline, isPaymentApplicable, paymentRowStateLive, paymentTotalsLive, paymentQueryJSON?.hash);
 
-    // The things that move these numbers without changing the queries themselves.
-    const applicabilityKey = [
-        isApprovalApplicable ? 1 : 0,
-        isPaymentApplicable ? 1 : 0,
-        paidGroupPolicyIDs.join(','),
-        outstandingReportsSignature,
-        reimbursedReportsSignature,
-        spendDataSignature?.cardExpenses ?? 0,
-    ].join('|');
-
-    const fireSearches = () => {
-        if (isOffline) {
+    // One key per search, so a card charge does not also refetch the approval and payment totals.
+    const fireCardSearch = () => {
+        if (isOffline || !cardGroupQueryJSON) {
             return;
         }
-        if (cardGroupQueryJSON) {
-            search({
-                queryJSON: cardGroupQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        if (isApprovalApplicable && approvalQueryJSON) {
-            search({
-                queryJSON: approvalQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
-        if (isPaymentApplicable && paymentQueryJSON) {
-            search({
-                queryJSON: paymentQueryJSON,
-                searchKey: undefined,
-                offset: 0,
-                isLoading: false,
-                shouldCalculateTotals: true,
-                shouldUpdateLastSearchParams: false,
-            });
-        }
+        search({
+            queryJSON: cardGroupQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
     };
 
-    useTabFocusedRefresh(SCREENS.HOME, [isOffline, cardGroupQueryJSON?.hash, applicabilityKey, accountID].join('|'), fireSearches);
+    const fireApprovalSearch = () => {
+        if (isOffline || !isApprovalApplicable || !approvalQueryJSON) {
+            return;
+        }
+        search({
+            queryJSON: approvalQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
+
+    const firePaymentSearch = () => {
+        if (isOffline || !isPaymentApplicable || !paymentQueryJSON) {
+            return;
+        }
+        search({
+            queryJSON: paymentQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            isLoading: false,
+            shouldCalculateTotals: true,
+            shouldUpdateLastSearchParams: false,
+        });
+    };
+
+    useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, cardGroupQueryJSON?.hash, spendDataSignature?.cardExpenses ?? 0].join('|'), fireCardSearch);
+    useTabFocusedRefresh(
+        SCREENS.HOME,
+        [isOffline, accountID, approvalQueryJSON?.hash, isApprovalApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature].join('|'),
+        fireApprovalSearch,
+    );
+    useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, paymentQueryJSON?.hash, isPaymentApplicable ? 1 : 0, reimbursedReportsSignature].join('|'), firePaymentSearch);
 
     return {
         approvalRowState,
