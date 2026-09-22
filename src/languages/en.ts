@@ -582,8 +582,6 @@ const translations = {
         },
         feedback: {
             prompt: 'Was that response useful?',
-            useful: 'Useful response',
-            notUseful: 'Not useful response',
             thanks: 'Thanks for the feedback!',
         },
     },

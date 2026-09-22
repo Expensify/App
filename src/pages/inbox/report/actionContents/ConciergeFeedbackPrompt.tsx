@@ -139,12 +139,12 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             <View style={styles.flexRow}>
                 <ConciergeFeedbackThumb
                     emoji={thumbsUp}
-                    label={translate('concierge.feedback.useful')}
+                    label={translate('common.yes')}
                     onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
                 />
                 <ConciergeFeedbackThumb
                     emoji={thumbsDown}
-                    label={translate('concierge.feedback.notUseful')}
+                    label={translate('common.no')}
                     onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
                 />
             </View>
