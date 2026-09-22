@@ -368,6 +368,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Declassa spazio di lavoro',
         companyID: 'ID azienda',
         userID: 'ID utente',
+        tenantID: 'ID tenant',
+        environmentName: 'Nome ambiente',
+        clientID: 'ID client',
+        clientSecret: 'Segreto client',
         disable: 'Disattiva',
         export: 'Esporta',
         initialValue: 'Valore iniziale',
@@ -531,9 +535,11 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Seguici su LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge ha una risposta!',
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
         enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
+        feedback: {prompt: 'Questa risposta è stata utile?', useful: 'Risposta utile', notUseful: 'Risposta non utile', thanks: 'Grazie per il tuo feedback!'},
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1263,6 +1269,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Le nuove carte e transazioni potrebbero impiegare un po’ di tempo per apparire, attendi per favore.',
         importMembersRolePermissionWarning: "Non hai l'autorizzazione per assegnare alcuni ruoli ai membri. I nuovi membri interessati sono stati invitati come membri.",
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fornitore è stato ignorato perché non esiste in questo spazio di lavoro.',
+            other: `${count} fornitori sono stati ignorati perché non esistono in questo spazio di lavoro.`,
+        }),
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -1288,6 +1298,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lascia perdere',
         dropMessage: 'Rilascia qui il tuo file',
         flash: 'flash',
+        flipCamera: 'inverti fotocamera',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
         gallery: 'galleria',
@@ -1799,6 +1810,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'La spesa non può essere rifiutata perché potrebbe essere già stata spostata o rifiutata.',
         },
         moveExpenses: 'Sposta nel report',
+        autoReport: 'Report automatico',
+        autoReportDescription: 'Aggiungi alle bozze dei report a nome del dipendente',
         moveExpensesMaxTransactionsError: `I report sono limitati a ${CONST.REPORT.MAX_TRANSACTIONS} spese. Spostane alcune in un altro report.`,
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
         submitReportTo: {
@@ -2171,6 +2184,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar profilo',
         customInstructions: 'Istruzioni personalizzate',
         copilotIntoAccount: "Copilot nell'account",
+        viewUserHistory: 'Visualizza cronologia utente',
+        viewAgentHistory: 'Visualizza cronologia agente',
         publicSection: {
             title: 'Pubblico',
             subtitle: 'Questi dettagli vengono visualizzati nel tuo profilo pubblico. Chiunque può vederli.',
@@ -2534,7 +2549,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scansiona il codice QR con il tuo nuovo dispositivo, poi inserisci il codice per completare la configurazione.',
         downloadCodes: 'Scarica codici',
         copyCodes: 'Copia codici',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'Per motivi di sicurezza, NetSuite richiede l’autenticazione a due fattori per collegare l’integrazione.',
     },
     recoveryCodeForm: {
         error: {
@@ -2807,6 +2821,15 @@ const translations: TranslationDeepObject<typeof en> = {
             updateAddress: 'Aggiorna indirizzo',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Aggiunto al portafoglio ${platform}`,
+        cardAddedToWalletPage: {
+            title: 'Tutto pronto!',
+            description: 'La tua carta è stata aggiunta ad Apple Wallet.',
+            firstSupportingText: 'Apple Pay è un modo più semplice per pagare nei negozi, nelle app e online con iPhone, Apple Watch, iPad e Mac.',
+            secondSupportingText: 'Usa Apple Pay dove vedi\nquesti simboli.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Pagamento contactless',
+            buttonText: 'Ho capito',
+        },
         cardDetailsLoadingFailure: 'Si è verificato un errore durante il caricamento dei dettagli della carta. Controlla la connessione a Internet e riprova.',
         validateCardTitle: 'Verifichiamo che sia davvero tu',
         enterSecurityCode: (contactMethod: string) =>
@@ -3123,6 +3146,7 @@ ${amount} per ${merchant} - ${date}`,
         agentName: 'Nome agente',
         instructions: 'Scrivi istruzioni personalizzate',
         chatWithAgent: 'Chatta con l’agente',
+        viewAgentHistory: 'Visualizza cronologia agente',
         copilotIntoAccount: 'Copilot nell’account',
         deleteAgent: 'Elimina agente',
         deleteAgentTitle: 'Eliminare agente?',
@@ -3160,7 +3184,7 @@ ${amount} per ${merchant} - ${date}`,
             merchantHint: 'Digita . per creare una regola che si applica a tutti gli esercenti',
             addToReport: 'Aggiungi a un report chiamato',
             createReport: 'Crea il report se necessario',
-            applyToExistingExpenses: 'Applica alle spese corrispondenti esistenti',
+            applyToExistingExpenses: 'Applica alle spese esistenti non inviate',
             confirmError: 'Inserisci l’esercente e applica almeno un aggiornamento',
             confirmErrorMerchant: 'Inserisci l’esercente',
             confirmErrorUpdate: 'Applica almeno un aggiornamento',
@@ -3347,12 +3371,14 @@ ${amount} per ${merchant} - ${date}`,
         employees: {
             title: 'Quanti dipendenti hai?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 dipendenti',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 dipendenti',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 dipendenti',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-9 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10-50 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: 'Da 101 a 1.000 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Più di 1.000 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5-10 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1-10 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11-50 dipendenti',
         },
         accounting: {
             title: 'Usi un software di contabilità?',
@@ -5303,6 +5329,9 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
+            fxExpenseAccount: 'Conto commissioni conversione valuta Sage Intacct',
+            fxExpenseAccountDescription:
+                'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo quel costo su questo conto in Sage Intacct come scrittura contabile.',
         },
         certinia: {
             title: 'Certinia',
@@ -5570,6 +5599,7 @@ ${amount} per ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Aggiungi una consociata in NetSuite e sincronizza di nuovo la connessione',
             tokenInput: {
                 title: 'Configurazione NetSuite',
+                connectWithTokenAuthentication: 'Connettiti invece con autenticazione basata su token (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Installa il pacchetto Expensify',
@@ -6579,6 +6609,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 expensifyCardBannerLearnMoreButton: 'Scopri di più',
                 statementCloseDateTitle: 'Data di chiusura dell’estratto conto',
                 statementCloseDateDescription: 'Facci sapere quando si chiude l’estratto conto della tua carta e creeremo un estratto conto corrispondente in Expensify.',
+                exportAccount: 'Esporta conto',
             },
             workflows: {
                 title: 'Flussi di lavoro',
@@ -7133,6 +7164,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7366,6 +7399,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione delle chiusure carta';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizzazione dei conguagli di viaggio';
+                        case 'businessCentralSyncTitle':
+                            return 'Sincronizzazione dei dati Dynamics 365 Business Central';
+                        case 'businessCentralSyncConnection':
+                            return 'Inizializzazione della connessione a Dynamics 365 Business Central';
+                        case 'businessCentralSyncImportData':
+                            return 'Caricamento dei dati';
                         default: {
                             return `Traduzione mancante per fase: ${stage}`;
                         }
@@ -7409,6 +7448,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',
@@ -7720,6 +7760,12 @@ ${reportName}`,
                 description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Campfire. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Campfire per una maggiore visibilità finanziaria.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La nostra integrazione con Campfire è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Approfitta della sincronizzazione automatizzata e riduci le registrazioni manuali con l’integrazione Expensify + Dynamics 365 Business Central. Allinea dimensioni di codifica delle spese e sincronizzazione fiscale alla tua configurazione Dynamics 365 Business Central per una maggiore visibilità finanziaria.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>La nostra integrazione con Dynamics 365 Business Central è disponibile solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per utente al mese.` : `per membro attivo al mese.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Approvazioni avanzate',
@@ -8096,6 +8142,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 importColumnUpdatedCategory: 'Categoria aggiornata',
                 importColumnUpdatedTag: 'Tag aggiornato',
                 importColumnUpdatedDescription: 'Descrizione aggiornata',
+                importColumnUpdatedVendor: 'Fornitore aggiornato',
                 expensesWith: 'Per le spese con:',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente a:',
                 applyUpdates: 'Applica questi aggiornamenti:',
@@ -8598,12 +8645,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Sincronizzazione ${provider} completata`,
-                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
-                added: 'Aggiunto',
-                removed: 'Rimosso',
-                skipped: 'Saltato',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 dipendente',
                     other: (count: number) => `${count} dipendenti`,
                 }),
@@ -8634,6 +8676,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             defaultApprover: 'Approvatore predefinito',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidato',
+                    other: (count: number) => `${count} candidati`,
+                }),
+            },
         },
         merge: {
             connections: 'Connessioni',
@@ -8662,6 +8710,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
             syncLimitReached: {title: 'Riprova domani', prompt: 'Hai raggiunto il limite di sincronizzazioni per oggi.'},
+            syncResults: {
+                title: (provider: string) => `Sincronizzazione ${provider} completata`,
+                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
+                added: 'Aggiunto',
+                removed: 'Rimosso',
+                skipped: 'Saltato',
+            },
         },
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
@@ -8676,6 +8731,24 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             subsidiarySelectDescription: 'Scegli la consociata in Campfire da cui vuoi importare i dati.',
             noSubsidiariesFound: 'Nessuna consociata trovata',
             noSubsidiariesFoundDescription: "Aggiungi un'entità in Campfire e sincronizza di nuovo la connessione",
+            importDescription: 'Scegli quali configurazioni di codifica importare da Campfire.',
+            accountTypesDescription: 'I tuoi account Campfire verranno importati come categorie.',
+            enableNewAccountsTitle: 'Abilita i conti appena importati',
+            enableNewAccountsDescription: 'I nuovi account Campfire saranno disponibili come categorie.',
+            dimensionsImport: 'Tutte le dimensioni Campfire vengono importate come tag',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
+            prerequisitesTitle: 'Prima di connetterti...',
+            followSteps: 'Segui i passaggi nelle nostre istruzioni Come fare: Connettersi a Dynamics 365 Business Central',
+            enterCredentials: 'Inserisci i tuoi dati di Dynamics 365 Business Central',
+            helpArticle: `<muted-text>Fai riferimento a questo <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">articolo della guida</a> per trovare queste informazioni.</muted-text>`,
+            subsidiary: 'Filiale',
+            subsidiarySelectDescription: 'Seleziona la consociata Dynamics 365 Business Central da sincronizzare con questo spazio di lavoro.',
+            noCompaniesFound: 'Nessuna azienda trovata',
+            noCompaniesFoundDescription: "Aggiungi un'azienda in Dynamics 365 Business Central e sincronizza di nuovo la connessione",
+            noVendorsFound: 'Nessun fornitore trovato',
+            noVendorsFoundDescription: 'Aggiungi i fornitori in Business Central e sincronizza di nuovo la connessione',
         },
     },
     getAssistancePage: {
@@ -9497,6 +9570,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 title: 'Nessuna spesa da approvare',
                 subtitle: 'Zero spese. Massimo relax. Ben fatto!',
             },
+            staleResults: {title: 'Aggiornamento necessario', subtitle: 'Questa pagina non è aggiornata, ricarica per vedere le ultime novità', buttonText: 'Aggiorna'},
         },
         columns: 'Colonne',
         editColumns: 'Modifica colonne',
@@ -9609,6 +9683,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categoria',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercente',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Etichetta',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Giorno',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Mese',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Anno',
@@ -9629,6 +9704,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Esporta',
             },
             filterType: {label: 'Tipo di filtro', has: {positive: 'ha', negative: 'non ha'}, is: {positive: 'è', negative: 'non è'}},
+            created: 'Creato',
+            createdDate: 'Data di creazione',
+            transactionStatus: {
+                label: 'Stato transazione',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'In sospeso',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Registrato',
+                hint: 'Si applica solo alle transazioni con carta.',
+            },
         },
         display: {
             label: 'Visualizza',
@@ -9652,6 +9735,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categorie',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Esercenti',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Giorni',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Mesi',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimane',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anni',
@@ -10626,6 +10710,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 title: ({count}: {count: number}) => ({
                     one: 'Prova: 1 giorno rimanente!',
                     other: `Prova: ${count} giorni rimanenti!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: '1 giorno rimanente!',
+                    other: `${count} giorni rimanenti!`,
                 }),
                 subtitle: 'Aggiungi una carta di pagamento per continuare a usare tutte le tue funzionalità preferite.',
             },
