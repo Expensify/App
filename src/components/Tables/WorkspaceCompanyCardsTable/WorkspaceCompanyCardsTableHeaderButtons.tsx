@@ -126,6 +126,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({
                     />
                 ) : (
                     <FeedSelector
+                        // The selector's inner text column is `flex1`, which Yoga measures as zero-width when the selector
+                        // itself is content-sized in a row, so the feed name disappears on native without an explicit basis.
+                        wrapperStyle={styles.flex1}
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
