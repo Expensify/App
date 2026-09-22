@@ -366,6 +366,7 @@ export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrenc
 export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
 export type {default as UpdateQuickbooksDesktopGenericTypeParams} from './UpdateQuickbooksDesktopGenericTypeParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
+export type {default as UpdatePolicyConnectionConfigurationParams} from './UpdatePolicyConnectionConfigurationParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';
@@ -603,6 +604,8 @@ export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredPara
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
+export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
+export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';

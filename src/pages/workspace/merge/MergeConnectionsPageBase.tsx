@@ -8,7 +8,6 @@ import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useMergeInitialSyncingModal from '@hooks/useMergeInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -19,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
+import {isMergeConnectionName} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -28,13 +28,14 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MergeProviderCardCategory, MergeProviderCardDescriptor} from './types';
 
+import MergeInitialSyncingModalListener from './MergeInitialSyncingModalListener';
 import MergeProviderCard from './MergeProviderCard';
+import MergeSyncResultsListener from './MergeSyncResultsListener';
 
 /** The handful of things that differ between the HR page and the Recruiting page. Everything else is shared. */
 const PAGE_CONFIG = {
@@ -42,13 +43,11 @@ const PAGE_CONFIG = {
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         openPage: openPolicyHRPage,
         testID: 'WorkspaceHRPage',
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR,
     },
     [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         openPage: openPolicyRecruitingPage,
         testID: 'WorkspaceRecruitingPage',
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS,
     },
 } as const;
 
@@ -79,17 +78,16 @@ function MergeConnectionsPageBaseContent({policyID, category, cards, footer}: Me
     const policy = usePolicy(policyID);
     const [activeSetupFlow, setActiveSetupFlow] = useState<{setupLink: string; key: number} | undefined>();
     const {showConfirmModal} = useConfirmModal();
-    const isFocused = useIsFocused();
 
-    const {testID, connectionName} = PAGE_CONFIG[category];
-
-    useMergeInitialSyncingModal(policyID, connectionName, isFocused);
+    const {testID} = PAGE_CONFIG[category];
 
     const connectedCards: MergeProviderCardDescriptor[] = [];
     const disconnectedCards: MergeProviderCardDescriptor[] = [];
     for (const card of cards) {
         (card.isConnected ? connectedCards : disconnectedCards).push(card);
     }
+    // At most one provider of a category can be connected to a workspace at a time.
+    const connectedConnectionName = connectedCards.at(0)?.connectionName;
     const byName = (a: MergeProviderCardDescriptor, b: MergeProviderCardDescriptor) => localeCompare(a.displayName, b.displayName);
     connectedCards.sort(byName);
     disconnectedCards.sort(byName);
@@ -154,6 +152,18 @@ function MergeConnectionsPageBaseContent({policyID, category, cards, footer}: Me
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
+            {!!connectedConnectionName && (
+                <MergeSyncResultsListener
+                    policyID={policyID}
+                    connectionName={connectedConnectionName}
+                />
+            )}
+            {!!connectedConnectionName && isMergeConnectionName(connectedConnectionName) && (
+                <MergeInitialSyncingModalListener
+                    policyID={policyID}
+                    connectionName={connectedConnectionName}
+                />
+            )}
             {!!activeSetupFlow && (
                 <ConnectToMergeFlow
                     key={activeSetupFlow.key}
