@@ -39,7 +39,8 @@ function startSpan(spanId: string, options: StartSpanOptions) {
         spanOptions: options,
         timestamp: Date.now(),
     });
-    const span = Sentry.startInactiveSpan(options);
+    // Sentry parents to whatever sits on the scope when `parentSpan` is undefined, and a tap's idle span cancels live children.
+    const span = Sentry.startInactiveSpan({...options, parentSpan: options.parentSpan ?? null});
 
     const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 

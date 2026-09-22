@@ -1,6 +1,15 @@
-import {endSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
+
+import type {StartSpanOptions} from '@sentry/core';
+
+const mockStartInactiveSpan = jest.fn((options: StartSpanOptions) => ({
+    options,
+    setAttribute: jest.fn(),
+    setStatus: jest.fn(),
+    end: jest.fn(),
+}));
 
 jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
     __esModule: true,
@@ -8,16 +17,13 @@ jest.mock('@libs/telemetry/logBenchmarkSpanEnd', () => ({
     isBenchmarkSpanEnabled: () => false,
 }));
 jest.mock('@sentry/react-native', () => ({
-    startInactiveSpan: () => ({
-        setAttribute: jest.fn(),
-        setStatus: jest.fn(),
-        end: jest.fn(),
-    }),
+    startInactiveSpan: (options: StartSpanOptions) => mockStartInactiveSpan(options),
     spanToJSON: () => ({data: {}}),
 }));
 
 afterEach(() => {
     jest.restoreAllMocks();
+    mockStartInactiveSpan.mockClear();
 });
 
 describe('activeSpans', () => {
@@ -36,6 +42,39 @@ describe('activeSpans', () => {
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST);
 
         expect(consoleDebugSpy).toHaveBeenLastCalledWith(expect.stringContaining('Ending span (750ms)'), expect.objectContaining({durationMs: 750, timestamp: 1_786_362_201_750}));
+    });
+    describe('span parenting', () => {
+        beforeEach(() => {
+            jest.spyOn(console, 'debug').mockImplementation(() => {});
+        });
+
+        it('pins a span with no declared parent to the root', () => {
+            // Given options from a caller that names no parent, which is how almost every span in the app is started
+            const options = {name: 'RootedSpan'};
+
+            // When the span is started
+            startSpan('RootedSpan', options);
+
+            // Then `parentSpan` is null, because anything else lets the SDK adopt the span sitting on the scope and cancel ours along with it
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'RootedSpan', parentSpan: null}));
+
+            endSpan('RootedSpan');
+        });
+
+        it('keeps a parent the caller declared', () => {
+            // Given another tracked span used as a parent, the way the send-message phases nest under the visible span
+            startSpan('ParentSpan', {name: 'ParentSpan'});
+            const parentSpan = getSpan('ParentSpan');
+
+            // When the span is started
+            startSpan('NestedSpan', {name: 'NestedSpan', parentSpan});
+
+            // Then that parent survives, so pinning spans to the root does not break deliberate nesting
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'NestedSpan', parentSpan}));
+
+            endSpan('NestedSpan');
+            endSpan('ParentSpan');
+        });
     });
     describe('getSpanByPrefix', () => {
         const prefix = CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY;
