@@ -1,8 +1,6 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -15,7 +13,7 @@ import {createDistanceRequest as createDistanceRequestIOUActions} from '@userAct
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
+import type {ParticipantsPolicyTags, PersonalDetailsList, PolicyCategories, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -43,7 +41,6 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     policyCategories: OnyxEntry<PolicyCategories>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
-    participants: Participant[];
     selectedParticipants: Participant[];
     iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
     isGPSDistanceRequest: boolean;
@@ -64,6 +61,8 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     quickAction: OnyxEntry<QuickAction>;
     transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
     distanceDraftData: DistanceDraftData;
+    delegateAccountID: number | undefined;
+    participantsPolicyTags: ParticipantsPolicyTags;
 };
 
 function useDistanceSubmission({
@@ -75,7 +74,6 @@ function useDistanceSubmission({
     policyCategories,
     personalDetails,
     currentUserPersonalDetails,
-    participants,
     selectedParticipants,
     iouType,
     isGPSDistanceRequest,
@@ -96,16 +94,16 @@ function useDistanceSubmission({
     quickAction,
     transactionViolationsRef,
     distanceDraftData,
+    delegateAccountID,
+    participantsPolicyTags,
 }: UseDistanceSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
-    const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const {gpsDraftDetails, recentWaypoints, odometerDraft, originalTransactionDistance, modifiedTransactionDistance} = distanceDraftData;
 
     const selectedParticipantsForRequest = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});

@@ -1,6 +1,8 @@
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
@@ -161,7 +163,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
      * TEMP: shared Onyx reads hoisted here so they open once instead of once per submission hook.
      *
      * All six submission hooks mount together while this composer exists, so each one calling these itself
-     * opened ~35 duplicate subscriptions on a page that previously had none. They are passed down as params
+     * opened duplicate subscriptions on a page that previously had none. They are passed down as params
      * until the page forks into per-path variants - at that point only one submission hook mounts, each hook
      * goes back to reading what it needs, and every `TEMP` param below disappears.
      */
@@ -177,6 +179,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const reportTransactions = useReportTransactions(report?.reportID);
+    const delegateAccountID = useDelegateAccountID();
+    const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
 
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
@@ -200,6 +204,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         setIsConfirmed,
         quickAction,
         reportTransactions,
+        delegateAccountID,
         onExpenseWriteWillStart,
     });
 
@@ -238,6 +243,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         conciergeChat,
         transactionViolationsRef,
         submitWithGpsPoint,
+        delegateAccountID,
     });
 
     const trackSubmission = useTrackExpenseSubmission({
@@ -277,6 +283,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         selfDMReport,
         distanceDraftData,
         submitWithGpsPoint,
+        delegateAccountID,
     });
 
     const splitSubmission = useSplitSubmission({
@@ -286,7 +293,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         report,
         personalDetails,
         currentUserPersonalDetails,
-        participants,
         selectedParticipants,
         iouType,
         isTrackIntentUser,
@@ -299,6 +305,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         quickAction,
         transactionViolationsRef,
         reportTransactions,
+        delegateAccountID,
+        participantsPolicyTags,
     });
 
     const distanceSubmission = useDistanceSubmission({
@@ -310,7 +318,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         policyCategories,
         personalDetails,
         currentUserPersonalDetails,
-        participants,
         selectedParticipants,
         iouType,
         isGPSDistanceRequest,
@@ -331,6 +338,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         quickAction,
         transactionViolationsRef,
         distanceDraftData,
+        delegateAccountID,
+        participantsPolicyTags,
     });
 
     const perDiemSubmission = usePerDiemSubmission({
@@ -354,6 +363,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         selfDMReport,
         transactionViolations,
         reportTransactions,
+        delegateAccountID,
     });
 
     const invoiceSubmission = useInvoiceSubmission({
@@ -368,6 +378,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         draftTransactionIDs,
         recentlyUsedData,
         policyTags,
+        delegateAccountID,
     });
 
     // Which API command a submission will run. Resolved here rather than inside createTransaction because every

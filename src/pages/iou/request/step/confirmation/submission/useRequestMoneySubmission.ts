@@ -1,5 +1,4 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -86,6 +85,7 @@ type UseRequestMoneySubmissionParams = TransactionTaxValues & {
     conciergeChat: OnyxEntry<Report>;
     transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
     submitWithGpsPoint: SubmitWithGpsPoint;
+    delegateAccountID: number | undefined;
 };
 
 function useRequestMoneySubmission({
@@ -123,10 +123,10 @@ function useRequestMoneySubmission({
     conciergeChat,
     transactionViolationsRef,
     submitWithGpsPoint,
+    delegateAccountID,
 }: UseRequestMoneySubmissionParams): SubmissionHandle {
     const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

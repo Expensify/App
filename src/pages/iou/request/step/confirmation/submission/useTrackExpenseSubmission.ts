@@ -1,6 +1,5 @@
 import useActivePolicy from '@hooks/useActivePolicy';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -78,6 +77,7 @@ type UseTrackExpenseSubmissionParams = TransactionTaxValues & {
     selfDMReport: OnyxEntry<Report>;
     distanceDraftData: DistanceDraftData;
     submitWithGpsPoint: SubmitWithGpsPoint;
+    delegateAccountID: number | undefined;
 };
 
 function useTrackExpenseSubmission({
@@ -117,10 +117,10 @@ function useTrackExpenseSubmission({
     selfDMReport,
     distanceDraftData,
     submitWithGpsPoint,
+    delegateAccountID,
 }: UseTrackExpenseSubmissionParams): SubmissionHandle {
     const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const lastWorkspaceNumber = useLastWorkspaceNumber();

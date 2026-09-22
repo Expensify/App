@@ -1,7 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
-import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
@@ -15,7 +13,7 @@ import {isScanRequest as isScanRequestTransactionUtils} from '@libs/TransactionU
 import {resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
+import type {ParticipantsPolicyTags, PersonalDetailsList, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -38,7 +36,6 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
-    participants: Participant[];
     selectedParticipants: Participant[];
     iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
     isTrackIntentUser: boolean;
@@ -51,6 +48,8 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     quickAction: OnyxEntry<QuickAction>;
     transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
     reportTransactions: Transaction[];
+    delegateAccountID: number | undefined;
+    participantsPolicyTags: ParticipantsPolicyTags;
 };
 
 function useSplitSubmission({
@@ -60,7 +59,6 @@ function useSplitSubmission({
     report,
     personalDetails,
     currentUserPersonalDetails,
-    participants,
     selectedParticipants,
     iouType,
     isTrackIntentUser,
@@ -73,16 +71,16 @@ function useSplitSubmission({
     transactionTaxCode,
     transactionTaxAmount,
     transactionTaxValue,
+    delegateAccountID,
+    participantsPolicyTags,
 }: UseSplitSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
-    const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const splitParticipants = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
 
     function createTransaction({shouldHandleNavigation = true}: CreateTransactionParams) {

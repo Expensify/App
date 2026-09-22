@@ -1,5 +1,4 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
@@ -41,6 +40,7 @@ type UseInvoiceSubmissionParams = {
      *  Read them here again once the page forks into per-path variants and only one hook mounts. */
     recentlyUsedData: SubmissionRecentlyUsedData;
     policyTags: OnyxEntry<PolicyTagLists>;
+    delegateAccountID: number | undefined;
 };
 
 function useInvoiceSubmission({
@@ -55,10 +55,10 @@ function useInvoiceSubmission({
     draftTransactionIDs,
     recentlyUsedData,
     policyTags,
+    delegateAccountID,
 }: UseInvoiceSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
 
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
 

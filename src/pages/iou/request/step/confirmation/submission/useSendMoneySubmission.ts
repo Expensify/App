@@ -1,5 +1,4 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
@@ -30,6 +29,7 @@ type UseSendMoneySubmissionParams = {
      *  Read them here again once the page forks into per-path variants and only one hook mounts. */
     quickAction: OnyxEntry<QuickAction>;
     reportTransactions: Transaction[];
+    delegateAccountID: number | undefined;
     onExpenseWriteWillStart?: () => void;
 };
 
@@ -42,10 +42,10 @@ function useSendMoneySubmission({
     setIsConfirmed,
     quickAction,
     reportTransactions,
+    delegateAccountID,
     onExpenseWriteWillStart,
 }: UseSendMoneySubmissionParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
         const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true, shouldDeferForSearch = false} = options ?? {};

@@ -1,5 +1,4 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -55,6 +54,7 @@ type UsePerDiemSubmissionParams = {
     selfDMReport: OnyxEntry<Report>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     reportTransactions: Transaction[];
+    delegateAccountID: number | undefined;
 };
 
 function usePerDiemSubmission({
@@ -78,10 +78,10 @@ function usePerDiemSubmission({
     selfDMReport,
     transactionViolations,
     reportTransactions,
+    delegateAccountID,
 }: UsePerDiemSubmissionParams): SubmissionHandle {
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
