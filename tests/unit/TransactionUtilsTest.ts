@@ -2058,6 +2058,71 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('areRequiredFieldsEmpty', () => {
+        const selfDMReport: Report = createRandomReport(777, CONST.REPORT.CHAT_TYPE.SELF_DM);
+        const regularChatReport: Report = createRandomReport(888);
+
+        it('does not flag a zero amount on an expense created in the self DM', () => {
+            // Given a $0 track expense created in the self DM, which stores the transaction as unreported
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty, with no report to look up (reportID '0' resolves to nothing)
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then the zero amount is not treated as missing, because the self DM deliberately allows $0 expenses
+            expect(result).toBe(false);
+        });
+
+        it('does not flag a zero amount when the transaction report is a self DM', () => {
+            // Given a $0 expense whose transaction report resolves to the self DM itself
+            const transaction = generateTransaction({reportID: selfDMReport.reportID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, selfDMReport);
+
+            // Then the zero amount is not treated as missing, for the same reason as an unreported expense
+            expect(result).toBe(false);
+        });
+
+        it('still flags a zero amount when the receipt scan failed', () => {
+            // Given a $0 unreported expense whose receipt scan failed, so the real amount is unknown rather than chosen
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then it is still flagged, so the user is prompted to enter the amount and the expense cannot be submitted
+            expect(result).toBe(true);
+        });
+
+        it('still flags a zero amount on a regular chat report', () => {
+            // Given a $0 expense on a reported, non-expense, non-self-DM report
+            const transaction = generateTransaction({reportID: regularChatReport.reportID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, regularChatReport);
+
+            // Then the existing behaviour is preserved: $0 is only valid in the self DM
+            expect(result).toBe(true);
+        });
+
+        it('ignores the amount on an expense report and checks the merchant instead', () => {
+            // Given a $0 expense on an expense report, where only a missing merchant counts as a missing field
+            const transaction = generateTransaction({reportID: openReport.reportID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, openReport as Report);
+
+            // Then the valid merchant means nothing is missing, unchanged by the self DM carve-out
+            expect(result).toBe(false);
+        });
+    });
+
     describe('getMerchant', () => {
         it('should return merchant if transaction has merchant', () => {
             const transaction = generateTransaction({

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
@@ -45,6 +46,7 @@ import {
     isOpenReport,
     isProcessingReport,
     isReportManager,
+    isSelfDM,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -725,7 +727,11 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
+    // A zero amount is a deliberate, valid choice for an expense created in the self DM, so it isn't a missing field there.
+    // A failed scan is the exception: the amount is genuinely unknown, so it must keep being flagged.
+    const isZeroAmountAllowed =
+        (isUnreportedTransaction(transaction) || isSelfDM(transactionReport)) && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && !isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
