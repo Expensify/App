@@ -238,6 +238,7 @@ const SCREENS = {
             ROOT: 'Settings_Subscription',
             SIZE: 'Settings_Subscription_Size',
             EXPENSIFY_CODE: 'Settings_Subscription_ExpensifyCode',
+            EARLY_RENEWAL: 'Settings_Subscription_EarlyRenewal',
             SETTINGS_DETAILS: 'Settings_Subscription_Details',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',

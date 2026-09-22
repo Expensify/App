@@ -5499,6 +5499,31 @@ const CONST = {
     SUBSCRIPTION: {
         TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
         PRICING_TYPE_2025: 'team2025Pricing',
+        EARLY_RENEWAL: {
+            NON_INCENTIVIZED_START: '2026-10-01T00:00:00Z',
+            INCENTIVIZED_START: '2026-10-15T00:00:00Z',
+            COPY: {
+                BILLING_OWNER: {
+                    HOME_TITLE: 'Renew your Expensify subscription',
+                    HOME_SUBTITLE: 'One less thing to do before the new year.',
+                    HEADER_TITLE: 'Confirm renewal',
+                    TITLE: 'Renew your Expensify subscription',
+                    DESCRIPTION: 'Renew now to keep your current pricing for another year. Your future renewal date will move to this month.',
+                    CTA: 'Claim',
+                },
+                WORKSPACE_ADMIN: {
+                    HOME_TITLE: 'Ask your billing owner to renew',
+                    HOME_SUBTITLE: 'Help your workspace keep its current pricing for another year.',
+                    HEADER_TITLE: 'Nudge your billing owner',
+                    TITLE: 'Ask your billing owner to renew',
+                    DESCRIPTION: "Send a message in your workspace's #admins room asking the billing owner to renew early and keep the current pricing for another year.",
+                    CTA: 'Nudge',
+                },
+            },
+            OFFER_ID: {
+                NON_INCENTIVIZED_ONE_YEAR: 'nonIncentivizedOneYear',
+            },
+        },
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
