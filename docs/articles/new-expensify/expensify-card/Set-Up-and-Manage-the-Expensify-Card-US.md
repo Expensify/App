@@ -108,6 +108,28 @@ When your settlement frequency is set to **Monthly**, the **Settings** page show
 
 This date is shown for reference only and cannot be changed. If your settlement frequency is set to **Daily**, no monthly settlement date is shown because balances settle automatically every business day.
 
+## How to change your Expensify Card settlement frequency
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Click **Settings**.
+3. Click the **Settlement frequency** row.
+4. Select **Daily** or **Monthly**.
+5. Click **Save**.
+
+Saving returns you to the Expensify Card **Settings** page, where the **Settlement frequency** row shows the option you saved.
+
+## What determines whether you can choose Monthly settlement
+
+**Monthly** only appears as an option when your workspace qualifies for it. To qualify, connect your settlement bank account through Plaid and have a positive 90-day balance history. Until your workspace qualifies, **Daily** is the only frequency available, and the **Settlement frequency** row on the **Settings** page is not clickable.
+
+Because of this, changing your frequency from **Monthly** to **Daily** is not reversible unless your workspace qualifies for **Monthly**. If you save **Daily** and your workspace does not meet the Plaid and 90-day balance history requirements, the **Settlement frequency** row locks to **Daily**, and you cannot reopen it to switch back.
+
+<!-- SCREENSHOT:
+Suggestion: The Expensify Card Settings page for a workspace that does not qualify for Monthly settlement, showing the Settlement frequency row set to Daily, rendered as non-clickable, with the supporting text about connecting via Plaid and a positive 90-day balance history below it.
+Location: Immediately after the "What determines whether you can choose Monthly settlement" section.
+Purpose: Admins report the Settlement frequency row as broken when it stops responding to clicks. Showing the locked row alongside its supporting text confirms the row is intentionally disabled because the workspace does not qualify for Monthly, rather than a bug.
+-->
+
 ## What the Status column shows in the Expensify Card list
 
 The Expensify Card list includes a **Status** column so you can see each card's lifecycle state at a glance without opening the card. Click the **Status** column header to sort the list by status.
