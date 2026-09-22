@@ -9,7 +9,8 @@ import process from 'node:process';
 
 import type {BenchmarkKind, BuildArtifactPaths, BuildKind, PlatformAdapter} from './shared';
 
-import {BENCHMARK_SPANS_ENVIRONMENT, capture, captureBinary, fail, findFiles, rootDirectory, run, sleep} from './shared';
+import {capture, captureBinary, fail, findFiles, rootDirectory, run, sleep} from '../lib/scriptUtils';
+import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 
 const ANDROID_JAVA_NAMESPACE = 'org.me.mobiexpensifyg';
 const PROFILE_BROADCAST_ACTION = 'com.expensify.chat.action.WRITE_PGO_PROFILES';
@@ -212,4 +213,5 @@ function androidProfileReceiverComponent(appID: string): string {
     return `${appID}/${ANDROID_JAVA_NAMESPACE}.PgoProfileReceiver`;
 }
 
-export {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent, createAndroidPgoAdapter};
+export default createAndroidPgoAdapter;
+export {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent};

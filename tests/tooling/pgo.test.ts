@@ -1,10 +1,14 @@
 import {describe, expect, it} from 'bun:test';
 // cspell:ignore chrispader
 
-import {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent} from '@scripts/pgo/android';
-import {percentageImprovement} from '@scripts/pgo/pgo';
+import createAndroidPgoAdapter, {PROFILE_BROADCAST_ACTION, androidApplicationID, androidProfileReceiverComponent} from '@scripts/pgo/android';
+import percentageImprovement from '@scripts/pgo/pgo';
 
 describe('PGO tooling', () => {
+    it('exports the Android adapter as the default export', () => {
+        expect(createAndroidPgoAdapter).toBeFunction();
+    });
+
     it('reads the bootstrapped release application ID', () => {
         // Given
         const buildGradle = `

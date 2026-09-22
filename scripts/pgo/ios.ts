@@ -2,13 +2,16 @@
 
 /** iOS-specific release builds, signing, native profile persistence, retrieval, and instrumentation checks. */
 
+import {isRecord} from '@libs/ObjectUtils';
+
 import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
 
 import type {BenchmarkKind, BuildArtifactPaths, BuildKind, PgoMode, PlatformAdapter} from './shared';
 
-import {BENCHMARK_SPANS_ENVIRONMENT, capture, environmentString, fail, findFiles, isRecord, rootDirectory, run, runAllowFailure, sleep, valueAt} from './shared';
+import {capture, environmentString, fail, findFiles, rootDirectory, run, runAllowFailure, sleep, valueAt} from '../lib/scriptUtils';
+import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
 
 function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: string): PlatformAdapter {
     const profileFormat = 'ios-clang-frontend-swift-ir-v1';

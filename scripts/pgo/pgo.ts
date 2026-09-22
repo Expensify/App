@@ -14,9 +14,10 @@ import type {BenchmarkKind, PlatformAdapter} from './shared';
 import {benchmarkStartups as runBenchmarkStartups} from '../lib/benchmarkAppStartup';
 import {benchmarkMetrics, readBenchmarkSamples} from '../lib/benchmarkStatistics';
 import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter} from '../lib/nativeAppBenchmark';
-import {createAndroidPgoAdapter} from './android';
+import {capture, fail, findFiles, parseChoice, parsePositiveInteger, requirePositiveInteger, rootDirectory, run} from '../lib/scriptUtils';
+import createAndroidPgoAdapter from './android';
 import createIOSPgoAdapter from './ios';
-import {STARTUP_SPAN_NAME, capture, fail, findFiles, parseChoice, parsePositiveInteger, requirePositiveInteger, rootDirectory, run} from './shared';
+import {STARTUP_SPAN_NAME} from './shared';
 
 const DEFAULT_STARTUP_RUNS = 10;
 const DEFAULT_STARTUP_WAIT_SECONDS = 30;
@@ -281,4 +282,4 @@ if (import.meta.main) {
     });
 }
 
-export {main, percentageImprovement};
+export default percentageImprovement;
