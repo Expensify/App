@@ -148,7 +148,6 @@ export default {
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 200,
     flatNavigationBarItemHeight: 40,
-    flatNavigationBarSubItemHeight: 36,
     flatNavigationBarAccountItemHeight: 56,
     flatNavigationBarHeaderPaddingRight: 12,
     flatNavigationBarLogoWidth,

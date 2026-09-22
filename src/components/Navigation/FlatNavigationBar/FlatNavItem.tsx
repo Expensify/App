@@ -104,8 +104,8 @@ function FlatNavItem({
                             <Icon
                                 src={icon}
                                 fill={getIconFill(isSelected, hovered, theme)}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
                             />
                             {!!statusIndicatorColor && (
                                 <View
@@ -122,12 +122,7 @@ function FlatNavItem({
                     {leftElement}
                     <Text
                         numberOfLines={1}
-                        style={[
-                            styles.flatNavigationBarLabel,
-                            isSubItem && styles.flatNavigationBarSubItemLabel,
-                            isSubItem && !isSelected && styles.flatNavigationBarSubItemLabelRegular,
-                            {color: isSelected || hovered ? theme.text : theme.textSupporting},
-                        ]}
+                        style={[styles.flatNavigationBarLabel, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
                     >
                         {label}
                     </Text>

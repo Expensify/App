@@ -621,6 +621,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...fontFamilyScale.strong,
         },
 
+        textRegular: {
+            ...fontFamilyScale.regular,
+        },
+
         fontWeightNormal: {
             fontWeight: FontUtils.fontWeight.normal,
         },
@@ -838,16 +842,11 @@ const staticStyles = (theme: ThemeColors) =>
         // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
         // at the same x as the labels of the rows above them.
         flatNavigationBarSubItem: {
-            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal,
-            height: variables.flatNavigationBarSubItemHeight,
+            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeSmall,
         },
 
-        flatNavigationBarSubItemLabel: {
-            fontSize: variables.fontSizeLabel,
-        },
-
-        // Bold is reserved for the selected nested row, so the rest fall back to the regular weight.
-        flatNavigationBarSubItemLabelRegular: {
+        // Bold is reserved for the active row, so the rest fall back to the regular weight.
+        flatNavigationBarLabelRegular: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
         },
 

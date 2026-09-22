@@ -278,7 +278,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                     highlighted={!!item?.highlighted}
                                     focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                    shouldUseNavigationRowColors
+                                    shouldUseNavigationRowStyles
                                     role={CONST.ROLE.TAB}
                                     badgeText={item.badgeText}
                                     shouldIconUseAutoWidthStyle

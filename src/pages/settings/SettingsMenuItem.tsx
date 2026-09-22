@@ -70,7 +70,7 @@ function SettingsMenuItem({item, isFocused, keyTitle, isExecuting, isScreenFocus
             onSecondaryInteraction={onSecondaryInteraction}
             shouldShowContextMenuHint={!!item.link}
             focused={isFocused}
-            shouldUseNavigationRowColors
+            shouldUseNavigationRowStyles
             role={CONST.ROLE.TAB}
             isPaneMenu
             sentryLabel={item.sentryLabel}

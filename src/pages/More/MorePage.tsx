@@ -31,8 +31,6 @@ import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 import {ACCOUNTING_GROUP_ID, SAVED_SEARCHES_GROUP_ID} from '@libs/SpendNavigationGroups';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -77,6 +75,7 @@ function MorePage() {
     if (accounting.length > 0) {
         menuItems.push({
             key: 'accounting',
+            shouldUseNavigationRowStyles: true,
             title: translate('search.tabs.accounting'),
             icon: icons.Connect,
             onPress: () => {
@@ -97,6 +96,7 @@ function MorePage() {
     if (savedSearchEntries.length > 0) {
         menuItems.push({
             key: 'savedSearches',
+            shouldUseNavigationRowStyles: true,
             title: translate('search.savedSearchesMenuItemTitle'),
             icon: icons.Bookmark,
             onPress: () => {
@@ -121,6 +121,7 @@ function MorePage() {
     if (isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
         menuItems.push({
             key: 'insights',
+            shouldUseNavigationRowStyles: true,
             title: translate('common.insights'),
             icon: icons.PieChart,
             onPress: () => {
@@ -135,6 +136,7 @@ function MorePage() {
 
     menuItems.push({
         key: 'workspaces',
+        shouldUseNavigationRowStyles: true,
         title: translate('common.workspacesTabTitle'),
         icon: icons.Buildings,
         brickRoadIndicator: workspacesBrickRoadIndicator,
@@ -163,8 +165,6 @@ function MorePage() {
                     <MenuItemList
                         menuItems={menuItems}
                         wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                        iconWidth={variables.iconSizeNormal}
-                        iconHeight={variables.iconSizeNormal}
                         shouldUseSingleExecution
                     />
                 </View>
