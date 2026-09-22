@@ -3,6 +3,8 @@
  * This should be updated when the original implementation updates
  * Taken from: https://github.com/software-mansion/react-native-reanimated/blob/main/packages/react-native-reanimated/src/component/FlatList.tsx
  */
+import type {CellRendererProps} from '@src/types/utils/ReactNativeCompat';
+
 import type {Ref} from 'react';
 import type {FlatListProps} from 'react-native';
 import type {AnimatedProps, ILayoutAnimationBuilder} from 'react-native-reanimated';
@@ -13,9 +15,7 @@ import Animated, {LayoutAnimationConfig} from 'react-native-reanimated';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-type RNCellRendererProps<T> = NonNullable<FlatListProps<T>['CellRendererComponent']> extends React.ComponentType<infer P> ? P : never;
-
-type CellRendererComponentProps<T> = React.ComponentType<RNCellRendererProps<T>> | null | undefined;
+type CellRendererComponentProps<T> = React.ComponentType<CellRendererProps<T>> | null | undefined;
 
 type CellRendererConfig = {
     itemLayoutAnimation?: ILayoutAnimationBuilder;
@@ -29,7 +29,7 @@ const CellRendererConfigContext = createContext<CellRendererConfig>({});
  * `itemLayoutAnimation` and the optional outer renderer are read from context because
  * FlatList only passes standard cell props to `CellRendererComponent`.
  */
-function CellRendererComponentImpl(props: RNCellRendererProps<unknown>) {
+function CellRendererComponentImpl(props: CellRendererProps<unknown>) {
     const {itemLayoutAnimation, outerCellRenderer: OuterCellRenderer} = useContext(CellRendererConfigContext);
 
     return (

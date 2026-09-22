@@ -14,17 +14,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import type {FlatListProps} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MoneyRequestReportPreviewStyleType} from './types';
-
-type ViewToken = Parameters<NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>>[0]['viewableItems'][number];
 
 const MAX_PREVIEWS_NUMBER = 10;
 

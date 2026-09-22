@@ -2,11 +2,9 @@ import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 
 import type CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
-import type {FlatListProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
-
-type ViewToken = Parameters<NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>>[0]['viewableItems'][number];
 
 type UpdatePageProps = {
     viewableItems: ViewToken[];

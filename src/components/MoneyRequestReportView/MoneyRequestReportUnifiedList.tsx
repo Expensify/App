@@ -6,9 +6,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import type {FlatListProps, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {memo, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -19,9 +20,6 @@ import type {MoneyRequestReportTransactionListController, TransactionListItemDat
 import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
-
-type ViewableItemsChanged = NonNullable<FlatListProps<unknown>['onViewableItemsChanged']>;
-type ViewToken = Parameters<ViewableItemsChanged>[0]['viewableItems'][number];
 
 /** Single virtualized data item rendered by the unified FlatList. Mixes transactions, a footer marker, and report actions in one scroll. */
 type UnifiedListItem = TransactionListItemData | {readonly type: 'transactions-footer'} | {readonly type: 'report-action'; readonly action: OnyxTypes.ReportAction};

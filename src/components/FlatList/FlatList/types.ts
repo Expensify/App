@@ -1,7 +1,7 @@
+import type {CellRendererProps} from '@src/types/utils/ReactNativeCompat';
+
 import type {ForwardedRef} from 'react';
 import type {FlatList, FlatListProps} from 'react-native';
-
-type CellRendererProps<T> = NonNullable<FlatListProps<T>['CellRendererComponent']> extends React.ComponentType<infer P> ? P : never;
 
 type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & {
     ref?: ForwardedRef<FlatList>;
