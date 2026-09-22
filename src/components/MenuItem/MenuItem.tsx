@@ -1017,7 +1017,10 @@ function MenuItem({
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                                     <Text
-                                                                        style={combinedTitleTextStyle}
+                                                                        style={[
+                                                                            combinedTitleTextStyle,
+                                                                            shouldUseNavigationRowStyles && isHovered && interactive && !focused && styles.navigationRowHoveredText,
+                                                                        ]}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
                                                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
                                                                         accessibilityRole={titleAccessibilityRole}

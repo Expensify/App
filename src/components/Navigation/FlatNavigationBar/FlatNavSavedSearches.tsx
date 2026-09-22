@@ -1,10 +1,14 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 
+import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useShareSavedSearch from '@hooks/useShareSavedSearch';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -12,9 +16,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
-import {getLastSearchQuery} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, getOverflowMenu} from '@libs/SearchUIUtils';
 
 import useSavedSearchTitles from '@pages/Search/hooks/useSavedSearchTitles';
+import SavedSearchItemThreeDotMenu from '@pages/Search/SavedSearchItemThreeDotMenu';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +39,7 @@ import FlatNavItem from './FlatNavItem';
  * expanded. Everything above it just needs to know whether any saved searches exist.
  */
 function FlatNavSavedSearches() {
+    const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -48,6 +56,10 @@ function FlatNavSavedSearches() {
     const reportAttributes = useReportAttributes();
 
     const {currentSearchKey} = useSearchQueryContext();
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const {showDeleteModal} = useDeleteSavedSearch();
+    const {copiedID, handleShare} = useShareSavedSearch();
 
     const savedSearchTitles = useSavedSearchTitles({
         savedSearches,
@@ -86,6 +98,19 @@ function FlatNavSavedSearches() {
             isSelected={currentSearchKey === item.searchKey}
             isSubItem
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM}
+            hoverActionComponent={
+                <SavedSearchItemThreeDotMenu
+                    menuItems={getOverflowMenu(expensifyIcons, item.key, translate, showDeleteModal, false, undefined, {
+                        onShare: () => handleShare(item.key, item.query),
+                        isCopied: copiedID === item.key,
+                    })}
+                    isDisabledItem={item.isDisabled}
+                    isCopied={copiedID === item.key}
+                    containerStyle={styles.wAuto}
+                    iconWidth={variables.iconSizeSmall}
+                    iconHeight={variables.iconSizeSmall}
+                />
+            }
             onPress={() => {
                 if (item.isDisabled) {
                     return;

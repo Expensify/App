@@ -43,6 +43,9 @@ type FlatNavItemProps = {
     /** Applied after the row's own styles, for rows that need a different height or spacing */
     additionalStyle?: StyleProp<ViewStyle>;
 
+    /** Control shown in the row's leading indent, such as a saved search's overflow menu. Only visible on hover. */
+    hoverActionComponent?: React.ReactNode;
+
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
@@ -77,6 +80,7 @@ function FlatNavItem({
     accessibilityLabel,
     sentryLabel,
     additionalStyle,
+    hoverActionComponent,
     onPress,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
@@ -136,6 +140,8 @@ function FlatNavItem({
                             isCondensed
                         />
                     )}
+                    {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
+                    {!!hoverActionComponent && <View style={[styles.flatNavigationBarRowAction, !hovered && styles.opacity0]}>{hoverActionComponent}</View>}
                 </>
             )}
         </PressableWithFeedback>

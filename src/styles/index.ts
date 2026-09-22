@@ -863,10 +863,28 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
+        // A hovered row reads as active, so its label takes the standard text color instead of the supporting one.
+        navigationRowHoveredText: {
+            color: theme.text,
+        },
+
         // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
         // at the same x as the labels of the rows above them.
         flatNavigationBarSubItem: {
             paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeSmall,
+        },
+
+        // A sub-row's indent is otherwise empty, so its hover control sits there and leaves the label its full width.
+        // Absolute so the label's own width never changes between the resting and hovered states.
+        flatNavigationBarRowAction: {
+            position: 'absolute',
+            left: navigationRowPaddingHorizontal,
+            top: 0,
+            bottom: 0,
+            // Same left edge and width as a parent row's icon, so the two line up down the column.
+            width: variables.iconSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         // Bold is reserved for the active row, so the rest fall back to the regular weight.

@@ -7,6 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -16,9 +18,15 @@ type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
     isDisabledItem: boolean;
     isCopied?: boolean;
+
+    /** Replaces the default 28px box, for callers that size the menu to their own row */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    iconWidth?: number;
+    iconHeight?: number;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, containerStyle, iconWidth, iconHeight}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
     const {endPeek} = useSearchSidebarCollapse();
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
@@ -52,7 +60,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: Save
     }, [isCopied]);
 
     return (
-        <View style={[styles.searchTypeMenuAccessoryBox, isDisabledItem && styles.pointerEventsNone]}>
+        <View style={[styles.searchTypeMenuAccessoryBox, containerStyle, isDisabledItem && styles.pointerEventsNone]}>
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={menuItemsWithPeekCleanup}
@@ -61,6 +69,8 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: Save
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 iconStyles={styles.wAuto}
+                iconWidth={iconWidth}
+                iconHeight={iconHeight}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
                 threeDotsMenuRef={threeDotsMenuRef}
             />
