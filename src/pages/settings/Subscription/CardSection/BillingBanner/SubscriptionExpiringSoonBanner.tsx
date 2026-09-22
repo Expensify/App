@@ -28,7 +28,6 @@ function SubscriptionExpiringSoonBanner({endDate}: SubscriptionExpiringSoonBanne
             title={translate('subscription.billingBanner.subscriptionExpiringSoon.title', {date: formatSubscriptionEndDate(endDate, dateFnsLocale)})}
             subtitle={translate('subscription.billingBanner.subscriptionExpiringSoon.subtitle')}
             icon={illustrations.SubscriptionAnnual}
-            brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
             rightComponent={
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
