@@ -11,7 +11,7 @@ contentType: topic
 
 Agent templates are prebuilt personal Agents with instructions already written for common tasks. Instead of creating an Agent from scratch, you can start with a template and customize its instructions before creating the Agent.
 
-To learn how to create an Agent, see [Create and Manage Agents](/articles/new-expensify/ai-agents/Create-and-Manage-Agents).
+To learn how to create an Agent, see [Create and Manage Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
 
 ---
 
