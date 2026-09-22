@@ -7088,6 +7088,15 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             peopleAdmins: 'Personaladministratoren',
             paymentsAdmins: 'Zahlungsadmins',
             members: 'Mitglieder',
+            workArrangement: 'Arbeitsvereinbarung',
+            officeBased: 'Bürobasiert',
+            noRegularWorkspace: 'Kein regulärer Workspace',
+            workArrangementPage: {
+                title: 'Arbeitsvereinbarung',
+                optionOfficeBasedHelp: 'Mitglied pendelt zu einem Büro. Gewöhnliche Pendelfahrten sind von der Erstattung ausgeschlossen.',
+                optionNoRegularWorkspaceHelp: 'Mitglied arbeitet remote oder hat keinen festen Arbeitsplatz, daher gelten die Pendelregeln zwischen Wohnung und Arbeitsstätte nicht.',
+                futureOnlyNote: 'Änderungen gelten nur für zukünftige Kilometerberechnungen. Bestehende Kilometerabrechnungen werden nicht neu berechnet.',
+            },
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -9465,6 +9474,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 : `hat den Genehmigungs-Workflow für ${member} so geändert, dass Berichte über ${previousLimit} nicht mehr weitergeleitet werden`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `hat den Genehmigungsworkflow für ${member} geändert, um Berichte über ${limit} weiterzuleiten (zuvor ${previousLimit})`,
+        updatedMemberWorkArrangement: (displayName: string, newArrangement: string, oldArrangement: string) =>
+            `hat die Arbeitsregelung von ${displayName} auf ${newArrangement} geändert (zuvor ${oldArrangement})`,
+        updatedDefaultWorkArrangement: (newArrangement: string, oldArrangement: string) => `hat die standardmäßige Arbeitsregelung in ${newArrangement} geändert (zuvor ${oldArrangement})`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
