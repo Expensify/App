@@ -49,6 +49,12 @@ const ONYXKEYS = {
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
+    /** Pagination state for tag filter search (hasMore, nextCursor). RAM-only so it resets on app restart. */
+    RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination',
+
+    /** Paginated tag search results. RAM-only so it resets on app restart. */
+    RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS: 'searchTagFiltersResults',
+
     /** Boolean flag set whenever we are searching for users in the server */
     RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
 
@@ -58,9 +64,6 @@ const ONYXKEYS = {
     /** Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe */
     PERSISTED_REQUESTS: 'networkRequestQueue',
     PERSISTED_ONGOING_REQUESTS: 'networkOngoingRequestQueue',
-
-    /** Comment edits saved while their attachment was still uploading, replayed once it syncs */
-    DEFERRED_ATTACHMENT_EDITS: 'deferredAttachmentEdits',
 
     /** Stores current date */
     CURRENT_DATE: 'currentDate',
@@ -1632,7 +1635,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.AnyRequest[];
     [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: OnyxTypes.AnyRequest;
-    [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: OnyxTypes.DeferredAttachmentEdits;
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
@@ -1793,6 +1795,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
+    [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
+    [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
