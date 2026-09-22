@@ -289,8 +289,13 @@ const compactPopoverMenuItemBaseStyle = {
 const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
 
+// StyleSheet.create is an identity at runtime, but its Strict API parameter rejects web CSS and
+// widens every string literal. On web, return the object unchanged so callers keep the keys.
+const createStaticStyles =
+    Platform.OS === 'web' ? <T extends Record<string, object>>(styles: T): T => styles : <T extends Record<string, object>>(styles: T): T => StyleSheet.create(styles as never) as T;
+
 const staticStyles = (theme: ThemeColors) =>
-    StyleSheet.create({
+    createStaticStyles({
         ...spacing,
         ...borders,
         ...sizing,
@@ -6789,701 +6794,698 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
         },
-    }) satisfies StaticStyles;
+    });
 
-const dynamicStyles = (theme: ThemeColors) =>
-    ({
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
-            marginLeft: inputMarginLeft,
-            width: amountWidth,
-            marginRight: 4,
-        }),
+const dynamicStyles = (theme: ThemeColors) => ({
+    getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
+        marginLeft: inputMarginLeft,
+        width: amountWidth,
+        marginRight: 4,
+    }),
 
-        // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
-        // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
-        // See https://github.com/Expensify/App/issues/99035
-        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
-            ({
-                position: 'absolute',
-                height: '100%',
-                right: 0,
-                width,
-            }) satisfies ViewStyle,
+    // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
+    // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
+    // See https://github.com/Expensify/App/issues/99035
+    getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+        ({
+            position: 'absolute',
+            height: '100%',
+            right: 0,
+            width,
+        }) satisfies ViewStyle,
 
-        uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
-            ({
-                borderWidth: isSmallScreenWidth ? 0 : 2,
-            }) satisfies ViewStyle,
+    uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
+        ({
+            borderWidth: isSmallScreenWidth ? 0 : 2,
+        }) satisfies ViewStyle,
 
-        chooseFilesView: (isSmallScreenWidth: boolean) =>
-            ({
-                ...getReceiptDropZoneViewStyle(theme, variables.chooseFilesViewMargin, 20),
-                borderWidth: isSmallScreenWidth ? 0 : 2,
-            }) satisfies ViewStyle,
+    chooseFilesView: (isSmallScreenWidth: boolean) =>
+        ({
+            ...getReceiptDropZoneViewStyle(theme, variables.chooseFilesViewMargin, 20),
+            borderWidth: isSmallScreenWidth ? 0 : 2,
+        }) satisfies ViewStyle,
 
-        autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
-            ({
-                height: lodashClamp(textInputHeight, minHeight, maxHeight),
-                minHeight,
-            }) satisfies ViewStyle,
+    autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
+        ({
+            height: lodashClamp(textInputHeight, minHeight, maxHeight),
+            minHeight,
+        }) satisfies ViewStyle,
 
-        autoGrowHeightHiddenInput: (maxWidth: number, maxHeight?: number) =>
-            ({
-                maxWidth,
-                maxHeight: maxHeight && maxHeight + 1,
-                overflow: 'hidden',
-            }) satisfies TextStyle,
+    autoGrowHeightHiddenInput: (maxWidth: number, maxHeight?: number) =>
+        ({
+            maxWidth,
+            maxHeight: maxHeight && maxHeight + 1,
+            overflow: 'hidden',
+        }) satisfies TextStyle,
 
-        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>, isForTextComponent?: boolean) => {
-            'worklet';
+    textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>, isForTextComponent?: boolean) => {
+        'worklet';
 
-            if (isForTextComponent) {
-                return {
-                    fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
-                } satisfies TextStyle;
-            }
-
+        if (isForTextComponent) {
             return {
-                transform: [{translateY: translateY.get()}],
                 fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
             } satisfies TextStyle;
-        },
+        }
 
-        statusIndicatorColor: (backgroundColor: string = theme.danger) =>
-            ({
-                backgroundColor,
-            }) satisfies ViewStyle,
+        return {
+            transform: [{translateY: translateY.get()}],
+            fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
+        } satisfies TextStyle;
+    },
 
-        RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
-            }) satisfies ViewStyle,
+    statusIndicatorColor: (backgroundColor: string = theme.danger) =>
+        ({
+            backgroundColor,
+        }) satisfies ViewStyle,
 
-        modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
-            ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-            }) satisfies ViewStyle,
+    RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+        ({
+            ...modalNavigatorContainer(isSmallScreenWidth),
+        }) satisfies ViewStyle,
 
-        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
-            ({
-                width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
-                height: shouldUseNarrowLayout ? 732 : '100%',
-                borderRadius: shouldUseNarrowLayout ? 16 : 0,
-            }) satisfies ViewStyle,
+    modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
+        ({
+            width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        }) satisfies ViewStyle,
 
-        createMenuPositionSidebar: (windowHeight: number) =>
-            ({
-                horizontal: 16,
-                // Menu should be displayed 8px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
-                vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
-            }) satisfies AnchorPosition,
+    OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+        ({
+            width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
+            height: shouldUseNarrowLayout ? 732 : '100%',
+            borderRadius: shouldUseNarrowLayout ? 16 : 0,
+        }) satisfies ViewStyle,
 
-        createMenuPositionSearchBar: (windowHeight: number) =>
-            ({
-                horizontal: 18,
-                // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (12px)
-                vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
-            }) satisfies AnchorPosition,
+    createMenuPositionSidebar: (windowHeight: number) =>
+        ({
+            horizontal: 16,
+            // Menu should be displayed 8px above the floating action button.
+            // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (16px) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (8px)
+            vertical: windowHeight - 16 - variables.componentSizeNormal - 8,
+        }) satisfies AnchorPosition,
 
-        overlayStyles: ({
-            progress,
-            positionLeftValue,
-            positionRightValue,
-        }: {
-            progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
-            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
-        }) =>
-            ({
-                // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: positionLeftValue,
-                right: positionRightValue,
-                opacity: progress.interpolate({
-                    inputRange: [0, 0.5],
-                    outputRange: [0, variables.overlayOpacity],
-                    extrapolate: 'clamp',
-                }),
-            }) satisfies ViewStyle,
+    createMenuPositionSearchBar: (windowHeight: number) =>
+        ({
+            horizontal: 18,
+            // Menu should be displayed 12px above the floating action button.
+            // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height on a wide layout (variables.componentSizeNormal) + distance above the fab (12px)
+            vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
+        }) satisfies AnchorPosition,
 
-        getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
-            ({
-                width: isSmallScreenWidth ? '100%' : 350,
-                flexBasis: isSmallScreenWidth ? '100%' : 350,
-                flexGrow: 0,
-                alignSelf: 'flex-start',
-            }) satisfies ViewStyle,
+    overlayStyles: ({
+        progress,
+        positionLeftValue,
+        positionRightValue,
+    }: {
+        progress: OverlayStylesParams;
+        positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+        positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+    }) =>
+        ({
+            // We need to stretch the overlay to cover the sidebar and the translate animation distance.
+            left: positionLeftValue,
+            right: positionRightValue,
+            opacity: progress.interpolate({
+                inputRange: [0, 0.5],
+                outputRange: [0, variables.overlayOpacity],
+                extrapolate: 'clamp',
+            }),
+        }) satisfies ViewStyle,
 
-        centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
-            ({
-                borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
-                marginHorizontal: isSmallScreenWidth ? 0 : 20,
-            }) satisfies ViewStyle,
+    getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
+        ({
+            width: isSmallScreenWidth ? '100%' : 350,
+            flexBasis: isSmallScreenWidth ? '100%' : 350,
+            flexGrow: 0,
+            alignSelf: 'flex-start',
+        }) satisfies ViewStyle,
 
-        twoFactorAuthCodesBoxPadding: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
-            let paddingHorizontal = spacing.ph9;
+    centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
+        ({
+            borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
+            marginHorizontal: isSmallScreenWidth ? 0 : 20,
+        }) satisfies ViewStyle,
 
-            if (isSmallScreenWidth) {
-                paddingHorizontal = spacing.ph4;
-            }
+    twoFactorAuthCodesBoxPadding: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
+        let paddingHorizontal = spacing.ph9;
 
-            if (isExtraSmallScreenWidth) {
-                paddingHorizontal = spacing.ph2;
-            }
+        if (isSmallScreenWidth) {
+            paddingHorizontal = spacing.ph4;
+        }
 
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = spacing.ph2;
+        }
+
+        return {
+            ...paddingHorizontal,
+        } satisfies ViewStyle;
+    },
+
+    anonymousRoomFooterFlexDirection: (isSmallSizeLayout: boolean) =>
+        ({
+            flexDirection: isSmallSizeLayout ? 'column' : 'row',
+            ...(!isSmallSizeLayout && {
+                alignItems: 'center',
+                justifyContent: 'space-between',
+            }),
+        }) satisfies ViewStyle & TextStyle,
+    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout: boolean) =>
+        ({
+            ...(isSmallSizeLayout && {
+                justifyContent: 'space-between',
+                marginTop: 16,
+            }),
+        }) satisfies ViewStyle,
+
+    workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
+        let paddingHorizontal = spacing.ph5;
+        let paddingVertical = spacing.pv5;
+
+        if (isExtraSmallScreenWidth) {
+            paddingHorizontal = spacing.ph2;
+            paddingVertical = spacing.pv2;
+        }
+
+        return {
+            ...paddingVertical,
+            ...paddingHorizontal,
+        } satisfies ViewStyle;
+    },
+
+    rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+        ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
+
+    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
+
+    activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
+        const browser = getBrowser();
+        const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
+
+        return {
+            opacity: isActive ? 1 : 0,
+            ...(isSafariOrChromeBrowser && {
+                backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+            }),
+            // fallback for the desktop and other browsers that this svg doesn't work with
+            ...(!isSafariOrChromeBrowser && {
+                borderWidth: 2,
+                borderStyle: 'dashed',
+                borderColor,
+                borderRadius: variables.componentBorderRadiusNormal,
+            }),
+        };
+    },
+
+    attachmentDropOverlay: (isActive?: boolean) => ({
+        backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
+        transition: 'background-color 0.2s ease-in',
+    }),
+
+    receiptDropOverlay: (isActive?: boolean) => ({
+        backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
+        transition: 'background-color 0.2s ease-in',
+    }),
+
+    fileUploadImageWrapper: (fileTopPosition: number) =>
+        ({
+            top: fileTopPosition,
+        }) satisfies ViewStyle,
+
+    tabText: (isSelected: boolean, hasIcon = false): TextStyle => ({
+        marginLeft: hasIcon ? 8 : 0,
+        ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        color: isSelected ? theme.text : theme.textSupporting,
+        lineHeight: variables.lineHeightLarge,
+        fontSize: variables.fontSizeLabel,
+    }),
+
+    tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
+        if (isDisabled) {
+            return {backgroundColor: undefined};
+        }
+
+        return {
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
+        };
+    },
+
+    tabOpacity: (
+        isDisabled: boolean,
+        hovered: boolean,
+        isFocused: boolean,
+        activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+    ) => {
+        if (isDisabled) {
             return {
-                ...paddingHorizontal,
-            } satisfies ViewStyle;
-        },
-
-        anonymousRoomFooterFlexDirection: (isSmallSizeLayout: boolean) =>
-            ({
-                flexDirection: isSmallSizeLayout ? 'column' : 'row',
-                ...(!isSmallSizeLayout && {
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                }),
-            }) satisfies ViewStyle & TextStyle,
-        anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout: boolean) =>
-            ({
-                ...(isSmallSizeLayout && {
-                    justifyContent: 'space-between',
-                    marginTop: 16,
-                }),
-            }) satisfies ViewStyle,
-
-        workspaceUpgradeIntroBox: ({isExtraSmallScreenWidth}: WorkspaceUpgradeIntroBoxParams): ViewStyle => {
-            let paddingHorizontal = spacing.ph5;
-            let paddingVertical = spacing.pv5;
-
-            if (isExtraSmallScreenWidth) {
-                paddingHorizontal = spacing.ph2;
-                paddingVertical = spacing.pv2;
-            }
-
-            return {
-                ...paddingVertical,
-                ...paddingHorizontal,
-            } satisfies ViewStyle;
-        },
-
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
-
-        RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
-
-        activeDropzoneDashedBorder: (borderColor: string, isActive: boolean) => {
-            const browser = getBrowser();
-            const isSafariOrChromeBrowser = getPlatform() === CONST.PLATFORM.WEB && (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.CHROME);
-
-            return {
-                opacity: isActive ? 1 : 0,
-                ...(isSafariOrChromeBrowser && {
-                    backgroundImage: `url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect x='1' y='1' width='calc(100%25 - 3px)' height='calc(100%25 - 3px)' fill='none' stroke='${encodeURIComponent(borderColor)}' stroke-width='2' stroke-dasharray='8' stroke-dashoffset='4 8' stroke-linecap='round' rx='8' ry='8' /%3e%3c/svg%3e")`,
-                    backgroundSize: '100% 100%',
-                    backgroundRepeat: 'no-repeat',
-                }),
-                // fallback for the desktop and other browsers that this svg doesn't work with
-                ...(!isSafariOrChromeBrowser && {
-                    borderWidth: 2,
-                    borderStyle: 'dashed',
-                    borderColor,
-                    borderRadius: variables.componentBorderRadiusNormal,
-                }),
+                opacity: activeOpacityValue,
             };
-        },
+        }
 
-        attachmentDropOverlay: (isActive?: boolean) => ({
-            backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
-            transition: 'background-color 0.2s ease-in',
-        }),
+        return {
+            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
+        };
+    },
 
-        receiptDropOverlay: (isActive?: boolean) => ({
-            backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
-            transition: 'background-color 0.2s ease-in',
-        }),
+    overscrollSpacer: (backgroundColor: string, height: number) =>
+        ({
+            backgroundColor,
+            height,
+            top: -height,
+        }) satisfies ViewStyle,
 
-        fileUploadImageWrapper: (fileTopPosition: number) =>
-            ({
-                top: fileTopPosition,
-            }) satisfies ViewStyle,
+    justSignedInModalAnimation: (is2FARequired: boolean) => ({
+        height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
+    }),
 
-        tabText: (isSelected: boolean, hasIcon = false): TextStyle => ({
-            marginLeft: hasIcon ? 8 : 0,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            color: isSelected ? theme.text : theme.textSupporting,
-            lineHeight: variables.lineHeightLarge,
-            fontSize: variables.fontSizeLabel,
-        }),
+    screenWrapperContainerMinHeight: (minHeight: number | undefined) => ({
+        minHeight,
+    }),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
-            if (isDisabled) {
-                return {backgroundColor: undefined};
-            }
+    aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
-            return {
-                backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
-            };
-        },
+    colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
 
-        tabOpacity: (
-            isDisabled: boolean,
-            hovered: boolean,
-            isFocused: boolean,
-            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
-            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
-        ) => {
-            if (isDisabled) {
-                return {
-                    opacity: activeOpacityValue,
-                };
-            }
+    emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
+        ({
+            width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+        }) satisfies ViewStyle,
 
-            return {
-                opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
-            };
-        },
+    sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
+        opacity: isOverlayVisible ? variables.overlayOpacity : 0,
+    }),
+    sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
+    }),
+    sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
+        borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+    }),
 
-        overscrollSpacer: (backgroundColor: string, height: number) =>
-            ({
-                backgroundColor,
-                height,
-                top: -height,
-            }) satisfies ViewStyle,
+    searchBarWidth: (shouldUseNarrowLayout: boolean) => ({
+        maxWidth: shouldUseNarrowLayout ? '100%' : 300,
+    }),
 
-        justSignedInModalAnimation: (is2FARequired: boolean) => ({
-            height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
-        }),
+    getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        flexDirection: 'column',
+        marginBottom: shouldUseNarrowLayout ? 8 : 20,
+    }),
 
-        screenWrapperContainerMinHeight: (minHeight: number | undefined) => ({
-            minHeight,
-        }),
+    getSafeAreaPressablePosition: (safeAreaPosition: 'right' | 'left', width: number): ViewStyle => ({
+        position: 'absolute',
+        [safeAreaPosition]: 0,
+        top: 0,
+        bottom: 0,
+        width,
+    }),
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
+    getSelectionListPopoverHeight: ({
+        itemCount,
+        itemHeight = variables.optionRowHeightCompact,
+        windowHeight,
+        isInLandscapeMode,
+        hasTitle,
+        hasHeader,
+        hasButton = true,
+        isSearchable,
+        isNegatable,
+        extraHeight = 0,
+    }: SelectionListPopover) => {
+        const MODAL_VERTICAL_PADDING = 32;
+        const BUTTON_HEIGHT = hasButton ? 48 : 0;
+        const HEADER_HEIGHT = hasHeader ? 48 : 0;
+        const TITLE_HEIGHT = hasTitle ? 34 : 0;
+        const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+        const NEGATION_TOGGLE_BORDER_WIDTH = 1;
+        const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
-        colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
+        const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
+        const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING + NEGATION_TOGGLE_HEIGHT;
 
-        emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
-            ({
-                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
-            }) satisfies ViewStyle,
+        const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
 
-        sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
-            opacity: isOverlayVisible ? variables.overlayOpacity : 0,
-        }),
-        sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
-        }),
-        sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
-            borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
-        }),
+        // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
+        // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
+        // and never expand over the max height
+        const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT - ESTIMATED_NON_LIST_HEIGHT, windowHeight * heightRatio - ESTIMATED_NON_LIST_HEIGHT);
+        return {height};
+    },
 
-        searchBarWidth: (shouldUseNarrowLayout: boolean) => ({
-            maxWidth: shouldUseNarrowLayout ? '100%' : 300,
-        }),
+    getPopoverMaxHeight: (windowHeight: number, isInLandscapeMode: boolean) => {
+        const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
+        return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
+    },
 
-        getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            flexDirection: 'column',
-            marginBottom: shouldUseNarrowLayout ? 8 : 20,
-        }),
+    getMoneyRequestViewImage: (showBorderless: boolean) => ({
+        ...spacing.mh5,
+        overflow: 'hidden',
+        borderWidth: showBorderless ? 0 : 1,
+        borderColor: theme.border,
+        borderRadius: variables.componentBorderRadiusLarge,
+        height: 180,
+        maxWidth: '100%',
+    }),
 
-        getSafeAreaPressablePosition: (safeAreaPosition: 'right' | 'left', width: number): ViewStyle => ({
-            position: 'absolute',
-            [safeAreaPosition]: 0,
-            top: 0,
-            bottom: 0,
-            width,
-        }),
+    getCenteredModalOuterView: (shouldDockToBottom: boolean) =>
+        ({
+            justifyContent: shouldDockToBottom ? 'flex-end' : 'center',
+        }) as const,
 
-        getSelectionListPopoverHeight: ({
-            itemCount,
-            itemHeight = variables.optionRowHeightCompact,
-            windowHeight,
-            isInLandscapeMode,
-            hasTitle,
-            hasHeader,
-            hasButton = true,
-            isSearchable,
-            isNegatable,
-            extraHeight = 0,
-        }: SelectionListPopover) => {
-            const MODAL_VERTICAL_PADDING = 32;
-            const BUTTON_HEIGHT = hasButton ? 48 : 0;
-            const HEADER_HEIGHT = hasHeader ? 48 : 0;
-            const TITLE_HEIGHT = hasTitle ? 34 : 0;
-            const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
-            const NEGATION_TOGGLE_BORDER_WIDTH = 1;
-            const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
+    getCenteredModalInnerView: (shouldDockToBottom: boolean, width?: number, height?: DimensionValue) => {
+        const borderBottomRadius = shouldDockToBottom ? 0 : variables.componentBorderRadiusLarge;
 
-            const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
-            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING + NEGATION_TOGGLE_HEIGHT;
-
-            const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
-
-            // Native platforms don't support maxHeight in the way thats expected, so lets manually set the height to either
-            // the listHeight, the max height of the popover, or 90% of the window height, such that we never overflow the screen
-            // and never expand over the max height
-            const height = Math.min(ESTIMATED_LIST_HEIGHT, CONST.POPOVER_DROPDOWN_MAX_HEIGHT - ESTIMATED_NON_LIST_HEIGHT, windowHeight * heightRatio - ESTIMATED_NON_LIST_HEIGHT);
-            return {height};
-        },
-
-        getPopoverMaxHeight: (windowHeight: number, isInLandscapeMode: boolean) => {
-            const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
-            return {maxHeight: Math.min(CONST.POPOVER_DROPDOWN_MAX_HEIGHT, windowHeight * heightRatio)};
-        },
-
-        getMoneyRequestViewImage: (showBorderless: boolean) => ({
-            ...spacing.mh5,
-            overflow: 'hidden',
-            borderWidth: showBorderless ? 0 : 1,
-            borderColor: theme.border,
+        return {
+            width: shouldDockToBottom ? '100%' : (width ?? variables.featureTrainingModalWidth),
+            // No default height - the card hugs its content (children must have intrinsic height)
+            height,
+            maxHeight: '100%' as const,
             borderRadius: variables.componentBorderRadiusLarge,
-            height: 180,
-            maxWidth: '100%',
-        }),
+            borderBottomRightRadius: borderBottomRadius,
+            borderBottomLeftRadius: borderBottomRadius,
+            overflow: 'hidden' as const,
+            backgroundColor: theme.componentBG,
+        };
+    },
 
-        getCenteredModalOuterView: (shouldDockToBottom: boolean) =>
-            ({
-                justifyContent: shouldDockToBottom ? 'flex-end' : 'center',
-            }) as const,
+    getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+        justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+    }),
 
-        getCenteredModalInnerView: (shouldDockToBottom: boolean, width?: number, height?: DimensionValue) => {
-            const borderBottomRadius = shouldDockToBottom ? 0 : variables.componentBorderRadiusLarge;
+    getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+        const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+        // Use fixed height values based on the actual content height after the removal of the
+        // "Use profiling" and "Client side logging" menu items.
+        // - ~654px when authenticated
+        // - ~400px when unauthenticated
+        // For narrow layouts, we keep using percentages because fixed heights like 654px can overflow on mWeb Safari.
+        const defaultHeight = shouldUseNarrowLayout ? '78%' : 654;
+        const height = isAuthenticated ? defaultHeight : 400;
 
-            return {
-                width: shouldDockToBottom ? '100%' : (width ?? variables.featureTrainingModalWidth),
-                // No default height - the card hugs its content (children must have intrinsic height)
-                height,
-                maxHeight: '100%' as const,
-                borderRadius: variables.componentBorderRadiusLarge,
-                borderBottomRightRadius: borderBottomRadius,
-                borderBottomLeftRadius: borderBottomRadius,
-                overflow: 'hidden' as const,
-                backgroundColor: theme.componentBG,
-            };
-        },
+        return {
+            width: shouldUseNarrowLayout ? '100%' : '91%',
+            height,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderBottomRightRadius: borderBottomRadius,
+            borderBottomLeftRadius: borderBottomRadius,
+            overflow: 'hidden',
+        };
+    },
 
-        getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
-            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
-        }),
+    getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
-        getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
-            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
-            // Use fixed height values based on the actual content height after the removal of the
-            // "Use profiling" and "Client side logging" menu items.
-            // - ~654px when authenticated
-            // - ~400px when unauthenticated
-            // For narrow layouts, we keep using percentages because fixed heights like 654px can overflow on mWeb Safari.
-            const defaultHeight = shouldUseNarrowLayout ? '78%' : 654;
-            const height = isAuthenticated ? defaultHeight : 400;
+    getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
-            return {
-                width: shouldUseNarrowLayout ? '100%' : '91%',
-                height,
-                borderRadius: variables.componentBorderRadiusLarge,
-                borderBottomRightRadius: borderBottomRadius,
-                borderBottomLeftRadius: borderBottomRadius,
-                overflow: 'hidden',
-            };
-        },
+    searchListContentContainerStyles: (hasFilterBars: boolean) => ({
+        paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+    }),
 
-        getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
+    sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
+        borderRadius: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
+        paddingVertical: shouldUseNarrowLayout ? 8 : 4,
+        height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
+        alignItems: 'center',
+    }),
 
-        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
+    searchActionsBar: (shouldUseNarrowLayout: boolean) => ({
+        alignItems: 'center',
+        height: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
+        justifyContent: 'center',
+        width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
+        backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
+        borderRadius: 999,
+    }),
 
-        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
-        }),
-
-        sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
-            borderRadius: 8,
-            paddingLeft: 16,
-            paddingRight: 16,
-            paddingVertical: shouldUseNarrowLayout ? 8 : 4,
-            height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
-            alignItems: 'center',
-        }),
-
-        searchActionsBar: (shouldUseNarrowLayout: boolean) => ({
-            alignItems: 'center',
-            height: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
-            justifyContent: 'center',
-            width: shouldUseNarrowLayout ? variables.componentSizeNormal : variables.h28,
-            backgroundColor: shouldUseNarrowLayout ? undefined : theme.buttonDefaultBG,
-            borderRadius: 999,
-        }),
-
-        // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
-        // so offset its vertical margin to keep the row height identical and prevent the table from shifting.
-        tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
-            marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
-        }),
-    }) satisfies DynamicStyles;
+    // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
+    // so offset its vertical margin to keep the row height identical and prevent the table from shifting.
+    tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
+        marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
+    }),
+});
 
 // Styles that cannot be wrapped in StyleSheet.create because they eg. must be passed to 3rd party libraries as JS objects
-const plainStyles = (theme: ThemeColors) =>
-    ({
-        webViewStyles: webViewStyles(theme),
-        textInputDesktop: addOutlineWidth(theme, {}, 0),
-        noOutline: addOutlineWidth(theme, {}, 0),
-        picker: (disabled = false, backgroundColor: string = theme.appBG) =>
-            ({
-                iconContainer: {
-                    top: Math.round(variables.inputHeight * 0.5) - 11,
-                    right: 0,
-                    ...pointerEventsNone,
-                },
+const plainStyles = (theme: ThemeColors) => ({
+    webViewStyles: webViewStyles(theme),
+    textInputDesktop: addOutlineWidth(theme, {}, 0),
+    noOutline: addOutlineWidth(theme, {}, 0),
+    picker: (disabled = false, backgroundColor: string = theme.appBG) =>
+        ({
+            iconContainer: {
+                top: Math.round(variables.inputHeight * 0.5) - 11,
+                right: 0,
+                ...pointerEventsNone,
+            },
 
-                inputWeb: {
-                    appearance: 'none',
-                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
-                    ...picker(theme),
-                    backgroundColor,
-                },
+            inputWeb: {
+                appearance: 'none',
+                ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
+                ...picker(theme),
+                backgroundColor,
+            },
 
-                inputIOS: {
-                    ...picker(theme),
-                },
-                done: {
-                    color: theme.text,
-                },
-                doneDepressed: {
-                    // Extracted from react-native-picker-select, src/styles.js
-                    fontSize: 17,
-                },
-                modalViewMiddle: {
-                    backgroundColor: theme.border,
-                    borderTopWidth: 0,
-                },
-                modalViewBottom: {
-                    backgroundColor: theme.highlightBG,
-                },
+            inputIOS: {
+                ...picker(theme),
+            },
+            done: {
+                color: theme.text,
+            },
+            doneDepressed: {
+                // Extracted from react-native-picker-select, src/styles.js
+                fontSize: 17,
+            },
+            modalViewMiddle: {
+                backgroundColor: theme.border,
+                borderTopWidth: 0,
+            },
+            modalViewBottom: {
+                backgroundColor: theme.highlightBG,
+            },
 
-                inputAndroid: {
-                    ...picker(theme),
-                },
-            }) satisfies CustomPickerStyle,
+            inputAndroid: {
+                ...picker(theme),
+            },
+        }) satisfies CustomPickerStyle,
 
-        pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
-            ({
-                inputIOS: {
-                    ...FontUtils.fontFamily.platform.EXP_NEUE,
-                    fontSize: variables.fontSizeSmall,
-                    paddingLeft: 0,
-                    paddingRight: 17,
-                    paddingTop: 6,
-                    paddingBottom: 6,
-                    borderWidth: 0,
-                    color: theme.text,
-                    height: 26,
-                    opacity: 1,
-                    backgroundColor: 'transparent',
-                },
-                done: {
-                    color: theme.text,
-                },
-                doneDepressed: {
-                    // Extracted from react-native-picker-select, src/styles.js
-                    fontSize: 17,
-                },
-                modalViewMiddle: {
-                    position: 'relative',
-                    backgroundColor: theme.border,
-                    borderTopWidth: 0,
-                },
-                modalViewBottom: {
-                    backgroundColor: theme.highlightBG,
-                },
-                inputWeb: {
-                    ...FontUtils.fontFamily.platform.EXP_NEUE,
-                    fontSize: variables.fontSizeSmall,
-                    paddingLeft: 0,
-                    paddingRight: 17,
-                    paddingTop: 6,
-                    paddingBottom: 6,
-                    borderWidth: 0,
-                    color: theme.text,
-                    appearance: 'none',
-                    height: 26,
-                    opacity: 1,
-                    backgroundColor,
-                    ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
-                },
-                inputAndroid: {
-                    ...FontUtils.fontFamily.platform.EXP_NEUE,
-                    fontSize: variables.fontSizeSmall,
-                    paddingLeft: 0,
-                    paddingRight: 17,
-                    paddingTop: 6,
-                    paddingBottom: 6,
-                    borderWidth: 0,
-                    color: theme.text,
-                    height: 26,
-                    opacity: 1,
-                    backgroundColor: 'transparent',
-                },
-                iconContainer: {
-                    top: 7,
-                    ...pointerEventsNone,
-                },
-                icon: {
-                    width: variables.iconSizeExtraSmall,
-                    height: variables.iconSizeExtraSmall,
-                },
-                chevronContainer: {
-                    pointerEvents: 'none',
-                    opacity: 0,
-                },
-            }) satisfies CustomPickerStyle,
-        mapDirection: {
-            lineColor: colors.green400,
-            lineWidth: 6,
-            lineCap: 'round',
-        } satisfies MapDirectionStyle,
+    pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
+        ({
+            inputIOS: {
+                ...FontUtils.fontFamily.platform.EXP_NEUE,
+                fontSize: variables.fontSizeSmall,
+                paddingLeft: 0,
+                paddingRight: 17,
+                paddingTop: 6,
+                paddingBottom: 6,
+                borderWidth: 0,
+                color: theme.text,
+                height: 26,
+                opacity: 1,
+                backgroundColor: 'transparent',
+            },
+            done: {
+                color: theme.text,
+            },
+            doneDepressed: {
+                // Extracted from react-native-picker-select, src/styles.js
+                fontSize: 17,
+            },
+            modalViewMiddle: {
+                position: 'relative',
+                backgroundColor: theme.border,
+                borderTopWidth: 0,
+            },
+            modalViewBottom: {
+                backgroundColor: theme.highlightBG,
+            },
+            inputWeb: {
+                ...FontUtils.fontFamily.platform.EXP_NEUE,
+                fontSize: variables.fontSizeSmall,
+                paddingLeft: 0,
+                paddingRight: 17,
+                paddingTop: 6,
+                paddingBottom: 6,
+                borderWidth: 0,
+                color: theme.text,
+                appearance: 'none',
+                height: 26,
+                opacity: 1,
+                backgroundColor,
+                ...(disabled ? cursor.cursorDisabled : cursor.cursorPointer),
+            },
+            inputAndroid: {
+                ...FontUtils.fontFamily.platform.EXP_NEUE,
+                fontSize: variables.fontSizeSmall,
+                paddingLeft: 0,
+                paddingRight: 17,
+                paddingTop: 6,
+                paddingBottom: 6,
+                borderWidth: 0,
+                color: theme.text,
+                height: 26,
+                opacity: 1,
+                backgroundColor: 'transparent',
+            },
+            iconContainer: {
+                top: 7,
+                ...pointerEventsNone,
+            },
+            icon: {
+                width: variables.iconSizeExtraSmall,
+                height: variables.iconSizeExtraSmall,
+            },
+            chevronContainer: {
+                pointerEvents: 'none',
+                opacity: 0,
+            },
+        }) satisfies CustomPickerStyle,
+    mapDirection: {
+        lineColor: colors.green400,
+        lineWidth: 6,
+        lineCap: 'round',
+    } satisfies MapDirectionStyle,
 
-        mapDirectionBorder: {
-            lineColor: colors.green600,
-            lineWidth: 8,
-            lineCap: 'round',
-        } satisfies MapDirectionStyle,
+    mapDirectionBorder: {
+        lineColor: colors.green600,
+        lineWidth: 8,
+        lineCap: 'round',
+    } satisfies MapDirectionStyle,
 
-        alternativeMapDirection: {
-            lineColor: colors.green200,
-            lineWidth: 6,
-            lineCap: 'round',
-        },
+    alternativeMapDirection: {
+        lineColor: colors.green200,
+        lineWidth: 6,
+        lineCap: 'round',
+    },
 
-        mapDirectionLayer: {
-            layout: {'line-join': 'round', 'line-cap': 'round'},
-            paint: {'line-color': colors.green400, 'line-width': 6},
-        },
+    mapDirectionLayer: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': colors.green400, 'line-width': 6},
+    },
 
-        alternativeMapDirectionLayer: {
-            layout: {'line-join': 'round', 'line-cap': 'round'},
-            paint: {'line-color': colors.green200, 'line-width': 6},
-        },
+    alternativeMapDirectionLayer: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': colors.green200, 'line-width': 6},
+    },
 
-        mapDirectionLayerBorder: {
-            layout: {'line-join': 'round', 'line-cap': 'round'},
-            paint: {'line-color': colors.green600, 'line-width': 8},
-        },
-        searchTopBarZIndexStyle: {
-            zIndex: variables.searchTopBarZIndex,
-        },
+    mapDirectionLayerBorder: {
+        layout: {'line-join': 'round', 'line-cap': 'round'},
+        paint: {'line-color': colors.green600, 'line-width': 8},
+    },
+    searchTopBarZIndexStyle: {
+        zIndex: variables.searchTopBarZIndex,
+    },
 
-        getWidgetContainerTitleStyle: (color: string) =>
-            ({
-                ...textVariants.textStrong,
-                color,
-            }) satisfies TextStyle,
+    getWidgetContainerTitleStyle: (color: string) =>
+        ({
+            ...textVariants.textStrong,
+            color,
+        }) satisfies TextStyle,
 
-        getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
+    getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
 
-        getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
-            ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 20,
-                marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
-                marginTop: shouldUseNarrowLayout ? 20 : 32,
-            }) satisfies ViewStyle,
-
-        // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
-        // line it wraps away inside composerButtonStack (overflow hidden) and the button centers instead.
-        conciergePromptBoxButtonSpacer: {
-            flexGrow: 1,
-            flexShrink: 0,
-            minHeight: COMPOSER_SIZE_BUTTON_SIZE,
-        },
-
-        // Overlays the exceeded-length message just below the compose box so showing it never grows the box's
-        // footprint and pushes the content underneath down.
-        conciergePromptBoxExceededLength: {
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-        },
-
-        // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
-        // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
-        conciergePromptBoxPlaceholderProbe: {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            opacity: 0,
-            paddingRight: 24,
-        },
-
-        conciergePromptBoxPlaceholderSkeleton: {
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: variables.composerTextInputPaddingLeft,
-            justifyContent: 'center',
-        },
-
-        widgetItemIconContainer: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: variables.componentSizeNormal,
-            height: variables.componentSizeNormal,
-        },
-
-        homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
-            ({
-                flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
-                gap: 20,
-                width: '100%',
-                maxWidth: variables.centeredContentMaxWidth,
-                alignSelf: 'center',
-            }) satisfies ViewStyle,
-
-        centeredContentWidthLimiter: {
-            width: '100%',
-            maxWidth: variables.centeredContentMaxWidth,
-            alignSelf: 'center',
-        },
-
-        homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
-
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
-
-        insightsDashboardLayout: {
-            width: '100%',
-            maxWidth: variables.centeredContentMaxWidth,
-            alignSelf: 'center',
-            gap: variables.insightsCardGap,
-        } satisfies ViewStyle,
-
-        insightsChartGrid: {
+    getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
+        ({
             flexDirection: 'row',
-            flexWrap: 'wrap',
-            alignItems: 'stretch',
-            marginHorizontal: -variables.insightsCardGap / 2,
-            marginVertical: -variables.insightsCardGap / 2,
-        } satisfies ViewStyle,
+            alignItems: 'center',
+            marginBottom: 20,
+            marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
+            marginTop: shouldUseNarrowLayout ? 20 : 32,
+        }) satisfies ViewStyle,
 
-        insightsChartGridCell: (shouldUseNarrowLayout: boolean) =>
-            ({
-                flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
-                padding: variables.insightsCardGap / 2,
-            }) satisfies ViewStyle,
+    // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
+    // line it wraps away inside composerButtonStack (overflow hidden) and the button centers instead.
+    conciergePromptBoxButtonSpacer: {
+        flexGrow: 1,
+        flexShrink: 0,
+        minHeight: COMPOSER_SIZE_BUTTON_SIZE,
+    },
 
-        insightsEmptyStateIllustration: {
-            width: variables.insightsEmptyStateIllustrationSize,
-            height: variables.insightsEmptyStateIllustrationSize,
-        } satisfies ImageStyle,
-    }) satisfies Styles;
+    // Overlays the exceeded-length message just below the compose box so showing it never grows the box's
+    // footprint and pushes the content underneath down.
+    conciergePromptBoxExceededLength: {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        right: 0,
+    },
 
-const styles = (theme: ThemeColors) =>
-    ({
-        ...staticStyles(theme),
-        ...dynamicStyles(theme),
-        ...plainStyles(theme),
-    }) satisfies Styles;
+    // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
+    // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
+    conciergePromptBoxPlaceholderProbe: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        opacity: 0,
+        paddingRight: 24,
+    },
+
+    conciergePromptBoxPlaceholderSkeleton: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: variables.composerTextInputPaddingLeft,
+        justifyContent: 'center',
+    },
+
+    widgetItemIconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: variables.componentSizeNormal,
+        height: variables.componentSizeNormal,
+    },
+
+    homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
+        ({
+            flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
+            gap: 20,
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        }) satisfies ViewStyle,
+
+    centeredContentWidthLimiter: {
+        width: '100%',
+        maxWidth: variables.centeredContentMaxWidth,
+        alignSelf: 'center',
+    },
+
+    homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+    homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+    insightsDashboardLayout: {
+        width: '100%',
+        maxWidth: variables.centeredContentMaxWidth,
+        alignSelf: 'center',
+        gap: variables.insightsCardGap,
+    } satisfies ViewStyle,
+
+    insightsChartGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'stretch',
+        marginHorizontal: -variables.insightsCardGap / 2,
+        marginVertical: -variables.insightsCardGap / 2,
+    } satisfies ViewStyle,
+
+    insightsChartGridCell: (shouldUseNarrowLayout: boolean) =>
+        ({
+            flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
+            padding: variables.insightsCardGap / 2,
+        }) satisfies ViewStyle,
+
+    insightsEmptyStateIllustration: {
+        width: variables.insightsEmptyStateIllustrationSize,
+        height: variables.insightsEmptyStateIllustrationSize,
+    } satisfies ImageStyle,
+});
+
+const styles = (theme: ThemeColors) => ({
+    ...staticStyles(theme),
+    ...dynamicStyles(theme),
+    ...plainStyles(theme),
+});
 
 type ThemeStyles = ReturnType<typeof styles>;
 

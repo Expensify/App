@@ -9,6 +9,9 @@
         // line flag: the whole typecheck gate now depends on this option coming from a config file.
         "noEmit": true,
         "incremental": true,
+        // Opt in to the React Native Strict TypeScript API (default from 0.87). customConditions
+        // replaces the value from expo/tsconfig.base rather than merging, so "react-native" stays.
+        "customConditions": ["react-native", "react-native-strict-api"],
         "paths": {
             "@assets/*": ["./assets/*"],
             "@components/*": ["./src/components/*"],
@@ -24,7 +27,10 @@
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"],
             "@selectors/*": ["./src/selectors/*"],
-            "tests/*": ["./tests/*"]
+            "tests/*": ["./tests/*"],
+            // @types/react-native-web augments `interface ViewStyle` / `interface ViewProps` onto the
+            // Strict API type aliases, which erases every property. Nothing in the app should load it.
+            "react-native-web": ["./src/types/modules/react-native-web.ts"]
         }
     }
 }

@@ -3,7 +3,7 @@
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
         "tsBuildInfoFile": "./tsconfig.app.ts7.tsbuildinfo",
-        "types": ["react-native", "react-native-web"],
+        "types": ["react-native"],
         "lib": ["DOM", "ESNext"]
     },
     "include": [
@@ -20,5 +20,5 @@
         "config/rsbuild",
         "__mocks__/reportData"
     ],
-    "exclude": ["**/node_modules/*", "**/dist/*", "src/**/__mocks__/**"]
+    "exclude": ["**/node_modules/*", "**/dist/*", "src/**/__mocks__/**", "node_modules/@types/react-native-web"]
 }
