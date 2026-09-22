@@ -1,4 +1,4 @@
-import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
@@ -190,8 +190,6 @@ function SearchAutocompleteList({
     const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
-    const cardList = useCardList();
-    const workspaceCardList = useWorkspaceCardList();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -290,8 +288,6 @@ function SearchAutocompleteList({
             transactionThreadIDs,
             lastActions,
             currentUserLogin: currentUserEmail,
-            cardList,
-            workspaceCardList,
             localeCompare,
             formatPhoneNumber,
             conciergeReportID,
@@ -315,8 +311,6 @@ function SearchAutocompleteList({
         sortedActions,
         transactionThreadIDs,
         lastActions,
-        cardList,
-        workspaceCardList,
         localeCompare,
         formatPhoneNumber,
         conciergeReportID,

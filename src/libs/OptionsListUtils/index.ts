@@ -29,9 +29,9 @@ import {
     getSubmitToAccountID,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
-import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType, isCardIssuedAction} from '@libs/ReportActionsUtils';
+import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType} from '@libs/ReportActionsUtils';
 import type {LastActionContext} from '@libs/ReportAlternateTextUtils';
-import {getExpensifyCardFromReportAction, getLastMessageTextForReport, getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
+import {getLastMessageTextForReport, getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
@@ -76,7 +76,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    CardList,
     Locale,
     Login,
     OnyxInputOrEntry,
@@ -92,7 +91,6 @@ import type {
     ReportAttributesDerivedValue,
     Rule,
     VisibleReportActionsDerivedValue,
-    WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -253,8 +251,6 @@ type GetAlternateTextConfig = {
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
     currentUserLogin?: string;
-    cardList?: OnyxEntry<CardList>;
-    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     /** Resolved by the caller when it already did the lookup, so the last-action scan is not repeated here. */
@@ -302,8 +298,6 @@ function getAlternateText(
         isTrackIntentUser,
         currentUserAccountID,
         currentUserLogin,
-        cardList,
-        workspaceCardList,
         localeCompare,
         formatPhoneNumber,
         lastActionContext,
@@ -324,22 +318,12 @@ function getAlternateText(
             const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
             const {lastAction, lastActionReport, movedFromReport, movedToReport} =
                 lastActionContext ?? resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
-            const card = isCardIssuedAction(lastAction)
-                ? getExpensifyCardFromReportAction({
-                      reportAction: lastAction,
-                      policy,
-                      cardList,
-                      workspaceCardList,
-                  })
-                : undefined;
             return getReportAlternateText({
                 report,
                 lastAction,
                 lastActionReport,
                 movedFromReport,
                 movedToReport,
-                card,
-                lastMessageTextFromReport: option.lastMessageText,
                 personalDetails,
                 policy,
                 invoiceReceiverPolicy,
@@ -2100,6 +2084,12 @@ registerSessionCleanupCallback(() => {
     alternateTextCacheInputs = undefined;
 });
 
+/** Clears the preview cache. For tests that measure or exercise the resolve path while the guarded inputs keep their identity. */
+function clearAlternateTextCache() {
+    alternateTextCache.clear();
+    alternateTextCacheInputs = undefined;
+}
+
 /** Drops every cached preview as soon as any input that feeds `getAlternateText` changes identity. */
 function syncAlternateTextCache(inputs: unknown[]) {
     if (alternateTextCacheInputs?.length === inputs.length && inputs.every((input, index) => input === alternateTextCacheInputs?.at(index))) {
@@ -2156,8 +2146,6 @@ function prepareReportOptionsForDisplay(
         dateFnsLocale: DateFnsLocale | undefined;
         currentUserAccountID?: number;
         currentUserLogin?: string;
-        cardList?: OnyxEntry<CardList>;
-        workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
         localeCompare?: LocaleContextProps['localeCompare'];
         formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
         transactionThreadIDs?: Record<string, string | undefined>;
@@ -2189,8 +2177,6 @@ function prepareReportOptionsForDisplay(
         convertToDisplayStringWithoutCurrency,
         currentUserAccountID,
         currentUserLogin,
-        cardList,
-        workspaceCardList,
         localeCompare,
         formatPhoneNumber,
         transactionThreadIDs,
@@ -2212,8 +2198,6 @@ function prepareReportOptionsForDisplay(
         transactionThreadIDs,
         lastActions,
         rules,
-        cardList,
-        workspaceCardList,
         conciergeReportID,
         isTrackIntentUser,
         currentUserAccountID,
@@ -2270,8 +2254,6 @@ function prepareReportOptionsForDisplay(
                     isTrackIntentUser,
                     currentUserAccountID,
                     currentUserLogin,
-                    cardList,
-                    workspaceCardList,
                     localeCompare,
                     formatPhoneNumber,
                     rules,
@@ -2385,8 +2367,6 @@ function getValidOptions(
         transactionThreadIDs,
         lastActions,
         currentUserLogin,
-        cardList,
-        workspaceCardList,
         localeCompare,
         formatPhoneNumber,
         isTrackIntentUser,
@@ -2538,8 +2518,6 @@ function getValidOptions(
                     translate,
                     currentUserAccountID,
                     currentUserLogin: currentUserLogin ?? currentUserEmail,
-                    cardList,
-                    workspaceCardList,
                     localeCompare,
                     formatPhoneNumber,
                     transactionThreadIDs,
@@ -2574,8 +2552,6 @@ function getValidOptions(
                 translate,
                 currentUserAccountID,
                 currentUserLogin: currentUserLogin ?? currentUserEmail,
-                cardList,
-                workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
                 transactionThreadIDs,
@@ -2606,8 +2582,6 @@ function getValidOptions(
                 translate,
                 currentUserAccountID,
                 currentUserLogin: currentUserLogin ?? currentUserEmail,
-                cardList,
-                workspaceCardList,
                 localeCompare,
                 formatPhoneNumber,
                 transactionThreadIDs,
@@ -2787,8 +2761,6 @@ type SearchOptionsConfig = {
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
     currentUserLogin?: string;
-    cardList?: OnyxEntry<CardList>;
-    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     conciergeReportID: string | undefined;
@@ -2828,8 +2800,6 @@ function getSearchOptions({
     transactionThreadIDs,
     lastActions,
     currentUserLogin,
-    cardList,
-    workspaceCardList,
     localeCompare,
     formatPhoneNumber,
     conciergeReportID,
@@ -2880,8 +2850,6 @@ function getSearchOptions({
             transactionThreadIDs,
             lastActions,
             currentUserLogin: currentUserLogin ?? currentUserEmail,
-            cardList,
-            workspaceCardList,
             localeCompare,
             formatPhoneNumber,
             excludeFromSuggestionsOnly,
@@ -3419,6 +3387,7 @@ function processSearchString(searchString: string | undefined): string[] {
 
 export {
     canCreateOptimisticPersonalDetailOption,
+    clearAlternateTextCache,
     clearFilteredOptionListCache,
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,

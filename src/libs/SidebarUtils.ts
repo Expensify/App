@@ -902,6 +902,7 @@ function getOptionData({
         conciergeReportID,
         reportAttributesDerived,
         visibleReportActionsData,
+        oneTransactionThreadReportID: reportAttributes?.oneTransactionThreadReportID,
         currentUserAccountID,
         currentUserLogin,
         isTrackIntentUser,
