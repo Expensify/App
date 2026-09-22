@@ -121,8 +121,8 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <Text style={sectionTitleStyle}>{translate('workspace.common.taxes')}</Text>
                     <ToggleSettingOptionRow
-                        title={translate('workspace.taxes.taxRates')}
-                        switchAccessibilityLabel={translate('workspace.taxes.taxRates')}
+                        title={translate('workspace.accounting.taxes')}
+                        switchAccessibilityLabel={translate('workspace.accounting.taxes')}
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTaxRates}
                         onToggle={() => policyID && updateBusinessCentralSyncTaxRates(policyID, !syncTaxRates, syncTaxRates)}
