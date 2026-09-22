@@ -1,7 +1,7 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
-import {getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, sortTags} from '@libs/TagsOptionsListUtils';
+import {getEnabledTags, getTagListSections, getTagVisibility, getUpdatedTransactionTag, hasEnabledTags, sortTags} from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1185,6 +1185,155 @@ describe('TagsOptionsListUtils', () => {
             });
 
             expect(result).toBe('Acme Corp');
+        });
+    });
+
+    describe('hasEnabledTags', () => {
+        type TagListValue = PolicyTagLists[keyof PolicyTagLists];
+        const buildTagLists = (...tagLists: PolicyTagLists[]): TagListValue[] => {
+            const result: TagListValue[] = [];
+            for (const tagList of tagLists) {
+                result.push(...Object.values(tagList));
+            }
+            return result;
+        };
+
+        it('returns true when at least one tag is enabled', () => {
+            // Given a tag list where one tag is disabled and one is enabled
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        disabled: {name: 'Disabled', enabled: false},
+                        enabled: {name: 'Enabled', enabled: true},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, the disabled tag must not mask the selectable one behind it
+            expect(result).toBe(true);
+        });
+
+        it('returns false when every tag is disabled', () => {
+            // Given a tag list an admin has fully disabled
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        a: {name: 'A', enabled: false},
+                        b: {name: 'B', enabled: false},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, callers hide the tag row instead of opening an empty picker
+            expect(result).toBe(false);
+        });
+
+        it('returns false when the only enabled tag is pending deletion', () => {
+            // Given a still-enabled tag that is optimistically being deleted offline
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        enabled: {name: 'Enabled', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        disabled: {name: 'Disabled', enabled: false},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, a tag on its way out should not look selectable
+            expect(result).toBe(false);
+        });
+
+        it('returns true when an enabled tag is pending an action other than deletion', () => {
+            // Given an enabled tag pending an update, so it survives once the request settles
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        enabled: {name: 'Enabled', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, only a pending deletion disqualifies a tag
+            expect(result).toBe(true);
+        });
+
+        it('finds an enabled tag across multiple tag lists', () => {
+            // Given multi-level tags where only the second list has an enabled tag
+            const tagLists = buildTagLists(
+                {
+                    list1: {
+                        name: 'List 1',
+                        required: false,
+                        orderWeight: 0,
+                        tags: {a: {name: 'A', enabled: false}},
+                    },
+                },
+                {
+                    list2: {
+                        name: 'List 2',
+                        required: false,
+                        orderWeight: 1,
+                        tags: {b: {name: 'B', enabled: true}},
+                    },
+                },
+            );
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, the search must not stop at the first list it finds nothing in
+            expect(result).toBe(true);
+        });
+
+        it('returns false for an empty list of tag lists', () => {
+            // Given a policy with no tag lists
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags([]);
+
+            // Then false rather than a throw, callers pass whatever Onyx currently holds
+            expect(result).toBe(false);
+        });
+
+        it('ignores a tag list that has no tags', () => {
+            // Given a tag list an admin just created and never populated
+            const tagLists = buildTagLists({
+                list1: {
+                    name: 'List 1',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {},
+                },
+            });
+
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, an empty list offers nothing to select
+            expect(result).toBe(false);
         });
     });
 });
