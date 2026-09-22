@@ -26,7 +26,7 @@ function MergeATSFinalApproverPage({
 }: MergeATSFinalApproverPageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {finalApprover} = useMergeATSApprovalDraftState();
+    const {finalApprover} = useMergeATSApprovalDraftState(policyID);
     const {setDraftFinalApprover} = useMergeATSApprovalDraftActions();
 
     const config: MergeFinalApproverProviderConfig = {

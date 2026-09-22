@@ -56,7 +56,7 @@ function MergeATSApprovalModePage({
 
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
     const currentApprovalMode = getMergeATSApprovalMode(policy);
-    const {approvalMode: selectedApprovalMode, approverField, finalApprover} = useMergeATSApprovalDraftState();
+    const {approvalMode: selectedApprovalMode, approverField, finalApprover} = useMergeATSApprovalDraftState(policyID);
     const {setDraftApprovalMode} = useMergeATSApprovalDraftActions();
 
     // Advanced mode always has an approver field, since that one falls back to the recruiter field, and its final approver is optional.

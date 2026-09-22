@@ -22,7 +22,7 @@ type MergeATSFinalApproverMenuItemProps = {
 
 function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApproverMenuItemProps) {
     const styles = useThemeStyles();
-    const {finalApprover} = useMergeATSApprovalDraftState();
+    const {finalApprover} = useMergeATSApprovalDraftState(policyID);
     const finalApproverDetails = usePersonalDetailByLogin(finalApprover);
 
     return (

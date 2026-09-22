@@ -46,7 +46,7 @@ function MergeATSApproverFieldPage({
     const policy = usePolicy(policyID);
 
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
-    const {approverField: currentApproverField} = useMergeATSApprovalDraftState();
+    const {approverField: currentApproverField} = useMergeATSApprovalDraftState(policyID);
     const {setDraftApproverField} = useMergeATSApprovalDraftActions();
 
     const approverFieldOptions: ApproverFieldListItem[] = ObjectUtils.typedKeys(CONST.MERGE.ATS_APPROVER_FIELD).map((key) => {
