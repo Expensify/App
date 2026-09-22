@@ -412,6 +412,22 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
+                            {policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && (
+                                <MenuItemWithTopDescription
+                                    disabled={!canWriteMembers}
+                                    title={translate(
+                                        (member?.hasOfficeWorkArrangement ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? false)
+                                            ? 'workspace.people.officeBased'
+                                            : 'workspace.people.noRegularWorkspace',
+                                    )}
+                                    interactive={canWriteMembers}
+                                    description={translate('workspace.people.workArrangement')}
+                                    shouldShowRightIcon={canWriteMembers}
+                                    shouldGreyOutWhenDisabled={false}
+                                    shouldUseDefaultCursorWhenDisabled
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_WORK_ARRANGEMENT.getRoute(policyID, accountID))}
+                                />
+                            )}
                             {isControlPolicy(policy) && (
                                 <>
                                     <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
