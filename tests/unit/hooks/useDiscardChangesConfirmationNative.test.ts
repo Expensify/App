@@ -152,6 +152,14 @@ describe('useDiscardChangesConfirmation (native)', () => {
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
+        it('lets the back press through when the screen is unfocused, even when it opts into unfocused removal protection', () => {
+            mockIsFocused = false;
+            renderDiscardHook(() => true, {shouldPromptWhenUnfocused: true});
+
+            expect(pressHardwareBack()).toBe(false);
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
         it('swallows back presses while the modal is open without stacking a second modal', () => {
             renderDiscardHook(() => true);
 
