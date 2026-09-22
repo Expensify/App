@@ -1,9 +1,9 @@
 import {render} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
-
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
+
 import WorkspaceRestrictedActionPage from '@src/pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage';
 import type SCREENS from '@src/SCREENS';
 
