@@ -1190,6 +1190,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Zapytaj Concierge o cokolwiek',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'Zobacz w Wydatkach',
+        emptyState: {title: 'Nic do wyświetlenia', subtitle: 'Spróbuj zmienić kryteria powyżej'},
+        noExpensesState: {title: 'Zobacz, na co idą twoje pieniądze', subtitle: 'Gdy będziesz mieć wydatki, zobaczysz trendy w wydawaniu, najważniejszych sprzedawców i więcej.'},
+    },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
         domains: 'Domeny',

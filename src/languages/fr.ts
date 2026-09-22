@@ -1173,6 +1173,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholderMobile: 'Demander n’importe quoi à Concierge',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'Voir dans Dépenses',
+        emptyState: {title: 'Rien à afficher', subtitle: 'Essayez de modifier vos critères ci-dessus'},
+        noExpensesState: {
+            title: 'Voyez où va votre argent',
+            subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
+        },
+    },
     allSettingsScreen: {
         subscription: 'Abonnement',
         domains: 'Domaines',
