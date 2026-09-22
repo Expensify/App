@@ -25,17 +25,18 @@ type HomeAddressRequiredContentProps = {
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
 // A commute is only measured from a member's home when the workspace excludes commutes by home and office and
-// its members are office-based
-const needsHomeAddressSelector = (policy: OnyxEntry<Policy>) =>
-    policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !!policy?.commuterExclusions?.isOfficeWorkArrangement;
+// its members are office-based. A workspace that has not loaded yet counts as still measuring, so a slow read
+// never hides a prompt the member does need to act on.
+const isCommuteStillMeasuredSelector = (policy: OnyxEntry<Policy>) =>
+    !policy || (policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !!policy.commuterExclusions.isOfficeWorkArrangement);
 
 function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
-    const [doesWorkspaceNeedHomeAddress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getOriginalMessage(action)?.policyID}`, {selector: needsHomeAddressSelector});
+    const [isCommuteStillMeasured] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getOriginalMessage(action)?.policyID}`, {selector: isCommuteStillMeasuredSelector});
 
     // The prompt is resolved once the member saves a home address.
-    const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress || !doesWorkspaceNeedHomeAddress;
+    const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress || !isCommuteStillMeasured;
 
     return (
         <ReportActionItemBasicMessage>
