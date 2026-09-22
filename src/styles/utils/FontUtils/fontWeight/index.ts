@@ -1,4 +1,5 @@
-import type {FontWeight} from '@styles/utils/FontUtils/types';
+// eslint-disable-next-line no-restricted-imports -- type-only; the alias restriction does not distinguish type imports
+import type {FontWeight} from '@styles/utils/FontUtils/fontFamily/types';
 
 type FontWeightStyles = Record<'normal' | 'medium' | 'bold', FontWeight>;
 
