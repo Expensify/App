@@ -6596,6 +6596,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 expensifyCardBannerLearnMoreButton: 'Saiba mais',
                 statementCloseDateTitle: 'Data de fechamento do extrato',
                 statementCloseDateDescription: 'Informe quando o seu fechamento da fatura do cartão ocorrer e criaremos uma fatura correspondente no Expensify.',
+                exportAccount: 'Exportar conta',
             },
             workflows: {
                 title: 'Fluxos de trabalho',
@@ -8626,12 +8627,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Sincronização com ${provider} concluída`,
-                successTitle: (provider: string) => `Conexão com ${provider} sincronizada com sucesso!`,
-                added: 'Adicionado',
-                removed: 'Removido',
-                skipped: 'Ignorado',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 funcionário',
                     other: (count: number) => `${count} funcionários`,
                 }),
@@ -8662,6 +8658,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             defaultApprover: 'Aprovador padrão',
             approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
             subtitle: 'Conecte ferramentas de recrutamento e mantenha as aprovações de candidatos em sincronia.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidato',
+                    other: (count: number) => `${count} candidatos`,
+                }),
+            },
         },
         merge: {
             connections: 'Conexões',
@@ -8690,6 +8692,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             syncingModalTitle: 'Sua conexão está sincronizando',
             syncingModalDescription: 'A primeira conexão pode levar algum tempo. Você será notificado sobre quaisquer erros.',
             syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
+            syncResults: {
+                title: (provider: string) => `Sincronização com ${provider} concluída`,
+                successTitle: (provider: string) => `Conexão com o ${provider} sincronizada com sucesso!`,
+                added: 'Adicionado',
+                removed: 'Removido',
+                skipped: 'Ignorado',
+            },
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',
@@ -8720,6 +8729,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             subsidiarySelectDescription: 'Selecione a subsidiária do Dynamics 365 Business Central para sincronizar com este workspace.',
             noCompaniesFound: 'Nenhuma empresa encontrada',
             noCompaniesFoundDescription: 'Adicione uma empresa no Dynamics 365 Business Central e sincronize a conexão novamente',
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Adicione fornecedores no Business Central e sincronize a conexão novamente',
         },
     },
     getAssistancePage: {
@@ -10661,6 +10672,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 title: ({count}: {count: number}) => ({
                     one: `Teste: resta ${count} dia!`,
                     other: `Teste: restam ${count} dias!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `Resta ${count} dia!`,
+                    other: `Restam ${count} dias!`,
                 }),
                 subtitle: 'Adicione um cartão de pagamento para continuar usando todos os seus recursos favoritos.',
             },

@@ -6644,6 +6644,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 expensifyCardBannerLearnMoreButton: 'Mehr erfahren',
                 statementCloseDateTitle: 'Abrechnungsschlussdatum',
                 statementCloseDateDescription: 'Teile uns mit, wann dein Kreditkartenkontoauszug abgeschlossen wird, und wir erstellen einen passenden Auszug in Expensify.',
+                exportAccount: 'Konto exportieren',
             },
             workflows: {
                 title: 'Workflows',
@@ -8697,12 +8698,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
-                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
-                added: 'Hinzugefügt',
-                removed: 'Entfernt',
-                skipped: 'Übersprungen',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 Mitarbeiter',
                     other: (count: number) => `${count} Mitarbeitende`,
                 }),
@@ -8733,6 +8729,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 Kandidat',
+                    other: (count: number) => `${count} Kandidat:innen`,
+                }),
+            },
         },
         merge: {
             connections: 'Verbindungen',
@@ -8761,6 +8763,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
             syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
+            syncResults: {
+                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
+                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
+                added: 'Hinzugefügt',
+                removed: 'Entfernt',
+                skipped: 'Übersprungen',
+            },
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
@@ -8791,6 +8800,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Dynamics 365 Business Central-Tochtergesellschaft aus, die mit diesem Workspace synchronisiert werden soll.',
             noCompaniesFound: 'Keine Unternehmen gefunden',
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Business Central hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {
@@ -10747,6 +10758,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: ({count}: {count: number}) => ({
                     one: 'Testversion: Noch 1 Tag übrig!',
                     other: `Testversion: Noch ${count} Tage übrig!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Noch 1 Tag übrig!',
+                    other: `Noch ${count} Tage übrig!`,
                 }),
                 subtitle: 'Füge eine Zahlungskarte hinzu, um alle deine Lieblingsfunktionen weiterhin nutzen zu können.',
             },

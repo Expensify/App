@@ -6521,6 +6521,7 @@ ${amount} para ${merchant} - ${date}`,
                 expensifyCardBannerLearnMoreButton: 'Más información',
                 statementCloseDateTitle: 'Fecha de cierre del estado de cuenta',
                 statementCloseDateDescription: 'Indícanos cuándo cierra el estado de cuenta de tu tarjeta y crearemos uno correspondiente en Expensify.',
+                exportAccount: 'Exportar cuenta',
             },
             workflows: {
                 title: 'Flujos de trabajo',
@@ -7409,12 +7410,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Sincronización de ${provider} completada`,
-                successTitle: (provider: string) => `¡Se sincronizó correctamente tu conexión de ${provider}!`,
-                added: 'Añadido',
-                removed: 'Eliminado',
-                skipped: 'Omitido',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 empleado',
                     other: (count: number) => `${count} empleados`,
                 }),
@@ -7445,6 +7441,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             defaultApprover: 'Aprobador predeterminado',
             approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
             subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidato',
+                    other: (count: number) => `${count} candidatos`,
+                }),
+            },
         },
         merge: {
             connections: 'Conexiones',
@@ -7473,6 +7475,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncingModalTitle: 'Tu conexión se está sincronizando',
             syncingModalDescription: 'La primera conexión puede tardar un poco. Se te notificará de cualquier error.',
             syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
+            syncResults: {
+                title: (provider: string) => `Sincronización de ${provider} completada`,
+                successTitle: (provider: string) => `¡Se ha sincronizado correctamente tu conexión con ${provider}!`,
+                added: 'Añadido',
+                removed: 'Eliminado',
+                skipped: 'Omitido',
+            },
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
@@ -8626,6 +8635,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'Selecciona la filial de Dynamics 365 Business Central con la que quieres sincronizar este espacio de trabajo.',
             noCompaniesFound: 'No se encontraron empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en Dynamics 365 Business Central y sincroniza la conexión de nuevo',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en Business Central y vuelve a sincronizar la conexión',
         },
     },
     getAssistancePage: {
@@ -10953,6 +10964,10 @@ ${reportName}`,
                 title: ({count}) => ({
                     one: 'Prueba gratuita: ¡queda 1 día!',
                     other: `Prueba gratuita: ¡${count} días!`,
+                }),
+                badgeTitle: ({count}) => ({
+                    one: '¡Queda 1 día!',
+                    other: `¡Quedan ${count} días!`,
                 }),
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },

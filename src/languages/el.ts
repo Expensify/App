@@ -6768,6 +6768,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 expensifyCardBannerLearnMoreButton: 'Μάθετε περισσότερα',
                 statementCloseDateTitle: 'Ημερομηνία λήξης κατάστασης λογαριασμού',
                 statementCloseDateDescription: 'Ενημερώστε μας πότε κλείνει το αντίγραφο κίνησης της κάρτας σας και θα δημιουργήσουμε ένα αντίστοιχο αντίγραφο κίνησης στο Expensify.',
+                exportAccount: 'Εξαγωγή λογαριασμού',
             },
             workflows: {
                 title: 'Ροές εργασιών',
@@ -7669,12 +7670,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 }
             },
             syncResults: {
-                title: (provider: string) => `Η συγχρονισμός με το ${provider} ολοκληρώθηκε`,
-                successTitle: (provider: string) => `Ο συγχρονισμός της σύνδεσής σας με το ${provider} ολοκληρώθηκε με επιτυχία!`,
-                added: 'Προστέθηκε',
-                removed: 'Αφαιρέθηκε',
-                skipped: 'Παραλείφθηκε',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 υπάλληλος',
                     other: (count: number) => `${count} υπάλληλοι`,
                 }),
@@ -7708,6 +7704,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 υποψήφιος',
+                    other: (count: number) => `${count} υποψήφιοι`,
+                }),
+            },
         },
         merge: {
             connections: 'Συνδέσεις',
@@ -7738,6 +7740,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncLimitReached: {
                 title: 'Δοκιμάστε ξανά αύριο',
                 prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
+            },
+            syncResults: {
+                title: (provider: string) => `ο συγχρονισμός του ${provider} ολοκληρώθηκε`,
+                successTitle: (provider: string) => `Η σύνδεσή σας με το ${provider} συγχρονίστηκε με επιτυχία!`,
+                added: 'Προστέθηκε',
+                removed: 'Αφαιρέθηκε',
+                skipped: 'Παραλείφθηκε',
             },
         },
         export: {
@@ -8957,6 +8966,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική του Dynamics 365 Business Central για συγχρονισμό με αυτόν τον χώρο εργασίας.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Business Central και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {
@@ -10963,6 +10974,10 @@ ${reportName}`,
                 title: ({count}: {count: number}) => ({
                     one: 'Δοκιμή: απομένει 1 ημέρα!',
                     other: `Δοκιμή: απομένουν ${count} ημέρες!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Απομένει 1 ημέρα!',
+                    other: `Απομένουν ${count} ημέρες!`,
                 }),
                 subtitle: 'Προσθέστε μια κάρτα πληρωμής για να συνεχίσετε να χρησιμοποιείτε όλες τις αγαπημένες σας δυνατότητες.',
             },

@@ -6593,6 +6593,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
                 statementCloseDateTitle: 'Sluitingsdatum afschrift',
                 statementCloseDateDescription: 'Laat ons weten wanneer je creditcardafschrift wordt afgesloten, dan maken wij een bijpassend afschrift in Expensify aan.',
+                exportAccount: 'Account exporteren',
             },
             workflows: {
                 title: 'Workflows',
@@ -8623,12 +8624,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Synchronisatie met ${provider} voltooid`,
-                successTitle: (provider: string) => `Je ${provider}-verbinding is succesvol gesynchroniseerd!`,
-                added: 'Toegevoegd',
-                removed: 'Verwijderd',
-                skipped: 'Overgeslagen',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 werknemer',
                     other: (count: number) => `${count} medewerkers`,
                 }),
@@ -8659,6 +8655,12 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
             subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 kandidaat',
+                    other: (count: number) => `${count} kandidaten`,
+                }),
+            },
         },
         merge: {
             connections: 'Verbindingen',
@@ -8687,6 +8689,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncingModalTitle: 'Je verbinding wordt gesynchroniseerd',
             syncingModalDescription: 'De eerste verbinding kan even duren. Je krijgt een melding als er fouten optreden.',
             syncLimitReached: {title: 'Probeer het morgen opnieuw', prompt: 'Je hebt je synchronisatielimiet voor vandaag bereikt.'},
+            syncResults: {
+                title: (provider: string) => `Synchronisatie met ${provider} voltooid`,
+                successTitle: (provider: string) => `Je ${provider}-verbinding is succesvol gesynchroniseerd!`,
+                added: 'Toegevoegd',
+                removed: 'Verwijderd',
+                skipped: 'Overgeslagen',
+            },
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
         campfire: {
@@ -8714,6 +8723,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subsidiarySelectDescription: 'Selecteer de Dynamics 365 Business Central-dochteronderneming om met deze workspace te synchroniseren.',
             noCompaniesFound: 'Geen bedrijven gevonden',
             noCompaniesFoundDescription: 'Voeg een bedrijf toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Business Central en synchroniseer de koppeling opnieuw',
         },
     },
     getAssistancePage: {
@@ -10667,6 +10678,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 title: ({count}: {count: number}) => ({
                     one: 'Proefperiode: nog 1 dag!',
                     other: `Proefperiode: nog ${count} dagen!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Nog 1 dag!',
+                    other: `Nog ${count} dagen!`,
                 }),
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
             },

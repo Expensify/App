@@ -6360,6 +6360,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 expensifyCardBannerLearnMoreButton: '了解详情',
                 statementCloseDateTitle: '账单结算日',
                 statementCloseDateDescription: '请告诉我们您的信用卡账单结算日期，我们会在 Expensify 中创建一份相应的对账单。',
+                exportAccount: '导出账户',
             },
             workflows: {
                 title: '工作流程',
@@ -8314,12 +8315,7 @@ ${reportName}`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider} 同步完成`,
-                successTitle: (provider: string) => `已成功同步您的 ${provider} 连接！`,
-                added: '已添加',
-                removed: '已移除',
-                skipped: '已跳过',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 员工',
                     other: (count: number) => `${count} 员工`,
                 }),
@@ -8349,6 +8345,12 @@ ${reportName}`,
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
             subtitle: '连接招聘工具并保持候选人审批同步。',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 名候选人',
+                    other: (count: number) => `${count} 名候选人`,
+                }),
+            },
         },
         merge: {
             connections: '连接',
@@ -8377,6 +8379,13 @@ ${reportName}`,
             syncingModalTitle: '您的连接正在同步',
             syncingModalDescription: '首次连接可能需要一些时间。若发生任何错误，我们会通知你。',
             syncLimitReached: {title: '请明天再试', prompt: '您已达到今日的同步上限。'},
+            syncResults: {
+                title: (provider: string) => `${provider} 同步完成`,
+                successTitle: (provider: string) => `已成功同步您的 ${provider} 连接！`,
+                added: '已添加',
+                removed: '已移除',
+                skipped: '已跳过',
+            },
         },
         emptyDomain: {title: '通过域名提升安全性', subtitle: '要求您域中的成员通过单点登录登录、限制工作区创建等。'},
         campfire: {
@@ -8403,6 +8412,8 @@ ${reportName}`,
             subsidiarySelectDescription: '选择要与此工作区同步的 Dynamics 365 Business Central 子公司。',
             noCompaniesFound: '未找到公司',
             noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 Business Central 中添加供应商，然后再次同步连接',
         },
     },
     getAssistancePage: {
@@ -10282,6 +10293,10 @@ ${reportName}`,
                 title: ({count}: {count: number}) => ({
                     one: `试用期：剩余 ${count} 天！`,
                     other: `试用期：剩余 ${count} 天！`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `剩余 ${count} 天！`,
+                    other: `剩余 ${count} 天！`,
                 }),
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
             },
