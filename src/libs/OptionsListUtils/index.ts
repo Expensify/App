@@ -91,7 +91,6 @@ import type {
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -892,7 +891,7 @@ function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: number) 
 /**
  * Verifies that a single option (category or tag) is enabled and not pending deletion
  */
-function isOptionEnabled(option?: {enabled?: boolean; pendingAction?: PendingAction}): boolean {
+function isOptionEnabled(option?: PolicyTag | PolicyCategory): boolean {
     return !!option?.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 

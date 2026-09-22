@@ -1199,6 +1199,7 @@ describe('TagsOptionsListUtils', () => {
         };
 
         it('returns true when at least one tag is enabled', () => {
+            // Given a tag list where one tag is disabled and one is enabled
             const tagLists = buildTagLists({
                 list1: {
                     name: 'List 1',
@@ -1211,10 +1212,15 @@ describe('TagsOptionsListUtils', () => {
                 },
             });
 
-            expect(hasEnabledTags(tagLists)).toBe(true);
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, the disabled tag must not mask the selectable one behind it
+            expect(result).toBe(true);
         });
 
         it('returns false when every tag is disabled', () => {
+            // Given a tag list an admin has fully disabled
             const tagLists = buildTagLists({
                 list1: {
                     name: 'List 1',
@@ -1227,10 +1233,15 @@ describe('TagsOptionsListUtils', () => {
                 },
             });
 
-            expect(hasEnabledTags(tagLists)).toBe(false);
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, callers hide the tag row instead of opening an empty picker
+            expect(result).toBe(false);
         });
 
         it('returns false when the only enabled tag is pending deletion', () => {
+            // Given a still-enabled tag that is optimistically being deleted offline
             const tagLists = buildTagLists({
                 list1: {
                     name: 'List 1',
@@ -1243,10 +1254,15 @@ describe('TagsOptionsListUtils', () => {
                 },
             });
 
-            expect(hasEnabledTags(tagLists)).toBe(false);
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, a tag on its way out should not look selectable
+            expect(result).toBe(false);
         });
 
         it('returns true when an enabled tag is pending an action other than deletion', () => {
+            // Given an enabled tag pending an update, so it survives once the request settles
             const tagLists = buildTagLists({
                 list1: {
                     name: 'List 1',
@@ -1258,10 +1274,15 @@ describe('TagsOptionsListUtils', () => {
                 },
             });
 
-            expect(hasEnabledTags(tagLists)).toBe(true);
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, only a pending deletion disqualifies a tag
+            expect(result).toBe(true);
         });
 
         it('finds an enabled tag across multiple tag lists', () => {
+            // Given multi-level tags where only the second list has an enabled tag
             const tagLists = buildTagLists(
                 {
                     list1: {
@@ -1281,14 +1302,24 @@ describe('TagsOptionsListUtils', () => {
                 },
             );
 
-            expect(hasEnabledTags(tagLists)).toBe(true);
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then true, the search must not stop at the first list it finds nothing in
+            expect(result).toBe(true);
         });
 
         it('returns false for an empty list of tag lists', () => {
-            expect(hasEnabledTags([])).toBe(false);
+            // Given a policy with no tag lists
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags([]);
+
+            // Then false rather than a throw, callers pass whatever Onyx currently holds
+            expect(result).toBe(false);
         });
 
         it('ignores a tag list that has no tags', () => {
+            // Given a tag list an admin just created and never populated
             const tagLists = buildTagLists({
                 list1: {
                     name: 'List 1',
@@ -1298,7 +1329,11 @@ describe('TagsOptionsListUtils', () => {
                 },
             });
 
-            expect(hasEnabledTags(tagLists)).toBe(false);
+            // When checking whether the policy has a selectable tag
+            const result = hasEnabledTags(tagLists);
+
+            // Then false, an empty list offers nothing to select
+            expect(result).toBe(false);
         });
     });
 });
