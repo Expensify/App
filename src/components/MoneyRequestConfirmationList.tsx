@@ -14,8 +14,6 @@ import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -34,7 +32,6 @@ import {
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -66,6 +63,7 @@ import useReceiptTraining from './MoneyRequestConfirmationList/hooks/useReceiptT
 import useSplitParticipants from './MoneyRequestConfirmationList/hooks/useSplitParticipants';
 import useTaxAmount from './MoneyRequestConfirmationList/hooks/useTaxAmount';
 import useTransactionReportForConfirmation from './MoneyRequestConfirmationList/hooks/useTransactionReportForConfirmation';
+import navigateToParticipantPage from './MoneyRequestConfirmationList/navigateToParticipantPage';
 import SplitBillController from './MoneyRequestConfirmationList/SplitBillController';
 import TaxController from './MoneyRequestConfirmationList/TaxController';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
@@ -450,21 +448,16 @@ function MoneyRequestConfirmationList({
         getSplitSectionHeader,
     });
 
-    /**
-     * Navigate to the participant step
-     */
-    const navigateToParticipantPage = () => {
-        if (!canEditParticipant) {
-            return;
-        }
-
-        if (isManualRequest) {
-            onOpenParticipantPicker();
-            return;
-        }
-
-        const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType: newIOUType, transactionID, reportID: transaction?.reportID})));
+    const openParticipantPage = () => {
+        navigateToParticipantPage({
+            canEditParticipant,
+            isManualRequest,
+            iouType,
+            action,
+            transactionID,
+            reportID: transaction?.reportID,
+            onOpenParticipantPicker,
+        });
     };
 
     const {validate} = useConfirmationValidation({
@@ -706,7 +699,7 @@ function MoneyRequestConfirmationList({
                     ref={listRef}
                     sections={sections}
                     ListItem={BareUserListItem}
-                    onSelectRow={navigateToParticipantPage}
+                    onSelectRow={openParticipantPage}
                     onDismissError={dismissParticipantRowError}
                     shouldSingleExecuteRowSelect
                     shouldPreventDefaultFocusOnSelectRow
