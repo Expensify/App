@@ -37,7 +37,7 @@ import type {
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {Message, OldDotReportAction, OriginalMessage, PolicyChangeLogCopyReportActionNames, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OldDotReportAction, PolicyChangeLogCopyReportActionNames, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -72,6 +72,8 @@ import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
+import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
+import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
@@ -248,56 +250,6 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
     });
 }
 
-const attachmentAnchorURLRegex = new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i');
-const ANCHOR_HREF_REGEX = /href="([^"]*)"/i;
-// A line break right after the anchor is absorbed: the block already ends the line, so keeping it adds an empty one.
-const ANCHOR_TAG_REGEX = /<a\s([^>]*)>[\s\S]*?<\/a>(<br \/>)?/gi;
-
-function getAnchorHref(attributes: string): string | undefined {
-    return attributes.match(ANCHOR_HREF_REGEX)?.at(1);
-}
-
-// The server strips the attachment attributes from an edited anchor, so the URL alone has to identify a file card.
-function isAttachmentAnchor(href: string, hasSourceAttribute: boolean, hasIDAttribute: boolean): boolean {
-    return hasSourceAttribute || hasIDAttribute || attachmentAnchorURLRegex.test(href);
-}
-
-function isAttachmentAnchorAttributes(attributes: string): boolean {
-    return isAttachmentAnchor(getAnchorHref(attributes) ?? '', attributes.includes(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="`), attributes.includes(` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="`));
-}
-
-/**
- * A file anchor renders as a card, and native Text cannot lay a card out inside an inline run: it collapses, overlaps
- * the line above or hides the "(edited)" label after it. Each file anchor gets its own block instead, which is how an
- * attachment-only message is laid out.
- */
-function wrapAttachmentAnchorsInBlocks(html: string): string {
-    if (!html.includes('<a ')) {
-        return html;
-    }
-    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, lineBreak?: string) => {
-        if (!isAttachmentAnchorAttributes(attributes)) {
-            return match;
-        }
-        const anchor = lineBreak ? match.slice(0, -lineBreak.length) : match;
-        return `<attachment-block>${anchor}</attachment-block>`;
-    });
-}
-
-// The parser only turns an anchor into "[Attachment]" while it still carries `data-expensify-source`, which the server drops on edit.
-function replaceAttachmentAnchorsWithText(html: string): string {
-    if (!html.includes('<a ')) {
-        return html;
-    }
-    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, lineBreak?: string) =>
-        isAttachmentAnchorAttributes(attributes) ? `${CONST.ATTACHMENT_MESSAGE_TEXT}${lineBreak ?? ''}` : match,
-    );
-}
-
-function getReportActionMessage(reportAction: PartialReportAction) {
-    return Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
-}
-
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
@@ -325,10 +277,6 @@ function getModerationFlagState(reportAction: OnyxInputOrEntry<ReportAction>): {
         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === latestDecision) &&
         !isPendingRemove(reportAction);
     return {latestDecision, hasBeenFlagged};
-}
-
-function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU);
 }
 
 function isExportedToIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
@@ -412,10 +360,6 @@ function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPol
     return isDEWPolicy && reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
 }
 
-function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
-}
-
 /** Actions that clear a DEW_APPROVE_FAILED error (approval succeeded or report was retracted/reopened). */
 function isActionThatSupersedesDEWApproveFailure(action: ReportAction): boolean {
     return isApprovedAction(action) || isForwardedAction(action) || isRetractedAction(action) || isReopenedAction(action);
@@ -453,10 +397,6 @@ function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
 
-function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
-}
-
 function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
 }
@@ -491,10 +431,6 @@ function isReimbursementDirectionInformationRequiredAction(
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED);
 }
 
-function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<ReportAction>, actionName: T): action is ReportAction<T> {
-    return action?.actionName === actionName;
-}
-
 function isCardBrokenConnectionAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN | typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS> {
@@ -502,19 +438,6 @@ function isCardBrokenConnectionAction(
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)
     );
-}
-
-function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
-    const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
-
-    // Some legacy/OldDot report actions (e.g. card-imported expense updates) store a plain notification
-    // string in `message`/`originalMessage` instead of the object shape declared by `OriginalMessage<T>`.
-    // Downstream callers use the JS `in` operator on the result, which throws a TypeError on non-objects.
-    // Normalize non-object values to undefined so the runtime matches the declared TypeScript contract.
-    if (candidate === null || typeof candidate !== 'object') {
-        return undefined;
-    }
-    return candidate as OriginalMessage<T>;
 }
 
 function getPersonalCardName(card: Card | undefined, originalCardName: string | undefined): string {
@@ -2226,22 +2149,6 @@ function getMemberChangeMessageElements(
         ...formatMessageElementList(mentionElements),
         ...buildRoomElements(),
     ];
-}
-
-function getReportActionHtml(reportAction: PartialReportAction): string {
-    return getReportActionMessage(reportAction)?.html ?? '';
-}
-
-function getReportActionText(reportAction: PartialReportAction): string {
-    const message = getReportActionMessage(reportAction);
-    // Sometime html can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
-    return text ? Parser.htmlToText(text) : '';
-}
-
-function getTextFromHtml(html?: string): string {
-    return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html)) : '';
 }
 
 function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction): action is PartialReportAction {
@@ -5182,9 +5089,6 @@ export {
     formatLastMessageText,
     isReportActionUnread,
     getHtmlWithAttachmentID,
-    wrapAttachmentAnchorsInBlocks,
-    getAnchorHref,
-    isAttachmentAnchor,
     getActionableMentionWhisperMessage,
     getAllReportActions,
     getCombinedReportActions,

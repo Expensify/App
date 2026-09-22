@@ -1,6 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getHtmlWithAttachmentID, wrapAttachmentAnchorsInBlocks} from '@libs/ReportActionsUtils';
+import {wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
+import {getHtmlWithAttachmentID} from '@libs/ReportActionsUtils';
 import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';

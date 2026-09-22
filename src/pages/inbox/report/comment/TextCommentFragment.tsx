@@ -7,12 +7,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
-import {getHtmlWithAttachmentID, getTextFromHtml, wrapAttachmentAnchorsInBlocks} from '@libs/ReportActionsUtils';
+import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import {fontScale} from '@styles/typography';

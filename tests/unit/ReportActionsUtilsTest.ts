@@ -1675,59 +1675,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getReportActionText', () => {
-        it('should return the backend-provided CARDFROZEN text', () => {
-            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
-                reportActionID: 'card-frozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 01:58:43.479',
-                message: [
-                    {
-                        html: cardFrozenMessage,
-                        text: cardFrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardFrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 01:58:43.479',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardFrozenMessage);
-        });
-
-        it('should return the backend-provided CARDUNFROZEN text', () => {
-            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
-                reportActionID: 'card-unfrozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 02:08:08.128',
-                message: [
-                    {
-                        html: cardUnfrozenMessage,
-                        text: cardUnfrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardUnfrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 02:08:08.128',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardUnfrozenMessage);
-            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
-        });
-    });
-
     describe('getMessageOfOldDotReportAction', () => {
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
@@ -2245,45 +2192,6 @@ describe('ReportActionsUtils', () => {
 
             expect(() => ReportActionsUtils.getFirstVisibleReportActionID(sorted)).not.toThrow();
             expect(ReportActionsUtils.getFirstVisibleReportActionID(sorted)).toBe(legacyExpenseUpdateAction.reportActionID);
-        });
-    });
-
-    describe('getOriginalMessage', () => {
-        it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-1',
-                },
-                {originalMessage: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns undefined when message is a non-array string and originalMessage is missing', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-2',
-                },
-                {message: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns the object when originalMessage is object-shaped', () => {
-            const reportAction: ReportAction = {
-                created: '',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: 'shaped-1',
-                originalMessage: {html: 'hi', whisperedTo: []},
-            };
-
-            expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
         });
     });
 
@@ -3330,63 +3238,6 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.hasPendingDEWSubmit(undefined, true);
 
             // Then it should return false
-            expect(result).toBe(false);
-        });
-    });
-
-    describe('isDynamicExternalWorkflowApproveFailedAction', () => {
-        it('should return true for DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with DEW_APPROVE_FAILED action type
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    message: 'This report cannot be approved because of compliance issues.',
-                    automaticAction: false,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return true because the action type is DEW_APPROVE_FAILED
-            expect(result).toBe(true);
-        });
-
-        it('should return false for non-DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with APPROVED action type (not DEW_APPROVE_FAILED)
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    expenseReportID: '1',
-                    amount: 1,
-                    currency: CONST.CURRENCY.USD,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return false because the action type is not DEW_APPROVE_FAILED
-            expect(result).toBe(false);
-        });
-
-        it('should return false for null action', () => {
-            // Given a null action
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(null);
-
-            // Then it should return false because the action is null
             expect(result).toBe(false);
         });
     });
@@ -7399,50 +7250,6 @@ describe('ReportActionsUtils', () => {
             // When the text is read
             // Then the label is kept
             expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('a.csv');
-        });
-    });
-
-    describe('wrapAttachmentAnchorsInBlocks', () => {
-        const url = 'https://www.expensify.com/chat-attachments/123/w_abc.csv';
-
-        it('puts a file anchor in its own block wherever it sits in the comment', () => {
-            // Given an edited comment with text before and after the file anchor, followed by the edited label
-            const html = `Help<br /><br /><a href="${url}" data-attachment-id="1">file.csv</a><br />Text<edited ></edited>`;
-
-            // When the anchors are wrapped
-            // Then the file anchor sits in a block, the break after it is absorbed, and the text on both sides stays outside it
-            expect(ReportActionsUtils.wrapAttachmentAnchorsInBlocks(html)).toBe(
-                `Help<br /><br /><attachment-block><a href="${url}" data-attachment-id="1">file.csv</a></attachment-block>Text<edited ></edited>`,
-            );
-        });
-
-        it('keeps the deleted styling around the block', () => {
-            // Given a comment styled as pending deletion while offline
-            const html = `<del><a href="${url}" data-attachment-id="1">file.csv</a>J</del>`;
-
-            // When the anchors are wrapped
-            // Then the block sits inside the deleted styling
-            expect(ReportActionsUtils.wrapAttachmentAnchorsInBlocks(html)).toBe(`<del><attachment-block><a href="${url}" data-attachment-id="1">file.csv</a></attachment-block>J</del>`);
-        });
-
-        it('recognizes a file anchor by its URL once the attributes are gone', () => {
-            // Given an edited anchor the server returned without any attachment attribute
-            const html = `<a href="${url}" target="_blank" rel="noreferrer noopener">file.csv</a><br />J`;
-
-            // When the anchors are wrapped
-            // Then the chat attachment URL is enough to wrap it
-            expect(ReportActionsUtils.wrapAttachmentAnchorsInBlocks(html)).toBe(
-                `<attachment-block><a href="${url}" target="_blank" rel="noreferrer noopener">file.csv</a></attachment-block>J`,
-            );
-        });
-
-        it('leaves ordinary links inline', () => {
-            // Given a comment with a plain link, including one that only mentions the attribute name in its query string
-            const html = 'See <a href="https://google.com/?data-expensify-source=1" target="_blank">google</a> now';
-
-            // When the anchors are wrapped
-            // Then nothing changes
-            expect(ReportActionsUtils.wrapAttachmentAnchorsInBlocks(html)).toBe(html);
         });
     });
 });
