@@ -9,7 +9,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
@@ -32,7 +32,7 @@ type DateTimeSelectorProps = {
     inputID: string;
 
     /** The ref is required by InputWrapper, even though it's not used in this component yet */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

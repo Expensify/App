@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -33,7 +33,7 @@ type AccountingContextProviderProps = ChildrenProps & {
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const popoverAnchorRefs = useRef<Record<string, RefObject<View | null>>>(popoverAnchorRefsInitialValue);
+    const popoverAnchorRefs = useRef<Record<string, RefObject<ComponentRef<typeof View> | null>>>(popoverAnchorRefsInitialValue);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;

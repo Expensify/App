@@ -26,6 +26,7 @@ import {contextMenuRef, showContextMenu} from '@pages/inbox/report/ContextMenu/R
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {Meta} from 'storybook-react-rsbuild';
 
 import React, {useRef} from 'react';
@@ -144,7 +145,7 @@ function Comparison() {
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar', 'NewWindow']);
 
     // The legacy external-link row anchors its context menu to the row itself, which the composable API does for the call site
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
 
     if (!icons.Gear || !icons.FallbackAvatar || !icons.NewWindow) {
         return null;
