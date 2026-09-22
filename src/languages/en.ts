@@ -573,11 +573,18 @@ const translations = {
         linkedin: 'Follow us on LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge has an answer!',
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
         enableNotifications: {
             prompt: 'Want to be notified when Concierge responds?',
             cta: 'Notify',
+        },
+        feedback: {
+            prompt: 'Was that response useful?',
+            useful: 'Useful response',
+            notUseful: 'Not useful response',
+            thanks: 'Thanks for the feedback!',
         },
     },
     supportalNoAccess: {
@@ -1160,6 +1167,10 @@ const translations = {
                 one: 'Export 1 report',
                 other: `Export ${count} reports`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Review 1 domain admin request',
+                other: `Review ${count} domain admin requests`,
+            }),
             begin: 'Begin',
             emptyStateMessages: {
                 thumbsUpStarsTitle: "You're done!",
@@ -1254,6 +1265,17 @@ const translations = {
             notEnoughData: 'We don’t have enough data to populate this chart yet',
         },
     },
+    insightsPage: {
+        viewOnSpend: 'View on Spend',
+        emptyState: {
+            title: 'Nothing to show',
+            subtitle: 'Try adjusting your criteria above',
+        },
+        noExpensesState: {
+            title: 'See where your money goes',
+            subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
+        },
+    },
     allSettingsScreen: {
         subscription: 'Subscription',
         domains: 'Domains',
@@ -1335,6 +1357,10 @@ const translations = {
             one: "1 category was skipped because it doesn't exist in this workspace.",
             other: `${count} categories were skipped because they don't exist in this workspace.`,
         }),
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: "1 vendor was skipped because it doesn't exist in this workspace.",
+            other: `${count} vendors were skipped because they don't exist in this workspace.`,
+        }),
         importMerchantRulesRequiredColumns: 'Oops! You must map at least one "Merchant is" or "Merchant contains" column, plus at least one field to update. Please review and try again.',
         importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
             one: '1 transaction has been imported.',
@@ -1382,6 +1408,7 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
+        flipCamera: 'flip camera',
         multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
@@ -1893,6 +1920,8 @@ const translations = {
             couldNotRejectExpense: 'The expense could not be rejected because it may have already been moved or rejected.',
         },
         moveExpenses: 'Move to report',
+        autoReport: 'Auto report',
+        autoReportDescription: 'Add to draft reports on behalf of the employee',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         moveExpensesMaxTransactionsError: `Reports are limited to ${CONST.REPORT.MAX_TRANSACTIONS} expenses. Please move some to another report.`,
         submitReportTo: {
@@ -2279,6 +2308,8 @@ const translations = {
         profileAvatar: 'Profile avatar',
         customInstructions: 'Custom instructions',
         copilotIntoAccount: 'Copilot into account',
+        viewUserHistory: 'View user history',
+        viewAgentHistory: 'View agent history',
         publicSection: {
             title: 'Public',
             subtitle: 'These details are displayed on your public profile. Anyone can see them.',
@@ -2636,7 +2667,6 @@ const translations = {
         enableTwoFactorAuth: 'Enable two-factor authentication',
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'For security purposes, NetSuite requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Two-factor authentication required',
         twoFactorAuthIsRequiredForAdminsTitle: 'Please enable two-factor authentication',
         twoFactorAuthIsRequiredXero: 'Your Xero accounting connection requires two-factor authentication.',
@@ -2923,6 +2953,15 @@ const translations = {
             updateAddress: 'Update address',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
+        cardAddedToWalletPage: {
+            title: "You're all set!",
+            description: 'Your card has been added to Apple Wallet.',
+            firstSupportingText: 'Apple Pay is an easier way to pay in shops, in apps, and online with your iPhone, Apple Watch, iPad, and Mac.',
+            secondSupportingText: 'Use Apple Pay wherever you see these\nsymbols.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Contactless payment',
+            buttonText: 'Got it',
+        },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterSecurityCode: (contactMethod: string) => `Please enter the security code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
@@ -3223,6 +3262,7 @@ const translations = {
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         chatWithAgent: 'Chat with agent',
+        viewAgentHistory: 'View agent history',
         copilotIntoAccount: 'Copilot into account',
         deleteAgent: 'Delete agent',
         deleteAgentTitle: 'Delete agent?',
@@ -3416,7 +3456,7 @@ const translations = {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
             agentSignInBlocked: "Agent accounts can't be signed into directly. To use an agent, sign in with your own account and access it via Copilot.",
         },
-        cannotGetAccountDetails: "Couldn't retrieve account details. Please try to sign in again.",
+        cannotGetAccountDetails: "Couldn't retrieve account details. Please wait a few minutes and try again.",
         loginForm: 'Login form',
         notYou: (user: string) => `Not ${user}?`,
     },
@@ -3458,12 +3498,14 @@ const translations = {
         employees: {
             title: 'How many employees do you have?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-9 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10-50 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'More than 1,000 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11-50 employees',
         },
         accounting: {
             title: 'Do you use any accounting software?',
@@ -5444,6 +5486,9 @@ const translations = {
             syncReimbursedReports: 'Sync reimbursed reports',
             syncReimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Sage Intacct account below.',
             paymentAccount: 'Sage Intacct payment account',
+            fxExpenseAccount: 'Sage Intacct currency conversion fee account',
+            fxExpenseAccountDescription:
+                "When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in Sage Intacct as a journal entry.",
             accountingMethods: {
                 label: 'When to Export',
                 description: 'Choose when to export the expenses:',
@@ -5728,6 +5773,7 @@ const translations = {
             noSubsidiariesFoundDescription: 'Please add a subsidiary in NetSuite and sync the connection again',
             tokenInput: {
                 title: 'NetSuite setup',
+                connectWithTokenAuthentication: 'Connect with token-based authentication (SOAP) instead',
                 formSteps: {
                     installBundle: {
                         title: 'Install the Expensify bundle',
@@ -6188,6 +6234,8 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Campfire.',
             accountTypesDescription: 'Your Campfire accounts will import as categories.',
             enableNewAccountsTitle: 'Enable newly imported accounts',
@@ -6204,6 +6252,8 @@ const translations = {
             subsidiarySelectDescription: 'Select the Dynamics 365 Business Central subsidiary to sync with this workspace.',
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -6726,6 +6776,7 @@ const translations = {
                 neverUpdated: 'Never',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
+                exportAccount: 'Export account',
                 downgradeTitle: `Can't downgrade workspace`,
                 downgradeSubTitle: `This workspace can't be downgraded because multiple card feeds are connected (excluding Expensify Cards). Please <a href="#">keep only one card feed</a> to proceed.`,
                 noAccountsFoundDescription: (connection: string) => `Please add the account in ${connection} and sync the connection again`,
@@ -7638,12 +7689,7 @@ const translations = {
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider} sync complete`,
-                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
-                added: 'Added',
-                removed: 'Removed',
-                skipped: 'Skipped',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 employee',
                     other: (count: number) => `${count} employees`,
                 }),
@@ -7671,6 +7717,12 @@ const translations = {
             alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
             alreadyConnectedPrompt: 'You must disconnect your current ATS before connecting another.',
             syncing: 'Syncing candidates',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidate',
+                    other: (count: number) => `${count} candidates`,
+                }),
+            },
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
             dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
@@ -7710,6 +7762,13 @@ const translations = {
             syncLimitReached: {
                 title: 'Try again tomorrow',
                 prompt: "You've reached your sync limit for the day.",
+            },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+                added: 'Added',
+                removed: 'Removed',
+                skipped: 'Skipped',
             },
         },
         export: {
@@ -8456,6 +8515,7 @@ const translations = {
                 importColumnUpdatedCategory: 'Updated category',
                 importColumnUpdatedTag: 'Updated tag',
                 importColumnUpdatedDescription: 'Updated description',
+                importColumnUpdatedVendor: 'Updated vendor',
                 expensesWith: 'For expenses with:',
                 expensesExactlyMatching: 'For expenses exactly matching:',
                 applyUpdates: 'Apply these updates:',
@@ -9829,6 +9889,8 @@ const translations = {
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
+            created: 'Created',
+            createdDate: 'Created date',
             withdrawn: 'Withdrawn',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
@@ -9844,12 +9906,19 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchant',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Day',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Month',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
             },
             feed: 'Feed',
+            transactionStatus: {
+                label: 'Transaction status',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Pending',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Posted',
+                hint: 'Only applies to card transactions.',
+            },
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
@@ -9900,6 +9969,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categories',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Merchants',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Days',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Months',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
@@ -10876,6 +10946,10 @@ const translations = {
                 title: ({count}: {count: number}) => ({
                     one: 'Trial: 1 day left!',
                     other: `Trial: ${count} days left!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: '1 day left!',
+                    other: `${count} days left!`,
                 }),
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },

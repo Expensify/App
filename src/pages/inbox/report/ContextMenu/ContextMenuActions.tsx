@@ -248,8 +248,10 @@ import type {
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+import type {ComponentRef, RefObject} from 'react';
+// RN Text is restricted in favor of @components/Text, but this type is the host instance, which the wrapper does not export.
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
@@ -334,12 +336,12 @@ type ContextMenuActionPayload = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: RefObject<HTMLDivElement | View | Text | null>;
+    anchor?: RefObject<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ComponentRef<typeof View> | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
-    anchorRef?: RefObject<View | null>;
+    anchorRef?: RefObject<ComponentRef<typeof View> | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
@@ -451,7 +453,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
             return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
-        renderContent: (closePopover, {reportID, reportActions, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
+        renderContent: (closePopover, {reportID, reportActions, reportAction, currentUserAccountID, close: closeManually, openContextMenu, setIsEmojiPickerActive, isOffline}) => {
             const isMini = !closePopover;
 
             const closeContextMenu = (onHideCallback?: () => void) => {
@@ -466,7 +468,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             };
 
             const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
-                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID, reportActions);
+                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID, reportActions, isOffline);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
             };
@@ -654,6 +656,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 childReportActions,
                 currentUserAccountID,
                 conciergeChat,
+                isOffline,
                 personalDetails,
             },
         ) => {
@@ -671,7 +674,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                saveReportActionDraft(originalReportID ?? reportID, reportAction, originalReportActions ?? reportActions, Parser.htmlToMarkdown(getActionHtml(reportAction)));
+                saveReportActionDraft(originalReportID ?? reportID, reportAction, originalReportActions ?? reportActions, Parser.htmlToMarkdown(getActionHtml(reportAction)), isOffline);
             };
 
             if (closePopover) {
@@ -1075,6 +1078,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         policyTags,
                         currentUserAccountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
+                        formatPhoneNumber,
                         movedFromReportName: undefined,
                     });
                     // Convert HTML to markdown for clipboard copy to preserve links and formatting
