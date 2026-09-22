@@ -39,6 +39,8 @@ import {
     isHiddenForCurrentUser as isReportHiddenForCurrentUser,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {isAgentEmail} from '@libs/SessionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 
@@ -48,7 +50,7 @@ import {openAgentsPage} from '@userActions/Agent';
 import {openExternalLink} from '@userActions/Link';
 import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {hasErrorInPrivateNotes} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -96,7 +98,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const switchToDelegator = useSwitchToDelegator();
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'MagnifyingGlass', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
@@ -327,6 +329,20 @@ function ProfilePage({route}: ProfilePageProps) {
                                 onPress={() => switchToDelegator(login)}
                             />
                         )}
+                        {!!accountID && !isAnonymousUserSession() && (
+                            <MenuItem
+                                shouldShowRightIcon
+                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.viewUserHistory')}
+                                icon={expensifyIcons.MagnifyingGlass}
+                                onPress={() => {
+                                    const query = buildQueryStringFromFilterFormValues({
+                                        type: CONST.SEARCH.DATA_TYPES.CHAT,
+                                        from: [String(accountID)],
+                                    });
+                                    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+                                }}
+                            />
+                        )}
                         {shouldShowNotificationPreference && (
                             <MenuItemField
                                 name={translate('notificationPreferencesPage.label')}
@@ -348,13 +364,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {isConcierge && !!guideCalendarLink && (
-                            <MenuItem
+                            <MenuItemAction
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={expensifyIcons.Phone}
-                                isAnonymousAction={false}
-                                onPress={callFunctionIfActionIsAllowed(() => {
+                                onPress={() => {
                                     openExternalLink(guideCalendarLink);
-                                })}
+                                }}
                             />
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (

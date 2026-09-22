@@ -2,6 +2,8 @@ import {act, render} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
+
 import ReportFetchHandler from '@pages/inbox/ReportFetchHandler';
 
 import type * as UserActionsReport from '@userActions/Report';
@@ -17,6 +19,7 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORT_ID = '1';
+const PUBLIC_ROOM_ID = '2';
 
 // The real useRoute returns a stable object until the route actually changes, and the fetch effect keys off that
 // identity. Mirror it here, or every re-render would look like a navigation and fire its own openReport.
@@ -48,12 +51,18 @@ jest.mock('@userActions/Report', () => ({
     },
 }));
 
-function renderHandler() {
-    return render(
-        <OnyxListItemProvider>
-            <ReportFetchHandler />
-        </OnyxListItemProvider>,
+function HandlerTree({isInPreloadedTab}: {isInPreloadedTab: boolean}) {
+    return (
+        <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
+            <OnyxListItemProvider>
+                <ReportFetchHandler />
+            </OnyxListItemProvider>
+        </IsInPreloadedTabContext.Provider>
     );
+}
+
+function renderHandler(isInPreloadedTab = false) {
+    return render(<HandlerTree isInPreloadedTab={isInPreloadedTab} />);
 }
 
 /** Regression tests for the guards that suppress openReport for a client-generated report ID that doesn't exist on the server yet. */
@@ -192,5 +201,79 @@ describe('ReportFetchHandler', () => {
 
         // Then nothing is requested, because the fetch would only sit in the queue until connectivity returns
         expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('holds the re-fetch of a wiped loaded stamp while the Inbox tab is preloaded and resumes it once it opens', async () => {
+        // Given a report mounted inside a warmed tab the user has not opened yet
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+        const {rerender} = renderHandler(true);
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When the memory-only loading state is dropped underneath the preloaded tab
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, null);
+        await waitForBatchedUpdates();
+
+        // Then nothing is fetched, because OpenReport would mark a report the user never opened as read
+        expect(mockOpenReport).not.toHaveBeenCalled();
+
+        // When the user opens the tab, which drops the preloaded flag
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        // Then the held re-fetch runs, so the loading state still settles instead of staying armed forever
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    it('holds every openReport while the Inbox tab is preloaded and resumes them once it opens', async () => {
+        // Given a report that is normally fetched on mount
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the handler mounts inside a warmed tab the user has not opened yet
+        const {rerender} = renderHandler(true);
+        await waitForBatchedUpdates();
+
+        // Then nothing is fetched, because OpenReport marks a report the user never saw as read
+        expect(mockOpenReport).not.toHaveBeenCalled();
+
+        // When the user opens the tab, which drops the preloaded flag
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        // Then the held fetch runs, so opening the tab still loads the report
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    // Unlike the fetch of this report, joining the public room has no other effect that re-runs on open, and the
+    // sign-in transition that triggers it is true for a single render.
+    it('joins the public room once the Inbox tab opens when the sign-in happened while it was preloaded', async () => {
+        // Given an anonymous user viewing a different public room, with report data still loading
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+            [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: PUBLIC_ROOM_ID,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: true,
+        });
+        await waitForBatchedUpdates();
+
+        const {rerender} = renderHandler(true);
+        await waitForBatchedUpdates();
+
+        // When the user signs in and report data finishes loading while the tab is still unopened
+        await Onyx.multiSet({
+            // A normal sign-in leaves no anonymous auth token type behind.
+            [ONYXKEYS.SESSION]: {},
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+        });
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).not.toHaveBeenCalledWith(expect.objectContaining({reportID: PUBLIC_ROOM_ID}));
+
+        // Then opening the tab still joins the public room
+        rerender(<HandlerTree isInPreloadedTab={false} />);
+        await waitForBatchedUpdates();
+
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: PUBLIC_ROOM_ID}));
     });
 });

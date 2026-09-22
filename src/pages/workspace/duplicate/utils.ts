@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
-import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {getCorrectedAutoReportingFrequency, getReimbursementChoice, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
 import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
 
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
@@ -15,7 +15,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextProps['translate'], policyCategories?: PolicyCategories) {
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable =
-        !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
+        !policy?.areWorkflowsEnabled || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
     const total: string[] = [];
     if (policy?.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
         total.push(translate('workspace.rules.individualExpenseRules.receiptRequiredAmount'));
@@ -80,7 +80,7 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     const {bankAccountID} = policy?.achAccount ?? {};
     const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
-    const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const shouldShowBankAccount = !!bankAccountID && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
 
     if (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) {
         const title = getAutoReportingFrequencyDisplayNames(translate)[getCorrectedAutoReportingFrequency(policy) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY];
@@ -89,7 +89,7 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) {
         total.push(translate('common.approvals'));
     }
-    if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+    if (getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
         if (shouldShowBankAccount) {
             total.push(`1 ${translate('workspace.duplicateWorkspace.reimbursementAccount')}`);
         } else {

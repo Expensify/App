@@ -52,7 +52,7 @@ function YourSpendSection() {
         <View testID="your-spend-section">
             <WidgetContainer
                 title={translate('homePage.yourSpend.title')}
-                containerStyles={[shouldUseNarrowLayout ? styles.pb2 : styles.pb5]}
+                containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
             >
                 <SpendSummaryRow
                     state={approvalRowState}
@@ -60,7 +60,7 @@ function YourSpendSection() {
                     description={translate('homePage.yourSpend.awaitingApproval')}
                     totals={approvalTotals}
                     iconSrc={icons.ThumbsUpHourglass}
-                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery}))}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={0}
                     isStale={isApprovalStale}
@@ -72,7 +72,7 @@ function YourSpendSection() {
                     description={translate('homePage.yourSpend.repaidLast30Days')}
                     totals={paymentTotals}
                     iconSrc={icons.MoneyBag}
-                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery}))}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}))}
                     wrapperStyle={wrapperStyle}
                     skeletonRowIndex={1}
                     isStale={isPaymentStale}
