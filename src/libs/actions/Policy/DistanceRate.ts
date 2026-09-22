@@ -5,6 +5,7 @@ import type {
     DisablePolicyCommuterExclusionsParams,
     EnablePolicyDistanceRatesParams,
     OpenPolicyDistanceRatesPageParams,
+    SetEmployeeWorkArrangementParams,
     SetPolicyCommuterExclusionsParams,
     SetPolicyDistanceRatesEnabledParams,
     SetPolicyDistanceRatesUnitParams,
@@ -14,16 +15,21 @@ import type {
     UpdatePolicyDistanceRateValueParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import {rand64} from '@libs/NumberUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, TransactionViolation} from '@src/types/onyx';
-import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
+import type {GovernmentMileageRate, Policy, PolicyEmployee, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -33,6 +39,18 @@ import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import {generateCustomUnitID} from './Policy';
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policies) => (allPolicies = policies),
+});
+
+let sessionAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => (sessionAccountID = session?.accountID),
+});
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
@@ -636,6 +654,139 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
     API.write(WRITE_COMMANDS.DISABLE_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 
+type WorkArrangementMemberUpdate = {
+    accountID: number;
+    email: string;
+    name: string;
+    previousHasOfficeWorkArrangement: boolean | undefined;
+    optimisticReportActionID: string;
+};
+
+/**
+ * Set the work arrangement (office-based or no regular workspace) for one or more policy members.
+ * The single command covers both individual and bulk updates: employeeAccountIDList carries every
+ * affected accountID, and one optimistic POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT action is
+ * created per member in the workspace admins room.
+ */
+function setEmployeeWorkArrangement(policyID: string, employeeAccountIDList: number[], isOffice: boolean) {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const policy = allPolicies?.[policyKey];
+    if (!policy) {
+        return;
+    }
+
+    const newLabel = isOffice ? 'office-based' : 'no regular workspace';
+    const updates: WorkArrangementMemberUpdate[] = [];
+    for (const accountID of employeeAccountIDList) {
+        const personalDetail = getPersonalDetail(accountID);
+        const login = personalDetail?.login;
+        if (!login) {
+            continue;
+        }
+        const employee = policy.employeeList?.[login];
+        if (!employee) {
+            continue;
+        }
+        const previousHasOfficeWorkArrangement = employee.hasOfficeWorkArrangement;
+        if (previousHasOfficeWorkArrangement === isOffice) {
+            continue;
+        }
+        updates.push({
+            accountID,
+            email: login,
+            name: getDisplayNameOrDefault(personalDetail, login),
+            previousHasOfficeWorkArrangement,
+            optimisticReportActionID: rand64(),
+        });
+    }
+
+    if (updates.length === 0) {
+        return;
+    }
+
+    const created = DateUtils.getDBTime();
+    const employeeListOptimisticUpdate = Object.fromEntries(
+        updates.map((update) => [update.email, {hasOfficeWorkArrangement: isOffice, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}]),
+    );
+    const employeeListSuccessUpdate = Object.fromEntries(updates.map((update) => [update.email, {pendingAction: null}]));
+    const employeeListFailureUpdate = Object.fromEntries(
+        updates.map((update) => [
+            update.email,
+            {
+                ...(policy.employeeList?.[update.email] ?? {}),
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+            },
+        ]),
+    );
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListOptimisticUpdate},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListSuccessUpdate},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: employeeListFailureUpdate},
+        },
+    ];
+
+    const adminsRoom = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID);
+    if (adminsRoom?.reportID) {
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsRoom.reportID}` as const;
+        const optimisticReportActions: Record<string, ReportAction> = {};
+        const successReportActions: Record<string, {pendingAction: PendingAction | null}> = {};
+        const failureReportActions: Record<string, null> = {};
+        for (const update of updates) {
+            const previousLabel = update.previousHasOfficeWorkArrangement ? 'office-based' : 'no regular workspace';
+            const text = `changed ${update.name}'s work arrangement to ${newLabel} (previously ${previousLabel})`;
+            optimisticReportActions[update.optimisticReportActionID] = {
+                reportActionID: update.optimisticReportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                actorAccountID: sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                created,
+                shouldShow: true,
+                automatic: false,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        html: `<muted-text>${text}</muted-text>`,
+                        text,
+                    },
+                ],
+                originalMessage: {
+                    accountID: update.accountID,
+                    email: update.email,
+                    name: update.name,
+                    newValue: isOffice,
+                    oldValue: update.previousHasOfficeWorkArrangement ?? false,
+                },
+            };
+            successReportActions[update.optimisticReportActionID] = {pendingAction: null};
+            failureReportActions[update.optimisticReportActionID] = null;
+        }
+        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: optimisticReportActions});
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: successReportActions});
+        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: failureReportActions});
+    }
+
+    const parameters: SetEmployeeWorkArrangementParams = {policyID, employeeAccountIDList: employeeAccountIDList.join(','), isOffice};
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {optimisticData, successData, failureData};
+    API.write(WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT, parameters, onyxData);
+}
+
 /**
  * Turn the "Require GPS or map entry" setting on or off for a policy. When it's on, the manual and odometer
  * distance flows are unavailable because neither can produce a mapped route.
@@ -861,6 +1012,7 @@ export {
     setPolicyCommuterExclusions,
     disablePolicyCommuterExclusions,
     clearPolicyCommuterExclusionsErrors,
+    setEmployeeWorkArrangement,
     setPolicyRequireMapOrGPS,
     clearPolicyRequireMapOrGPSErrors,
     setWorkspaceDistanceAutoUpdate,
