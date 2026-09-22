@@ -2349,11 +2349,14 @@ describe('SearchQueryUtils', () => {
             expect(expenses?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
         });
 
-        it('gives each footer total selection its own primary hash, since the backend computes the aggregate', () => {
+        it('leaves every hash alone for the footer total, which the footer refreshes into the snapshot on screen', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
             const total = buildSearchQueryJSON('type:expense footerTotal:total');
             const reimbursable = buildSearchQueryJSON('type:expense footerTotal:reimbursable');
 
-            expect(total?.hash).not.toEqual(reimbursable?.hash);
+            // A new hash would mean a new snapshot, so the search would re-run and take the selection with it.
+            expect(total?.hash).toEqual(reimbursable?.hash);
+            expect(total?.hash).toEqual(noSelection?.hash);
         });
 
         it('leaves every hash alone for the footer currency, which Search ignores and a separate command converts', () => {

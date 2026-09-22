@@ -756,19 +756,6 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${Array.isArray(query.columns) ? query.columns.join(',') : query.columns}`;
 
-    // The footer's total selection decides which aggregate the backend returns as the search total, so each selection
-    // needs its own snapshot and belongs in the primary hash. It is appended conditionally, so a query without one keeps
-    // the hash (and therefore the saved searches and snapshots) it already has.
-    //
-    // The count and currency selections are absent from every hash: the backend ignores both. Every search already
-    // returns each count, and the currency conversion happens client-side, so neither may invalidate the snapshot.
-    // Only a value the footer can actually display is hashed, so a hand-typed one cannot strand the user on a snapshot
-    // of its own that nothing will ever ask for again.
-    const footerTotal = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL).value?.at(0);
-    if (footerTotal && isFooterTotal(footerTotal)) {
-        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${footerTotal}`;
-    }
-
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }

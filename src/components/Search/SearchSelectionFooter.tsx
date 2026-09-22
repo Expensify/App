@@ -6,7 +6,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
+import {getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -548,20 +548,17 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     };
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
-        // A hand-picked selection has everything the breakdown needs on the client, so the choice stays here: writing it
-        // into the query would change the search hash, re-run the search and clear the very rows the footer is describing.
-        // Every other case goes into the query, which is what makes the choice stick for the next visit.
+        // A hand-picked selection is summed from its own rows, so it shows the new breakdown straight away and waits on
+        // nothing. Every other case needs the figure from the backend, which the query change below fetches, so that is
+        // the search the skeleton waits on.
         if (hasPartialSelection) {
             setFooterTotalState({searchHash: currentSearchHash, selectedTotal: nextTotalType});
-            return;
+        } else {
+            setPendingTotalHash(currentSearchHash);
         }
 
-        // The hash this reload lands on is the only one whose arrival changes the figure, so it is what the skeleton waits on.
-        if (currentSearchQueryJSON) {
-            setPendingTotalHash(buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash);
-        }
-
-        applyFooterSelection({footerTotal: nextTotalType}, true);
+        // Written in both cases, so the choice is saved against this search and restored on the next visit.
+        applyFooterSelection({footerTotal: nextTotalType});
     };
 
     const handleFooterCountChange = (nextCountType: SearchFooterCount) => {
