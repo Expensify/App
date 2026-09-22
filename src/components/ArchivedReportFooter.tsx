@@ -19,7 +19,6 @@ import React from 'react';
 import Banner from './Banner';
 
 type ArchivedReportFooterProps = {
-    /** The reportID of the archived report */
     reportID: string;
 };
 

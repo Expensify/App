@@ -127,6 +127,7 @@ const baseParams = {
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     login: CURRENT_USER_EMAIL,
     areTransactionsLoaded: true,
+    rules: undefined,
 };
 
 describe('TodosUtils', () => {

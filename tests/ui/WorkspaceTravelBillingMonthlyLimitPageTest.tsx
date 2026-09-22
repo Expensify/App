@@ -29,14 +29,14 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'testPolicy123';
-const FUND_ID = 999888; // Must match the literal returned by the useDefaultCardFeed mock below.
+const FUND_ID = 999888; // Must match the literal returned by the useDefaultTravelFeed mock below.
 const CURRENT_LIMIT_CENTS = 10000; // $100.00 current monthly limit.
 const REDUCED_LIMIT_CENTS = 5000; // $50.00, a lower value that triggers the "Reduce limit" confirmation.
 
 // jest.mock() factories are hoisted, so they can only reference literal values (not the constants above).
-jest.mock('@hooks/useDefaultCardFeed', () => ({
+jest.mock('@hooks/useDefaultTravelFeed', () => ({
     __esModule: true,
-    default: () => ({fundID: 999888, programKey: 'US'}), // fundID must match FUND_ID.
+    default: () => ({fundID: 999888, programKey: 'TRAVEL_US'}), // fundID must match FUND_ID.
 }));
 
 jest.mock('@libs/actions/TravelBilling', () => {

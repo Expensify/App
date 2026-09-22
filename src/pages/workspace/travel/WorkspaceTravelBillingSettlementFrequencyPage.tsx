@@ -5,7 +5,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
+import useDefaultTravelFeed from '@hooks/useDefaultTravelFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +36,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const {fundID: defaultFundID} = useDefaultCardFeed(policyID);
+    const {fundID: defaultFundID} = useDefaultTravelFeed(policyID);
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(defaultFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
 
@@ -68,7 +68,7 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
     const monthlySettlementDate = travelSettings?.monthlySettlementDate;
     const saveAndGoBack = () => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
-            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
+            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate);
         }
         Navigation.goBack();
     };

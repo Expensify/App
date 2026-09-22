@@ -30,7 +30,7 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
-import {changeTransactionsReport as changeTransactionsReportAction} from '../../src/libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -41,7 +41,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -61,6 +61,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         delegateAccountID: undefined,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
         ...rest,
     });
 }
@@ -92,14 +93,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 // In production, requestMoney defers its API.write() call until the target screen's
@@ -193,6 +186,34 @@ describe('actions/Transaction', () => {
         jest.clearAllMocks();
     });
 
+    describe('clearError', () => {
+        it('should clear the reject error reported against an expense that had already moved', async () => {
+            const transactionID = 'transaction-with-reject-error';
+            const errorTimestamp = '1770000000000000';
+
+            // Given: An expense carrying a reject error from the server alongside an unrelated route error
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                transactionID,
+                errors: {[errorTimestamp]: 'Something went wrong'},
+                errorFields: {
+                    reject: {[errorTimestamp]: 'The expense has already been moved or rejected.'},
+                    route: {[errorTimestamp]: 'Route error'},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When: The error is dismissed
+            clearError(transactionID);
+            await waitForBatchedUpdates();
+
+            // Then: The reject field is cleared along with the errors already covered
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.errors).toBeFalsy();
+            expect(transaction?.errorFields?.reject).toBeFalsy();
+            expect(transaction?.errorFields?.route).toBeFalsy();
+        });
+    });
+
     describe('changeTransactionsReport', () => {
         it('should set the correct optimistic onyx data for reporting a tracked expense', async () => {
             let personalDetailsList: OnyxEntry<PersonalDetailsList>;
@@ -216,7 +237,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, false, getCurrencyDecimalsLocal, undefined);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -228,6 +249,7 @@ describe('actions/Transaction', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                isDraftChatReport: false,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -257,6 +279,7 @@ describe('actions/Transaction', () => {
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -317,6 +340,7 @@ describe('actions/Transaction', () => {
             });
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction?.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CARLOS_ACCOUNT_ID,
@@ -425,6 +449,7 @@ describe('actions/Transaction', () => {
 
             // When the expense is moved to a workspace report
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [movedTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CARLOS_ACCOUNT_ID,
@@ -515,6 +540,7 @@ describe('actions/Transaction', () => {
 
             // When the expense is moved to the workspace report
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: RORY_ACCOUNT_ID,
@@ -549,7 +575,7 @@ describe('actions/Transaction', () => {
              * Seeds an expense sitting in a source report (whose state/status decide whether it is a draft),
              * along with its IOU action and transaction thread, and moves it to `newReport`.
              */
-            async function moveExpenseOutOf(sourceReportStatus: Pick<Report, 'stateNum' | 'statusNum'>, newReport: Report | undefined) {
+            async function moveExpenseFromTo(sourceReportStatus: Pick<Report, 'stateNum' | 'statusNum'>, newReport: Report | undefined) {
                 const policyID = generatePolicyID();
                 const policy: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM, 'Moved Message Workspace'), id: policyID};
 
@@ -610,6 +636,7 @@ describe('actions/Transaction', () => {
                 });
 
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
                     transactionIDs: [TRANSACTION_ID],
                     isASAPSubmitBetaEnabled: false,
                     accountID: RORY_ACCOUNT_ID,
@@ -631,33 +658,44 @@ describe('actions/Transaction', () => {
             const draftReportStatus = {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
             const submittedReportStatus = {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
 
-            const destinationReport = {
-                reportID: DESTINATION_REPORT_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: RORY_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            } as Report;
+            const buildDestinationReport = (destinationReportStatus: Pick<Report, 'stateNum' | 'statusNum'>) =>
+                ({
+                    reportID: DESTINATION_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    ...destinationReportStatus,
+                }) as Report;
 
-            it('should not create a MOVED_TRANSACTION action when the expense is moved out of a draft report', async () => {
-                // Given an expense in a draft (open) report, when it is moved to another report
-                const actions = await moveExpenseOutOf(draftReportStatus, destinationReport);
+            const countMovedActions = (actions: Array<ReportAction | undefined>) => actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION).length;
 
-                // Then no moved system message is created, because moves between drafts aren't part of the audit trail
-                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(0);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should not create a MOVED_TRANSACTION action when the expense is moved from a %s report into a draft report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved into a draft (open) report, which the backend never adopts the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, buildDestinationReport(draftReportStatus));
+
+                // Then no moved system message is created, so the App doesn't hold an action the server will never return
+                expect(countMovedActions(actions)).toBe(0);
             });
 
-            it('should create a MOVED_TRANSACTION action when the expense is moved out of a submitted report', async () => {
-                // Given an expense in a submitted report, when it is moved to another report
-                const actions = await moveExpenseOutOf(submittedReportStatus, destinationReport);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should create a MOVED_TRANSACTION action when the expense is moved from a %s report into a submitted report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved into a submitted report, which the backend does create the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, buildDestinationReport(submittedReportStatus));
 
-                // Then the moved system message is still created, since the audit trail starts once a report is submitted
-                expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)).toHaveLength(1);
+                // Then the moved system message is created optimistically to match the backend
+                expect(countMovedActions(actions)).toBe(1);
             });
 
-            it('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a draft report', async () => {
-                // Given an expense in a draft report, when it is moved to personal space (no destination report)
-                const actions = await moveExpenseOutOf(draftReportStatus, undefined);
+            it.each([
+                ['draft', draftReportStatus],
+                ['submitted', submittedReportStatus],
+            ])('should create an UNREPORTED_TRANSACTION action when the expense is moved to personal space from a %s report', async (_sourceLabel, sourceReportStatus) => {
+                // Given an expense being moved to personal space (no destination report), which the backend always creates the message on
+                const actions = await moveExpenseFromTo(sourceReportStatus, undefined);
 
                 // Then the moved message is still created, because the expense leaves the report entirely
                 expect(actions.filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)).toHaveLength(1);
@@ -674,7 +712,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: CARLOS_EMAIL,
+                    policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
                     policyID,
@@ -685,12 +723,14 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -699,6 +739,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -724,12 +765,12 @@ describe('actions/Transaction', () => {
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -805,6 +846,8 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: undefined,
@@ -828,7 +871,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
@@ -857,7 +899,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: RORY_EMAIL,
+                    policyOwner: {email: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Rory's Workspace",
                     policyID,
@@ -868,12 +910,14 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -882,6 +926,7 @@ describe('actions/Transaction', () => {
                     },
                 });
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -907,12 +952,12 @@ describe('actions/Transaction', () => {
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -988,6 +1033,8 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: undefined,
@@ -1011,7 +1058,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
@@ -1044,7 +1090,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: CARLOS_EMAIL,
+                    policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
                     policyID,
@@ -1055,11 +1101,13 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -1070,6 +1118,7 @@ describe('actions/Transaction', () => {
                 });
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1095,12 +1144,12 @@ describe('actions/Transaction', () => {
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -1185,6 +1234,8 @@ describe('actions/Transaction', () => {
 
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: undefined,
@@ -1208,7 +1259,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,
@@ -1240,7 +1290,7 @@ describe('actions/Transaction', () => {
                 const policyID = generatePolicyID();
                 createWorkspace({
                     conciergeChat: undefined,
-                    policyOwnerEmail: CARLOS_EMAIL,
+                    policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace for Hold Test",
                     policyID,
@@ -1251,12 +1301,14 @@ describe('actions/Transaction', () => {
                     isSelfTourViewed: false,
                     betas: undefined,
                     hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
+                    delegateAccountID: undefined,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {isASAPSubmitBetaEnabled: false});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -1268,6 +1320,7 @@ describe('actions/Transaction', () => {
 
                 // Create the initial expense
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1293,12 +1346,12 @@ describe('actions/Transaction', () => {
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -1325,7 +1378,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined, {rules: undefined});
                 }
                 await waitForBatchedUpdates();
 
@@ -1411,6 +1464,8 @@ describe('actions/Transaction', () => {
 
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    isVendorMatchingBetaEnabled: false,
+                    rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: allReportActions,
@@ -1434,7 +1489,6 @@ describe('actions/Transaction', () => {
                     transactionViolations: {},
                     policyRecentlyUsedCurrencies: [],
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     allPolicyTags: {},
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
                     transactionReport: reports.transactionReport,

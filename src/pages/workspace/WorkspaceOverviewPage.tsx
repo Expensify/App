@@ -1,7 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -21,12 +21,14 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultCardFeed from '@hooks/useDefaultCardFeed';
+import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,7 +49,6 @@ import {
 } from '@libs/actions/Policy/Policy';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -93,6 +94,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const backTo = route.params.backTo;
     const routePolicyID = route.params.policyID;
@@ -139,7 +141,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!policyID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path));
     };
     const onPressName = () => {
         if (!policyID) {
@@ -169,7 +171,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!policyID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path));
     };
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
@@ -182,6 +184,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {showLockedAccountModal} = useLockedAccountActions();
     const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
     const rulesDocumentSourceURL = useMemo(
         () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
@@ -303,7 +306,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
-            createDynamicRoute(
+            buildDynamicRoute(
                 DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserPersonalDetails.accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>),
             ),
         );
@@ -312,7 +315,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const handleLeave = () => {
         const userEmail = session?.email ?? '';
         const ownerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate);
+        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, isApproverOfOutstandingReports);
         const isReimburser = policy?.achAccount?.reimburser === userEmail;
 
         if (isReimburser) {
@@ -347,7 +350,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
         clearInviteDraft(route.params.policyID);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
     };
 
     const canLeave = !isOwner;

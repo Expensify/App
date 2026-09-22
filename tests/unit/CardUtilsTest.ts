@@ -48,6 +48,7 @@ import {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
+    getDomainOrWorkspaceAccountID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
     getExpensifyCardProgramCurrency,
@@ -62,6 +63,7 @@ import {
     getSelectableCardProgramKey,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
+    getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
@@ -81,6 +83,7 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
     isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
@@ -88,6 +91,7 @@ import {
     parseCardFeedKey,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
+    toMonthlySettlementDate,
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1414,6 +1418,23 @@ describe('CardUtils', () => {
             const cardFeeds = undefined;
             const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
             expect(selectedFeed).toBe(undefined);
+        });
+    });
+
+    describe('getDomainOrWorkspaceAccountID', () => {
+        it('Should return the domain account that owns a domain feed', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {domainID: 1234567});
+            expect(accountID).toBe(1234567);
+        });
+
+        it('Should return the workspace account when the feed has no domain', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {});
+            expect(accountID).toBe(7654321);
+        });
+
+        it('Should return the workspace account when there is no feed data', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, undefined);
+            expect(accountID).toBe(7654321);
         });
     });
 
@@ -4436,6 +4457,24 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('isPersonalCardBrokenConnection', () => {
+        it('returns true for account-not-found, which is actionable for personal cards but ignored for company feed health', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS};
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(true);
+        });
+
+        it('returns false while a personal-card sync is pending', () => {
+            const card: Card = {
+                ...createRandomCard(1),
+                lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS,
+                pendingFields: {lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(false);
+        });
+    });
+
     describe('isLastScrapePastDismissThreshold', () => {
         afterEach(() => {
             jest.restoreAllMocks();
@@ -4971,6 +5010,7 @@ describe('getCardConnectionStatusDisplay', () => {
         isCardBroken: false,
         shouldShowRBR: false,
         isCardInactive: false,
+        isExpensifyCard: false,
         isPersonalCard: false,
         isAdminForCardPolicy: false,
         policyID: undefined,
@@ -5025,6 +5065,33 @@ describe('getCardConnectionStatusDisplay', () => {
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
             shouldUseReauthMessage: false,
+        });
+    });
+
+    // The status is still reported so the row renders like every other one, but with no message to fix a connection
+    // the card does not have.
+    it('reports a neutral inactive status with no message for an inactive Expensify Card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'default',
+        });
+    });
+
+    // A feed or workspace error still shows its own dot on the row, but the card has no bank feed, so a connection
+    // message is never the right copy for it.
+    it('reports a neutral inactive status for an inactive Expensify Card whose feed reports an error', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, shouldShowRBR: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'default',
+        });
+    });
+
+    // A workspace error turns `shouldShowRBR` on for the Expensify Card feed key too, so an active card would
+    // otherwise read as Inactive with a connection to fix.
+    it('keeps an active Expensify Card active when its feed reports an error', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, shouldShowRBR: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.active',
+            statusTone: 'success',
         });
     });
 
@@ -5148,5 +5215,42 @@ describe('getDomainByFundID', () => {
             [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: domain,
         };
         expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
+    });
+});
+
+describe('toMonthlySettlementDate', () => {
+    it('reads the value as the day of the month, not as milliseconds since the epoch', () => {
+        expect(toMonthlySettlementDate(10)?.getDate()).toBe(10);
+    });
+
+    it('resolves every day of the month to its own day', () => {
+        const days = Array.from({length: 31}, (value, index) => index + 1);
+        expect(days.map((day) => toMonthlySettlementDate(day)?.getDate())).toEqual(days);
+    });
+
+    it('returns undefined when the workspace has no settlement date', () => {
+        expect(toMonthlySettlementDate(undefined)).toBeUndefined();
+    });
+
+    it('returns undefined for a value that cannot be a day of the month', () => {
+        expect(toMonthlySettlementDate(0)).toBeUndefined();
+        expect(toMonthlySettlementDate(32)).toBeUndefined();
+        expect(toMonthlySettlementDate(10.5)).toBeUndefined();
+        expect(toMonthlySettlementDate(1706353253)).toBeUndefined();
+        expect(toMonthlySettlementDate(NaN)).toBeUndefined();
+    });
+});
+
+describe('getWalletProviderNameKey', () => {
+    it('maps APPLE_PAY to the Apple Wallet key', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY)).toBe('appleWallet');
+    });
+
+    it('maps ANDROID_PAY to the Google Wallet key, since that is how the card provider names Google Wallet', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY)).toBe('googleWallet');
+    });
+
+    it('falls back to the generic key when the provider is missing, which happens when the card provider reports UNKNOWN', () => {
+        expect(getWalletProviderNameKey(undefined)).toBe('digitalWallet');
     });
 });
