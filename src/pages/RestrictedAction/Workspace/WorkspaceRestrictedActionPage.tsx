@@ -82,7 +82,10 @@ function WorkspaceRestrictedActionPage({
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
     // Skip the loading indicator when offline since the API call won't go through.
-    if (isLoadingSubscriptionData !== false && !isOffline) {
+    // Also skip it while unfocused: this screen stays mounted underneath the Subscription page, whose
+    // own fetch toggles the same global loading flag. Swapping the content out here would needlessly
+    // unmount and remount the restriction UI behind the user's back, discarding its state.
+    if (isLoadingSubscriptionData !== false && !isOffline && isFocused) {
         return <FullScreenLoadingIndicator style={styles.opacity1} />;
     }
 

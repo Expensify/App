@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -8,6 +8,7 @@ import WorkspaceRestrictedActionPage from '@src/pages/RestrictedAction/Workspace
 import type SCREENS from '@src/SCREENS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import React from 'react';
 
@@ -40,17 +41,20 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyUser: jest.fn(() => false),
 }));
 
-// The restriction is resolved, so `isLoadingSubscriptionData` must be `false` for the effect under test to run.
-jest.mock('@hooks/useOnyx', () => (key: string) => [key === 'isLoadingSubscriptionData' ? false : undefined]);
+// `isLoadingSubscriptionData` gates both the goBack effect and the loading indicator, so the tests drive it.
+const mockIsLoadingSubscriptionData = jest.fn<boolean | undefined, []>(() => false);
+jest.mock('@hooks/useOnyx', () => (key: string) => [key === 'isLoadingSubscriptionData' ? mockIsLoadingSubscriptionData() : undefined]);
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1, email: 'owner@example.com'})));
 jest.mock('@hooks/usePolicy', () => jest.fn(() => ({id: 'policyID1'})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
+// Renders identifiable text so the tests can tell the restriction UI apart from the loading indicator.
 jest.mock('@src/pages/RestrictedAction/Workspace/WorkspaceOwnerRestrictedAction', () => {
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     function MockWorkspaceOwnerRestrictedAction() {
-        return null;
+        return <Text>owner-restriction-ui</Text>;
     }
     return MockWorkspaceOwnerRestrictedAction;
 });
@@ -82,6 +86,7 @@ describe('WorkspaceRestrictedActionPage', () => {
         jest.clearAllMocks();
         mockIsFocused.mockReturnValue(true);
         mockShouldRestrictUserBillableActions.mockReturnValue(false);
+        mockIsLoadingSubscriptionData.mockReturnValue(false);
     });
 
     it('dismisses itself when focused and the restriction no longer applies', () => {
@@ -117,5 +122,32 @@ describe('WorkspaceRestrictedActionPage', () => {
 
         // Then the restriction UI stays up
         expect(Navigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('shows the loading indicator while focused and waiting on fresh billing data', () => {
+        // Given a focused restricted action screen whose billing fetch is still in flight
+        mockShouldRestrictUserBillableActions.mockReturnValue(true);
+        mockIsLoadingSubscriptionData.mockReturnValue(true);
+
+        // When the page renders
+        render(<WorkspaceRestrictedActionPage {...props} />);
+
+        // Then it shows the loading indicator rather than flashing a restriction that may no longer apply
+        expect(screen.queryByText('owner-restriction-ui')).toBeNull();
+    });
+
+    it('keeps the restriction UI mounted while unfocused and the shared loading flag is set', () => {
+        // Given the restricted action screen still mounted in the RHP underneath the Subscription page,
+        // whose own billing fetch has set the shared `isLoadingSubscriptionData` flag
+        mockShouldRestrictUserBillableActions.mockReturnValue(true);
+        mockIsLoadingSubscriptionData.mockReturnValue(true);
+        mockIsFocused.mockReturnValue(false);
+
+        // When the page re-renders behind the user's back
+        render(<WorkspaceRestrictedActionPage {...props} />);
+
+        // Then it must not swap its content for the loading indicator. Doing so unmounts the restriction UI
+        // while it is covered, discarding state it captured on mount.
+        expect(screen.getByText('owner-restriction-ui')).toBeTruthy();
     });
 });
