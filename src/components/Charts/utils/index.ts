@@ -483,9 +483,9 @@ function createHorizontalBarPath(x: number, y: number, xZero: number, thickness:
     return path;
 }
 
-/** Returns the fill color of the bar at `index`: one shared color, or a distinct palette color per bar. */
-function getBarColor(useSingleColor: boolean, index: number): string {
-    return useSingleColor ? VictoryTheme.colors.default : VictoryTheme.colors.getColor(index);
+/** Returns the fill color of the bar at `index`. That is `color` when given, otherwise a distinct palette color per bar. */
+function getBarColor(color: string | undefined, index: number): string {
+    return color ?? VictoryTheme.colors.getColor(index);
 }
 
 export {

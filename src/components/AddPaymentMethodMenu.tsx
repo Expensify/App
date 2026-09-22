@@ -15,7 +15,7 @@ import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -41,7 +41,7 @@ type AddPaymentMethodMenuProps = {
     anchorAlignment?: AnchorAlignment;
 
     /** Popover anchor ref */
-    anchorRef: RefObject<View | HTMLDivElement | null>;
+    anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
 
     shouldShowPersonalBankAccountOption?: boolean;
 };

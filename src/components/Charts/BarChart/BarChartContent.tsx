@@ -26,15 +26,15 @@ const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 type BarChartProps = CartesianChartProps & {
     onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
 
-    /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
-    useSingleColor?: boolean;
+    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
+    color?: string;
 };
 
 /**
  * Lays the category labels out under vertical bars — side by side, then rotated to 45° — and switches
  * to horizontal bars when they still don't fit, so the labels get room to render legibly.
  */
-function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress}: BarChartProps) {
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
@@ -111,7 +111,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
                 fontManager={fontManager}
                 formatValue={formatValue}
                 valueAxisDomain={yAxisDomain}
-                useSingleColor={useSingleColor}
+                color={color}
                 onBarPress={handleBarPress}
                 labelWidths={measurements.labelWidths}
                 ellipsisWidth={measurements.ellipsisWidth}
@@ -127,7 +127,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
             fontManager={fontManager}
             formatValue={formatValue}
             yAxisDomain={yAxisDomain}
-            useSingleColor={useSingleColor}
+            color={color}
             onBarPress={handleBarPress}
             labelLayout={labelLayout}
             labelWidths={measurements.labelWidths}

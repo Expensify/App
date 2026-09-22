@@ -48,6 +48,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -67,7 +68,7 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);

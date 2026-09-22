@@ -55,8 +55,8 @@ type HorizontalBarChartProps = {
     /** Value-axis domain override (e.g. anchored at zero) */
     valueAxisDomain: [number] | undefined;
 
-    /** When true, all bars use the same color. When false, each bar uses a different color from the palette. */
-    useSingleColor: boolean;
+    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
+    color: string | undefined;
 
     /** Called with the data index of the pressed bar */
     onBarPress: (index: number) => void;
@@ -72,7 +72,7 @@ type HorizontalBarChartProps = {
  * Renders the data as horizontal bars with category labels along the y-axis. Used when the
  * category labels don't fit under vertical bars, even rotated to 45°.
  */
-function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValue, valueAxisDomain, useSingleColor, onBarPress, labelWidths, ellipsisWidth}: HorizontalBarChartProps) {
+function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValue, valueAxisDomain, color, onBarPress, labelWidths, ellipsisWidth}: HorizontalBarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontSize = variables.iconSizeExtraSmall;
@@ -166,7 +166,7 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
             <Path
                 key={`bar-${dataPoint.label}`}
                 path={createHorizontalBarPath(xScale(dataPoint.total), yScale(getRowValue(index)), xScale(0), barThickness, BAR_CORNER_RADIUS)}
-                color={getBarColor(useSingleColor, index)}
+                color={getBarColor(color, index)}
             />
         ));
 
@@ -201,7 +201,10 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
     );
 
     return (
-        <GestureDetector gesture={customGestures}>
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
+        >
             <Animated.View
                 style={[styles.chartContent, {height: chartHeight}, cursorStyle]}
                 onLayout={onLayout}

@@ -41,8 +41,8 @@ type VerticalBarChartProps = {
     /** Value-axis domain override (e.g. anchored at zero) */
     yAxisDomain: [number] | undefined;
 
-    /** When true, all bars use the same color. When false, each bar uses a different color from the palette. */
-    useSingleColor: boolean;
+    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
+    color: string | undefined;
 
     /** Called with the data index of the pressed bar */
     onBarPress: (index: number) => void;
@@ -68,7 +68,7 @@ function VerticalBarChart({
     fontManager,
     formatValue,
     yAxisDomain,
-    useSingleColor,
+    color,
     onBarPress,
     labelLayout,
     labelWidths,
@@ -154,7 +154,7 @@ function VerticalBarChart({
                 key={`bar-${dataPoint?.label}`}
                 points={[point]}
                 chartBounds={chartBounds}
-                color={getBarColor(useSingleColor, dataIndex)}
+                color={getBarColor(color, dataIndex)}
                 barCount={barCount}
                 innerPadding={BAR_INNER_PADDING}
                 roundedCorners={{topLeft: BAR_CORNER_RADIUS, topRight: BAR_CORNER_RADIUS, bottomLeft: BAR_CORNER_RADIUS, bottomRight: BAR_CORNER_RADIUS}}
@@ -206,7 +206,10 @@ function VerticalBarChart({
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, left: chartPaddingLeft};
 
     return (
-        <GestureDetector gesture={customGestures}>
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
+        >
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
                 onLayout={onLayout}

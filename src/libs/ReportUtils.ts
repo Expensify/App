@@ -137,15 +137,9 @@ import {isTrackOnboardingChoice} from './OnboardingUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
+import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
-    buildPersonalDetailsUpdate,
-    getAccountIDsByLogins,
-    getDisplayNameOrDefault,
-    getLoginByAccountID,
-    getPersonalDetailByEmail,
-    temporaryGetDisplayNameOrDefault,
-} from './PersonalDetailsUtils';
-import {
+    canMemberWrite as canMemberWritePolicyUtils,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
@@ -155,16 +149,16 @@ import {
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getPolicyRole,
+    getReimbursementChoice,
     getRuleApprovers,
     getSubmitToAccountID,
     getTagGLCode,
-    canMemberWrite as canMemberWritePolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
     isArchivedOrPendingDeletePolicy,
     isExpensifyTeam,
-    isGroupPolicyByType,
     isGroupPolicy as isGroupPolicyPolicyUtils,
+    isGroupPolicyByType,
     isInstantSubmitEnabled,
     isPendingDeletePolicy,
     isPerDiemEnabled,
@@ -2945,7 +2939,7 @@ function isPayer(
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === currentAccountID;
-    const reimbursementChoice = policy?.reimbursementChoice;
+    const reimbursementChoice = getReimbursementChoice(policy);
 
     if (isPaidGroupPolicy(iouReport)) {
         // Pay-elsewhere / mark-paid flows for disabled reimbursement still allow any admin to act.
@@ -3059,7 +3053,7 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
         isInstantSubmitEnabled(policy) &&
         isSubmitAndClose(policy) &&
         (hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) ||
-            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
+            (!isMovingTransaction && !isOpenExpenseReport(moneyRequestReport) && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO))
     ) {
         return false;
     }
@@ -3560,7 +3554,8 @@ function getDisplayNameForParticipant({
     personalDetailsData = getAllPersonalDetails(),
     shouldRemoveDomain = false,
     formatPhoneNumber,
-    translate,
+    hiddenTranslation: hiddenTranslationOverride,
+    youTranslation,
 }: {
     accountID?: number;
     shouldUseShortForm?: boolean;
@@ -3569,7 +3564,14 @@ function getDisplayNameForParticipant({
     personalDetailsData?: Partial<PersonalDetailsList>;
     shouldRemoveDomain?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    translate?: LocalizedTranslate;
+    /**
+     * Pre-resolved "Hidden" string, passed instead of a `translate` function. Callers resolve it once (e.g. `translate('common.hidden')`,
+     * hoisted out of loops) and pass the value. English-only persisted messages pass the English literal. Defaults to the cached
+     * module value when omitted. Mirrors `getPolicyName`'s `unavailableTranslation`.
+     */
+    hiddenTranslation?: string;
+    /** Pre-resolved lowercase "you" string for the `shouldAddCurrentUserPostfix` "(you)" suffix. */
+    youTranslation?: string;
 }): string {
     if (!accountID) {
         return '';
@@ -3602,23 +3604,24 @@ function getDisplayNameForParticipant({
     // For selfDM, we display the user's displayName followed by '(you)' as a postfix
     const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === deprecatedCurrentUserAccountID;
 
-    let longName = translate
-        ? temporaryGetDisplayNameOrDefault({
-              passedPersonalDetails: personalDetails,
-              defaultValue: formattedLogin,
-              shouldFallbackToHidden,
-              shouldAddCurrentUserPostfix: shouldAddPostfix,
-              translate,
-              formatPhoneNumber,
-          })
-        : getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
+    // Resolve the "Hidden" fallback once from the passed string (or the cached module value), never via a per-call `translate`.
+    const resolvedHiddenTranslation = hiddenTranslationOverride ?? hiddenTranslation;
+    let longName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: personalDetails,
+        defaultValue: formattedLogin,
+        shouldFallbackToHidden,
+        shouldAddCurrentUserPostfix: shouldAddPostfix,
+        youAfterTranslation: youTranslation,
+        hiddenAfterTranslation: resolvedHiddenTranslation,
+        formatPhoneNumber,
+    });
 
     if (shouldRemoveDomain && longName === formattedLogin) {
         longName = longName.split('@').at(0) ?? '';
     }
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === (translate ? translate('common.hidden') : hiddenTranslation)) {
+    if (shouldFallbackToHidden && longName === resolvedHiddenTranslation) {
         return longName;
     }
 
@@ -4179,12 +4182,24 @@ function getDisplayNamesWithTooltips(
 ): DisplayNameWithTooltips {
     const personalDetailsListArray = Array.isArray(personalDetailsList) ? personalDetailsList : Object.values(personalDetailsList);
 
+    // Resolve translations once, not per participant, then pass the strings down.
+    const hiddenText = translate('common.hidden');
+    const youText = translate('common.you').toLowerCase();
+
     return personalDetailsListArray
         .map((user) => {
             const accountID = Number(user?.accountID);
 
             const displayName =
-                getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix, formatPhoneNumber, translate}) ||
+                getDisplayNameForParticipant({
+                    accountID,
+                    shouldUseShortForm,
+                    shouldFallbackToHidden,
+                    shouldAddCurrentUserPostfix,
+                    formatPhoneNumber,
+                    hiddenTranslation: hiddenText,
+                    youTranslation: youText,
+                }) ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 user?.login ||
                 '';
@@ -4220,7 +4235,7 @@ function getDisplayNamesWithTooltips(
  * Returns the the display names of the given user accountIDs
  */
 function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocalizedTranslate, fallbackUserDisplayName = ''): string {
-    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber, translate});
+    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')});
     return displayNameForParticipant || fallbackUserDisplayName;
 }
 
@@ -4264,7 +4279,7 @@ function getReimbursementQueuedActionMessage({
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
             formatPhoneNumber,
-            translate,
+            hiddenTranslation: translate('common.hidden'),
         }) ?? '';
     const originalMessage = getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
@@ -4292,7 +4307,13 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         return translate('iou.adminCanceledRequest');
     }
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: reportOwnerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
+    const submitterDisplayName =
+        getDisplayNameForParticipant({
+            accountID: reportOwnerAccountID,
+            shouldUseShortForm: true,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            hiddenTranslation: translate('common.hidden'),
+        }) ?? '';
     return translate('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
 
@@ -4544,6 +4565,7 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserAccountID,
         reportActions,
         reports,
+        allReportActionsParam ?? allReportActions,
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
@@ -4551,12 +4573,11 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport(iouReportID);
-    const hasAllExpensesHeld = hasOnlyHeldExpenses(transactions);
     const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? getAllReportActions(iouReportID);
-    // An all-held report can't move to its next state, so it isn't a to-do. Keep it only for a report awaiting
-    // approval or payment where the current user placed a hold, since they can remove it. An open report stays
-    // excluded because only its owner can place a hold there, and that owner is the one who submits.
-    const isExcludedForHeldExpenses = hasAllExpensesHeld && (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(iouReportActions, transactions, currentUserAccountID));
+    // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
+    // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
+    // child is fully held.
+    const isFallbackReportExcludedForHeldExpenses = !iouReportActionToApproveOrPay && isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID);
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
@@ -4565,12 +4586,21 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasValidIOUAction =
         ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
         !hasOnlyPendingTransactions &&
-        !isExcludedForHeldExpenses;
+        !isFallbackReportExcludedForHeldExpenses;
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         if (isAssigneeExpenseAction) {
-            const assigneeBadge = getBadgeFromIOUReport(optionOrReport, undefined, policy, optionReportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+            const assigneeBadge = getBadgeFromIOUReport(
+                optionOrReport,
+                undefined,
+                policy,
+                optionReportMetadata,
+                invoiceReceiverPolicy,
+                currentUserLogin,
+                currentUserAccountID,
+                reportActions,
+            );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
                 ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
@@ -4820,6 +4850,18 @@ function didCurrentUserPlaceHoldOnReportExpense(reportActions: OnyxEntry<ReportA
         const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
         return !!transaction && isOnHoldTransactionUtils(transaction) && isHoldCreator(transaction, action.childReportID, currentUserAccountID);
     });
+}
+
+/**
+ * An all-held report can't move to its next state, so it isn't a to-do and doesn't get an action badge. Keep it only
+ * for a report awaiting approval or payment where the current user placed a hold, since they can remove it. An open
+ * report stays excluded because only its owner can place a hold there, and that owner is the one who submits.
+ */
+function isReportExcludedForHeldExpenses(iouReport: OnyxEntry<Report>, transactions: Transaction[], reportActions: OnyxEntry<ReportActions>, currentUserAccountID?: number): boolean {
+    if (!hasOnlyHeldExpenses(transactions)) {
+        return false;
+    }
+    return isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(reportActions, transactions, currentUserAccountID);
 }
 
 /**
@@ -5999,7 +6041,12 @@ function getReportPreviewMessage(
     const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     const payerName = isExpenseReport(report)
         ? policyName
-        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
+        : getDisplayNameForParticipant({
+              accountID: report.managerID,
+              shouldUseShortForm: !isPreviewMessageForParentChatReport,
+              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              hiddenTranslation: translate('common.hidden'),
+          });
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
@@ -6054,7 +6101,12 @@ function getReportPreviewMessage(
         let actualPayerName =
             report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
                 ? ''
-                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
+                : getDisplayNameForParticipant({
+                      accountID: payerAccountID,
+                      shouldUseShortForm: true,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      hiddenTranslation: translate('common.hidden'),
+                  });
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
@@ -6079,7 +6131,12 @@ function getReportPreviewMessage(
 
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName =
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
+            getDisplayNameForParticipant({
+                accountID: report.ownerAccountID,
+                shouldUseShortForm: true,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                hiddenTranslation: translate('common.hidden'),
+            }) ?? '';
         return translate('iou.waitingOnBankAccount', submitterDisplayName);
     }
 
@@ -6108,7 +6165,12 @@ function getReportPreviewMessage(
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
+                ? getDisplayNameForParticipant({
+                      accountID: lastActorID,
+                      shouldUseShortForm: !isPreviewMessageForParentChatReport,
+                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      hiddenTranslation: translate('common.hidden'),
+                  })
                 : '';
         return `${requestorName ? `${requestorName}: ` : ''}${translate('iou.expenseAmount', amountToDisplay, comment)}`;
     }
@@ -6117,7 +6179,7 @@ function getReportPreviewMessage(
         return translate(
             'iou.payerSpentAmount',
             formattedAmount,
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '',
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: translate('common.hidden')}) ?? '',
         );
     }
     return translate('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
@@ -6481,7 +6543,12 @@ function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate, 
     if (participantsWithoutCurrentUser.length === 0) {
         return undefined;
     }
-    return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
+    return getDisplayNameForParticipant({
+        accountID: participantsWithoutCurrentUser.at(0),
+        shouldUseShortForm: true,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        hiddenTranslation: translate('common.hidden'),
+    });
 }
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
@@ -6602,7 +6669,12 @@ function getParentNavigationSubtitle(
         const login = personalDetails ? personalDetails.login : null;
 
         const reportOwnerDisplayName =
-            getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || login;
+            getDisplayNameForParticipant({
+                accountID: ownerAccountID,
+                shouldRemoveDomain: true,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                hiddenTranslation: translate('common.hidden'),
+            }) || login;
 
         if (isExpenseReport(report)) {
             return {
@@ -6887,13 +6959,7 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
             return '';
         }
         isReplaced = true;
-
-        // The synced tag carries the name the file was uploaded under, so a rename made during the upload loses to it.
-        const draftLabel = match.match(/^\n*!?\[([^\]]*)\]/)?.at(1);
-        const labelledAttachmentMarkdown = draftLabel
-            ? syncedAttachmentMarkdown.replace(/^(!?)\[[^\]]*\]/, (_reference, imagePrefix: string) => `${imagePrefix}[${draftLabel}]`)
-            : syncedAttachmentMarkdown;
-        return `${match.match(/^\n*/)?.at(0) ?? ''}${labelledAttachmentMarkdown}`;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${syncedAttachmentMarkdown}`;
     });
 }
 
@@ -6920,80 +6986,12 @@ function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | unde
 }
 
 /**
- * The label a draft gives the still-uploading attachment, taken from the markdown reference the editor shows
- * (`[label](blob:…)`). An image written without a label parses as `!(blob:…)`, which yields nothing to carry over.
- */
-function getUploadingAttachmentLabelFromDraft(draftMarkdown: string, localSource: string): string | undefined {
-    const labelledReferenceRegex = new RegExp(`!?\\[([^\\]]*)\\]\\(${Str.escapeForRegExp(localSource)}\\)`);
-    return draftMarkdown.match(labelledReferenceRegex)?.at(1) ?? undefined;
-}
-
-/**
- * Applies the draft's label to the still-uploading attachment tag. `AnchorRenderer` shows the anchor's own text,
- * so renaming the file in the editor is only kept if that text is carried over rather than the original filename.
- */
-function applyLabelToUploadingAttachmentHtml(uploadingAttachmentHtml: string, label: string | undefined): string {
-    if (!label) {
-        return uploadingAttachmentHtml;
-    }
-    if (uploadingAttachmentHtml.startsWith('<img')) {
-        return uploadingAttachmentHtml.replace(/alt="[^"]*"/i, `alt="${label}"`);
-    }
-    return uploadingAttachmentHtml.replace(/>[\s\S]*?<\/(a|video)>$/i, `>${label}</$1>`);
-}
-
-const uploadingAttachmentSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
-
-function getUploadingAttachmentSource(currentCommentHtml: string | undefined): string | undefined {
-    return currentCommentHtml?.match(uploadingAttachmentSourceRegex)?.at(1);
-}
-
-/**
  * Whether a draft dropped a still-uploading attachment. Compared against the local URI, not the parsed HTML,
  * because a kept reference stays plain markdown and never parses back into an attachment tag.
  */
 function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
-    const localSource = getUploadingAttachmentSource(currentCommentHtml);
+    const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
     return !!localSource && !draftMarkdown.includes(localSource);
-}
-
-function hasAttachmentAnchorAttributes(html: string): boolean {
-    return html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || html.includes(CONST.ATTACHMENT_ID_ATTRIBUTE);
-}
-
-/**
- * The parser caches these attributes for images and videos but not for anchors, so an edited file attachment comes
- * back as an ordinary link. The server keeps only the attachment ID, which is all a second edit has left to match on.
- */
-function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalCommentHtml: string | undefined): string {
-    if (!originalCommentHtml || !hasAttachmentAnchorAttributes(originalCommentHtml) || !newCommentHtml.includes('<a ')) {
-        return newCommentHtml;
-    }
-
-    const anchorTagRegex = /<a\s([^>]*)>/gi;
-    const attachmentAttributesByHref = new Map<string, string>();
-    for (const [, attributes] of originalCommentHtml.matchAll(anchorTagRegex)) {
-        if (!hasAttachmentAnchorAttributes(attributes)) {
-            continue;
-        }
-        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
-        const attachmentAttributes = attributes.match(/data-[\w-]+="[^"]*"/gi)?.join(' ');
-        if (href && attachmentAttributes) {
-            attachmentAttributesByHref.set(href, attachmentAttributes);
-        }
-    }
-    if (attachmentAttributesByHref.size === 0) {
-        return newCommentHtml;
-    }
-
-    return newCommentHtml.replaceAll(anchorTagRegex, (match: string, attributes: string) => {
-        if (hasAttachmentAnchorAttributes(attributes)) {
-            return match;
-        }
-        const href = attributes.match(/href="([^"]*)"/i)?.at(1);
-        const attachmentAttributes = href ? attachmentAttributesByHref.get(href) : undefined;
-        return attachmentAttributes ? `<a ${attributes} ${attachmentAttributes}>` : match;
-    });
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -7422,7 +7420,7 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitB
     }
     const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
     const isSubmitAndCloseLocal = isSubmitAndClose(policy);
-    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const arePaymentsDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     if (isInstantSubmitEnabledLocal && arePaymentsDisabled && isSubmitAndCloseLocal && !isEmptyOptimisticReport) {
         return {
@@ -10220,6 +10218,7 @@ function getAllReportErrors(
     reportActions: OnyxEntry<ReportActions>,
     allTransactions: OnyxCollection<Transaction>,
     currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): Errors {
@@ -10239,8 +10238,7 @@ function getAllReportErrors(
         ...reportActionErrors,
     };
 
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    if (reportErrorFields.export && !getConnectedIntegration(reportPolicy)) {
+    if (reportErrorFields.export && !getConnectedIntegration(policy)) {
         delete errorSources.export;
     }
 
@@ -10387,17 +10385,11 @@ function reasonForReportToBeInOptionList({
         !report?.reportID ||
         !report?.type ||
         report?.reportName === undefined ||
-        (!report?.participants &&
-            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
-            // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
-            !isChatRoom(report) &&
-            !isChatThreadReport &&
-            !isReportArchived &&
-            !isMoneyRequestReport(report) &&
-            !isTaskReport(report) &&
-            !isSelfDMReport &&
-            !isSystemChatReport &&
-            !isGroupChat(report))
+        // A DM's name and avatar come entirely from `participants`, so a DM without them has nothing to render.
+        // Every other report type gets its name and icon from elsewhere (the policy, the chat type, the parent action),
+        // and search-shaped endpoints routinely omit `participants` to keep their payloads small, so those reports
+        // stay in the list. Archived DMs are kept too, since they can no longer be repopulated.
+        (!report?.participants && isDM(report) && !isReportArchived)
     ) {
         return null;
     }
@@ -10865,7 +10857,7 @@ function getMoneyRequestOptions(
     }
 
     if (isInvoiceRoom(report)) {
-        if (canSendInvoiceFromWorkspace(policy) && isPolicyAdmin(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`])) {
+        if (canSendInvoiceFromWorkspace(policy) && isPolicyAdmin(policy)) {
             return [CONST.IOU.TYPE.INVOICE];
         }
         return [];
@@ -11016,8 +11008,10 @@ function getWhisperDisplayNames(translate: LocalizedTranslate, formatPhoneNumber
         return translate('common.youAfterPreposition');
     }
 
+    // Resolve the translation once, not per participant.
+    const hiddenText = translate('common.hidden');
     return participantAccountIDs
-        ?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser, formatPhoneNumber, translate}))
+        ?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser, formatPhoneNumber, hiddenTranslation: hiddenText}))
         .join(', ');
 }
 
@@ -11970,7 +11964,7 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
     const autoReimbursementLimit = policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit ?? 0;
     const isAutoReimbursable =
         isGroupPolicyPolicyUtils(policy) &&
-        policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+        getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
         autoReimbursementLimit >= reimbursableTotal &&
         reimbursableTotal > 0 &&
         CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(report?.currency as CurrencyType);
@@ -13574,7 +13568,15 @@ function generateReportAttributes({
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const hasViolationsToDisplayInLHN = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN;
-    const reportErrors = getAllReportErrors(report, reportActionsList, allTransactions, currentUserAccountID, isReportArchived, reports);
+    const reportErrors = getAllReportErrors(
+        report,
+        reportActionsList,
+        allTransactions,
+        currentUserAccountID,
+        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`],
+        isReportArchived,
+        reports,
+    );
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
@@ -14580,6 +14582,7 @@ export {
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,
+    isReportExcludedForHeldExpenses,
     isReportManuallyReimbursed,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
@@ -14738,12 +14741,8 @@ export {
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
-    restoreAttachmentAnchorAttributes,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
-    getUploadingAttachmentLabelFromDraft,
-    getUploadingAttachmentSource,
-    applyLabelToUploadingAttachmentHtml,
     parseMovedTransactionReportIDs,
 };
 
