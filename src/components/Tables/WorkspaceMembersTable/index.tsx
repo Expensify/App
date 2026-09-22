@@ -53,9 +53,6 @@ type WorkspaceMembersTableProps = {
     headerComponent?: React.ReactElement;
 };
 
-/** Width the member cell's avatar and the space after it take before the name and email start. */
-const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
-
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
     APPROVERS: 'approvers',
@@ -94,7 +91,7 @@ export default function WorkspaceMembersTable({
                     {text: item.name, fontSize: fontScale.text},
                     {text: item.email, fontSize: fontScale.label},
                 ],
-                extraWidth: MEMBER_CELL_AVATAR_WIDTH,
+                extraWidth: variables.tableMemberCellAvatarWidth,
             },
         },
 
