@@ -24,8 +24,9 @@ To create a Merchant Rule:
    - **Contains**
    - **Matches exactly**
 5. Select the fields you want the rule to update. 
-6. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet, then click **Preview matches** to review which expenses the rule will update.
-7. Click **Save rule**.
+6. (Optional) Enable **Apply to existing unsubmitted expenses** to also apply the rule to matching expenses that haven't been submitted yet.
+7. (Optional) Click **Preview matches** to review which unsubmitted expenses match the rule.
+8. Click **Save rule**.
 
 ---
 
