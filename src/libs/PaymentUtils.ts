@@ -11,7 +11,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
@@ -26,8 +26,10 @@ import type {Merge, ValueOf} from 'type-fest';
 import isEmpty from 'lodash/isEmpty';
 
 import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
+import {navigateToBankAccountRoute} from './actions/ReimbursementAccount';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
@@ -198,6 +200,29 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
         }));
 }
 
+/**
+ * Select a partially-setup BBA toggles either BBA setup flow to continue setup or fixing instructions when validation failed.
+ *
+ * @returns true when it navigated, meaning the caller must abandon its payment flow.
+ */
+function handleIncompleteBankAccountSelection({state, methodID, policyID}: {state: string | undefined; methodID: number | undefined; policyID: string | undefined}): boolean {
+    if (!methodID) {
+        return false;
+    }
+
+    if (state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED) {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(methodID.toString())));
+        return true;
+    }
+
+    if (isBankAccountPartiallySetup(state)) {
+        navigateToBankAccountRoute({policyID, bankAccountID: methodID});
+        return true;
+    }
+
+    return false;
+}
+
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {
     const transferMethodTypeFeeStructure =
         methodType === CONST.WALLET.TRANSFER_METHOD_TYPE.INSTANT ? CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.INSTANT : CONST.WALLET.TRANSFER_METHOD_TYPE_FEE.ACH;
@@ -364,6 +389,7 @@ export {
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
+    handleIncompleteBankAccountSelection,
     matchesCurrency,
     calculateWalletTransferBalanceFee,
     selectPaymentType,
