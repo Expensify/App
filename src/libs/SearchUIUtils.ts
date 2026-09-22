@@ -6313,6 +6313,7 @@ function getColumnsToShow({
     fallbackPolicyID,
     sortBy,
     shouldShowViolationsColumn = false,
+    isVendorColumnAvailable = true,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -6331,6 +6332,7 @@ function getColumnsToShow({
     fallbackPolicyID?: string;
     sortBy?: SearchSortBy;
     shouldShowViolationsColumn?: boolean;
+    isVendorColumnAvailable?: boolean;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -6548,7 +6550,8 @@ function getColumnsToShow({
 
     // If the user has set custom columns for the search, we need to respect their preference and order
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
-    const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
+    // The saved list outlives the vendor feature, so Vendor is dropped once no workspace has the feature anymore.
+    const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
     const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
     const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
 
@@ -6664,7 +6667,7 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
-            if (transaction.comment?.vendor?.externalID) {
+            if (isVendorColumnAvailable && transaction.comment?.vendor?.externalID) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
             }
 
