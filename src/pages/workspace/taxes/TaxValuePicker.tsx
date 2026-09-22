@@ -57,8 +57,8 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
                 name={translate('workspace.taxes.value')}
                 value={value ? getTaxValueWithPercentage(value) : ''}
             >
-                {!!rightLabel && <MenuItem.RightLabel>{rightLabel}</MenuItem.RightLabel>}
                 {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                {!value && !!rightLabel && !errorText && <MenuItem.RightLabel>{rightLabel}</MenuItem.RightLabel>}
                 <MenuItem.Chevron />
             </MenuItemField.Row>
             {!!errorText && (
