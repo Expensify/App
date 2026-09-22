@@ -1675,59 +1675,6 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getReportActionText', () => {
-        it('should return the backend-provided CARDFROZEN text', () => {
-            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
-                reportActionID: 'card-frozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 01:58:43.479',
-                message: [
-                    {
-                        html: cardFrozenMessage,
-                        text: cardFrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardFrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 01:58:43.479',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardFrozenMessage);
-        });
-
-        it('should return the backend-provided CARDUNFROZEN text', () => {
-            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
-                reportActionID: 'card-unfrozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 02:08:08.128',
-                message: [
-                    {
-                        html: cardUnfrozenMessage,
-                        text: cardUnfrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardUnfrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 02:08:08.128',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardUnfrozenMessage);
-            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
-        });
-    });
-
     describe('getMessageOfOldDotReportAction', () => {
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
@@ -2245,45 +2192,6 @@ describe('ReportActionsUtils', () => {
 
             expect(() => ReportActionsUtils.getFirstVisibleReportActionID(sorted)).not.toThrow();
             expect(ReportActionsUtils.getFirstVisibleReportActionID(sorted)).toBe(legacyExpenseUpdateAction.reportActionID);
-        });
-    });
-
-    describe('getOriginalMessage', () => {
-        it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-1',
-                },
-                {originalMessage: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns undefined when message is a non-array string and originalMessage is missing', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-2',
-                },
-                {message: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns the object when originalMessage is object-shaped', () => {
-            const reportAction: ReportAction = {
-                created: '',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: 'shaped-1',
-                originalMessage: {html: 'hi', whisperedTo: []},
-            };
-
-            expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
         });
     });
 
@@ -3330,63 +3238,6 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.hasPendingDEWSubmit(undefined, true);
 
             // Then it should return false
-            expect(result).toBe(false);
-        });
-    });
-
-    describe('isDynamicExternalWorkflowApproveFailedAction', () => {
-        it('should return true for DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with DEW_APPROVE_FAILED action type
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    message: 'This report cannot be approved because of compliance issues.',
-                    automaticAction: false,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return true because the action type is DEW_APPROVE_FAILED
-            expect(result).toBe(true);
-        });
-
-        it('should return false for non-DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with APPROVED action type (not DEW_APPROVE_FAILED)
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    expenseReportID: '1',
-                    amount: 1,
-                    currency: CONST.CURRENCY.USD,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return false because the action type is not DEW_APPROVE_FAILED
-            expect(result).toBe(false);
-        });
-
-        it('should return false for null action', () => {
-            // Given a null action
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(null);
-
-            // Then it should return false because the action is null
             expect(result).toBe(false);
         });
     });

@@ -77,6 +77,7 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
+    isBusinessCentralVendorMatchingActive,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
     isInvoiceFieldsEnabled,
@@ -4528,6 +4529,91 @@ describe('PolicyUtils', () => {
                 },
             });
 
+        const BUSINESS_CENTRAL_VENDORS_UNSYNCED = Symbol('BUSINESS_CENTRAL_VENDORS_UNSYNCED');
+        const businessCentralVendor = (id: string, name: string, email = '', blocked: string = CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE) => ({
+            id,
+            number: '',
+            name,
+            email,
+            blocked,
+            expensifyVendorId: '',
+            lastModifiedDateTime: '',
+        });
+        const buildBusinessCentralPolicy = (
+            vendors: Array<ReturnType<typeof businessCentralVendor>> | typeof BUSINESS_CENTRAL_VENDORS_UNSYNCED = [businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com')],
+            {isConfigured = true}: {isConfigured?: boolean} = {},
+        ): Policy =>
+            createMock<Policy>({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {isConfigured},
+                        data: vendors === BUSINESS_CENTRAL_VENDORS_UNSYNCED ? {} : {vendors},
+                    },
+                },
+            });
+
+        describe('Business Central vendors', () => {
+            it('requires a configured connection and the matching beta', () => {
+                const policy = buildBusinessCentralPolicy();
+                expect(isBusinessCentralVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(buildBusinessCentralPolicy(undefined, {isConfigured: false}), true)).toBe(false);
+                expect(isBusinessCentralVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it('normalizes the synced vendors for matching', () => {
+                const policy = buildBusinessCentralPolicy();
+                expect(getMatchingVendors(policy)).toEqual([{id: 'bc-1', name: 'Contoso Supplies', currency: '', email: 'ap@contoso.com'}]);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL);
+            });
+
+            // A company switch removes data.vendors while the connection stays configured, so the
+            // unloaded state has to stay distinguishable from a company that has no vendors.
+            it('distinguishes an unloaded list from a loaded empty list', () => {
+                expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toBe(false);
+                expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy([]))).toBe(true);
+                expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
+            });
+
+            it('uses the Business Central empty state when the synced list has no vendors', () => {
+                const translate = TestHelper.translateLocal;
+                expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
+                    title: translate('workspace.businessCentral.noVendorsFound'),
+                    subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
+                });
+            });
+
+            it('excludes vendors blocked as All but keeps ones blocked as Payment', () => {
+                // Given a synced list holding one unblocked, one payment-blocked, and one fully blocked vendor
+                const policy = buildBusinessCentralPolicy([
+                    businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com'),
+                    businessCentralVendor('bc-2', 'Fabrikam', '', CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.PAYMENT),
+                    businessCentralVendor('bc-3', 'Adventure Works', '', CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL),
+                ]);
+
+                // When the matching list is read
+                const vendorIDs = getMatchingVendors(policy).map((vendor) => vendor.id);
+
+                // Then only the All-blocked vendor is dropped, because Business Central still posts
+                // purchase invoices for a payment-blocked vendor but rejects every transaction for an All-blocked one
+                expect(vendorIDs).toEqual(['bc-1', 'bc-2']);
+                expect(getMatchingVendorByID(policy, 'bc-3')).toBeUndefined();
+
+                // And the permissive historical lookup still resolves its name, so an expense coded
+                // before the block renders the vendor instead of the raw external ID
+                expect(findVendorByID(policy, 'bc-3')?.name).toBe('Adventure Works');
+            });
+
+            it('yields to Rillet, which precedes it in the matching order', () => {
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = {...policy.connections, ...buildRilletPolicy().connections};
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.RILLET);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['rv-1']);
+            });
+        });
+
         describe('DualEntry vendors', () => {
             const vendors: DualEntryVendor[] = [
                 {id: '1', name: 'Company vendor', companyID: '10', email: 'vendor@example.com', isActive: true},
@@ -4948,6 +5034,11 @@ describe('PolicyUtils', () => {
             it('resolves a Rillet vendor (normalized) from connections.rillet.data.vendors', () => {
                 const policy = buildRilletPolicy([{id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'}]);
                 expect(findVendorByID(policy, 'rv-1')).toEqual({id: 'rv-1', name: 'Acme Rillet', currency: '', email: 'acme@rillet.com'});
+            });
+
+            it('resolves a Business Central vendor (normalized) from connections.businessCentral.data.vendors', () => {
+                const policy = buildBusinessCentralPolicy([businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com')]);
+                expect(findVendorByID(policy, 'bc-1')).toEqual({id: 'bc-1', name: 'Contoso Supplies', currency: '', email: 'ap@contoso.com'});
             });
 
             it('prefers the active Xero integration over stale Rillet data when both hold the same vendor ID', () => {

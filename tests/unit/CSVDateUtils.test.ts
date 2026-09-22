@@ -15,6 +15,7 @@ describe('CSVDateUtils', () => {
             expect(parseCSVDate('01/20/2024', CONST.LOCALES.EN)).toBe('2024-01-20');
             expect(parseCSVDate('20-01-2024', CONST.LOCALES.EN)).toBe('2024-01-20');
             expect(parseCSVDate('Jan 25, 2024', CONST.LOCALES.EN)).toBe('2024-01-25');
+            expect(parseCSVDate('20251102', CONST.LOCALES.EN)).toBe('2025-11-02');
         });
 
         it('reads a month abbreviated in the uploader language', () => {
@@ -65,6 +66,34 @@ describe('CSVDateUtils', () => {
             expect(result).toBe('2024-01-25');
         });
 
+        it('leaves an English month name alone when the uploader abbreviates it as a prefix of that name', () => {
+            // Given English cells a bank exports, whose month name starts with the uploader's own abbreviation: `sept`
+            // in Spanish, `mar` in Italian, and `Sep` for the English uploader reading `Sept`
+            // When each is parsed
+            // Then the day comes back. Matching the abbreviation inside the longer name rewrote the cell into a word no
+            // format matches, and the importer skips a row whose date does not parse, so an English file lost most of
+            // its rows for every non-English uploader
+            expect(parseCSVDate('September 4, 2025', CONST.LOCALES.ES)).toBe('2025-09-04');
+            expect(parseCSVDate('March 4, 2025', CONST.LOCALES.IT)).toBe('2025-03-04');
+            expect(parseCSVDate('Sept 4, 2025', CONST.LOCALES.EN)).toBe('2025-09-04');
+        });
+
+        it('reads a date a statement wrote trailing text after', () => {
+            // Given cells carrying a posting note or a time zone after the date
+            // When each is parsed
+            // Then the date comes back, cut at the cell's own separators. Cutting at a fixed ten characters instead
+            // left `Nov 2, 202` and read it as the year 202
+            expect(parseCSVDate('2025-11-02 posted', CONST.LOCALES.EN)).toBe('2025-11-02');
+            expect(parseCSVDate('Nov 2, 2025 pending', CONST.LOCALES.EN)).toBe('2025-11-02');
+        });
+
+        it('does not read a fragment left by a cut as a date', () => {
+            // Given a cell that is not a date but starts with a number
+            // When it is parsed
+            // Then null comes back: only the listed formats read a cut, because the engine reads a leftover `2` as a day
+            expect(parseCSVDate('2 lunches Berlin', CONST.LOCALES.EN)).toBeNull();
+        });
+
         it('reads an ambiguous numeric date the same way whoever uploads it', () => {
             // Given a cell reading `03/04/2025`, whose field order belongs to the bank that exported the file rather
             // than to the person importing it
@@ -103,6 +132,22 @@ describe('CSVDateUtils', () => {
 
             // Then only the day is kept
             expect(result).toBe('2024-01-15');
+        });
+
+        it('parses an Excel date serial number', () => {
+            // Given the serial numbers an XLSX date cell arrives as, counted from 1900-01-01 and offset by Excel's phantom 1900-02-29
+            // When each is parsed
+            // Then each resolves to the day it stands for, rather than reaching the engine and reading as a year
+            expect(parseCSVDate('45678', CONST.LOCALES.EN)).toBe('2025-01-21');
+            expect(parseCSVDate('45658', CONST.LOCALES.EN)).toBe('2025-01-01');
+            expect(parseCSVDate('44927', CONST.LOCALES.EN)).toBe('2023-01-01');
+        });
+
+        it('does not read a year-only value as an Excel serial number', () => {
+            // Given a cell holding a year alone, which is four digits rather than five
+            // When it is parsed
+            // Then it stays that year instead of landing in 1905
+            expect(parseCSVDate('2025', CONST.LOCALES.EN)).toBe('2025-01-01');
         });
 
         it('returns null for invalid input', () => {

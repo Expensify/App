@@ -8536,12 +8536,7 @@ ${reportName}`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider} の同期が完了しました`,
-                successTitle: (provider: string) => `${provider} との接続が正常に同期されました！`,
-                added: '追加済み',
-                removed: '削除済み',
-                skipped: 'スキップ済み',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 従業員',
                     other: (count: number) => `${count} 従業員`,
                 }),
@@ -8571,6 +8566,12 @@ ${reportName}`,
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
             subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 名の候補者',
+                    other: (count: number) => `${count}件の候補`,
+                }),
+            },
         },
         merge: {
             connections: '接続',
@@ -8599,6 +8600,13 @@ ${reportName}`,
             syncingModalTitle: '接続を同期しています',
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
+            syncResults: {
+                title: (provider: string) => `${provider} の同期が完了しました`,
+                successTitle: (provider: string) => `${provider} の接続が正常に同期されました！`,
+                added: '追加しました',
+                removed: '削除済み',
+                skipped: 'スキップ済み',
+            },
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',
@@ -8629,6 +8637,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'このワークスペースと同期する Dynamics 365 Business Central の子会社を選択してください。',
             noCompaniesFound: '会社が見つかりません',
             noCompaniesFoundDescription: 'Dynamics 365 Business Central に会社を追加して、接続をもう一度同期してください',
+            noVendorsFound: '取引先が見つかりませんでした',
+            noVendorsFoundDescription: 'Business Central に仕入先を追加してから、もう一度接続を同期してください',
         },
     },
     getAssistancePage: {

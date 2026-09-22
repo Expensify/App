@@ -192,9 +192,7 @@ function resolvePattern(node, sourceCode, visited = new Set()) {
         return null;
     }
     visited.add(node);
-    // Resolve a name to its initializer, else hoisting a format string to a `const` exempts its call site. Each hop looks the
-    // name up from where it is written, because an alias's initializer lives in the declaring scope, not the call's.
-    // A name with no initializer stays unknown: a parameter's literal is visible at the callers, not here.
+    // Each hop resolves a name to its initializer in its declaring scope, not the call's, else hoisting a format string to a `const` exempts its call site; a parameter stays unknown.
     if (node.type === 'Identifier') {
         const variable = findVariable(sourceCode.getScope(node), node.name);
         const definition = variable?.defs?.length === 1 ? variable.defs.at(0) : undefined;

@@ -111,8 +111,7 @@ function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, request
     }
     const preset = CONST.DATE.INTL_FORMATS[formatKey];
     const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
-    // A requested zone is never dropped: it would render another zone's wall clock. The device zone is the one the constructor
-    // already defaults to, so omitting that one renders the same clock and beats returning nothing.
+    // A requested zone is never dropped, since it would render another zone's wall clock, but the device zone is the constructor's own default, so dropping that one renders the same clock.
     const timeZoneCandidates: Array<string | undefined> = backwardTimeZone && backwardTimeZone !== timeZone ? [timeZone, backwardTimeZone] : [timeZone];
     if (requestedTimeZone === undefined && timeZone !== undefined) {
         timeZoneCandidates.push(undefined);
@@ -197,18 +196,14 @@ function getWeekEndsOn(locale: Locale): WeekDay {
  * `locale` is unused, kept on the signature for compat with LocaleContextProvider's wrapper.
  */
 function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: string, datetime?: string | Date | number | null): Date {
-    // Absent is `undefined`, `null` (an Onyx field the backend sent empty) or `''` (callers pass `?? ''`). Not a plain falsy
-    // check, because a `0` timestamp is a real instant.
+    // Absent is `undefined`, `null` (an Onyx field the backend sent empty) or `''` (callers pass `?? ''`). Not a plain falsy check, because a `0` timestamp is a real instant.
     if (datetime === undefined || datetime === null || datetime === '') {
         return toZonedSafe(new Date(), currentSelectedTimezone);
     }
     if (datetime instanceof Date || typeof datetime === 'number') {
         return toZonedSafe(datetime, currentSelectedTimezone);
     }
-    // `toDate` reads an unzoned value as UTC, honours an embedded offset when there is one, and parses the space-separated
-    // wire shape on every engine. Appending `Z` to that shape instead relied on a V8 leniency Hermes lacks, which left
-    // every chat timestamp showing the current time. It only understands ISO-like input, so non-ISO strings (a
-    // `Date.prototype.toString()` value, which an engine is required to parse back) still need the engine's own parser.
+    // `toDate` parses the space-separated wire shape as UTC on every engine, where appending `Z` relied on a V8 leniency Hermes lacks, and non-ISO input falls to `new Date` below.
     const isoParsed = toDate(datetime, {timeZone: 'UTC'});
     return toZonedSafe(Number.isNaN(isoParsed.getTime()) ? new Date(datetime) : isoParsed, currentSelectedTimezone);
 }
@@ -1170,9 +1165,7 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale, now
     const [, sign = '+', hours = '00', minutes = '00'] = offsetMatch ?? [];
     const offsetMinutes = offsetMatch ? (sign === '-' ? -1 : 1) * (Number(hours) * 60 + Number(minutes)) : 0;
     const venueTimezoneLabel = offsetMatch ? getCancellationDateTimezoneLabel(sign, hours, minutes) : 'UTC';
-    // Parse the civil part explicitly rather than appending `Z` and handing the result to `new Date`. Shapes like
-    // `'2026-04-19Z'` and `'...+07'` are outside the Date Time String Format, so acceptance is implementation-defined:
-    // V8 takes them via legacy heuristics and Hermes does not, which blanked the whole label on device.
+    // The civil part is parsed explicitly, not by appending `Z`: `'2026-04-19Z'` and `'...+07'` are outside the Date Time String Format, so V8 accepts them and Hermes blanked the label.
     const civil = offsetMatch ? isoDateString.slice(0, offsetMatch.index) : isoDateString.replace(/Z$/, '');
     const instant = toUTCDate(civil);
     if (Number.isNaN(instant.getTime())) {
@@ -1455,8 +1448,7 @@ function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: st
         try {
             return formatInTimeZone(date, 'UTC', formatStr, options);
         } catch (utcError) {
-            // This helper exists so render paths with no error boundary can call it. If UTC fails too there is nothing
-            // left to try, and an empty string is what every other formatter here returns when it cannot render.
+            // Render paths call this with no error boundary, so a UTC failure leaves nothing to try and returns '', as every other formatter here does when it cannot render.
             Log.warn('[DateUtils] formatInTimeZone failed in UTC as well', {timeZone, utcError});
             return '';
         }

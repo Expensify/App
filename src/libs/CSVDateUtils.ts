@@ -39,6 +39,15 @@ const CSV_DATE_FORMATS = [
 const TRAILING_TIME_PATTERN = /[T\s]\d{1,2}:\d{2}/;
 
 /**
+ * Bounded by letters on both sides, else a name that begins another language's name is spliced into it: `sept` (es) sits
+ * inside `September`, and rewriting that leaves a cell no format matches, so the row is dropped. The point after an
+ * abbreviation goes with the name, so `15. Jan. 2025` rewrites to a shape the formats above know.
+ */
+function toMonthNamePattern(name: string): RegExp {
+    return new RegExp(`(?<!\\p{L})${escapeRegExp(name)}\\.?(?!\\p{L})`, 'iu');
+}
+
+/**
  * Every month name the uploader's language writes, as a pattern matching it in a cell, paired with the English name
  * date-fns parses. Longest first, so a full name is matched before its abbreviation. Memoized because a file is parsed
  * a row at a time, and dropped with the other derived caches, because the names it reads change when a locale's data lands.
@@ -56,8 +65,7 @@ const getEnglishMonthNameByLocalizedName = memoize(
                 names.push([withoutPoints, englishName]);
             }
         }
-        // The point after an abbreviation goes with the name, so `15. Jan. 2025` rewrites to a shape the formats above know.
-        return names.sort(([nameA], [nameB]) => nameB.length - nameA.length).map(([name, englishName]) => [new RegExp(`${escapeRegExp(name)}\\.?`, 'iu'), englishName]);
+        return names.sort(([nameA], [nameB]) => nameB.length - nameA.length).map(([name, englishName]) => [toMonthNamePattern(name), englishName]);
     },
     {maxSize: 16, equality: 'shallow'},
 );
@@ -82,15 +90,43 @@ function toEnglishMonthName(input: string, locale: Locale): string {
     return input;
 }
 
-function parseDateValue(value: string): string | null {
-    // The known shapes first: a cell holds a calendar day, and the engine reads `2024-01-15` as UTC midnight, which
-    // formats back as the day before in every zone west of UTC.
+/** A cell holds a calendar day, and the engine reads `2024-01-15` as UTC midnight, which formats back as the day before west of UTC. */
+function parseKnownFormat(value: string): string | null {
     for (const dateFormat of CSV_DATE_FORMATS) {
         const parsedDate = parse(value, dateFormat, new Date());
-        // `yyyy` also matches a two-digit year and reads it literally, so `3/4/25` is the year 25 here and 2025 to the
-        // engine below, which is the reading a spreadsheet means by it.
+        // `yyyy` also matches a two-digit year and reads it literally, so `3/4/25` is the year 25 here and 2025 to the engine below, which is what a spreadsheet means by it.
         if (isValid(parsedDate) && parsedDate.getFullYear() >= 100) {
             return format(parsedDate, CONST.DATE.FNS_FORMAT_STRING);
+        }
+    }
+    return null;
+}
+
+/** What precedes the trailing text a statement writes after the date: the clock time, then one word at a time from the end. */
+function getTrailingCuts(value: string): string[] {
+    const cuts: string[] = [];
+    const trailingTime = TRAILING_TIME_PATTERN.exec(value);
+    if (trailingTime) {
+        cuts.push(value.slice(0, trailingTime.index));
+    }
+    for (let space = value.lastIndexOf(' '); space > 0; space = value.lastIndexOf(' ', space - 1)) {
+        cuts.push(value.slice(0, space));
+    }
+    return cuts;
+}
+
+function parseDateValue(value: string): string | null {
+    const knownFormat = parseKnownFormat(value);
+    if (knownFormat) {
+        return knownFormat;
+    }
+
+    // A five-digit Excel serial, before the engine below reads it as a year. Excel counts from 1900-01-01 and treats
+    // 1900 as a leap year, hence the two days.
+    if (/^\d{5}$/.test(value)) {
+        const excelDate = addDays(new Date(1900, 0, 1), parseInt(value, 10) - 2);
+        if (isValid(excelDate)) {
+            return format(excelDate, CONST.DATE.FNS_FORMAT_STRING);
         }
     }
 
@@ -113,27 +149,14 @@ function parseCSVDate(input: string, locale: Locale): string | null {
         return parsedDate;
     }
 
-    // Retry without the clock time, cut at the time itself: cutting at a fixed length left a month name and a two-digit year, which the engine read as the year 20.
-    const trailingTime = TRAILING_TIME_PATTERN.exec(normalizedInput);
-    const parsedDateOnly = trailingTime ? parseDateValue(normalizedInput.slice(0, trailingTime.index)) : null;
-    if (parsedDateOnly) {
-        return parsedDateOnly;
-    }
-
-    // If it didn't parse, maybe it's an Excel date number
-    // Excel stores dates serialized from January 1st, 1900 (with 1/1/1900 being 1)
-    // Excel thinks that 1900 was a leap year and adds an extra day to account for that
-    if (/^\d+$/.test(normalizedInput)) {
-        const inputInt = parseInt(normalizedInput, 10);
-        if (inputInt > 0 && inputInt < 100000) {
-            const excelEpoch = new Date(1900, 0, 1); // January 1, 1900
-            const excelDate = addDays(excelEpoch, inputInt - 2);
-            if (isValid(excelDate)) {
-                return format(excelDate, CONST.DATE.FNS_FORMAT_STRING);
-            }
+    // Then the cell without what follows the date, cut at its own separators: cutting at a fixed ten characters left `Nov 2, 202`, which the engine read as the year 202.
+    for (const cut of getTrailingCuts(normalizedInput)) {
+        // Only the shapes above, because a cut is a fragment rather than a cell, and the engine reads a leftover `2` as a date.
+        const parsedCut = parseKnownFormat(cut);
+        if (parsedCut) {
+            return parsedCut;
         }
     }
-
     return null;
 }
 
