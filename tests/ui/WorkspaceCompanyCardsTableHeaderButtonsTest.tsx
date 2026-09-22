@@ -23,13 +23,15 @@ const FEED_NAME = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${DOMAIN_OR_WORKSP
 
 const mockNavigateToFeedTransactions = jest.fn();
 
+let mockShouldUseNarrowLayout = false;
+
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false, isMediumScreenWidth: false}),
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isMediumScreenWidth: false}),
 }));
 
 jest.mock('@libs/CardNavigationUtils', () => ({
@@ -59,6 +61,7 @@ function renderHeaderButtons(shouldShowViewTransactions: boolean) {
 describe('WorkspaceCompanyCardsTableHeaderButtons view transactions link', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockShouldUseNarrowLayout = false;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -89,5 +92,37 @@ describe('WorkspaceCompanyCardsTableHeaderButtons view transactions link', () =>
         // Then the link must be absent rather than disabled, because offering navigation into an empty
         // or not-yet-loaded Search view reads as a broken page
         expect(screen.queryByText('View transactions')).toBeNull();
+    });
+});
+
+describe('WorkspaceCompanyCardsTableHeaderButtons settings button', () => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockShouldUseNarrowLayout = false;
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('keeps the Settings label on wide screens', async () => {
+        // Given a wide layout, where there is room for the feed selector and a labelled button on the same row
+        renderHeaderButtons(true);
+
+        await waitForBatchedUpdates();
+
+        // Then the button keeps its text, because the design only collapses it where horizontal space is scarce
+        expect(screen.getByText('Settings')).toBeOnTheScreen();
+    });
+
+    it('collapses to a cog-only button on narrow screens', async () => {
+        // Given a narrow layout, where a full-width labelled button pushed itself onto a row of its own
+        mockShouldUseNarrowLayout = true;
+        renderHeaderButtons(true);
+
+        await waitForBatchedUpdates();
+
+        // Then the label is gone so the cog can share the feed selector's row, but the button must still be
+        // reachable by name — dropping visible text is exactly where an icon-only control loses its accessible label
+        expect(screen.queryByText('Settings')).toBeNull();
+        expect(screen.getByLabelText('Settings')).toBeOnTheScreen();
     });
 });

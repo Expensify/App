@@ -117,15 +117,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({
 
     return (
         <View>
-            <View
-                style={[
-                    styles.w100,
-                    styles.ph5,
-                    styles.gap5,
-                    styles.pb2,
-                    !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
-                ]}
-            >
+            <View style={[styles.w100, styles.ph5, styles.gap5, styles.pb2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, !shouldShowNarrowLayout && styles.pv2]}>
                 {isLoading ? (
                     <AccountSwitcherSkeletonView
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
@@ -146,18 +138,26 @@ function WorkspaceCompanyCardsTableHeaderButtons({
                     <Button
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         accessibilityLabel={translate('common.settings')}
-                        style={shouldShowNarrowLayout ? styles.w100 : undefined}
+                        // Zeroing the horizontal padding squares the button off so the icon-only variant renders as a circle.
+                        innerStyles={shouldShowNarrowLayout ? styles.ph0 : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
                     >
                         <Button.Icon src={icons.Gear} />
-                        <Button.Text>{translate('common.settings')}</Button.Text>
+                        {/* Dropping the label on small screens keeps the button in the feed selector's row instead of a full-width row of its own. */}
+                        {!shouldShowNarrowLayout && <Button.Text>{translate('common.settings')}</Button.Text>}
                     </Button>
                 )}
             </View>
 
             {shouldShowViewTransactions && (
                 <View style={[styles.flexRow, styles.ph5, styles.pb2]}>
-                    <TextLink onPress={viewTransactions}>{translate('workspace.common.viewTransactions')}</TextLink>
+                    {/* Label size matches the balance and feed labels this link sits between. */}
+                    <TextLink
+                        onPress={viewTransactions}
+                        style={styles.label}
+                    >
+                        {translate('workspace.common.viewTransactions')}
+                    </TextLink>
                 </View>
             )}
 
