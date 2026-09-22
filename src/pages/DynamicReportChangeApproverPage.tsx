@@ -1,6 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MoneyReportHeaderModals from '@components/MoneyReportHeaderModals';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -65,7 +64,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const hasAutoAppliedRef = useRef(false);
     const hasNavigatedToAddApproverRef = useRef(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
-    // The approved animation is part of the report header, which isn't mounted in this RHP, so there is nothing to animate here
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -192,15 +190,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     );
 }
 
-// The page reads the hold menu from the MoneyReportHeaderModals context, so the provider has to sit above it
-function DynamicReportChangeApproverPageWithModals(props: DynamicReportChangeApproverPageProps) {
-    return (
-        <MoneyReportHeaderModals reportID={props.report.reportID}>
-            <DynamicReportChangeApproverPage {...props} />
-        </MoneyReportHeaderModals>
-    );
-}
-
-export default withReportOrNotFound()(DynamicReportChangeApproverPageWithModals);
+export default withReportOrNotFound()(DynamicReportChangeApproverPage);
 export {APPROVER_TYPE};
 export type {ApproverType};
