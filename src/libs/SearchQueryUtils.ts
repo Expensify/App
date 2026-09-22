@@ -2370,7 +2370,7 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
  *
  * This deliberately does NOT look at the focused route: when an RHP (e.g. a report) is stacked on top of
  * the Search tab, the focused route is the RHP and carries no `q`, but the Search root route underneath
- * still does. It also does not walk the live tree only — a non-focused tab navigator has its nested state
+ * still does. It also does not walk only the live tree. A non-focused tab navigator has its nested state
  * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
  *
  * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
