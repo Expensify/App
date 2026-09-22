@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,6 +37,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
+import useDebouncedSaveReportActionDraft from '@pages/inbox/report/useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -64,6 +66,7 @@ import type {SuggestionsRef} from './ReportActionCompose';
 import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
+import shouldYieldFocusToSidePanelComposer from './shouldYieldFocusToSidePanelComposer';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import useComposerSuggestions from './useComposerSuggestions';
@@ -204,7 +207,8 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
+    const {isOffline} = useNetwork();
+    const {isSidePanelHiddenOrLargeScreen, shouldHideSidePanel} = useSidePanelState();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -231,7 +235,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveReportActionDraft();
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -289,6 +293,12 @@ function ComposerWithSuggestions({
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
+    // Synced in an effect rather than during render because this file is at its lint budget for render-time ref access.
+    const isInSidePanelRef = useRef(isInSidePanel);
+    useEffect(() => {
+        isInSidePanelRef.current = isInSidePanel;
+    }, [isInSidePanel]);
+
     /**
      * Focus the composer text input
      * @param [shouldDelay=false] Impose delay before focusing the composer
@@ -298,7 +308,9 @@ function ComposerWithSuggestions({
     const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused = false) => {
         // If we're stacked above another RHP, wait for the transition to complete before focusing.
         const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-        focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+        // Another composer taking focus releases the claim, so it has to be read when the focus lands rather than now.
+        const canFocusAfterDelay = isInSidePanelRef.current ? () => !!ReportActionComposeFocusManager.sidePanelComposerRef.current : undefined;
+        focusComposerWithDelay(composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
     const shouldIgnoreEditSelectionResetRef = useRef(false);
@@ -525,7 +537,7 @@ function ComposerWithSuggestions({
                     return;
                 }
 
-                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted, isOffline);
                 return;
             }
 
@@ -560,6 +572,7 @@ function ComposerWithSuggestions({
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,
+            isOffline,
         ],
     );
 
@@ -598,7 +611,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -650,6 +663,7 @@ function ComposerWithSuggestions({
             reportActions,
             updateComment,
             setCurrentEditMessageSelection,
+            isOffline,
         ],
     );
 
@@ -756,6 +770,17 @@ function ComposerWithSuggestions({
         } else {
             ReportActionComposeFocusManager.sidePanelComposerRef.current = composerRef.current;
         }
+    }, [isInSidePanel]);
+
+    // handleSidePanelFocus only releases the claim when another composer receives focus, so a Side Panel that closes while holding it
+    // would keep it forever and the guard in the modal-close effect below would strand focus on the document body.
+    useEffect(() => {
+        if (!isInSidePanel) {
+            return;
+        }
+        return () => {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        };
     }, [isInSidePanel]);
 
     /**
@@ -871,6 +896,20 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // The Side Panel composer only wins this race because it renders outside <StackView> and its effect flushes last, so the fire-time
+        // re-check would otherwise turn https://github.com/Expensify/App/pull/86658 into a regression. Reads shouldHideSidePanel rather than
+        // isSidePanelHiddenOrLargeScreen because the latter is true on extra-large screens even while the panel is on screen.
+        if (
+            shouldYieldFocusToSidePanelComposer({
+                isInSidePanel,
+                shouldHideSidePanel,
+                didModalJustClose: !!prevIsModalVisible,
+                hasSidePanelFocusClaim: !!ReportActionComposeFocusManager.sidePanelComposerRef.current,
+            })
+        ) {
+            return;
+        }
+
         // Do not focus the composer if the Side Panel is visible
         if (!isSidePanelHiddenOrLargeScreen) {
             return;
@@ -888,7 +927,19 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen, isInSidePanel]);
+    }, [
+        focus,
+        prevIsFocused,
+        editFocused,
+        prevIsModalVisible,
+        isFocused,
+        modal?.isVisible,
+        isNextModalWillOpenRef,
+        shouldAutoFocus,
+        isSidePanelHiddenOrLargeScreen,
+        shouldHideSidePanel,
+        isInSidePanel,
+    ]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit

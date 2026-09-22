@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
 import type useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
@@ -24,6 +25,7 @@ import {createMockReport} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockHasLoadedAppStatus: 'loading' | 'loaded' = 'loaded';
+let mockIsOffline = false;
 
 jest.mock('@hooks/useOnyx', () => {
     const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
@@ -47,9 +49,11 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
 jest.mock('@hooks/useTodoCounts', () => jest.fn());
 
+// `useNetwork` reads this through `useSyncExternalStore` without a notification, so set it before the render
+// under test rather than after.
 jest.mock('@libs/NetworkState', () => ({
     ...jest.requireActual<typeof NetworkStateModule>('@libs/NetworkState'),
-    getIsOffline: () => true,
+    getIsOffline: () => mockIsOffline,
 }));
 
 jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
@@ -57,9 +61,11 @@ jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
     return ReactModule.createElement('View', {testID: 'for-you-skeleton'});
 });
 
-jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => () => {
+// Stubbed, but the stub forwards `isCopyLoading` so these tests can tell whether the date, greeting and placeholder
+// are behind skeleton bars. What the bars actually look like is exercised in ConciergePromptBoxTest.
+jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => ({isCopyLoading}: {isCopyLoading: boolean}) => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'});
+    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'}, isCopyLoading ? ReactModule.createElement('View', {testID: 'concierge-copy-skeleton'}) : null);
 });
 
 jest.mock('@pages/home/TimeSensitiveSection/useTimeSensitiveItems', () => jest.fn(() => []));
@@ -152,8 +158,6 @@ const mockUseTodoCounts = jest.mocked(useTodoCounts);
 
 const ACCOUNT_ID = 12345;
 
-// ForYouSection now derives its counts/single-IDs from the useTodoCounts hook (which is mocked here) instead of the
-// removed TODOS derived value, so the fixtures only need the report buckets the hook's return is computed from.
 type TodoReport = {reportID: string};
 type TodoFixture = {
     reportsToSubmit: TodoReport[];
@@ -231,8 +235,21 @@ function setTodoCounts(todos: TodoFixture) {
 // ConciergePromptBox is mocked, so these props are inert here. They only satisfy ForYouSection's required prop types.
 const conciergeMenuProps = {isConciergeMenuVisible: false, setIsConciergeMenuVisible: () => {}};
 
+// ForYouSection takes the app load gate as a prop, so the harness reads it the way HomePage does. That keeps the
+// cases below driving the gate through Onyx.
+function ForYouSectionHarness() {
+    const isInitialLoad = useAppLoadSkeletonVisibility();
+
+    return (
+        <ForYouSection
+            isInitialLoad={isInitialLoad}
+            {...conciergeMenuProps}
+        />
+    );
+}
+
 function renderForYouSection() {
-    return render(<ForYouSection {...conciergeMenuProps} />);
+    return render(<ForYouSectionHarness />);
 }
 
 function pressFirstBeginButton() {
@@ -240,28 +257,17 @@ function pressFirstBeginButton() {
     fireEvent.press(firstButton);
 }
 
-const buildRequest = (command: AnyRequest['command'], initiatedOffline = false): AnyRequest => ({
+const buildRequest = (command: AnyRequest['command'], extra: Partial<AnyRequest> = {}): AnyRequest => ({
     command,
     data: {},
-    initiatedOffline,
+    ...extra,
 });
 
-async function setAppLoadState({
-    hasLoadedApp,
-    isLoadingApp,
-    isLoadingReportData,
-    requests = [],
-}: {
-    hasLoadedApp: boolean;
-    isLoadingApp: boolean;
-    isLoadingReportData: boolean;
-    requests?: AnyRequest[];
-}) {
+async function setAppLoadState({hasLoadedApp, isLoadingApp, requests = []}: {hasLoadedApp: boolean; isLoadingApp: boolean; requests?: AnyRequest[]}) {
     await act(async () => {
         await Onyx.multiSet({
             [ONYXKEYS.HAS_LOADED_APP]: hasLoadedApp,
             [ONYXKEYS.IS_LOADING_APP]: isLoadingApp,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: isLoadingReportData,
             [ONYXKEYS.PERSISTED_REQUESTS]: requests,
             [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
             [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
@@ -277,6 +283,7 @@ describe('ForYouSection', () => {
 
     beforeEach(async () => {
         mockHasLoadedAppStatus = 'loaded';
+        mockIsOffline = false;
         mockIsFocused = true;
         mockUseResponsiveLayout.mockReturnValue({
             shouldUseNarrowLayout: false,
@@ -316,7 +323,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -331,7 +337,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -345,7 +350,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -359,7 +363,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -373,7 +376,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -386,7 +388,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: true,
                 requests: [buildRequest(WRITE_COMMANDS.RECONNECT_APP)],
             });
 
@@ -400,7 +401,6 @@ describe('ForYouSection', () => {
             await setAppLoadState({
                 hasLoadedApp: true,
                 isLoadingApp: true,
-                isLoadingReportData: true,
                 requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
@@ -410,11 +410,10 @@ describe('ForYouSection', () => {
             expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
         });
 
-        it('preserves IS_LOADING_REPORT_DATA as an initial load gate', async () => {
+        it('ignores IS_LOADING_REPORT_DATA while the app is unloaded', async () => {
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
             });
 
             renderForYouSection();
@@ -425,21 +424,52 @@ describe('ForYouSection', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
         });
 
-        it('preserves the cold load skeleton for an OpenApp request initiated offline', async () => {
+        it('drops both skeletons for an OpenApp initiated offline', async () => {
+            mockIsOffline = true;
             await setAppLoadState({
                 hasLoadedApp: false,
                 isLoadingApp: false,
-                isLoadingReportData: false,
-                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, true)],
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP, {initiatedOffline: true})],
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('concierge-copy-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('drops both skeletons on an offline restart with a stranded loading flag and no request', async () => {
+            mockIsOffline = true;
+            mockHasLoadedAppStatus = 'loaded';
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: true,
+            });
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('concierge-copy-skeleton')).not.toBeOnTheScreen();
+        });
+
+        it('keeps both skeletons while an OpenApp queued online is pending', async () => {
+            mockIsOffline = true;
+            await setAppLoadState({
+                hasLoadedApp: false,
+                isLoadingApp: false,
+                requests: [buildRequest(WRITE_COMMANDS.OPEN_APP)],
             });
 
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.getByTestId('concierge-copy-skeleton')).toBeOnTheScreen();
         });
     });
 
@@ -525,7 +555,7 @@ describe('ForYouSection', () => {
 
             // Clearing the to-dos must not unmount the section. It should stay visible (now the empty state).
             setTodoCounts(BASE_TODOS);
-            rerender(<ForYouSection {...conciergeMenuProps} />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
@@ -550,7 +580,6 @@ describe('ForYouSection', () => {
         it('still shows the skeleton during the initial load for a new user', async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
-                // The onboarding status must be known, otherwise the skeleton stays hidden to avoid flashing for onboarding users.
                 await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
                 await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
                 await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
@@ -560,8 +589,40 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            // The skeleton is shown while the initial load is in flight.
+            expect(screen.getByTestId('concierge-prompt-box')).toBeOnTheScreen();
             expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+            expect(screen.queryByText('homePage.toDos')).not.toBeOnTheScreen();
+        });
+
+        it('shows the skeleton during the initial load before the onboarding NVP arrives', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, null);
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
+        });
+
+        it('drops the skeleton once the onboarding NVP reports the user is still onboarding', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, NEW_USER_TRIAL_START);
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+                await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [buildRequest(WRITE_COMMANDS.OPEN_APP)]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByTestId('for-you-skeleton')).not.toBeOnTheScreen();
+            expect(screen.getByTestId('concierge-prompt-box')).toBeOnTheScreen();
         });
     });
 
@@ -686,7 +747,7 @@ describe('ForYouSection', () => {
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsFocused = false;
-            rerender(<ForYouSection {...conciergeMenuProps} />);
+            rerender(<ForYouSectionHarness />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();
@@ -725,7 +786,6 @@ describe('ForYouSection', () => {
                     backTo: ROUTES.HOME,
                 }),
             );
-            // The standard report routes should not be used for the review row anymore.
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
