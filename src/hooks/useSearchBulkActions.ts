@@ -202,10 +202,8 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
 /**
  * How a selection on a grouped search has to be exported.
  *
- * Ticking a populated group row stores that group's loaded children stamped with `isSelectedViaGroup`, not the group
- * key itself. The group key is only stored when the group had no children loaded. So a group selection has to be
- * detected with `isGroupSelection` rather than by looking for the group prefix, or a group whose children are
- * paginated exports only the loaded ones instead of everything the group's filter covers.
+ * Selecting a group stores its loaded children with isSelectedViaGroup. The group key is only stored when no children are loaded.
+ * Use isGroupSelection rather than the key prefix so exports include every item matching the group filter.
  *
  * `transactionIDList` drops the rows covered by that filter and keeps the rows the user ticked individually
  * alongside them.
@@ -1977,10 +1975,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
-            // A group selection is sent to the backend as a filter on the query rather than a list of report/transaction IDs,
-            // which most templates can't be scoped by, so template exports are hidden for it. Reconciliation - All Expenses is
-            // the exception on a card-grouped search (Card statements and Card accruals): the selected card groups become a
-            // `cardID:` filter, which is exactly the card-spend scope that template reports on.
+            // Group selections are sent as query filters, not report or transaction IDs, so template exports are usually unavailable.
+            // Reconciliation - All Expenses is supported for card-grouped searches because selected card groups become a `cardID:`
+            // filter, which template reports can use to scope card spend.
             const includesCardGroupExport = includesGroupExport && groupBy === CONST.SEARCH.GROUP_BY.CARD;
             const customTemplatesToShow = includesCardGroupExport ? [] : availableCustomTemplates;
             const defaultTemplatesToShow = includesCardGroupExport
