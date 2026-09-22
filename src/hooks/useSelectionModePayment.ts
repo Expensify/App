@@ -12,7 +12,7 @@ import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentat
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
-import {selectPaymentType} from '@libs/PaymentUtils';
+import {selectPartiallySetupBankAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {hasHeldExpensesFromTransactions, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
@@ -24,6 +24,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {bankAccountStatesSelector} from '@selectors/BankAccount';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
@@ -95,6 +96,7 @@ function useSelectionModePayment({
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [bankAccountStates] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: bankAccountStatesSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -174,6 +176,13 @@ function useSelectionModePayment({
 
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+
+        if (
+            type === CONST.IOU.PAYMENT_TYPE.VBBA &&
+            selectPartiallySetupBankAccount({state: methodID ? bankAccountStates?.[methodID] : undefined, methodID, policyID: moneyRequestReport?.policyID})
+        ) {
             return;
         }
 
