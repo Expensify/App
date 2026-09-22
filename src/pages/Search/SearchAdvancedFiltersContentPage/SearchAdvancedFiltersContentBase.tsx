@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
@@ -103,7 +103,7 @@ function SearchAdvancedFiltersContentBase() {
                             alwaysCollapseHeaderOnKeyboard={isFilterWithSelectionList}
                         >
                             <HeaderWithBackButton
-                                title={translate(FILTER_VIEW_MAP[validFilterKey].labelKey)}
+                                title={translate(getFilterViewLabelKey(validFilterKey, currentValues?.type))}
                                 onBackButtonPress={goBack}
                             />
                         </CollapsibleHeaderOnKeyboard>
