@@ -665,10 +665,8 @@ const ViolationsUtils = {
                 }
 
                 const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-                // For distance the backend only flags an out-of-policy rate when it's gone from the policy, not when it's disabled,
-                // so a disabled rate stays valid unless it's pending deletion (DELETE from deletePolicyDistanceRates). Per diem still checks enabled.
-                const isRatePendingDeletion = customRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                const isRateValid = isDistanceRequestForCustomUnit ? !isRatePendingDeletion : customRate?.enabled !== false;
+                // The backend only flags a rate that's gone from the policy (or pending deletion here), a disabled rate is still valid
+                const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                 if (customRate && isRateValid) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
