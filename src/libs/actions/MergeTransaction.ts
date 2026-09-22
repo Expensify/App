@@ -293,7 +293,9 @@ function getOnyxTargetTransactionData({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
     mergeTransaction: MergeTransaction;
@@ -345,6 +347,7 @@ function getOnyxTargetTransactionData({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            isVendorMatchingBetaEnabled,
             transactionID: targetTransaction.transactionID,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
@@ -428,6 +431,7 @@ type MergeTransactionRequestParams = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     sourceIOUActionThreadReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -464,6 +468,7 @@ function mergeTransactionRequest({
     getCurrencySymbol,
     sourceIOUActionThreadReport,
     rules,
+    isVendorMatchingBetaEnabled,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -499,6 +504,7 @@ function mergeTransactionRequest({
         reportID: mergeTransaction.reportID,
     };
     const onyxTargetTransactionData = getOnyxTargetTransactionData({
+        isVendorMatchingBetaEnabled,
         targetTransaction,
         targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
         mergeTransaction,

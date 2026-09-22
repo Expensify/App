@@ -1,0 +1,299 @@
+diff --git a/node_modules/react-native-nitro-fetch/android/build.gradle b/node_modules/react-native-nitro-fetch/android/build.gradle
+index 45c0f78..2a3d84c 100644
+--- a/node_modules/react-native-nitro-fetch/android/build.gradle
++++ b/node_modules/react-native-nitro-fetch/android/build.gradle
+@@ -139,6 +139,7 @@ dependencies {
+   // Provide org.chromium.net Java API for CronetEngine in Kotlin
+   // Cronet
+   api "org.chromium.net:cronet-embedded:${cronetVersion}"
++  compileOnly "io.sentry:sentry-android:8.33.0"
+   implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+ 
+ }
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
+new file mode 100644
+index 0000000..a432432
+--- /dev/null
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
+@@ -0,0 +1,213 @@
++package com.margelo.nitro.nitrofetch
++
++import android.content.Context
++import android.net.Uri
++import io.sentry.Sentry
++import io.sentry.SentryLevel
++import org.chromium.net.CronetEngine
++import org.chromium.net.CronetException
++import org.chromium.net.NetworkException
++import org.chromium.net.UrlRequest
++import org.chromium.net.UrlResponseInfo
++import java.util.Date
++import java.util.concurrent.ConcurrentHashMap
++import java.util.concurrent.Executors
++import javax.net.ssl.SSLPeerUnverifiedException
++
++/**
++ * Certificate pinning for the Cronet engines (Expensify Iteration 1 - NewDot).
++ *
++ * Patched into react-native-nitro-fetch via patch-package. Cronet uses its own BoringSSL trust stack
++ * and does NOT honor Android's network_security_config.xml, so public-key pins are applied directly
++ * to each CronetEngine.Builder in enforce mode. Monitor mode uses a separate pinned HEAD probe so
++ * the real request remains unblocked while pin mismatches are reported to Sentry.
++ *
++ * Each host pins ONLY the ROOT CA SPKI hashes of every CA that can issue its certificate. Roots
++ * are the only durable pin target: leaves are re-keyed on every renewal and every CA in play
++ * issues from a rotating pool of intermediates, both of which have already broken
++ * leaf/intermediate pins in production. Cronet evaluates pins against the verified chain
++ * including the trust-anchor root, so root pins match even though servers never send the root.
++ * Keep in sync with config/certificatePinning/pins.json, CertificatePinning.kt and CertificatePinning.swift.
++ */
++internal object ExpensifyCertificatePins {
++  // Keep in sync with config/certificatePinning/pins.json and the platform implementations.
++  private const val ENFORCE_PINNING = false
++  private const val PIN_MISMATCH_ERROR_CODE = -150
++  private const val CERTIFICATE_PINNING_HOST_TAG = "certificate_pinning_host"
++  private const val CERTIFICATE_PINNING_MODE_TAG = "certificate_pinning_mode"
++  private const val CERTIFICATE_PINNING_CHANNEL_TAG = "certificate_pinning_channel"
++
++  // 2100-01-01 UTC. Cronet requires a non-null pin expiration; rotation is managed via app updates.
++  private val PIN_EXPIRATION = Date(4102444800000L)
++  private val monitorExecutor = Executors.newSingleThreadExecutor { runnable ->
++    Thread(runnable, "NitroFetch-pin-monitor").apply { isDaemon = true }
++  }
++  private val monitoredHosts = ConcurrentHashMap.newKeySet<String>()
++
++  @Volatile
++  private var monitorEngine: CronetEngine? = null
++
++  private fun decode(base64Hash: String): ByteArray = android.util.Base64.decode(base64Hash, android.util.Base64.DEFAULT)
++
++  // Groups A-D: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge cert
++  // between Let's Encrypt, Google Trust Services and SSL.com without notice, and its backup
++  // certificates (deployed automatically on a revocation or key compromise) can also come from
++  // Sectigo, so the roots of all four CAs are pinned. GTS Root R2 stays pinned: device trust
++  // stores can still anchor a GTS chain at it (see config/certificatePinning/pins.json).
++  private val cloudflareExpensifyRoots = pins(
++    "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", // ISRG Root X1
++    "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", // ISRG Root X2
++    "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", // GTS Root R1
++    "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=", // GTS Root R2
++    "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", // GTS Root R3
++    "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", // GTS Root R4
++    "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", // SSL.com TLS ECC Root CA 2022
++    "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", // SSL.com TLS RSA Root CA 2022
++    "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", // USERTrust RSA Certification Authority (Sectigo)
++    "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", // USERTrust ECC Certification Authority (Sectigo)
++    "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", // Sectigo Public Server Authentication Root R46
++    "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE=", // Sectigo Public Server Authentication Root E46
++  )
++
++  // Group E: CloudFront - all five Amazon Trust Services roots (the only stable pin targets per AWS docs).
++  private val cloudfrontRoots = pins(
++    "++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=", // Amazon Root CA 1
++    "f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=", // Amazon Root CA 2
++    "NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=", // Amazon Root CA 3
++    "9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=", // Amazon Root CA 4
++    "KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=", // Starfield Services Root CA G2
++  )
++
++  private val pinnedDomains: Map<String, Set<ByteArray>> = mapOf(
++    "www.expensify.com" to cloudflareExpensifyRoots,
++    "secure.expensify.com" to cloudflareExpensifyRoots,
++    "staging.expensify.com" to cloudflareExpensifyRoots,
++    "staging-secure.expensify.com" to cloudflareExpensifyRoots,
++    "new.expensify.com" to cloudflareExpensifyRoots,
++    "staging.new.expensify.com" to cloudflareExpensifyRoots,
++    "integrations.expensify.com" to cloudflareExpensifyRoots,
++    "travel.expensify.com" to cloudflareExpensifyRoots,
++    "staging.travel.expensify.com" to cloudflareExpensifyRoots,
++    "d2k5nsl2zxldvw.cloudfront.net" to cloudfrontRoots,
++  )
++
++  private fun pins(vararg hashes: String): Set<ByteArray> = hashes.map(::decode).toSet()
++
++  fun apply(builder: CronetEngine.Builder, context: Context) {
++    if (BuildConfig.DEBUG) {
++      return
++    }
++
++    if (ENFORCE_PINNING) {
++      applyPins(builder)
++      return
++    }
++
++    ensureMonitorEngine(context.applicationContext)
++  }
++
++  fun monitor(url: String) {
++    if (BuildConfig.DEBUG || ENFORCE_PINNING) {
++      return
++    }
++
++    val uri = Uri.parse(url)
++    if (!uri.scheme.equals("https", ignoreCase = true)) {
++      return
++    }
++
++    val host = uri.host?.lowercase() ?: return
++    if (!pinnedDomains.containsKey(host) || !monitoredHosts.add(host)) {
++      return
++    }
++
++    val engine = monitorEngine
++    if (engine == null) {
++      monitoredHosts.remove(host)
++      return
++    }
++
++    val callback = object : UrlRequest.Callback() {
++      override fun onRedirectReceived(request: UrlRequest, info: UrlResponseInfo, newLocationUrl: String) {
++        request.cancel()
++      }
++
++      override fun onResponseStarted(request: UrlRequest, info: UrlResponseInfo) {
++        // A response proves the pinned TLS handshake succeeded; the body is irrelevant.
++        request.cancel()
++      }
++
++      override fun onReadCompleted(request: UrlRequest, info: UrlResponseInfo, byteBuffer: java.nio.ByteBuffer) = Unit
++
++      override fun onSucceeded(request: UrlRequest, info: UrlResponseInfo) = Unit
++
++      override fun onFailed(request: UrlRequest, info: UrlResponseInfo?, error: CronetException) {
++        if (isPinMismatch(error)) {
++          reportPinningFailure(host, error)
++        } else {
++          // Retry on a later request if this probe failed for an unrelated transient reason.
++          monitoredHosts.remove(host)
++        }
++      }
++    }
++
++    try {
++      engine.newUrlRequestBuilder("https://$host/", callback, monitorExecutor)
++        .setHttpMethod("HEAD")
++        .disableCache()
++        .build()
++        .start()
++    } catch (_: Throwable) {
++      monitoredHosts.remove(host)
++    }
++  }
++
++  fun reportIfPinFailure(url: String, error: CronetException) {
++    if (!ENFORCE_PINNING || !isPinMismatch(error)) {
++      return
++    }
++
++    val host = Uri.parse(url).host?.lowercase() ?: return
++    if (pinnedDomains.containsKey(host)) {
++      reportPinningFailure(host, error)
++    }
++  }
++
++  @Synchronized
++  private fun ensureMonitorEngine(context: Context) {
++    if (monitorEngine != null) {
++      return
++    }
++
++    val builder = CronetEngine.Builder(context)
++      .enableHttp2(true)
++      .enableQuic(true)
++      .enableBrotli(true)
++      .enableHttpCache(CronetEngine.Builder.HTTP_CACHE_DISABLED, 0)
++      .setUserAgent("NitroFetchPinMonitor/1.0")
++    applyPins(builder)
++    monitorEngine = builder.build()
++  }
++
++  private fun applyPins(builder: CronetEngine.Builder) {
++    // Cronet bypasses configured pins for locally installed trust anchors by default.
++    builder.enablePublicKeyPinningBypassForLocalTrustAnchors(false)
++    pinnedDomains.forEach { (host, hashes) ->
++      builder.addPublicKeyPins(host, hashes, false, PIN_EXPIRATION)
++    }
++  }
++
++  private fun isPinMismatch(error: CronetException): Boolean =
++    error is NetworkException && error.cronetInternalErrorCode == PIN_MISMATCH_ERROR_CODE
++
++  private fun reportPinningFailure(host: String, cause: Throwable) {
++    val error = SSLPeerUnverifiedException("Certificate pinning validation failed for $host")
++    error.initCause(cause)
++    Sentry.captureException(error) { scope ->
++      scope.level = SentryLevel.WARNING
++      scope.setTag(CERTIFICATE_PINNING_HOST_TAG, host)
++      scope.setTag(CERTIFICATE_PINNING_MODE_TAG, if (ENFORCE_PINNING) "enforce" else "monitor")
++      scope.setTag(CERTIFICATE_PINNING_CHANNEL_TAG, "cronet")
++    }
++  }
++}
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt
+index 49443e8..1d19f04 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroCronet.kt
+@@ -64,6 +64,9 @@ class HybridNitroCronet : HybridNitroCronetSpec() {
+           (50 * 1024 * 1024).toLong()
+         )
+ 
++        // Certificate pinning (Expensify) - Cronet does not honor network_security_config.xml.
++        ExpensifyCertificatePins.apply(builder, app)
++
+         val engine = builder.build()
+         engineRef = engine
+         return engine
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt
+index 1e5e0ff..55a83a6 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetch.kt
+@@ -59,6 +59,9 @@ class HybridNitroFetch : HybridNitroFetchSpec() {
+         // Prove DNS issues by mapping a host (TESTING ONLY, remove in prod):
+         // builder.setExperimentalOptions("""{"HostResolverRules":{"host_resolver_rules":"MAP httpbin.org 54.167.17.38"}}""")
+ 
++        // Certificate pinning (Expensify) - Cronet does not honor network_security_config.xml.
++        ExpensifyCertificatePins.apply(builder, app)
++
+         val engine = builder.build()
+         NitroLogger.i("NitroFetch", "CronetEngine initialized. Provider=${nativeProvider?.name ?: "Default"} Cache=${cacheDir.absolutePath}")
+         engineRef = engine
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt
+index 283bd37..24f7c22 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridNitroFetchClient.kt
+@@ -107,6 +107,7 @@ class HybridNitroFetchClient(private val engine: CronetEngine, private val execu
+       onFail: (Throwable) -> Unit
+     ): UrlRequest {
+       val url = req.url
++      ExpensifyCertificatePins.monitor(url)
+       val shouldFollowRedirects = req.followRedirects ?: true
+       val omitCredentials = req.credentials == NitroRequestCredentials.OMIT
+       val traceLabel = if (BuildConfig.NITRO_FETCH_TRACING) {
+@@ -250,6 +251,7 @@ class HybridNitroFetchClient(private val engine: CronetEngine, private val execu
+         }
+ 
+         override fun onFailed(request: UrlRequest, info: UrlResponseInfo?, error: CronetException) {
++          ExpensifyCertificatePins.reportIfPinFailure(url, error)
+           if (BuildConfig.NITRO_FETCH_TRACING) {
+             Trace.endAsyncSection(traceLabel, traceCookie)
+           }
+diff --git a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt
+index 48f2dc2..07806ba 100644
+--- a/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt
++++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/HybridUrlRequestBuilder.kt
+@@ -120,6 +120,7 @@ class HybridUrlRequestBuilder(
+         info: CronetUrlResponseInfo?,
+         error: CronetNativeException
+       ) {
++        ExpensifyCertificatePins.reportIfPinFailure(url, error)
+         if (devToolsEnabled) {
+           DevToolsReporter.reportRequestFailed(devToolsRequestId, false)
+         }
+@@ -229,6 +230,7 @@ class HybridUrlRequestBuilder(
+   }
+ 
+   override fun build(): HybridUrlRequestSpec {
++    ExpensifyCertificatePins.monitor(url)
+     val cronetRequest = builder.build()
+     if (devToolsEnabled) {
+       DevToolsReporter.reportRequestStart(
