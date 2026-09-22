@@ -28,8 +28,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollViewProps, StyleProp, ViewStyle, ScrollView as RNScrollView} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import {canSwitchAccountsSelector} from '@selectors/Account';
@@ -125,7 +126,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const route = useRoute();
-    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const triggerScrollEvent = useScrollEventEmitter();
 
     const onScroll: NonNullable<ScrollViewProps['onScroll']> = (e) => {

@@ -13,6 +13,8 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
+
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -68,7 +70,7 @@ function TagPickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {isKeyboardActive} = useKeyboardState();
 
-    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const tagListName = getTagList(policyTags, 0).name;

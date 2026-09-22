@@ -60,7 +60,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -110,7 +110,7 @@ type BaseReportActionContextMenuProps = {
      */
     isThreadReportParentAction?: boolean;
 
-    contentRef?: RefObject<React.ComponentRef<typeof View> | null>;
+    contentRef?: RefObject<ComponentRef<typeof View> | null>;
     checkIfContextMenuActive?: () => void;
     disabledActions?: ContextMenuAction[];
     setIsEmojiPickerActive?: (state: boolean) => void;
@@ -168,7 +168,7 @@ function BaseReportActionContextMenu({
     const {isOffline} = useNetwork();
     const {isProduction, isDevelopment, environment} = useEnvironment();
     const isStaging = environment === CONST.ENVIRONMENT.STAGING;
-    const threeDotRef = useRef<React.ComponentRef<typeof View>>(null);
+    const threeDotRef = useRef<ComponentRef<typeof View>>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: withDEWRoutedActionsObject,
@@ -347,12 +347,12 @@ function BaseReportActionContextMenu({
         }
     };
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<React.ComponentRef<typeof View> | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ComponentRef<typeof View> | null>) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            contextMenuAnchor: anchorRef?.current as React.ComponentRef<typeof ViewType> | React.ComponentRef<typeof RNText> | null,
+            contextMenuAnchor: anchorRef?.current as ComponentRef<typeof ViewType> | ComponentRef<typeof RNText> | null,
             report: {
                 reportID,
                 originalReportID,

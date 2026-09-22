@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
 
@@ -37,7 +38,7 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task']);
     const illustrations = useMemoizedLazyIllustrations(['Computer']);
-    const popoverAnchor = useRef<React.ComponentRef<typeof View> | React.ComponentRef<typeof RNText> | null>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>(null);
     const policyID: string = route.params.policyID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path);
 

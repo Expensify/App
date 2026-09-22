@@ -18,6 +18,7 @@ import {getItemBadgeText, getLastSearchQuery, getSectionBadgeText, SEARCH_TYPE_M
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
@@ -86,7 +87,7 @@ function SearchTypeMenuWide() {
     const {counts: reportCounts} = useTodoCounts();
 
     const route = useRoute();
-    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
         // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.

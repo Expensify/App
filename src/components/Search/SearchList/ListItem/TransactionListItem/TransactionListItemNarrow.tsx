@@ -16,6 +16,7 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -50,7 +51,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<React.ComponentRef<typeof View>>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;

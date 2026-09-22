@@ -13,6 +13,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
@@ -41,7 +42,7 @@ type DistanceMapTabContentProps = {
     waypoints: WaypointCollection;
     extractKey: (key: string) => string;
     updateWaypoints: (data: {data: string[]}) => void;
-    scrollViewRef: React.RefObject<React.ComponentRef<typeof RNScrollView> | null>;
+    scrollViewRef: React.RefObject<ComponentRef<typeof RNScrollView> | null>;
     renderItem: (params: RenderItemParams<string>) => React.JSX.Element;
     navigateToWaypointEditPage: (index: number) => void;
     transaction: OnyxEntry<Transaction>;

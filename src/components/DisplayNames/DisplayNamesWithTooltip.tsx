@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {formatReportLastMessageText} from '@libs/ReportUtils';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 
@@ -15,7 +16,7 @@ import type DisplayNamesProps from './types';
 
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
-type HTMLElementWithText = HTMLElement & React.ComponentRef<typeof RNText>;
+type HTMLElementWithText = HTMLElement & ComponentRef<typeof RNText>;
 
 function DisplayNamesWithToolTip({
     shouldUseFullTitle,

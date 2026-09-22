@@ -16,9 +16,9 @@ import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {StyleProp, ViewStyle, ScrollView as RNScrollView} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useContext, useImperativeHandle, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -114,8 +114,8 @@ function FormWrapper({
     submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const formRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
-    const formContentRef = useRef<React.ComponentRef<typeof View>>(null);
+    const formRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const formContentRef = useRef<ComponentRef<typeof View>>(null);
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();

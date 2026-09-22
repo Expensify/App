@@ -54,6 +54,7 @@ import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -91,7 +92,7 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Called when the menu item is selected */
     onItemSelected: () => void;
 
-    actionButtonRef: React.RefObject<HTMLDivElement | React.ComponentRef<typeof View> | null>;
+    actionButtonRef: React.RefObject<HTMLDivElement | ComponentRef<typeof View> | null>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
     raiseIsScrollLikelyLayoutTriggered: () => void;
@@ -401,7 +402,7 @@ function AttachmentPickerWithMenuItems({
             return;
         }
 
-        calculatePopoverPosition(actionButtonRef as React.RefObject<React.ComponentRef<typeof View>>, {
+        calculatePopoverPosition(actionButtonRef as React.RefObject<ComponentRef<typeof View>>, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
         }).then((position) => {

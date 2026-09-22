@@ -1,11 +1,11 @@
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 import type {TextInputProps} from 'react-native';
 
 import React from 'react';
 import {TextInput} from 'react-native';
 
 type MarkdownTextInputProps = TextInputProps & {
-    ref?: Ref<React.ComponentRef<typeof TextInput>>;
+    ref?: Ref<ComponentRef<typeof TextInput>>;
     parser?: (value: string) => unknown[];
     markdownStyle?: unknown;
     formatSelection?: unknown;

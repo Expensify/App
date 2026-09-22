@@ -3,8 +3,9 @@ import Text from '@components/Text';
 import useTextWithMiddleEllipsis from '@hooks/useTextWithMiddleEllipsis';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {StyleProp, TextStyle, ViewStyle, Text as RNText} from 'react-native';
+import type {Text as RNText, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -18,7 +19,7 @@ type TextWithMiddleEllipsisProps = {
 function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsisProps) {
     const styles = useThemeStyles();
 
-    const ref = useRef<React.ComponentRef<typeof RNText>>(null);
+    const ref = useRef<ComponentRef<typeof RNText>>(null);
 
     const displayText = useTextWithMiddleEllipsis({
         text,

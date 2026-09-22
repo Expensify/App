@@ -5,7 +5,7 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -26,7 +26,7 @@ type TimeModalPickerProps = {
     errorText?: string;
 
     label: string;
-    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {

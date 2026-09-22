@@ -33,6 +33,7 @@ import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {Waypoint} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -83,7 +84,7 @@ function DynamicIOURequestStepWaypoint({
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef<React.ComponentRef<typeof TextInput> | null>(null);
+    const textInput = useRef<ComponentRef<typeof TextInput> | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -259,7 +260,7 @@ function DynamicIOURequestStepWaypoint({
                             canUseCurrentLocation
                             inputID={`waypoint${pageIndex}`}
                             ref={(e: HTMLElement | null) => {
-                                textInput.current = e as unknown as React.ComponentRef<typeof TextInput>;
+                                textInput.current = e as unknown as ComponentRef<typeof TextInput>;
                             }}
                             hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
                             containerStyles={[styles.mt4]}

@@ -22,6 +22,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 
@@ -144,7 +145,7 @@ function AddressSearch({
     const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
-    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     useDebouncedAccessibilityAnnouncement(
         translate('common.suggestionsAvailableFor', searchValue.trim()),

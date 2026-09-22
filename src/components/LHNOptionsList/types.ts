@@ -4,7 +4,7 @@ import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 import type {ComponentRef, RefObject} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle, View} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 

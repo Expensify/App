@@ -38,6 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -141,7 +142,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [userReportedIntegrationName, setUserReportedIntegrationName] = useState('');
     const [shouldScrollToOtherInput, setShouldScrollToOtherInput] = useState(initialSelectedIntegration === 'other');
     const [error, setError] = useState('');
-    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const otherAccountingSoftwareInputRef = useRef<BaseTextInputRef | null>(null);
     const isOtherSelected = selectedIntegration === 'other';
 

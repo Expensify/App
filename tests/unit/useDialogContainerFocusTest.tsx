@@ -14,7 +14,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 // Force the web variant — jest-expo's RN resolver prefers `index.native.ts` by default.
 const useDialogContainerFocus = require<{
-    default: (ref: {current: React.ComponentRef<typeof View> | null}, isReady: boolean, gate?: () => boolean, skip?: boolean) => void;
+    default: (ref: {current: ComponentRef<typeof View> | null}, isReady: boolean, gate?: () => boolean, skip?: boolean) => void;
 }>('../../src/hooks/useDialogContainerFocus/index.ts').default;
 
 beforeEach(() => {

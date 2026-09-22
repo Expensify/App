@@ -11,14 +11,15 @@ import {shouldAcceptDrop} from '@libs/DragAndDropUtils';
 
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 
-import type {StyleProp, ViewStyle, View} from 'react-native';
+import type {ComponentRef} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 
 import React, {useEffect} from 'react';
 import {View as RNView} from 'react-native';
 
 type ReceiptScanDropTargetProps = {
     /** Ref to the element the drag events are bound to */
-    targetRef: React.RefObject<React.ComponentRef<typeof View> | HTMLDivElement | null>;
+    targetRef: React.RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
 
     dropWrapperStyle?: StyleProp<ViewStyle>;
 

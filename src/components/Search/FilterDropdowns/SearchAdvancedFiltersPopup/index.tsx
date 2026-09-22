@@ -18,6 +18,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
+import type {ComponentRef} from 'react';
+
 import React, {Activity, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -109,7 +111,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const filterContentRef = useRef<React.ComponentRef<typeof View>>(null);
+    const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
         activeFilter: INITIAL_FILTER,
         mountedFilters: [INITIAL_FILTER],

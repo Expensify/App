@@ -2,7 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import type {ComponentRef, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle, View} from 'react-native';
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 
 type BulkActionBarProps<TValueType> = {
     /** How many rows the selection covers. Rendered as the bar's leading "N selected" label, unless `customText` overrides it. */

@@ -1,3 +1,4 @@
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
@@ -12,7 +13,7 @@ const TabSelectorStateContext = createContext<TabSelectorStateContextType>(defau
 const TabSelectorActionsContext = createContext<TabSelectorActionsContextType>(defaultTabSelectorActionsContextValue);
 
 function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContextProviderProps) {
-    const containerRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
+    const containerRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
     const tabsRef = useRef<Record<string, {width: number; x: number}>>({});
     const lastScrolledToTab = useRef('');

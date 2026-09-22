@@ -10,7 +10,7 @@ import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 
-import type {PropsWithChildren} from 'react';
+import type {ComponentRef, PropsWithChildren} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 
 import React from 'react';
@@ -212,7 +212,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
         {text: 'Item C', key: 'C'},
     ];
 
-    const anchorRef = React.createRef<React.ComponentRef<typeof View>>();
+    const anchorRef = React.createRef<ComponentRef<typeof View>>();
     const anchorPosition = {horizontal: 0, vertical: 0};
 
     const renderPopover = (menuItems: PopoverMenuItem[]) =>
@@ -362,7 +362,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
 });
 
 describe('PopoverMenu integration — optional search', () => {
-    const anchorRef = React.createRef<React.ComponentRef<typeof View>>();
+    const anchorRef = React.createRef<ComponentRef<typeof View>>();
     const anchorPosition = {horizontal: 0, vertical: 0};
 
     beforeEach(() => {
@@ -407,7 +407,7 @@ describe('PopoverMenu integration — optional search', () => {
 });
 
 describe('PopoverMenu integration — focus policy and close lifecycle', () => {
-    const anchorRef = React.createRef<React.ComponentRef<typeof View>>();
+    const anchorRef = React.createRef<ComponentRef<typeof View>>();
     const anchorPosition = {horizontal: 0, vertical: 0};
 
     beforeEach(() => {

@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import type {ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
@@ -31,7 +31,7 @@ type PopoverComponentProps = {
 
 type ButtonComponentProps = {
     onPress: () => void;
-    ref: RefObject<React.ComponentRef<typeof View> | null>;
+    ref: RefObject<ComponentRef<typeof View> | null>;
     isExpanded: boolean;
 };
 
@@ -59,8 +59,8 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive});
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
-    const triggerRef = useRef<React.ComponentRef<typeof View> | null>(null);
-    const anchorRef = useRef<React.ComponentRef<typeof View> | null>(null);
+    const triggerRef = useRef<ComponentRef<typeof View> | null>(null);
+    const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
     // Defer mounting the (potentially heavy) popover content until the dropdown is first opened, then keep it
     // mounted so the close animation and reopening stay instant. The content is otherwise mounted eagerly on

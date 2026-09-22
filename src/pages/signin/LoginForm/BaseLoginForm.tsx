@@ -39,6 +39,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 
+import type {ComponentRef} from 'react';
+
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -228,7 +230,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     const isSigningWithAppleOrGoogle = useRef(false);
     const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
 
-    const submitContainerRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
+    const submitContainerRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const handleFocus = useCallback(() => {
         if (!isMobileWebKit()) {
             return;

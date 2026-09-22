@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {ComponentRef, ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -62,7 +62,7 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         /** Used to locate this view in end-to-end tests. */
         testID?: string;
 
-        ref?: ForwardedRef<React.ComponentRef<typeof View>>;
+        ref?: ForwardedRef<ComponentRef<typeof View>>;
         tabIndex?: 0 | -1;
 
         /** Whether the button is accessible to screen readers */

@@ -26,6 +26,7 @@ import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -85,7 +86,7 @@ function WorkspaceConfirmationForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isApprovedAccountant = !!account?.isApprovedAccountant;
 

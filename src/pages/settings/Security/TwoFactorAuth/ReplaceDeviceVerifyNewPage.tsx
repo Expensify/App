@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -36,7 +37,7 @@ function ReplaceDeviceVerifyNewPage() {
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
-    const scrollViewRef = useRef<React.ComponentRef<typeof RNScrollView>>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
     const errorMessage = getLatestErrorMessage(account);
 

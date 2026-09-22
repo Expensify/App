@@ -4,6 +4,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 
+import type {ComponentRef} from 'react';
+
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -11,7 +13,7 @@ import type NoDropZoneProps from './types';
 
 function NoDropZone({children}: NoDropZoneProps) {
     const styles = useThemeStyles();
-    const noDropZone = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
+    const noDropZone = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
 
     useDragAndDrop({
         dropZone: htmlDivElementRef(noDropZone),

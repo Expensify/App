@@ -2,7 +2,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 
@@ -19,7 +19,7 @@ type SingleChoiceQuestionProps = ForwardedFSClassProps & {
     possibleAnswers: Choice[];
     currentQuestionIndex: number;
     onInputChange: (value: string) => void;
-    ref?: ForwardedRef<React.ComponentRef<typeof RNText>>;
+    ref?: ForwardedRef<ComponentRef<typeof RNText>>;
 };
 
 function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange, forwardedFSClass, ref}: SingleChoiceQuestionProps) {

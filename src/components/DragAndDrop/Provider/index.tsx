@@ -6,6 +6,8 @@ import {shouldAcceptDrop} from '@libs/DragAndDropUtils';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 
+import type {ComponentRef} from 'react';
+
 import {PortalHost} from '@gorhom/portal';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
@@ -17,7 +19,7 @@ import {DragAndDropActionsContext, DragAndDropStateContext} from './DragAndDropC
 
 function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = () => {}}: DragAndDropProviderProps) {
     const styles = useThemeStyles();
-    const dropZone = useRef<HTMLDivElement | React.ComponentRef<typeof View>>(null);
+    const dropZone = useRef<HTMLDivElement | ComponentRef<typeof View>>(null);
     const dropZoneID = useRef(Str.guid('drag-n-drop'));
 
     const onDropHandler = useRef<SetOnDropHandlerCallback>(() => {});

@@ -4,7 +4,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -46,7 +46,7 @@ type InteractiveStepWrapperProps = {
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
     onEntryTransitionEnd?: () => void;
-    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 const INPUT_HEADER_HEIGHT = variables.lineHeightXXLarge;

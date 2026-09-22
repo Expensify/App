@@ -1,14 +1,14 @@
 import {ACCESSIBILITY_ROLE_FORM} from '@libs/ComponentUtils/index';
 import mergeRefs from '@libs/mergeRefs';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {ViewProps} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type FormElementProps = ViewProps & {
-    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 const preventFormDefault = (event: SubmitEvent) => {
@@ -18,7 +18,7 @@ const preventFormDefault = (event: SubmitEvent) => {
 };
 
 function FormElement({ref, ...props}: FormElementProps) {
-    const formRef = useRef<HTMLFormElement & React.ComponentRef<typeof View>>(null);
+    const formRef = useRef<HTMLFormElement & ComponentRef<typeof View>>(null);
     const mergedRef = mergeRefs(formRef, ref);
 
     useEffect(() => {

@@ -40,6 +40,8 @@ import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
+
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -113,7 +115,7 @@ function DynamicNewTaskPage() {
     const {paddingBottom} = useSafeAreaPaddings();
 
     const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
-    const confirmButtonRef = useRef<React.ComponentRef<typeof View>>(null);
+    const confirmButtonRef = useRef<ComponentRef<typeof View>>(null);
 
     const navigateToAssignee = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path));
     const navigateToShareDestination = task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));

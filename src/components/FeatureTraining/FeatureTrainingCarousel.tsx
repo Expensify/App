@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import type {ReactElement, ReactNode} from 'react';
-import type {FlatList as RNFlatList, LayoutChangeEvent, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, FlatList as RNFlatList, ViewabilityConfig, ViewStyle, ViewToken} from 'react-native';
 
 import React, {cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, Platform, View} from 'react-native';

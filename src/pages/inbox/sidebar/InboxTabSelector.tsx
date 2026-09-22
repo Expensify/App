@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
@@ -57,9 +58,9 @@ function InboxTabSelector() {
     );
 
     // Anchor the popover to the tab it was opened from (not the whole tab row) so it opens at that tab's left edge.
-    const allTabRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
-    const unreadTabRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
-    const todoTabRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement>(null);
+    const allTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
+    const unreadTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
+    const todoTabRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const tabRefs = {
         [CONST.INBOX_TAB.ALL]: allTabRef,
         [CONST.INBOX_TAB.UNREAD]: unreadTabRef,

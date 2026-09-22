@@ -3,7 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import TimePicker from '@src/components/TimePicker/TimePicker';
 import type {TimePickerProps} from '@src/components/TimePicker/TimePicker';
 
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 import type {TextInput, TextInputProps} from 'react-native';
 
 import {NavigationContainer} from '@react-navigation/native';
@@ -12,7 +12,7 @@ import React, {act} from 'react';
 import mockCreateMock from '../../utils/createMock';
 
 // Store mocked inputs by testID so we can access them in tests
-const mockInputs: Record<string, React.ComponentRef<typeof TextInput>> = {};
+const mockInputs: Record<string, ComponentRef<typeof TextInput>> = {};
 
 // Tests currently run against index.ios.ts source, where functions that call
 // native code (such as `isFocused` or `setNativeProps`) are not implemented.
@@ -20,7 +20,7 @@ const mockInputs: Record<string, React.ComponentRef<typeof TextInput>> = {};
 jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
     const originalReact: typeof React = jest.requireActual('react');
 
-    function TextInputMock(props: TextInputProps & {ref: Ref<React.ComponentRef<typeof TextInput>>; testID?: string}) {
+    function TextInputMock(props: TextInputProps & {ref: Ref<ComponentRef<typeof TextInput>>; testID?: string}) {
         const [isFocused, setIsFocused] = originalReact.useState(false);
 
         const mockInstance = originalReact.useMemo(

@@ -9,6 +9,7 @@ import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText, View} from 'react-native';
 
@@ -27,7 +28,7 @@ function EmojiPickerMenuItem({
     isHighlighted = false,
 }: EmojiPickerMenuItemProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const ref = useRef<HTMLDivElement | React.ComponentRef<typeof View> | React.ComponentRef<typeof RNText> | null>(null);
+    const ref = useRef<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 

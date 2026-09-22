@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
@@ -71,10 +72,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         textRef.current = v;
     };
 
-    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
-    const actionButtonRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const actionButtonRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();

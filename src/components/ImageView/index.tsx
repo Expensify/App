@@ -17,6 +17,7 @@ import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 
+import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useRef, useState} from 'react';
@@ -36,7 +37,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const scrollableRef = useRef<React.ComponentRef<typeof View> & HTMLDivElement>(null);
+    const scrollableRef = useRef<ComponentRef<typeof View> & HTMLDivElement>(null);
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const [isLoading, setIsLoading] = useState(true);

@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -34,7 +35,7 @@ function BusinessCentralPrerequisitesPage({route}: BusinessCentralPrerequisitesP
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Task']);
     const illustrations = useMemoizedLazyIllustrations(['Computer']);
-    const popoverAnchor = useRef<React.ComponentRef<typeof View>>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const policyID: string = route.params.policyID;
 
     const menuItems = [

@@ -2,7 +2,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import type {ComponentType, ForwardedRef} from 'react';
+import type {ComponentRef, ComponentType, ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
@@ -57,7 +57,7 @@ type CheckboxWithLabelProps = RequiredLabelProps & {
     shouldSaveDraft?: boolean;
 
     accessibilityLabel?: string;
-    ref?: ForwardedRef<React.ComponentRef<typeof View>>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function CheckboxWithLabel({

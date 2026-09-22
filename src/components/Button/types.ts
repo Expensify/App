@@ -5,7 +5,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type React from 'react';
-import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, ViewStyle, View} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ButtonEventsProps = {

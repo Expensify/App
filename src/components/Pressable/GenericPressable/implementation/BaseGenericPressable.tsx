@@ -13,6 +13,7 @@ import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusRetu
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -58,7 +59,7 @@ function GenericPressable({
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
-    const internalRef = useRef<React.ComponentRef<typeof View> | null>(null);
+    const internalRef = useRef<ComponentRef<typeof View> | null>(null);
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useRouteKey();
     // `||` so empty strings skip — never key off an empty prop.

@@ -2,6 +2,7 @@ import type PressableProps from '@components/Pressable/GenericPressable/types';
 
 import mergeRefs from '@libs/mergeRefs';
 
+import type {ComponentRef} from 'react';
 import type {Role, View} from 'react-native';
 
 import React, {useLayoutEffect, useRef} from 'react';
@@ -14,7 +15,7 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
     // react-native-web's Pressable always sets aria-disabled from its own `disabled` prop,
     // overriding any explicit aria-disabled we pass. We pass fullDisabled (not isDisabled) to
     // preserve interaction/focus behavior, so we must set aria-disabled imperatively instead.
-    const internalRef = useRef<React.ComponentRef<typeof View>>(null);
+    const internalRef = useRef<ComponentRef<typeof View>>(null);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` is intentional so that falsy values like empty string or 0 are treated as not-disabled
     const isAriaDisabled = props.fullDisabled || props.disabled || props.accessibilityState?.disabled;
     useLayoutEffect(() => {

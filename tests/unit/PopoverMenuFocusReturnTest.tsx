@@ -5,6 +5,7 @@ import PopoverMenu from '@components/PopoverMenu';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {createRef} from 'react';
@@ -31,7 +32,7 @@ jest.mock('@components/PopoverWithMeasuredContent', () => ({
  * restore, so the trap standing down left focus on `<body>` after Escape. `shouldReturnFocus` overrides that default.
  */
 describe('PopoverMenu focus return', () => {
-    const anchorRef = createRef<React.ComponentRef<typeof View>>();
+    const anchorRef = createRef<ComponentRef<typeof View>>();
     const menuItems = [{text: 'Duplicate workspace', onSelected: jest.fn()}];
     const onClose = jest.fn();
     const onItemSelected = jest.fn();

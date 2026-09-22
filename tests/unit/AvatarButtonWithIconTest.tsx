@@ -8,6 +8,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
+
 import React, {createRef} from 'react';
 import {View} from 'react-native';
 
@@ -21,7 +23,7 @@ function MockIcon() {
 
 const defaultProps = {
     text: 'Edit Avatar',
-    anchorRef: createRef<React.ComponentRef<typeof View>>(),
+    anchorRef: createRef<ComponentRef<typeof View>>(),
     avatarStyle: {width: 80, height: 80},
     onPress: jest.fn(),
     avatar: null,
@@ -102,7 +104,7 @@ describe('AvatarButtonWithIcon', () => {
 
         it('should render with all props provided', () => {
             const onPressMock = jest.fn();
-            const anchorRef = createRef<React.ComponentRef<typeof View>>();
+            const anchorRef = createRef<ComponentRef<typeof View>>();
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Building', 'Camera']));
 
             renderWithProvider(

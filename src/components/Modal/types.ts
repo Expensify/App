@@ -4,7 +4,7 @@ import type CONST from '@src/CONST';
 
 import type {FocusTrapProps} from 'focus-trap-react';
 import type {ComponentRef, ForwardedRef} from 'react';
-import type {ViewStyle, View} from 'react-native';
+import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 import type ReanimatedModalProps from './ReanimatedModal/types';

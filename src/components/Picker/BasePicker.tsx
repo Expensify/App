@@ -12,7 +12,7 @@ import {isMobile} from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
-import type {ReactElement, ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactElement, ReactNode, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
@@ -61,7 +61,7 @@ function BasePickerImpl({
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     // reference to the root View
-    const root = useRef<React.ComponentRef<typeof View>>(null);
+    const root = useRef<ComponentRef<typeof View>>(null);
 
     // reference to @react-native-picker/picker
     const picker = useRef<RNPickerSelect>(null);
@@ -256,7 +256,7 @@ function BasePickerImpl({
                             disableHighlight();
                         }),
                     }}
-                    scrollViewRef={context?.scrollViewRef as RefObject<React.ComponentRef<typeof ScrollView>>}
+                    scrollViewRef={context?.scrollViewRef as RefObject<ComponentRef<typeof ScrollView>>}
                     scrollViewContentOffsetY={context?.contentOffsetY}
                 />
             </View>

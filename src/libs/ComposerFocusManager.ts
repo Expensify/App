@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {TextInput} from 'react-native';
@@ -8,7 +9,7 @@ import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type ModalId = number | undefined;
 
-type InputElement = (React.ComponentRef<typeof TextInput> & HTMLElement) | null;
+type InputElement = (ComponentRef<typeof TextInput> & HTMLElement) | null;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 

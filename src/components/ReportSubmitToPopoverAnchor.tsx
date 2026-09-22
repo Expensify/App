@@ -4,7 +4,7 @@ import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPop
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -22,11 +22,11 @@ const ReportSubmitToPopoverContext = createContext<OpenReportSubmitToPopover>(()
     // Default: no provider (tests / edge UI). Opening is a no-op.
 });
 
-const ReportSubmitToPopoverAnchorRefContext = createContext<RefObject<React.ComponentRef<typeof View> | null> | null>(null);
+const ReportSubmitToPopoverAnchorRefContext = createContext<RefObject<ComponentRef<typeof View> | null> | null>(null);
 
 type ReportSubmitToPopoverHostContextValue = {
-    registerAnchor: (reportID: string | undefined, anchorRef: RefObject<React.ComponentRef<typeof View> | null>) => () => void;
-    openReportSubmitToPopover: (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<React.ComponentRef<typeof View> | null>) => void;
+    registerAnchor: (reportID: string | undefined, anchorRef: RefObject<ComponentRef<typeof View> | null>) => () => void;
+    openReportSubmitToPopover: (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<ComponentRef<typeof View> | null>) => void;
 };
 
 const ReportSubmitToPopoverHostContext = createContext<ReportSubmitToPopoverHostContextValue | null>(null);
@@ -92,12 +92,12 @@ type ReportSubmitToPopoverHostProps = {
  * a Modal inside each FlashList cell (iOS only showed the backdrop when the modal lived in a recycled row).
  */
 function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPopoverHostProps) {
-    const anchorRegistryRef = useRef<Map<string, Set<RefObject<React.ComponentRef<typeof View> | null>>>>(new Map());
-    const activeAnchorRefRef = useRef<RefObject<React.ComponentRef<typeof View> | null> | null>(null);
+    const anchorRegistryRef = useRef<Map<string, Set<RefObject<ComponentRef<typeof View> | null>>>>(new Map());
+    const activeAnchorRefRef = useRef<RefObject<ComponentRef<typeof View> | null> | null>(null);
     const [activeReportID, setActiveReportID] = useState<string | undefined>();
-    const pendingOpenRef = useRef<{reportID: string; options?: ReportSubmitToPopoverOpenOptions; anchorRef?: RefObject<React.ComponentRef<typeof View> | null>} | null>(null);
+    const pendingOpenRef = useRef<{reportID: string; options?: ReportSubmitToPopoverOpenOptions; anchorRef?: RefObject<ComponentRef<typeof View> | null>} | null>(null);
 
-    const registerAnchor = useCallback((reportID: string | undefined, anchorRef: RefObject<React.ComponentRef<typeof View> | null>) => {
+    const registerAnchor = useCallback((reportID: string | undefined, anchorRef: RefObject<ComponentRef<typeof View> | null>) => {
         if (!reportID) {
             return () => {};
         }
@@ -162,7 +162,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
     );
 
     const openReportSubmitToPopoverForHost = useCallback(
-        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<React.ComponentRef<typeof View> | null>) => {
+        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<ComponentRef<typeof View> | null>) => {
             if (!reportID) {
                 return;
             }
@@ -236,7 +236,7 @@ function ReportSubmitToPopoverRoot({reportID, onSubmitSuccess, anchorAlignment, 
 }
 
 function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID: string | undefined; host: ReportSubmitToPopoverHostContextValue; children: React.ReactNode}) {
-    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     useEffect(() => host.registerAnchor(reportID, anchorRef), [host, reportID]);
 

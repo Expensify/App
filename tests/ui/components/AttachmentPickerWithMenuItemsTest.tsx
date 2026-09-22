@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React from 'react';
@@ -102,7 +103,7 @@ const MOCK_PERSONAL_DETAILS: PersonalDetails = {
 };
 
 function renderComponent() {
-    const actionButtonRef = React.createRef<React.ComponentRef<typeof View>>();
+    const actionButtonRef = React.createRef<ComponentRef<typeof View>>();
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <AttachmentPickerWithMenuItems

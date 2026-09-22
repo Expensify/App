@@ -9,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle, View} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;

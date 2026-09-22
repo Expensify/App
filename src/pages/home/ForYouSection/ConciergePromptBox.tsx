@@ -44,6 +44,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {ComponentRef} from 'react';
 import type {HostInstance, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
@@ -128,10 +129,10 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: Co
     const [isFocused, setIsFocused] = useState(false);
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
-    const actionButtonRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const actionButtonRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const animatedRef = useAnimatedRef<HostInstance>();
 
-    const containerRef = useRef<React.ComponentRef<typeof View>>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     // The native Composer only forwards its underlying input to a callback ref, so an object ref would never be populated.
     const composerRef = useRef<ComposerRef | null>(null);

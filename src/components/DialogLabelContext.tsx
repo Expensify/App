@@ -1,5 +1,6 @@
 import isHTMLElement from '@libs/isHTMLElement';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {createContext, useCallback, useContext, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
@@ -7,7 +8,7 @@ import React, {createContext, useCallback, useContext, useLayoutEffect, useMemo,
 type LabelEntry = {id: number; text: string};
 
 type DialogLabelData = {
-    containerRef: React.RefObject<React.ComponentRef<typeof View> | null>;
+    containerRef: React.RefObject<ComponentRef<typeof View> | null>;
     isInsideDialog: boolean;
     /**
      * Accessible name for the dialog — applied as a React `aria-label` prop (not via DOM setAttribute).
@@ -37,7 +38,7 @@ const DialogLabelActionsContext = createContext<DialogLabelActions>({
 type DialogLabelProviderProps = {
     children: React.ReactNode;
     /** Pass via `useState`/callback-ref so the provider observes node identity changes; a `RefObject` would pin the MutationObserver to the original node across Animated.View remounts. */
-    containerNode: React.ComponentRef<typeof View> | HTMLElement | null;
+    containerNode: ComponentRef<typeof View> | HTMLElement | null;
     /**
      * When provided, used instead of observing the container's role/aria-modal attributes.
      * Prefer this in production so dialog semantics stay in React props (resize updates `isSmallScreenWidth`).
@@ -50,11 +51,11 @@ function DialogLabelProvider({children, containerNode, hasDialogSemantics: hasDi
     const nextIdRef = useRef(0);
     const labelStackRef = useRef<LabelEntry[]>([]);
     const initialFocusClaimedRef = useRef(false);
-    const containerRef = useRef<React.ComponentRef<typeof View> | null>(null);
+    const containerRef = useRef<ComponentRef<typeof View> | null>(null);
     const [activeLabel, setActiveLabel] = useState<string | undefined>();
 
     useLayoutEffect(() => {
-        containerRef.current = (containerNode as React.ComponentRef<typeof View> | null) ?? null;
+        containerRef.current = (containerNode as ComponentRef<typeof View> | null) ?? null;
     }, [containerNode]);
 
     const hasDialogSemanticsFromDom = useSyncExternalStore(

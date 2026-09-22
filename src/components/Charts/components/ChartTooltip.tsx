@@ -4,6 +4,7 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ComponentRef} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 
 import React, {useLayoutEffect, useRef} from 'react';
@@ -52,7 +53,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
      * This prevents the "old" dimensions from being used to calculate the position
      * of "new" content, avoiding visual jumps or "ghosting" effects.
      */
-    const tooltipWrapperRef = useRef<React.ComponentRef<typeof View>>(null);
+    const tooltipWrapperRef = useRef<ComponentRef<typeof View>>(null);
 
     useLayoutEffect(() => {
         tooltipWrapperRef.current?.measure((x: number, y: number, width: number) => {

@@ -9,7 +9,7 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef, KeyboardEvent} from 'react';
+import type {ComponentRef, ForwardedRef, KeyboardEvent} from 'react';
 import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -40,7 +40,7 @@ const useValidateCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>
                 return;
             }
 
-            const isFocused = (inputRef.current as React.ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
+            const isFocused = (inputRef.current as ComponentRef<typeof RNTextInput>)?.isFocused?.() ?? false;
             if (!isFocused) {
                 return;
             }

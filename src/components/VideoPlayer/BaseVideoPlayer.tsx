@@ -19,7 +19,7 @@ import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilitie
 import CONST from '@src/CONST';
 
 import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 
 import {useEvent, useEventListener} from 'expo';
 import {useVideoPlayer, VideoView} from 'expo-video';
@@ -144,9 +144,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     }, [isLoading, isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
-    const videoPlayerElementParentRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
-    const videoPlayerElementRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
-    const sharedVideoPlayerParentRef = useRef<React.ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const videoPlayerElementParentRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const videoPlayerElementRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const sharedVideoPlayerParentRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const isReadyForDisplayRef = useRef(false);
     const savedCurrentTimeRef = useRef(0);
     const shouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
@@ -588,7 +588,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                 {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
-                                            ref={sharedVideoPlayerParentRef as RefObject<React.ComponentRef<typeof View> | null>}
+                                            ref={sharedVideoPlayerParentRef as RefObject<ComponentRef<typeof View> | null>}
                                             style={[styles.flex1]}
                                         />
                                         {/* We are adding transparent absolute View between appended video component and control buttons to enable
@@ -604,7 +604,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             if (!el) {
                                                 return;
                                             }
-                                            const elHTML = el as React.ComponentRef<typeof View> | HTMLDivElement;
+                                            const elHTML = el as ComponentRef<typeof View> | HTMLDivElement;
                                             if ('childNodes' in elHTML && elHTML.childNodes[0]) {
                                                 videoPlayerElementRef.current = elHTML.childNodes[0] as HTMLDivElement;
                                             }

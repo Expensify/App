@@ -15,6 +15,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -104,7 +105,7 @@ function AvatarWithImagePicker({
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState<ErrorData>({validationError: null, phraseParam: {}});
     const {calculatePopoverPosition} = usePopoverPosition();
-    const anchorRef = useRef<React.ComponentRef<typeof View>>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const {openCropper} = useAvatarCrop({maskType: editorMaskImage ? 'square' : undefined, onCropped: onImageSelected});
 

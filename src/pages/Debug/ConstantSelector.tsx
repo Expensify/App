@@ -6,7 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -35,7 +35,7 @@ type ConstantSelectorProps = {
     policyID?: string;
 
     /** The ref is required by InputWrapper, even though it's not used in this component yet */
-    ref: ForwardedRef<React.ComponentRef<typeof View>>;
+    ref: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
