@@ -5,13 +5,15 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -208,20 +210,27 @@ function ProfilePage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                <HeaderWithBackButton
-                    title={translate('common.profile')}
-                    onBackButtonPress={() => {
-                        if (route.params?.backTo) {
-                            Navigation.goBack(route.params?.backTo);
-                            return;
-                        }
-                        Navigation.goBack();
-                    }}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
-                    shouldUseHeadlineHeader
-                />
+                <Header>
+                    {shouldUseNarrowLayout && (
+                        <Header.BackButton
+                            onPress={() => {
+                                if (route.params?.backTo) {
+                                    Navigation.goBack(route.params?.backTo);
+                                    return;
+                                }
+                                Navigation.goBack();
+                            }}
+                        />
+                    )}
+                    <Header.Title
+                        title={translate('common.profile')}
+                        shouldUseHeadlineHeader
+                    />
+                    <Header.Right>
+                        <SearchButton />
+                        <SidePanelButton />
+                    </Header.Right>
+                </Header>
             </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}

@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -23,7 +23,7 @@ function FailedToLockAccountPage() {
             testID="FailedToLockAccountPage"
             includeSafeAreaPaddingBottom
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 onBackButtonPress={() => Navigation.goBack()}
                 title={translate('lockAccountPage.lockAccount')}
             />

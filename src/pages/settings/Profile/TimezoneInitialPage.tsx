@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
@@ -33,7 +33,7 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
 
     return (
         <ScreenWrapper testID="TimezoneInitialPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('timezonePage.timezone')}
                 onBackButtonPress={() => Navigation.goBack()}
             />

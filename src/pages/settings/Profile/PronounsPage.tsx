@@ -1,6 +1,6 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -118,7 +118,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             ) : (
                 <>
                     <CollapsibleHeaderOnKeyboard>
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={translate('pronounsPage.pronouns')}
                             onBackButtonPress={() => Navigation.goBack()}
                         />

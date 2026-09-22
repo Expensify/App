@@ -2,7 +2,7 @@
  * Dynamic route version of the state selection page. Reads the current state/label from the
  * dynamic route params and returns the chosen state to the previous screen via the dynamic back path.
  */
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -86,11 +86,10 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
             testID="DynamicStateSelectionPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 // Label can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 title={label || translate('common.state')}
-                shouldShowBackButton
                 onBackButtonPress={() => {
                     Navigation.goBack(backPath, {compareParams: false});
                 }}

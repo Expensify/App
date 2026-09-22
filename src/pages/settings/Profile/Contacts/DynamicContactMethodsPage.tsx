@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -61,7 +61,7 @@ function DynamicContactMethodsPage() {
             shouldEnableKeyboardAvoidingView={false}
             testID="DynamicContactMethodsPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('contacts.contactMethods')}
                 onBackButtonPress={() => Navigation.goBack()}
             />

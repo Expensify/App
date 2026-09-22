@@ -3,7 +3,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -110,7 +110,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
             testID="LegalNamePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={headerTitle ?? translate('privatePersonalDetails.legalName')}
                     onBackButtonPress={onBackButtonPress ?? (() => Navigation.goBack())}
                 />

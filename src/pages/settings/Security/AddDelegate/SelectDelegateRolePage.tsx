@@ -1,5 +1,5 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -59,7 +59,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
             testID="SelectDelegateRolePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('delegate.accessLevel')}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_ADD_DELEGATE)}
                 />

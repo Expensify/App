@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -72,7 +72,7 @@ function DeviceManagementPage() {
             includeSafeAreaPaddingBottom
             testID="DeviceManagementPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('deviceManagementPage.title')}
                 onBackButtonPress={Navigation.goBack}
             />

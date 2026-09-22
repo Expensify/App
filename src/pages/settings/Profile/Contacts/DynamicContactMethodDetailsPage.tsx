@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -327,19 +327,24 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
                       },
             }}
         >
-            <HeaderWithBackButton
-                title={formattedContactMethod}
-                threeDotsMenuItems={getThreeDotsMenuItems()}
-                onBackButtonPress={() => Navigation.goBack(listPath)}
-                shouldShowThreeDotsButton={getThreeDotsMenuItems().length > 0}
-                shouldOverlayDots
-                onThreeDotsButtonPress={() => {
-                    // Hide the keyboard when the user clicks the three-dot menu.
-                    // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
-                    blurActiveElement();
-                    KeyboardUtils.dismiss();
-                }}
-            />
+            <Header>
+                <Header.BackButton onPress={() => Navigation.goBack(listPath)} />
+                <Header.Title title={formattedContactMethod} />
+                <Header.Right>
+                    {getThreeDotsMenuItems().length > 0 && (
+                        <Header.ThreeDotsMenu
+                            items={getThreeDotsMenuItems()}
+                            shouldOverlay
+                            onIconPress={() => {
+                                // Hide the keyboard when the user clicks the three-dot menu.
+                                // Use blurActiveElement() for mWeb and KeyboardUtils.dismiss() for native apps.
+                                blurActiveElement();
+                                KeyboardUtils.dismiss();
+                            }}
+                        />
+                    )}
+                </Header.Right>
+            </Header>
             <ScrollView
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={themeStyles.flexGrow1}
