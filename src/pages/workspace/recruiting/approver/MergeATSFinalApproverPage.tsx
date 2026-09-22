@@ -37,7 +37,7 @@ function MergeATSFinalApproverPage({
         shouldBeBlocked: !isBetaEnabled(CONST.BETAS.MERGE_ATS),
         getCurrentFinalApprover: () => finalApprover ?? null,
         getProviderName: (policy) => getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats,
-        getHeaderTitle: () => translate('workspace.recruiting.providerFinalApprover'),
+        getHeaderTitle: () => translate('workspace.recruiting.finalApprover'),
         // The final approver is optional in advanced mode, so picking the selected one again clears it.
         handleSave: ({email}) => setDraftFinalApprover(email === finalApprover ? '' : email),
     };

@@ -75,7 +75,7 @@ function MergeATSApproverFieldPage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="MergeATSApproverFieldPage"
             >
-                <HeaderWithBackButton title={translate('workspace.recruiting.providerApproverField')} />
+                <HeaderWithBackButton title={translate('workspace.recruiting.approverField')} />
                 <View style={styles.flex1}>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{translate('workspace.recruiting.approverFieldDescription', providerName)}</Text>
                     <SelectionList

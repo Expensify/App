@@ -140,7 +140,7 @@ function MergeATSApprovalModePage({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="MergeATSApprovalModePage"
             >
-                <HeaderWithBackButton title={translate('workspace.recruiting.providerApprovalMode')} />
+                <HeaderWithBackButton title={translate('workspace.recruiting.defaultApprover')} />
                 <View style={styles.flex1}>
                     <Text style={[styles.textSupporting, styles.ph5, styles.mb3]}>{translate('workspace.recruiting.approvalModeDescription', providerName)}</Text>
                     <ScrollView showsVerticalScrollIndicator={false}>
@@ -166,13 +166,13 @@ function MergeATSApprovalModePage({
                                     <>
                                         <MenuItemWithTopDescription
                                             shouldShowRightIcon
-                                            description={translate('workspace.recruiting.providerApproverField')}
+                                            description={translate('workspace.recruiting.approverField')}
                                             title={getApproverFieldName(approverField, translate)}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD.getRoute(policyID))}
                                         />
                                         <MergeATSFinalApproverMenuItem
                                             policyID={policyID}
-                                            description={translate('workspace.recruiting.providerFinalApproverOptional')}
+                                            description={translate('workspace.recruiting.finalApproverOptional')}
                                         />
                                         <View style={styles.dividerLine} />
                                     </>
