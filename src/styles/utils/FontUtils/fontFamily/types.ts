@@ -1,4 +1,4 @@
-import type {TextStyle} from 'react-native';
+import type {FontStyle, FontWeight} from '@styles/utils/FontUtils/types';
 
 type FontFamilyKey =
     | 'SYSTEM'
@@ -16,8 +16,8 @@ type FontFamilyKey =
 
 type FontFamily = {
     fontFamily: string;
-    fontStyle?: TextStyle['fontStyle'];
-    fontWeight?: TextStyle['fontWeight'];
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
 };
 
 type FontFamilyStyles = Record<FontFamilyKey, FontFamily>;
