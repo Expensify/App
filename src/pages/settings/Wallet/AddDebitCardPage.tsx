@@ -1,5 +1,5 @@
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -63,7 +63,7 @@ function DebitCardPage() {
             includeSafeAreaPaddingBottom={false}
             testID="DebitCardPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('addDebitCardPage.addADebitCard')}
                 onBackButtonPress={() => Navigation.goBack()}
             />

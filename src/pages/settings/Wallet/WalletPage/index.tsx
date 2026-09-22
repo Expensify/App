@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import Icon from '@components/Icon';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -11,7 +11,9 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 
 import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
@@ -434,13 +436,17 @@ function WalletPage() {
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
     const headerWithBackButton = (
-        <HeaderWithBackButton
-            title={translate('common.wallet')}
-            shouldUseHeadlineHeader
-            shouldShowBackButton={shouldUseNarrowLayout}
-            shouldDisplaySearchRouter
-            shouldDisplayHelpButton
-        />
+        <Header>
+            {shouldUseNarrowLayout && <Header.BackButton onPress={() => Navigation.goBack()} />}
+            <Header.Title
+                title={translate('common.wallet')}
+                shouldUseHeadlineHeader
+            />
+            <Header.Right>
+                <SearchButton />
+                <SidePanelButton />
+            </Header.Right>
+        </Header>
     );
 
     const bottomMountItem = useMemo(

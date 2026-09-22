@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -174,7 +174,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             enableEdgeToEdgeBottomSafeAreaPadding
             testID="PersonalCardDetailsPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.moreFeatures.companyCards.cardDetails')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />

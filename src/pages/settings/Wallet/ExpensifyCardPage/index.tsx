@@ -8,7 +8,7 @@ import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisable
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
@@ -301,7 +301,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     if (isLoadingCardData) {
         return (
             <ScreenWrapper testID="ExpensifyCardPage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={pageTitle}
                     onBackButtonPress={() => Navigation.closeRHPFlow()}
                 />
@@ -318,7 +318,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     return (
         <ScreenWrapper testID="ExpensifyCardPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={pageTitle}
                 onBackButtonPress={() => Navigation.closeRHPFlow()}
             />

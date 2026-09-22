@@ -1,6 +1,6 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -56,7 +56,7 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
     return (
         <ScreenWrapper testID="ReportVirtualCardFraudPage">
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('reportFraudPage.title')}
                     onBackButtonPress={() => {
                         if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD) {

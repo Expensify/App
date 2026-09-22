@@ -1,6 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -28,7 +28,7 @@ function ImportTransactionsCurrencyPage() {
             shouldEnableMaxHeight
             testID="ImportTransactionsCurrencyPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.companyCards.importTransactions.currency')}
                 onBackButtonPress={() => Navigation.goBack()}
             />

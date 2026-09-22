@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
@@ -79,7 +79,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
             includeSafeAreaPaddingBottom={false}
             testID={AccountFlowEntryPoint.displayName}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('bankAccount.addBankAccount')}
                 subtitle={policyName}
                 onBackButtonPress={onBackButtonPress}

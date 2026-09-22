@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import LoadingIndicator from '@components/LoadingIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -143,7 +143,7 @@ function AddCardToDigitalWalletPage({
                 testID="AddCardToDigitalWalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
+                <HeaderWithBackButtonAndTitle title={translate('addCardToDigitalWallet.title', {walletName})} />
                 <ConfirmationPage
                     heading={translate(isSuccess ? 'addCardToDigitalWallet.successHeading' : 'addCardToDigitalWallet.deniedHeading')}
                     description={translate(isSuccess ? 'addCardToDigitalWallet.successDescription' : 'addCardToDigitalWallet.deniedDescription', {walletName})}
@@ -164,7 +164,7 @@ function AddCardToDigitalWalletPage({
             testID="AddCardToDigitalWalletPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
+            <HeaderWithBackButtonAndTitle title={translate('addCardToDigitalWallet.title', {walletName})} />
             <ScrollView
                 style={styles.flex1}
                 contentContainerStyle={styles.flexGrow1}

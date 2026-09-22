@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -145,10 +145,7 @@ function TravelCVVPage() {
             testID="TravelCVVPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('walletPage.travelCVV.title')}
-                shouldShowBackButton
-            />
+            <HeaderWithBackButtonAndTitle title={translate('walletPage.travelCVV.title')} />
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={[styles.ph5]}>
                     <View style={[styles.mt5, styles.mb8]}>

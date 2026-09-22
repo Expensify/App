@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import LoadingIndicator from '@components/LoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -84,7 +84,7 @@ function BankConnection() {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
