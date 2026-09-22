@@ -15,7 +15,7 @@ type NavigateToParticipantPageParams = {
     isManualRequest: boolean;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     action: IOUAction;
-    transactionID: string;
+    transactionID: string | undefined;
     reportID: string | undefined;
     onOpenParticipantPicker: () => void;
 };
