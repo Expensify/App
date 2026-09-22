@@ -1,6 +1,6 @@
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +26,7 @@ function AppDownloadLinksPage() {
 
     return (
         <ScreenWrapper testID="AppDownloadLinksPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}
             />

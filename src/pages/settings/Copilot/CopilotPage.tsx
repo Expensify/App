@@ -1,6 +1,6 @@
 import Badge from '@components/Badge';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -11,8 +11,10 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
@@ -451,14 +453,17 @@ function CopilotPage() {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('delegate.copilot')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldUseHeadlineHeader
-                        shouldDisplaySearchRouter
-                        shouldDisplayHelpButton
-                    />
+                    <Header>
+                        {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                        <Header.Title
+                            title={translate('delegate.copilot')}
+                            shouldUseHeadlineHeader
+                        />
+                        <Header.Right>
+                            <SearchButton />
+                            <SidePanelButton />
+                        </Header.Right>
+                    </Header>
                     <ScrollView contentContainerStyle={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, safeAreaPaddingBottomStyle]}>
                             <Section

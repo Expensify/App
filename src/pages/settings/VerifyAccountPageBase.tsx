@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
@@ -93,7 +93,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                 includeSafeAreaPaddingBottom
                 testID="VerifyAccountPageBase"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('contacts.validateAccount')}
                     onBackButtonPress={handleCloseWithFallback}
                 />

@@ -1,5 +1,5 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
@@ -244,7 +244,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate(titleKey)} />
+                <HeaderWithBackButtonAndTitle title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     {sections.map((section) => (
                         <View key={section.titleTranslationKey}>

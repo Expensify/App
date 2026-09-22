@@ -1,8 +1,10 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
@@ -62,14 +64,17 @@ function PreferencesPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="PreferencesPage"
         >
-            <HeaderWithBackButton
-                title={translate('common.preferences')}
-                shouldUseHeadlineHeader
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-            />
+            <Header>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                <Header.Title
+                    title={translate('common.preferences')}
+                    shouldUseHeadlineHeader
+                />
+                <Header.Right>
+                    <SearchButton />
+                    <SidePanelButton />
+                </Header.Right>
+            </Header>
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section
