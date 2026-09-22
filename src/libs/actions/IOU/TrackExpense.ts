@@ -85,7 +85,8 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildPolicyData} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
+import {buildInviteToRoomOnyxData} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
@@ -2404,7 +2405,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, undefined, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,

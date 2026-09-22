@@ -76,7 +76,9 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
             return [];
         }
 
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
+        // Resolve the translation once, not per member.
+        const hiddenText = translate('common.hidden');
         const memberOptions = Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
                 const email = employee.email;
@@ -96,7 +98,7 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
                     return null;
                 }
 
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: hiddenText});
                 const {avatar} = personalDetails?.[accountID] ?? {};
                 return {
                     text: displayName,

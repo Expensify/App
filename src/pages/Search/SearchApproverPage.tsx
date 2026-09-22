@@ -65,8 +65,10 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
         const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
         const firstWorkspaceEmployees = employeeLists.at(0);
         const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, undefined, true, false);
         // We get the intersection here because the selected approver must belong to every workspace
+        // Resolve the translation once, not per member.
+        const hiddenText = translate('common.hidden');
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
                 const email = employee?.email;
@@ -113,7 +115,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails, translate});
+                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails, hiddenTranslation: hiddenText});
                 return {
                     text: displayName,
                     alternateText: email,
