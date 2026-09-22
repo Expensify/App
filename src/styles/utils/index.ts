@@ -1125,7 +1125,7 @@ function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: 'rotate(180deg)'};
+        return {transform: [{rotate: '180deg'}]};
     }
 
     return {};
