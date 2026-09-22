@@ -228,4 +228,28 @@ describe('IOURequestRedirectToStartPage', () => {
         const navigateOrder = jest.mocked(Navigation.navigate).mock.invocationCallOrder.at(0) ?? 0;
         expect(dismissOrder).toBeLessThan(navigateOrder);
     });
+
+    // The readiness guard makes the redirect async, so the page can be unmounted while it is still pending. Nothing
+    // should be dispatched in that case: dismissModal() tears down whatever modal is on top, so a late replay would
+    // dismiss a modal this page never opened and push the start page over it.
+    it('does not dismiss or redirect when the page unmounts before navigation is ready', async () => {
+        // Given a cold load that unmounts before the NavigationContainer signals readiness
+        const {unmount} = renderRedirectPage({
+            iouType: CONST.IOU.TYPE.SUBMIT,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            reportID: '',
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        });
+        await waitForBatchedUpdatesWithAct();
+        act(() => {
+            unmount();
+        });
+
+        // When the container becomes ready after the page is gone
+        await markNavigationReady();
+
+        // Then the queued dismiss and redirect are both dropped
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
 });

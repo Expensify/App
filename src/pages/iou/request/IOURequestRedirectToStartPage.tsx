@@ -49,7 +49,16 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
         // pending route first and resolves the promise second, so the new modal is pushed and then immediately
         // dismissed, dropping the user on the fullscreen page behind it instead of the start page. Running both
         // inside one isNavigationReady() callback keeps them in the intended order: dismiss, then redirect.
+        let isCancelled = false;
+
         Navigation.isNavigationReady().then(() => {
+            // The page can be gone by the time the container is ready. dismissModal() tears down whatever modal is on
+            // top, so replaying this after the user left would dismiss a modal we never opened and push the start page
+            // over it.
+            if (isCancelled) {
+                return;
+            }
+
             // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
             Navigation.dismissModal();
 
@@ -65,6 +74,15 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
                 startMoneyRequest(iouType, optimisticReportID, undefined, iouRequestType);
             }
         });
+
+        return () => {
+            isCancelled = true;
+
+            // Release the once-only guard so a remount can schedule the redirect this cleanup just cancelled. A real
+            // unmount throws the ref away with the instance, so this only matters when the same instance is cleaned up
+            // and immediately remounted (StrictMode does that to effects in dev).
+            didRedirectRef.current = false;
+        };
 
         // This useEffect should only run on mount which is why there are no dependencies being passed in the second parameter
         // eslint-disable-next-line react-hooks/exhaustive-deps
