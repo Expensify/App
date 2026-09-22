@@ -1245,8 +1245,12 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
 /**
  * Returns a compact quarter label, e.g. "Q3 ’25".
  */
-function getShortFormattedQuarterForSearch(year: number, quarter: number): string {
-    return `Q${quarter} ${format(new Date(year, 0, 1), '’yy')}`;
+function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined): string {
+    // Same reasoning as `getFormattedQuarterForSearch`. The quarter label has to come from `QQQ` rather than a
+    // hand-built `Q${quarter}`, because every locale names quarters differently and `Intl.DateTimeFormat` has no
+    // quarter option to fall back on.
+    const quarterStart = set(new Date(), {year, month: (quarter - 1) * 3, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
+    return format(quarterStart, `QQQ ’yy`, {locale: dateFnsLocale});
 }
 
 function getNextNthOfMonth(nth: number) {

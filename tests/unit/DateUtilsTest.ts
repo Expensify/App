@@ -385,6 +385,38 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getShortFormattedQuarterForSearch', () => {
+        it('names every quarter of the year', () => {
+            // Given the four quarters of 2026, whose boundaries the caller derives from the quarter number alone
+            const quarters = [1, 2, 3, 4];
+
+            // When each is rendered without a locale, which is the English default the search header shipped with
+            const labels = quarters.map((quarter) => DateUtils.getShortFormattedQuarterForSearch(2026, quarter, undefined));
+
+            // Then each label names its own quarter, so a wrong month offset would surface as a mislabelled group
+            expect(labels).toEqual(['Q1 ’26', 'Q2 ’26', 'Q3 ’26', 'Q4 ’26']);
+        });
+
+        it('takes the quarter abbreviation from the language rather than hardcoding Q', () => {
+            // Given a language that does not call a quarter "Q", which is what the previous `Q${quarter}` template
+            // could never express
+            // When the first quarter of 2026 is rendered in each
+            // Then the abbreviation follows the language while the year suffix stays the same shape
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, fr)).toBe('1er trim. ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, pl)).toBe('I kw. ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, nl)).toBe('K1 ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, el)).toBe('Τ1 ’26');
+        });
+
+        it('leaves German and English alike, so a dropped locale would not show up in either', () => {
+            // Given German, which happens to abbreviate quarters exactly as English does
+            // When the same quarter is rendered in both
+            // Then they match, which is why the assertions above use languages that differ instead
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, de)).toBe('Q1 ’26');
+            expect(DateUtils.getShortFormattedQuarterForSearch(2026, 1, undefined)).toBe('Q1 ’26');
+        });
+    });
+
     describe('travel date formatters', () => {
         // Current year and a past year, to exercise both branches. `translate` stays English throughout, so the
         // assertions isolate `dateFnsLocale`: it drives the weekday, the month and the clock convention.
