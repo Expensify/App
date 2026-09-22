@@ -181,6 +181,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const delegateAccountID = useDelegateAccountID();
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
 
+    // Only a workspace destination can enforce a workspace's distance rules.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isDistanceRequest,
