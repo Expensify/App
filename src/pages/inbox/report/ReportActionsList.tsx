@@ -14,7 +14,6 @@ import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
@@ -161,7 +160,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isProduction} = useEnvironment();
 
     const {
@@ -538,7 +536,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [
-        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        unreadMarkerReportActionID,
         isArchivedNonExpenseReport(report, isReportArchived),
         draftReportActionID,
         draftMessageHTML,

@@ -223,7 +223,7 @@ const getCapturedListProps = (): MockLegendListProps | undefined => mockLegendLi
 const getRenderedReportActionsListItemProps = (
     reportAction: OnyxTypes.ReportAction,
     index = 0,
-): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean} => {
+): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean; shouldDisplayNewMarker?: boolean} => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
 
     if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
@@ -244,6 +244,7 @@ const getRenderedReportActionsListItemProps = (
 
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
+const mockUseUnreadMarker: jest.Mock = jest.requireMock('@hooks/useUnreadMarker');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 let mockHasOnceLoadedReportActions = true;
 let mockIsLoadingInitialReportActions = false;
@@ -352,6 +353,7 @@ describe('ReportActionsList (body)', () => {
         mockIsLoadingInitialReportActions = false;
         mockIsLoadingOlderReportActions = false;
         mockShouldCallLegendListOnLoad = true;
+        mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
         mockUseIsReportLoadPending.mockReturnValue(false);
 
         mockUseCurrentUserPersonalDetails.mockReturnValue({
@@ -429,6 +431,19 @@ describe('ReportActionsList (body)', () => {
         renderReportActionsList();
 
         expect(StyleSheet.flatten(getCapturedListProps()?.contentContainerStyle)?.paddingBottom).toBe(0);
+    });
+
+    it('invalidates a recycled row when the unread marker changes on a wide layout', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: '2', unreadMarkerReportActionIndex: 0});
+        renderReportActionsList();
+
+        expect(getCapturedListProps()?.extraData).toEqual(expect.arrayContaining(['2']));
+        const markerAction = getCapturedVisibleActions()?.find((action) => action.reportActionID === '2');
+        if (!markerAction) {
+            throw new Error('Expected unread marker action fixture');
+        }
+        expect(getRenderedReportActionsListItemProps(markerAction, 1).shouldDisplayNewMarker).toBe(true);
     });
 
     it('initially aligns the seed page to the end', () => {
