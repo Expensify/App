@@ -1803,11 +1803,6 @@ function openReport(params: OpenReportActionParams) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
             value: {
-                // Clearing `isLoadingInitialReportActions` alone leaves consumers that gate on
-                // `hasOnceLoadedReportActions` waiting on a stamp that is never coming, so a failed fetch pins them
-                // on a spinner forever. Make failure terminal so they resolve to their empty/access placeholder
-                // instead. See issue #100524.
-                hasOnceLoadedReportActions: true,
                 isLoadingInitialReportActions: false,
             },
         },

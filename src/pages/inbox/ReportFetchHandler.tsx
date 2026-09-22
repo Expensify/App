@@ -439,8 +439,8 @@ function ReportFetchHandler() {
     // `hasOnceLoadedReportActions` is memory-only too, so "Clear cache and restart" drops it underneath an
     // already-mounted report screen, and the fetch effect below only re-runs on a route change. Re-arming the
     // loading flag on its own would advertise a load that is never issued, pinning every consumer of the flag
-    // (e.g. the report preview carousel) on a spinner forever - so re-fetch here as well, and the flag settles
-    // again whichever way the fetch resolves. Duplicate OpenReport calls are collapsed by
+    // (e.g. the report preview carousel) on a spinner forever - so re-fetch here as well, and a successful
+    // fetch stamps the flag again. Duplicate OpenReport calls are collapsed by
     // resolveOpenReportDuplicationConflictAction. See issue #100524.
     useEffect(() => {
         if (reportLoadingState.hasOnceLoadedReportActions) {
