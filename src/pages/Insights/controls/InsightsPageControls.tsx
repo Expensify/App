@@ -1,4 +1,5 @@
 import CurrencyPopup from '@components/Search/FilterDropdowns/CurrencyPopup';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 
@@ -16,10 +17,15 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import InsightsControlDropdown from './InsightsControlDropdown';
 import InsightsDatePopup from './InsightsDatePopup';
 import InsightsGroupByDropdown from './InsightsGroupByDropdown';
 import InsightsWorkspacePopup from './InsightsWorkspacePopup';
+
+/** The row is right-aligned, so every popover opens inward from the pill's right edge. */
+const INSIGHTS_CONTROL_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+} as const;
 
 type InsightsControlProps<T> = {
     value: T;
@@ -42,10 +48,11 @@ function InsightsWorkspaceControl({value, onChange}: InsightsControlProps<string
     );
 
     return (
-        <InsightsControlDropdown
+        <DropdownButton
             label={label}
             value={workspaceNames || null}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_WORKSPACE}
+            popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={workspacePopover}
         />
     );
@@ -67,10 +74,11 @@ function InsightsDateControl({value, onChange}: InsightsControlProps<InsightsFil
     );
 
     return (
-        <InsightsControlDropdown
+        <DropdownButton
             label={label}
             value={getDateDisplayValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, buildDateFormValues(value), translate, dateFnsLocale)}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_DATE}
+            popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={datePopover}
         />
     );
@@ -92,10 +100,11 @@ function InsightsGroupCurrencyControl({value, onChange}: InsightsControlProps<st
     );
 
     return (
-        <InsightsControlDropdown
+        <DropdownButton
             label={label}
             value={value}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_CURRENCY}
+            popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={currencyPopover}
         />
     );

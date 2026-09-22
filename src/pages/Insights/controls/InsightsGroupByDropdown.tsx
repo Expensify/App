@@ -1,4 +1,5 @@
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 
@@ -11,7 +12,11 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import InsightsControlDropdown from './InsightsControlDropdown';
+/** The row is right-aligned, so every popover opens inward from the pill's right edge. */
+const INSIGHTS_CONTROL_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+} as const;
 
 type InsightsGroupByDropdownProps = {
     /** Time bucket the headline chart aggregates into */
@@ -44,10 +49,11 @@ function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownPro
     );
 
     return (
-        <InsightsControlDropdown
+        <DropdownButton
             label={label}
             value={selectedItem?.text ?? null}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_GROUP_BY}
+            popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
             PopoverComponent={groupByPopover}
         />
     );
