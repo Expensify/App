@@ -600,6 +600,29 @@ describe('ReportActionsList (body)', () => {
         expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === olderMockReportAction.reportActionID)).toBe(true);
     });
 
+    it('keeps a hydrated list mounted when its RAM-only loading entry briefly regresses', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        const view = renderReportActionsList();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockLegendListMount).toHaveBeenCalledTimes(1);
+        expect(mockLegendListUnmount).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+    });
+
     it('limits the render buffer and enables item recycling', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         renderReportActionsList();

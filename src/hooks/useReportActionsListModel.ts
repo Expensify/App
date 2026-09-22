@@ -12,6 +12,7 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 import {useRoute} from '@react-navigation/native';
 
 import {useIsAppLoadPending} from './useInFlightRequests';
+import useInitial from './useInitial';
 import useLoadReportActions from './useLoadReportActions';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -54,7 +55,9 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {
         selector: reportActionsListLoadingStateSelector,
     });
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
+    // This flag is monotonic for one report visit. Keep it true if the RAM-only entry is briefly
+    // absent while optimistic writes are merged, so the hydrated list never returns to its loading state.
+    const hasOnceLoadedReportActions = useInitial(reportLoadingState?.hasOnceLoadedReportActions ? true : undefined);
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
     const isInitialReportLoadPending = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;

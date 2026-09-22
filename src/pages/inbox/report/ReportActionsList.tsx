@@ -665,7 +665,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
  */
 function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
     return (
-        <ReportActionsSkeletonGuard reportID={reportID}>
+        <ReportActionsSkeletonGuard
+            key={reportID}
+            reportID={reportID}
+        >
             <ReportActionsListContent
                 key={reportID}
                 reportID={reportID}
