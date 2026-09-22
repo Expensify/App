@@ -48,6 +48,11 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    wrapperStyle,
+    onBlur,
+    rightHandSideComponent,
+    onPickerVisibilityChange,
+    shouldHideCalendarIcon = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -101,6 +106,14 @@ function DatePicker({
         [windowHeight],
     );
 
+    const setPickerVisibility = useCallback(
+        (isVisible: boolean) => {
+            setIsModalVisible(isVisible);
+            onPickerVisibilityChange?.(isVisible);
+        },
+        [onPickerVisibilityChange],
+    );
+
     const showDatePickerModal = useCallback(() => {
         cancelAutoFocus();
         // Blur the date input before showing the modal, so the focus won't be returned after the modal is closed
@@ -116,7 +129,7 @@ function DatePicker({
         const openPicker = () => {
             if (!shouldDeferShowUntilPositioned) {
                 calculatePopoverPosition();
-                setIsModalVisible(true);
+                setPickerVisibility(true);
                 return;
             }
 
@@ -125,16 +138,16 @@ function DatePicker({
                 if (!openIntentRef.current) {
                     return;
                 }
-                setIsModalVisible(true);
+                setPickerVisibility(true);
             });
         };
 
         openPicker();
-    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus]);
+    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
 
     const closeDatePicker = useCallback(() => {
         openIntentRef.current = false;
-        setIsModalVisible(false);
+        setPickerVisibility(false);
 
         if (!shouldDismissKeyboardBeforeShow) {
             return;
@@ -143,7 +156,7 @@ function DatePicker({
         textInputRef.current?.blur();
         ComposerFocusManager.blurActiveInput();
         Keyboard.dismiss();
-    }, [shouldDismissKeyboardBeforeShow]);
+    }, [shouldDismissKeyboardBeforeShow, setPickerVisibility]);
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
@@ -216,13 +229,15 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={styles.mv2}
+                style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : icons.Calendar}
+                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
+                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
+                    icon={shouldHideCalendarIcon || (selectedDate && !shouldHideClearButton) ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -235,6 +250,7 @@ function DatePicker({
                     disabled={disabled}
                     hideFocusedState={shouldDismissKeyboardBeforeShow}
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
+                    onBlur={onBlur}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
@@ -243,6 +259,7 @@ function DatePicker({
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard
+                    rightHandSideComponent={rightHandSideComponent}
                 />
             </View>
 

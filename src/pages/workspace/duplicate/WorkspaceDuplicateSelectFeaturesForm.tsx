@@ -52,7 +52,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const codingRulesCount = Object.values(policy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const reportFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
+    const policyFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportFields = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
+    const invoiceFields = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
     const customUnits = getPerDiemCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
@@ -69,6 +71,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
         selector: invoiceConfigurationTextSelector,
     });
+    const invoiceDetails = [invoiceConfigurationText, invoiceFields ? `${invoiceFields} ${translate('workspace.common.invoiceFields').toLowerCase()}` : ''].filter(Boolean).join(', ');
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -182,7 +185,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
-                      alternateText: invoiceConfigurationText || undefined,
+                      alternateText: invoiceDetails || undefined,
                   }
                 : undefined,
             policy?.isTravelEnabled
@@ -207,7 +210,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         ratesCount,
         isCollect,
         allRates,
-        invoiceConfigurationText,
+        invoiceDetails,
         codingRulesCount,
     ]);
 
@@ -255,6 +258,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 expenses: selectedItems.includes('rules'),
                 distance: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
+                invoiceFields: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
                 overview: selectedItems.includes('overview'),
                 travel: selectedItems.includes('travel'),

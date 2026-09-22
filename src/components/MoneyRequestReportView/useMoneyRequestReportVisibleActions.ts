@@ -1,3 +1,13 @@
+/**
+ * Owns the visibility filtering for the money-request report view.
+ *
+ * The paginated report actions chain contains entries this view must not render: the expense/transaction
+ * data lives in a separate list at the top of the report, actions pending deletion disappear as soon as we
+ * are back online, and IOU actions can outlive the transaction they point at. This hook applies those rules
+ * in one place and hands the result back in both orderings the view needs - oldest-first for the
+ * non-inverted unified list, newest-first for the shared unread/mark-as-read hooks - so callers never
+ * re-derive or re-sort them.
+ */
 import useOnyx from '@hooks/useOnyx';
 
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
@@ -30,7 +40,7 @@ type UseMoneyRequestReportVisibleActionsParams = {
 };
 
 type UseMoneyRequestReportVisibleActionsResult = {
-    /** Actions to render in the unified list — oldest-first, because this view starts at the top and is not inverted */
+    /** Actions to render in the unified list. Oldest-first, because this view starts at the top and is not inverted. */
     visibleReportActions: OnyxTypes.ReportAction[];
 
     /** The same visible actions in the newest-first domain shared hooks like `useMarkAsRead` expect */
@@ -56,8 +66,6 @@ function useMoneyRequestReportVisibleActions({
     shouldShowHarvestCreatedAction,
     isOffline,
 }: UseMoneyRequestReportVisibleActionsParams): UseMoneyRequestReportVisibleActionsResult {
-    // Scoped selector: subscribing to the whole derived value re-renders this view on any report-action
-    // change anywhere in the app; the selector keeps the ref stable while this report's slice is unchanged.
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(reportID)});
 
     const visibleReportActionsNewestFirst = reportActions.filter((reportAction) => {
@@ -83,7 +91,6 @@ function useMoneyRequestReportVisibleActions({
         return true;
     });
 
-    // We are reversing actions because in this view we are starting at the top and don't use an inverted list
     const visibleReportActions = visibleReportActionsNewestFirst.slice().reverse();
     const lastAction = visibleReportActionsNewestFirst.at(0);
     const firstVisibleReportActionID = getFirstVisibleReportActionID(reportActions, isOffline);

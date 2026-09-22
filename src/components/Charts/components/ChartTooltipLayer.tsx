@@ -10,7 +10,6 @@ import {scheduleOnRN} from 'react-native-worklets';
 import ChartTooltip from './ChartTooltip';
 
 type ChartTooltipLayerProps = {
-    /** SharedValue for the currently matched data index */
     matchedIndex: SharedValue<number>;
 
     /** DerivedValue that is true when the tooltip should be visible */

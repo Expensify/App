@@ -27,16 +27,12 @@ import {PickerAvoidingView} from 'react-native-picker-select';
 
 type ScreenWrapperContainerProps = ForwardedFSClassProps &
     React.PropsWithChildren<{
-        /** A unique ID to find the screen wrapper in tests */
         testID: string;
-
-        /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
         /** Content to display under the offline indicator */
         bottomContent?: ReactNode;
 
-        /** Additional styles for bottom content */
         bottomContentStyle?: StyleProp<ViewStyle>;
 
         /** Whether the screen wrapper has finished the transition */
@@ -46,7 +42,6 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
          *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
         keyboardAvoidingViewBehavior?: 'padding' | 'height' | 'position';
 
-        /** The vertical offset to pass to the KeyboardAvoidingView */
         keyboardVerticalOffset?: number;
 
         /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
@@ -71,19 +66,13 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether to use the minHeight. Use true for screens where the window height are changing because of Virtual Keyboard */
         shouldEnableMinHeight?: boolean;
 
-        /** Whether to avoid scroll on virtual viewport */
         shouldAvoidScrollOnVirtualViewport?: boolean;
 
         /** Whether to use cached virtual viewport height  */
         shouldUseCachedViewportHeight?: boolean;
 
-        /** Whether to include padding bottom */
         includeSafeAreaPaddingBottom?: boolean;
-
-        /** Whether to include padding top */
         includePaddingTop?: boolean;
-
-        /** Whether to enable edge to edge bottom safe area padding */
         enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
         /**
@@ -94,7 +83,6 @@ type ScreenWrapperContainerProps = ForwardedFSClassProps &
         /** Whether this screen should be hidden from accessibility tree */
         shouldHideFromAccessibility?: boolean;
 
-        /** Reference to the outer element */
         ref?: ForwardedRef<View>;
     }>;
 

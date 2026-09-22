@@ -8,16 +8,12 @@ type WalletAdditionalQuestionDetails = {
     /** Question type */
     type: string;
 
-    /** Possible answers */
     answer: string[];
 };
 
 /** Model of wallet personal details */
 type WalletPersonalDetails = {
-    /** Legal first name */
     legalFirstName: string;
-
-    /** Legal last name */
     legalLastName: string;
 
     /** Date of birth */
@@ -26,19 +22,10 @@ type WalletPersonalDetails = {
     /** Social Security Number (SSN) */
     ssn: string;
 
-    /** Street address */
     addressStreet: string;
-
-    /** City */
     addressCity: string;
-
-    /** State */
     addressState: string;
-
-    /** ZIP code */
     addressZipCode: string;
-
-    /** Phone number */
     phoneNumber: string;
 };
 
@@ -56,7 +43,6 @@ type WalletAdditionalDetails = {
     /** Which field needs attention? */
     errorFields?: OnyxCommon.ErrorFields;
 
-    /** Whether the details are being loaded */
     isLoading?: boolean;
 
     /** Error messages to display to the user */

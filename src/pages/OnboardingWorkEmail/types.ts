@@ -8,9 +8,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 type OnboardingWorkEmailProps = Record<string, unknown> & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK_EMAIL>;
 
 type BaseOnboardingWorkEmailProps = {
-    /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
-
     route: RouteProp<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK_EMAIL>;
 };
 

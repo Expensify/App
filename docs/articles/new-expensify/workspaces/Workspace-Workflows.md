@@ -1,17 +1,19 @@
 ---
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
-keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer]
-internalScope: Audience is Workspace Admins. Covers configuring approval, submission, and reimbursement workflows including choosing an authorized payer; does not cover connecting a bank account.
----
-
-Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
-
-**Note:** Workflows are available on **Collect** and **Control** workspaces. **Workspace Admins** can enable and configure all workflow settings. **People Admins** can configure the **Approvals** section, and **Payments Admins** can configure the **Payments** section. The **Submissions** section remains available to Workspace Admins only.
-
+keywords: [New Expensify, workflows, workflows tabs, submissions, approvals, payments, advanced, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, prevent self-approvals, auto-approve compliant reports, auto-pay approved reports]
+internalScope: Audience is Workspace Admins. Covers configuring approval, submission, reimbursement, and advanced report workflows including choosing an authorized payer; does not cover connecting a bank account.
 ---
 
 # Workspace Workflows
+
+Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
+
+The **Workflows** page is organized into tabs: **Submissions**, **Approvals**, **Payments**, and **Advanced**.
+
+**Note:** Workflows are available on **Collect** and **Control** workspaces. **Workspace Admins** can enable and configure all workflow settings. **People Admins** can configure the **Approvals** tab, and **Payments Admins** can configure the **Payments** tab. The **Submissions** tab remains available to Workspace Admins only.
+
+---
 
 ## How to enable Workflows 
 
@@ -19,23 +21,28 @@ To get started, enable the **Workflows** feature for your workspace.
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
-3. Click **More Features**.
-4. Under the **Spend** section, toggle on **Workflows**.
+3. Click **More features**.
+4. Under the **Manage** section, toggle on **Workflows**.
 
 ![Click Account Settings > Workspaces > click on the workspace]({{site.url}}/assets/images/submissions-01.png){:width="100%"}
-
-![Click More Features > Enable Workflows]({{site.url}}/assets/images/submissions-02.png){:width="100%"}
 
 ---
 
 ## How to configure Workflow Settings
 
-Once enabled, go to the **Workflows** tab in the left menu to customize your submission and approval logic.
+Once enabled, click **Workflows** in the left menu to customize your submission and approval logic.
 
 1. Click **Workflows**.
-2. Use the toggles to enable the workflows you want to use.
+2. Open the tab you want to change: **Submissions**, **Approvals**, **Payments**, or **Advanced**.
+3. Select a row on that tab to configure it.
 
-![Enable workflow features]({{site.url}}/assets/images/submissions-03.png){:width="100%"}
+<!-- SCREENSHOT:
+Suggestion: The Workflows page showing the Submissions, Approvals, Payments, and Advanced tab bar.
+Location: After the steps for configuring workflow settings.
+Purpose: Shows admins that the settings that used to sit together on one Workflows page are now split across four tabs.
+-->
+
+---
 
 ## How to enable Approvals
 
@@ -70,8 +77,8 @@ Note: If **Submissions** is disabled, expenses remain in the **Unreported** stat
 To reimburse employees or pay invoices directly from Expensify, connect your business bank account. Both **Workspace Admins** and **Payments Admins** can connect a bank account, set the authorized expense payer, and manage payment methods.
 
 1. Go to **Workflows**.
-2. Toggle on **Payments**.
-3. Click **Connect Bank Account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
+2. Open the **Payments** tab and toggle on **Payments**.
+3. Click **Add bank account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 4. Choose an **authorized expense payer**—a Workspace Admin who has access to the bank account and will be the default reimburser.
 
 Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Pay-Expenses#how-to-pay-expenses-submitted-to-a-workspace).
@@ -82,8 +89,8 @@ Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/
 
 If you reimburse employees through another method, such as payroll or cash, you can enable **Payments** without connecting a bank account. This allows you to use **Mark as Paid** to record reimbursements processed outside of Expensify.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name > Workflows**.
-2. Enable **Payments**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
+2. Open the **Payments** tab and enable **Payments**.
 
 Once enabled, you can use **Mark as Paid** to keep track of reimbursements made outside of Expensify.
 
@@ -94,12 +101,28 @@ Once enabled, you can use **Mark as Paid** to keep track of reimbursements made 
 When **Payments** is enabled, you can set an **Authorized payer** even if no bank account is connected. The authorized payer is the admin responsible for paying reports, and they'll be the one prompted to pay.
 
 1. In the navigation tabs (on the left on web, and on the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
-2. Under **Payments**, click **Payer**.
+2. Open the **Payments** tab and click **Payer**.
 3. Select the **admin** you want to set as the authorized payer.
 
 ## What happens after you set an authorized payer
 
 Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
+
+---
+
+## How to automate report compliance on the Advanced tab
+
+The **Advanced** tab holds the rules that apply to a whole expense report rather than to a single expense.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
+2. Open the **Advanced** tab.
+3. Toggle on the setting you want to use.
+
+Available settings:
+
+- **Prevent self-approvals** – Prevent workspace members from approving their own expense reports.
+- **Auto-approve compliant reports** – Configure which expense reports are eligible for auto-approval, and randomly audit a percentage of the rest.
+- **Auto-pay approved reports** – Automatically pay approved reports under an amount you set. This requires **Payments** to be set up first.
 
 ---
 

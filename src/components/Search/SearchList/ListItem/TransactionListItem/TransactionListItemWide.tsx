@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -160,7 +159,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
+                role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={handleOnHoverIn}

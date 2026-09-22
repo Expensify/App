@@ -29,7 +29,6 @@ import FormContext from './FormContext';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
-        /** Submit button styles */
         submitButtonStyles?: StyleProp<ViewStyle>;
 
         /** Whether to apply flex to the submit button */
@@ -44,13 +43,11 @@ type FormWrapperProps = ChildrenProps &
         /** Whether the submit button is disabled */
         isSubmitDisabled?: boolean;
 
-        /** Callback to submit the form */
         onSubmit: () => void;
 
         /** should render the extra button above submit button */
         shouldRenderFooterAboveSubmit?: boolean;
 
-        /** Whether the form is loading */
         isLoading?: boolean;
 
         /** Whether the fix errors alert should be visible */
@@ -59,16 +56,12 @@ type FormWrapperProps = ChildrenProps &
         /** Server side field errors keyed by field name */
         serverErrorFields?: ErrorFields | null;
 
-        /** Server side error message */
         serverErrorMessage?: string;
 
         /** If enabled, the content will have a bottom padding equal to account for the safe bottom area inset. */
         addBottomSafeAreaPadding?: boolean;
 
-        /** Whether to add bottom safe area padding to the content. */
         addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-        /** Whether the submit button should stick to the bottom of the screen. */
         shouldSubmitButtonStickToBottom?: boolean;
 
         /** Fires at most once per frame during scrolling. */
@@ -78,8 +71,6 @@ type FormWrapperProps = ChildrenProps &
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
         ref?: ForwardedRef<FormWrapperRef>;
-
-        /** Styles for the container wrapping the submit button and footer content */
         submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
 
         /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */

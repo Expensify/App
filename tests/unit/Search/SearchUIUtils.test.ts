@@ -24,6 +24,7 @@ const baseGetSectionsParams = {
     currentAccountID: 1,
     currentUserEmail: '',
     bankAccountList: undefined,
+    rules: undefined,
     conciergeReportID: undefined,
     convertToDisplayString,
     reportAttributesDerivedValue: undefined,

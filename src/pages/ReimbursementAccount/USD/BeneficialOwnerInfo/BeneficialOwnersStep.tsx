@@ -29,10 +29,7 @@ type BeneficialOwnersStepProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Name of the current sub page */
     currentSubPage?: string;
-
-    /** ID of current policy */
     policyID?: string;
 
     /** Back to URL for preserving navigation context */

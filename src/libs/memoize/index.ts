@@ -1,6 +1,9 @@
 import type NonPartial from '@src/types/utils/NonPartial';
 import type TakeFirst from '@src/types/utils/TupleOperations';
 
+import {shallowEqual} from 'fast-equals';
+import lodashIsPlainObject from 'lodash/isPlainObject';
+
 import type {Callable, ClientOptions, Constructable, IsomorphicFn, IsomorphicParameters, IsomorphicReturnType, MemoizedFn, Stats} from './types';
 
 import ArrayCache from './cache/ArrayCache';
@@ -112,4 +115,33 @@ function memoize<Fn extends IsomorphicFn, MaxArgs extends number = NonPartial<Is
     return memoized;
 }
 
+/** Narrowed to plain objects only: `Object.keys` describes nothing about a Set, Map, Date or class instance. */
+const isPlainObject = (value: unknown): value is Record<string, unknown> => lodashIsPlainObject(value);
+
+/**
+ * Two arguments are equivalent when they are shallowly equal, or are plain objects whose values are shallowly equal -
+ * the second level covers arguments rebuilt from unchanged sources (e.g. a mapped Onyx collection).
+ */
+const areArgumentsEquivalent = (previousArgument: unknown, nextArgument: unknown) => {
+    if (shallowEqual(previousArgument, nextArgument)) {
+        return true;
+    }
+    if (!isPlainObject(previousArgument) || !isPlainObject(nextArgument)) {
+        return false;
+    }
+    const previousKeys = Object.keys(previousArgument);
+    if (previousKeys.length !== Object.keys(nextArgument).length) {
+        return false;
+    }
+    return previousKeys.every((key) => key in nextArgument && shallowEqual(previousArgument[key], nextArgument[key]));
+};
+
+/**
+ * Compares memoization keys argument by argument. Use it for functions taking large arguments that are rebuilt on every
+ * call from unchanged sources, where `'shallow'` always misses and `'deep'` would walk the whole payload.
+ */
+const equivalentArgsComparator = <Key extends readonly unknown[]>(previousArgs: Key, nextArgs: Key) =>
+    previousArgs.length === nextArgs.length && previousArgs.every((argument, index) => areArgumentsEquivalent(argument, nextArgs[index]));
+
 export default memoize;
+export {equivalentArgsComparator};

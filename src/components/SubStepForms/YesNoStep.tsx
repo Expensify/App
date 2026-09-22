@@ -22,10 +22,7 @@ type YesNoStepProps = {
     /** The default value of the radio button */
     defaultValue: boolean;
 
-    /** Callback when the value is selected */
     onSelectedValue: (value: boolean) => void;
-
-    /** The style of the submit button */
     submitButtonStyles?: StyleProp<ViewStyle>;
 
     /** Whether the submit button should be flex enabled, allowing it to grow and fill available space */

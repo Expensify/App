@@ -21,22 +21,14 @@ type FieldItemType<T extends keyof ReviewDuplicates> = {
 };
 
 type ReviewFieldsProps<K extends keyof ReviewDuplicates> = {
-    /* Step Names which are displayed in stepper */
     stepNames: string[];
 
-    /* Label which is displayed to describe current step  */
+    /** Label which is displayed to describe current step */
     label: string;
 
-    /* Values to choose from */
     options: Array<{text: string; value: ReviewDuplicates[K]}> | undefined;
-
-    /* Current index */
     index: number;
-
-    /* Callback to what should happen after selecting row */
     onSelectRow: (item: FieldItemType<K>) => void;
-
-    /* Currently selected value */
     selectedValue?: ReviewDuplicates[K];
 };
 

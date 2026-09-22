@@ -3,6 +3,7 @@ import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -20,7 +21,7 @@ type UseUnreadMarkerParams = {
     /** The report whose unread marker is being computed */
     reportID: string;
 
-    /** The visible actions (FlatList `data` domain) that the marker scan runs over — newest-first, or oldest-first when `isReversed` */
+    /** The visible actions (FlatList `data` domain) that the marker scan runs over. Newest-first, or oldest-first when `isReversed`. */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
     /** Whether `sortedVisibleReportActions` is oldest-first (non-inverted list, e.g. the money-request report view) */
@@ -37,6 +38,10 @@ type UseUnreadMarkerParams = {
 
     /** Whether report actions have loaded at least once; once true, the pagination anchor is ignored in favor of the scan */
     hasOnceLoadedReportActions: boolean;
+
+    /** Concierge hidden-history boundary: actions created before this were revealed/loaded from history,
+     * not received live, so they are never treated as read-on-arrival */
+    newMessageBoundaryTime?: string | null;
 };
 
 type UseUnreadMarkerResult = {
@@ -48,6 +53,7 @@ type UseUnreadMarkerResult = {
 };
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
+const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | undefined) => report?.manuallyMarkedUnreadReportActionID ?? null;
 
 function useUnreadMarker({
     reportID,
@@ -57,6 +63,7 @@ function useUnreadMarker({
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
+    newMessageBoundaryTime,
 }: UseUnreadMarkerParams): UseUnreadMarkerResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -67,6 +74,10 @@ function useUnreadMarker({
         selector: lastReadTimeSelector,
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
+
+    const [manuallyMarkedUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        selector: manuallyMarkedUnreadReportActionIDSelector,
+    });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
 
@@ -125,7 +136,9 @@ function useUnreadMarker({
         isReversed,
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
+        manuallyMarkedUnreadReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
+        newMessageBoundaryTime,
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
@@ -136,11 +149,17 @@ function useUnreadMarker({
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
     }
 
-    // When the user reads a new message as it is received, push unreadMarkerTime down to the
-    // latest action's timestamp so new incoming actions display over those new messages instead of
-    // sticking to the initial lastReadTime.
-    const mostRecentReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
-    if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime) {
+    // When the user reads a new message as it arrives, advance the watermark so that only actions
+    // arriving after it count as unread. Only push when the newest visible `created` has advanced:
+    // a bulk history reveal (Concierge "Show history") also scans to a null marker, and pushing then
+    // would move the watermark past the unread message and permanently hide the New divider. The
+    // synthetic greeting is not a valid push target either, because its `created` tracks
+    // report.lastReadTime and would drag the watermark to "now".
+    const isRealAction = (action: OnyxTypes.ReportAction) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID;
+    const newestVisibleReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
+    const prevNewestVisibleReportActionCreated = usePrevious(newestVisibleReportActionCreated);
+    const mostRecentReportActionCreated = (isReversed ? sortedVisibleReportActions.findLast(isRealAction) : sortedVisibleReportActions.find(isRealAction))?.created ?? '';
+    if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime && newestVisibleReportActionCreated > prevNewestVisibleReportActionCreated) {
         setUnreadMarkerTime(mostRecentReportActionCreated);
     }
 

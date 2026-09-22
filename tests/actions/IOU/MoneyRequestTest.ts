@@ -135,6 +135,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
@@ -158,7 +159,9 @@ describe('MoneyRequest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            isDraftChatReport: false,
             formatPhoneNumber,
+            rules: undefined,
         };
 
         beforeEach(async () => {
@@ -759,6 +762,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
             policy: fakePolicy,
@@ -785,6 +789,7 @@ describe('MoneyRequest', () => {
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
+            isDraftChatReport: false,
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
@@ -803,6 +808,7 @@ describe('MoneyRequest', () => {
                 personalDetails: {},
                 conciergeReportID: undefined,
                 privateIsArchived: false,
+                rules: undefined,
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate: translateLocal,
@@ -810,6 +816,7 @@ describe('MoneyRequest', () => {
                 dateFnsLocale: undefined,
             }),
             participantsPolicyTags: {},
+            rules: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1733,6 +1740,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1750,6 +1758,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1767,6 +1776,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1787,6 +1797,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: true,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1808,6 +1819,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1825,6 +1837,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: fakeReport,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1844,6 +1857,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1863,13 +1877,14 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
-            // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly
+            // When reportDraft is undefined, getReportOrDraftReport falls back to the deprecatedAllReportsDraft collection,
             // and since no draft is set, isDisabled should be false
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });

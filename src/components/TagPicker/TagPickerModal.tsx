@@ -29,13 +29,11 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 };
 
 type TagPickerModalProps = {
-    /** Callback to close the modal */
     onClose: () => void;
 
     /** The policy whose tags should be shown */
     policyID: string | undefined;
 
-    /** Currently selected tag */
     selectedTag?: string;
 
     /** The current transaction tag of the expense */

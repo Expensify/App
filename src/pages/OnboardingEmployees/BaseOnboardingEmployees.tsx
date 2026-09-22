@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -88,15 +88,19 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
             .filter((size) => {
-                // Always hide the deprecated 1-10 option.
-                if (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                // Always hide deprecated options.
+                if (
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM ||
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO ||
+                    size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL
+                ) {
                     return false;
                 }
-                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-10.
+                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-9.
                 if (isVsb) {
                     return size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
                 }
-                // For SMB-qualified users, hide 1-4 and 5-10 since they already indicated 10+.
+                // For SMB-qualified users, hide 1-4 and 5-9 since they already indicated 10+.
                 if (isSmb) {
                     return size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
                 }

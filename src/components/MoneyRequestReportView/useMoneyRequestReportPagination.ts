@@ -22,9 +22,6 @@ type UseMoneyRequestReportPaginationParams = {
     /** Paginated report actions, newest-first */
     reportActions: OnyxTypes.ReportAction[];
 
-    /** IDs of all paginated report actions */
-    reportActionIDs: string[];
-
     /** The single-transaction thread report ID, when one exists */
     transactionThreadReportID: string | undefined;
 
@@ -45,10 +42,10 @@ type UseMoneyRequestReportPaginationParams = {
 };
 
 type UseMoneyRequestReportPaginationResult = {
-    /** FlashList onStartReached handler — loads older actions */
+    /** FlashList onStartReached handler that loads older actions */
     onStartReached: () => void;
 
-    /** FlashList onEndReached handler — loads newer actions */
+    /** FlashList onEndReached handler that loads newer actions */
     onEndReached: () => void;
 };
 
@@ -62,7 +59,6 @@ type UseMoneyRequestReportPaginationResult = {
 function useMoneyRequestReportPagination({
     reportID,
     reportActions,
-    reportActionIDs,
     transactionThreadReportID,
     hasOlderActions,
     hasNewerActions,
@@ -73,7 +69,7 @@ function useMoneyRequestReportPagination({
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
         reportActions,
-        allReportActionIDs: reportActionIDs,
+        allReportActionIDs: reportActions.map((action) => action.reportActionID),
         transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
