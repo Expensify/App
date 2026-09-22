@@ -194,7 +194,7 @@ describe('useSearchTagFilters', () => {
         });
     });
 
-    it('preserves pagination metadata when searching offline and refetches on reconnect after clearing', async () => {
+    it('preserves pagination metadata when searching offline and re-fetches on reconnect after clearing', async () => {
         setPartialTagFilterState('');
         mockOpenSearchTagFiltersPage.mockResolvedValueOnce({hasMore: true, nextCursor: 'cursor-1'});
 
