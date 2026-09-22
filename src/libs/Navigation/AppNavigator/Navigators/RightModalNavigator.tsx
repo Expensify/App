@@ -1,15 +1,6 @@
 import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
-import {
-    animatedWideRHPWidth,
-    expandedRHPProgress,
-    secondOverlayRHPOnSuperWideRHPProgress,
-    secondOverlayRHPOnWideRHPProgress,
-    secondOverlayWideRHPProgress,
-    thirdOverlayProgress,
-    useWideRHPActions,
-    useWideRHPState,
-} from '@components/WideRHPContextProvider';
+import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -22,8 +13,8 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
-import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -51,15 +42,15 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
 
+import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
-import Overlay from './Overlay';
+import RHPOverlay from './Overlay/RHPOverlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
 const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
-const singleRHPWidth = variables.sideBarWidth;
-const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
+const singleRHPWidth = variables.rhpWidth;
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
@@ -75,43 +66,6 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
             <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
         </SearchAdvancedFiltersProvider>
     );
-}
-
-function SecondaryOverlay() {
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
-    const {sidePanelOffset} = useSidePanelState();
-
-    if (shouldRenderSecondaryOverlayForWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, animatedWideRHPWidth)}
-                onPress={() => Navigation.closeRHPFlow()}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToPreviousRHP}
-            />
-        );
-    }
-
-    if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-        return (
-            <Overlay
-                progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
-                onPress={Navigation.dismissToSuperWideRHP}
-            />
-        );
-    }
-
-    return null;
 }
 
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
@@ -168,7 +122,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} =
+        useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
@@ -206,18 +161,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const animatedWidth = Animated.subtract(
         expandedRHPProgress.interpolate({
             inputRange: [0, 1, 2],
-            outputRange: [singleRHPWidth, getWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
+            outputRange: [singleRHPWidth, calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
         }),
         superWideRHPSidePanelOffset,
     );
 
-    const animatedWidthStyle = useMemo(() => {
-        return {
-            width: shouldUseNarrowLayout ? '100%' : animatedWidth,
-        } as const;
-    }, [animatedWidth, shouldUseNarrowLayout]);
-
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+
+    // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
+    const shouldUseCenteredFrame =
+        !shouldUseNarrowLayout &&
+        (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
+
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
 
     const screenListeners = useMemo(
         () => ({
@@ -281,7 +237,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         <NarrowPaneContextProvider>
             <NoDropZone>
                 {!shouldUseNarrowLayout && (
-                    <Overlay
+                    <RHPOverlay
                         positionLeftValue={overlayPositionLeft}
                         onPress={handleOverlayPress}
                     />
@@ -295,7 +251,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <RightModalDialogFrame
                         hasDialogSemantics={!isSmallScreenWidth}
                         onContainerRef={setContainerNodeFromRef}
-                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                        style={frameStyle}
                     >
                         <Stack.Navigator
                             parentRoute={route}
@@ -545,15 +501,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         </Stack.Navigator>
                     </RightModalDialogFrame>
                 </DialogLabelProvider>
-                {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
-                {/* Clicking on these overlays redirects you to the RHP screen below them. */}
-                {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
-                {!shouldUseNarrowLayout && <SecondaryOverlay />}
+                {/* The tertiary overlay covers RHP screens wider than the focused one and dismisses to the screen below. */}
+                {/* It paints nothing: the dim behind a stacked card is drawn by WideRHPOverlayWrapper from inside the */}
+                {/* screen below, so it follows that card's rounded corners instead of being a rectangle over the top. */}
+                {/* This one only exists because react-navigation's card wrapper swallows clicks on the dimmed area. */}
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
-                    <Overlay
+                    <RHPOverlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                        positionRightValue={Animated.add(sidePanelOffset.current, variables.rhpWidth)}
                         onPress={Navigation.dismissToPreviousRHP}
+                        transparent
                     />
                 )}
             </NoDropZone>

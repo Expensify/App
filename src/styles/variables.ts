@@ -128,6 +128,9 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    rhpFloatingCardMargin: 12,
+    // The frame width compensates for this border.
+    rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
     receiptPaneRHPMaxWidth: 465,
@@ -142,7 +145,11 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
     inboxSideBarWidth: 360,
-    superWideRHPLeftMargin: 147,
+    superWideRHPLeftMargin: 360,
+    // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
+    rhpWidth: 440,
+    // Decoupled from rhpWidth so the expense report's right pane can differ from the skinny RHP.
+    wideRHPRightPaneWidth: 460,
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
@@ -191,6 +198,8 @@ export default {
     sectionMenuItemHeightCompact: 40,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
+    // Lighter scrim opacity for the floating RHP overlay (web), scoped so other modal backdrops keep `overlayOpacity`.
+    rhpOverlayOpacity: 0.5,
     // fontSizeExtraSmall is fixed at 9, so the line height must never scale below the font's natural line height (~1.18em = 10.62),
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
     lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
