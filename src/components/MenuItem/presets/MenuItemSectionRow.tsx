@@ -4,8 +4,6 @@ import type {MenuItemRootProps} from '@components/MenuItem/layout/MenuItemRoot';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-
 import type {RefObject} from 'react';
 
 import React from 'react';
@@ -27,7 +25,7 @@ function MenuItemSectionRow({children, onPress, isDisabled = false, sentryLabel,
             style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
         >
             <MenuItemRoot
-                onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
+                onPress={onPress}
                 isDisabled={isDisabled}
                 sentryLabel={sentryLabel}
                 testID={testID}
