@@ -65,7 +65,6 @@ function BaseSelectionListImpl({
     footerContent,
     listEmptyContent,
     listFooterContent,
-    rightHandSideComponent,
     alternateNumberOfSupportedLines,
     selectedItems = getEmptyArray<string>(),
     style,
@@ -323,7 +322,6 @@ function BaseSelectionListImpl({
                 onLongPressRow={onLongPressRow}
                 onSelectionButtonPress={onSelectionButtonPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
                 isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}

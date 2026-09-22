@@ -8,6 +8,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -87,6 +88,7 @@ function MultiSelect<T extends string>({
     isSearching,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -203,6 +205,7 @@ function MultiSelect<T extends string>({
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                     footerContent={footerContent}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={onEndReachedThreshold}
                     listEmptyContent={shouldShowSearchSpinner ? renderCenteredSpinner() : undefined}

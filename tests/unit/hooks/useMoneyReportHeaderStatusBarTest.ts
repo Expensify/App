@@ -2,7 +2,9 @@ import {renderHook} from '@testing-library/react-native';
 
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 
+import * as ReportActionMessageUtils from '@libs/ReportActionMessageUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportActionTypeGuards from '@libs/ReportActionTypeGuards';
 import * as ReportPrimaryActionUtils from '@libs/ReportPrimaryActionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 
@@ -71,8 +73,9 @@ describe('useMoneyReportHeaderStatusBar - duplicate transactions', () => {
         // instead of it recomputing them via the deprecated getReportTransactions default).
         jest.spyOn(ReportActionsUtils, 'getFilteredReportActionsForReportView').mockReturnValue([]);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(undefined);
-        jest.spyOn(ReportActionsUtils, 'getOriginalMessage').mockReturnValue(undefined);
-        jest.spyOn(ReportActionsUtils, 'isMoneyRequestAction').mockReturnValue(false);
+        // These two live in leaf modules that ReportActionsUtils only re-exports, and a re-export is a read-only property, so they must be spied at the leaf.
+        jest.spyOn(ReportActionMessageUtils, 'getOriginalMessage').mockReturnValue(undefined);
+        jest.spyOn(ReportActionTypeGuards, 'isMoneyRequestAction').mockReturnValue(false);
         jest.spyOn(ReportPrimaryActionUtils, 'isMarkAsResolvedAction').mockReturnValue(false);
         // isPaidGroupPolicy/isPaidGroupPolicyExpenseReport are billing-only and restricted from static import.
         // This hook never touches them, but a namespace import can't be statically proven not to, so these
