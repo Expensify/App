@@ -1,4 +1,6 @@
+import type {CustomDateModifier} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import CurrencyPopup from '@components/Search/FilterDropdowns/CurrencyPopup';
+import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
@@ -6,7 +8,7 @@ import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspace
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDateDisplayValue} from '@libs/SearchUIUtils';
+import {getDateDisplayValue, getDatePresets} from '@libs/SearchUIUtils';
 
 import {fromSearchDateValues, toSearchDateValues} from '@pages/Insights/insightsFilterParsing';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
@@ -17,7 +19,6 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import InsightsDatePopup from './InsightsDatePopup';
 import InsightsGroupByDropdown from './InsightsGroupByDropdown';
 import InsightsWorkspacePopup from './InsightsWorkspacePopup';
 
@@ -26,6 +27,10 @@ const INSIGHTS_CONTROL_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 } as const;
+
+/** `On` alone makes the custom page a single-day calendar. */
+const INSIGHTS_ALLOWED_CUSTOM_DATE_MODIFIERS: readonly CustomDateModifier[] = [CONST.SEARCH.DATE_MODIFIERS.ON];
+const INSIGHTS_DATE_PRESETS = getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, false);
 
 type InsightsControlProps<T> = {
     value: T;
@@ -63,10 +68,11 @@ function InsightsDateControl({value, onChange}: InsightsControlProps<InsightsFil
     const label = translate('common.date');
 
     const datePopover = ({closeOverlay, setPopoverWidth}: PopoverComponentProps) => (
-        <InsightsDatePopup
+        <DateSelectPopup
             label={label}
             value={toSearchDateValues(value)}
-            // A picker left with nothing Insights can report on keeps the date the dashboard already had.
+            presets={INSIGHTS_DATE_PRESETS}
+            allowedCustomDateModifiers={INSIGHTS_ALLOWED_CUSTOM_DATE_MODIFIERS}
             onChange={(dateValues) => onChange(fromSearchDateValues(dateValues) ?? value)}
             closeOverlay={closeOverlay}
             setPopoverWidth={setPopoverWidth}

@@ -382,7 +382,7 @@ function DatePresetFilterBase({
     );
 
     const rangeDescription = getRangeDisplayTextFromDateValues(dateValues) || undefined;
-    const customDateModifier = useMemo(() => getCustomDateModifierFromDateValues(dateValues, allowedCustomDateModifiers), [allowedCustomDateModifiers, dateValues]);
+    const customDateModifier = getCustomDateModifierFromDateValues(dateValues, allowedCustomDateModifiers);
 
     const customDateDescription = useMemo(() => {
         const customDateValue = dateDisplayValues[customDateModifier];
