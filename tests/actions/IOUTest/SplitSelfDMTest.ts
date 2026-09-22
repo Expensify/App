@@ -1,7 +1,9 @@
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import Navigation from '@libs/Navigation/Navigation';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
@@ -220,6 +222,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
 
         // Exactly two new split IOU actions (one per split expense) should be added to the selfDM report
         expect(newSplitIouActions).toHaveLength(2);
+
+        // Then the modal is dismissed with no report target, because a selfDM split returns the user to the selfDM chat itself
+        expect(jest.mocked(Navigation.dismissModal)).toHaveBeenCalled();
+        expect(jest.mocked(Navigation.dismissModalWithReport)).not.toHaveBeenCalled();
     });
 
     it('new split transactions retain UNREPORTED_REPORT_ID when splitting a selfDM tracked expense', async () => {

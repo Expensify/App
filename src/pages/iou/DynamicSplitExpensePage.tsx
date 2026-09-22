@@ -42,7 +42,6 @@ import {
     resolveSplitItemReportID,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU/SplitExpenseItems';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -82,6 +81,7 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import SplitList from './SplitList';
+import updateSplitTransactionsFromSplitExpensesFlow from './updateSplitTransactionsFromSplitExpensesFlow';
 
 type DynamicSplitExpensePageProps = PlatformStackScreenProps<
     MoneyRequestNavigatorParamList,
