@@ -8,13 +8,13 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 type UseFindLastAccessedReportOptions = {
-    /** Prefer the policy admins room when one exists. Defaults to the openOnAdminRoom URL param. */
+    // Prefer the policy admins room when one exists. Defaults to the openOnAdminRoom URL param.
     openOnAdminRoom?: boolean;
-    /** When false, skip the lookup and return undefined without scanning reports. */
+    // When false, skip the lookup and return undefined without scanning reports.
     enabled?: boolean;
 };
 
-/** Resolves the last accessed report for navigation fallbacks from a view-scoped subscription. */
+// Resolves the last accessed report for navigation fallbacks from a view-scoped subscription.
 function useFindLastAccessedReport({openOnAdminRoom, enabled = true}: UseFindLastAccessedReportOptions = {}) {
     const {isBetaEnabled} = usePermissions();
     const ignoreDomainRooms = !isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
