@@ -42,11 +42,15 @@ function useMergeATSApprovalDraftActions() {
 function MergeATSApprovalDraftProvider({children}: ChildrenProps) {
     const route = useRoute<PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL>>();
     const policy = usePolicy(route.params?.params?.policyID);
-    const [approvalMode, setDraftApprovalMode] = useState(() => getMergeATSApprovalMode(policy));
-    const [approverField, setDraftApproverField] = useState(() => getMergeATSApproverField(policy) ?? CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER);
-    const [finalApprover, setDraftFinalApprover] = useState(() => getMergeFinalApprover(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS));
+    const [approvalMode, setDraftApprovalMode] = useState<MergeApprovalMode>();
+    const [approverField, setDraftApproverField] = useState<MergeATSApproverField>();
+    const [finalApprover, setDraftFinalApprover] = useState<string>();
 
-    const state: MergeATSApprovalDraftState = {approvalMode, approverField, finalApprover};
+    const state: MergeATSApprovalDraftState = {
+        approvalMode: approvalMode ?? getMergeATSApprovalMode(policy),
+        approverField: approverField ?? getMergeATSApproverField(policy) ?? CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER,
+        finalApprover: finalApprover ?? getMergeFinalApprover(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS),
+    };
     const actions: MergeATSApprovalDraftActions = {setDraftApprovalMode, setDraftApproverField, setDraftFinalApprover};
 
     return (
