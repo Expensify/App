@@ -96,8 +96,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
     const buildDynamicRoute = useScreenBoundDynamicRoute();
 
-    const backTo = route.params.backTo;
-    const routePolicyID = route.params.policyID;
+    const backTo = route.params?.backTo;
+    const routePolicyID = route.params?.policyID;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
@@ -244,7 +244,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const mentionReportContextValue = useMemo(() => ({policyID, currentReportID: undefined, exactlyMatch: true}), [policyID]);
 
     const fetchPolicyData = useCallback(() => {
-        if (policyDraftID || !isFocused) {
+        if (policyDraftID || !isFocused || !routePolicyID) {
             return;
         }
         openPolicyProfilePage(routePolicyID);
@@ -349,7 +349,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             showLockedAccountModal();
             return;
         }
-        clearInviteDraft(route.params.policyID);
+        if (!routePolicyID) {
+            return;
+        }
+        clearInviteDraft(routePolicyID);
         Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
     };
 
@@ -769,7 +772,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, shouldShowRulesDocumentSubSection && styles.mt4]}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID))}
+                                    onPress={() => {
+                                        if (!routePolicyID) {
+                                            return;
+                                        }
+                                        Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(routePolicyID));
+                                    }}
                                     shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>

@@ -3053,11 +3053,15 @@ type WorkspaceSplitNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.PROFILE]: {
-        policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
+    // Params are optional because this is the `defaultCentralScreen` of the workspace split: the router can
+    // synthesize it during a remount, before the identifying param has been backfilled from the split route.
+    [SCREENS.WORKSPACE.PROFILE]:
+        | {
+              policyID: string;
+              // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+              backTo?: Routes;
+          }
+        | undefined;
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
     };
@@ -3306,8 +3310,10 @@ type WorkspaceNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.DOMAINS_LIST]: undefined;
-    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList>;
-    [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
+    // The split navigators carry their identifying param on the split route itself, so the split can be rebuilt
+    // with the right identity when its nested state is gone (e.g. after the split route was popped and reopened).
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: NavigatorScreenParams<WorkspaceSplitNavigatorParamList> & {policyID?: string};
+    [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList> & {domainAccountID?: number};
 };
 
 type TabNavigatorParamList = {

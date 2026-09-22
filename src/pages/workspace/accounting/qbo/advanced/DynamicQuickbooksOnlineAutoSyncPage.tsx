@@ -33,7 +33,7 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
     const {translate} = useLocalize();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const config = policy?.connections?.quickbooksOnline?.config;
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path);
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =

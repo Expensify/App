@@ -23,7 +23,7 @@ function NetSuiteImportAddCustomSegmentPage({policy, route}: WithPolicyConnectio
     return (
         <NetSuiteImportAddCustomSegmentContent
             policy={policy}
-            policyIDParam={route.params.policyID}
+            policyIDParam={route.params?.policyID}
             draftValues={draftValues}
         />
     );

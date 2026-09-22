@@ -34,7 +34,7 @@ function DynamicNetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps
     const {translate} = useLocalize();
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
-    const policyID = route.params.policyID;
+    const policyID = route.params?.policyID;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path);
     const pendingAction =

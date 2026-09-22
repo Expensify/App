@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {InitialState, NavigatorScreenParams} from '@react-navigation/native';
+import type {InitialState, NavigatorScreenParams, ParamListBase, RouteProp} from '@react-navigation/native';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {NavigationContainer} from '@react-navigation/native';
@@ -46,12 +46,15 @@ const getEmptyComponent = () => jest.fn();
 
 type TestNavigationContainerProps = {initialState: InitialState};
 
-function TestWorkspaceSplitNavigator() {
+// The real WorkspaceSplitNavigator passes its own `route` prop as `parentRoute`, which is how the split router
+// reads params off the split route itself. Mirror that here, falling back to the dummy route when a test seeds
+// the split without params.
+function TestWorkspaceSplitNavigator({route}: {route?: RouteProp<ParamListBase>}) {
     return (
         <WorkspaceSplit.Navigator
             sidebarScreen={SCREENS.WORKSPACE.INITIAL}
             defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
-            parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
+            parentRoute={route ?? CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
         >
             <WorkspaceSplit.Screen
                 name={SCREENS.WORKSPACE.INITIAL}

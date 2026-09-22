@@ -83,6 +83,17 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const isInitialRoute = !rootState || rootState.routes.length === 1;
     const shouldSplitHaveSidebar = (isInitialRoute && !shouldSkipInitialSidebar) || !isNarrowLayout;
 
+    // When the split navigator is mounted without a nested state (e.g. the split route was popped and is being
+    // reopened from a deeplink), the routes the stack router builds have no params at all. The split route itself
+    // carries the identifying param, so use it as the fallback source. `pick` is used rather than a spread so
+    // React Navigation's own `state`/`screen`/`params` hint keys can never leak into a screen's params.
+    const getParamsFromParentRoute = (screenName: string) => {
+        const copiedParams = pick(parentRoute.params, getParamsFromRoute(screenName, !isNarrowLayout));
+
+        // We don't want to get an empty object as params because it breaks some navigation logic when comparing if routes are the same.
+        return isEmptyObject(copiedParams) ? undefined : copiedParams;
+    };
+
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.
     // - defaultCentralScreen to cover central pane.
@@ -96,9 +107,23 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         routes.unshift({
             name: sidebarScreen,
             // This handles the case where the sidebar should have params included in the central screen e.g. policyID for workspace initial.
-            params,
+            params: params ?? getParamsFromParentRoute(sidebarScreen),
         });
         modified = true;
+    } else {
+        // The sidebar already exists but may have been built by the stack router with no params, which leaves the
+        // left pane rendering an empty workspace. Backfill it from the split route.
+        const existingSidebarIndex = routes.findIndex((route) => route.name === sidebarScreen);
+        const existingSidebarRoute = existingSidebarIndex === -1 ? undefined : routes.at(existingSidebarIndex);
+
+        if (existingSidebarRoute && isEmptyObject(existingSidebarRoute.params)) {
+            const backfilledParams = getParamsFromParentRoute(sidebarScreen);
+
+            if (backfilledParams) {
+                routes[existingSidebarIndex] = {...existingSidebarRoute, params: backfilledParams};
+                modified = true;
+            }
+        }
     }
 
     // If the screen is wide, there should be at least two screens inside:
@@ -113,9 +138,11 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             const previousSelectedCentralScreen =
                 previousSameNavigatorState?.routes && previousSameNavigatorState.routes.length > 1 ? previousSameNavigatorState.routes.at(-1)?.name : undefined;
 
+            const centralScreen = previousSelectedCentralScreen ?? defaultCentralScreen;
+
             routes.push({
-                name: previousSelectedCentralScreen ?? defaultCentralScreen,
-                params: routes.at(0)?.params,
+                name: centralScreen,
+                params: routes.at(0)?.params ?? getParamsFromParentRoute(centralScreen),
             });
             modified = true;
         }

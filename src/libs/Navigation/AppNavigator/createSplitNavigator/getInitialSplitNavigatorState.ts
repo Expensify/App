@@ -11,7 +11,7 @@ const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<Navi
 function getInitialSplitNavigatorState<T extends SplitNavigatorSidebarScreen>(
     splitNavigatorSidebarRoute: NavigationPartialRoute<T>,
     route?: NavigationPartialRoute<ExtractRouteType<T>>,
-    splitNavigatorParams?: Record<string, string>,
+    splitNavigatorParams?: NavigationPartialRoute['params'],
 ): NavigationPartialRoute<SplitNavigatorBySidebar<T>> {
     const routes = [];
 

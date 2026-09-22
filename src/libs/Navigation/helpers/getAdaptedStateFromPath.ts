@@ -185,6 +185,9 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
                 name: RHP_TO_WORKSPACE[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
+            // The split navigator route itself needs the identifying param. Without it the split has no identity of
+            // its own, so a remount that can't reuse the nested state builds a central screen with no params at all.
+            pick(route.params, ['policyID']),
         );
 
         return getTabNavigatorState({
@@ -218,6 +221,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
                 name: RHP_TO_DOMAIN[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
+            pick(route.params, ['domainAccountID']),
         );
 
         return getTabNavigatorState({

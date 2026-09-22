@@ -645,6 +645,69 @@ describe('Go back on the wide layout', () => {
             backTo: mockedBackToRoute,
         });
     });
+
+    it('should backfill policyID from the split route when the nested state has no params', () => {
+        // Given a workspace split navigator whose nested state carries no params, which is what the stack router
+        // produces when the split route was popped and is then reopened from a deeplink. The policyID only exists
+        // on the split route itself.
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [
+                        {
+                            name: NAVIGATORS.TAB_NAVIGATOR,
+                            state: {
+                                index: 5,
+                                routes: [
+                                    {name: SCREENS.HOME},
+                                    {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                    {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
+                                    {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                    {
+                                        name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                        state: {
+                                            index: 1,
+                                            routes: [
+                                                {
+                                                    name: SCREENS.WORKSPACES_LIST,
+                                                },
+                                                {
+                                                    name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                                    params: {policyID: mockedPolicyID},
+                                                    state: {
+                                                        index: 0,
+                                                        routes: [
+                                                            {
+                                                                name: SCREENS.WORKSPACE.INITIAL,
+                                                                params: undefined,
+                                                            },
+                                                        ],
+                                                    },
+                                                },
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        // When the split navigator adapts its state for the wide layout
+        const initialRootState = navigationRef.current?.getRootState();
+        const tabState = initialRootState?.routes.at(0)?.state;
+        const workspacesNavRoutes = tabState?.routes.at(5)?.state?.routes ?? [];
+        const splitRoutes = workspacesNavRoutes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR)?.state?.routes ?? [];
+
+        // Then both the sidebar and the synthesized central screen should receive the policyID from the split
+        // route, instead of rendering with undefined params and crashing.
+        expect(splitRoutes.find((route) => route.name === SCREENS.WORKSPACE.INITIAL)?.params).toMatchObject({policyID: mockedPolicyID});
+        expect(splitRoutes.find((route) => route.name === SCREENS.WORKSPACE.PROFILE)?.params).toMatchObject({policyID: mockedPolicyID});
+    });
 });
 
 describe('Go back with nothing to pop', () => {
