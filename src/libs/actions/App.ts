@@ -953,12 +953,11 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     Navigation.clearPreloadedRoutes();
-    // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
-    // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
+    // Seed the loading state and LAST_FULL_RECONNECT_TIME so consumers cannot evaluate transient
+    // post-clear state and subscribeToFullReconnect doesn't fire a duplicate ReconnectApp once the
+    // openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
     const resetPromise = clearWorkboxRecoveryCaches().then(() =>
-        // Mark the app as loading in the same transaction that clears account-scoped data. This prevents
-        // consumers from evaluating the transient post-clear state before OpenApp has started hydrating it.
-        clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE, {[ONYXKEYS.IS_LOADING_APP]: true})
+        clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
             .then(() => {
                 // Network key is preserved, so when exiting imported state, we should:
                 // 1. Stop forcing offline mode so the app can reconnect
