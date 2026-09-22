@@ -1098,6 +1098,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Ελέγξτε 1 δαπάνη',
                 other: `Ελέγξτε ${count} δαπάνες`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Ελέγξτε 1 αίτημα διαχειριστή τομέα',
+                other: `Ελέγξτε ${count} αιτήματα διαχειριστή τομέα`,
+            }),
             submit: ({count}: {count: number}) => ({
                 one: 'Υποβολή 1 αναφοράς',
                 other: `Υποβολή ${count} αναφορών`,
@@ -1214,6 +1218,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Ζητήστε από το Concierge να αναλύσει τα έξοδά σας ή να λάβετε υποστήριξη',
             inputPlaceholderMobile: 'Ρωτήστε το Concierge οτιδήποτε',
         },
+    },
+    insightsPage: {
+        viewOnSpend: 'Προβολή στο Spend',
+        emptyState: {title: 'Τίποτα προς εμφάνιση', subtitle: 'Δοκιμάστε να προσαρμόσετε τα κριτήριά σας παραπάνω'},
+        noExpensesState: {title: 'Δείτε πού πηγαίνουν τα χρήματά σας', subtitle: 'Μόλις έχετε δαπάνες, θα βλέπετε τάσεις δαπανών, κορυφαίους εμπόρους και άλλα.'},
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2239,6 +2248,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
+        viewUserHistory: 'Προβολή ιστορικού χρήστη',
+        viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',
             subtitle: 'Αυτές οι πληροφορίες εμφανίζονται στο δημόσιο προφίλ σας. Μπορεί να τις δει οποιοσδήποτε.',
@@ -2889,6 +2900,15 @@ const translations: TranslationDeepObject<typeof en> = {
             updateAddress: 'Ενημέρωση διεύθυνσης',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Προστέθηκε στο πορτοφόλι ${platform}`,
+        cardAddedToWalletPage: {
+            title: 'Όλα έτοιμα!',
+            description: 'Η κάρτα σου προστέθηκε στο Apple Wallet.',
+            firstSupportingText: 'Το Apple Pay είναι ένας πιο εύκολος τρόπος πληρωμής σε καταστήματα, σε εφαρμογές και online με το iPhone, το Apple Watch, το iPad και το Mac σου.',
+            secondSupportingText: 'Χρησιμοποίησε το Apple Pay όπου βλέπεις\nαυτά τα σύμβολα.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Ανέπαφη πληρωμή',
+            buttonText: 'Το κατάλαβα',
+        },
         cardDetailsLoadingFailure: 'Παρουσιάστηκε σφάλμα κατά τη φόρτωση των στοιχείων της κάρτας. Παρακαλούμε ελέγξτε τη σύνδεσή σας στο διαδίκτυο και δοκιμάστε ξανά.',
         validateCardTitle: 'Ας βεβαιωθούμε ότι είστε εσείς',
         unexpectedError: 'Παρουσιάστηκε σφάλμα κατά την προσπάθεια ανάκτησης των στοιχείων της κάρτας σας Expensify. Παρακαλούμε δοκιμάστε ξανά.',
@@ -3187,6 +3207,7 @@ ${amount} για ${merchant} - ${date}`,
         agentName: 'Όνομα αντιπροσώπου',
         instructions: 'Γράψτε προσαρμοσμένες οδηγίες',
         chatWithAgent: 'Συνομιλήστε με εκπρόσωπο',
+        viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
         deleteAgent: 'Διαγραφή υπαλλήλου',
         deleteAgentTitle: 'Διαγραφή υπαλλήλου;',
@@ -3425,12 +3446,14 @@ ${amount} για ${merchant} - ${date}`,
         employees: {
             title: 'Πόσους υπαλλήλους έχετε;',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 εργαζόμενοι',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 εργαζόμενοι',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 εργαζόμενοι',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 εργαζόμενοι',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–9 εργαζόμενοι',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10–50 εργαζόμενοι',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 εργαζόμενοι',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1.000 εργαζόμενοι',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Περισσότεροι από 1.000 εργαζόμενοι',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5-10 εργαζόμενοι',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1–10 εργαζόμενοι',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11–50 εργαζόμενοι',
         },
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
@@ -6754,6 +6777,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 expensifyCardBannerLearnMoreButton: 'Μάθετε περισσότερα',
                 statementCloseDateTitle: 'Ημερομηνία λήξης κατάστασης λογαριασμού',
                 statementCloseDateDescription: 'Ενημερώστε μας πότε κλείνει το αντίγραφο κίνησης της κάρτας σας και θα δημιουργήσουμε ένα αντίστοιχο αντίγραφο κίνησης στο Expensify.',
+                exportAccount: 'Εξαγωγή λογαριασμού',
             },
             workflows: {
                 title: 'Ροές εργασιών',
@@ -7655,12 +7679,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 }
             },
             syncResults: {
-                title: (provider: string) => `Η συγχρονισμός με το ${provider} ολοκληρώθηκε`,
-                successTitle: (provider: string) => `Ο συγχρονισμός της σύνδεσής σας με το ${provider} ολοκληρώθηκε με επιτυχία!`,
-                added: 'Προστέθηκε',
-                removed: 'Αφαιρέθηκε',
-                skipped: 'Παραλείφθηκε',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 υπάλληλος',
                     other: (count: number) => `${count} υπάλληλοι`,
                 }),
@@ -7694,6 +7713,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 υποψήφιος',
+                    other: (count: number) => `${count} υποψήφιοι`,
+                }),
+            },
         },
         merge: {
             connections: 'Συνδέσεις',
@@ -7724,6 +7749,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncLimitReached: {
                 title: 'Δοκιμάστε ξανά αύριο',
                 prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
+            },
+            syncResults: {
+                title: (provider: string) => `ο συγχρονισμός του ${provider} ολοκληρώθηκε`,
+                successTitle: (provider: string) => `Η σύνδεσή σας με το ${provider} συγχρονίστηκε με επιτυχία!`,
+                added: 'Προστέθηκε',
+                removed: 'Αφαιρέθηκε',
+                skipped: 'Παραλείφθηκε',
             },
         },
         export: {
@@ -8943,6 +8975,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική του Dynamics 365 Business Central για συγχρονισμό με αυτόν τον χώρο εργασίας.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Business Central και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {
@@ -9934,6 +9968,8 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
+            created: 'Δημιουργήθηκε',
+            createdDate: 'Ημερομηνία δημιουργίας',
             transactionStatus: {
                 label: 'Κατάσταση συναλλαγής',
                 [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Σε εκκρεμότητα',
@@ -10947,6 +10983,10 @@ ${reportName}`,
                 title: ({count}: {count: number}) => ({
                     one: 'Δοκιμή: απομένει 1 ημέρα!',
                     other: `Δοκιμή: απομένουν ${count} ημέρες!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Απομένει 1 ημέρα!',
+                    other: `Απομένουν ${count} ημέρες!`,
                 }),
                 subtitle: 'Προσθέστε μια κάρτα πληρωμής για να συνεχίσετε να χρησιμοποιείτε όλες τις αγαπημένες σας δυνατότητες.',
             },
