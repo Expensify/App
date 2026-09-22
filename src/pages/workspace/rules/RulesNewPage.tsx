@@ -33,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
+import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {GeneratedRule, PolicyCategories} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -84,7 +85,10 @@ function seedDraftAndNavigate(rule: GeneratedRule, policyID: string, policyCateg
     }
 
     if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
-        setDraftSpendRule(draft);
+        // `categories` is a closed enum, but it arrives as unvalidated model output already typed as valid.
+        // A value outside the enum has no row in the category picker, so the admin can neither see nor remove it,
+        // and it still reaches translate('...categoryOptions.<value>'), which has no key for it. Drop unknown values.
+        setDraftSpendRule(draft.categories ? {...draft, categories: draft.categories.filter(isSpendRuleCategory)} : draft);
         Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
         return;
     }
