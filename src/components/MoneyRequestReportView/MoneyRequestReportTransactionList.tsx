@@ -22,19 +22,10 @@ import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
-import {
-    getActionErrorsByTransaction,
-    getMoneyRequestSpendBreakdown,
-    getReportOfflinePendingActionAndErrors,
-    getTransactionSortValue,
-    isExpenseReport,
-    isIOUReport,
-    isSortableColumnName,
-} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, getTransactionSortValue, isExpenseReport, isIOUReport, isSortableColumnName} from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
@@ -364,18 +355,13 @@ function MoneyRequestReportTransactionList({
     });
 
     const {sortBy, sortOrder} = sortConfig;
-    const isDefaultSort = sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
-    // In a single pass over reportActions, build:
-    // - reportActionsMap: keyed by reportActionID for transactionHasRBR.
-    // - transactionThreadReportIDByTransactionID: transactionID → transaction-thread report ID, so each row can pass it
-    //   to the RBR, letting rows without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx
-    //   subscriptions). Without this, the per-row alternative would re-scan every report action (O(transactions × actions)).
-    const {reportActionsMap, transactionThreadReportIDByTransactionID} = useMemo(() => {
-        const actionsMap: Record<string, OnyxTypes.ReportAction> = {};
+    // Maps each transactionID to its transaction-thread report ID, so each row can pass it to the RBR, letting rows
+    // without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx subscriptions). Without this,
+    // the per-row alternative would re-scan every report action (O(transactions x actions)).
+    const transactionThreadReportIDByTransactionID = useMemo(() => {
         const threadReportIDByTransactionID = new Map<string, string>();
         for (const action of reportActions) {
-            actionsMap[action.reportActionID] = action;
             if (!isMoneyRequestAction(action)) {
                 continue;
             }
@@ -385,49 +371,21 @@ function MoneyRequestReportTransactionList({
                 threadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
             }
         }
-        return {reportActionsMap: actionsMap, transactionThreadReportIDByTransactionID: threadReportIDByTransactionID};
+        return threadReportIDByTransactionID;
     }, [reportActions]);
 
-    // Precompute the set of RBR-flagged transaction IDs
-    const rbrTransactionIDs = useMemo(() => {
-        if (!isDefaultSort || !allTransactionViolations) {
-            return null;
-        }
-        const login = currentUserDetails?.login ?? '';
-        const accountID = currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        // Precompute report-action errors once so each transaction's RBR check is an O(1) lookup instead of
-        // re-scanning every report action (O(transactions × actions)).
-        const actionErrors = getActionErrorsByTransaction(report?.reportID, reportActionsMap);
-        const ids = new Set<string>();
-        for (const transaction of transactions) {
-            const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            if (transactionHasRBR(transaction, violations, login, accountID, report, ownerLogin, policy, reportActionsMap, actionErrors)) {
-                ids.add(transaction.transactionID);
-            }
-        }
-        return ids;
-    }, [isDefaultSort, allTransactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, transactions, report, ownerLogin, policy, reportActionsMap]);
-
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
-        return [...transactions].sort((a, b) => {
-            // When on default sort (Date/ASC), prioritize RBR-flagged transactions
-            if (rbrTransactionIDs) {
-                const aHasRBR = rbrTransactionIDs.has(a.transactionID);
-                const bHasRBR = rbrTransactionIDs.has(b.transactionID);
-                if (aHasRBR !== bHasRBR) {
-                    return aHasRBR ? -1 : 1;
-                }
-            }
-            return compareValues(
+        return [...transactions].sort((a, b) =>
+            compareValues(
                 getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
                 getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
                 sortOrder,
                 sortBy,
                 localeCompare,
                 true,
-            );
-        });
-    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, policyTagLists, rbrTransactionIDs]);
+            ),
+        );
+    }, [sortBy, sortOrder, transactions, localeCompare, report, policy, policyCategories, policyTagLists]);
 
     const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, translate), [sortedTransactions, cardList, translate]);
 

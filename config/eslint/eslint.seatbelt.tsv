@@ -223,7 +223,6 @@
 "../../src/components/MoneyRequestHeader.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/MoneyRequestHeaderPrimaryAction.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/MoneyRequestHeaderSecondaryActions.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionList.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestViewReportFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
