@@ -63,7 +63,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
             return {cardStyle: {...cardStyle, opacity: progress}};
         }
 
-        const widthFallback = shouldUseNarrowLayout ? screen.width : variables.sideBarWidth;
+        const widthFallback = shouldUseNarrowLayout ? screen.width : variables.rhpWidth;
         const distancePx = enter.kind === 'slide-and-fade' ? enter.distancePx : widthFallback;
 
         const translateX = Animated.multiply(

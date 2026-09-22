@@ -129,9 +129,9 @@ export default {
     sideBarWithLHBWidth: 260,
     inboxSideBarWidth: 360,
     superWideRHPLeftMargin: 360,
-    // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
+    // RHP panel width. Kept separate from sideBarWidth (the LHN) so the two can differ.
     rhpWidth: 440,
-    // Decoupled from rhpWidth so the expense report's right pane can differ from the skinny RHP.
+    // The expense report's right pane can differ from the skinny RHP.
     wideRHPRightPaneWidth: 460,
     searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
@@ -174,7 +174,7 @@ export default {
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
-    // Lighter scrim opacity for the floating RHP overlay (web), scoped so other modal backdrops keep `overlayOpacity`.
+    // Lighter scrim for the floating RHP card. Other modal backdrops keep overlayOpacity.
     rhpOverlayOpacity: 0.5,
     // fontSizeExtraSmall is fixed at 9, so the line height must never scale below the font's natural line height (~1.18em = 10.62),
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.

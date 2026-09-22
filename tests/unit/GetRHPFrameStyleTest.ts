@@ -46,8 +46,7 @@ describe('getRHPFrameStyle', () => {
         expect(style).not.toContain(styles.RHPCenteredFrame);
         expect(style).not.toContain(styles.r0);
 
-        // The card is border-box, so the frame has to be wider than the RHP by its border on both sides. Without this
-        // the fixed-width panes inside the wide RHP are clipped.
+        // Border-box card: the frame is wider than the RHP by its border on both sides, or the wide RHP's fixed-width panes clip.
         expect(readAnimatedValue(getWidth(style))).toBe(RHP_WIDTH + 2 * variables.rhpFloatingCardBorderWidth);
     });
 
@@ -58,7 +57,7 @@ describe('getRHPFrameStyle', () => {
 
         expect(style).toContain(styles.RHPCenteredFrame);
         expect(style).not.toContain(styles.RHPFloatingCard);
-        // The cards inside draw their own border and shadow, so clipping here would cut them off at the frame edges.
+        // The cards draw their own border and shadow, so the frame must not clip.
         expect(style).not.toContain(styles.overflowHidden);
         // The frame has no border of its own, so the width is the RHP width untouched.
         expect(getWidth(style)).toBe(animatedWidth);
@@ -88,9 +87,9 @@ describe('getRHPFrameStyle', () => {
     });
 });
 
-// Regression for PR #101093: the two-factor security-code panel now feeds its fixed sidebar width through getRHPFrameStyle.
+// Regression for PR #101093: the two-factor security-code panel feeds the shared RHP width through getRHPFrameStyle, so it matches a normal RHP card.
 describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
-    const buildMfaPanelWidth = () => Animated.subtract(new Animated.Value(variables.sideBarWidth), new Animated.Value(0));
+    const buildMfaPanelWidth = () => Animated.subtract(new Animated.Value(variables.rhpWidth), new Animated.Value(0));
     const mfaParams = {styles, shouldUseNarrowLayout: false, shouldUseCenteredFrame: false} as const;
 
     it('floats the panel as a card on wide web', () => {
@@ -100,7 +99,7 @@ describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
         expect(style).not.toContain(styles.r0);
         expect(style).not.toContain(styles.h100);
         expect(style).not.toContain(styles.RHPCenteredFrame);
-        expect(readAnimatedValue(getWidth(style))).toBe(variables.sideBarWidth + 2 * variables.rhpFloatingCardBorderWidth);
+        expect(readAnimatedValue(getWidth(style))).toBe(variables.rhpWidth + 2 * variables.rhpFloatingCardBorderWidth);
     });
 
     it('keeps the panel full-bleed on native', () => {

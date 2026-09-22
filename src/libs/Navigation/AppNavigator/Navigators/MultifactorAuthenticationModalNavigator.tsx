@@ -142,7 +142,7 @@ function MultifactorAuthenticationModalNavigator() {
         opacity: backdropProgress.get() * variables.overlayOpacity,
     }));
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth: RNAnimated.subtract(variables.sideBarWidth, 0), shouldUseNarrowLayout, shouldUseCenteredFrame: false});
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth: RNAnimated.subtract(variables.rhpWidth, 0), shouldUseNarrowLayout, shouldUseCenteredFrame: false});
 
     if (phase === 'closed') {
         return null;

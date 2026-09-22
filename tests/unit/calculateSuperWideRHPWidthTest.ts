@@ -23,9 +23,7 @@ describe('calculateSuperWideRHPWidth', () => {
     });
 
     it('never shrinks below the wide RHP width', () => {
-        // The floor is the wide RHP: receipt pane + wideRHPRightPaneWidth (460), capped at
-        // receiptPaneRHPMaxWidth 465 + 460 = 925 and sliding with the window below that. At 900px the floor is
-        // 900 while the raw super wide width is only 900 - 360 = 540, so the floor wins.
+        // At 900px the wide RHP floor is 900, above the raw super wide width of 900 - 360 = 540.
         expect(calculateSuperWideRHPWidth(900)).toBe(900);
     });
 
@@ -44,8 +42,7 @@ describe('calculateSuperWideRHPWidth', () => {
             const sidePanelWidth = 375;
             const shrunkWidth = calculateSuperWideRHPWidth(windowWidth) - sidePanelWidth;
 
-            // The shrink happens after the width is chosen, so the result can land under the wide RHP floor.
-            // 1080 - 375 = 705.
+            // The shrink happens after the floor is applied, so 1080 - 375 = 705 can sit under it.
             expect(shrunkWidth).toBe(705);
             // Right-anchored inside (windowWidth - sidePanelWidth): left edge = 1440 - 375 - 705 = 360.
             expect(windowWidth - sidePanelWidth - shrunkWidth).toBe(360);

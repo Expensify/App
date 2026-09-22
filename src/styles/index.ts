@@ -3335,7 +3335,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        // Invisible frame for the stacked report flow. Each card inside draws its own bordered modal, so the frame must not clip or the shadows get cut off.
+        // Invisible frame for the stacked report flow. Clipping here would cut off the cards' shadows.
         RHPCenteredFrame: {
             right: variables.rhpFloatingCardMargin,
             height: '100%',
