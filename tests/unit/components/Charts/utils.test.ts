@@ -772,23 +772,23 @@ describe('getVerticalBarPlotBounds', () => {
 });
 
 describe('getBarColor', () => {
-    it('uses the default chart color for every bar in single-color mode', () => {
-        // Given a single-color bar chart
-        const useSingleColor = true;
+    it('uses the given color for every bar when the chart has one', () => {
+        // Given a bar chart drawn in one color, like the Insights dashboard's Top Spenders chart
+        const color = VictoryTheme.colors.default;
 
         // When colors are resolved for different bars
-        const colors = [0, 1, 5].map((index) => getBarColor(useSingleColor, index));
+        const colors = [0, 1, 5].map((index) => getBarColor(color, index));
 
-        // Then every bar gets the default chart color
-        expect(colors).toEqual([VictoryTheme.colors.default, VictoryTheme.colors.default, VictoryTheme.colors.default]);
+        // Then every bar gets that color
+        expect(colors).toEqual([color, color, color]);
     });
 
-    it('uses the palette color at the bar index in multi-color mode', () => {
-        // Given a multi-color bar chart
-        const useSingleColor = false;
+    it('uses the palette color at the bar index when no color is given', () => {
+        // Given a bar chart without a color of its own
+        const color = undefined;
 
         // When colors are resolved for different bars
-        const colors = [0, 1, 5].map((index) => getBarColor(useSingleColor, index));
+        const colors = [0, 1, 5].map((index) => getBarColor(color, index));
 
         // Then each bar gets its own palette color, keyed by data index so vertical and horizontal layouts color bars the same way
         expect(colors).toEqual([VictoryTheme.colors.getColor(0), VictoryTheme.colors.getColor(1), VictoryTheme.colors.getColor(5)]);
