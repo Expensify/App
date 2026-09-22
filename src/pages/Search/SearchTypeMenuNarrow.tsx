@@ -32,6 +32,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
 
+import type {ComponentRef} from 'react';
+
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
@@ -53,7 +55,7 @@ type SearchTypeMenuNarrowContentProps = {
     onActiveTabPress?: (key: SearchKey) => void;
     onTabPress?: (key: SearchKey) => void;
     onLongTabPress?: (key: SearchKey) => void;
-    containerRef?: React.RefObject<View | null>;
+    containerRef?: React.RefObject<ComponentRef<typeof View> | null>;
     children?: React.ReactNode;
 };
 
@@ -123,7 +125,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     });
 
     const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
-    const menuAnchorRef = useRef<View>(null);
+    const menuAnchorRef = useRef<ComponentRef<typeof View>>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
     const {copiedID, handleShare} = useShareSavedSearch();
