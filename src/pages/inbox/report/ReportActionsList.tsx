@@ -620,7 +620,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     recycleItems
                     experimental_hideItemsUntilMeasured
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
                     onEndReached={loadNewerChatsAfterTransitions}
                     onEndReachedThreshold={PAGINATION_THRESHOLD}
                     ListHeaderComponent={listFooterComponent}

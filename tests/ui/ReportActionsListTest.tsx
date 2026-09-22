@@ -30,8 +30,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type * as ReactNavigation from '@react-navigation/native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -184,6 +186,7 @@ jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => nul
 
 type MockLegendListProps = {
     alignItemsAtEnd?: boolean;
+    contentContainerStyle?: StyleProp<ViewStyle>;
     data?: OnyxTypes.ReportAction[];
     drawDistance?: number;
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -419,6 +422,13 @@ describe('ReportActionsList (body)', () => {
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
         expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(0.01);
         expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
+    });
+
+    it('does not duplicate the composer spacing inside the chronological list', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        expect(StyleSheet.flatten(getCapturedListProps()?.contentContainerStyle)?.paddingBottom).toBe(0);
     });
 
     it('initially aligns the seed page to the end', () => {
