@@ -4,7 +4,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
+import getBankAccountLastFourDigits from '@libs/getBankAccountLastFourDigits';
 import {getCrossBorderReimbursedMessage, getElsewherePaymentReportActionMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';

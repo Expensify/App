@@ -126,7 +126,8 @@ import {
     updateGroupChatAvatar,
 } from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, deleteTask, reopenTask} from '@userActions/Task';
+import {canActionTask, canModifyTask, reopenTask} from '@userActions/Task';
+import {deleteTask} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -147,7 +148,7 @@ import type {ValueOf} from 'type-fest';
 import {StackActions, useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
+import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -222,7 +223,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [reportActionsForOriginalReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     // The report from which a tracked expense would be submitted/categorized/shared, and its actions -
     // createDraftTransactionAndNavigateToParticipantSelector uses them to find the linked track-expense action
-    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID);
+    const actionReportID = getOriginalReportID(report.reportID, parentReportAction, reportActionsForOriginalReportID, isOffline);
     const [actionReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`);
 
     const {removeTransaction} = useSearchSelectionActions();
@@ -249,6 +250,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const {getCurrencyDecimals} = useCurrencyListActions();
     const filteredPoliciesInfoSelector = createFilteredPoliciesInfoSelector(currentUserEmail);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
+    const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {showConfirmModal} = useConfirmModal();
     const reportForHeader = getReportForHeader(report, parentReport);
@@ -529,18 +531,17 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
-                    isRestrictedToPreferredPolicy,
-                    preferredPolicyID,
+                    restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
                     transaction: iouTransaction,
                     currentUserAccountID,
                     currentUserEmail: currentUserEmail ?? '',
                     currentUserLocalCurrency,
                     filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                    firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                    firstPolicy: filteredPoliciesInfo?.firstPolicy,
                 };
                 // "Submit to someone" splits into two destinations here too, matching the track-expense whisper:
                 // submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
-                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserEmail ?? '', lastWorkspaceNumber, translate, currentUserDisplayName);
+                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserEmail ?? '', currentUserDisplayName, lastWorkspaceNumber, translate);
 
                 // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
                 // just like it is on the track-expense whisper.
@@ -601,7 +602,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserEmail: currentUserEmail ?? '',
                             currentUserLocalCurrency,
                             filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                            firstPolicy: filteredPoliciesInfo?.firstPolicy,
                         });
                     },
                 });
@@ -628,7 +629,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             currentUserEmail: currentUserEmail ?? '',
                             currentUserLocalCurrency,
                             filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
-                            firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
+                            firstPolicy: filteredPoliciesInfo?.firstPolicy,
                         });
                     },
                 });

@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -117,14 +118,14 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         setUpgradingFromSubmit((previous) => (previous !== undefined ? previous : isUpgradingFromSubmitPolicy));
     }, [policyID, policy?.type, isUpgradingFromSubmitPolicy]);
 
-    const feature = featureNameAlias
-        ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-              .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-              .find((f) => f.alias === featureNameAlias)
-        : undefined;
+    const upgradeFeatureByAlias = featureNameAlias ? Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING).find((mappingEntry) => mappingEntry.alias === featureNameAlias) : undefined;
+
+    const feature = upgradeFeatureByAlias?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id ? undefined : upgradeFeatureByAlias;
 
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -209,7 +210,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
 
         if (isUpgradingFromSubmitPolicy) {
-            const targetType = upgradePlanType ?? (feature && 'requiredPlan' in feature ? feature.requiredPlan : undefined) ?? CONST.POLICY.TYPE.TEAM;
+            const requiredPlan = upgradeFeatureByAlias && 'requiredPlan' in upgradeFeatureByAlias ? upgradeFeatureByAlias.requiredPlan : undefined;
+            const targetType = upgradePlanType ?? requiredPlan ?? CONST.POLICY.TYPE.TEAM;
             upgradeSubmit(policy, targetType, email, accountID, priorFirstDayFreeTrial, priorLastDayFreeTrial, reportID);
             return;
         }
@@ -271,7 +273,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
                 if (!policy?.areRulesEnabled) {
-                    enablePolicyRules(policy, true, false, policyDataRef.current);
+                    enablePolicyRules(policy, true, isVendorMatchingBetaEnabled, false, policyDataRef.current);
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id:
