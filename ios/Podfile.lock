@@ -4052,7 +4052,7 @@ SPEC CHECKSUMS:
   react-native-pdf: f5336904e04a95103a90fcdf349bbd8e278350b9
   react-native-plaid-link-sdk: a2df4f145f61869507d730062764abca085b6a00
   react-native-quick-base64: e254a406ac7d7f20857c9fbcbfb57fbf91ae21be
-  react-native-safe-area-context: 4b3960e27c8a3ca0c1523348f97513e27f8509b7
+  react-native-safe-area-context: 6acf61f42ee0862bbe00ed7e6c11cd0b81b7f6e3
   react-native-skia: b3c25cbcfdc2d4f68b73390ff1b50ef2a9bc5968
   react-native-view-shot: 6da2aaa0404b8d617ab1689550acdb251d759af9
   react-native-wallet: 69c8fde0b0e16899b95b2689f7cb737f4ec247f9
