@@ -79,7 +79,10 @@ function CloseAccountPage() {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            setDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {reasonForLeaving: values.reasonForLeaving}).then(() => {
+            setDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {
+                reasonForLeaving: values.reasonForLeaving,
+                phoneOrEmail: values.phoneOrEmail,
+            }).then(() => {
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE);
             });
         });
