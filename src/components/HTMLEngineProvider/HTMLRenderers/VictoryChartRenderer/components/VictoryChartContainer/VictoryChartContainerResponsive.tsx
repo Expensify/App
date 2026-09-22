@@ -53,6 +53,7 @@ function VictoryChartContainerResponsive({children}: {children: React.ReactNode}
         >
             {containerWidth > 0 && (
                 <VictoryChartContainerFixed
+                    key={scale}
                     layout={layout}
                     themeStyles={themeStyles}
                 >

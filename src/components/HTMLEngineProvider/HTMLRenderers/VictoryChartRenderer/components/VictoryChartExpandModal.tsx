@@ -124,8 +124,9 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                                     >
                                         {/* The Skia canvas is removed as soon as closing starts: WebGL canvases can
                                         flash white when re-composited during the close animation (visible on dark
-                                        themes). The card box stays so the modal animates out looking intact. */}
-                                        {isVisible && <VictoryChartContent />}
+                                        themes). The card box stays so the modal animates out looking intact.
+                                        Keyed on the scale so a resize re-creates the surface at the new painted size. */}
+                                        {isVisible && <VictoryChartContent key={scale} />}
                                     </View>
                                 </View>
                             ) : (
