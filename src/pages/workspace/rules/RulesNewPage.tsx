@@ -1,5 +1,6 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -32,11 +33,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
-import type {GeneratedRule} from '@src/types/onyx';
+import type {GeneratedRule, PolicyCategories} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import RulesNewPromptForm from './RulesNewPromptForm';
@@ -55,6 +58,71 @@ type NewRuleOption = {
     /** When true, option is only shown from the workspace Rules Create flow (not category RHP). */
     isWorkspaceOnly?: boolean;
 };
+
+/**
+ * Seeds the draft form for the rule type Concierge picked and opens that rule's page.
+ * Falls back to the unintelligible error when the rule type is missing or unrecognized.
+ */
+function seedDraftAndNavigate(rule: GeneratedRule, policyID: string, policyCategories: OnyxEntry<PolicyCategories>, translate: LocaleContextProps['translate']) {
+    const {category, ...ruleValues} = rule.rule ?? {};
+
+    const matchedCategory = category
+        ? Object.values(policyCategories ?? {}).find((policyCategory) => policyCategory.enabled && getDecodedCategoryName(policyCategory.name) === getDecodedCategoryName(category))
+        : undefined;
+    const draft: NonNullable<GeneratedRule['rule']> = matchedCategory ? {...ruleValues, category: matchedCategory.name} : ruleValues;
+
+    if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
+        setDraftRequireFieldsRule(draft);
+        Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
+        return;
+    }
+
+    if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
+        setDraftFlagForReviewRule(draft);
+        Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
+        return;
+    }
+
+    if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
+        setDraftSpendRule(draft);
+        Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+        return;
+    }
+
+    if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
+        setDraftMerchantRule({...draft, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+        return;
+    }
+
+    setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
+}
+
+/** Routes a generated rule to either the matching rule form or the inline error explaining why it could not be used. */
+function applyGeneratedRule(rule: GeneratedRule, policyID: string, policyCategories: OnyxEntry<PolicyCategories>, translate: LocaleContextProps['translate']) {
+    if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
+        clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
+        seedDraftAndNavigate(rule, policyID, policyCategories, translate);
+        return;
+    }
+
+    if (rule.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED) {
+        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
+        return;
+    }
+
+    if (rule.state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES) {
+        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
+        return;
+    }
+
+    if (rule.state === CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE) {
+        setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
+        return;
+    }
+
+    setNewRulePromptError(translate('common.genericErrorMessage'));
+}
 
 function RulesNewPage({route}: RulesNewPageProps) {
     const {policyID, categoryName} = route.params;
@@ -89,79 +157,13 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const generatedRuleForCurrentPrompt = generationID && generatedRule?.generationID === generationID ? generatedRule : undefined;
     const canOfferAgentRule = generatedRuleForCurrentPrompt?.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED;
 
-    const seedDraftAndNavigate = useCallback(
-        (rule: GeneratedRule) => {
-            const {category, ...ruleValues} = rule.rule ?? {};
-
-            const matchedCategory = category
-                ? Object.values(policyCategories ?? {}).find((policyCategory) => policyCategory.enabled && getDecodedCategoryName(policyCategory.name) === getDecodedCategoryName(category))
-                : undefined;
-            const draft: NonNullable<GeneratedRule['rule']> = matchedCategory ? {...ruleValues, category: matchedCategory.name} : ruleValues;
-
-            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
-                setDraftRequireFieldsRule(draft);
-                Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
-                return;
-            }
-
-            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
-                setDraftFlagForReviewRule(draft);
-                Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
-                return;
-            }
-
-            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND) {
-                setDraftSpendRule(draft);
-                Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
-                return;
-            }
-
-            if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS) {
-                setDraftMerchantRule({...draft, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
-                Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
-                return;
-            }
-
-            setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
-        },
-        [policyCategories, policyID, translate],
-    );
-
-    const applyGeneratedRule = useCallback(
-        (rule: GeneratedRule) => {
-            if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
-                clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
-                seedDraftAndNavigate(rule);
-                return;
-            }
-
-            if (rule.state === CONST.GENERATED_RULE.STATE.UNSUPPORTED) {
-                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unsupported', {area: rule.unsupportedArea ?? ''}));
-                return;
-            }
-
-            if (rule.state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES) {
-                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.multipleRules'));
-                return;
-            }
-
-            if (rule.state === CONST.GENERATED_RULE.STATE.UNINTELLIGIBLE) {
-                setNewRulePromptError(translate('workspace.rules.newRule.promptErrors.unintelligible'));
-                return;
-            }
-
-            setNewRulePromptError(translate('common.genericErrorMessage'));
-        },
-        [seedDraftAndNavigate, translate],
-    );
-
     useEffect(() => {
         if (!generatedRuleForCurrentPrompt || appliedGenerationIDRef.current === generatedRuleForCurrentPrompt.generationID) {
             return;
         }
         appliedGenerationIDRef.current = generatedRuleForCurrentPrompt.generationID;
-        applyGeneratedRule(generatedRuleForCurrentPrompt);
-    }, [generatedRuleForCurrentPrompt, applyGeneratedRule]);
+        applyGeneratedRule(generatedRuleForCurrentPrompt, policyID, policyCategories, translate);
+    }, [generatedRuleForCurrentPrompt, policyID, policyCategories, translate]);
 
     const describeRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM>) => {
         const prompt = values.prompt.trim();
