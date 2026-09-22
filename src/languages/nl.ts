@@ -10678,6 +10678,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     one: 'Proefperiode: nog 1 dag!',
                     other: `Proefperiode: nog ${count} dagen!`,
                 }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Nog 1 dag!',
+                    other: `Nog ${count} dagen!`,
+                }),
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
             },
             trialEnded: {

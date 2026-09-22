@@ -10696,6 +10696,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     many: `Okres próbny: pozostało ${count} dni!`,
                     other: `Okres próbny: pozostało ${count} dnia!`,
                 }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Pozostał 1 dzień!',
+                    few: `Pozostały ${count} dni!`,
+                    many: `Pozostało ${count} dni!`,
+                    other: `Pozostało ${count} dnia!`,
+                }),
                 subtitle: 'Dodaj kartę płatniczą, aby nadal korzystać ze wszystkich swoich ulubionych funkcji.',
             },
             trialEnded: {
