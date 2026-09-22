@@ -2293,6 +2293,8 @@ const translations = {
         profileAvatar: 'Profile avatar',
         customInstructions: 'Custom instructions',
         copilotIntoAccount: 'Copilot into account',
+        viewUserHistory: 'View user history',
+        viewAgentHistory: 'View agent history',
         publicSection: {
             title: 'Public',
             subtitle: 'These details are displayed on your public profile. Anyone can see them.',
@@ -3245,6 +3247,7 @@ const translations = {
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         chatWithAgent: 'Chat with agent',
+        viewAgentHistory: 'View agent history',
         copilotIntoAccount: 'Copilot into account',
         deleteAgent: 'Delete agent',
         deleteAgentTitle: 'Delete agent?',
@@ -6232,6 +6235,8 @@ const translations = {
             subsidiarySelectDescription: 'Select the Dynamics 365 Business Central subsidiary to sync with this workspace.',
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -7666,12 +7671,7 @@ const translations = {
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider} sync complete`,
-                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
-                added: 'Added',
-                removed: 'Removed',
-                skipped: 'Skipped',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 employee',
                     other: (count: number) => `${count} employees`,
                 }),
@@ -7699,6 +7699,12 @@ const translations = {
             alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
             alreadyConnectedPrompt: 'You must disconnect your current ATS before connecting another.',
             syncing: 'Syncing candidates',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidate',
+                    other: (count: number) => `${count} candidates`,
+                }),
+            },
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
             dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
@@ -7738,6 +7744,13 @@ const translations = {
             syncLimitReached: {
                 title: 'Try again tomorrow',
                 prompt: "You've reached your sync limit for the day.",
+            },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+                added: 'Added',
+                removed: 'Removed',
+                skipped: 'Skipped',
             },
         },
         export: {
@@ -9858,6 +9871,8 @@ const translations = {
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
+            created: 'Created',
+            createdDate: 'Created date',
             withdrawn: 'Withdrawn',
             billable: 'Billable',
             reimbursable: 'Reimbursable',

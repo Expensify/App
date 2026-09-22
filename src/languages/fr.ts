@@ -2194,6 +2194,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
+        viewUserHistory: 'Voir l’historique de l’utilisateur',
+        viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
@@ -3161,6 +3163,7 @@ ${amount} pour ${merchant} - ${date}`,
         agentName: 'Nom de l’agent',
         instructions: 'Écrire des instructions personnalisées',
         chatWithAgent: 'Discuter avec l’agent',
+        viewAgentHistory: 'Voir l’historique de l’agent',
         copilotIntoAccount: 'Copilote dans le compte',
         deleteAgent: 'Supprimer l’agent',
         deleteAgentTitle: 'Supprimer l’agent ?',
@@ -8710,12 +8713,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }
             },
             syncResults: {
-                title: (provider: string) => `Synchronisation ${provider} terminée`,
-                successTitle: (provider: string) => `Connexion ${provider} synchronisée avec succès !`,
-                added: 'Ajouté',
-                removed: 'Supprimé',
-                skipped: 'Ignoré',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 employé',
                     other: (count: number) => `${count} employés`,
                 }),
@@ -8746,6 +8744,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidat',
+                    other: (count: number) => `${count} candidat·s`,
+                }),
+            },
         },
         merge: {
             connections: 'Connexions',
@@ -8774,6 +8778,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
+            syncResults: {
+                title: (provider: string) => `Synchronisation ${provider} terminée`,
+                successTitle: (provider: string) => `Connexion à ${provider} synchronisée avec succès !`,
+                added: 'Ajouté',
+                removed: 'Supprimé',
+                skipped: 'Ignoré',
+            },
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -8804,6 +8815,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subsidiarySelectDescription: 'Sélectionnez la filiale Dynamics 365 Business Central à synchroniser avec cet espace de travail.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une société dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Business Central et synchroniser à nouveau la connexion',
         },
     },
     getAssistancePage: {
@@ -9753,6 +9766,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
             filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
+            created: 'Créé',
+            createdDate: 'Date de création',
             transactionStatus: {
                 label: 'Statut de la transaction',
                 [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'En attente',

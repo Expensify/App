@@ -2190,6 +2190,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profil-Avatar',
         customInstructions: 'Benutzerdefinierte Anweisungen',
         copilotIntoAccount: 'Copilot in Konto',
+        viewUserHistory: 'Nutzerverlauf anzeigen',
+        viewAgentHistory: 'Agentenverlauf anzeigen',
         publicSection: {
             title: 'Öffentlich',
             subtitle: 'Diese Angaben werden in deinem öffentlichen Profil angezeigt. Jede:r kann sie sehen.',
@@ -3156,6 +3158,7 @@ ${amount} für ${merchant} – ${date}`,
         agentName: 'Name der Agentin/des Agenten',
         instructions: 'Eigene Anweisungen schreiben',
         chatWithAgent: 'Mit Agent chatten',
+        viewAgentHistory: 'Agentenverlauf anzeigen',
         copilotIntoAccount: 'Copilot ins Konto',
         deleteAgent: 'Agent löschen',
         deleteAgentTitle: 'Agent löschen?',
@@ -8694,12 +8697,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
-                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
-                added: 'Hinzugefügt',
-                removed: 'Entfernt',
-                skipped: 'Übersprungen',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 Mitarbeiter',
                     other: (count: number) => `${count} Mitarbeitende`,
                 }),
@@ -8730,6 +8728,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 Kandidat',
+                    other: (count: number) => `${count} Kandidat:innen`,
+                }),
+            },
         },
         merge: {
             connections: 'Verbindungen',
@@ -8758,6 +8762,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
             syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
+            syncResults: {
+                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
+                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
+                added: 'Hinzugefügt',
+                removed: 'Entfernt',
+                skipped: 'Übersprungen',
+            },
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
@@ -8788,6 +8799,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Dynamics 365 Business Central-Tochtergesellschaft aus, die mit diesem Workspace synchronisiert werden soll.',
             noCompaniesFound: 'Keine Unternehmen gefunden',
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Business Central hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {
@@ -9734,6 +9747,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
+            created: 'Erstellt',
+            createdDate: 'Erstellungsdatum',
             transactionStatus: {
                 label: 'Transaktionsstatus',
                 [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Ausstehend',
