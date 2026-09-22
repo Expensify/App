@@ -14,14 +14,13 @@ import {
     completeTestDriveTask,
     createTaskAndNavigate,
     createTaskFromMarkdown,
-    deleteTask,
     editTask,
     editTaskAssignee,
     getAssignee,
     getFinishOnboardingTaskOnyxData,
-    getNavigationUrlOnTaskDelete,
     getShareDestination,
 } from '@libs/actions/Task';
+import {deleteTask, getNavigationUrlOnTaskDelete} from '@libs/actions/TaskDeletion';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -1971,7 +1970,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined, undefined);
 
             // Then the subtitle is the other participant's login and the display name matches getReportName
             expect(result.subtitle).toBe(OTHER_LOGIN);
@@ -1988,7 +1987,7 @@ describe('actions/Task', () => {
             };
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, policy, undefined, translateLocal, undefined);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, policy, undefined, translateLocal, undefined, undefined);
 
             // Then the subtitle falls back to the workspace name resolved by getChatRoomSubtitle
             expect(result.subtitle).toBe(policy.name);
@@ -2000,7 +1999,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined, undefined);
 
             // Then it includes the icons and tooltip metadata used to render the destination
             expect(Array.isArray(result.icons)).toBe(true);
