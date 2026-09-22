@@ -175,6 +175,8 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
     });
 
     it('keys each option by id when two accounts share a display name', () => {
+        // Given a QuickBooks Desktop chart of accounts holding two credit card accounts under the same display name,
+        // which QBD allows whenever they sit under different parents
         const duplicateNameAccounts = [
             {id: '80000105-1746639412', name: 'Corporate Card', currency: 'USD'},
             {id: '80000106-1746639413', name: 'Corporate Card', currency: 'USD'},
@@ -182,8 +184,11 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         const policy = createQBDPolicy(undefined, '80000105-1746639412', duplicateNameAccounts);
         const card = createCard('80000106-1746639413');
 
+        // When the export account options are built for a card pointing at the second of those two accounts
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
+        // Then every option carries a distinct key, because rows sharing one key make the list drop one of them and
+        // leave that account impossible to pick
         const keys = result?.data?.map((item) => item.keyForList) ?? [];
         expect(keys).toHaveLength(duplicateNameAccounts.length + 1);
         expect(new Set(keys).size).toBe(keys.length);
