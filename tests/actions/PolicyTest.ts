@@ -1001,42 +1001,6 @@ describe('actions/Policy', () => {
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
         });
 
-        it('creates a new workspace when betas are explicitly passed', async () => {
-            const policyID = Policy.generatePolicyID();
-            Policy.createWorkspace({
-                conciergeChat: undefined,
-                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
-                makeMeAdmin: true,
-                policyName: WORKSPACE_NAME,
-                policyID,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
-                currency: undefined,
-                isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
-                hasOwnedPaidPolicy: false,
-                activePolicy: undefined,
-                delegateAccountID: undefined,
-            });
-            await waitForBatchedUpdates();
-
-            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            expect(policy?.id).toBe(policyID);
-            expect(policy?.name).toBe(WORKSPACE_NAME);
-            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
-        });
-
         it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
