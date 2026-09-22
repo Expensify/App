@@ -67,6 +67,24 @@ When you export, the file either downloads immediately or is prepared in the bac
 
 While an export is being prepared, either wait for it to download automatically or select **Send me the file when it's ready** to close the export window and receive the file later. When it's ready, Expensify delivers it through Concierge and by email. If the export can't be generated, an error appears in the export window, or is delivered through Concierge if **Send me the file when it's ready** was selected.
 
+## What happens when an export matches more than 50,000 reports
+
+A single export includes at most the first 50,000 reports that match your search. This limit keeps very large exports from failing.
+
+When an export reaches the limit, the export window shows this warning above the **Download file** button:
+
+> Heads up! This export was too large and has been limited to the first 50,000 reports that matched your search.
+
+The file is still generated and downloads normally. It contains only the reports that were included.
+
+To get the rest of your data, narrow your search — for example, by date range, workspace, or member — and run a separate export for each set of results.
+
+<!-- SCREENSHOT:
+Suggestion: The export window in its ready state showing the truncation warning above the Download file button.
+Location: Immediately after the warning quote in this section.
+Purpose: Confirms that the warning is informational and the export still succeeded, so members don't retry the same export or report it as a failure.
+-->
+
 ## How to download a single report as a PDF
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
@@ -119,6 +137,10 @@ You can download the receipts on several reports at once in a single ZIP file.
 ## Where do I find the exported CSV file?
 
 **Basic export** and **Export current view** download directly to your device. Other templates — and any export started with **Select all** — are prepared in the background; the file then downloads automatically, or is delivered through Concierge and by email if you selected **Send me the file when it's ready**.
+
+## Why does my export only include 50,000 reports?
+
+A single export is limited to the first 50,000 reports that match your search. When you hit the limit, the export window warns you that the export was too large and was limited to the first 50,000 matching reports. The file still downloads and contains those reports. Narrow your search and run a separate export for each set of results to get the rest of your data.
 
 ## What happens if some reports fail to download as PDFs?
 

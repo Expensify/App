@@ -150,6 +150,10 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 **Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead.
 
+## Why is my export limited to 50,000 reports?
+
+A single export includes at most the first 50,000 reports that match your search. When you reach the limit, the status window shows **Heads up! This export was too large and has been limited to the first 50,000 reports that matched your search.** The file still downloads and contains those reports. To export the rest of your data, narrow your search — for example, by date range, workspace, or member — and run a separate export for each set of results.
+
 ## What happens if I refresh the page while my file is preparing?
 
 Your file keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Click **Download file** once it shows **Your file is ready!**. This does not apply when you choose **Send me the file when it’s ready** — **Concierge** sends that file to you in a chat message instead.
