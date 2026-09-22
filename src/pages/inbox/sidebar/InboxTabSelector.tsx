@@ -120,7 +120,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
-            icon: shouldUseNarrowLayout ? icons.Feed : undefined,
+            icon: icons.Feed,
             tabRef: allTabRef,
             // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
             // interaction (which suppresses the native browser context menu on web).
@@ -129,7 +129,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
-            icon: shouldUseNarrowLayout ? icons.ChatBubbleUnread : undefined,
+            icon: icons.ChatBubbleUnread,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
@@ -153,7 +153,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
-            icon: shouldUseNarrowLayout ? icons.Task : undefined,
+            icon: icons.Task,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
