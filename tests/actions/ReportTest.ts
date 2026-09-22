@@ -5861,7 +5861,7 @@ describe('actions/Report', () => {
             expect(mockNavigation.navigate).toHaveBeenCalledWith(expect.stringContaining(providedConciergeReportID), undefined);
         });
 
-        it('should pass betas through to openReport when conciergeReportID is undefined', async () => {
+        it('should call openReport when conciergeReportID is undefined', async () => {
             const TEST_USER_LOGIN = 'test@user.com';
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
@@ -6408,7 +6408,7 @@ describe('actions/Report', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
         });
 
-        it('should pass betas through to openReport when creating a new child report', async () => {
+        it('should call openReport and navigate to the new thread when creating a child report', async () => {
             const PARENT_REPORT = createRandomReport(1, undefined);
             const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
                 ...createRandomReportAction(REPORT_ACTION_ID),
@@ -6694,7 +6694,7 @@ describe('actions/Report', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_CHILD_REPORT.reportID));
         });
 
-        it('should pass betas through to createChildReport when creating a new explain thread', async () => {
+        it('should call openReport and navigate to the new thread when creating an explain thread', async () => {
             const PARENT_REPORT = createRandomReport(1, undefined);
             const REPORT_ACTION: OnyxTypes.ReportAction = {
                 ...createRandomReportAction(REPORT_ACTION_ID),
@@ -7069,7 +7069,7 @@ describe('actions/Report', () => {
             }).not.toThrow();
         });
 
-        it('should pass betas to openReport when subscribing to an existing child report', async () => {
+        it('should not throw when subscribing to an existing child report', async () => {
             const PARENT_REPORT = createRandomReport(Number(PARENT_REPORT_ID), undefined);
             const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
                 ...createRandomReportAction(REPORT_ACTION_ID),
@@ -7099,7 +7099,7 @@ describe('actions/Report', () => {
             }).not.toThrow();
         });
 
-        it('should pass betas through to openReport when creating a new child report', async () => {
+        it('should not throw when creating a child report on subscribe', async () => {
             const PARENT_REPORT = createRandomReport(Number(PARENT_REPORT_ID), undefined);
             const PARENT_REPORT_ACTION: OnyxTypes.ReportAction = {
                 ...createRandomReportAction(REPORT_ACTION_ID),
@@ -9086,7 +9086,7 @@ describe('actions/Report', () => {
             expect(Navigation.navigate).toHaveBeenCalled();
         });
 
-        it('should pass betas through to openReport when creating new chat', async () => {
+        it('should call openReport when creating a new chat', async () => {
             const TEST_USER_ACCOUNT_ID = 1;
             const TEST_USER_LOGIN = 'test@user.com';
             const PARTICIPANT_LOGIN = 'participant@test.com';
@@ -9774,7 +9774,7 @@ describe('actions/Report', () => {
             expect(result?.parentReportID).toBe(parentReport.reportID);
         });
 
-        it('should pass betas through to openReport', async () => {
+        it('should call openReport when creating a transaction thread report', async () => {
             const parentReport: OnyxTypes.Report = {
                 ...createRandomReport(500, undefined),
                 reportID: '500',
