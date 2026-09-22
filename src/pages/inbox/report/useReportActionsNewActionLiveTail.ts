@@ -38,6 +38,8 @@ type UseReportActionsNewActionLiveTailParams = {
     introSelected: OpenReportActionParams['introSelected'];
     betas: OpenReportActionParams['betas'];
     conciergeChat: OpenReportActionParams['conciergeChat'];
+    isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
+    hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -68,6 +70,8 @@ function useReportActionsNewActionLiveTail({
     reportID,
     introSelected,
     betas,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
     isOffline,
     reportScrollManager,
     setIsFloatingMessageCounterVisible,
@@ -121,6 +125,8 @@ function useReportActionsNewActionLiveTail({
                             betas,
                             hasReportActions: true,
                             currentUserAccountID,
+                            isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow,
                         });
                     }
                     return;

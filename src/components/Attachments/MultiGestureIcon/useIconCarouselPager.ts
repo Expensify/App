@@ -6,7 +6,6 @@ import type {SharedValue} from 'react-native-reanimated';
 import {useSharedValue} from 'react-native-reanimated';
 
 type IconCarouselPagerProps = {
-    /** Ref to the attachment carousel pager, when available. */
     pagerRef: AttachmentCarouselPagerStateContextType['pagerRef'];
 
     /** Whether horizontal pager scrolling is enabled. */

@@ -1,5 +1,4 @@
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
@@ -22,6 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -58,11 +58,13 @@ import type {
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
+import shouldCollapseExpandedGroupAfterPendingDelete from './shouldCollapseExpandedGroupAfterPendingDelete';
 import TagListItemHeader from './TagListItemHeader';
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
@@ -147,6 +149,18 @@ function TransactionGroupListItemImpl({
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
 
+    if (
+        shouldCollapseExpandedGroupAfterPendingDelete({
+            isExpanded,
+            groupPendingAction: item.pendingAction,
+            loadedChildrenCount: transactions.length,
+            remainingChildrenCount: transactionsWithoutPendingDelete.length,
+        })
+    ) {
+        setIsExpanded(false);
+        setTransactionsVisibleLimit(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
+    }
+
     // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
 
@@ -202,6 +216,10 @@ function TransactionGroupListItemImpl({
             paddingVertical: variables.tableGroupRowPaddingVertical,
             ...(isLastItem ? styles.tableBottomRadius : {}),
         },
+        // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
+        // corners have to be rounded on this element too or the list's top/bottom corners look square.
+        !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,
+        isLastItem && styles.tableBottomRadius,
         isItemSelected && styles.activeComponentBG,
     ];
     const pressableRef = useRef<View>(null);
@@ -292,7 +310,7 @@ function TransactionGroupListItemImpl({
     };
 
     const getHeader = (hovered: boolean) => {
-        const headers: Record<SearchGroupBy, React.JSX.Element> = {
+        const headers: Record<SearchGroupBy, React.ReactNode> = {
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
@@ -373,6 +391,24 @@ function TransactionGroupListItemImpl({
                     isExpanded={isExpanded}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.DAY]: (() => {
+                if (!isTransactionDayGroupListItemType(groupItem)) {
+                    return null;
+                }
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                );
+            })(),
             [CONST.SEARCH.GROUP_BY.MONTH]: (
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
@@ -458,12 +494,6 @@ function TransactionGroupListItemImpl({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
-    const pendingAction =
-        item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
-            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            : undefined);
-
     const snapshotData = transactionsSnapshot?.data;
     const groupViolations: Record<string, TransactionViolations | undefined> = {};
     if (snapshotData) {
@@ -509,7 +539,7 @@ function TransactionGroupListItemImpl({
     }
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={onLongPress}
@@ -517,7 +547,7 @@ function TransactionGroupListItemImpl({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.BUTTON}
                 isNested
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
@@ -534,11 +564,7 @@ function TransactionGroupListItemImpl({
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
-                        : [
-                              isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
-                              isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
-                          ],
+                        : [isFirstItem && styles.tableTopRadius, isLastItem && styles.tableBottomRadius, !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected)],
                 ]}
             >
                 {({hovered}) => (

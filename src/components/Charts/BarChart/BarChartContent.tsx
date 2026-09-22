@@ -39,7 +39,6 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 type BarChartProps = CartesianChartProps & {
-    /** Callback when a bar is pressed */
     onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
 
     /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */

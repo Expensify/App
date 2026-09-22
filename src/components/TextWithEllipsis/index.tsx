@@ -17,7 +17,6 @@ type TextWithEllipsisProps = {
     /** Styles for leading and trailing text */
     textStyle?: StyleProp<TextStyle>;
 
-    /** Styles for leading text View */
     leadingTextParentStyle?: StyleProp<ViewStyle>;
 
     /** Styles for parent View */

@@ -90,6 +90,8 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         reportID: '1',
         introSelected: undefined,
         conciergeChat: undefined,
+        isSelfTourViewed: undefined,
+        hasCompletedGuidedSetupFlow: undefined,
         betas: [],
         isOffline: false,
         reportScrollManager,
@@ -127,6 +129,18 @@ describe('useReportActionsNewActionLiveTail', () => {
         });
 
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+    });
+
+    it('threads the onboarding status through to the catch-up openReport call', () => {
+        renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false})});
+
+        act(() => {
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+        });
+
+        // The onboarding flags are threaded straight through so guided-setup optimistic data is derived from real Onyx
+        // data supplied by the caller instead of the deprecated module-level fallback.
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false}));
     });
 
     it('clears the report screen param after loading the live tail without changing the focused route', () => {

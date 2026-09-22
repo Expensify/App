@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
@@ -104,6 +104,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
                     size={CONST.BUTTON_SIZE.LARGE}
+                    testID="upgrade-button"
                 >
                     <Button.Text>{translate('common.upgrade')}</Button.Text>
                 </Button>

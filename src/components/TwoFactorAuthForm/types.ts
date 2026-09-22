@@ -10,7 +10,6 @@ type BaseTwoFactorAuthFormRef = {
 };
 
 type TwoFactorAuthFormProps = {
-    /** Whether to allow using a recovery code */
     shouldAllowRecoveryCode?: boolean;
 
     /** Translation key for the description rendered when the user is entering a TOTP. Defaults to the disable-2FA prose. */
@@ -37,7 +36,6 @@ type TwoFactorAuthFormProps = {
     /** Callback that is called when the text input is focused */
     onFocus?: () => void;
 
-    /** Reference to the outer element */
     ref: Ref<BaseTwoFactorAuthFormRef>;
 };
 

@@ -34,6 +34,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -69,6 +70,9 @@ import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +87,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
@@ -99,6 +104,7 @@ import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
+import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
@@ -155,6 +161,8 @@ function Search({
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
+    const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON);
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -189,7 +197,7 @@ function Search({
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
-    const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
+    const shouldCalculateExpenseTotals = useSearchShouldCalculateTotals(currentSearchKey, offset === 0 || isAllMatchingItemsCountMissing, isExpenseAllMatchingSelection);
     const shouldCalculateTotals = (areAllMatchingItemsSelected && !isExpenseAllMatchingSelection) || shouldCalculateExpenseTotals;
     const previousShouldCalculateTotals = usePrevious(shouldCalculateTotals);
     const searchRequestOffset = getSearchRequestOffsetForMissingAllMatchingCount(offset, searchResults?.search?.offset, isAllMatchingItemsCountMissing);
@@ -212,14 +220,20 @@ function Search({
 
     // Retrying a failed page always resets pagination to the first page, so totals eligibility
     // must be evaluated as if we're on the first page rather than the (possibly paginated) offset.
-    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);
+    const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const searchListRef = useRef<SelectionListHandle<SearchListItem> | null>(null);
 
-    const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
+    const savedSearchSelector = useCallback(
+        (searches: OnyxEntry<SaveSearch>) => {
+            const savedSearchID = searchKeyToSavedSearchID(currentSearchKey);
+            return savedSearchID ? searches?.[savedSearchID] : undefined;
+        },
+        [currentSearchKey],
+    );
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
         selector: savedSearchSelector,
     });
@@ -269,6 +283,8 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
@@ -408,10 +424,6 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
 
-    // `isLoading` has to stay out of the effect deps below, or every completed search would start another,
-    // so a page requested while one was in flight is remembered here and fired once it resolves.
-    const pendingSearchOffsetRef = useRef<number | undefined>(undefined);
-
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
@@ -436,9 +448,6 @@ function Search({
         if (searchResults?.search?.isLoading) {
             if (validGroupBy || (shouldCalculateTotals && isRequiredAllMatchingTotalMissing)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
-            }
-            if (offset > 0) {
-                pendingSearchOffsetRef.current = offset;
             }
             return;
         }
@@ -465,7 +474,6 @@ function Search({
             return;
         }
 
-        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -477,7 +485,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
+    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -493,7 +501,6 @@ function Search({
         }
 
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
-        pendingSearchOffsetRef.current = undefined;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -512,35 +519,6 @@ function Search({
         searchResults?.search?.isLoading,
         shouldCalculateTotals,
         validGroupBy,
-        searchRequestOffset,
-    ]);
-
-    useEffect(() => {
-        if (pendingSearchOffsetRef.current !== offset || searchResults?.search?.isLoading || !searchResults?.search?.hasMoreResults || !isFocused || isOffline || hasErrors) {
-            return;
-        }
-
-        pendingSearchOffsetRef.current = undefined;
-        handleSearch({
-            queryJSON,
-            searchKey: currentSearchKey,
-            offset: searchRequestOffset,
-            shouldCalculateTotals,
-            prevReportsLength: filteredDataLength,
-            isLoading: false,
-        });
-    }, [
-        filteredDataLength,
-        handleSearch,
-        hasErrors,
-        isFocused,
-        isOffline,
-        offset,
-        queryJSON,
-        currentSearchKey,
-        searchResults?.search?.isLoading,
-        searchResults?.search?.hasMoreResults,
-        shouldCalculateTotals,
         searchRequestOffset,
     ]);
 
@@ -842,6 +820,7 @@ function Search({
                 Navigation.setParams({
                     q: buildCannedSearchQuery(),
                     rawQuery: undefined,
+                    searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                 });
             });
             if (shouldResetSearchQuery) {
@@ -850,13 +829,79 @@ function Search({
         }
     }, [hasErrors, queryJSON, searchResults, shouldResetSearchQuery, setShouldResetSearchQuery]);
 
+    // `isLoading` has to stay out of the search effect's deps, or every completed search would start another,
+    // and onEndReached only fires on the edge, so a page we cannot fetch yet is remembered here rather than
+    // dropped. Stays set until that page actually shows up in the snapshot.
+    const wantedOffsetRef = useRef<number | undefined>(undefined);
+
     const fetchMoreResults = useCallback(() => {
-        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems || offset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        if (!searchResults?.search?.hasMoreResults) {
+            wantedOffsetRef.current = undefined;
             return;
         }
 
-        setOffset((prev) => prev + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    }, [isFocused, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState, offset, allDataLength]);
+        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
+        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
+        const serverOffset = searchResults?.search?.offset ?? 0;
+        if (!isFocused || shouldShowLoadingState || serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+            return;
+        }
+
+        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        wantedOffsetRef.current = nextOffset;
+        // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
+        if (searchResults?.search?.isLoading || isOffline) {
+            return;
+        }
+
+        // Dispatched here rather than left to the offset effect: after a first-page response `nextOffset` can
+        // equal the offset we already hold, and that effect only runs on a change. search() dedupes the pair.
+        setOffset(nextOffset);
+        handleSearch({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: nextOffset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
+    }, [
+        isFocused,
+        isOffline,
+        searchResults?.search?.hasMoreResults,
+        searchResults?.search?.isLoading,
+        searchResults?.search?.offset,
+        shouldShowLoadingState,
+        allDataLength,
+        handleSearch,
+        queryJSON,
+        currentSearchKey,
+        shouldCalculateTotals,
+        filteredDataLength,
+    ]);
+
+    // Ask again for a page that never arrived, either because a search was still running when the list hit
+    // its end or because a first-page response replaced it. Both leave the request with nothing to retry it.
+    useEffect(() => {
+        const serverOffset = searchResults?.search?.offset ?? 0;
+        // A first-page response that lands after the page it displaces drags the cursor back below the page we
+        // hold, after that page's arrival already cleared the intent. The list has not moved, so arm it again.
+        if (wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
+            wantedOffsetRef.current = offset;
+        }
+
+        const wantedOffset = wantedOffsetRef.current;
+        if (wantedOffset === undefined || searchResults?.search?.isLoading) {
+            return;
+        }
+
+        if (serverOffset >= wantedOffset) {
+            wantedOffsetRef.current = undefined;
+            return;
+        }
+
+        fetchMoreResults();
+    }, [fetchMoreResults, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.isLoading, searchResults?.search?.offset]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
@@ -1064,35 +1109,58 @@ function Search({
     }
 
     if (hasErrors) {
-        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
         cancelNavigationSpans();
+        const retrySearch = () => {
+            // A response replaces the snapshot's results rather than appending to them, so retrying at
+            // the paginated offset would leave only that later page behind. Retry from the first page.
+            setOffset(0);
+            handleSearch({
+                queryJSON,
+                searchKey: currentSearchKey,
+                offset: 0,
+                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
+                prevReportsLength: filteredDataLength,
+                isLoading: !!searchResults?.search?.isLoading,
+            });
+        };
+        // failureData stores NO_RESPONSE when the request never got a server answer, so only the results' freshness is in
+        // doubt and the refresh copy fits. Any code the server did return marks a real failure and keeps the error copy,
+        // and an invalid query gets no button because re-sending it cannot succeed.
+        let failureKind: ValueOf<typeof CONST.SEARCH.FAILURE_KIND> = CONST.SEARCH.FAILURE_KIND.FAILED;
+        if (responseStatusCode === CONST.JSON_CODE.NO_RESPONSE) {
+            failureKind = CONST.SEARCH.FAILURE_KIND.STALE;
+        } else if (responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY) {
+            failureKind = CONST.SEARCH.FAILURE_KIND.INVALID_QUERY;
+        }
+        const errorTitle = translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout});
+        const errorViewByKind = {
+            [CONST.SEARCH.FAILURE_KIND.STALE]: {
+                title: translate('search.searchResults.staleResults.title'),
+                subtitle: translate('search.searchResults.staleResults.subtitle'),
+                illustration: 'FolderSync',
+                illustrationWidth: variables.iconSizeUltraLarge,
+                illustrationHeight: variables.iconSizeUltraLarge,
+                buttonTranslationKey: 'search.searchResults.staleResults.buttonText',
+                onButtonPress: retrySearch,
+            },
+            [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
+                title: errorTitle,
+                subtitle: translate('errorPage.wrongTypeSubtitle'),
+            },
+            [CONST.SEARCH.FAILURE_KIND.FAILED]: {
+                title: errorTitle,
+                subtitle: translate('errorPage.subtitle'),
+                buttonTranslationKey: 'common.tryAgain',
+                onButtonPress: retrySearch,
+            },
+        } as const;
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {
-                        isBreakLine: shouldUseNarrowLayout,
-                    })}
-                    subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
-                    // Retrying an invalid query won't help, so the retry button is only offered for other errors.
-                    {...(!isInvalidQuery && {
-                        buttonTranslationKey: 'common.tryAgain',
-                        onButtonPress: () => {
-                            // A response replaces the snapshot's results rather than appending to them, so retrying at
-                            // the paginated offset would leave only that later page behind. Retry from the first page.
-                            setOffset(0);
-                            handleSearch({
-                                queryJSON,
-                                searchKey: currentSearchKey,
-                                offset: 0,
-                                shouldCalculateTotals: shouldCalculateTotalsOnRetry,
-                                prevReportsLength: filteredDataLength,
-                                isLoading: !!searchResults?.search?.isLoading,
-                            });
-                        },
-                    })}
+                    {...errorViewByKind[failureKind]}
                 />
             </View>
         );
@@ -1223,6 +1291,20 @@ function Search({
             />
         ) : undefined;
 
+    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    const columnSizeOptions: GetReportTableColumnStylesParams = {
+        isActionColumnWide: isTask || hasDeletedTransaction,
+        isDateColumnWide: shouldShowYearCreated,
+        isSubmittedColumnWide: shouldShowYearSubmitted,
+        isApprovedColumnWide: shouldShowYearApproved,
+        isPostedColumnWide: shouldShowYearPosted,
+        isExportedColumnWide: shouldShowYearExported,
+        isWithdrawnColumnWide: shouldShowYearWithdrawn,
+        isAmountColumnWide: shouldShowAmountInWideColumn,
+        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+    };
+
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
         queryJSON,
@@ -1232,7 +1314,7 @@ function Search({
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,
         tableHeaderVisible,
-        contentContainerStyle: [styles.pb3, contentContainerStyle],
+        contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
         onScroll: onSearchListScroll,
         onEndReached: fetchMoreResults,
@@ -1242,6 +1324,7 @@ function Search({
         newTransactions,
         hasLoadedAllTransactions,
         isActionColumnWide: isTask || hasDeletedTransaction,
+        columnSizeOptions,
     };
 
     let searchListContent: React.JSX.Element;
@@ -1251,6 +1334,8 @@ function Search({
                 {...commonViewProps}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                policyCategories={policyCategories}
+                policyTags={policyTags}
             />
         );
     } else if (isTransactionListView) {

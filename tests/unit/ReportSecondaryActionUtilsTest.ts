@@ -161,6 +161,7 @@ describe('getSecondaryAction', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
+                rules: undefined,
             }),
         ).toEqual(result);
     });
@@ -184,6 +185,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(true);
@@ -204,6 +206,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -224,6 +227,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
@@ -274,6 +278,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY)).toBe(true);
@@ -330,6 +335,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -389,6 +395,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
@@ -441,6 +448,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -494,6 +502,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -556,6 +565,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
@@ -582,6 +592,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(false);
@@ -611,6 +622,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.PRINT)).toBe(true);
@@ -649,6 +661,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
@@ -682,6 +695,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -716,6 +730,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -754,6 +769,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -796,6 +812,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -840,6 +857,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -882,6 +900,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -934,6 +953,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -973,6 +993,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1009,6 +1030,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1045,6 +1067,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1078,6 +1101,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1118,6 +1142,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1165,6 +1190,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1197,6 +1223,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1245,6 +1272,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
@@ -1280,6 +1308,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1320,6 +1349,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1366,6 +1396,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1407,6 +1438,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
     });
@@ -1447,6 +1479,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1486,6 +1519,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1529,6 +1563,7 @@ describe('getSecondaryAction', () => {
             violations,
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         // Then APPROVE should be included because DEW approval is not in progress
@@ -1575,6 +1610,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportMetadata: {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE},
+            rules: undefined,
         });
 
         // Then APPROVE should not be included because DEW is already processing an approval
@@ -1619,6 +1655,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
@@ -1662,6 +1699,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
@@ -1704,6 +1742,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1745,6 +1784,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1783,6 +1823,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(true);
     });
@@ -1821,6 +1862,7 @@ describe('getSecondaryAction', () => {
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1856,6 +1898,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE)).toBe(false);
     });
@@ -1882,6 +1925,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1911,6 +1955,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1939,6 +1984,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(true);
     });
@@ -1967,6 +2013,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -1996,6 +2043,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2025,6 +2073,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2055,6 +2104,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE)).toBe(false);
     });
@@ -2086,6 +2136,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         // Then UNAPPROVE should not be included because DEW policies restrict unapprove to admins only
@@ -2120,6 +2171,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         // Then UNAPPROVE should be included because admins can unapprove on DEW policies
@@ -2152,6 +2204,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2221,10 +2274,18 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
         };
 
-        const resultWithoutArchive = getSecondaryReportActions({...baseArgs, policy: createMock<Policy>(policyData)});
+        const resultWithoutArchive = getSecondaryReportActions({
+            ...baseArgs,
+            policy: createMock<Policy>(policyData),
+            rules: undefined,
+        });
         expect(resultWithoutArchive.includes(action)).toBe(true);
 
-        const resultWithArchive = getSecondaryReportActions({...baseArgs, policy: createMock<Policy>({...policyData, archivedDate: '2026-08-01 00:00:00'})});
+        const resultWithArchive = getSecondaryReportActions({
+            ...baseArgs,
+            policy: createMock<Policy>({...policyData, archivedDate: '2026-08-01 00:00:00'}),
+            rules: undefined,
+        });
         expect(resultWithArchive.includes(action)).toBe(false);
     });
 
@@ -2268,6 +2329,7 @@ describe('getSecondaryAction', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: {private_isArchived: new Date().toString()},
             },
             isChatReportArchived: true,
+            rules: undefined,
         });
         expect(result.includes(action)).toBe(true);
     });
@@ -2320,6 +2382,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2372,6 +2435,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2424,6 +2488,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2476,6 +2541,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2514,6 +2580,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
@@ -2552,6 +2619,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2590,6 +2658,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2628,6 +2697,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy: undefined,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
@@ -2658,6 +2728,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2688,6 +2759,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2718,6 +2790,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2749,6 +2822,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2786,6 +2860,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [reportAction],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2821,6 +2896,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2858,6 +2934,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [reportAction],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2889,6 +2966,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
@@ -2920,6 +2998,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2952,6 +3031,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -2987,6 +3067,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3018,6 +3099,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
@@ -3052,6 +3134,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -3085,6 +3168,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -3121,6 +3205,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions: [actionR14932],
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
@@ -3165,6 +3250,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -3210,6 +3296,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3270,6 +3357,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy: oldPolicy,
             policies,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3330,6 +3418,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3390,6 +3479,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             policies,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -3416,6 +3506,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3477,6 +3568,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -3508,6 +3600,7 @@ describe('getSecondaryAction', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
@@ -3554,6 +3647,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3600,6 +3694,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3661,6 +3756,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3706,6 +3802,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3757,6 +3854,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3799,6 +3897,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3837,6 +3936,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3891,6 +3991,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
@@ -3934,6 +4035,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -3965,6 +4067,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4000,6 +4103,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4046,6 +4150,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(true);
     });
@@ -4077,6 +4182,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             originalTransaction: createMock<Transaction>({}),
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4138,6 +4244,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4179,6 +4286,7 @@ describe('getSecondaryAction', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4225,6 +4333,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE)).toBe(false);
     });
@@ -4263,6 +4372,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions,
             moveExpenseReportNameValuePairs,
+            rules: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -4301,6 +4411,7 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            rules: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -4727,6 +4838,7 @@ describe('getReportAccountingExportActions', () => {
             violations: {},
             bankAccountList: {},
             policy,
+            rules: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4762,6 +4874,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 originalTransaction: createMock<Transaction>({}),
                 policy,
                 isChatReportArchived: false,
+                rules: undefined,
             }),
         ).toEqual(result);
     });
@@ -4792,6 +4905,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -4819,6 +4933,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             transactionThreadReport,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
 
@@ -4834,6 +4949,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             transactionThreadReport,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result2).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
@@ -4860,6 +4976,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
@@ -4919,6 +5036,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction,
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
@@ -4972,6 +5090,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             policies,
             reportActions,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(false);
     });
@@ -5017,6 +5136,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5078,6 +5198,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction,
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
 
         // Then the SPLIT option is available
@@ -5124,6 +5245,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5170,6 +5292,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5219,6 +5342,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5248,6 +5372,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5279,6 +5404,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 policy: createMock<Policy>({}),
                 isChatReportArchived,
                 hasWorkspaceToSubmitTo,
+                rules: undefined,
             });
         }
 
@@ -5347,6 +5473,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             grandParentReport: selfDMReport,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
     });
@@ -5376,6 +5503,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
@@ -5408,6 +5536,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             policy,
             reportNameValuePairs,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
         expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
@@ -5443,6 +5572,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             originalTransaction: createMock<Transaction>({}),
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
@@ -5502,6 +5632,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
+                rules: undefined,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -5557,6 +5688,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 violations: {},
                 bankAccountList: {},
                 policy,
+                rules: undefined,
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
@@ -5577,7 +5709,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(false);
         });
@@ -5591,7 +5723,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             ];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(false);
         });
@@ -5605,7 +5737,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 {id: 'policy3', role: CONST.POLICY.ROLE.ADMIN},
             ]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(false);
         });
@@ -5617,10 +5749,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
         });
 
         it('should return true for single transaction when report is eligible for merge', () => {
@@ -5630,10 +5762,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
         });
 
         it('should return true for two eligible transactions', () => {
@@ -5656,7 +5788,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(true);
         });
@@ -5681,7 +5813,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(false);
         });
@@ -5691,7 +5823,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             const reports = [createMock<Report>({reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'nonexistent'})];
             const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             // Should return true because when policy is not found, function doesn't prevent merging
             // (since we have 1 transaction, it will return true after the policy check)
@@ -5705,10 +5837,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), true, undefined);
         });
 
         it('should return false for non-admin user with ineligible reports', () => {
@@ -5718,10 +5850,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(false);
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(false);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledWith(reports.at(0), false, undefined);
         });
 
         it('should return false when one of multiple reports is not eligible', () => {
@@ -5739,12 +5871,12 @@ describe('getSecondaryTransactionThreadActions', () => {
                 .mockReturnValueOnce(true) // First report eligible
                 .mockReturnValueOnce(false); // Second report not eligible
 
-            const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+            const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
             expect(result).toBe(false);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true);
-            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true, undefined);
+            expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false, undefined);
         });
 
         describe('preventing merge for transactions belonging to different users', () => {
@@ -5767,7 +5899,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports: Report[] = [];
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined);
 
                 expect(result).toBe(true);
             });
@@ -5790,7 +5922,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -5813,7 +5945,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 ]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -5833,7 +5965,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -5853,7 +5985,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, EMPLOYEE_ACCOUNT_ID);
 
                 expect(result).toBe(true);
             });
@@ -5873,7 +6005,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1'}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });
@@ -5893,7 +6025,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 const reports = createMock<Report[]>([{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}]);
                 const policies = createMock<Policy[]>([{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}]);
 
-                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, MANAGER_ACCOUNT_ID);
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, undefined, MANAGER_ACCOUNT_ID);
 
                 expect(result).toBe(false);
             });

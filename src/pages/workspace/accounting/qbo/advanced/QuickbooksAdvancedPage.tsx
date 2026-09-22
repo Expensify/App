@@ -4,7 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -38,7 +38,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
 
     const policyID = policy?.id;
@@ -90,7 +90,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: areSettingsInErrorFields(collectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             pendingAction: settingsPendingAction(collectionAccountIDs, qboConfig?.pendingFields),
         },
-        ...(isGlobalReimbursementFXEnabled
+        ...(canConfigureCurrencyConversionFees
             ? [
                   {
                       key: 'qboFxExpenseAccount',
@@ -142,16 +142,13 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.createEntitiesDescription', integrationName),
             isActive: !!qboConfig?.autoCreateVendor,
             onToggle: (isOn: boolean) => {
-                const nonReimbursableVendorUpdateValue = isOn
-                    ? (policy?.connections?.quickbooksOnline?.data?.vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE)
-                    : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
 
                 updateQuickbooksOnlineAutoCreateVendor(
                     policyID,
                     {
                         [autoCreateVendorConst]: isOn,
-                        [defaultVendorConst]: nonReimbursableVendorUpdateValue,
+                        [defaultVendorConst]: nonReimbursableVendorCurrentValue,
                     },
                     {
                         [autoCreateVendorConst]: !!qboConfig?.autoCreateVendor,

@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -35,7 +36,7 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight', 'DotIndicator']);
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -56,6 +57,13 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
             onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.domainAccountID)),
         });
     }
+
+    const brickRoadIndicator = !!item.brickRoadIndicator && (
+        <Icon
+            src={icons.DotIndicator}
+            fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
+        />
+    );
 
     const VerifiedDomainBadge = (
         <Badge
@@ -116,9 +124,11 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                         </View>
                     </View>
                     <View
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
+                        {brickRoadIndicator}
+
                         {threeDotMenuItems.length > 0 && (
                             <ThreeDotsMenu
                                 isNested

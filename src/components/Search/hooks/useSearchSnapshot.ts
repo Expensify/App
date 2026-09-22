@@ -9,17 +9,21 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type {PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo} from 'react';
 
@@ -60,6 +64,10 @@ type SearchSnapshotResult = {
     hasLoadedAllTransactions: boolean;
     /** True while the cached optimistic row is being re-injected across a snapshot-replacement gap. */
     hasCachedOptimisticItem: boolean;
+    /** Every policy's categories, already read here for sorting and reused to size the category GL code column. */
+    policyCategories: OnyxCollection<PolicyCategories>;
+    /** Every policy's tag lists, already read here for sorting and reused to size the tag GL code column. */
+    policyTags: OnyxCollection<PolicyTagLists>;
 } & Pick<
     OptimisticTrackingReturn,
     'showPendingExpensePlaceholder' | 'shouldDeferHeavySearchWork' | 'setShouldDeferHeavySearchWork' | 'hasPendingWriteOnMountRef' | 'skipDeferralOnFocusRef' | 'rearmTracking'
@@ -109,7 +117,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
 
     const exportReportActions = useLiveFilteredReportActions();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [onyxPersonalDetailsList] = useAllPersonalDetails();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -119,6 +127,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
     // immediately.
@@ -193,6 +202,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             translate,
             formatPhoneNumber,
             bankAccountList,
+            rules,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
@@ -226,6 +236,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         translate,
         formatPhoneNumber,
         bankAccountList,
+        rules,
         validGroupBy,
         exportReportActions,
         currentSearchKey,
@@ -273,6 +284,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
                 bankAccountList,
+                rules,
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
@@ -298,6 +310,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         accountID,
         email,
         bankAccountList,
+        rules,
         translate,
         localeCompare,
         formatPhoneNumber,
@@ -383,6 +396,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
             sortBy: queryJSON.sortBy,
+            shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
         });
     })();
 
@@ -414,6 +428,8 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     };
 }
 
