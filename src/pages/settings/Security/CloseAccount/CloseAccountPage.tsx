@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -61,7 +62,13 @@ function CloseAccountPage() {
     // nothing runs on mount and we pass empty dependencies to prevent this from running on every re-render.
     // TODO: We should refactor this so that the data in instead passed directly as a prop instead of "side loading" the data
     // here, we left this as is during refactor to limit the breaking changes.
-    useEffect(() => () => clearError(), []);
+    useEffect(
+        () => () => {
+            clearError();
+            clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+        },
+        [],
+    );
 
     const onSubmit = () => {
         if (ruleBotEnforcedPolicy) {
