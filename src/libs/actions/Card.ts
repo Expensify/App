@@ -1413,14 +1413,7 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(
-    domainAccountID: number,
-    policyID: string | undefined,
-    feedCountry: string,
-    validateCode: string,
-    timeZone: SelectedTimezone | undefined,
-    data?: IssueNewCardData,
-) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, validateCode: string, timeZone: SelectedTimezone | undefined, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -1525,7 +1518,7 @@ function issueExpensifyCard(
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, feedCountry, policyID},
+            {...parameters, policyID},
             {
                 optimisticData,
                 successData,

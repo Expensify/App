@@ -64,7 +64,6 @@ function BaseSelectionListWithSectionsImpl({
     onEndReachedThreshold,
     customListHeaderContent,
     customHeaderContent,
-    rightHandSideComponent,
     listEmptyContent,
     footerContent,
     listFooterContent,
@@ -314,7 +313,6 @@ function BaseSelectionListWithSectionsImpl({
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
