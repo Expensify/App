@@ -3070,8 +3070,7 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
     fixedDistanceUnit?: string;
 
     /**
-     * Default work arrangement for the workspace's members when method is 'homeAndOffice'. True means members
-     * commute to an office, false means they have no regular workplace. Absent until an admin sets it.
+     * Default work arrangement for the workspace's members when method is 'homeAndOffice'
      */
     isOfficeWorkArrangement?: boolean;
 }>;

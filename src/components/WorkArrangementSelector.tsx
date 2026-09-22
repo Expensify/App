@@ -57,8 +57,6 @@ function WorkArrangementSelector({isOffice, onSelect, shouldDescribeMostMembers 
         },
     ];
 
-    // The rows are rendered directly instead of through SelectionList so the same component can sit inside a
-    // modal, where a virtualized list has no height to measure against.
     return (
         <View>
             {options.map((option) => (

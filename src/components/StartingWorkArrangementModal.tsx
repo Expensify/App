@@ -20,8 +20,7 @@ type StartingWorkArrangementModalProps = ModalProps & {
 
 /**
  * Asks an admin for a starting work arrangement while they are turning on the home-and-office commuter
- * exclusion method. There is no cancel button and the backdrop does not dismiss, because the method needs a
- * work arrangement to reason about and we do not want to pick one on the admin's behalf.
+ * exclusion method.
  */
 function StartingWorkArrangementModal({closeModal, resolveModal, initialIsOffice, onApply}: StartingWorkArrangementModalProps) {
     const styles = useThemeStyles();

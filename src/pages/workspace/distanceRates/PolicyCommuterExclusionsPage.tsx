@@ -115,8 +115,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
 
-        // The home and office method needs a work arrangement to reason about, so ask for one and save both
-        // together rather than letting the workspace switch method without one.
         if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
             confirmModal.showModal({
                 component: StartingWorkArrangementModal,
@@ -212,8 +210,6 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
 
     const isHomeAndOfficeSelected = selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
 
-    // Sits right below the home and office option, mirroring the fixed-distance input above, because the work
-    // arrangement only means anything for that method.
     const workArrangementFooter = (
         <MenuItemWithTopDescription
             shouldShowRightIcon
