@@ -5,9 +5,9 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {Dimensions} from '@src/types/utils/Layout';
 
 import type {ComponentRef, RefObject} from 'react';
+import type {View} from 'react-native';
 
 import {useCallback} from 'react';
-import type {View} from 'react-native';
 
 import useResponsiveLayout from './useResponsiveLayout';
 
