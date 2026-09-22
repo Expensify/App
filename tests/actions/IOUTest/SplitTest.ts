@@ -10727,7 +10727,6 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDM
         transactionViolations: {},
         policyRecentlyUsedCurrencies: [],
         quickAction: undefined,
-        betas: [CONST.BETAS.ALL],
         allPolicyTags: undefined,
         personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         transactionReport: reports.transactionReport,
@@ -10739,6 +10738,7 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDM
         formatPhoneNumber,
         getCurrencySymbol: getCurrencySymbolLocal,
         rules: undefined,
+        isVendorMatchingBetaEnabled: false,
     };
 
     return {expenseReport, iouAction, params};
