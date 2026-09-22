@@ -1,6 +1,6 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -128,7 +128,7 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                 shouldEnableMaxHeight
                 testID={config.testID}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={config.getHeaderTitle(providerName)}
                     onBackButtonPress={() => Navigation.goBack()}
                 />

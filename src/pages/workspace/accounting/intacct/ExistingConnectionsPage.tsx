@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -55,9 +55,8 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             shouldShowOfflineIndicatorInWideScreen
             testID="ExistingConnectionsPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>

@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -116,11 +116,12 @@ function CopyPolicySettingsUpgradePage() {
                 shouldEnableMaxHeight
                 testID={CopyPolicySettingsUpgradePage.displayName}
             >
-                <HeaderWithBackButton
-                    title={translate('common.upgrade')}
-                    shouldShowBackButton={!showSuccess}
-                    onBackButtonPress={() => Navigation.goBack(sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID) : undefined)}
-                />
+                <Header>
+                    {!showSuccess && (
+                        <Header.BackButton onPress={() => Navigation.goBack(sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID) : undefined)} />
+                    )}
+                    <Header.Title title={translate('common.upgrade')} />
+                </Header>
                 {showSuccess ? (
                     <UpgradeConfirmation
                         policyName={upgradedWorkspacesName}

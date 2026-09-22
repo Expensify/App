@@ -1,5 +1,5 @@
 import Checkbox from '@components/Checkbox';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -363,7 +363,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 shouldEnableMaxHeight
                 testID={CopyPolicySettingsSelectFeaturesPage.displayName}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.copyPolicySettings.title')}
                     onBackButtonPress={() => Navigation.goBack(sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID) : undefined)}
                 />

@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -93,10 +93,9 @@ function AccountingSetupWebViewPage({uri, testID, shouldAppendShortLivedAuthToke
             shouldEnableMaxHeight
             testID={testID}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.accounting.title')}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
-                shouldDisplayHelpButton={false}
             />
             <FullPageOfflineBlockingView>
                 {webViewUri ? (

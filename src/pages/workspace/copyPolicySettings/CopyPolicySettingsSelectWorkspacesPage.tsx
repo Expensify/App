@@ -1,6 +1,6 @@
 import PolicyAvatar from '@components/Avatar/connected/PolicyAvatar';
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -167,7 +167,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                 shouldEnableMaxHeight
                 testID={CopyPolicySettingsSelectWorkspacesPage.displayName}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.copyPolicySettings.title')}
                     onBackButtonPress={Navigation.goBack}
                 />

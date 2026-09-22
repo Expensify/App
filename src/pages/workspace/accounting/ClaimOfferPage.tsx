@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -152,7 +152,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                 shouldEnableMaxHeight
                 testID={ClaimOfferPage.displayName}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={config.headerTitle}
                     onBackButtonPress={() => Navigation.goBack()}
                 />

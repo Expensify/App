@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,9 +54,8 @@ function CertiniaExistingConnectionsPage({route}: CertiniaExistingConnectionsPag
             shouldShowOfflineIndicatorInWideScreen
             testID="CertiniaExistingConnectionsPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.CERTINIA)}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>

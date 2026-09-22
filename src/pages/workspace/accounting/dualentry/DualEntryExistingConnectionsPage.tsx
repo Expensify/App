@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -55,9 +55,8 @@ function DualEntryExistingConnectionsPage({route}: DualEntryExistingConnectionsP
             shouldShowOfflineIndicatorInWideScreen
             testID="DualEntryExistingConnectionsPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>

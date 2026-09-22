@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 
@@ -54,7 +54,7 @@ function HRFinalApproverPageBase({policyID, config}: HRFinalApproverPageBaseProp
                 testID={config.testID}
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={config.getHeaderTitle(providerName)}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_HR.getRoute(policyID))}
                 />
