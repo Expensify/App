@@ -9,7 +9,7 @@ import type {Part} from './actions/Policy/CopyPolicySettings';
 
 import {isAuthenticationError} from './actions/connections';
 import {PART_TO_POLICY_FEATURE} from './actions/Policy/CopyPolicySettings';
-import {canPolicyAccessFeature, isCollectPolicy, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
+import {canPolicyAccessFeature, isCollectPolicy, isInvoiceFieldsEnabled, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -316,7 +316,8 @@ function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | unde
     if (collectTargets.length === 0) {
         return [];
     }
-    const hasInvoiceFields = !!sourcePolicy?.areInvoiceFieldsEnabled || Object.values(sourcePolicy?.fieldList ?? {}).some((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
+    const hasInvoiceFields =
+        isInvoiceFieldsEnabled(sourcePolicy ?? undefined) || Object.values(sourcePolicy?.fieldList ?? {}).some((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE);
     return selectedParts.filter((part) => {
         const featureName = part === 'invoices' && hasInvoiceFields ? CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED : PART_TO_POLICY_FEATURE[part];
         if (!featureName) {

@@ -365,6 +365,7 @@ export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrenc
 export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
 export type {default as UpdateQuickbooksDesktopGenericTypeParams} from './UpdateQuickbooksDesktopGenericTypeParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
+export type {default as UpdatePolicyConnectionConfigurationParams} from './UpdatePolicyConnectionConfigurationParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';

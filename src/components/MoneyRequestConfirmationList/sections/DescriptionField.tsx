@@ -1,7 +1,6 @@
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
-import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
 
@@ -30,7 +29,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
-import {categoryStateSelector, descriptionStateSelector} from './selectors';
+import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
@@ -50,12 +49,6 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const descriptionState = useTransactionSelector(transactionID, descriptionStateSelector);
-    const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
-    const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
-
-    // A category can carry a hint telling the user what to write in the description, so show it under the input once
-    // that category is selected, the same way the dedicated description step does.
-    const descriptionHint = categoryState?.category ? (policyCategories?.[categoryState.category]?.commentHint ?? '') : '';
 
     // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
     // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
@@ -123,8 +116,6 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     type="markdown"
                                     excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
-                                    hint={descriptionHint}
-                                    shouldRenderHintAsHTML={!!descriptionHint}
                                 />
                             </View>
                         ) : (

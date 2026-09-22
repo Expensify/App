@@ -9,7 +9,7 @@ import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {format} from '@libs/NumberFormatUtils';
-import {getTextFromHtml} from '@libs/ReportActionsUtils';
+import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -189,6 +189,7 @@ export default {
         currentUserAccountID,
         currentUserLogin,
         derivedMovedFromReportName,
+        formatPhoneNumber,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
@@ -202,6 +203,7 @@ export default {
             currentUserAccountID,
             currentUserLogin,
             movedFromReportName: derivedMovedFromReportName,
+            formatPhoneNumber,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);
