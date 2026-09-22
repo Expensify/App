@@ -14815,7 +14815,6 @@ export {
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,
-    isReportExcludedForHeldExpenses,
     isReportManuallyReimbursed,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
