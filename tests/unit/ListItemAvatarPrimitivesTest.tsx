@@ -29,7 +29,7 @@ const mockAvatarTooltipsProvider = jest.mocked(AvatarTooltipsProvider);
 
 const renderWithContext = (children: ReactNode, shouldShowTooltip = true) =>
     render(
-        <ListItemContext.Provider value={{shouldShowTooltip, isFocusVisible: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
+        <ListItemContext.Provider value={{shouldShowTooltip, isFocused: false, isFocusVisible: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
             {children}
         </ListItemContext.Provider>,
     );

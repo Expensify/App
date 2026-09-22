@@ -50,6 +50,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
@@ -3783,6 +3784,96 @@ describe('SearchUIUtils', () => {
                     },
                 ]),
             );
+        });
+
+        it('should not carry the group limit into the category drill-down query', () => {
+            // Given a category-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:category limit:10');
+            if (!parsedQuery) {
+                throw new Error('Failed to parse category-grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the category sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByCategory.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionCategoryGroupListItemType,
+            );
+
+            // Then the per-group query drops the limit along with the grouping, so expanding a group
+            // shows every transaction in it instead of capping them at the group limit
+            const categorySection = sections.at(0);
+            if (!categorySection) {
+                throw new Error('Expected a category group section');
+            }
+            expect(categorySection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
+        // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are
+        // covered together: a regression that reintroduced `limit` in that one builder would break all five.
+        it.each([
+            [CONST.SEARCH.GROUP_BY.DAY, searchResultsGroupByDay, SearchUIUtils.isTransactionDayGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.WEEK, searchResultsGroupByWeek, SearchUIUtils.isTransactionWeekGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.MONTH, searchResultsGroupByMonth, SearchUIUtils.isTransactionMonthGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.QUARTER, searchResultsGroupByQuarter, SearchUIUtils.isTransactionQuarterGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.YEAR, searchResultsGroupByYear, SearchUIUtils.isTransactionYearGroupListItemType],
+        ] as const)('should not carry the group limit into the %s drill-down query', (groupBy, groupSearchResults, isExpectedGroupType) => {
+            // Given a date-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${groupBy} limit:10`);
+            if (!parsedQuery) {
+                throw new Error(`Failed to parse ${groupBy}-grouped search query`);
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the date-range sections are built
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: groupSearchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                groupBy,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+                queryJSON: {...parsedQuery},
+            });
+
+            // Then the per-group query drops the limit along with the grouping, so expanding a date group
+            // shows every transaction in the range instead of capping them at the group limit
+            const dateSection = sections.at(0);
+            if (!dateSection || !isExpectedGroupType(dateSection)) {
+                throw new Error(`Expected a ${groupBy} group section`);
+            }
+            expect(dateSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+
+            // And the date-range filter that defines the group is still present, so dropping `limit` did not
+            // widen the drill-down beyond the bar the user clicked
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date>=');
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date<=');
         });
 
         it('should match a day group using created when modifiedCreated is empty', () => {
@@ -11196,6 +11287,25 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test('Should show the vendor column on Search only when picked, and in the report view when an expense has a vendor assigned', () => {
+            const transactionWithoutVendor = createRandomTransaction(1);
+            const transactionWithVendor = {...createRandomTransaction(2), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).not.toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: pickedColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE})).toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+            expect(
+                SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithoutVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
+            ).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+            expect(
+                SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE, isExpenseReportView: true}),
+            ).toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        });
+
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -14070,6 +14180,12 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+    });
+
+    describe('vendor column label', () => {
+        test('Should label the vendor column as Vendor', () => {
+            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
         });
     });
 

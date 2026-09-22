@@ -1,5 +1,5 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';
@@ -17,6 +17,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {TaskListItemProps, TaskListItemType} from './types';
 
@@ -73,26 +74,20 @@ function TaskListItem<TItem extends ListItem>({
     const fsClass = FS.getChatFSClass(parentReport);
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
             pressableStyle={listItemPressableStyle}
-            wrapperStyle={listItemWrapperStyle}
-            containerStyle={!isLargeScreenWidth && [styles.mb2]}
+            containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[
-                styles.mh5,
-                StyleUtils.getSearchRowBackgroundStyle(isSelected),
-                !isLargeScreenWidth && styles.br2,
-                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-            ]}
+            pressableWrapperStyle={pressableWrapperStyle}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow

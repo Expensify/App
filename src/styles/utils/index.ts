@@ -61,6 +61,7 @@ import splitPercentageInputStyles from './splitPercentageInputStyles';
 
 type GetReportTableColumnStylesParams = {
     isDateColumnWide?: boolean;
+    isDateColumnCreated?: boolean;
     isAmountColumnWide?: boolean;
     isTaxAmountColumnWide?: boolean;
     isSubmittedColumnWide?: boolean;
@@ -1124,7 +1125,7 @@ function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: 'rotate(180deg)'};
+        return {transform: [{rotate: '180deg'}]};
     }
 
     return {};
@@ -1985,6 +1986,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isPostedColumnWide,
             isExportedColumnWide,
             isDateColumnWide,
+            isDateColumnCreated,
             isTaxAmountColumnWide,
             isAmountColumnWide,
             shouldRemoveTotalColumnFlex,
@@ -2043,11 +2045,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
                 break;
-            case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.DATE: {
+                const normalDateWidth = isDateColumnCreated ? variables.w80 : variables.w62;
                 columnWidth = {
-                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62),
+                    ...getWidthStyle(isDateColumnWide ? variables.w102 : normalDateWidth),
                 };
                 break;
+            }
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
@@ -2151,6 +2155,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:

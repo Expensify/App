@@ -1,7 +1,7 @@
 ---
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands]
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands, track tax, tax reclaimable on]
 internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, does not cover creating distance expenses.
 ---
 
@@ -53,9 +53,9 @@ To enable **Track tax** for distance rates:
 3. Select **Settings**.
 4. Enable **Track tax**
 
-Once **Track tax** is enabled, you can assign a tax rate and tax reclaimable amount to an existing distance rate. The selected tax rate is automatically applied when the distance rate is used. 
+Once **Track tax** is enabled, you can set a **Tax rate** and a **Tax reclaimable on** amount on an existing distance rate. The selected tax rate is automatically applied when the distance rate is used. 
 
-**Note:** You can't assign a tax rate when creating a distance rate. Create the distance rate first, then edit it to configure the tax rate and tax reclaimable amount.
+**Note:** You can't assign a tax rate when creating a distance rate. Create the distance rate first, then edit it to set **Tax rate** and **Tax reclaimable on**.
 
 ## How to change a distance rate, effective dates, or tax rate
 
@@ -68,7 +68,7 @@ Once **Track tax** is enabled, you can assign a tax rate and tax reclaimable amo
    - **Start date**
    - **End date**
    - **Tax rate** (if enabled)
-   - **Tax reclaimable** (if enabled)
+   - **Tax reclaimable on** (if enabled)
 5. Select **Save**.
 
 ---
@@ -141,11 +141,15 @@ Yes. Disabled distance rates remain in the workspace but cannot be selected on n
 
 ## Can I apply taxes to distance rates?
 
-Yes. **Taxes** must be enabled on the workspace, and **Track tax** must be enabled for **Distance rates**. You can then edit an existing distance rate to assign a tax rate and tax reclaimable amount. The selected tax rate is automatically applied when the distance rate is used.
+Yes. **Taxes** must be enabled on the workspace, and **Track tax** must be enabled for **Distance rates**. You can then edit an existing distance rate to set a **Tax rate** and a **Tax reclaimable on** amount. The selected tax rate is automatically applied when the distance rate is used.
 
-## What does Tax reclaimable mean for a distance rate?
+## What does Tax reclaimable on mean for a distance rate?
 
-**Tax reclaimable** represents the portion of the distance rate that can be reclaimed as tax. It is entered as a fixed monetary value for the distance rate.
+**Tax reclaimable on** is the portion of the distance rate that can be reclaimed as tax. You enter it as a monetary amount in the workspace currency, and Expensify stores it as a percentage of the distance rate. For example, entering 7.00 on a 10.00 rate stores 70%.
+
+## Where can I see when someone changed the Tax reclaimable on amount?
+
+Every change to a distance rate is recorded in the workspace **#admins** room. Because the amount is stored as a percentage of the rate, the message reports the new and previous values as percentages, such as changed the tax reclaimable portion on the distance rate "Standard mileage" to "70%" (previously "50%").
 
 ## What happens if I delete a distance rate?
 
