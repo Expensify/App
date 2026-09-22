@@ -38,7 +38,7 @@ jest.mock('@components/MoneyRequestConfirmationFields/context', () => ({
 
 jest.mock('@components/NumberWithSymbolForm', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    return ReactModule.forwardRef((props: NumberWithSymbolFormProps, _ref: React.ForwardedRef<unknown>) => {
+    return ReactModule.forwardRef((props: NumberWithSymbolFormProps) => {
         mockNumberWithSymbolFormProps = props;
         return null;
     });
@@ -111,7 +111,10 @@ describe('AmountField', () => {
 
         act(() => mockNumberWithSymbolFormProps?.onInputChange?.('-'));
         act(() => mockNumberWithSymbolFormProps?.onInputChange?.('-5'));
-        mockTransactionSlice!.isAmountSet = true;
+        if (!mockTransactionSlice) {
+            throw new Error('Expected a transaction slice');
+        }
+        mockTransactionSlice.isAmountSet = true;
         act(() => mockNumberWithSymbolFormProps?.onInputChange?.('-'));
 
         expect(mockOnSignDirtyChange).toHaveBeenNthCalledWith(1, true);
