@@ -22,7 +22,7 @@ Only **Workspace Admins** can enable Expensify Travel for a workspace.
 
 Toggling on **Travel** adds a **Travel** item to the workspace left menu, but it does not finish setting up Expensify Travel. Complete the setup steps below before your members can book travel.
 
-## How to finish Expensify Travel setup so members can book travel
+## How set up Expensify Travel 
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your workspace name to access the settings for that workspace.
@@ -33,7 +33,7 @@ Toggling on **Travel** adds a **Travel** item to the workspace left menu, but it
 
 Only **Workspace Admins** can complete these steps. Members are not asked for their legal name when they book a trip — Expensify collects it during this setup flow instead.
 
-## What happens after enabling Expensify Travel
+## What happens after setting up Expensify Travel
 
 Once Expensify Travel setup is complete: 
 
