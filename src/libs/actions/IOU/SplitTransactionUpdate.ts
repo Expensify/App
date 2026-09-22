@@ -1997,8 +1997,9 @@ function updateSplitTransactions({
         }
     }
 
-    // optimisticData is applied synchronously, re-rendering the destination screen mid-transition.
-    // Defer the write until the transition ends, unless there is none to wait on.
+    // Saving from the split-expenses flow also navigates to the destination screen. A plain API.write would apply
+    // optimisticData right away and re-render that screen mid-transition, so writeSplit holds the write until the
+    // navigation ends. Callers outside that flow have no such navigation to wait on, so they write immediately.
     const writeSplit = <TCommand extends WriteCommand>(command: TCommand, parameters: ApiRequestCommandParameters[TCommand]) => {
         if (!isFromSplitExpensesFlow) {
             apiWrite(command, parameters, onyxData);

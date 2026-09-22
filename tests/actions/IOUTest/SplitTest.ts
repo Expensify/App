@@ -10591,12 +10591,17 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDM
  * `@libs/API` re-declares `writeWhenReady` rather than re-exporting it, and its wrapper always forwards the
  * optional 5th argument. So the arity the mock records is the wrapper's, not the call site's, and asserting
  * with `toHaveBeenCalledWith` breaks whenever that wrapper's signature grows. Assert the arguments this flow
- * actually chooses - the command and the barrier - and ignore the rest.
+ * actually chooses - the command and the barrier - and ignore the rest. The barrier must be the exact one
+ * `createTransitionBarrier('navigation')` returned, not just any function.
  */
 function expectDeferredWriteFor(command: WriteCommand) {
     const deferredCall = jest.mocked(writeWhenReady).mock.calls.find(([calledCommand]) => calledCommand === command);
     expect(deferredCall).toBeDefined();
-    expect(deferredCall?.at(3)).toEqual(expect.any(Function));
+
+    const barrierFactory = jest.mocked(createTransitionBarrier).mock;
+    const navigationBarrierIndex = barrierFactory.calls.findIndex(([waitFor]) => waitFor === 'navigation');
+    expect(navigationBarrierIndex).not.toBe(-1);
+    expect(deferredCall?.at(3)).toBe(barrierFactory.results.at(navigationBarrierIndex)?.value);
 }
 
 describe('split save deferred write', () => {
@@ -10615,23 +10620,26 @@ describe('split save deferred write', () => {
         // Then the write goes through writeWhenReady gated on a screen transition specifically, so its
         // optimistic data does not land while the press is still trying to paint, and a stray modal or
         // keyboard blip cannot release it early
-        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
         expectDeferredWriteFor(WRITE_COMMANDS.SPLIT_TRANSACTION);
     });
 
     it('navigates back to the selfDM before deferring the write when Search is not topmost', async () => {
-        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+        const {dismissModal} = jest.requireMock<{dismissModal: jest.Mock}>('@src/libs/Navigation/Navigation');
 
         // Given a split whose transaction thread is a selfDM, the one shape that reaches the navigate-first branch
         const {params} = await buildSplitFlowParams({asSelfDMThread: true});
 
         // When it is saved while Search is not the topmost full screen route
         updateSplitTransactionsFromSplitExpensesFlow(params);
+
+        // Then nothing is written in the same frame as the save
+        expect(writeWhenReady).not.toHaveBeenCalled();
         await waitForBatchedUpdates();
 
-        // Then the flow navigates back to the selfDM first, so the transaction thread is off screen before the
+        // And the flow navigates back to the selfDM first, so the transaction thread is off screen before the
         // data changes under it. The write is still deferred, it just happens after that navigation.
-        expect(Navigation.dismissModal).toHaveBeenCalled();
+        expect(dismissModal).toHaveBeenCalled();
+        expect(dismissModal.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(writeWhenReady).mock.invocationCallOrder.at(0) ?? 0);
         expectDeferredWriteFor(WRITE_COMMANDS.SPLIT_TRANSACTION);
     });
 
@@ -10648,7 +10656,6 @@ describe('split save deferred write', () => {
 
         // Then the navigate-first branch is skipped and the write goes through the barrier instead
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
-        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
         expectDeferredWriteFor(WRITE_COMMANDS.SPLIT_TRANSACTION);
     });
 
@@ -10666,7 +10673,6 @@ describe('split save deferred write', () => {
         await waitForBatchedUpdates();
 
         // Then REVERT_SPLIT_TRANSACTION goes through the same fork as the creation path
-        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
         expectDeferredWriteFor(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION);
     });
 
