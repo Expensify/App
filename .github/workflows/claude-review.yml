@@ -81,11 +81,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json files --jq '.files[].path' > changed-files.txt
-          if grep -q '^src/' changed-files.txt; then
+          # gh pr view --json files is a GraphQL query capped at 100 files with no pagination,
+          # so a large PR would silently lose the paths that decide whether a review runs.
+          gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --jq '.[].filename' > "$RUNNER_TEMP/changed-files.txt"
+          if grep -q '^src/' "$RUNNER_TEMP/changed-files.txt"; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           fi
-          if grep -qE '^docs/.*\.(md|csv)$' changed-files.txt; then
+          if grep -qE '^docs/.*\.(md|csv)$' "$RUNNER_TEMP/changed-files.txt"; then
             echo "docs=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Mark review as in progress
