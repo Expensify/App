@@ -608,6 +608,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                         : [
                               new CompressionPlugin<BrotliOptions>({
                                   algorithm: 'brotliCompress',
+                                  filename: '[path][base].br',
                                   test: /\.(?:js|css|html|svg|wasm|ttf)$/,
                                   compressionOptions: {params: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY}},
                                   // Every matching file must get a twin: the CDN rewrite appends `.br` blindly, so a skipped file is a 404.
