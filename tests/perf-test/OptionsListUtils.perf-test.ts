@@ -77,8 +77,6 @@ const getMockedPersonalDetails = (length = 500) =>
 const mockedReportsMap = getMockedReports(REPORTS_COUNT) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 const mockedPersonalDetailsMap = getMockedPersonalDetails(PERSONAL_DETAILS_LIST_COUNT);
 
-const mockedBetas = Object.values(CONST.BETAS);
-
 const allPolicies = {
     [`${ONYXKEYS.COLLECTION.POLICY}policy1`]: {
         id: 'policy1',
@@ -122,7 +120,7 @@ const options = createFilteredOptionList(
 const ValidOptionsConfig = {
     dateFnsLocale: undefined,
     convertToDisplayString,
-    betas: mockedBetas,
+    isDefaultRoomsBetaEnabled: true,
     includeRecentReports: true,
     includeTasks: true,
     includeThreads: true,
@@ -161,7 +159,7 @@ describe('OptionsListUtils', () => {
                 convertToDisplayString,
                 translate: translateLocal,
                 options,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 draftComments: {},
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
@@ -254,7 +252,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
-                    betas: mockedBetas,
+                    isDefaultRoomsBetaEnabled: true,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
                     forcePolicyNamePreview: true,
@@ -477,7 +475,7 @@ describe('OptionsListUtils', () => {
                 convertToDisplayString,
                 translate: translateLocal,
                 options: optionLists,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 draftComments: {},
                 loginList,
                 currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,

@@ -104,6 +104,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
                     size={CONST.BUTTON_SIZE.LARGE}
+                    testID="upgrade-button"
                 >
                     <Button.Text>{translate('common.upgrade')}</Button.Text>
                 </Button>

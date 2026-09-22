@@ -42,6 +42,7 @@ import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, Transac
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -278,6 +279,13 @@ function GroupHeader({
                 return (
                     <TagListItemHeader
                         tag={groupItem}
+                        {...commonProps}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.DAY:
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
                         {...commonProps}
                     />
                 );
