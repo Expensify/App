@@ -1290,44 +1290,59 @@ describe('useSearchBulkActions - export options', () => {
         }
 
         it('offers the Reconciliation template, and only that template, for a card group selection', async () => {
+            // Given a user who qualifies for the Reconciliation template, offered alongside the templates that stay hidden for a group selection
             mockTemplatesIncludingReconciliation();
+            // Given a ticked card group row, because selecting the card group rather than the individual expenses is how an admin reconciles a statement
             selectCardGroup();
 
+            // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
+            // Then Reconciliation is the one template still offered, because the selected card groups can be expressed as a `cardID:` filter while the other templates have no way to describe a group
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
             });
         });
 
         it('offers the Reconciliation template for a card group whose children were never loaded', async () => {
+            // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+            // Given a card group ticked before any of its children were loaded, so the selection holds the group key on its own instead of stamped children
             selectEmptyCardGroup();
 
+            // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
+            // Then the template is offered just the same, because both shapes a card group selection can take have to reach the carve-out or the option would come and go with how far the list happened to be scrolled
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.reconciliationAllExpenses']);
             });
         });
 
         it('keeps every template hidden when the group selection is grouped by something other than card', async () => {
+            // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+            // Given a ticked group row
             selectCardGroup();
 
+            // When the export menu is built for a search grouped by category instead of by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
+            // Then no template is offered at all, because the carve-out is limited to card groups and every other grouping keeps the existing rule that a group cannot be scoped
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
             });
         });
 
         it('hides the Reconciliation template for a card group selection when the user is not a card-enabled admin', async () => {
-            // getExportTemplates leaves the template out entirely for a user who does not qualify for it.
+            // Given a user who does not qualify for the template, so getExportTemplates leaves it out entirely
+            // Given a ticked card group row
             selectCardGroup();
 
+            // When the export menu is built for a search grouped by card
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
+            // Then only Current view is offered, because the carve-out narrows the templates the user was already entitled to and must never hand out one they were not
             await waitFor(() => {
                 expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView']);
             });
@@ -1337,12 +1352,14 @@ describe('useSearchBulkActions - export options', () => {
         // children selected, looking for the group prefix alone misses the group and exports the loaded IDs instead
         // of the `cardID:` filter, so a group with paginated children would export incompletely.
         it('scopes the Reconciliation export to the selected card groups instead of a transaction ID list', async () => {
+            // Given a user who qualifies for the Reconciliation template
             mockTemplatesIncludingReconciliation();
+            // Given a ticked card group
             selectCardGroup();
-            // An expense ticked on its own, alongside the card group, so it is not covered by the group's filter.
+            // Given one expense ticked on its own alongside it, because that expense belongs to another card and so is not covered by the group's filter
             mockSelectedTransactions.tx2 = makeSelectedTransaction();
             const searchResults = makeSearchResults([]);
-            // The card group row as it arrives in the search snapshot, which the group's filter entry is derived from.
+            // Given the card group row as it arrives in the search snapshot, which the group's filter entry is derived from
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
             jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
@@ -1353,6 +1370,7 @@ describe('useSearchBulkActions - export options', () => {
                 expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')).toBeDefined();
             });
 
+            // When the user runs the Reconciliation export on that selection
             getExportOptionByText(result.current.headerButtonsOptions, 'export.reconciliationAllExpenses')?.onSelected?.();
 
             await waitFor(() => {
@@ -1360,9 +1378,11 @@ describe('useSearchBulkActions - export options', () => {
             });
 
             const [parameters] = jest.mocked(queueExportSearchWithTemplate).mock.calls.at(-1) ?? [];
+            // Then the chosen template is the one that runs
             expect(parameters?.templateName).toBe(CONST.REPORT.EXPORT_OPTIONS.RECONCILIATION_ALL_EXPENSES);
-            // The card groups travel as a `cardID:` filter on the query, so neither the group row nor the children it
-            // selected are sent as IDs. The expense ticked on its own is kept, as "Current view" keeps it.
+            // Then the card groups travel as a `cardID:` filter on the query rather than as IDs, so the export covers
+            // every expense on the card and not only the rows that happened to be loaded, while the expense ticked on
+            // its own is still sent as an ID so it is not dropped, matching what "Current view" does.
             expect(parameters?.reportIDList).toEqual([]);
             expect(parameters?.transactionIDList).toEqual(['tx2']);
             expect(parameters?.jsonQuery).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
@@ -1372,9 +1392,10 @@ describe('useSearchBulkActions - export options', () => {
         // Current view to the same expectation is what stops the two paths drifting apart again: the gate that shows
         // the Reconciliation option and the gate that scopes it have to agree, or a card group exports incompletely.
         it('scopes the Current view export of a card group the same way as the Reconciliation template', async () => {
+            // Given the same selection the Reconciliation export was checked against, so the two paths are compared on identical input
             mockTemplatesIncludingReconciliation();
             selectCardGroup();
-            // An expense ticked on its own, alongside the card group, so it is not covered by the group's filter.
+            // Given one expense ticked on its own alongside the group, because that expense belongs to another card and so is not covered by the group's filter
             mockSelectedTransactions.tx2 = makeSelectedTransaction();
             const searchResults = makeSearchResults([]);
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
@@ -1387,6 +1408,7 @@ describe('useSearchBulkActions - export options', () => {
                 expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
             });
 
+            // When the user runs the Current view export instead of the template
             getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
 
             await waitFor(() => {
@@ -1394,10 +1416,12 @@ describe('useSearchBulkActions - export options', () => {
             });
 
             const {isGroupExport, reportIDList, transactionIDList, query} = getLastCSVExportParameters();
+            // Then it covers exactly the same rows, because an admin who exports the same selection twice must get the
+            // same scope back, and the two paths drifting apart is what made a card group export incompletely.
             expect(isGroupExport).toBe(true);
             expect(reportIDList).toEqual([]);
             expect(transactionIDList).toEqual(['tx2']);
-            // The selected card groups reach the backend as a `cardID:` filter on the query rather than as IDs.
+            // Then the selected card groups reach the backend as a `cardID:` filter on the query rather than as IDs
             expect(JSON.stringify(query)).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
         });
     });
