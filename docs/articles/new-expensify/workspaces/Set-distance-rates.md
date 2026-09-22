@@ -57,6 +57,36 @@ Once **Track tax** is enabled, you can set a **Tax rate** and a **Tax reclaimabl
 
 **Note:** You can't assign a tax rate when creating a distance rate. Create the distance rate first, then edit it to set **Tax rate** and **Tax reclaimable on**.
 
+---
+
+## How to exclude commutes from distance expenses
+
+On Control workspaces, you can exclude a portion of each mileage claim that represents ordinary commuting, so members are reimbursed only for the eligible portion of a route.
+
+To configure how commutes are excluded:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **Settings**.
+4. Select **Exclude commutes**.
+5. Choose **Exclude a fixed distance per claim**.
+6. Enter the fixed distance to subtract from each claim.
+7. Select **Save**.
+
+---
+
+## How the Exclude commutes setting is applied
+
+When **Exclude a fixed distance per claim** is set: 
+
+- Members can create distance expenses using **Map** or **GPS**. **Manual** and **Odometer** entry are hidden.
+- The fixed distance exclusion applies to all members of the workspace, and the configured distance is subtracted from each distance expense.
+- On each distance expense, members see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
+- If the excluded distance is greater than the trip distance, the reimbursable distance is set to zero.
+- Changing the exclusion method or amount only affects future expenses. Existing expenses are not recalculated.
+
+---
+
 ## How to change a distance rate, effective dates, or tax rate
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.

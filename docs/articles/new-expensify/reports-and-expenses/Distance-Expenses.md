@@ -1,13 +1,15 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, exclude commutes, commuter exclusion, excluded distance, edit stop, trim trip, edit GPS trip, shorten route]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
 # Distance Expenses
 
 Expensify offers four ways to create a Distance expense: **GPS tracking** on mobile, **map-based routes** using start and end locations, **manual entry** by typing in the distance, or **odometer readings** using start and end values from your vehicle. This guide explains each method and how the reimbursement rate is determined.
+
+**Note:** If your Workspace Admin has enabled a commute exclusion on the workspace, only the **Map** and **GPS** methods are available. See [How commute exclusions affect Distance expenses](#how-commute-exclusions-affect-distance-expenses) below.
 
 ---
 
@@ -134,6 +136,18 @@ If you're creating a distance expense outside of a Workspace (e.g., in a DM chat
 
 ---
 
+## How the Exclude commutes setting affects Distance expenses
+
+If your workspace has **Exclude commutes** enabled, a portion of each distance expense may be excluded from reimbursement based on the workspace’s distance settings.
+
+When **Exclude commutes** is set to **Exclude a fixed distance per claim**: 
+- You can create distance expenses using **Map** or **GPS**. **Manual** and **Odometer** entry are unavailable.
+- A fixed distance, set by your Workspace Admin, is subtracted from each distance expense created on the workspace.
+- The fixed distance is subtracted separately from each distance expense, even if you create multiple expenses on the same day.
+- On each distance expense, you'll see a message confirming the portion that was removed, such as "removed 3.6 commute miles".
+
+---
+
 # FAQ
 
 ## Can I reuse recent locations?
@@ -170,6 +184,14 @@ If a Workspace has rates with effective dates and you manually select a rate tha
 When a Distance expense is moved to another Workspace, it keeps its original unit and rate.
 
 If the rate isn’t valid in the new Workspace, the expense will show a “Rate not valid for this workspace” violation. Selecting a valid rate will update the expense.
+
+## Why can't I enter distance manually or with my odometer?
+
+When your Workspace Admin has enabled a commute exclusion, only **Map** and **GPS** distance methods are available. Manual and odometer entry are hidden because they don't provide the route detail needed to calculate the excluded commute distance.
+
+## Does the commute exclusion combine my trips for the day?
+
+No. The fixed-distance exclusion is applied to each claim individually. Expensify does not add up multiple claims in the same day, identify your first or last trip, or carry unused excluded distance from one claim to another.
 
 ## Do I need to keep the mobile app open during GPS tracking?
 
