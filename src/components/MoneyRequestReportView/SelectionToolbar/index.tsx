@@ -2,6 +2,7 @@ import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
@@ -61,6 +62,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const {translate} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
+    const shouldShowBulkActionBar = useShouldShowReportBulkActionBar();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -279,13 +281,12 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     </View>
                 </OfflineWithFeedback>
             )}
-            {!shouldUseNarrowLayout && !!selectedTransactionsOptions.length && (
+            {shouldShowBulkActionBar && (
                 <SelectionBulkActionBar
                     chatReport={chatReport}
                     report={report}
                     selectedTransactionsOptions={selectedTransactionsOptions}
                     selectedTransactionIDs={selectedTransactionIDs}
-                    hasPayInSelectionMode={hasPayInSelectionMode}
                     onSelectionModePaymentSelect={onSelectionModePaymentSelect}
                     selectionModeKYCSuccess={selectionModeKYCSuccess}
                     onWorkspacePolicySelect={handleWorkspaceSelected}

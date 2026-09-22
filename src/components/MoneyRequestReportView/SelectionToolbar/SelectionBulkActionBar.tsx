@@ -23,7 +23,6 @@ type SelectionBulkActionBarProps = {
     report: OnyxEntry<Report>;
     selectedTransactionsOptions: Array<DropdownOption<string>>;
     selectedTransactionIDs: string[];
-    hasPayInSelectionMode: boolean;
     onSelectionModePaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 
     /** Callback for the end of the onContinue trigger on option selection */
@@ -41,13 +40,16 @@ type SelectionBulkActionBarProps = {
  *
  * The bar floats over the end of the list from a sibling that precedes it, so it is lifted above the list the way the
  * floating message counter is lifted above it from the other end.
+ *
+ * Whether the selection can be paid changes as rows are added to it, so the wall stays mounted either way rather than
+ * swapping the bar for a wrapped copy of itself. Remounting the bar would replay its entrance and throw away the
+ * widths its fitting pass has measured.
  */
 function SelectionBulkActionBar({
     chatReport,
     report,
     selectedTransactionsOptions,
     selectedTransactionIDs,
-    hasPayInSelectionMode,
     onSelectionModePaymentSelect,
     selectionModeKYCSuccess,
     onWorkspacePolicySelect,
@@ -56,17 +58,6 @@ function SelectionBulkActionBar({
 }: SelectionBulkActionBarProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-
-    if (!hasPayInSelectionMode) {
-        return (
-            <BulkActionBar
-                selectedCount={selectedTransactionIDs.length}
-                options={selectedTransactionsOptions}
-                onClearSelection={onClearSelection}
-                style={styles.zIndex10}
-            />
-        );
-    }
 
     return (
         <KYCWall
