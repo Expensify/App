@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -27,6 +28,7 @@ function RenewSubscription({endDate}: RenewSubscriptionProps) {
             subtitle={translate('homePage.timeSensitiveSection.renewSubscription.subtitle', {date: formatSubscriptionEndDate(endDate, dateFnsLocale)})}
             ctaText={translate('homePage.timeSensitiveSection.renewSubscription.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }
