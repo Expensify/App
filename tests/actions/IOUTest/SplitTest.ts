@@ -10788,13 +10788,12 @@ describe('split save deferred write', () => {
 
         // When it is saved while Search is not the topmost full screen route
         updateSplitTransactionsFromSplitExpensesFlow(params);
-
-        // Then nothing is written in the same frame as the save
-        expect(writeWhenReady).not.toHaveBeenCalled();
+        const writesInSaveFrame = jest.mocked(writeWhenReady).mock.calls.length;
         await waitForBatchedUpdates();
 
-        // And the flow navigates back to the selfDM first, so the transaction thread is off screen before the
-        // data changes under it. The write is still deferred, it just happens after that navigation.
+        // Then the flow navigates back to the selfDM first and only writes on a later frame, so the transaction
+        // thread is off screen before the data changes under it. The write is still deferred, just after that navigation.
+        expect(writesInSaveFrame).toBe(0);
         expect(dismissModal).toHaveBeenCalled();
         expect(dismissModal.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(writeWhenReady).mock.invocationCallOrder.at(0) ?? 0);
         expectDeferredWriteFor(WRITE_COMMANDS.SPLIT_TRANSACTION);
