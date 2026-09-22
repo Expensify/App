@@ -14,7 +14,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
-import type {PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
+import type {Policy, PrivatePersonalDetails, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -24,14 +24,21 @@ type HomeAddressRequiredContentProps = {
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
+// A commute is only measured from a member's home when the workspace excludes commutes by home and office and
+// its members are office-based, so any other configuration leaves nothing for the address to be used for.
+const needsHomeAddressSelector = (policy: OnyxEntry<Policy>) =>
+    policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !!policy?.commuterExclusions?.isOfficeWorkArrangement;
+
 function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
+    const [doesWorkspaceNeedHomeAddress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getOriginalMessage(action)?.policyID}`, {selector: needsHomeAddressSelector});
 
     // The prompt is resolved once the member saves a home address. Keep the CTA in sync with the local
     // address state so it disappears immediately after the optimistic save, even before the server
-    // stamps the action as resolved.
-    const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress;
+    // stamps the action as resolved. It is also spent once the workspace stops measuring commutes against
+    // the member's home, which leaves the admin nothing to ask them for.
+    const isResolved = !!getOriginalMessage(action)?.resolution || !!hasHomeAddress || !doesWorkspaceNeedHomeAddress;
 
     return (
         <ReportActionItemBasicMessage>
