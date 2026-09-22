@@ -73,7 +73,10 @@ describe('useOutstandingBalanceGuard', () => {
 
     describe('wouldBlockDeletion', () => {
         it('should be false when there is no amount owed', () => {
+            // Given an account that owes nothing, which is the normal case
             const ref = React.createRef<GuardHandle>();
+
+            // When the guard is asked about an account that owns one paid workspace
             render(
                 <TestGuardComponent
                     ref={ref}
@@ -81,14 +84,18 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // Then deletion is not flagged as blocked, so the caller shows its normal delete copy
             expect(ref.current?.wouldBlockDeletion).toBe(false);
         });
 
         it('should be false when amount owed is 0', async () => {
+            // Given an account whose balance NVP is present but settled, which reads differently from absent
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
             await waitForBatchedUpdates();
 
             const ref = React.createRef<GuardHandle>();
+
+            // When the guard is asked about that account
             render(
                 <TestGuardComponent
                     ref={ref}
@@ -96,14 +103,18 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // Then deletion is not blocked, because a settled balance is nothing to collect
             expect(ref.current?.wouldBlockDeletion).toBe(false);
         });
 
         it('should be true when amount owed > 0 and exactly 1 paid policy', async () => {
+            // Given an account that owes money
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
             const ref = React.createRef<GuardHandle>();
+
+            // When the workspace being deleted is the last paid one the account owns
             render(
                 <TestGuardComponent
                     ref={ref}
@@ -111,14 +122,18 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // Then deletion is blocked, because losing the last paid workspace would leave the debt uncollectable
             expect(ref.current?.wouldBlockDeletion).toBe(true);
         });
 
         it('should be false when amount owed > 0 but more than 1 paid policy', async () => {
+            // Given an account that owes money
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
             const ref = React.createRef<GuardHandle>();
+
+            // When another paid workspace would still be left behind after the deletion
             render(
                 <TestGuardComponent
                     ref={ref}
@@ -126,14 +141,18 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // Then deletion is allowed, because the account still has a subscription the balance can be settled on
             expect(ref.current?.wouldBlockDeletion).toBe(false);
         });
 
         it('should be false when amount owed > 0 but 0 paid policies', async () => {
+            // Given an account that owes money
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
             const ref = React.createRef<GuardHandle>();
+
+            // When the workspace being deleted is not a paid one at all
             render(
                 <TestGuardComponent
                     ref={ref}
@@ -141,12 +160,14 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // Then deletion is allowed, because this deletion is not what puts the balance out of reach
             expect(ref.current?.wouldBlockDeletion).toBe(false);
         });
     });
 
     describe('shouldBlockDeletion', () => {
         it('should return true and show the modal when deletion would be blocked', async () => {
+            // Given an account that owes money and is deleting its last paid workspace
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
@@ -158,16 +179,19 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // When the delete flow asks the guard whether to go ahead
             let blocked: boolean | undefined;
             act(() => {
                 blocked = ref.current?.shouldBlockDeletion();
             });
 
+            // Then it is told to stop, and the user is shown why rather than the deletion just failing silently
             expect(blocked).toBe(true);
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
 
         it('should return false and not show the modal when no amount owed', () => {
+            // Given an account that owes nothing
             const ref = React.createRef<GuardHandle>();
             render(
                 <TestGuardComponent
@@ -176,16 +200,19 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // When the delete flow asks the guard whether to go ahead
             let blocked: boolean | undefined;
             act(() => {
                 blocked = ref.current?.shouldBlockDeletion();
             });
 
+            // Then deletion proceeds with no interruption, because there is nothing to settle first
             expect(blocked).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
         it('should return false when multiple paid policies exist even with amount owed', async () => {
+            // Given an account that owes money but owns several paid workspaces
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
@@ -197,11 +224,13 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // When the delete flow asks the guard whether to go ahead
             let blocked: boolean | undefined;
             act(() => {
                 blocked = ref.current?.shouldBlockDeletion();
             });
 
+            // Then deletion proceeds uninterrupted, because the balance is still collectable afterwards
             expect(blocked).toBe(false);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
@@ -209,6 +238,7 @@ describe('useOutstandingBalanceGuard', () => {
 
     describe('modal interactions', () => {
         it('should navigate to subscription settings and notify the caller on confirm', async () => {
+            // Given a blocked deletion that has raised the outstanding-balance prompt
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
@@ -226,14 +256,18 @@ describe('useOutstandingBalanceGuard', () => {
                 ref.current?.shouldBlockDeletion();
             });
 
+            // When the user takes the prompt up on settling the balance
             resolveShowConfirmModal({action: MockModalActions.CONFIRM});
             await waitForBatchedUpdates();
 
+            // Then they land where they can pay, and the delete flow is told to close itself so it is not left open
+            // behind the subscription page
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.route);
             expect(onModalDismissed).toHaveBeenCalledTimes(1);
         });
 
         it('should notify the caller without navigating on cancel', async () => {
+            // Given a blocked deletion that has raised the outstanding-balance prompt
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
@@ -251,14 +285,17 @@ describe('useOutstandingBalanceGuard', () => {
                 ref.current?.shouldBlockDeletion();
             });
 
+            // When the user backs out instead
             resolveShowConfirmModal({action: MockModalActions.CLOSE});
             await waitForBatchedUpdates();
 
+            // Then they stay where they are, but the delete flow still closes, because both answers end the flow
             expect(Navigation.navigate).not.toHaveBeenCalled();
             expect(onModalDismissed).toHaveBeenCalledTimes(1);
         });
 
         it('should pass correct translation keys to the modal', async () => {
+            // Given an account whose last paid workspace cannot be deleted until the balance is settled
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await waitForBatchedUpdates();
 
@@ -270,10 +307,12 @@ describe('useOutstandingBalanceGuard', () => {
                 />,
             );
 
+            // When the guard blocks the deletion
             act(() => {
                 ref.current?.shouldBlockDeletion();
             });
 
+            // Then the prompt explains the balance and offers the subscription page, rather than a bare failure
             expect(getShowConfirmModalOption('title')).toBe('workspace.common.delete');
             expect(getShowConfirmModalOption('prompt')).toBe('workspace.common.outstandingBalanceWarning');
             expect(getShowConfirmModalOption('confirmText')).toBe('workspace.common.settleBalance');

@@ -17,6 +17,10 @@ let lastPendingID: string | undefined;
 // single answer the user gives.
 const pendingPromisesByID = new Map<string, Promise<ShowConfirmModalResult>>();
 
+// The resolver of each id'd promise, so an id-scoped close can answer that specific prompt rather than the one that
+// happened to be shown last.
+const pendingResolversByID = new Map<string, (result: ShowConfirmModalResult) => void>();
+
 const mockShowConfirmModal = jest.fn((options: ShowConfirmModalOptions) => {
     lastShowConfirmModalOptions = options;
 
@@ -32,20 +36,40 @@ const mockShowConfirmModal = jest.fn((options: ShowConfirmModalOptions) => {
     lastPendingID = id;
     if (id) {
         pendingPromisesByID.set(id, promise);
+        if (resolvePendingShowConfirmModal) {
+            pendingResolversByID.set(id, resolvePendingShowConfirmModal);
+        }
     }
     return promise;
 });
 
 const mockCloseModal = jest.fn();
 
+// Mirrors ModalProvider's id-scoped close: the entry is taken off the stack and its promise is resolved with CLOSE, so
+// the caller's own `.then` handler runs exactly as it would in the app.
+const mockCloseModalByID = jest.fn((id: string) => {
+    const resolvePending = pendingResolversByID.get(id);
+    if (!resolvePending) {
+        return;
+    }
+    pendingPromisesByID.delete(id);
+    pendingResolversByID.delete(id);
+    if (lastPendingID === id) {
+        lastPendingID = undefined;
+    }
+    resolvePending({action: MockModalActions.CLOSE});
+});
+
 /** Call in beforeEach to clear call history and any pending unresolved modal from a previous test. */
 function resetMockConfirmModal() {
     mockShowConfirmModal.mockClear();
     mockCloseModal.mockClear();
+    mockCloseModalByID.mockClear();
     lastShowConfirmModalOptions = undefined;
     resolvePendingShowConfirmModal = undefined;
     lastPendingID = undefined;
     pendingPromisesByID.clear();
+    pendingResolversByID.clear();
 }
 
 /** Type-safe read of an option passed to the most recent showConfirmModal(...) call. */
@@ -57,6 +81,7 @@ function getShowConfirmModalOption<K extends keyof ShowConfirmModalOptions>(key:
 function resolveShowConfirmModal(result: ShowConfirmModalResult = {action: MockModalActions.CONFIRM}) {
     if (lastPendingID) {
         pendingPromisesByID.delete(lastPendingID);
+        pendingResolversByID.delete(lastPendingID);
         lastPendingID = undefined;
     }
     resolvePendingShowConfirmModal?.(result);
@@ -65,7 +90,7 @@ function resolveShowConfirmModal(result: ShowConfirmModalResult = {action: MockM
 function createMockUseConfirmModalModule() {
     return {
         __esModule: true,
-        default: () => ({showConfirmModal: mockShowConfirmModal, closeModal: mockCloseModal}),
+        default: () => ({showConfirmModal: mockShowConfirmModal, closeModal: mockCloseModal, closeModalByID: mockCloseModalByID}),
     };
 }
 
@@ -82,6 +107,7 @@ export {
     createMockModalContextModule,
     mockShowConfirmModal,
     mockCloseModal,
+    mockCloseModalByID,
     getShowConfirmModalOption,
     resetMockConfirmModal,
     resolveShowConfirmModal,

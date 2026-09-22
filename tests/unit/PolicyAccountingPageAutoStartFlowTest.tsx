@@ -135,36 +135,39 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
     });
 
     it('should start the flow once when the effect re-runs before the cleared param has landed', async () => {
+        // Given the page opened by a route that asks for a connect flow, which starts it and asks for the param to be
+        // cleared so it cannot be acted on twice
         const {rerender} = render(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
         expect(Navigation.setParams).toHaveBeenCalled();
 
-        // A new policy object re-creates `startIntegrationFlow`, re-running the effect. `newConnectionName` is still
-        // set here because the setParams update has not landed yet, so only the guard stops a second flow start -
-        // which is what used to stack a second confirmation prompt.
+        // When anything re-creates `startIntegrationFlow` and re-runs the effect before that clear has landed, which a
+        // policy update does. This is the window the guard exists for: `newConnectionName` is still set here.
         rerender(<PolicyAccountingPageUnderTest policy={buildPolicy({name: 'Renamed workspace'})} />);
         await waitForBatchedUpdates();
 
+        // Then the flow is not started again, because a second start is what used to stack a second confirmation
+        // prompt the user had to dismiss twice
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
     });
 
     it('should start the flow again for a later round-trip that asks for the same integration', async () => {
+        // Given a connect flow that was started from the route param and then let the clear land, so nothing is
+        // pending any more
         const {rerender} = render(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
 
-        // Let the cleared param land, which is what re-arms the guard.
         landPendingParamsUpdate();
         rerender(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
 
-        // Asking for the same integration again has to be honoured rather than swallowed as a repeat of the run
-        // above, or the connect flow silently does nothing the second time round.
+        // When the user comes back later and asks for the very same integration again
         mockRouteParams = {
             newConnectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
             integrationToDisconnect: CONST.POLICY.CONNECTIONS.NAME.XERO,
@@ -173,6 +176,8 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
         rerender(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
+        // Then it is honoured rather than swallowed as a repeat of the first run, or the connect flow would silently
+        // do nothing the second time round
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(2);
     });
 });
