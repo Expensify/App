@@ -1,4 +1,4 @@
-import type HrSyncResult from '@libs/API/HrSyncResult';
+import type MergeSyncResult from '@libs/API/MergeSyncResult';
 
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -463,6 +463,13 @@ type TaxCode = {
  * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
 type QBOConnectionData = {
+    /** Custom dimensions available in the connected IES entity */
+    customDimensions?: Array<{
+        id: string;
+        label: string;
+        active: boolean;
+    }>;
+
     /** Country code */
     country: ValueOf<typeof CONST.COUNTRY>;
 
@@ -587,6 +594,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether Quickbooks Online classes should be imported */
     syncClasses: IntegrationEntityMap;
+
+    /** Import mappings keyed by the connected IES entity's custom dimension IDs */
+    syncCustomDimensions?: Record<string, typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG | typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE>;
 
     /** Whether Quickbooks Online customers should be imported */
     syncCustomers: IntegrationEntityMap;
@@ -3361,7 +3371,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoReportingOffset?: AutoReportingOffset;
 
         employeeList?: OnyxTypes.PolicyEmployeeList;
-        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+        /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
+        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
 
         /** The set reimburser for the policy */
         reimburser?: string;
@@ -3689,7 +3701,7 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 
     /** Optional result payload shown after a completed sync */
-    result?: HrSyncResult;
+    result?: MergeSyncResult;
 };
 
 /** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
