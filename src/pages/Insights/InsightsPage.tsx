@@ -58,7 +58,6 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 shouldDisplayHelpButton
             />
             <InsightsPageControls
-                shouldShowGroupBy
                 filters={filters}
                 onChange={setFilters}
             />

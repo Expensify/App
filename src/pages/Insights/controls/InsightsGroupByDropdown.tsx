@@ -25,7 +25,6 @@ type InsightsGroupByDropdownProps = {
     onChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-/** The headline chart's time bucket. Kept apart from the page controls so it can sit in the chart's own header once that exists. */
 function InsightsGroupByDropdown({groupBy, onChange}: InsightsGroupByDropdownProps) {
     const {translate} = useLocalize();
 

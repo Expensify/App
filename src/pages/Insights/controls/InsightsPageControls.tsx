@@ -121,23 +121,18 @@ type InsightsPageControlsProps = {
     filters: InsightsFilters;
 
     onChange: (update: Partial<InsightsFilters>) => void;
-
-    /* Whether the group-by control sits in this row. */
-    shouldShowGroupBy?: boolean;
 };
 
 /** The Insights page's controls: what every chart on the dashboard is narrowed by. */
-function InsightsPageControls({filters, onChange, shouldShowGroupBy = false}: InsightsPageControlsProps) {
+function InsightsPageControls({filters, onChange}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2, styles.ph5, styles.pb3]}>
-            {!!shouldShowGroupBy && (
-                <InsightsGroupByDropdown
-                    groupBy={filters.groupBy}
-                    onChange={(groupBy) => onChange({groupBy})}
-                />
-            )}
+            <InsightsGroupByDropdown
+                groupBy={filters.groupBy}
+                onChange={(groupBy) => onChange({groupBy})}
+            />
             <InsightsDateControl
                 value={filters.date}
                 onChange={(date) => onChange({date})}
