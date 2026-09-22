@@ -29,7 +29,7 @@ type WriteWhenReadyOptions = {
     /** Fires only after `write()` has been called and returned without throwing. A throwing handler is logged, not thrown. */
     onWriteStarted?: () => void;
 
-    /** Whether READs wait for this write. Defaults to `true`.*/
+    /** Whether READs wait for this write. Defaults to `true`. */
     shouldClaimReadGate?: boolean;
 };
 

@@ -182,6 +182,30 @@ describe('pendingSubmitWrite', () => {
             expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
         });
 
+        it('cancels the barrier registration when no write attached and none is coming', () => {
+            // Given a pending submit write whose barrier was registered ahead of time, with a cancel hook
+            const cancelBarrier = jest.fn();
+            const pendingWrite = trackPendingSubmitWriteForReport('report-A', () => Promise.resolve(), cancelBarrier);
+
+            // When the submit function bails without a write
+            pendingWrite.settleAfterSubmit(false);
+
+            // Then the registration is dropped rather than left waiting for a transition that gates nothing
+            expect(cancelBarrier).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps the barrier registration while a write is still coming', () => {
+            // Given a pending submit write with a cancel hook
+            const cancelBarrier = jest.fn();
+            const pendingWrite = trackPendingSubmitWriteForReport('report-A', () => Promise.resolve(), cancelBarrier);
+
+            // When the submit function returns with the write still coming (GPS lookup in flight)
+            pendingWrite.settleAfterSubmit(true);
+
+            // Then the registration survives - the write that arrives later still needs it
+            expect(cancelBarrier).not.toHaveBeenCalled();
+        });
+
         it('extends the safety timeout while a write is still coming', () => {
             jest.useFakeTimers();
             try {

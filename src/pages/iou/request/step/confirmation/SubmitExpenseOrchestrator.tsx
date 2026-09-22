@@ -251,7 +251,8 @@ function SubmitExpenseOrchestrator({
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         // Armed before the reveal, so the barrier attaches to the transition that reveal starts. The pending-write
         // signal clears from the barrier, once the write attaches, not when createTransaction returns.
-        const pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armTransitionBarrier().barrier);
+        const armedBarrier = armTransitionBarrier();
+        const pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armedBarrier.barrier, armedBarrier.cancel);
 
         const afterTransition = () => {
             const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite.barrier);
@@ -281,7 +282,8 @@ function SubmitExpenseOrchestrator({
             // dismiss transition is starting, otherwise it would wait out an unrelated later one.
             // The pending-write signal clears from the barrier once the write attaches, so a GPS lookup
             // between dismiss and write keeps it up.
-            pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armTransitionBarrier().barrier);
+            const armedBarrier = armTransitionBarrier();
+            pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armedBarrier.barrier, armedBarrier.cancel);
         }
 
         const runAfterDismiss = () => {
@@ -383,9 +385,19 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
 
+        const report = getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport);
+        const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
+        // The write runs after the reveal transition, so there is nothing to wait on. The barrier only exists so the
+        // pending-write signal clears when the write attaches, which a GPS lookup can push seconds past createTransaction.
+        const pendingWrite = isDestinationEmpty ? trackPendingSubmitWriteForReport(destinationReportID, IMMEDIATE) : undefined;
+        if (pendingWrite) {
+            markBarrierAsImmediate(pendingWrite.barrier);
+        }
+
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
             afterTransition: () => {
-                createTransaction(locationPermissionGranted, false);
+                const isWriteStillComing = createTransaction(locationPermissionGranted, false, pendingWrite?.barrier);
+                pendingWrite?.settleAfterSubmit(isWriteStillComing);
                 setIsConfirming(false);
             },
         });

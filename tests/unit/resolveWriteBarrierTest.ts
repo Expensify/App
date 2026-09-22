@@ -305,6 +305,23 @@ describe('resolveWriteBarrier', () => {
         expect(resolveWriteBarrier({writeBarrier, isRetry: true})).toBe(writeBarrier);
     });
 
+    it("consumes Search's signal through a caller's barrier on a retry", async () => {
+        // Given Search's signal is up and a retry hands down its own barrier
+        markPendingSearchWrite();
+        const writeBarrier: WriteReadyBarrier = () => Promise.resolve();
+
+        // When the write barrier is resolved
+        const barrier = resolveWriteBarrier({writeBarrier, isRetry: true, optimisticWatchKey: WATCH_KEY});
+        await barrier(new AbortController().signal);
+        flushPendingSearchWrite();
+
+        // Then the explicit-barrier path wins over the retry shortcut, and still counts as Search's consumer so the
+        // signal clears once Search flushes instead of holding the skeleton up for a consumer that never arrives
+        expect(barrier).not.toBe(writeBarrier);
+        expect(hasPendingSearchWrite()).toBe(false);
+        expect(getSearchWriteWatchKey()).toBeUndefined();
+    });
+
     it('does not publish a watch key when there is no signal to drive a skeleton', () => {
         // Given no pending Search signal
         // When a write barrier is resolved with an optimistic watch key anyway

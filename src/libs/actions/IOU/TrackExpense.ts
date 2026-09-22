@@ -1483,6 +1483,9 @@ type ConvertTrackedExpenseToRequestParams = {
 
     /** What the write waits on before applying its optimistic data. Fires immediately when omitted. */
     writeBarrier?: WriteReadyBarrier;
+
+    /** Runs once the write's optimistic data is in Onyx. */
+    onWriteStarted?: () => void;
 };
 
 /**
@@ -1508,10 +1511,11 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit, writeBarrier} = convertTrackedExpenseParams;
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit, writeBarrier, onWriteStarted} =
+        convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
     const dispatchWrite = <TCommand extends WriteCommand>(command: TCommand, params: ApiRequestCommandParameters[TCommand], writeOnyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) => {
-        API.writeWhenReady(command, params, writeOnyxData, writeBarrier ?? IMMEDIATE);
+        API.writeWhenReady(command, params, writeOnyxData, writeBarrier ?? IMMEDIATE, {onWriteStarted});
     };
     const {
         transactionID,
@@ -1828,6 +1832,18 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     // not block the JS thread while something is still animating.
     let deferredAPIWrite: (() => void) | undefined;
 
+    // Tells the report list about the new action. Runs once the write's optimistic data exists, otherwise
+    // the list has nothing to scroll to. The delay gives the destination report time to mount its subscriber.
+    const notifyRequestAction =
+        activeReportID && !isMoneyRequestReport
+            ? () =>
+                  Navigation.setNavigationActionToMicrotaskQueue(() =>
+                      setTimeout(() => {
+                          notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
+                      }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
+                  )
+            : undefined;
+
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
@@ -1903,6 +1919,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                         isRetry: requestMoneyInformation.isRetry,
                         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                     }),
+                    onWriteStarted: notifyRequestAction,
                 });
             };
             break;
@@ -1970,6 +1987,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     parameters,
                     onyxData,
                     resolveWriteBarrier({writeBarrier, isRetry: requestMoneyInformation.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
+                    {onWriteStarted: notifyRequestAction},
                 );
             };
         }
@@ -1983,14 +2001,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-    }
-
-    if (activeReportID && !isMoneyRequestReport) {
-        Navigation.setNavigationActionToMicrotaskQueue(() =>
-            setTimeout(() => {
-                notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
-            }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
-        );
     }
 
     return {iouReport};

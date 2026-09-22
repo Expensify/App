@@ -75,9 +75,10 @@ type PendingSubmitWrite = {
 /**
  * Marks `reportID` pending and ties the clear to `baseBarrier`, so the signal drops when the write goes out rather
  * than when the submit function returns. A zero-amount GPS submission returns first and only writes after the lookup;
- * clearing on return would flash the destination's empty state meanwhile.
+ * clearing on return would flash the destination's empty state meanwhile. `cancelBarrier` releases whatever
+ * `baseBarrier` holds when the submission produces no write.
  */
-function trackPendingSubmitWriteForReport(reportID: string | undefined, baseBarrier: WriteReadyBarrier): PendingSubmitWrite {
+function trackPendingSubmitWriteForReport(reportID: string | undefined, baseBarrier: WriteReadyBarrier, cancelBarrier?: () => void): PendingSubmitWrite {
     const clearPendingWrite = markPendingSubmitWriteForReport(reportID);
     const forGeneration = generation;
     let hasWriteAttached = false;
@@ -95,7 +96,10 @@ function trackPendingSubmitWriteForReport(reportID: string | undefined, baseBarr
         restartSafetyTimeout();
         // writeWhenReady's early-release paths abort without settling the barrier, so listen for that too.
         abortSignal.addEventListener('abort', clearPendingWrite);
-        return Promise.resolve(baseBarrier(abortSignal)).finally(clearPendingWrite);
+        return Promise.resolve(baseBarrier(abortSignal)).finally(() => {
+            abortSignal.removeEventListener('abort', clearPendingWrite);
+            clearPendingWrite();
+        });
     };
 
     const settleAfterSubmit = (isWriteStillComing: boolean) => {
@@ -107,6 +111,7 @@ function trackPendingSubmitWriteForReport(reportID: string | undefined, baseBarr
             return;
         }
         clearPendingWrite();
+        cancelBarrier?.();
     };
 
     return {barrier, settleAfterSubmit};

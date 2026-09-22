@@ -90,6 +90,7 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
             try {
                 return await writeBarrier(abortSignal);
             } finally {
+                abortSignal.removeEventListener('abort', consumeOnce);
                 consumeOnce();
             }
         };

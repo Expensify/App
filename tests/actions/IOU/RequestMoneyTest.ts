@@ -1432,7 +1432,9 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', () => {
+        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
+            // Given a chat report (not an expense report) as the destination
+            // When a money request is made in it
             requestMoney({
                 isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -1467,6 +1469,10 @@ describe('actions/IOU', () => {
                 formatPhoneNumber,
                 rules: undefined,
             });
+            // Then the notification is scheduled only once the write has started, so a deferred write cannot be
+            // announced to the report list before its optimistic data exists
+            expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(0);
+            await waitForBatchedUpdates();
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
 
