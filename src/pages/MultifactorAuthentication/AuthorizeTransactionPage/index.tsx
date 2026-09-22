@@ -158,10 +158,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
                     shouldShowBackButton
                 />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'MultifactorAuthenticationScenarioAuthorizeTransactionPage'}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </ScreenWrapper>
         );

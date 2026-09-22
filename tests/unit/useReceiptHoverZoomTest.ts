@@ -2,7 +2,9 @@ import useReceiptHoverZoom from '@components/ReceiptHoverZoom/useReceiptHoverZoo
 
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
-import type {RefObject} from 'react';
+import viewRef from '@src/types/utils/viewRef';
+
+import type {ComponentRef, RefObject} from 'react';
 import type {Root} from 'react-dom/client';
 import type {View} from 'react-native';
 
@@ -23,12 +25,12 @@ jest.mock('@libs/DeviceCapabilities', () => ({
     hasHoverSupport: jest.fn(),
 }));
 
-const mockHasHoverSupport = hasHoverSupport as jest.MockedFunction<typeof hasHoverSupport>;
+const mockHasHoverSupport = jest.mocked(hasHoverSupport);
 
 type ProbeProps = {
     isEnabled: boolean;
     scale: number;
-    hoverContainerRef?: RefObject<View | null>;
+    hoverContainerRef?: RefObject<ComponentRef<typeof View> | null>;
 };
 
 // The Probe surfaces `isActive` via a `data-active` attribute on the wrapper, and the test
@@ -209,8 +211,8 @@ describe('useReceiptHoverZoom', () => {
             const externalAdd = jest.spyOn(external, 'addEventListener');
 
             try {
-                const externalRef = {current: external} as unknown as RefObject<View | null>;
-                mount({isEnabled: true, scale: 2.5, hoverContainerRef: externalRef});
+                const externalRef: RefObject<ComponentRef<typeof View> | HTMLElement | null> = {current: external};
+                mount({isEnabled: true, scale: 2.5, hoverContainerRef: viewRef(externalRef)});
 
                 expect(externalAdd).toHaveBeenCalledWith('pointerleave', expect.any(Function));
                 expect(externalAdd).toHaveBeenCalledWith('pointermove', expect.any(Function));
@@ -226,7 +228,7 @@ describe('useReceiptHoverZoom', () => {
         });
 
         it('falls back to the auto-wrapper when the external ref has no current element', () => {
-            const externalRef = {current: null} as unknown as RefObject<View | null>;
+            const externalRef: RefObject<ComponentRef<typeof View> | null> = {current: null};
             mount({isEnabled: true, scale: 2.5, hoverContainerRef: externalRef});
             const target = wrapper();
             target.getBoundingClientRect = jest.fn(() => makeRect());

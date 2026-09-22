@@ -7,7 +7,7 @@ import usePersonalBankAccountDetailsFormSubmit from '@hooks/usePersonalBankAccou
 import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
-import {getFieldRequiredErrors, isValidNANPPhone, isValidPhoneNumber} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidPhoneNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,9 +38,8 @@ function PhoneNumberStep({onNext, onMove, isEditing, shouldDelayAutoFocus, enabl
 
         if (values.phoneNumber) {
             const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
-            const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
 
-            if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidNANPPhone(e164FormattedPhoneNumber)) {
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors.phoneNumber = translate('common.error.phoneNumber');
             }
         }

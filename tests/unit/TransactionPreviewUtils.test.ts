@@ -13,16 +13,18 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayString} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {convertToDisplayString, getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
-    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
+    dateFnsLocale: undefined,
+    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD', getCurrencyDecimalsLocal),
     iouReportOwnerLogin: undefined,
     policy: undefined,
     transaction: buildOptimisticTransaction({
@@ -38,6 +40,7 @@ const basicProps = {
     }),
     translate: jest.fn().mockImplementation((key: string) => key),
     action: buildOptimisticIOUReportAction({
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
         type: 'create',
         amount: 100,
         currency: 'USD',
@@ -51,7 +54,6 @@ const basicProps = {
     transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
-    shouldShowCanceledStatus: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
@@ -85,7 +87,30 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toContain('violations.reviewRequired');
+            // The hold is the only reason, so there is nothing for the caller to prepend to it.
+            expect(result.shouldShowHoldMessage).toBe(true);
+            expect(result.RBRMessage.text).toEqual('');
+            // The hold belongs to the RBR row only, never repeated on the supporting line.
+            expect(result.previewStatusText).toEqual([]);
+        });
+
+        it('keeps the other violation in the RBR message when the transaction is on hold and also has violations', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {...basicProps.transaction, comment: {hold: 'true'}},
+                violations: [
+                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+                ] as TransactionViolation[],
+                violationMessage: 'Category missing',
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            // The hold violation is excluded, so the real violation survives for the caller to prepend.
+            expect(result.RBRMessage.text).toEqual('Category missing');
+            expect(result.shouldShowHoldMessage).toBe(true);
         });
 
         it('returns correct receipt error message when the transaction has receipt error', () => {
@@ -99,7 +124,13 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                            retryParams: {
+                                transactionID: basicProps.transaction.transactionID,
+                                source: 'source.com',
+                                transactionPolicy: undefined,
+                                transactionPolicyTagList: undefined,
+                                isVendorMatchingBetaEnabled: false,
+                            },
                         },
                     },
                 },
@@ -132,16 +163,17 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('returns missing amount message when amount is missing but merchant is present (expense report with field errors)', () => {
-            const functionArgs = {
+            const functionArgs: Parameters<typeof getTransactionPreviewTextAndTranslationPaths>[0] = {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.IOU},
                 transaction: {
                     ...basicProps.transaction,
+                    // @ts-expect-error - This scenario deliberately passes a transaction without an amount to exercise the missing-amount branch.
                     amount: undefined,
                     modifiedAmount: undefined,
                     merchant: 'Valid Merchant',
                     created: '2024-01-01',
-                } as unknown as Transaction,
+                },
                 violations: [],
                 originalTransaction: undefined,
                 shouldShowRBR: true,
@@ -211,7 +243,7 @@ describe('TransactionPreviewUtils', () => {
                 transactionDetails: {amount: modifiedAmount / 2, currency},
                 transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
                 isBillSplit: true,
-                originalTransaction: {
+                originalTransaction: createMock<Transaction>({
                     reportID: CONST.REPORT.SPLIT_REPORT_ID,
                     transactionID: originalTransactionID,
                     comment: {
@@ -223,22 +255,16 @@ describe('TransactionPreviewUtils', () => {
                     modifiedAmount,
                     amount: 0,
                     currency,
-                } as Transaction,
+                }),
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('does not show the canceled status inside a report preview, because the preview header already shows it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: false};
+        it('does not show the canceled status, because a cancelled payment is only recorded by its system message', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);
-        });
-
-        it('shows the canceled status in a standalone preview, because nothing else on that surface reports it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: true};
-            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
         });
 
         it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
@@ -430,7 +456,13 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                            retryParams: {
+                                transactionID: basicProps.transaction.transactionID,
+                                source: 'source.com',
+                                transactionPolicy: undefined,
+                                transactionPolicyTagList: undefined,
+                                isVendorMatchingBetaEnabled: false,
+                            },
                         },
                     },
                 },
@@ -480,6 +512,25 @@ describe('TransactionPreviewUtils', () => {
             expect(result.shouldShowSkeleton).toBeTruthy();
         });
 
+        it('should not show skeleton for an action the backend marked deleted, whose transaction will never arrive', () => {
+            // Given a money request action deleted the way the backend reports it — `deleted` timestamps on the
+            // message and the original message rather than the `isDeletedParentAction` flag — and no transaction
+            const functionArgs = {
+                ...basicProps,
+                transaction: undefined,
+                action: {
+                    ...basicProps.action,
+                    message: [{type: 'TEXT', text: '', deleted: '2026-07-30 10:31:05.644'}],
+                },
+            };
+
+            // When the preview conditionals are computed
+            const result = createTransactionPreviewConditionals(functionArgs);
+
+            // Then the preview stays out of the loading state instead of waiting for a transaction that is gone
+            expect(result.shouldShowSkeleton).toBeFalsy();
+        });
+
         it('should show merchant if merchant data is valid and significant', () => {
             const functionArgs = {...basicProps, transactionDetails: {merchant: 'Valid Merchant'}};
             const result = createTransactionPreviewConditionals(functionArgs);
@@ -490,12 +541,6 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transactionDetails: {merchant: 'Valid Merchant', comment: 'Valid Comment'}};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowDescription).toBeFalsy();
-        });
-
-        it("should show tag if it's a policy expense chat and tag is present", () => {
-            const functionArgs = {...basicProps, isReportAPolicyExpenseChat: true, transactionDetails: {tag: 'Transport'}};
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldShowTag).toBeTruthy();
         });
 
         it('should correctly show violation message if there are multiple violations', () => {
@@ -598,6 +643,48 @@ describe('TransactionPreviewUtils', () => {
                 };
                 const result = createTransactionPreviewConditionals(functionArgs);
                 expect(result.shouldShowRBR).toBeTruthy();
+            });
+
+            describe('with an over auto-approval limit notice', () => {
+                const overLimitPolicy = {
+                    ...createRandomPolicy(1),
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+                // The notice arrives from the backend without `showInReview`, which is what keeps it out of the notice-type check.
+                const overLimitViolations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}] as TransactionViolation[];
+                const submittedReport = {
+                    ...basicProps.iouReport,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: overLimitPolicy.id,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                it('should show RBR when the submitter is also the approver', () => {
+                    const functionArgs = {
+                        ...basicProps,
+                        policy: overLimitPolicy,
+                        iouReport: {...submittedReport, managerID: currentUserAccountID},
+                        violations: overLimitViolations,
+                        currentUserAccountID,
+                    };
+                    const result = createTransactionPreviewConditionals(functionArgs);
+                    expect(result.shouldShowRBR).toBeTruthy();
+                });
+
+                it('should not show RBR when the submitter is not the approver', () => {
+                    const functionArgs = {
+                        ...basicProps,
+                        policy: overLimitPolicy,
+                        iouReport: {...submittedReport, managerID: currentUserAccountID + 1},
+                        violations: overLimitViolations,
+                        currentUserAccountID,
+                    };
+                    const result = createTransactionPreviewConditionals(functionArgs);
+                    expect(result.shouldShowRBR).toBeFalsy();
+                });
             });
         });
     });
@@ -799,35 +886,38 @@ describe('TransactionPreviewUtils', () => {
         });
 
         test('returns unique error messages from report actions', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {a: 'Error A', b: 'Error B'}},
                 2: {errors: {c: 'Error C', a: 'Error A2'}},
                 3: {errors: {a: 'Error A', d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
             expect(getUniqueActionErrorsForTransaction(actions, undefined).sort()).toEqual(expectedErrors.sort());
         });
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {z: 'Error Z2', a: 'Error A', f: 'Error Z'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error Z2']);
         });
 
         test('filters out non-string error messages', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
-                1: {errors: {a: 404, b: 'Error B'}},
+                1: {
+                    // @ts-expect-error - This deliberately malformed error value tests filtering non-string messages.
+                    errors: {a: 404, b: 'Error B'},
+                },
                 2: {errors: {c: null, d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error B', 'Error D']);
         });
@@ -873,7 +963,7 @@ describe('TransactionPreviewUtils', () => {
                         source: 'source.com',
                         filename: 'file_name.png',
                         action: 'replaceReceipt',
-                        retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
+                        retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, isVendorMatchingBetaEnabled: false},
                     },
                 },
             };
@@ -941,6 +1031,45 @@ describe('TransactionPreviewUtils', () => {
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, undefined, paidGroupPolicy)).toBe(true);
         });
 
+        it('should return true for an over auto-approval limit notice when the submitter is also the approver', () => {
+            const overLimitPolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const submittedReport = {
+                ...basicProps.iouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: overLimitPolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: rbrAccountID,
+                managerID: rbrAccountID,
+            };
+            // The notice arrives from the backend without `showInReview`, which is what keeps it out of the notice-type check.
+            const violations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, submittedReport, undefined, overLimitPolicy)).toBe(true);
+        });
+
+        it('should return false for an over auto-approval limit notice when the submitter is not the approver', () => {
+            const overLimitPolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const submittedReport = {
+                ...basicProps.iouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: overLimitPolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: rbrAccountID,
+                managerID: rbrAccountID + 1,
+            };
+            const violations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, submittedReport, undefined, overLimitPolicy)).toBe(false);
+        });
+
         it('should return true for a distance request with MODIFIED_AMOUNT violation', () => {
             const distanceTransaction = {
                 ...basicProps.transaction,
@@ -955,7 +1084,7 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('should return true when there are report action errors for the transaction', () => {
-            const reportActionsWithErrors = {
+            const reportActionsWithErrors = createMock<ReportActions>({
                 action1: {
                     reportActionID: 'action1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -965,7 +1094,7 @@ describe('TransactionPreviewUtils', () => {
                     message: [],
                     pendingAction: null,
                 },
-            } as unknown as ReportActions;
+            });
             expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy, reportActionsWithErrors)).toBe(true);
         });
 
@@ -974,7 +1103,7 @@ describe('TransactionPreviewUtils', () => {
                 ...createRandomPolicy(1),
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             };
-            const dewReportActions = {
+            const dewReportActions = createMock<ReportActions>({
                 action1: {
                     reportActionID: 'action1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
@@ -983,7 +1112,7 @@ describe('TransactionPreviewUtils', () => {
                     originalMessage: {message: 'Failed to submit'},
                     pendingAction: null,
                 },
-            } as unknown as ReportActions;
+            });
             expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, dewPolicy, dewReportActions)).toBe(true);
         });
 

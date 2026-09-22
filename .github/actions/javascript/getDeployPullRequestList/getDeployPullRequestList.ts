@@ -89,7 +89,7 @@ async function run() {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

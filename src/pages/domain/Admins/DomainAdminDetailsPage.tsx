@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -15,7 +16,9 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 
 import {revokeDomainAdminAccess} from '@userActions/Domain';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -48,7 +51,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     });
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate, formatPhoneNumber});
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
 
@@ -61,7 +64,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             cancelText: translate('common.cancel'),
 
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (confirmResult.action !== ModalActions.CONFIRM) {
             return;
@@ -77,20 +80,27 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
             accountID={accountID}
         >
             {domainHasOnlyOneAdmin && (
-                <MenuItem
+                <MenuItemAction
                     title={translate('domain.admins.resetDomain')}
                     icon={icons.ClosedSign}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
                 />
             )}
             {!domainHasOnlyOneAdmin && (
-                <MenuItem
-                    disabled={isCurrentUserPrimaryContact}
-                    hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
-                    title={translate('domain.admins.revokeAdminAccess')}
-                    icon={icons.ClosedSign}
-                    onPress={handleRevokeAdminAccess}
-                />
+                <MenuItem.Root
+                    isDisabled={isCurrentUserPrimaryContact}
+                    onPress={callFunctionIfActionIsAllowed(handleRevokeAdminAccess)}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.ClosedSign} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('domain.admins.revokeAdminAccess')}</MenuItem.Title>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                    {isCurrentUserPrimaryContact && <MenuItem.HelpText message={translate('domain.admins.cantRevokeAdminAccess')} />}
+                </MenuItem.Root>
             )}
         </BaseDomainMemberDetailsComponent>
     );

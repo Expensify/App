@@ -2,6 +2,7 @@ import SENTRY_APPLICATION_KEY from '@libs/telemetry/sentryApplicationKey';
 
 import * as SentryReact from '@sentry/react';
 
+import classCallCheckNoiseFilterIntegration from './classCallCheckNoiseFilter';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
 
 /**
@@ -15,9 +16,13 @@ function isApplicationKeyStamped(): boolean {
 /**
  * Browser tracing integration is enabled on Web to support web health measurements
  * such as INP, LCP, FCP, CLS.
+ *
+ * `ignoreResourceSpans` stops the SDK from creating a span per stylesheet/font (`resource.link`) and per script
+ * (`resource.script`) on every pageload and navigation
  */
 const tracingIntegration = SentryReact.browserTracingIntegration({
     shouldCreateSpanForRequest,
+    ignoreResourceSpans: ['resource.link', 'resource.script'],
 });
 
 /**
@@ -45,4 +50,13 @@ const thirdPartyErrorFilterIntegration = isApplicationKeyStamped()
       })
     : undefined;
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration, thirdPartyErrorFilterIntegration};
+export {
+    navigationIntegration,
+    tracingIntegration,
+    browserProfilingIntegration,
+    breadcrumbsIntegration,
+    consoleIntegration,
+    reportingObserverIntegration,
+    thirdPartyErrorFilterIntegration,
+    classCallCheckNoiseFilterIntegration,
+};

@@ -30,13 +30,13 @@ function isDismissModalAction(action: RootStackNavigatorAction): action is Dismi
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 }
 
-/** A per-instance Modal back-guard sentinel (`CUSTOM_HISTORY_ENTRY_MODAL:<modalId>`). */
+/** Returns true if the entry is a per-instance Modal back-guard (`CUSTOM_HISTORY_ENTRY_MODAL:<modalId>`). */
 function isModalHistorySentinel(entry: CustomHistoryEntry | undefined): boolean {
     return typeof entry === 'string' && entry.startsWith(`${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:`);
 }
 
 /**
- * Captures the trailing run of string sentinels (side-panel + per-modal back-guards) so they can be
+ * Captures the trailing run of string history entries (side-panel + per-modal back-guards) so they can be
  * re-appended after `enhanceStateWithHistory` rebuilds `history` from `routes`. This keeps those
  * overlays' browser entries alive through benign history rebuilds (e.g. RESET / resize).
  */
@@ -52,7 +52,7 @@ function getTrailingStringSentinels(history: unknown[] | undefined): string[] {
     return typed.slice(cutoff).filter((entry): entry is string => typeof entry === 'string');
 }
 
-/** Removes only the topmost modal back-guard sentinel (used to consume one guard on forward navigation). */
+/** Removes only the topmost modal back-guard entry (used to consume one guard on forward navigation). */
 function stripTrailingModalSentinels(history: CustomHistoryEntry[]): CustomHistoryEntry[] {
     if (isModalHistorySentinel(history.at(-1))) {
         return history.slice(0, -1);
@@ -69,7 +69,7 @@ function asCustomHistory(history: unknown[] | undefined): CustomHistoryEntry[] |
     return history as CustomHistoryEntry[] | undefined;
 }
 
-/** Counts the leading `CUSTOM_HISTORY_ENTRY_REVEAL_PADDING` sentinels in a history array. */
+/** Counts the leading `CUSTOM_HISTORY_ENTRY_REVEAL_PADDING` padding entries in a history array. */
 function countLeadingRevealPadding(history: CustomHistoryEntry[] | undefined): number {
     if (!history?.length) {
         return 0;
@@ -86,7 +86,7 @@ function countLeadingRevealPadding(history: CustomHistoryEntry[] | undefined): n
     return count;
 }
 
-/** Returns a fresh history array with `offset` reveal-padding sentinels prepended. */
+/** Returns a fresh history array with `offset` reveal-padding entries prepended. */
 function buildPaddedHistory(baseHistory: CustomHistoryEntry[], offset: number): CustomHistoryEntry[] {
     if (offset <= 0) {
         return [...baseHistory];
@@ -155,7 +155,7 @@ function getRevealDismissState(
     if (dismissingTopKey === pendingReveal.rhpKey && depthMatches && historyDepthMatches) {
         const rehydrated = rehydrate(newState, configOptions);
         const rehydratedHistory = asCustomHistory(rehydrated.history) ?? [];
-        // rehydratedHistory already includes any trailing SIDE_PANEL sentinel,
+        // rehydratedHistory already includes any trailing SIDE_PANEL entry,
         // so it does not inflate the computed offset.
         const lengthDelta = (state.history?.length ?? 0) - rehydratedHistory.length;
         if (lengthDelta > 0) {

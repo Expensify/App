@@ -1,3 +1,4 @@
+import LoadingIndicator from '@components/LoadingIndicator';
 import type {ListFilterContentWrapperProps} from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
 import ListFilterContent from '@components/Search/FilterComponents/ListFilterContent';
 
@@ -6,11 +7,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
-function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, policyID, onChange}: ListFilterContentWrapperProps) {
+function ListFilterContentPopupWrapper({baseFilterKey, value, isNegated: initialIsNegated, type, policyID, ready, onChange}: ListFilterContentWrapperProps) {
     const styles = useThemeStyles();
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
+
+    // The filter is its own loading state, so its controls do not render behind the spinner.
+    if (ready === false) {
+        return (
+            <View style={[styles.mt6, styles.flex1]}>
+                <LoadingIndicator />
+            </View>
+        );
+    }
 
     return (
         <ListFilterContent

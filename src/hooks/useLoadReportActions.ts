@@ -20,10 +20,7 @@ type UseLoadReportActionsArguments = {
     /** The transaction thread report ID associated with the current transaction, if any */
     transactionThreadReportID: string | undefined;
 
-    /** If the report has newer actions to load */
     hasNewerActions: boolean;
-
-    /** If the report has older actions to load */
     hasOlderActions: boolean;
 
     /** Newest action ID from the last pagination response, used as cursor to avoid Pusher-delivered actions skipping gaps */
@@ -139,6 +136,8 @@ function useLoadReportActions({
     return {
         loadOlderChats,
         loadNewerChats,
+        // The exact cursor `loadOlderChats` sends, which is not always the end of the rendered chain.
+        currentReportOldestActionID: currentReportOldestAction?.reportActionID,
     };
 }
 

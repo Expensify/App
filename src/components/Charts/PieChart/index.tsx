@@ -11,7 +11,6 @@ function PieChart(props: PieChartProps) {
         <SkiaWebChart
             getComponent={getPieChartContent}
             componentProps={props}
-            reasonContext="PieChart.SkiaWebLoading"
         />
     );
 }

@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +43,7 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
     const {
         avatarType,
         avatars: icons,
-        details: {delegateAccountID},
+        details: {delegateAccountID, shouldUseConciergeAvatar},
         source,
     } = useReportActionAvatars({
         report,
@@ -102,16 +103,20 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
         );
     }
 
-    const delegateAccountIDFromAction = source.action?.delegateAccountID;
-    const singleAvatar: AvatarIcon = delegateAccountIDFromAction
-        ? {
-              ...primaryIcon,
-              copilot: {
-                  accountID: delegateAccountIDFromAction,
-                  actedForAccountID: delegateAccountID,
-              },
-          }
-        : primaryIcon;
+    // Read the copilot through `getDelegateAccountIDFromReportAction` rather than off the action: the server stamps
+    // `delegateAccountID` on every action a copilot's request creates, including Concierge-authored ones, and the
+    // accessor suppresses it there so Concierge never renders as "<copilot> (as copilot for Concierge)".
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : getDelegateAccountIDFromReportAction(source.action);
+    const singleAvatar: AvatarIcon =
+        delegateAccountID && delegateAccountIDFromAction
+            ? {
+                  ...primaryIcon,
+                  copilot: {
+                      accountID: delegateAccountIDFromAction,
+                      actedForAccountID: delegateAccountID,
+                  },
+              }
+            : primaryIcon;
 
     return (
         <PressableWithoutFocus
@@ -124,7 +129,6 @@ function ReportHeaderAvatars({reportID}: ReportHeaderAvatarsProps) {
                 avatar={singleAvatar}
                 size={size}
                 containerStyles={[]}
-                shouldShowTooltip
             />
         </PressableWithoutFocus>
     );

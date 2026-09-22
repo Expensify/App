@@ -6,11 +6,13 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report} from '@src/types/onyx';
+import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -47,7 +49,7 @@ type SelectPaymentTypeParams = {
     isASAPSubmitBetaEnabled: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
-    betas: OnyxEntry<Beta[]>;
+    rules: OnyxCollection<Rule>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
@@ -55,6 +57,7 @@ type SelectPaymentTypeParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BusinessBankAccountOption = {
@@ -222,7 +225,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isASAPSubmitBetaEnabled,
         confirmApproval,
         iouReport,
-        betas,
+        rules,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
@@ -230,6 +233,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         delegateAccountID,
         isTrackIntentUser,
         ownerLogin,
+        getCurrencyDecimals,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -253,11 +257,11 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy,
+                rules,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -266,6 +270,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         }
         return;
@@ -333,23 +338,6 @@ function getActivePaymentType(
     };
 }
 
-/**
- * Get the last 4 digits of a bank account used for payment.
- */
-function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
-    const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
-
-    if (bankAccount?.accountData?.accountNumber) {
-        return bankAccount.accountData.accountNumber.slice(-4);
-    }
-
-    // If bankAccountID is provided but not found in bankAccountList, return '' to avoid showing policy account digits for multi-VBBA payments.
-    if (bankAccountID != null) {
-        return '';
-    }
-    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
-}
-
 export {
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
@@ -361,6 +349,5 @@ export {
     isSecondaryActionAPaymentOption,
     isSecondaryActionAWorkspacePolicyOption,
     getActivePaymentType,
-    getBankAccountLastFourDigits,
 };
 export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, SelectPaymentTypeParams, WorkspacePolicyPaymentOption};

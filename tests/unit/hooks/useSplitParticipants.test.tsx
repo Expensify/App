@@ -13,6 +13,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useThemeStyles', () => ({
@@ -31,6 +32,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
         convertToDisplayString: (amount?: number, currency?: string) => `${currency ?? 'USD'} ${(amount ?? 0).toFixed(2)}`,
         convertToDisplayStringWithoutCurrency: (amount: number) => `${(amount ?? 0).toFixed(2)}`,
         getCurrencySymbol: () => '$',
+        getCurrencyDecimals: () => 2,
     }),
 }));
 
@@ -49,7 +51,7 @@ type Params = Parameters<typeof useSplitParticipants>[0];
 
 const payee = {accountID: 1, login: 'me@test.com'} as CurrentUserPersonalDetails;
 const smsPayee = {accountID: 3, login: '+18332403627@expensify.sms'} as CurrentUserPersonalDetails;
-const otherParticipant = {accountID: 2, login: 'other@test.com', keyForList: '2'} as unknown as Participant;
+const otherParticipant: Participant = {accountID: 2, login: 'other@test.com', keyForList: '2'};
 
 function makeBase(overrides: Partial<Params> = {}): Params {
     return {
@@ -57,7 +59,7 @@ function makeBase(overrides: Partial<Params> = {}): Params {
         shouldShowReadOnlySplits: false,
         payeePersonalDetails: payee as OnyxTypes.PersonalDetails,
         selectedParticipants: [otherParticipant],
-        transaction: {transactionID: 'txn1', amount: 1000, comment: {}} as unknown as OnyxTypes.Transaction,
+        transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 1000, comment: {}}),
         iouAmount: 1000,
         iouCurrencyCode: 'USD',
         ...overrides,
@@ -75,9 +77,11 @@ function collectText(node: unknown): string {
     if (Array.isArray(node)) {
         return node.map(collectText).join(' ');
     }
-    if (typeof node === 'object' && 'props' in (node as Record<string, unknown>)) {
-        const element = node as {props?: {children?: unknown}};
-        return collectText(element.props?.children);
+    if (typeof node === 'object' && node !== null && 'props' in node) {
+        const props = node.props;
+        if (typeof props === 'object' && props !== null && 'children' in props) {
+            return collectText(props.children);
+        }
     }
     return '';
 }
@@ -188,6 +192,6 @@ describe('useSplitParticipants', () => {
             expect(rightElement?.type).toBe(MoneyRequestAmountInput);
         }
         // Editable rows should be tab-skipped (tabIndex: -1) and non-interactive
-        expect((rows.at(0) as {tabIndex?: number}).tabIndex).toBe(-1);
+        expect(rows.at(0)).toHaveProperty('tabIndex', -1);
     });
 });

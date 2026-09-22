@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
@@ -71,7 +71,7 @@ function CancelSubscriptionPage() {
     const isAutomaticCancellation = resolvedCancellationType === CONST.CANCELLATION_TYPE.AUTOMATIC;
 
     if (isLoadingGuardData) {
-        return <FullscreenLoadingIndicator reasonAttributes={{context: 'CancelSubscriptionPage'}} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     return (

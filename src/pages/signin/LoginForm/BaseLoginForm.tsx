@@ -39,6 +39,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
 
+import type {ComponentRef} from 'react';
+
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -165,7 +167,12 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         // When the user is in the transition route and not yet authenticated, this component will also be mounted,
         // resetting account.isLoading will cause the app to briefly display the session expiration page.
 
-        if (isFocused && isVisible) {
+        // UnlinkLoginPage resets the stack to the sign-in page as soon as the unlink settles, so this mount is
+        // the one that has to render the result. unlinkLogin has just written the whole account object, so there
+        // is no stale state here for clearAccountMessages to clean up.
+        const hasJustUnlinkedLogin = account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin';
+
+        if (isFocused && isVisible && !hasJustUnlinkedLogin) {
             clearAccountMessages();
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !isVisible || !isFocused) {
@@ -223,7 +230,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     const isSigningWithAppleOrGoogle = useRef(false);
     const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
 
-    const submitContainerRef = useRef<View | HTMLDivElement>(null);
+    const submitContainerRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const handleFocus = useCallback(() => {
         if (!isMobileWebKit()) {
             return;
@@ -286,8 +293,10 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
+                    messages={{
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        0: closeAccount?.success ? closeAccount.success : accountMessage,
+                    }}
                 />
             )}
             {

@@ -4,19 +4,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type NestedScreenConfig = {
-    path?: string;
-    screens?: Record<string, NestedScreenConfig>;
-};
-
-function getNestedScreenConfig(rootConfig: typeof config, ...keys: string[]): NestedScreenConfig | undefined {
-    let current: NestedScreenConfig | undefined = rootConfig as NestedScreenConfig;
-    for (const key of keys) {
-        current = current?.screens?.[key];
-    }
-    return current;
-}
-
 describe('ReportSettingsColumns route and navigation', () => {
     describe('ROUTES.REPORT_SETTINGS_COLUMNS', () => {
         it('should have the correct route pattern', () => {
@@ -51,9 +38,20 @@ describe('ReportSettingsColumns route and navigation', () => {
 
     describe('linkingConfig', () => {
         it('should map COLUMNS screen to the correct route path', () => {
-            const columnsConfig = getNestedScreenConfig(config, NAVIGATORS.RIGHT_MODAL_NAVIGATOR, SCREENS.RIGHT_MODAL.REPORT_SETTINGS, SCREENS.REPORT_SETTINGS.COLUMNS);
+            const rightModalConfig = config?.screens?.[NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
+            const reportSettingsConfig =
+                typeof rightModalConfig === 'object' && rightModalConfig !== null && 'screens' in rightModalConfig
+                    ? rightModalConfig.screens?.[SCREENS.RIGHT_MODAL.REPORT_SETTINGS]
+                    : undefined;
+            const reportSettingsScreens =
+                typeof reportSettingsConfig === 'object' && reportSettingsConfig !== null && 'screens' in reportSettingsConfig ? reportSettingsConfig.screens : undefined;
+            const columnsConfig =
+                typeof reportSettingsScreens === 'object' && reportSettingsScreens !== null && SCREENS.REPORT_SETTINGS.COLUMNS in reportSettingsScreens
+                    ? reportSettingsScreens[SCREENS.REPORT_SETTINGS.COLUMNS]
+                    : undefined;
+            const columnsPath = typeof columnsConfig === 'object' && columnsConfig !== null && 'path' in columnsConfig ? columnsConfig.path : undefined;
 
-            expect(columnsConfig?.path).toBe(ROUTES.REPORT_SETTINGS_COLUMNS.route);
+            expect(columnsPath).toBe(ROUTES.REPORT_SETTINGS_COLUMNS.route);
         });
     });
 

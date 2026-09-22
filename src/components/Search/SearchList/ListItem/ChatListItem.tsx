@@ -1,10 +1,8 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import ListItemComposed, {useListItemHighlight} from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -12,12 +10,11 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 
-import variables from '@styles/variables';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ChatListItemProps, ReportActionListItemType} from './types';
 
@@ -41,65 +38,52 @@ function ChatListItem<TItem extends ListItem>({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {isSelected} = useRowSelection(item.keyForList);
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+    const {pressableStyle, pressableWrapperStyle} = useListItemHighlight({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        isSelected,
     });
-    const pressableStyle = [
-        styles.selectionListPressableItemWrapper,
-        styles.p0,
-        styles.textAlignLeft,
-        styles.overflowHidden,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-        styles.bgTransparent,
-        isSelected && styles.activeComponentBG,
-        styles.mh0,
-        item.cursorStyle,
-    ];
 
     const fsClass = FS.getChatFSClass(reportStable);
 
     const handlePress = () => onSelectRow(item);
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
-            pressableStyle={pressableStyle}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
+            pressableStyle={[pressableStyle, styles.p0, styles.textAlignLeft, styles.overflowHidden, item.cursorStyle]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            pressableWrapperStyle={pressableWrapperStyle}
             hoverStyle={isSelected && styles.activeComponentBG}
-            forwardedFSClass={fsClass}
         >
-            <ReportActionItem
-                action={reportActionItem}
-                report={reportStable}
-                transactionThreadReport={transactionThreadReport}
-                chatReport={chatReportStable}
-                onPress={handlePress}
-                parentReportAction={undefined}
-                displayAsGroup={false}
-                shouldDisplayNewMarker={false}
-                isFirstVisibleReportAction={false}
-                shouldDisplayContextMenu={false}
-                shouldShowBorder
-            />
-        </BaseListItem>
+            <View
+                style={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone]}
+                fsClass={fsClass}
+            >
+                <ReportActionItem
+                    action={reportActionItem}
+                    report={reportStable}
+                    transactionThreadReport={transactionThreadReport}
+                    chatReport={chatReportStable}
+                    onPress={handlePress}
+                    parentReportAction={undefined}
+                    displayAsGroup={false}
+                    shouldDisplayNewMarker={false}
+                    isFirstVisibleReportAction={false}
+                    shouldDisplayContextMenu={false}
+                    shouldShowBorder
+                />
+            </View>
+        </ListItemComposed>
     );
 }
 

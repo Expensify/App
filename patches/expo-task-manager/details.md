@@ -1,6 +1,6 @@
 # `expo-task-manager` patches
 
-### [expo-task-manager+56.0.16+001+guard-null-headless-loader.patch](expo-task-manager+56.0.16+001+guard-null-headless-loader.patch)
+### [expo-task-manager+57.0.6+001+guard-null-headless-loader.patch](expo-task-manager+57.0.6+001+guard-null-headless-loader.patch)
 
 - Reason:
 

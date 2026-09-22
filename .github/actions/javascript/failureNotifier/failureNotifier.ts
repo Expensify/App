@@ -140,7 +140,7 @@ ${errorMessage}
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run().catch((error: Error) => {
         console.error('Failed to process workflow failure:', error);
         core.setFailed(error.message);

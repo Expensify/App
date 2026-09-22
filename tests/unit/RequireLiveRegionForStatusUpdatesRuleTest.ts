@@ -1,15 +1,7 @@
+import type * as LiveRegionForStatusUpdatesRule from '../../eslint-plugin-local-rules/require-live-region-for-status-updates';
+
 type Report = {
     messageId?: string;
-};
-
-type RuleContext = {
-    report: (report: Report) => void;
-};
-
-type RuleModule = {
-    create: (context: RuleContext) => {
-        JSXOpeningElement: (node: {type: 'JSXOpeningElement'; attributes: JSXAttribute[]}) => void;
-    };
 };
 
 type JSXAttribute = {
@@ -26,7 +18,7 @@ type JSXAttribute = {
           };
 };
 
-const rule = require('../../eslint-plugin-local-rules/require-live-region-for-status-updates') as RuleModule;
+const rule = jest.requireActual<typeof LiveRegionForStatusUpdatesRule>('../../eslint-plugin-local-rules/require-live-region-for-status-updates');
 
 function createLiteralAttribute(name: string, value: string): JSXAttribute {
     return {

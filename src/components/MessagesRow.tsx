@@ -21,7 +21,6 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
 type MessagesRowProps = {
-    /** The messages to display */
     messages: Record<string, string | ReceiptError | TranslationKeyError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
@@ -30,13 +29,8 @@ type MessagesRowProps = {
     /** A function to run when the X button next to the message is clicked */
     onDismiss?: () => void;
 
-    /** Additional style object for the container */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** Additional style object for the error text */
     errorTextStyles?: StyleProp<TextStyle>;
-
-    /** A function to dismiss error */
     dismissError?: () => void;
 };
 

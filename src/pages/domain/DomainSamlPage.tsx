@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import colors from '@styles/theme/colors';
 
@@ -77,12 +76,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     );
 
     if (isLoadingOnyxValue(domainResults, domainSettingsResults)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'DomainSamlPage',
-            isLoadingDomain: isLoadingOnyxValue(domainResults),
-            isLoadingDomainSettings: isLoadingOnyxValue(domainSettingsResults),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -100,8 +94,8 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.saml')}
+                    shouldUseHeadlineHeader
                     onBackButtonPress={Navigation.goBack}
-                    icon={illustrations.LockClosed}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
                 />

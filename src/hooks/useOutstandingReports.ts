@@ -1,3 +1,4 @@
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -19,6 +20,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const shouldUseAllPolicies = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Early return if no reports are available to prevent useless loop
     if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
@@ -28,15 +30,27 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     if (shouldUseAllPolicies) {
         const result = [];
         for (const policyID of Object.values(allPoliciesID ?? {})) {
-            if (!policyID || policyID === personalPolicyID) {
+            // Teachers Unite only supports expenses via split expense, so its reports can never be a move-expense destination.
+            if (!policyID || policyID === personalPolicyID || isTeachersUnitePolicyID(policyID)) {
                 continue;
             }
 
-            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
+            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
             result.push(...reports);
         }
         return result;
     }
 
-    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isEditing);
+    if (isTeachersUnitePolicyID(selectedPolicyID)) {
+        return [];
+    }
+
+    return getOutstandingReportsForUser(
+        selectedPolicyID,
+        ownerAccountID,
+        rules,
+        reportNameValuePairs,
+        outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+        isEditing,
+    );
 }

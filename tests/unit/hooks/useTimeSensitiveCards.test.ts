@@ -11,6 +11,7 @@ import Onyx from 'react-native-onyx';
 
 import {createRandomExpensifyCard} from '../../utils/collections/card';
 import createRandomReportAction from '../../utils/collections/reportActions';
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('useTimeSensitiveCards', () => {
@@ -36,6 +37,7 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
         expect(result.current.shouldShowReviewCardFraud).toBe(false);
+        expect(result.current.hasActiveExpensifyCard).toBe(false);
     });
 
     it('should return empty arrays when no cards need action', async () => {
@@ -51,6 +53,7 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.cardsNeedingActivation).toEqual([]);
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
+        expect(result.current.hasActiveExpensifyCard).toBe(true);
     });
 
     it('should identify cards needing shipping address and set shouldShowAddShippingAddress to true', async () => {
@@ -108,7 +111,7 @@ describe('useTimeSensitiveCards', () => {
     it('should exclude virtual cards from time-sensitive results', async () => {
         const virtualCard: Card = {
             ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
-            nameValuePairs: {isVirtual: true} as Card['nameValuePairs'],
+            nameValuePairs: createMock<Card['nameValuePairs']>({isVirtual: true}),
         };
         const physicalCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED});
 
@@ -129,13 +132,13 @@ describe('useTimeSensitiveCards', () => {
 
     it('should exclude non-Expensify cards from time-sensitive results', async () => {
         // Company card with pending state
-        const companyCard: Card = {
+        const companyCard = createMock<Card>({
             cardID: 1,
             bank: 'vcf',
             state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
             fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
             lastUpdated: '2024-01-01',
-        } as Card;
+        });
 
         const expensifyCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED});
 
@@ -271,7 +274,7 @@ describe('useTimeSensitiveCards', () => {
     it('should exclude cards with custom $0 limit from shipping address to-dos', async () => {
         const zeroLimitCard: Card = {
             ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}),
-            nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+            nameValuePairs: createMock<Card['nameValuePairs']>({hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0}),
         };
         const cardList: CardList = {'1': zeroLimitCard};
 
@@ -287,7 +290,7 @@ describe('useTimeSensitiveCards', () => {
     it('should exclude cards with custom $0 limit from activation to-dos', async () => {
         const zeroLimitCard: Card = {
             ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
-            nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+            nameValuePairs: createMock<Card['nameValuePairs']>({hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0}),
         };
         const cardList: CardList = {'1': zeroLimitCard};
 
@@ -303,7 +306,7 @@ describe('useTimeSensitiveCards', () => {
     it('should not exclude cards without custom limit even if unapprovedExpenseLimit is 0', async () => {
         const groupLimitCard: Card = {
             ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
-            nameValuePairs: {hasCustomUnapprovedExpenseLimit: false, unapprovedExpenseLimit: 0} as Card['nameValuePairs'],
+            nameValuePairs: createMock<Card['nameValuePairs']>({hasCustomUnapprovedExpenseLimit: false, unapprovedExpenseLimit: 0}),
         };
         const cardList: CardList = {'1': groupLimitCard};
 
@@ -323,11 +326,11 @@ describe('useTimeSensitiveCards', () => {
                 fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
                 possibleFraud: {triggerAmount: 1000, triggerMerchant: 'SUSPICIOUS MERCHANT', currency: 'USD', fraudAlertReportID: 123456},
             }),
-            nameValuePairs: {
+            nameValuePairs: createMock<Card['nameValuePairs']>({
                 hasCustomUnapprovedExpenseLimit: true,
                 unapprovedExpenseLimit: 0,
                 possibleFraud: {triggerAmount: 1000, triggerMerchant: 'SUSPICIOUS MERCHANT', currency: 'USD', fraudAlertReportID: 123456},
-            } as Card['nameValuePairs'],
+            }),
         };
         const cardList: CardList = {'1': zeroLimitFraudCard};
         const unresolvedFraudAction = {
@@ -398,10 +401,10 @@ describe('useTimeSensitiveCards', () => {
     it('should exclude pending-replacement (STATE_NOT_ISSUED) cards from shipping address to-dos', async () => {
         const pendingReplaceShippingCard: Card = {
             ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}),
-            nameValuePairs: {
+            nameValuePairs: createMock<Card['nameValuePairs']>({
                 terminationReason: CONST.EXPENSIFY_CARD.TERMINATION_REASON.LOST,
                 statusChanges: [{date: '2024-01-01', status: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}],
-            } as Card['nameValuePairs'],
+            }),
         };
         const brandNewShippingCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED});
         const cardList: CardList = {'1': pendingReplaceShippingCard, '2': brandNewShippingCard};
@@ -420,10 +423,10 @@ describe('useTimeSensitiveCards', () => {
     it('should exclude pending-replacement (NOT_ACTIVATED) cards from activation to-dos', async () => {
         const pendingReplaceActivationCard: Card = {
             ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
-            nameValuePairs: {
+            nameValuePairs: createMock<Card['nameValuePairs']>({
                 terminationReason: CONST.EXPENSIFY_CARD.TERMINATION_REASON.LOST,
                 statusChanges: [{date: '2024-01-01', status: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED}],
-            } as Card['nameValuePairs'],
+            }),
         };
         const brandNewActivationCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED});
         const cardList: CardList = {'1': pendingReplaceActivationCard, '2': brandNewActivationCard};
@@ -446,7 +449,7 @@ describe('useTimeSensitiveCards', () => {
                 fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
                 possibleFraud: {triggerAmount: 100, triggerMerchant: 'TEST', currency: 'USD', fraudAlertReportID: 555111},
             }),
-            nameValuePairs: {isVirtual: false, possibleFraud: {triggerAmount: 100, triggerMerchant: 'TEST', currency: 'USD', fraudAlertReportID: 555111}} as Card['nameValuePairs'],
+            nameValuePairs: createMock<Card['nameValuePairs']>({isVirtual: false, possibleFraud: {triggerAmount: 100, triggerMerchant: 'TEST', currency: 'USD', fraudAlertReportID: 555111}}),
         };
         const cardList: CardList = {'1': deactivatedCard};
 
@@ -461,5 +464,94 @@ describe('useTimeSensitiveCards', () => {
         expect(result.current.shouldShowAddShippingAddress).toBe(false);
         expect(result.current.shouldShowActivateCard).toBe(false);
         expect(result.current.shouldShowReviewCardFraud).toBe(false);
+    });
+
+    it('should identify cards pending digital wallet approval and set shouldShowConfirmDigitalWalletAddition to true', async () => {
+        const cardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': cardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(1);
+        expect(result.current.cardsPendingDigitalWalletApproval.at(0)?.cardID).toBe(1);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(true);
+    });
+
+    it('should not surface a digital wallet to-do for a card without a pending approval', async () => {
+        const openCard = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN});
+        const cardList: CardList = {'1': openCard};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(0);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(false);
+    });
+
+    it('should surface digital wallet approvals for virtual cards, which are the likeliest to be added to a wallet', async () => {
+        const virtualCardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                isVirtual: true,
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': virtualCardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(1);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(true);
+    });
+
+    it('should surface digital wallet approvals for cards with a custom $0 limit, since approving a wallet token is not spending', async () => {
+        const zeroLimitCardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                hasCustomUnapprovedExpenseLimit: true,
+                unapprovedExpenseLimit: 0,
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': zeroLimitCardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(1);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(true);
+    });
+
+    it('should not surface digital wallet approvals for cards that are no longer in an active state', async () => {
+        const closedCardPendingWalletApproval: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        const cardList: CardList = {'1': closedCardPendingWalletApproval};
+
+        await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTimeSensitiveCards());
+
+        expect(result.current.cardsPendingDigitalWalletApproval).toHaveLength(0);
+        expect(result.current.shouldShowConfirmDigitalWalletAddition).toBe(false);
     });
 });

@@ -31,7 +31,6 @@ type UsePolicyForTransactionParams = {
 };
 
 type UsePolicyForTransactionResult = {
-    /** The policy to use for the transaction */
     policy: OnyxEntry<Policy>;
 };
 

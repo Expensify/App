@@ -13,7 +13,7 @@ function makeState(routes: Array<{name: string; key: string}>): NavigationState 
         routeNames: routes.map((r) => r.name),
         stale: false,
         type: 'stack',
-    } as unknown as NavigationState;
+    };
 }
 
 // jest-expo resolves to the native implementation of getIsScreenBlurred,

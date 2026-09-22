@@ -28,9 +28,6 @@ type AccountingSetupWebViewPageProps = {
     /** testID for the screen, used by automated tests */
     testID: string;
 
-    /** Context label reported by the loading indicator for telemetry */
-    context: string;
-
     /** Whether to append a short-lived auth token to the setup link before loading it, so the incognito WebView opens an authenticated URL instead of the raw command URL */
     shouldAppendShortLivedAuthToken?: boolean;
 
@@ -39,7 +36,7 @@ type AccountingSetupWebViewPageProps = {
     backTo?: Route;
 };
 
-function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLivedAuthToken = false, backTo}: AccountingSetupWebViewPageProps) {
+function AccountingSetupWebViewPage({uri, testID, shouldAppendShortLivedAuthToken = false, backTo}: AccountingSetupWebViewPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -82,10 +79,7 @@ function AccountingSetupWebViewPage({uri, testID, context, shouldAppendShortLive
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context}}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 

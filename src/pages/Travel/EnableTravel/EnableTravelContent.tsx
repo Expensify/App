@@ -11,7 +11,6 @@ import {setTravelProvisioningEnabledSteps} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getAdminsPrivateEmailDomains, isNonUSDPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -154,8 +153,7 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
     });
 
     if (isRedirecting) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'EnableTravelContent', isRedirecting};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     const handleBackButtonPress = () => {

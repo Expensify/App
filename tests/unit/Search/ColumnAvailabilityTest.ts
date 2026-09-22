@@ -32,7 +32,10 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
         TABLE_COLUMNS.FIRST_APPROVER,
         TABLE_COLUMNS.FIRST_APPROVED,
+        TABLE_COLUMNS.PAID_BY,
         TABLE_COLUMNS.PAID_STATUS,
+        TABLE_COLUMNS.AMOUNT_DEBITED,
+        TABLE_COLUMNS.AMOUNT_REIMBURSED,
         // Grouped search views.
         TABLE_COLUMNS.EXPENSES,
         TABLE_COLUMNS.FEED,
@@ -49,6 +52,7 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.GROUP_CATEGORY,
         TABLE_COLUMNS.GROUP_MERCHANT,
         TABLE_COLUMNS.GROUP_TAG,
+        TABLE_COLUMNS.GROUP_DAY,
         TABLE_COLUMNS.GROUP_MONTH,
         TABLE_COLUMNS.GROUP_WEEK,
         TABLE_COLUMNS.GROUP_YEAR,

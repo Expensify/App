@@ -1,3 +1,5 @@
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,46 +31,44 @@ import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
 type AddExistingExpenseFooterProps = {
     /** Selected transaction IDs */
-    selectedIds: Set<string>;
+    selectedIds: string[];
     /** The report to add expenses to */
     report: OnyxEntry<Report>;
-    /** The report to confirm */
     reportToConfirm: OnyxEntry<Report>;
-    /** The policy */
     policy: OnyxEntry<Policy>;
-    /** The policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-    /** Error message displayed in this component */
     errorMessage: string;
     /** Function for setting new error message */
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 
 function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const [transactions] = useTransactionsByID([...selectedIds]);
+    const [transactions] = useTransactionsByID(selectedIds);
+    const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
 
     const handleConfirm = () => {
-        if (selectedIds.size === 0) {
+        if (selectedIds.length === 0) {
             setErrorMessage(translate('iou.selectExistingExpense'));
             return;
         }
@@ -77,6 +77,8 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
             afterTransition: () => {
                 if (report && isIOUReport(report)) {
                     convertBulkTrackedExpensesToIOU({
+                        isVendorMatchingBetaEnabled,
+                        getCurrencyDecimals,
                         transactions,
                         iouReport: report,
                         chatReport,
@@ -87,15 +89,17 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         quickAction,
                         personalDetails,
-                        betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
                         selfDMReportActions,
                         delegateAccountID,
                         isTrackIntentUser,
+                        formatPhoneNumber,
+                        rules,
                     });
                 } else {
                     changeTransactionsReport({
-                        transactionIDs: [...selectedIds],
+                        isVendorMatchingBetaEnabled,
+                        transactionIDs: selectedIds,
                         isASAPSubmitBetaEnabled,
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
@@ -105,10 +109,14 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         policyTagList,
                         transactions,
                         allTransactionViolation: transactionViolations,
-                        allReports,
+                        reports,
+                        rules,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
+                        delegateAccountID,
+                        getCurrencyDecimals,
+                        getCurrencySymbol,
                     });
                 }
             },
@@ -125,14 +133,14 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 />
             )}
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}
-                text={translate('iou.addExistingExpenseConfirm')}
                 onPress={handleConfirm}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('iou.addExistingExpenseConfirm')}</Button.Text>
+            </Button>
         </>
     );
 }

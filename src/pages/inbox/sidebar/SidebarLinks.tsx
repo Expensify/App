@@ -12,7 +12,6 @@ import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
@@ -25,14 +24,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 type SidebarLinksProps = {
     /** Safe area insets required for mobile devices margins */
     insets: EdgeInsets;
 
-    /** List of options to display */
     optionListItems: Report[];
 
     /** Whether the full (unfiltered) LHN report set is empty. Used to distinguish an Onyx-cleared reload from a per-tab empty view. */
@@ -40,12 +38,9 @@ type SidebarLinksProps = {
 
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
-
-    /** Method to change currently active report */
-    isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CONST.PRIORITY_MODE.DEFAULT}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
@@ -59,38 +54,32 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     /**
      * Show Report page with selected report id
      */
-    const showReportPage = useCallback(
-        (option: Report & Pick<OptionData, 'actionTargetReportActionID'>) => {
-            // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
-            // or when clicking the active LHN row on large screens
-            // or when continuously clicking different LHNs, only apply to small screen
-            // since getTopmostReportId always returns on other devices
-            const reportActionID = Navigation.getTopmostReportActionId();
-            const actionTargetReportActionID = option.actionTargetReportActionID;
+    const showReportPage = (option: Report & Pick<OptionData, 'actionTargetReportActionID'>) => {
+        // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
+        // or when clicking the active LHN row on large screens
+        // or when continuously clicking different LHNs, only apply to small screen
+        // since getTopmostReportId always returns on other devices
+        const reportActionID = Navigation.getTopmostReportActionId();
+        const actionTargetReportActionID = option.actionTargetReportActionID;
 
-            // Prevent opening a new Report page if the user quickly taps on another conversation
-            // before the first one is displayed.
-            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
+        // When the sidebar is focused on narrow screens, force navigation to bypass stale report IDs.
+        // Otherwise, only block navigation if the report is already open or initial data is still loading.
+        const shouldBlockReportNavigation = shouldUseNarrowLayout
+            ? Navigation.getActiveRoute() !== `/${ROUTES.INBOX}`
+            : option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID;
 
-            if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !actionTargetReportActionID) ||
-                shouldBlockReportNavigation
-            ) {
-                cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
-                return;
-            }
-            // Keep this report visible in the active To-do/Unread tab even after opening it marks it read.
-            setStickyReportID(option.reportID);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
-        },
-        [shouldUseNarrowLayout, isActiveReport, setStickyReportID],
-    );
+        if (shouldBlockReportNavigation) {
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
+            return;
+        }
+        // Keep this report visible in the active To-do/Unread tab even after opening it marks it read.
+        setStickyReportID(option.reportID);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, actionTargetReportActionID));
+    };
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
 
@@ -99,13 +88,6 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     // Gating on the unfiltered set — rather than the current tab's filtered list — avoids the reconnect flash on the
     // Unread/To-do tabs, where the filtered list is legitimately empty while reports still exist.
     const shouldShowLoadingSkeleton = isLoadingReportData && !hasReportData;
-
-    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SidebarLinks',
-        isLoadingReportData,
-        hasReportData,
-        optionListItemsCount: optionListItems?.length,
-    };
 
     return (
         <View style={[styles.flex1, styles.h100]}>
@@ -127,10 +109,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
                 )}
                 {shouldShowLoadingSkeleton && (
                     <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView
-                            shouldAnimate
-                            reasonAttributes={sidebarSkeletonReasonAttributes}
-                        />
+                        <OptionsListSkeletonView shouldAnimate />
                     </View>
                 )}
             </View>

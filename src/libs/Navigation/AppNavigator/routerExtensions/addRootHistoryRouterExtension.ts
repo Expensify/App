@@ -43,10 +43,10 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
-            // Preserve the trailing run of string sentinels (side-panel + per-modal back-guards) through
+            // Preserve the trailing run of string entries (side-panel + per-modal back-guards) through
             // state rebuilds, so those overlays stay open and their browser entries aren't stranded by a
             // benign history rebuild (e.g. RESET / resize). The forward-navigation consume in
-            // getStateForAction is what intentionally drops a modal sentinel.
+            // getStateForAction is what intentionally drops a modal back-guard entry.
             const trailingSentinels = getTrailingStringSentinels(state.history);
             if (trailingSentinels.length > 0) {
                 stateWithInitialHistory.history = [...(asCustomHistory(stateWithInitialHistory.history) ?? []), ...trailingSentinels];
@@ -103,11 +103,11 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             const rehydrated = rehydrate(newState, configOptions);
 
             // forward navigation out of a `shouldHandleNavigationBack` Modal. The previous state
-            // had a trailing modal back-guard sentinel; rehydrate() re-appends it on top of the freshly
+            // had a trailing modal back-guard entry; rehydrate() re-appends it on top of the freshly
             // pushed route, which would strand a phantom browser entry (Back needing two presses). Drop only
-            // the top modal sentinel so the new history length matches the previous one and useLinking
+            // the top modal entry so the new history length matches the previous one and useLinking
             // sees historyDelta === 0 → history.replace, letting the new screen consume the guard entry.
-            // Removing only the top sentinel preserves any outer modal guards when modals are nested.
+            // Removing only the top entry preserves any outer modal guards when modals are nested.
             // The RN routes array still records a real push (done by the inner router), so in-app back is
             // unaffected. Either ordering works: if the Modal's own toggle(false) ran first, the trailing
             // entry is already a route and this is a no-op.
@@ -117,9 +117,9 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
                 return applyRevealPaddingOffset(state, {...rehydrated, history: consumedHistory});
             }
 
-            // Default: re-apply the offset (single source of truth = leading sentinels in
+            // Default: re-apply the offset (single source of truth = leading padding entries in
             // state.history). addPushParamsRouterExtension keeps all string entries, so
-            // reveal-padding sentinels survive PUSH_PARAMS / GO_BACK / POP / RESET dispatches.
+            // reveal-padding entries survive PUSH_PARAMS / GO_BACK / POP / RESET dispatches.
             return applyRevealPaddingOffset(state, rehydrated);
         };
 

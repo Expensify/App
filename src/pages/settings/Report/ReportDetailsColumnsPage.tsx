@@ -3,14 +3,16 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
-import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
+import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {getColumnsToShow, isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
+import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 
@@ -39,6 +41,8 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
 
+const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
+
 function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();
     const reportID = route.params.reportID;
@@ -56,8 +60,11 @@ function ReportDetailsColumnsPage() {
         },
     });
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
 
-    const allTypeCustomColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) as SearchCustomColumnIds[];
+    // The vendor column only exists for workspaces with the vendor feature, so hide it when this report's workspace lacks it.
+    const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isColumnAvailable = (column: SearchCustomColumnIds) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR;
 
     // Wait for transactions to load before rendering. ColumnsSettingsList snapshots
     // currentColumns in useState on mount and does not sync prop updates, so we must
@@ -68,7 +75,7 @@ function ReportDetailsColumnsPage() {
     // return for this report so data-driven columns (e.g. Exchange rate, Original amount,
     // Tax rate, Tax amount) appear pre-selected when they have data on the table.
     const effectiveColumns = useMemo(() => {
-        const savedColumns = (reportDetailsColumns ?? []) as SearchCustomColumnIds[];
+        const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
         if (savedColumns.length > 0) {
             return savedColumns;
         }
@@ -90,15 +97,17 @@ function ReportDetailsColumnsPage() {
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
-        return visibleColumns.filter((col) => allTypeCustomColumns.includes(col as SearchCustomColumnIds)) as SearchCustomColumnIds[];
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, allTypeCustomColumns]);
+        return visibleColumns.filter(isReportDetailsCustomColumn);
+    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy]);
 
+    const allColumns = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(isColumnAvailable);
+    const currentColumns = effectiveColumns.filter(isColumnAvailable);
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
 
     const handleSave = (selectedColumnIds: SearchCustomColumnIds[]) => {
         // Skip saving if columns haven't changed from the effective state, to avoid
         // switching from the default path to the custom path in getColumnsToShow unnecessarily.
-        if (!arraysEqual(selectedColumnIds, effectiveColumns)) {
+        if (!arraysEqual(selectedColumnIds, currentColumns)) {
             setReportDetailsColumns(selectedColumnIds, reportDetailsColumns);
         }
         Navigation.goBack();
@@ -110,9 +119,9 @@ function ReportDetailsColumnsPage() {
 
     return (
         <ColumnsSettingsList
-            allColumns={allTypeCustomColumns}
+            allColumns={allColumns}
             defaultSelectedColumns={REPORT_DETAILS_DEFAULT_COLUMNS}
-            currentColumns={effectiveColumns}
+            currentColumns={currentColumns}
             requiredColumns={requiredColumns}
             onSave={handleSave}
         />

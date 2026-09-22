@@ -1,8 +1,11 @@
+import type * as HybridAppActions from '@libs/actions/HybridApp';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as HybridAppPackage from '@expensify/react-native-hybrid-app';
 
 import Onyx from 'react-native-onyx';
 
@@ -18,18 +21,10 @@ jest.mock('@userActions/isGPSInProgressModalOpen', () => ({
 
 Onyx.init({keys: ONYXKEYS});
 
-type HybridAppModuleWithClose = {
-    closeReactNativeApp: (params: {shouldSetNVP: boolean}) => void;
-};
-
-type HybridAppActionsModule = {
-    closeReactNativeApp: (params: {shouldSetNVP: boolean; isTrackingGPS: boolean; shouldIgnoreTryNewDotLoading?: boolean}) => void;
-};
-
 describe('HybridApp actions', () => {
-    const {default: HybridAppModule} = require('@expensify/react-native-hybrid-app') as {default: HybridAppModuleWithClose};
-    const {closeReactNativeApp} = require('@libs/actions/HybridApp') as HybridAppActionsModule;
-    let closeNativeAppSpy: jest.SpiedFunction<HybridAppModuleWithClose['closeReactNativeApp']>;
+    const {default: HybridAppModule} = jest.requireActual<typeof HybridAppPackage>('@expensify/react-native-hybrid-app');
+    const {closeReactNativeApp} = jest.requireActual<typeof HybridAppActions>('@libs/actions/HybridApp');
+    let closeNativeAppSpy: jest.SpiedFunction<typeof HybridAppModule.closeReactNativeApp>;
 
     beforeEach(async () => {
         jest.clearAllMocks();

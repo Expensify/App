@@ -39,7 +39,6 @@ describe('SkiaWebChart', () => {
             <SkiaWebChart
                 getComponent={getComponent}
                 componentProps={{}}
-                reasonContext="Test.SkiaWebLoading"
             />,
         );
 
@@ -55,7 +54,6 @@ describe('SkiaWebChart', () => {
             <SkiaWebChart
                 getComponent={getComponent}
                 componentProps={{}}
-                reasonContext="Test.SkiaWebLoading"
             />,
         );
 

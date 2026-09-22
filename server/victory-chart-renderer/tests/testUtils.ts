@@ -1,4 +1,5 @@
 import {expect} from 'bun:test';
+
 import {readdirSync, readFileSync} from 'node:fs';
 import {arch, platform} from 'node:os';
 import {join} from 'node:path';

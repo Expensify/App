@@ -137,7 +137,7 @@ describe('CopyPolicySettingsUpgradePage', () => {
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
             sourcePolicyID: SOURCE_POLICY_ID,
             targetPolicyIDs: [TARGET_POLICY_ID],
-            parts: ['rules'] as Part[],
+            parts: ['perDiem'] as Part[],
         });
         await waitForBatchedUpdates();
     });
