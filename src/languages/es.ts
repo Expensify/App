@@ -10964,6 +10964,10 @@ ${reportName}`,
                     one: 'Prueba gratuita: ¡queda 1 día!',
                     other: `Prueba gratuita: ¡${count} días!`,
                 }),
+                badgeTitle: ({count}) => ({
+                    one: '¡Queda 1 día!',
+                    other: `¡Quedan ${count} días!`,
+                }),
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
             trialEnded: {
