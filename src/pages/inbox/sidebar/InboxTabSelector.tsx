@@ -15,6 +15,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -35,6 +36,8 @@ const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+const TOOLTIP_HORIZONTAL_MARGIN = 48;
 
 function InboxTabSelector() {
     const {translate} = useLocalize();
@@ -62,6 +65,7 @@ function InboxTabSelector() {
         [CONST.INBOX_TAB.UNREAD]: unreadTabRef,
         [CONST.INBOX_TAB.TODO]: todoTabRef,
     };
+    const {windowWidth} = useWindowDimensions();
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -142,6 +146,8 @@ function InboxTabSelector() {
                 },
                 shiftVertical: 8,
                 wrapperStyle: styles.productTrainingTooltipWrapper,
+                computeHorizontalShiftForNative: true,
+                maxWidth: windowWidth - TOOLTIP_HORIZONTAL_MARGIN,
             },
         },
         {

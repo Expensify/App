@@ -2293,6 +2293,8 @@ const translations = {
         profileAvatar: 'Profile avatar',
         customInstructions: 'Custom instructions',
         copilotIntoAccount: 'Copilot into account',
+        viewUserHistory: 'View user history',
+        viewAgentHistory: 'View agent history',
         publicSection: {
             title: 'Public',
             subtitle: 'These details are displayed on your public profile. Anyone can see them.',
@@ -2936,6 +2938,15 @@ const translations = {
             updateAddress: 'Update address',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
+        cardAddedToWalletPage: {
+            title: "You're all set!",
+            description: 'Your card has been added to Apple Wallet.',
+            firstSupportingText: 'Apple Pay is an easier way to pay in shops, in apps, and online with your iPhone, Apple Watch, iPad, and Mac.',
+            secondSupportingText: 'Use Apple Pay wherever you see these\nsymbols.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Contactless payment',
+            buttonText: 'Got it',
+        },
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterSecurityCode: (contactMethod: string) => `Please enter the security code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
@@ -3236,6 +3247,7 @@ const translations = {
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         chatWithAgent: 'Chat with agent',
+        viewAgentHistory: 'View agent history',
         copilotIntoAccount: 'Copilot into account',
         deleteAgent: 'Delete agent',
         deleteAgentTitle: 'Delete agent?',
@@ -3471,12 +3483,14 @@ const translations = {
         employees: {
             title: 'How many employees do you have?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 employees',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-9 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10-50 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1,000 employees',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'More than 1,000 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1-10 employees',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11-50 employees',
         },
         accounting: {
             title: 'Do you use any accounting software?',
@@ -6221,6 +6235,8 @@ const translations = {
             subsidiarySelectDescription: 'Select the Dynamics 365 Business Central subsidiary to sync with this workspace.',
             noCompaniesFound: 'No companies found',
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
         },
         type: {
             free: 'Free',
@@ -7655,12 +7671,7 @@ const translations = {
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider} sync complete`,
-                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
-                added: 'Added',
-                removed: 'Removed',
-                skipped: 'Skipped',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 employee',
                     other: (count: number) => `${count} employees`,
                 }),
@@ -7688,6 +7699,12 @@ const translations = {
             alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
             alreadyConnectedPrompt: 'You must disconnect your current ATS before connecting another.',
             syncing: 'Syncing candidates',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidate',
+                    other: (count: number) => `${count} candidates`,
+                }),
+            },
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
             dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
@@ -7727,6 +7744,13 @@ const translations = {
             syncLimitReached: {
                 title: 'Try again tomorrow',
                 prompt: "You've reached your sync limit for the day.",
+            },
+            syncResults: {
+                title: (provider: string) => `${provider} sync complete`,
+                successTitle: (provider: string) => `Successfully synced your ${provider} connection!`,
+                added: 'Added',
+                removed: 'Removed',
+                skipped: 'Skipped',
             },
         },
         export: {
@@ -9847,6 +9871,8 @@ const translations = {
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
+            created: 'Created',
+            createdDate: 'Created date',
             withdrawn: 'Withdrawn',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
