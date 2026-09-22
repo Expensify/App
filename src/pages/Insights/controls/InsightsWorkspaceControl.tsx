@@ -1,10 +1,19 @@
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import WorkspaceSelector from '@components/Search/FilterComponents/WorkspaceSelector';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
+
+import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
+
+import type {InsightsControlProps} from './insightsControls';
+
+import INSIGHTS_CONTROL_ANCHOR_ALIGNMENT from './insightsControls';
 
 type InsightsWorkspacePopupProps = {
     label: string;
@@ -16,7 +25,6 @@ type InsightsWorkspacePopupProps = {
     closeOverlay: () => void;
 };
 
-/** The Workspace control's popover, built on the same selector the Spend page's workspace filter uses. */
 function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: InsightsWorkspacePopupProps) {
     const [selectedPolicyIDs, setSelectedPolicyIDs] = useState(value);
 
@@ -48,4 +56,29 @@ function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: Insights
     );
 }
 
-export default InsightsWorkspacePopup;
+function InsightsWorkspaceControl({value, onChange}: InsightsControlProps<string[]>) {
+    const {translate} = useLocalize();
+    const workspaceNames = useFilterWorkspaceValue(value);
+    const label = translate('workspace.common.workspace');
+
+    const workspacePopover = ({closeOverlay}: PopoverComponentProps) => (
+        <InsightsWorkspacePopup
+            label={label}
+            value={value}
+            onChange={onChange}
+            closeOverlay={closeOverlay}
+        />
+    );
+
+    return (
+        <DropdownButton
+            label={label}
+            value={workspaceNames || null}
+            sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_WORKSPACE}
+            popoverAnchorAlignment={INSIGHTS_CONTROL_ANCHOR_ALIGNMENT}
+            PopoverComponent={workspacePopover}
+        />
+    );
+}
+
+export default InsightsWorkspaceControl;

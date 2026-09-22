@@ -12,11 +12,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-/** The row is right-aligned, so every popover opens inward from the pill's right edge. */
-const INSIGHTS_CONTROL_ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-} as const;
+import INSIGHTS_CONTROL_ANCHOR_ALIGNMENT from './insightsControls';
 
 type InsightsGroupByDropdownProps = {
     /** Time bucket the headline chart aggregates into */
