@@ -7,6 +7,7 @@
  * nothing here has to reason about where a caret sits inside a longer string.
  */
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDateMaskParts} from '@libs/DateInputMaskUtils';
@@ -14,8 +15,10 @@ import type {DateSegmentName} from '@libs/DateInputMaskUtils';
 
 import CONST from '@src/CONST';
 
+import type {ViewStyle} from 'react-native';
+
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import type {AnimatedTextInputRef} from './RNTextInput';
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
@@ -43,8 +46,27 @@ const ESTIMATED_CHARACTER_WIDTH = CONST.CHARACTER_WIDTH;
  */
 const SIZED_TO_CONTENT = {flexGrow: 0, flexShrink: 0, flexBasis: 'auto', width: 'auto'} as const;
 
+/**
+ * The field hands its input `flex: 1`, whose basis of zero applies down the main axis. A column would therefore take
+ * the segment's height away from it and leave the row to be sized by the separators alone.
+ */
+const SEGMENT_MAIN_AXIS = {flexDirection: 'row'} as const;
+
 /** Holds a copy of a segment's text purely to be measured, so it must not take part in the layout it is measuring */
 const MEASURED_OFF_LAYOUT = {position: 'absolute', opacity: 0} as const;
+
+/**
+ * The selection sits behind the date rather than around it, so that drawing it cannot change where anything ends up.
+ * It is the first child so the segments, which are positioned too, paint over it.
+ */
+const SELECTION_LAYER = {position: 'absolute', left: 0, right: 0, top: 0, bottom: 0} as const;
+
+/** Reads back the padding the field hands its text, which is what a selection has to leave alone to cover the line */
+function getVerticalPadding(inputStyle: BaseTextInputProps['style']): ViewStyle {
+    const {paddingTop, paddingBottom, paddingVertical} = StyleSheet.flatten(inputStyle) ?? {};
+
+    return {paddingTop, paddingBottom, paddingVertical};
+}
 
 /** Sits over the segment's own input, which is why the input can show the typed digits alone */
 const REMAINDER_OVERLAY = {position: 'absolute', left: 0, top: 0} as const;
@@ -64,6 +86,7 @@ function DateSegmentsInput({
     'aria-invalid': ariaInvalid,
     ref,
 }: BaseTextInputProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const segmentRefs = useRef<Partial<Record<DateSegmentName, AnimatedTextInputRef | null>>>({});
@@ -104,7 +127,7 @@ function DateSegmentsInput({
         return null;
     }
 
-    const {mask, getSegmentProps, onFieldBlur} = dateSegmentsConfig;
+    const {mask, getSegmentProps, isAllSelected, onFieldBlur} = dateSegmentsConfig;
 
     /**
      * Where a press on the field itself lands. The segments are read from the inputs rather than from this render, so
@@ -133,6 +156,11 @@ function DateSegmentsInput({
         }, 0);
     };
 
+    const parts = getDateMaskParts(mask).map((part) => ({...part, segmentProps: getSegmentProps(part.name)}));
+    // The separators belong to the mask rather than to the date, so they read as placeholder text for as long as any
+    // of the mask is still on screen
+    const isAnyMaskShowing = parts.some((part) => part.segmentProps.value.length < part.placeholder.length);
+
     // The segments stretch down the row as a single input would, so the padding they inherit lands their text in the
     // same place as any other text field's
     return (
@@ -141,74 +169,94 @@ function DateSegmentsInput({
             role="group"
             accessibilityLabel={accessibilityLabel}
         >
-            {getDateMaskParts(mask).map((part) => {
-                const segmentProps = getSegmentProps(part.name);
-                // The mask letters a half typed segment has not reached yet, which stay on screen in the placeholder
-                // color so the shape of the date is still readable while it is being filled in.
-                const remainder = part.placeholder.slice(segmentProps.value.length);
-                const measuredText = `${segmentProps.value}${remainder}`;
-                const width = (measuredWidths[part.name] ?? measuredText.length * ESTIMATED_CHARACTER_WIDTH) + CARET_ALLOWANCE;
+            {/* Sized to the date rather than to the row, so selecting it covers the digits and not the space after them */}
+            <View style={styles.flexRow}>
+                {/* The field's vertical padding is what sits its text below the label, so taking that same padding
+                leaves exactly the line of text to fill and the selection needs no measuring to line up with it. */}
+                {isAllSelected && (
+                    <View style={[SELECTION_LAYER, getVerticalPadding(style), styles.pointerEventsNone]}>
+                        <View style={[styles.flex1, {backgroundColor: theme.textSelectionBackground}]} />
+                    </View>
+                )}
+                {parts.map((part) => {
+                    const segmentProps = part.segmentProps;
+                    // The mask letters a half typed segment has not reached yet, which stay on screen in the placeholder
+                    // color so the shape of the date is still readable while it is being filled in.
+                    const remainder = part.placeholder.slice(segmentProps.value.length);
+                    const measuredText = `${segmentProps.value}${remainder}`;
+                    const width = (measuredWidths[part.name] ?? measuredText.length * ESTIMATED_CHARACTER_WIDTH) + CARET_ALLOWANCE;
 
-                return (
-                    <React.Fragment key={part.name}>
-                        <Text
-                            style={[style, NO_HORIZONTAL_PADDING, SIZED_TO_CONTENT, MEASURED_OFF_LAYOUT]}
-                            onLayout={(event) => {
-                                const layoutWidth = event.nativeEvent.layout.width;
+                    return (
+                        <React.Fragment key={part.name}>
+                            <Text
+                                style={[style, NO_HORIZONTAL_PADDING, SIZED_TO_CONTENT, MEASURED_OFF_LAYOUT]}
+                                onLayout={(event) => {
+                                    const layoutWidth = event.nativeEvent.layout.width;
 
-                                setMeasuredWidths((previous) => (previous[part.name] === layoutWidth ? previous : {...previous, [part.name]: layoutWidth}));
-                            }}
-                        >
-                            {measuredText}
-                        </Text>
-                        <View style={[SIZED_TO_CONTENT, {width}]}>
-                            <RNTextInput
-                                ref={(element: AnimatedTextInputRef | null) => {
-                                    segmentRefs.current[part.name] = element;
-
-                                    // The field's own ref has to lead somewhere, and the year is where typing starts
-                                    if (part.name !== 'year') {
-                                        return;
-                                    }
-                                    if (typeof ref === 'function') {
-                                        ref(element);
-                                    } else if (ref && 'current' in ref) {
-                                        // eslint-disable-next-line no-param-reassign
-                                        ref.current = element;
-                                    }
+                                    setMeasuredWidths((previous) => (previous[part.name] === layoutWidth ? previous : {...previous, [part.name]: layoutWidth}));
                                 }}
-                                style={[style, NO_HORIZONTAL_PADDING, styles.w100]}
-                                value={segmentProps.value}
-                                onKeyPress={segmentProps.onKeyPress}
-                                onChangeText={segmentProps.onChangeText}
-                                onFocus={(event) => {
-                                    clearTimeout(blurTimeoutRef.current);
-                                    segmentProps.onFocus();
-                                    onFocus?.(event);
-                                }}
-                                onBlur={handleSegmentBlur}
-                                onPressOut={onPressOut}
-                                accessibilityLabel={translate(`common.dateSegments.${part.name}`)}
-                                inputMode="numeric"
-                                disabled={disabled}
-                                readOnly={readOnly}
-                                forwardedFSClass={forwardedFSClass}
-                                aria-describedby={ariaDescribedBy}
-                                aria-invalid={ariaInvalid}
-                            />
-                            {/* The digits already typed are repeated invisibly so the text flow puts the remaining mask
+                            >
+                                {measuredText}
+                            </Text>
+                            <View style={[SIZED_TO_CONTENT, SEGMENT_MAIN_AXIS, {width}]}>
+                                <RNTextInput
+                                    ref={(element: AnimatedTextInputRef | null) => {
+                                        segmentRefs.current[part.name] = element;
+
+                                        // The field's own ref has to lead somewhere, and the year is where typing starts
+                                        if (part.name !== 'year') {
+                                            return;
+                                        }
+                                        if (typeof ref === 'function') {
+                                            ref(element);
+                                        } else if (ref && 'current' in ref) {
+                                            // eslint-disable-next-line no-param-reassign
+                                            ref.current = element;
+                                        }
+                                    }}
+                                    style={[style, NO_HORIZONTAL_PADDING, styles.w100]}
+                                    value={segmentProps.value}
+                                    onKeyPress={segmentProps.onKeyPress}
+                                    onChangeText={segmentProps.onChangeText}
+                                    onFocus={(event) => {
+                                        clearTimeout(blurTimeoutRef.current);
+                                        segmentProps.onFocus();
+                                        onFocus?.(event);
+                                    }}
+                                    onBlur={handleSegmentBlur}
+                                    onPressOut={(event) => {
+                                        segmentProps.onPressOut();
+                                        onPressOut?.(event);
+                                    }}
+                                    accessibilityLabel={translate(`common.dateSegments.${part.name}`)}
+                                    // A caret blinking inside a selected date would read as a place the next digit
+                                    // goes, when it is the whole date that is about to be replaced
+                                    caretHidden={isAllSelected}
+                                    inputMode="numeric"
+                                    disabled={disabled}
+                                    readOnly={readOnly}
+                                    forwardedFSClass={forwardedFSClass}
+                                    aria-describedby={ariaDescribedBy}
+                                    aria-invalid={ariaInvalid}
+                                />
+                                {/* The digits already typed are repeated invisibly so the text flow puts the remaining mask
                             letters exactly where the input's own text ends, without measuring anything. */}
-                            {!!remainder && (
-                                <Text style={[style, NO_HORIZONTAL_PADDING, REMAINDER_OVERLAY, styles.pointerEventsNone]}>
-                                    <Text style={styles.opacity0}>{segmentProps.value}</Text>
-                                    <Text style={{color: placeholderTextColor}}>{remainder}</Text>
+                                {!!remainder && (
+                                    <Text style={[style, NO_HORIZONTAL_PADDING, REMAINDER_OVERLAY, styles.pointerEventsNone]}>
+                                        <Text style={styles.opacity0}>{segmentProps.value}</Text>
+                                        <Text style={{color: placeholderTextColor}}>{remainder}</Text>
+                                    </Text>
+                                )}
+                            </View>
+                            {!!part.separator && (
+                                <Text style={[style, NO_HORIZONTAL_PADDING, styles.pointerEventsNone, SIZED_TO_CONTENT, isAnyMaskShowing && {color: placeholderTextColor}]}>
+                                    {part.separator}
                                 </Text>
                             )}
-                        </View>
-                        {!!part.separator && <Text style={[style, NO_HORIZONTAL_PADDING, styles.pointerEventsNone, SIZED_TO_CONTENT]}>{part.separator}</Text>}
-                    </React.Fragment>
-                );
-            })}
+                        </React.Fragment>
+                    );
+                })}
+            </View>
             {/* A single input filled the row, so clicking anywhere in the field focused it. This takes the space left
             over after the day, so pressing it still lands somewhere useful rather than doing nothing. */}
             <PressableWithoutFeedback

@@ -16,7 +16,8 @@ const useRemeasureOnScroll: UseRemeasureOnScroll = ({isActive, remeasure}) => {
             return;
         }
 
-        const handleScroll = throttle(remeasure, CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE);
+        // Listening hands the scroll event to whatever it calls, and a remeasure takes an argument of its own
+        const handleScroll = throttle(() => remeasure(), CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE);
         document.addEventListener('scroll', handleScroll, true);
 
         return () => {

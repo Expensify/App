@@ -307,6 +307,7 @@ function DatePicker({
                                   mask: dateMask,
                                   getSegmentProps: segmentInput.getSegmentProps,
                                   focusRequest: segmentInput.focusRequest,
+                                  isAllSelected: segmentInput.isAllSelected,
                                   onFieldBlur: segmentInput.onFieldBlur,
                               }
                             : undefined

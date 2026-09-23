@@ -30,6 +30,7 @@ const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 
 const BACKSPACE_KEY = 'Backspace';
 const DELETE_KEY = 'Delete';
+const SELECT_ALL_KEY = 'a';
 const MOVE_KEYS = {ArrowLeft: -1, ArrowRight: 1} as const;
 
 /** The characters a locale uses between segments, any of which means the user is finished with the one they are on */
@@ -64,6 +65,9 @@ type DateSegmentProps = {
     onKeyPress: (event: TextInputKeyPressEvent) => void;
     onChangeText: (text: string) => void;
     onFocus: () => void;
+
+    /** Puts the caret back where the user pressed, which is what collapses a whole field selection */
+    onPressOut: () => void;
 };
 
 type UseDateSegmentInputResult = {
@@ -84,6 +88,9 @@ type UseDateSegmentInputResult = {
 
     /** Whether any digit has been typed, so the field is showing more than an untouched mask */
     hasTypedDigits: boolean;
+
+    /** Whether the whole date is selected, so the field draws it as one selection and the next keystroke replaces it */
+    isAllSelected: boolean;
 
     getSegmentProps: (name: DateSegmentName) => DateSegmentProps;
 
@@ -112,6 +119,8 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     // Whether the field was left holding digits that do not add up to a date, which stay on screen so the user can see
     // what still has to be corrected
     const [hasInvalidEntry, setHasInvalidEntry] = useState(false);
+    // Native selection cannot span separate inputs, so selecting the whole date is tracked here and drawn by the field
+    const [isAllSelected, setIsAllSelected] = useState(false);
 
     // A date set from outside, by the calendar or by a restored draft, has to reach the segments as well. Without this
     // an edit in progress would keep showing the date it started from, since the segments are what the field renders.
@@ -176,9 +185,25 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     const handleKeyPress = (name: DateSegmentName, event: TextInputKeyPressEvent) => {
         const key = event.nativeEvent.key;
 
+        // A shortcut is the browser's to handle, apart from the one that selects a field the browser cannot select
+        if (event.nativeEvent.metaKey || event.nativeEvent.ctrlKey) {
+            if (key.toLowerCase() !== SELECT_ALL_KEY || !hasAnySegment(segments)) {
+                return;
+            }
+
+            event.preventDefault();
+            setIsAllSelected(true);
+            // Selecting the date puts the caret at its start, so replacing it does not have to move focus first
+            enterSegment(FIRST_SEGMENT_NAME);
+            return;
+        }
+
+        const wasAllSelected = isAllSelected;
+        setIsAllSelected(false);
+
         if (isNumeric(key)) {
             event.preventDefault();
-            const result = typeDigitIntoSegments(segments, name, key, shouldOverwrite);
+            const result = typeDigitIntoSegments(wasAllSelected ? EMPTY_SEGMENTS : segments, name, key, shouldOverwrite);
             setShouldOverwrite(false);
             applySegments(result.segments);
 
@@ -196,6 +221,14 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
 
         if (key === BACKSPACE_KEY || key === DELETE_KEY) {
             event.preventDefault();
+
+            // Deleting the whole date leaves the user at the start of the empty one, ready to type it again
+            if (wasAllSelected) {
+                applySegments(EMPTY_SEGMENTS);
+                enterSegment(FIRST_SEGMENT_NAME);
+                return;
+            }
+
             const trimmedSegments = removeLastDigit(segments, name);
 
             // An empty segment has nothing to delete, so the keystroke falls back to leaving it
@@ -229,6 +262,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             return;
         }
 
+        setIsAllSelected(false);
         applySegments(pastedSegments);
         enterSegment(LAST_SEGMENT_NAME);
     };
@@ -261,6 +295,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         setViewDate(undefined);
         setFocusRequest(undefined);
         setShouldOverwrite(false);
+        setIsAllSelected(false);
 
         const hasUnusableEntry = hasAnySegment(segments) && !getISODateFromSegments(segments);
         setHasInvalidEntry(hasUnusableEntry);
@@ -277,6 +312,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     const handleClear = () => {
         setSegments(EMPTY_SEGMENTS);
         setHasInvalidEntry(false);
+        setIsAllSelected(false);
         setViewDate(undefined);
         enterSegment(FIRST_SEGMENT_NAME);
     };
@@ -289,7 +325,8 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             viewDate: undefined,
             viewDateVersion: 0,
             hasTypedDigits: false,
-            getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}}),
+            isAllSelected: false,
+            getSegmentProps: () => ({value: '', onKeyPress: () => {}, onChangeText: () => {}, onFocus: () => {}, onPressOut: () => {}}),
             onFieldBlur: () => {},
             onClear: () => {},
         };
@@ -307,11 +344,13 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         viewDate: isEditing ? viewDate : undefined,
         viewDateVersion,
         hasTypedDigits: shouldShowSegments && hasAnySegment(segments),
+        isAllSelected,
         getSegmentProps: (name: DateSegmentName) => ({
             value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => handleKeyPress(name, event),
             onChangeText: handleChangeText,
             onFocus: handleSegmentFocus,
+            onPressOut: () => setIsAllSelected(false),
         }),
         onFieldBlur: handleFieldBlur,
         onClear: handleClear,
