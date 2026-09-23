@@ -1,8 +1,8 @@
 ---
 title: Enable Expensify Travel on a workspace
 description: Learn how Workspace Admins can enable Expensify Travel to manage business travel bookings and expenses in one place.
-keywords: [Expensify Travel, enable travel, workspace admin, business travel, travel management, travel policy, book travel, company travel]
-internalScope: Audience is Workspace Admins. Covers enabling Expensify Travel and the Add trip names to expenses setting. Does not cover booking restrictions or travel policy configuration
+keywords: [Expensify Travel, enable travel, workspace admin, business travel, travel management, travel policy, book travel, company travel, reviewing your request, validate your account, travel access request]
+internalScope: Audience is Workspace Admins. Covers enabling Expensify Travel, the account verification prompts shown when first pressing Book travel, and the Add trip names to expenses setting. Does not cover booking restrictions or travel policy configuration
 ---
 
 # Enable Expensify Travel on a workspace
@@ -64,6 +64,18 @@ No. Any workspace can use Expensify Travel, regardless of whether the Expensify 
 If your workspace bills in a currency other than USD and hasn’t enabled Expensify Travel yet, you’ll see a **Tax ID** step asking for your **Legal entity tax ID** before you accept the travel terms and conditions. Expensify uses this to set up travel billing in your local currency.
 
 Enter your legal entity tax ID and click **Next** to proceed to the terms and conditions. This step is skipped for USD workspaces and for workspaces that have already enabled Expensify Travel.
+
+## Why do I see “We’re reviewing your request...” when I press Book travel?
+
+Before your company can book travel, Expensify runs a few checks to confirm your account is ready for Expensify Travel. The first time you press **Book travel** for a workspace that isn’t set up for travel yet, Expensify starts those checks and shows a **We’re reviewing your request...** message. Click **Got it** to close it.
+
+You don’t need to do anything else. Expensify will be in touch once your account is ready, and **Book travel** then opens Expensify Travel.
+
+## Why am I asked to validate my account before booking travel?
+
+If your account isn’t validated yet, pressing **Book travel** opens the **Validate your account** screen. Enter the security code sent to your email address to continue.
+
+Once the code is accepted, Expensify finishes the travel request for you and shows the **We’re reviewing your request...** message, so you don’t need to press **Book travel** again. If you leave the **Validate your account** screen without entering the code, no request is sent — press **Book travel** again when you’re ready to continue.
 
 ## Why can’t I turn off Travel?
 
