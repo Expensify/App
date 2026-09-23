@@ -8,6 +8,7 @@ import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {setYear} from 'date-fns';
@@ -55,7 +56,7 @@ function DatePickerModal({
     viewDateVersion,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
-    const fallbackAnchorRef = useRef<View>(null);
+    const fallbackAnchorRef = useRef<ComponentRef<typeof View>>(null);
     // PopoverProvider treats a click inside the anchor as "not outside", so the caller's own anchor has to be used
     // or clicking the date input while the calendar is open would dismiss it.
     const anchorRef = anchorRefProp ?? fallbackAnchorRef;

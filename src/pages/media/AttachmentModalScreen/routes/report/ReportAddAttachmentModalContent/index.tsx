@@ -22,6 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -63,7 +64,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
-    const submitRef = useRef<View | HTMLElement>(null);
+    const submitRef = useRef<ComponentRef<typeof View> | HTMLElement>(null);
 
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);

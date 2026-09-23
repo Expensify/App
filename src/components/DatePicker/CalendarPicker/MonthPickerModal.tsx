@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 
 import type {View} from 'react-native';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type MonthPickerModalProps = {
@@ -32,12 +32,13 @@ type MonthPickerModalProps = {
     shouldEnableBackdropInNarrowPane?: boolean;
 };
 
-function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
+function MonthPickerModal({isVisible, currentMonth, onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {setActivePopoverExtraAnchorRef} = usePopoverActions();
     const contentRef = useRef<View>(null);
     const [searchText, setSearchText] = useState('');
+    const resolvedCurrentMonth = currentMonth ?? new Date().getMonth();
     const monthNames = DateUtils.getMonthNames(dateFnsLocale);
 
     useEffect(() => {
@@ -50,15 +51,11 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
         setActivePopoverExtraAnchorRef(contentRef);
     }, [isVisible, setActivePopoverExtraAnchorRef]);
 
-    const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentMonth), [monthNames, currentMonth]);
+    const allMonths = DateUtils.getFilteredMonthItems(monthNames, resolvedCurrentMonth);
 
-    const {data, headerMessage} = useMemo(() => {
-        const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
-        return {
-            headerMessage: !filteredMonths.length ? translate('common.noResultsFound') : '',
-            data: filteredMonths,
-        };
-    }, [allMonths, searchText, translate]);
+    const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
+    const headerMessage = !filteredMonths.length ? translate('common.noResultsFound') : '';
+    const data = filteredMonths;
 
     useEffect(() => {
         if (isVisible) {
@@ -67,15 +64,12 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
         setSearchText('');
     }, [isVisible]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('monthPickerPage.selectMonth'),
-            value: searchText,
-            onChangeText: setSearchText,
-            headerMessage,
-        }),
-        [headerMessage, searchText, translate],
-    );
+    const textInputOptions = {
+        label: translate('monthPickerPage.selectMonth'),
+        value: searchText,
+        onChangeText: setSearchText,
+        headerMessage,
+    };
 
     return (
         <Modal
@@ -108,7 +102,7 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMo
                         onMonthChange?.(option.value);
                     }}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={currentMonth.toString()}
+                    initiallyFocusedItemKey={resolvedCurrentMonth.toString()}
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     shouldStopPropagation
