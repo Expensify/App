@@ -37,7 +37,7 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View style={[styles.navigationTabBarItemContent, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
+        <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
             <View>
                 <Icon
                     src={icon}

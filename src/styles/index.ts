@@ -748,15 +748,7 @@ const staticStyles = (theme: ThemeColors) =>
         navigationTabBarSurface: {
             backgroundColor: theme.floatingTabBarBG,
             borderWidth: variables.hairlineBorderWidth,
-            borderColor: theme.floatingTabBarBorder,
-        },
-
-        // Wraps a tab's icon and label so the selected pill can be as wide as they are rather than as wide as
-        // the tab's share of the bar. A long label then pushes the pill past its tab instead of spilling out of it.
-        navigationTabBarItemContent: {
-            height: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
+            borderColor: theme.border,
         },
 
         navigationTabBarItemSelected: {
@@ -774,6 +766,8 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: variables.floatingTabBarContentInset,
         },
 
+        // Also wraps a tab's icon and label, where it sizes to them rather than to the tab's share of the bar,
+        // so a long label pushes the selected pill past its tab instead of spilling out of it.
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',

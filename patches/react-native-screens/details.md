@@ -12,22 +12,6 @@
 
 - Reason: The App hides the native tab bar on screens that are not a tab root, which React Navigation forwards to RNScreens as `tabBarHidden` (it derives the flag from `tabBarStyle.display === 'none'`). RNScreens calls UIKit's `setTabBarHidden:animated:` with `animated:NO`, so the bar blinks in and out instead of travelling with the screen that hid it. The patch passes `YES` at both call sites, which lets UIKit run its own show/hide animation. The pre-iOS 18 branch is left alone: it assigns `tabBar.hidden` directly and has no animated counterpart.
 - Upstream PR/issue: not reported yet.
-- E/App issue: n/a — found while building the native tab bar in `TabNavigator.native.tsx`.
+- E/App issue: n/a — found while building the native tab bar in `TabNavigator.ios.tsx`.
 - PR introducing patch: n/a
 
-
-### [react-native-screens+4.25.0+003+no-android-tab-icon-tint.patch](react-native-screens+4.25.0+003+no-android-tab-icon-tint.patch)
-
-- Reason: The App builds every native tab icon off-screen in Skia and hands it over already colored, because iOS 26 ignores the inactive icon color from `UITabBarItemAppearance`. React Navigation marks those icons `tinted: false`, but `getPlatformIcon` in `@react-navigation/bottom-tabs` only honors the flag on iOS: Android always receives the plain `imageSource`, and `TabsAppearanceApplicator` then assigns `bottomNavigationView.itemIconTintList` unconditionally. A `ColorStateList` tint is `SRC_IN`, so it flattens the whole bitmap to one color. On the glyph tabs this is invisible, since Material repaints them in the same color Skia used, but the account tab shows the user's avatar and turns into a solid silhouette, gray when the tab is not selected and green when it is, and the status dots painted into the bitmaps lose their own colors too. The patch drops the icon tint list so Android draws the bitmap as supplied, which is what `tinted: false` already means on iOS. Label colors are untouched and keep coming from `tabBarItemTitleFontColor`.
-- Upstream PR/issue: not reported yet.
-- E/App issue: n/a, found while building the native tab bar in `TabNavigator.native.tsx`.
-- PR introducing patch: n/a
-
-
-### [react-native-screens+4.25.0+004+tabs-container-reattach.patch](react-native-screens+4.25.0+004+tabs-container-reattach.patch)
-
-- Reason: Pushing any opaque screen onto the root native stack over the tab navigator leaves the tab content permanently blank once that screen is popped. `ScreenStack.kt` computes a null `visibleBottom` when the new top is opaque and then removes every wrapper below it, so the whole `TAB_NAVIGATOR` `ScreenStackFragment` is removed rather than detached, taking its child FragmentManager and the selected tab's `TabsScreenFragment` with it. On the pop, `TabsContainer.onAttachedToWindow` calls `setupFragmentManager()`, which hands back a fresh and empty child FragmentManager, and then `flushPendingUpdates()`, which is guarded by `invalidationFlags.any()`. Nothing invalidated the container, because the JS side sends no new navigation state when the selected tab did not change, so the flush is a no-op and the content FrameLayout stays empty forever. The bar keeps working because it is a plain child View rather than a fragment, and switching tabs repairs it because `onMenuItemSelected` runs a real fragment transaction. Reproduced on an Android emulator from the Spend tab, where a row opens an RHP, and from the Inbox tab, where the report header opens the details RHP: after back the window has zero text nodes and is visually blank. The patch invalidates the container before the flush on re-attach so the selected tab's fragment is added to the new FragmentManager.
-- The same re-attach also trips `ColorSchemeCoordinator.setup`, which opens with `check(!isSetUp)`. `teardown()` is the only thing that clears the flag and the package never calls it, and the re-attach does not always come with a matching detach, so the patch calls `teardown()` both from `onDetachedFromWindow` and immediately before `setup()`. Without the second call the pop surfaces `[RNScreens] ColorSchemeCoordinator's setup method must not be called again without calling teardown() first` as a red box in debug, and an `IllegalStateException` in release.
-- Upstream PR/issue: not reported yet.
-- E/App issue: n/a, found while building the native tab bar in `TabNavigator.native.tsx`.
-- PR introducing patch: n/a

@@ -1,6 +1,6 @@
 /**
  * Ordered list of screen names registered inside TabNavigator.
- * This must match the Tab.Screen order in TabNavigator.native.tsx, where the order is also the order the native
+ * This must match the Tab.Screen order in TabNavigator.ios.tsx, where the order is also the order the native
  * tab bar draws its items in, so Workspaces comes before Account.
  * Used by getAdaptedStateFromPath to build complete tab navigator state for deep-links.
  */

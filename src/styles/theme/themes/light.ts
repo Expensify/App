@@ -59,7 +59,6 @@ const lightTheme = {
     sidebar: colors.productLight100,
     sidebarHover: colors.productLight300,
     floatingTabBarBG: 'rgba(252,251,249,0.88)',
-    floatingTabBarBorder: colors.productLight400,
     floatingTabBarSelectedBG: 'rgba(230,225,218,0.50)',
     heading: colors.productLight900,
     textLight: colors.white,

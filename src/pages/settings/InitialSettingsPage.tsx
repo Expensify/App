@@ -1,8 +1,6 @@
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -50,7 +48,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
-    const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
@@ -158,8 +155,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             includeSafeAreaPaddingBottom
             testID="InitialSettingsPage"
             shouldEnableKeyboardAvoidingView={false}
-            bottomContent={tabBarContent}
-            bottomContentStyle={styles.overflowVisible}
         >
             <TopBarWithLoadingBar
                 breadcrumbLabel={translate('initialSettingsPage.account')}

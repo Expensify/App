@@ -85,14 +85,6 @@ jest.mock('@components/AccountSwitcherSkeletonView', () => {
     return MockAccountSwitcherSkeletonView;
 });
 
-jest.mock('@components/Navigation/TabBarBottomContent', () => {
-    function MockTabBarBottomContent() {
-        return null;
-    }
-    MockTabBarBottomContent.displayName = 'TabBarBottomContent';
-    return MockTabBarBottomContent;
-});
-
 jest.mock('@components/Navigation/TopBarWithLoadingBar', () => {
     function MockTopBarWithLoadingBar() {
         return null;

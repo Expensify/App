@@ -58,9 +58,8 @@ import SettingsSplitNavigator from './SettingsSplitNavigator';
 import WorkspaceNavigator from './WorkspaceNavigator';
 
 /**
- * Tab Navigator backed by the platform's own tab bar: UITabBar on iOS, which brings the liquid glass material
- * with it on iOS 26, and a Material BottomNavigationView on Android. Wide layouts keep the JS side bar, since
- * neither native bar can be moved to the side of the screen.
+ * Tab Navigator backed by UITabBar, which brings the liquid glass material with it on iOS 26. Wide layouts keep
+ * the JS side bar, since UITabBar cannot be moved to the side of the screen.
  */
 const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 
@@ -422,7 +421,7 @@ function TabNavigator() {
         accountID: currentUserPersonalDetails.accountID,
     });
     const avatarURI = typeof avatarSource === 'string' ? avatarSource : undefined;
-    const avatarSignature = `${avatarURI}|${accountDotColor}`;
+    const avatarSignature = [avatarURI, accountDotColor, tabLabels[NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR], theme.textSupporting, theme.text].join('|');
     const [circularAvatar, setCircularAvatar] = useState<{signature: string; active: AvatarTabIcon; inactive: AvatarTabIcon}>();
     const avatarPair = circularAvatar?.signature === avatarSignature ? circularAvatar : undefined;
     const toAvatarIcon = (icon: AvatarTabIcon): NativeBottomTabIcon => ({
@@ -454,7 +453,7 @@ function TabNavigator() {
             isActive = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [avatarSignature, iconsSignature]);
+    }, [avatarSignature]);
 
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
@@ -498,10 +497,6 @@ function TabNavigator() {
 
     const screenOptions = {
         headerShown: false,
-        // The native bar swaps the visible tab itself, so a tab that mounts on first focus hands the bar an empty
-        // container to show while its tree renders. Unfocused tabs render through a transition instead, which keeps
-        // them off the first paint and still leaves each one ready to draw its own skeleton the moment it is picked.
-        lazy: false,
         tabBarActiveTintColor: theme.iconMenu,
         tabBarInactiveTintColor: theme.icon,
         // Every tab shares one style, so the bar reads the current visibility in the same render that changed it.
@@ -509,10 +504,6 @@ function TabNavigator() {
         // frame after a tab switch in the previous tab's state. The background only lands on Android and iOS 18 and
         // below; iOS 26 keeps its own glass material.
         tabBarStyle: {display: shouldShowNativeTabBar ? ('flex' as const) : ('none' as const), backgroundColor: theme.appBG},
-        // Android defaults to showing the label on the selected tab only once a bar has more than three items,
-        // which leaves the other tabs centering a lone icon at a different height. Labelling every tab matches
-        // what iOS draws and keeps all five icons on one baseline.
-        tabBarLabelVisibilityMode: 'labeled' as const,
         tabBarControllerMode: 'tabBar' as const,
         // The bar stays put while the content scrolls, instead of collapsing the way iOS 26 does by default.
         tabBarMinimizeBehavior: 'none' as const,

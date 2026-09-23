@@ -16,8 +16,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {useDebugTabViewHeight} from './Navigation/DebugTabView';
-import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
 import OfflineIndicator from './OfflineIndicator';
 import ScreenWrapper from './ScreenWrapper';
@@ -119,8 +117,6 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
             shouldEnableMaxHeight
             shouldEnablePickerAvoiding={false}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContentStyle={styles.overflowVisible}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <View style={[styles.flex1, styles.flexRow]}>
                 <View style={[styles.flex1]}>

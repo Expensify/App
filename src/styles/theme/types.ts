@@ -66,7 +66,6 @@ type ThemeColors = {
     sidebar: Color;
     sidebarHover: Color;
     floatingTabBarBG: Color;
-    floatingTabBarBorder: Color;
     floatingTabBarSelectedBG: Color;
     heading: Color;
     textLight: Color;

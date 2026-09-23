@@ -44,7 +44,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
-                <View style={[styles.navigationTabBarItemContent, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
+                <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
                     <View style={styles.tn0Half}>
                         <AccountNavigationAvatar
                             // The floating bar marks the selected tab with a pill behind the whole item, so the

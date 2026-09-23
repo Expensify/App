@@ -1,7 +1,5 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -168,7 +166,6 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
             testID="InsightsPage"
         >
             <TopBar
