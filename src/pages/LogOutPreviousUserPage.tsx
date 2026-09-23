@@ -45,9 +45,13 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const [hasCancelledSwitch, setHasCancelledSwitch] = useState(false);
 
     useEffect(() => {
+        if (!initialURL) {
+            return;
+        }
+
         const sessionEmail = session?.email;
-        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
+        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL}` : initialURL;
+        const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL, sessionEmail);
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
@@ -79,7 +83,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 return;
             }
 
-            const linkEmail = getEmailFromTransitionURL(transitionURL ?? undefined);
+            const linkEmail = getEmailFromTransitionURL(transitionURL);
 
             showConfirmModal({
                 title: translate('deeplinkWrapper.switchAccount.title'),
@@ -111,7 +115,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             });
             return;
         }
-        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined);
+        const isLoggingInAsDelegate = isLoggingInAsDelegateSessionUtils(transitionURL);
 
         if (isLoggingInAsDelegate) {
             return;
