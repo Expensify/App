@@ -92,6 +92,22 @@ Your file must include at least the following columns:
 - Amount  
 - Merchant  
 
+## What date formats can the Date column use for a personal card spreadsheet import?
+
+Expensify reads the column you map to **Date** in any of these formats:
+
+- `2025-11-02`
+- `11/02/2025` or `11-02-2025`
+- `2025/11/02`
+- `1/2/2025`
+- `Nov 2, 2025` or `November 2, 2025`
+- `2 Nov 2025`
+- `20251102`
+
+In an .XLS or .XLSX file, a cell that your spreadsheet app formats as a date is read as a date, so you don't need to convert it to text first. A five-digit Excel date serial number such as `45678` is also converted to the date it represents.
+
+When the day and the month are both 12 or lower, a slash or dash date can be read two ways. Expensify reads those as month/day/year, so `02/11/2025` imports as February 11, 2025. Use `2025-11-02` instead when you want a date to be unambiguous.
+
 ## What happens if I use the same column twice when mapping fields?
 
 You’ll see an error message and won’t be able to proceed until the issue is resolved.
