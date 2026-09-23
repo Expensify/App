@@ -44,11 +44,22 @@ type TableBodyListProps = TableBodyProps & {
     emptyMessage: string;
 };
 
+type ColumnScrollOverrideProps = Record<string, unknown> & {
+    dataSet?: Record<string, unknown>;
+    style?: StyleProp<ViewStyle>;
+};
+
 /**
- * Makes the list's own scroller scroll the columns horizontally too. Must land on the internal ScrollView, which
- * renders `overflowX: 'hidden'` for a vertical list, hence `overrideProps` rather than the list's own `style`.
+ * Hands the horizontal axis to the list's scroller and marks it for the page-header hover rule in `web/index.html`,
+ * keeping whatever `overrideProps` the consumer passed.
  */
-const columnScrollOverrideStyle = {overflowX: 'auto'};
+function getColumnScrollOverrideProps(overrideProps: ColumnScrollOverrideProps = {}) {
+    return {
+        ...overrideProps,
+        dataSet: {...overrideProps.dataSet, tableColumnScroller: true},
+        style: [overrideProps.style, {overflowX: 'auto'}],
+    };
+}
 
 /**
  * Pins the page header to the scroller's left edge so it stays put while the columns move under it. Held at the
@@ -489,8 +500,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 }}
                 {...restListProps}
                 scrollEnabled={scrollEnabled}
-                // Merged after the spread so a consumer's `overrideProps` and the table's horizontal axis coexist.
-                overrideProps={isColumnScrollEnabled ? {...overrideProps, dataSet: {tableColumnScroller: true}, style: [overrideProps?.style, columnScrollOverrideStyle]} : overrideProps}
+                overrideProps={isColumnScrollEnabled ? getColumnScrollOverrideProps(overrideProps) : overrideProps}
             />
         </View>
     );
