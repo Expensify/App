@@ -1022,12 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Ενεργοποίηση',
             },
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
                 subtitle: 'Κάρτα Expensify',
-                cta: 'Έλεγχος',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Ψηφιακό πορτοφόλι',
             },
             reviewCardFraud: {
                 title: 'Ελέγξτε πιθανή απάτη στην Κάρτα Expensify',
@@ -1888,6 +1883,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${newApproverID}"/>, παρέκαμψε τον/την <mention-user accountID="${previousApproverID}"/>`
+                    : `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${newApproverID}"/>`,
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `Η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για εσάς (τον/την αναπληρωτή/τριά τους για διακοπές), επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
@@ -1905,6 +1904,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 addApproverSubtitle: 'Προσθέστε έναν επιπλέον εγκρίνοντα στην υπάρχουσα ροή έγκρισης.',
                 bypassApprovers: 'Παράκαμψη εγκριτών',
                 bypassApproversSubtitle: 'Ορίστε τον εαυτό σας ως τελικό εγκρίνοντα και παρακάμψτε τυχόν υπόλοιπους εγκρίνοντες.',
+                reassignApprover: 'Επανανάθεση εγκρίνοντα',
+                reassignApproverSubtitle: 'Παρακάμψτε τον τρέχοντα εγκρίνοντα και ορίστε νέο εγκρίνοντα.',
+                reassignApproverPageHeader: 'Επιλέξτε έναν αντικαταστάτη εγκρίνοντα και στη συνέχεια ακολουθήστε την υπόλοιπη ροή έγκρισης.',
             },
             addApprover: {
                 subtitle: 'Επιλέξτε έναν επιπλέον εγκρίνωντα για αυτήν την αναφορά πριν τη διοχετεύσουμε στο υπόλοιπο στάδιο έγκρισης.',
@@ -2838,6 +2840,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'ψηφιακό πορτοφόλι',
+        digitalWalletCapitalized: 'Ψηφιακό πορτοφόλι',
+        approvalNeeded: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
+        review: 'Έλεγχος',
         confirmHeading: 'Επιβεβαιώστε το αίτημά σας',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Θέλετε να προσθέσετε την Κάρτα Expensify (που λήγει σε ${lastFourDigits}) στο ${walletName} σας;`,
@@ -3997,6 +4002,7 @@ ${amount} για ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
         countrySelectionStepHeader: 'Πού βρίσκεται ο τραπεζικός σας λογαριασμός;',
         accountDetailsStepHeader: 'Ποια είναι τα στοιχεία του λογαριασμού σας;',
         accountTypeStepHeader: 'Τι τύπος λογαριασμού είναι αυτός;',

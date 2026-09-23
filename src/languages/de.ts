@@ -973,12 +973,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um eine Erstattung zu erhalten'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName}-Kartenergänzung erfordert Ihre Zustimmung`,
                 subtitle: 'Expensify Karte',
-                cta: 'Überprüfen',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Digitale Brieftasche',
             },
             reviewCardFraud: {
                 title: 'Möglichen Betrug mit Ihrer Expensify Karte überprüfen',
@@ -1834,11 +1829,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Wähle eine Option, um die approvierende Person für diesen Bericht zu ändern. (Aktualisiere deine <a href="${workflowSettingLink}">Workspace-Einstellungen</a>, um dies dauerhaft für alle Berichte zu ändern.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
             reassignedApproverMessage: (managerID: number) => `hat den Genehmigenden über eine Workflow-Aktualisierung neu zu <mention-user accountID="${managerID}"/> zugewiesen`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `Genehmigenden in <mention-user accountID="${newApproverID}"/> geändert, <mention-user accountID="${previousApproverID}"/> übersprungen`
+                    : `Genehmigenden in <mention-user accountID="${newApproverID}"/> geändert`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
                 addApproverSubtitle: 'Füge dem bestehenden Workflow eine weitere genehmigende Person hinzu.',
                 bypassApprovers: 'Genehmigende umgehen',
                 bypassApproversSubtitle: 'Sich selbst als finale:n Genehmiger:in zuweisen und alle verbleibenden Genehmiger:innen überspringen.',
+                reassignApprover: 'Genehmiger neu zuweisen',
+                reassignApproverSubtitle: 'Überspringe die aktuelle genehmigende Person und weise eine neue zu.',
+                reassignApproverPageHeader: 'Wähle eine ersetzende genehmigende Person aus und folge dann dem restlichen Genehmigungs-Workflow.',
             },
             addApprover: {
                 subtitle: 'Wählen Sie eine zusätzliche genehmigende Person für diesen Bericht, bevor wir ihn durch den restlichen Genehmigungsworkflow leiten.',
@@ -2780,6 +2782,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'digitale Brieftasche',
+        digitalWalletCapitalized: 'Digitale Brieftasche',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName}-Kartenergänzung erfordert Ihre Zustimmung`,
+        review: 'Überprüfen',
         confirmHeading: 'Bestätigen Sie Ihre Anfrage',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Möchten Sie Ihre Expensify Karte (endet auf ${lastFourDigits}) zu Ihrem ${walletName} hinzufügen?`,
@@ -3943,6 +3948,7 @@ ${amount} für ${merchant} – ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
         countrySelectionStepHeader: 'Wo befindet sich dein Bankkonto?',
         accountDetailsStepHeader: 'Wie lauten deine Kontodetails?',
         accountTypeStepHeader: 'Was für ein Konto ist das?',

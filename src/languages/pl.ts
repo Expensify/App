@@ -979,12 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Dodaj konto bankowe, aby otrzymać zwrot'},
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `Dodanie karty ${walletName} wymaga twojej akceptacji`,
                 subtitle: 'Karta Expensify',
-                cta: 'Przegląd',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Portfel cyfrowy',
             },
             reviewCardFraud: {
                 title: 'Sprawdź potencjalne oszustwo na swojej Karcie Expensify',
@@ -1860,11 +1855,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby zmienić to na stałe dla wszystkich raportów).`,
             changedApproverMessage: (managerID: number) => `zmienił(a) akceptującego na <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ponownie przypisał(a) akceptującego do <mention-user accountID="${managerID}"/> w wyniku aktualizacji przepływu pracy`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `zmienił(a) akceptującego na <mention-user accountID="${newApproverID}"/>, pominął(-ęła) <mention-user accountID="${previousApproverID}"/>`
+                    : `zmienił(a) akceptującego na <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Dodaj zatwierdzającego',
                 addApproverSubtitle: 'Dodaj dodatkową osobę zatwierdzającą do istniejącego przepływu zatwierdzania.',
                 bypassApprovers: 'Pomiń zatwierdzających',
                 bypassApproversSubtitle: 'Przypisz siebie jako ostatecznego akceptującego i pomiń wszystkich pozostałych akceptujących.',
+                reassignApprover: 'Zmień zatwierdzającego',
+                reassignApproverSubtitle: 'Pomiń obecną osobę zatwierdzającą i przypisz nową.',
+                reassignApproverPageHeader: 'Wybierz zastępczą osobę zatwierdzającą, a następnie kontynuuj pozostały przepływ zatwierdzania.',
             },
             addApprover: {
                 subtitle: 'Wybierz dodatkowego akceptującego ten raport, zanim przekażemy go dalej w procesie akceptacji.',
@@ -2807,6 +2809,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'portfel cyfrowy',
+        digitalWalletCapitalized: 'Portfel cyfrowy',
+        approvalNeeded: ({walletName}: {walletName: string}) => `Dodanie karty ${walletName} wymaga twojej akceptacji`,
+        review: 'Przegląd',
         confirmHeading: 'Potwierdź swoje żądanie',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Czy chcesz dodać swoją Kartę Expensify (kończącą się na ${lastFourDigits}) do portfela ${walletName}?`,
@@ -3954,6 +3959,7 @@ ${amount} dla ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
         countrySelectionStepHeader: 'Gdzie znajduje się Twoje konto bankowe?',
         accountDetailsStepHeader: 'Jakie są szczegóły Twojego konta?',
         accountTypeStepHeader: 'Jakiego typu jest to konto?',

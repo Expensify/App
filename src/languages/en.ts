@@ -1071,12 +1071,7 @@ const translations = {
                 cta: 'Activate',
             },
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName} card addition needs your approval`,
                 subtitle: 'Expensify Card',
-                cta: 'Review',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Digital wallet',
             },
             reviewCardFraud: {
                 title: 'Review potential fraud on your Expensify Card',
@@ -1931,6 +1926,10 @@ const translations = {
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `changed the approver to <mention-user accountID="${newApproverID}"/>, skipped <mention-user accountID="${previousApproverID}"/>`
+                    : `changed the approver to <mention-user accountID="${newApproverID}"/>`,
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `This report was sent to <mention-user>@${originalManager}</mention-user> instead of you (their Vacation Delegate) because you are not a member of this report's policy`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
@@ -1948,6 +1947,9 @@ const translations = {
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',
                 bypassApprovers: 'Bypass approvers',
                 bypassApproversSubtitle: 'Assign yourself as final approver and skip any remaining approvers.',
+                reassignApprover: 'Reassign approver',
+                reassignApproverSubtitle: 'Skip the current approver and assign a new approver.',
+                reassignApproverPageHeader: 'Choose a replacement approver before we route through the rest of the approval workflow.',
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
@@ -2892,6 +2894,9 @@ const translations = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'digital wallet',
+        digitalWalletCapitalized: 'Digital wallet',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName} card addition needs your approval`,
+        review: 'Review',
         confirmHeading: 'Confirm your request',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Do you want to add your Expensify Card (ending in ${lastFourDigits}) to your ${walletName}?`,
@@ -4060,6 +4065,7 @@ const translations = {
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
         countrySelectionStepHeader: "Where's your bank account located?",
         accountDetailsStepHeader: 'What are your account details?',
         accountTypeStepHeader: 'What type of account is this?',

@@ -70,6 +70,7 @@ const SCREENS = {
         CHANGE_APPROVER: {
             ROOT: 'Search_Change_Approver_Root',
             ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+            REASSIGN_APPROVER: 'Search_Change_Approver_Reassign_Approver',
         },
     },
     SETTINGS: {
@@ -1140,6 +1141,7 @@ const SCREENS = {
     REPORT_CHANGE_APPROVER: {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
+        REASSIGN_APPROVER: 'Report_Change_Approver_Reassign_Approver',
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
