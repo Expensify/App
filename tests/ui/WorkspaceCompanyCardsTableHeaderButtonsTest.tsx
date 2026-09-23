@@ -109,20 +109,20 @@ describe('WorkspaceCompanyCardsTableHeaderButtons settings button', () => {
 
         await waitForBatchedUpdates();
 
-        // Then the button keeps its text, because the design only collapses it where horizontal space is scarce
+        // Then the button shows the cog and its label
         expect(screen.getByText('Settings')).toBeOnTheScreen();
     });
 
-    it('collapses to a cog-only button on narrow screens', async () => {
-        // Given a narrow layout, where a full-width labelled button pushed itself onto a row of its own
+    it('keeps the Settings label on narrow screens too', async () => {
+        // Given a narrow layout, which at one point collapsed this button to a cog-only circle
         mockShouldUseNarrowLayout = true;
         renderHeaderButtons(true);
 
         await waitForBatchedUpdates();
 
-        // Then the label is gone so the cog can share the feed selector's row, but the button must still be
-        // reachable by name — dropping visible text is exactly where an icon-only control loses its accessible label
-        expect(screen.queryByText('Settings')).toBeNull();
+        // Then the label stays, because design chose one consistent icon + label button at every width
+        // rather than swapping treatments between desktop and mobile
+        expect(screen.getByText('Settings')).toBeOnTheScreen();
         expect(screen.getByLabelText('Settings')).toBeOnTheScreen();
     });
 });

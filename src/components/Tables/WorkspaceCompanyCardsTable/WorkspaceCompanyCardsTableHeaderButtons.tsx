@@ -141,13 +141,10 @@ function WorkspaceCompanyCardsTableHeaderButtons({
                     <Button
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         accessibilityLabel={translate('common.settings')}
-                        // Zeroing the horizontal padding squares the button off so the icon-only variant renders as a circle.
-                        innerStyles={shouldShowNarrowLayout ? styles.ph0 : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.SETTINGS_BUTTON}
                     >
                         <Button.Icon src={icons.Gear} />
-                        {/* Dropping the label on small screens keeps the button in the feed selector's row instead of a full-width row of its own. */}
-                        {!shouldShowNarrowLayout && <Button.Text>{translate('common.settings')}</Button.Text>}
+                        <Button.Text>{translate('common.settings')}</Button.Text>
                     </Button>
                 )}
             </View>
