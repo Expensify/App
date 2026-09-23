@@ -1,6 +1,7 @@
 import cardScarf from '@assets/images/card-scarf.svg';
 
 import ActivityIndicator from '@components/ActivityIndicator';
+import AddToWalletStatusText from '@components/AddToWalletButton/AddToWalletStatusText';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
@@ -9,7 +10,9 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -387,7 +390,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 {!hasDetectedDomainFraud && (
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
-                            <CardDetailsActionButtons style={styles.mb0}>
+                            <CardDetailsActionButtons>
                                 {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         onPress={handleFreezePress}
@@ -412,6 +415,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 cardID={cardPendingDigitalWalletApproval.cardID}
                                 walletProvider={cardPendingDigitalWalletApproval.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider}
                                 style={[styles.ph5, styles.mt6, styles.mb5]}
+                            />
+                        )}
+                        {cardToAdd !== undefined && (
+                            <AddToWalletButton
+                                card={cardToAdd}
+                                cardHolderName={displayName ?? ''}
+                                cardDescription={expensifyCardTitle}
+                                style={[styles.alignSelfCenter, styles.mb6]}
                             />
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
@@ -441,25 +452,28 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 accessibilityLabel={spendRulesSummary.join('. ')}
                             />
                         )}
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.availableSpend')}
-                            title={formattedAvailableSpendAmount}
-                            interactive={false}
-                            titleStyle={styles.walletCardLimit}
-                            hintText={remainingLimitHint}
-                        />
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.card.issueNewCard.limitType')}
-                            title={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
-                            interactive={false}
-                            hintText={getCardHintText(
-                                currentCard?.nameValuePairs?.validFrom,
-                                currentCard?.nameValuePairs?.validThru,
-                                personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                dateFnsLocale,
-                                translate,
-                            )}
-                        />
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('cardPage.availableSpend')}
+                                value={formattedAvailableSpendAmount}
+                            />
+                            {!!remainingLimitHint && <MenuItem.HelpText message={remainingLimitHint} />}
+                        </MenuItem.Root>
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('workspace.card.issueNewCard.limitType')}
+                                value={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
+                            />
+                            <MenuItem.HelpText
+                                message={getCardHintText(
+                                    currentCard?.nameValuePairs?.validFrom,
+                                    currentCard?.nameValuePairs?.validThru,
+                                    personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                    dateFnsLocale,
+                                    translate,
+                                )}
+                            />
+                        </MenuItem.Root>
                         {shouldShowReportLostCardButton && (
                             <>
                                 <MenuItemWithTopDescription
@@ -604,6 +618,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     )}
                                 </React.Fragment>
                             ))}
+                        {cardToAdd !== undefined && (
+                            <AddToWalletStatusText
+                                card={cardToAdd}
+                                style={styles.mb2}
+                            />
+                        )}
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
@@ -685,14 +705,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </View>
                         )}
                     </>
-                )}
-                {cardToAdd !== undefined && (
-                    <AddToWalletButton
-                        card={cardToAdd}
-                        style={styles.alignSelfCenter}
-                        cardHolderName={displayName ?? ''}
-                        cardDescription={expensifyCardTitle}
-                    />
                 )}
             </ScrollView>
             {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
