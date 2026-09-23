@@ -2,7 +2,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
-import {markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
+import {clearPageRequestedSearch, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
@@ -19,6 +19,11 @@ import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 // Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
 // (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
 let lastSavedSearchHash: number | undefined;
+
+// A response that lands while the user is away can be old by the time they return, so the mount must refresh then.
+function dropPageRequestOnBlur() {
+    return clearPageRequestedSearch;
+}
 
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
@@ -102,6 +107,8 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
+
+    useFocusEffect(dropPageRequestOnBlur);
 
     // Stable callback: useFocusEffect re-subscribes on a new identity and would fire an extra request.
     useFocusEffect(

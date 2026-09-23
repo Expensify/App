@@ -31,6 +31,7 @@ jest.mock('@libs/actions/Search', () => ({
     openSearch: jest.fn(),
     search: (...args: unknown[]) => mockSearch(...args),
     markPageRequestedSearch: jest.fn(),
+    clearPageRequestedSearch: jest.fn(),
 }));
 
 jest.mock('@libs/deferredLayoutWrite', () => ({

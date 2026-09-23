@@ -1133,6 +1133,10 @@ function consumePageRequestedSearch(hash: number, shouldCalculateTotals: boolean
     return true;
 }
 
+function clearPageRequestedSearch() {
+    pageRequestedSearch = undefined;
+}
+
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
@@ -2532,5 +2536,6 @@ export {
     resolveSearchPayPaymentMethod,
     markPageRequestedSearch,
     consumePageRequestedSearch,
+    clearPageRequestedSearch,
 };
 export type {TransactionPreviewData};

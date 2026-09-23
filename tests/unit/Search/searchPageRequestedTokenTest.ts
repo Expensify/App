@@ -1,4 +1,4 @@
-import {consumePageRequestedSearch, markPageRequestedSearch} from '@libs/actions/Search';
+import {clearPageRequestedSearch, consumePageRequestedSearch, markPageRequestedSearch} from '@libs/actions/Search';
 
 const QUERY_HASH = 1234;
 const OTHER_QUERY_HASH = 5678;
@@ -62,5 +62,16 @@ describe('page-requested search token', () => {
         // When a caller that does not need totals reads the token
         // Then it is covered, because the page's request is a superset of what it wants
         expect(consumePageRequestedSearch(QUERY_HASH, false)).toBe(true);
+    });
+
+    it('drops the token when the page loses focus, so the return refreshes', () => {
+        // Given the page requested a query and the user left before Search mounted
+        markPageRequestedSearch(QUERY_HASH, false);
+
+        // When the page loses focus
+        clearPageRequestedSearch();
+
+        // Then the mount on return is not covered, because the response may be old by then
+        expect(consumePageRequestedSearch(QUERY_HASH, false)).toBe(false);
     });
 });
