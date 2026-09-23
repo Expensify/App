@@ -50,6 +50,10 @@ Purpose: Admins commonly look for this toggle under **More features**, where it 
 
 **Note:** List fields require an initial value. If you skip step 7, saving returns the error `Please choose a report field initial value.`
 
+**Note:** Field names must be unique across the workspace, and report fields share the same set of names as invoice fields. If the name is already used by another report field or by an invoice field, Expensify shows an error telling you a field with that name already exists and doesn't save the field. The check ignores capitalization.
+
+Learn how to [add invoice fields to a workspace](/articles/new-expensify/workspaces/Add-Invoice-Fields).
+
 ---
 
 ## What each report field type does
