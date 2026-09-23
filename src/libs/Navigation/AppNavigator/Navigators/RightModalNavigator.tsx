@@ -13,6 +13,7 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -164,8 +165,16 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
     // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
     // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
-    // Panel animates open/closed. See https://github.com/Expensify/App/issues/99035
-    const superWideRHPSidePanelOffset = Animated.multiply(expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}), sidePanelOffset.current);
+    // Panel animates open/closed. The shrink stops at whatever the sheet's panes can spare, so the card
+    // never ends up narrower than its content. See https://github.com/Expensify/App/issues/99035
+    const paneSpare = calculateMaxSidePanelRHPShrink(windowWidth);
+    const superWideRHPSidePanelOffset = Animated.multiply(
+        expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}),
+        sidePanelOffset.current.interpolate({
+            inputRange: [0, Math.max(paneSpare, 1), Math.max(paneSpare, 1) + 1],
+            outputRange: [0, paneSpare, paneSpare],
+        }),
+    );
 
     const animatedWidth = Animated.subtract(
         expandedRHPProgress.interpolate({

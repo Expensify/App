@@ -1,4 +1,6 @@
+import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 
 // jest-expo resolves `.native` files by default (defaultPlatform 'ios'), but the super wide RHP is a
 // web/desktop-only layout whose native stubs are intentional no-ops. Force the web `index.ts` (and the
@@ -35,17 +37,22 @@ describe('calculateSuperWideRHPWidth', () => {
     });
 
     describe('regression: Concierge/Help Side Panel open (https://github.com/Expensify/App/issues/99035)', () => {
-        it('shrinks by the Side Panel width so the sheet left edge stays at 360px', () => {
+        it('shrinks by the Side Panel width down to the spare room above the wide RHP width', () => {
             // The Side Panel (375px) shifts the whole RHP left by its width, so the super wide sheet is
-            // shrunk by the same amount to keep its right-anchored left edge on-screen.
+            // shrunk by the same amount to keep its right-anchored left edge on-screen. The shrink stops at
+            // the spare room over the wide RHP width, so the card never clips its own panes.
             const windowWidth = 1440;
             const sidePanelWidth = 375;
-            const shrunkWidth = calculateSuperWideRHPWidth(windowWidth) - sidePanelWidth;
+            const shrunkWidth = calculateSuperWideRHPWidth(windowWidth) - calculateMaxSidePanelRHPShrink(windowWidth);
 
-            // The shrink happens after the floor is applied, so 1080 - 375 = 705 can sit under it.
-            expect(shrunkWidth).toBe(705);
-            // Right-anchored inside (windowWidth - sidePanelWidth): left edge = 1440 - 375 - 705 = 360.
-            expect(windowWidth - sidePanelWidth - shrunkWidth).toBe(360);
+            // The spare room is 1080 - 925 = 155, less than the 375px panel, so the sheet keeps 925.
+            expect(shrunkWidth).toBe(925);
+        });
+
+        it('leaves no spare room once the wide RHP floor takes over', () => {
+            // At 1285 the sheet is already at the wide RHP width, so opening the Side Panel cannot shrink it.
+            expect(calculateMaxSidePanelRHPShrink(1285)).toBe(0);
+            expect(calculateSuperWideRHPWidth(1440) - calculateMaxSidePanelRHPShrink(1440)).toBe(calculateWideRHPWidth(1440));
         });
     });
 });
