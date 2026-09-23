@@ -15,6 +15,7 @@ import {setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 
 import {format, setYear} from 'date-fns';
@@ -40,6 +41,7 @@ function DatePicker({
     onTouched = () => {},
     onInputFocus,
     onInputBlur,
+    onBlur,
     placeholder,
     value,
     shouldSaveDraft = false,
@@ -50,8 +52,6 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
-    wrapperStyle,
-    onBlur,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
@@ -67,7 +67,7 @@ function DatePicker({
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isInverted, setIsInverted] = useState(false);
     // Whether the user currently intends the picker to be open. Lets a deferred measurement skip opening if the
     // picker was dismissed before it resolved.
@@ -231,15 +231,13 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={[styles.mv2, wrapperStyle]}
+                style={styles.mv2}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
-                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
-                    icon={shouldHideCalendarIcon || (selectedDate && !shouldHideClearButton) ? null : icons.Calendar}
+                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}

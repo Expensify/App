@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useRef} from 'react';
@@ -46,7 +47,7 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
     // top border and label — into view rather than just the inner text area.
-    const fieldContainerRef = useRef<View>(null);
+    const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
     const descriptionInputRef = useRef<BaseTextInputRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
