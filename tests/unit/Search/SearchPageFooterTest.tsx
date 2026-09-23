@@ -5,6 +5,8 @@ import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/type
 
 import CONST from '@src/CONST';
 
+import type * as ReactNative from 'react-native';
+
 import React from 'react';
 
 type CapturedPopupProps = {
@@ -42,7 +44,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
 // has nothing to assert on, renders as nothing.
 jest.mock('@components/Button', () => {
     const ReactModule = require<typeof React>('react');
-    const {View: MockView, Text: MockText} = require<typeof import('react-native')>('react-native');
+    const {View: MockView, Text: MockText} = require<typeof ReactNative>('react-native');
 
     function MockButton({children}: {children?: React.ReactNode}) {
         return ReactModule.createElement(MockView, {testID: 'searchPageFooterTrigger'}, children);
