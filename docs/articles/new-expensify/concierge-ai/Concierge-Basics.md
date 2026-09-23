@@ -23,8 +23,9 @@ All rolled into one!
 
 You can chat with Concierge from anywhere in the app:
 
-- **On web:** Click the **Concierge** icon at the top right corner of the page. 
+- **On web:** Click the **Help** icon at the top right corner of the page. 
 - **On mobile:** Tap **Account** > **Help** and tap **Concierge** to navigate to the Concierge chat.
+- **From a report or chat:** Click or tap the **Help** icon in the header of the report you’re viewing. Concierge opens with that report as context (in the side panel on web, in the Concierge chat on mobile), so you can ask it to act on that report without naming it.
 - **From the search bar:** Type your question in the search bar and select **Ask Concierge**. Your message is sent to Concierge immediately.
 
 You can also contact Concierge by:
@@ -43,9 +44,7 @@ Here are a few examples you can type:
 
 **Tip:** The more specific you are, the better the response.
 
-When you ask from your **Expensify Concierge** chat, Concierge answers each question in its own chat thread and names the thread after a short summary of your question, so questions stay separate and earlier answers are easy to find again.
-
-[Learn how Concierge organizes each question into its own chat thread](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do#how-concierge-organizes-each-question-into-its-own-chat-thread).
+After Concierge responds, you can tell us whether the answer helped. [Learn how to rate a Concierge response](/articles/new-expensify/concierge-ai/Rate-a-Concierge-Response).
 
 # What can Concierge do?
 
@@ -84,6 +83,12 @@ Nope! Just type naturally, like you’re messaging a coworker. You can ask quest
 ## What happens if Concierge doesn’t understand my question?
 
 If something’s unclear, Concierge will ask for more details. And if it still can’t help, it’ll escalate to a human who can jump in.
+
+## How does Concierge know which report I’m asking about?
+
+If you open Concierge with the **Help** icon in a report header, Concierge uses that report as context. You can say “Update all of the expenses in this report to the Car category” without naming the report. This works the same way on web and mobile.
+
+If you open Concierge another way—from **Account** > **Help**, the search bar, email, or text—describe the report you mean, and Concierge will find it.
 
 ## Can I use Concierge on both web and mobile?
 
