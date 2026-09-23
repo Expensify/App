@@ -242,10 +242,16 @@ type GetAlternateTextConfig = {
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    currentUserLogin?: string;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
 };
 
@@ -379,14 +385,18 @@ type CreateOptionParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     isTrackIntentUser?: boolean;
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
     // TODO: Remove optional (?) once all callers pass pendingDeleteMemberAccountIDs. Refactor issue: https://github.com/Expensify/App/issues/66421
     pendingDeleteMemberAccountIDs?: string[];
+    currentUserLogin?: string;
 };
 
 /** Shared by createOption and shells so filtering uses the final display text. */
@@ -425,12 +435,16 @@ function createOption({
     visibleReportActionsData = {},
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     dateFnsLocale,
     isTrackIntentUser,
     conciergeReportID,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
     currentUserAccountID,
     pendingDeleteMemberAccountIDs,
+    currentUserLogin,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -541,11 +555,15 @@ function createOption({
                           visibleReportActionsData,
                           translate: translateFn,
                           convertToDisplayString,
+                          convertToDisplayStringWithoutCurrency,
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
                           sortedActions,
+                          transactionThreadIDs,
+                          lastActions,
                           currentUserAccountID,
+                          currentUserLogin,
                           rules,
                       },
                   );
@@ -936,8 +954,11 @@ function processReport(
         visibleReportActionsData = {},
         isTrackIntentUser,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         currentUserAccountID,
         pendingDeleteMemberAccountIDs,
+        currentUserLogin,
         convertToDisplayString,
     }: {
         currentUserAccountID: number;
@@ -949,6 +970,9 @@ function processReport(
         isTrackIntentUser?: boolean;
         // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
         sortedActions?: Record<string, ReportAction[]>;
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
+        currentUserLogin?: string;
     },
     rules: OnyxCollection<Rule>,
 ): {
@@ -989,8 +1013,11 @@ function processReport(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
                 currentUserAccountID,
                 pendingDeleteMemberAccountIDs,
+                currentUserLogin,
             }),
         },
     };
@@ -1171,6 +1198,9 @@ function createFilteredOptionList(
     policiesCollection: OnyxCollection<Policy>,
     options: {
         currentUserAccountID: number;
+        currentUserLogin?: string;
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
         dateFnsLocale: DateFnsLocale | undefined;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         conciergeReportID: string | undefined;
@@ -1201,6 +1231,9 @@ function createFilteredOptionList(
 ): OptionList {
     const {
         currentUserAccountID,
+        currentUserLogin,
+        transactionThreadIDs,
+        lastActions,
         conciergeReportID,
         maxRecentReports = 500,
         includeP2P = true,
@@ -1245,8 +1278,11 @@ function createFilteredOptionList(
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         currentUserAccountID,
         pendingDeleteMemberAccountIDsByReportID,
+        currentUserLogin,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1314,8 +1350,11 @@ function createFilteredOptionList(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
                 currentUserAccountID,
                 pendingDeleteMemberAccountIDs: pendingDeleteMemberAccountIDsByReportID?.[report.reportID],
+                currentUserLogin,
             },
             rules,
         );
@@ -1395,14 +1434,18 @@ type CreateOptionFromReportParams = {
     rules: OnyxCollection<Rule>;
     policy: OnyxEntry<Policy>;
     sortedActions: Record<string, ReportAction[]> | undefined;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
+    currentUserAccountID: number;
+    currentUserLogin?: string;
     conciergeReportID: string | undefined;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     config?: PreviewConfig;
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     isTrackIntentUser?: boolean;
-    currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
 };
 
 function createOptionFromReport({
@@ -1413,14 +1456,18 @@ function createOptionFromReport({
     rules,
     policy,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
+    currentUserAccountID,
+    currentUserLogin,
     conciergeReportID,
     reportAttributesDerived,
     config,
     policyTags,
     visibleReportActionsData = {},
     isTrackIntentUser,
-    currentUserAccountID,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
@@ -1429,6 +1476,7 @@ function createOptionFromReport({
         ...createOption({
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             accountIDs,
             personalDetails,
             report,
@@ -1441,8 +1489,11 @@ function createOptionFromReport({
             policyTags,
             visibleReportActionsData,
             sortedActions,
-            isTrackIntentUser,
+            transactionThreadIDs,
+            lastActions,
             currentUserAccountID,
+            currentUserLogin,
+            isTrackIntentUser,
         }),
     };
 }
@@ -2009,8 +2060,14 @@ function prepareReportOptionsForDisplay(
     config: GetValidReportsConfig & {
         translate: LocalizedTranslate;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+        convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
         dateFnsLocale: DateFnsLocale | undefined;
         currentUserAccountID?: number;
+        currentUserLogin?: string;
+        localeCompare?: LocaleContextProps['localeCompare'];
+        formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
     },
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
@@ -2035,7 +2092,13 @@ function prepareReportOptionsForDisplay(
         personalDetails,
         translate,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         currentUserAccountID,
+        currentUserLogin,
+        localeCompare,
+        formatPhoneNumber,
+        transactionThreadIDs,
+        lastActions,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2068,12 +2131,18 @@ function prepareReportOptionsForDisplay(
                 visibleReportActionsData,
                 translate,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
                 isTrackIntentUser,
                 currentUserAccountID,
+                currentUserLogin,
+                localeCompare,
+                formatPhoneNumber,
                 rules,
             },
         );
@@ -2181,6 +2250,11 @@ function getValidOptions(
         visibleReportActionsData = {},
         reportAttributesDerived,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        currentUserLogin,
+        localeCompare,
+        formatPhoneNumber,
         isTrackIntentUser,
         isOffline,
         ...config
@@ -2329,6 +2403,11 @@ function getValidOptions(
                     personalDetails,
                     translate,
                     currentUserAccountID,
+                    currentUserLogin: currentUserLogin ?? currentUserEmail,
+                    localeCompare,
+                    formatPhoneNumber,
+                    transactionThreadIDs,
+                    lastActions,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2358,6 +2437,11 @@ function getValidOptions(
                 personalDetails,
                 translate,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? currentUserEmail,
+                localeCompare,
+                formatPhoneNumber,
+                transactionThreadIDs,
+                lastActions,
             },
             conciergeReportID,
             sortedActions,
@@ -2383,6 +2467,11 @@ function getValidOptions(
                 personalDetails,
                 translate,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? currentUserEmail,
+                localeCompare,
+                formatPhoneNumber,
+                transactionThreadIDs,
+                lastActions,
             },
             conciergeReportID,
             sortedActions,
@@ -2533,6 +2622,7 @@ function getValidOptions(
 type SearchOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    convertToDisplayStringWithoutCurrency?: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     options: OptionList;
     draftComments: OnyxCollection<string>;
     isDefaultRoomsBetaEnabled?: boolean;
@@ -2555,6 +2645,11 @@ type SearchOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
+    currentUserLogin?: string;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
@@ -2589,11 +2684,17 @@ function getSearchOptions({
     personalDetails,
     allPolicyTags,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
+    currentUserLogin,
+    localeCompare,
+    formatPhoneNumber,
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
     translate,
     convertToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     rules,
 }: SearchOptionsConfig): OptionsResult {
     const optionList = getValidOptions(
@@ -2607,6 +2708,7 @@ function getSearchOptions({
         {
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             isDefaultRoomsBetaEnabled,
             includeRecentReports,
             includeMultipleParticipantReports: true,
@@ -2632,6 +2734,11 @@ function getSearchOptions({
             reportAttributesDerived,
             allPolicyTags,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserLogin: currentUserLogin ?? currentUserEmail,
+            localeCompare,
+            formatPhoneNumber,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
         },
