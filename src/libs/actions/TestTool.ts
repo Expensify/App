@@ -5,17 +5,16 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 import throttle from 'lodash/throttle';
 
 import {close} from './Modal';
 
-/** The focused route carries no backTo once a child screen such as the server selector is on top. */
+/** Only the screen the URL built carries a backTo, so take it from the first one that has it. */
 function getBackToParam(): Route | undefined {
     const modalRoute = navigationRef.current?.getRootState()?.routes.find((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
-    const rootScreen = modalRoute?.state?.routes?.find((route) => route.name === SCREENS.TEST_TOOLS_MODAL.ROOT);
-    return (rootScreen?.params as {backTo?: Route} | undefined)?.backTo;
+    const screenWithBackTo = modalRoute?.state?.routes?.find((route) => !!(route.params as {backTo?: Route} | undefined)?.backTo);
+    return (screenWithBackTo?.params as {backTo?: Route} | undefined)?.backTo;
 }
 
 /**
@@ -63,3 +62,4 @@ function toggleTestToolsModal() {
 }
 
 export default toggleTestToolsModal;
+export {getBackToParam};

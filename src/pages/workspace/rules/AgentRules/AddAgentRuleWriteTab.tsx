@@ -1,4 +1,3 @@
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 /**
  * Write (Edit) tab for the add-agent-rule flow. Owns the free-text prompt form and save path.
  */
@@ -9,7 +8,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -33,10 +31,8 @@ type AddAgentRuleWriteTabProps = {
 function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const formRef = useRef<FormRef>(null);
-    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
+    const describeRuleLabel = translate('workspace.rules.agentRules.describeRuleForConcierge');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
@@ -65,7 +61,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
             validate={validate}
             onSubmit={onSave}
-            submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.createRule') : translate('common.save')}
+            submitButtonText={translate('workspace.rules.agentRules.createRule')}
             style={[styles.flex1, styles.ph5]}
             submitFlexEnabled={false}
             shouldUseScrollView={false}
@@ -75,13 +71,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             shouldValidateOnBlur
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
-            <View style={styles.flexGrow1}>
-                {!isRulesRevampEnabled && (
-                    <CollapsibleHeaderOnKeyboard>
-                        <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
-                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleForConcierge')}</Text>
-                    </CollapsibleHeaderOnKeyboard>
-                )}
+            <View style={styles.flex1}>
                 <View style={inputWrapperStyles}>
                     <InputWrapper
                         InputComponent={TextInput}

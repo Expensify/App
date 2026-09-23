@@ -434,6 +434,7 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
+      download-dsyms: true
     secrets: inherit
 
   iosUploadTestflight:

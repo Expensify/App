@@ -11,27 +11,27 @@ import {diffNavigationState} from '@libs/navigationStateDiff';
 import CONST from '@src/CONST';
 
 import type {NavigationState} from '@react-navigation/native';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import setFifoEntry from './fifoMap';
 
-type TriggerEntry = {ref: RefObject<View | null>; identifier?: string};
+type TriggerEntry = {ref: RefObject<ComponentRef<typeof View> | null>; identifier?: string};
 
 const COLLISION_TOLERANT_IDENTIFIERS = new Set<string>([CONST.BACK_BUTTON_NATIVE_ID]);
 
-let lastPressedTriggerRef: RefObject<View | null> | null = null;
+let lastPressedTriggerRef: RefObject<ComponentRef<typeof View> | null> | null = null;
 let lastPressedTriggerIdentifier: string | null = null;
 let lastPressedTriggerAt = 0;
 const triggerMap = new Map<string, TriggerEntry>();
-const pressableRegistry = new Map<string, Map<string, Set<RefObject<View | null>>>>();
+const pressableRegistry = new Map<string, Map<string, Set<RefObject<ComponentRef<typeof View> | null>>>>();
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let skipNextRestore = false;
 let stateUnsubscribe: (() => void) | null = null;
 
 // Recorded unconditionally so cold-start presses survive the warm-up window. performance.now is monotonic — Date.now would corrupt the TTL on clock jumps.
-function notifyPressedTrigger(ref: RefObject<View | null> | null, identifier?: string): void {
+function notifyPressedTrigger(ref: RefObject<ComponentRef<typeof View> | null> | null, identifier?: string): void {
     lastPressedTriggerRef = ref;
     lastPressedTriggerIdentifier = identifier ?? null;
     lastPressedTriggerAt = ref ? performance.now() : 0;
@@ -49,7 +49,7 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
-function registerPressable(routeKey: string, identifier: string, ref: RefObject<View | null>): () => void {
+function registerPressable(routeKey: string, identifier: string, ref: RefObject<ComponentRef<typeof View> | null>): () => void {
     let routeMap = pressableRegistry.get(routeKey);
     if (!routeMap) {
         routeMap = new Map();
@@ -90,7 +90,7 @@ function captureTriggerForRoute(routeKey: string): void {
 }
 
 // Caller passes the raw (compound-suffix-stripped) route key — pressables register under raw, but PUSH_PARAMS restores arrive under the compound key.
-function resolveLiveRefFromRegistry(rawRouteKey: string, identifier: string): RefObject<View | null> | null {
+function resolveLiveRefFromRegistry(rawRouteKey: string, identifier: string): RefObject<ComponentRef<typeof View> | null> | null {
     const refs = pressableRegistry.get(rawRouteKey)?.get(identifier);
     if (!refs || refs.size === 0) {
         return null;
@@ -101,7 +101,7 @@ function resolveLiveRefFromRegistry(rawRouteKey: string, identifier: string): Re
         return sole?.current ? sole : null;
     }
     // Multi-registration: a single live ref always wins; multi-live only resolves when on the collision-tolerant allowlist.
-    let firstLive: RefObject<View | null> | null = null;
+    let firstLive: RefObject<ComponentRef<typeof View> | null> | null = null;
     let liveCount = 0;
     for (const ref of refs) {
         if (!ref.current) {
@@ -125,7 +125,7 @@ function resolveLiveRefFromRegistry(rawRouteKey: string, identifier: string): Re
  * Registry-first: a fresh re-registration wins over the captured ref because the captured native handle
  * can stale-out across detach without nulling the JS ref. Falls back to the captured ref when the registry misses.
  */
-function restoreTriggerForRoute(routeKey: string, rawRouteKey: string): RefObject<View | null> | null {
+function restoreTriggerForRoute(routeKey: string, rawRouteKey: string): RefObject<ComponentRef<typeof View> | null> | null {
     const entry = triggerMap.get(routeKey);
     if (!entry) {
         return null;

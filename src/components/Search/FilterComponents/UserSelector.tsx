@@ -8,6 +8,7 @@ import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -31,6 +32,7 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -47,7 +49,8 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return acc;
     }, new Set<string>());
 
-    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
+    // getExpensifyTeamExclusions walks every personal detail, so it is skipped while the selector withholds its options.
+    const expensifyTeamExclusions = ready ? getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email) : CONST.EMPTY_OBJECT;
 
     // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
     // top on first render without repinning rows that are toggled afterwards.
@@ -145,6 +148,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterWrapper>
     );

@@ -18,17 +18,18 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setActiveServer} from '@userActions/User';
 
 import CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 
 import React, {useState} from 'react';
 
 type ServerListItem = ListItem & {keyForList: Server};
 
 type ServerSelectorProps = {
-    /** The test tools modal floats, so it leaves this off. */
     shouldAddBottomSafeAreaPadding?: boolean;
+    backToRoute?: Route;
 };
 
-function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelectorProps) {
+function ServerSelector({shouldAddBottomSafeAreaPadding = false, backToRoute}: ServerSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeServer, isPinnedByEnvironment, isStagingIgnored, isQASelectable} = useActiveServer();
@@ -37,8 +38,6 @@ function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelector
     const [pickedServer, setPickedServer] = useState<Server>();
     const selectedServer = pickedServer ?? activeServer;
 
-    // Two separate facts: whether a stored QA would be honored at all, and whether this platform can sign in
-    // to it. Offering QA without both would store a pick the resolver drops on the next read
     const canPickQA = isQASelectable && isQAAuthConfigured();
     const offeredServers = [CONST.SERVER.PRODUCTION, ...(isStagingIgnored ? [] : [CONST.SERVER.STAGING]), ...(canPickQA ? [CONST.SERVER.QA] : [])];
 
@@ -52,9 +51,11 @@ function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelector
         isSelected: selectedServer === server,
     }));
 
+    const goBack = () => Navigation.goBack(backToRoute, {compareParams: false});
+
     const saveAndGoBack = () => {
         setActiveServer(selectedServer);
-        Navigation.goBack();
+        goBack();
     };
 
     const confirmButtonOptions = {
@@ -68,7 +69,7 @@ function ServerSelector({shouldAddBottomSafeAreaPadding = false}: ServerSelector
         <>
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.server')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={goBack}
             />
             <SelectionList
                 data={servers}

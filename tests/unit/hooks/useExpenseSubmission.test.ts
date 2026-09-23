@@ -11,6 +11,7 @@ import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpens
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
@@ -32,6 +33,7 @@ const mockResolveChatTargetForSubmitCleanup = jest.fn();
 const mockSendInvoiceAction = jest.fn();
 const mockSplitBillAction = jest.fn();
 const mockSplitBillAndOpenReportAction = jest.fn();
+const mockStartSplitBillAction = jest.fn();
 const mockResolveOptimisticSplitChatReportID = jest.fn();
 const mockDismissModalAndOpenReportInInboxTab = jest.fn();
 const mockReserveDeferredWriteChannel = jest.fn();
@@ -54,7 +56,7 @@ jest.mock('@userActions/IOU/Split', () => ({
     splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
     splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
     resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
-    startSplitBill: jest.fn(),
+    startSplitBill: (...args: unknown[]) => mockStartSplitBillAction(...args),
 }));
 
 jest.mock('@userActions/IOU/SendInvoice', () => ({
@@ -98,7 +100,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useLastWorkspaceNumber', () => ({
@@ -203,6 +205,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         transaction,
         transactions: [transaction],
         receiptFiles: {},
+        canEnterScanFieldsManually: false,
         report: {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT} as Report,
         reportID: REPORT_ID,
         policy: createMock<Policy>({id: 'policy-1'}),
@@ -281,6 +284,74 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 getChatByParticipantsSpy.mockRestore();
                 getReusableP2PReportIDSpy.mockRestore();
             }
+        });
+
+        describe('receipt state on a Scan the user filled in', () => {
+            function buildScanParams(transactionOverrides: Partial<Transaction>, cachedReceiptState: Receipt['state']) {
+                const transaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...transactionOverrides});
+                return buildParams({
+                    transaction,
+                    transactions: [transaction],
+                    canEnterScanFieldsManually: true,
+                    receiptFiles: {[TRANSACTION_ID]: createMock<Receipt>({state: cachedReceiptState})},
+                });
+            }
+
+            async function submit(params: Parameters<typeof useExpenseSubmission>[0]) {
+                const {result} = renderHook(() => useExpenseSubmission(params));
+                await waitForBatchedUpdatesWithAct();
+                await act(async () => {
+                    result.current.createTransaction(false, false);
+                });
+                await waitForBatchedUpdatesWithAct();
+            }
+
+            it('submits `open` when all three fields are entered, even while the cached receipt still says SCAN_READY', async () => {
+                // Given a scan the user filled in whose receipt was validated before the last field was entered
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.SCAN_READY));
+
+                // Then SmartScan is told to leave the receipt alone rather than overwriting what the user typed
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.OPEN}),
+                    }),
+                );
+            });
+
+            it('submits `scanready` once a field is cleared again, even while the cached receipt still says OPEN', async () => {
+                // Given a scan whose merchant the user cleared after having filled all three fields
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: false, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.OPEN));
+
+                // Then SmartScan is asked to read the receipt so the cleared field still gets filled in
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.SCAN_READY}),
+                    }),
+                );
+            });
+
+            it('sends no override on surfaces that do not expose the scan fields, leaving the validated receipt state alone', async () => {
+                // Given a manual expense with an attached receipt, which the validator already marked `open`
+                const transaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+                await submit(
+                    buildParams({
+                        transaction,
+                        transactions: [transaction],
+                        canEnterScanFieldsManually: false,
+                        receiptFiles: {[TRANSACTION_ID]: createMock<Receipt>({state: CONST.IOU.RECEIPT_STATE.OPEN})},
+                    }),
+                );
+
+                // Then no override is sent and the action keeps using the state the validator wrote onto the receipt
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({
+                            receiptState: undefined,
+                            receipt: expect.objectContaining({state: CONST.IOU.RECEIPT_STATE.OPEN}),
+                        }),
+                    }),
+                );
+            });
         });
 
         it('calls cleanupAfterExpenseCreate and skips cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
@@ -845,6 +916,185 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
             expect(mockSplitBillAction).not.toHaveBeenCalled();
+        });
+
+        it('threads the optimistic chat ID into the scan split and dismisses to that chat once after the loop', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction();
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
+        });
+
+        it('starts the scan split without dismissing when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction();
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('falls through to the manual split when a leftover receipt matches no transaction being submitted', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction({transactionID: 'transaction-1'});
+            const staleTransactionID = 'stale-transaction';
+            // The receipt is keyed to a transaction that is no longer being submitted, so there is no scan to write.
+            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // No scan is written, and the submit is not swallowed by the scan branch, which would leave the confirm page stuck.
+            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('writes nothing and hands the page back when a scan split has no receipt file ready', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            // A scan carries no amount until SmartScan returns, so the manual split below would write a $0 expense.
+            const scannedTransaction = buildTransaction({transactionID: 'transaction-1', amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+            const staleTransactionID = 'stale-transaction';
+            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: scannedTransaction,
+                        transactions: [scannedTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).not.toHaveBeenCalled();
+            // The submit lock is released so the next tap works once the receipt map catches up.
+            expect(result.current.isConfirmed).toBe(false);
+            expect(result.current.formHasBeenSubmitted.current).toBe(false);
+        });
+
+        it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
+            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
+            const receiptFiles: Record<string, Receipt> = {
+                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
+                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
+            };
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: firstSplit,
+                        transactions: [firstSplit, secondSplit],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockResolveOptimisticSplitChatReportID).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: false}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
+        });
+
+        it('marks every scan as first when the batch splits into a chat that already exists', async () => {
+            // No optimistic ID means the chat already exists, so no scan in the batch creates it.
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
+            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
+            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
+            const receiptFiles: Record<string, Receipt> = {
+                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
+                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
+            };
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: firstSplit,
+                        transactions: [firstSplit, secondSplit],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({isFirstSplitInBatch: true}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({isFirstSplitInBatch: true}));
         });
     });
 });

@@ -16,6 +16,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDetailsComponent';
 
 import {revokeDomainAdminAccess} from '@userActions/Domain';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,13 +87,20 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                 />
             )}
             {!domainHasOnlyOneAdmin && (
-                <MenuItem
-                    disabled={isCurrentUserPrimaryContact}
-                    hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
-                    title={translate('domain.admins.revokeAdminAccess')}
-                    icon={icons.ClosedSign}
-                    onPress={handleRevokeAdminAccess}
-                />
+                <MenuItem.Root
+                    isDisabled={isCurrentUserPrimaryContact}
+                    onPress={callFunctionIfActionIsAllowed(handleRevokeAdminAccess)}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.ClosedSign} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('domain.admins.revokeAdminAccess')}</MenuItem.Title>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                    {isCurrentUserPrimaryContact && <MenuItem.HelpText message={translate('domain.admins.cantRevokeAdminAccess')} />}
+                </MenuItem.Root>
             )}
         </BaseDomainMemberDetailsComponent>
     );

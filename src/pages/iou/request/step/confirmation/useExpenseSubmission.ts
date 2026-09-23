@@ -53,10 +53,12 @@ import {
     getSelectedRouteDistance,
     getTaxValue,
     getValidWaypoints,
+    hasAllManuallyEnteredScanFields,
     hasAppliedCommuterExclusion,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
@@ -74,6 +76,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -81,6 +84,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -116,6 +120,9 @@ type UseExpenseSubmissionParams = {
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
 
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
+
     // Report data
     report: OnyxEntry<Report>;
     reportID: string;
@@ -126,7 +133,7 @@ type UseExpenseSubmissionParams = {
     isDraftPolicy: boolean;
 
     // User data
-    currentUserPersonalDetails: {accountID: number; login?: string; email?: string; localCurrencyCode?: string};
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     participants: Participant[];
 
@@ -183,6 +190,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         reportID,
         policy,
@@ -215,13 +223,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const delegateAccountID = useDelegateAccountID();
 
     // Permissions
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const shouldGenerateTransactionThreadReport = false;
 
     // UI state
     const [isConfirmed, setIsConfirmed] = useState(false);
     const formHasBeenSubmitted = useRef(false);
+
+    // formHasBeenSubmitted is never reset on its own, so a submit that returns without writing has to hand the page back or every later tap is swallowed.
+    const releaseSubmitLock = () => {
+        formHasBeenSubmitted.current = false;
+        setIsConfirmed(false);
+    };
 
     // Ref so callbacks always read the latest transactionViolations.
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -342,8 +357,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
+    // Only a workspace destination can enforce a workspace's distance rules.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -399,6 +415,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             isLookingAroundUser,
             isSelfDMDestination,
         });
+    }
+
+    /**
+     * `receiptFiles` bakes in the receipt state during an async validation pass, so it lags the field the user just
+     * typed. Deriving it from the live transaction at submit time keeps SmartScan from scanning over entered values.
+     * `undefined` leaves the validated receipt's own state in place, which is what every other flow submits.
+     */
+    function getCurrentReceiptState(item: Transaction): ValueOf<typeof CONST.IOU.RECEIPT_STATE> | undefined {
+        const receipt = receiptFiles[item.transactionID];
+        if (!receipt || !canEnterScanFieldsManually || receipt.isTestReceipt || receipt.isTestDriveReceipt || !isScanRequestTransactionUtils(item)) {
+            return undefined;
+        }
+        return hasAllManuallyEnteredScanFields(item) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
     }
 
     /**
@@ -501,6 +530,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             }
 
             const {iouReport} = requestMoneyIOUActions({
+                isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 report,
                 existingIOUReport,
@@ -539,6 +569,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     merchant: merchantToUse,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt,
+                    receiptState: getCurrentReceiptState(item),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,
@@ -571,7 +602,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 draftTransactionIDs,
                 isSelfTourViewed,
                 conciergeChat,
-                betas,
                 personalDetails,
                 isTrackIntentUser,
                 delegateAccountID,
@@ -609,7 +639,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                   participant: perDiemParticipant,
               },
               existingIOUReport: undefined,
-              betas,
+              isASAPSubmitBetaEnabled,
               rules,
               currentUserAccountIDParam: currentUserPersonalDetails.accountID,
           })
@@ -692,6 +722,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 participant,
             };
             const result = submitPerDiemExpenseIOUActions({
+                isVendorMatchingBetaEnabled,
                 dateFnsLocale,
                 getCurrencyDecimals,
                 report,
@@ -725,7 +756,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 hasViolations,
                 policyRecentlyUsedCurrencies,
                 quickAction,
-                betas,
                 personalDetails,
                 optimisticChatReportID,
                 notifyReportID,
@@ -827,6 +857,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     merchant: item.merchant,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt: trackReceipt,
+                    receiptState: getCurrentReceiptState(item),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,
@@ -867,7 +898,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                defaultWorkspaceName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
                 previousOdometerDraft: odometerDraft,
                 reportActionsList: policyExpenseChatReportActions,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -906,6 +937,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             report,
             participants: selectedParticipantsForRequest,
@@ -956,7 +988,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             policyRecentlyUsedCurrencies,
             personalDetails,
             recentWaypoints,
-            betas,
             previousOdometerDraft: odometerDraft,
             isTrackIntentUser,
             delegateAccountID,
@@ -1007,20 +1038,38 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+        // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.
+        const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
+
+        // The manual split below sends transaction.amount, which stays 0 until SmartScan returns, so a scan with no matching receipt has nothing to write yet rather than a $0 split.
+        if (iouType === CONST.IOU.TYPE.SPLIT && isScanRequestTransactionUtils(transaction) && scannedItems.length === 0) {
+            // The tap is a silent no-op from the user's side, so leave a trace for whoever has to explain it later.
+            Log.warn('[useExpenseSubmission] Scan split submitted with no receipt file for any transaction being submitted', {
+                transactionCount: transactions.length,
+                receiptFileCount: Object.keys(receiptFiles).length,
+            });
+            releaseSubmitLock();
+            markSubmitExpenseEnd();
+            return;
+        }
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
-        if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
+        if (iouType === CONST.IOU.TYPE.SPLIT && scannedItems.length > 0) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
-                for (const [index, item] of transactions.entries()) {
+                // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
+                const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
+
+                // The action hardcodes shouldDeferForSearch:false, so reserve here for Search. Each scan write flushes the one before it, so only the last one waits.
+                if (shouldDeferSplitForSearch) {
+                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                }
+
+                for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
-                    if (!transactionReceiptFile) {
-                        continue;
-                    }
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
-                    // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                     startSplitBill({
                         getCurrencyDecimals,
                         participants: selectedParticipants,
@@ -1037,18 +1086,23 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,
-                        shouldPlaySound: index === transactions.length - 1,
+                        shouldPlaySound: index === scannedItems.length - 1,
+                        optimisticSplitChatReportID,
+                        isFirstSplitInBatch: !(index > 0 && optimisticSplitChatReportID),
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         quickAction,
                         policyRecentlyUsedCurrencies,
                         participantsPolicyTags,
-                        shouldHandleNavigation,
-                        shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
                         formatPhoneNumber,
                     });
                 }
+                if (shouldHandleNavigation) {
+                    dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
+                }
+            } else {
+                releaseSubmitLock();
             }
             markSubmitExpenseEnd();
             return;
@@ -1064,6 +1118,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 splitBill({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
@@ -1089,7 +1144,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     transactionViolations: transactionViolationsRef.current,
                     quickAction,
                     policyRecentlyUsedCurrencies,
-                    betas,
                     personalDetails,
                     delegateAccountID,
                     isTrackIntentUser,
@@ -1113,6 +1167,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
                 splitBillAndOpenReport({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     participants: splitParticipants,
                     currentUserLogin: currentUserPersonalDetails.login,
@@ -1137,7 +1192,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     transactionViolations: transactionViolationsRef.current,
                     quickAction,
                     policyRecentlyUsedCurrencies,
-                    betas,
                     personalDetails,
                     optimisticSplitChatReportID,
                     delegateAccountID,
