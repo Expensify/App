@@ -5870,6 +5870,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     return `${customAccountsCount} 枚のカスタムアカウント付きカード`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Rillet 通貨換算手数料勘定',
+                description: '海外で行われた支払いについて、会社が為替換算コストを負担する場合、そのコストは仕訳として Rillet のこの勘定科目に計上します。',
+            },
         },
         dualEntry: {
             dualEntrySetup: '二重仕訳の設定',

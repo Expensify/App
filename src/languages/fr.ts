@@ -5979,6 +5979,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     return `${customAccountsCount} cartes avec comptes personnalisés`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Compte de frais de conversion de devise Rillet',
+                description:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans Rillet sous forme d’écriture de journal.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'Configuration DualEntry',

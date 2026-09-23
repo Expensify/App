@@ -5728,6 +5728,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     return `${customAccountsCount} 张带有自定义账户的卡`;
                 },
             },
+            fxExpenseAccount: {label: 'Rillet 货币转换手续费科目', description: '当您的公司承担一笔境外付款的货币兑换成本时，我们会在 Rillet 中将该成本作为一条日记账分录记入此科目。'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry 设置',

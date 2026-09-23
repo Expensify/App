@@ -5957,6 +5957,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     return `${customAccountsCount} karty z niestandardowymi kontami`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Konto opłaty za przewalutowanie Rillet',
+                description: 'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Rillet jako zapis w dzienniku.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'Konfiguracja DualEntry',

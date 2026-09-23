@@ -5972,6 +5972,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     return `${customAccountsCount} Karten mit benutzerdefinierten Konten`;
                 },
             },
+            fxExpenseAccount: {
+                label: 'Rillet-Konto für Währungsumrechnungsgebühren',
+                description:
+                    'Wenn Ihr Unternehmen die Währungumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, buchen wir diese Kosten in Rillet auf dieses Konto als Buchungssatz.',
+            },
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-Einrichtung',
