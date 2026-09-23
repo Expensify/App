@@ -76,6 +76,7 @@ Expensify offers pre-built export templates, or you can build your own custom ex
    - **Basic export** - Essential fields including date, amount, merchant, category, and receipt URL.
    - **All Data - expense level** - One row per expense with all available data fields.
    - **Canadian Multiple Tax Export** - One row per expense with a separate column for each tax (such as GST and PST). This template only appears when the workspace currency is set to CAD.
+   - **Reconciliation - All Expenses** - One row per expense with the fields used to reconcile card spend, such as posted date, card name, custom card name, bank, MCC, and expense status. This template only appears if you're a **Workspace admin** or **Card admin** of a workspace that has company cards or the Expensify Card enabled.
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
 ## Where do I find the exported file?
