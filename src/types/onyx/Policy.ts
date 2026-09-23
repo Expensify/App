@@ -2761,6 +2761,9 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** Approval mode controlling how reports are routed for approval in the Merge-backed integrations (Merge HR, Merge ATS) */
+type MergeApprovalMode = ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+
 /** Shared config for the Merge-backed integrations (Merge HR, Merge ATS), parameterized by the union of provider slugs that integration supports */
 type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
     OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -2768,7 +2771,7 @@ type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
         integration: Integration;
 
         /** Approval mode controlling how reports are routed for approval */
-        approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+        approvalMode: MergeApprovalMode | null;
     }>;
 
 /** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
@@ -2850,6 +2853,9 @@ type MergeATSFilters = {
     offices?: string[];
 };
 
+/** The ATS field a candidate's default approver is read from in the Merge ATS connection */
+type MergeATSApproverField = ValueOf<typeof CONST.MERGE.ATS_APPROVER_FIELD>;
+
 /** Merge ATS (recruiting) connection config */
 type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> &
     OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -2862,7 +2868,7 @@ type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> 
             filters: MergeATSFilters | null;
 
             /** The ATS field whose value identifies the default approver for a candidate (e.g. the recruiter or hiring manager field), or `null` when not set */
-            approverField: string | null;
+            approverField: MergeATSApproverField | null;
         },
         'filters' | 'approverField'
     >;
@@ -3812,10 +3818,12 @@ export type {
     ProhibitedExpenses,
     CommuterExclusions,
     NetSuiteConnectionData,
+    MergeApprovalMode,
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
     MergeATSFilters,
+    MergeATSApproverField,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,

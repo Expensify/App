@@ -2070,6 +2070,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL]: {
+                    screens: {
+                        [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: {
+                            path: ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE.route,
+                        },
+                        [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: {
+                            path: ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD.route,
+                        },
+                        [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: {
+                            path: ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.route,
+                        },
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
