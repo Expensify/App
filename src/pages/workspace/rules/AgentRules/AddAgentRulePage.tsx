@@ -132,14 +132,6 @@ function AddAgentRulePage({
         setActiveTab(key);
     };
 
-    const handleBackButtonPress = () => {
-        if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
-            setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
-            return;
-        }
-        Navigation.goBack();
-    };
-
     const navigateBackToAgentsTab = () => {
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
@@ -216,7 +208,6 @@ function AddAgentRulePage({
                     <HeaderWithBackButton
                         title={translate('workspace.rules.agentRules.newRuleTitle')}
                         shouldDisplayHelpButton
-                        onBackButtonPress={handleBackButtonPress}
                     />
                     <View style={[styles.flexShrink0, styles.w100]}>
                         <TabSelectorContextProvider activeTabKey={activeTab}>
