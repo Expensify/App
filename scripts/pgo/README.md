@@ -75,6 +75,8 @@ The app must remain in the foreground until each profile write completes. Force-
 
 ## Collect an interactive profile
 
+For the automated heavy-account workload, see [Automated native PGO journey](./JOURNEY.md). It checks the signed-in account, disables #focus, drives the critical user flows, and can archive and merge profiles from each successful run.
+
 For a broader profile, install the instrumented app, perform the agreed journey, and write the counters while the app is still running:
 
 ```bash
@@ -85,7 +87,7 @@ scripts/pgo/pgo.ts android merge
 
 Use the equivalent `ios` commands on iOS. A representative journey should exercise the common signed-in path: open and scroll chats, send a message, visit a workspace setting, attach and view a file, and run a search. Keep account state, data size, and network conditions stable between collections.
 
-Write the counters once per app process. Repeated dumps without resetting counters can merge the same accumulated work again. Independent scenarios need a fresh process, cleared device profile files, and separately archived output. The current command automates this lifecycle for startup collection; a mixed-scenario CI runner still needs that orchestration.
+Write the counters once per app process. Repeated dumps without resetting counters can merge the same accumulated work again. Independent scenarios need a fresh process, cleared device profile files, and separately archived output. The startup recorder and journey runner each handle that lifecycle; CI must still choose and combine the scenario profiles.
 
 ## Build and benchmark the optimized app
 
