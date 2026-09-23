@@ -223,7 +223,12 @@ function TransactionListItemInner<TItem extends ListItem>({
     // Live (not snapshot) report actions: markPendingRTERTransactionsAsCash needs the IOU action's current
     // childReportID to resolve the transaction thread, which a stale search snapshot may not have yet.
     const [liveReportActionsForViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations([transaction], filteredViolationsCollection, Object.values(liveReportActionsForViolations ?? {}));
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        [transaction],
+        filteredViolationsCollection,
+        Object.values(liveReportActionsForViolations ?? {}),
+        reportForViolations,
+    );
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();

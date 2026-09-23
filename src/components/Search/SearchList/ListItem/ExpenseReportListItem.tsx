@@ -223,7 +223,12 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // Live (not snapshot) report actions: markPendingRTERTransactionsAsCash needs the IOU action's current
     // childReportID to resolve the transaction thread, which a stale search snapshot may not have yet.
     const [liveReportActionsForViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(liveReportTransactions, reportViolations, Object.values(liveReportActionsForViolations ?? {}));
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        liveReportTransactions,
+        reportViolations,
+        Object.values(liveReportActionsForViolations ?? {}),
+        reportForViolations,
+    );
 
     // Recompute the violations badge from live data at the row, replacing the screen-level
     // violations merge that getSections previously did. Policy comes from the live `policyForViolations`

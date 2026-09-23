@@ -5,7 +5,7 @@ import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@lib
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
-import type {ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -13,19 +13,26 @@ import {useCallback} from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
+import useThemeStyles from './useThemeStyles';
 
 /**
  * Hook that returns a callback to confirm any report violations (rejected expenses, pending RTER
  * card-match, and other policy violations) before proceeding with a report submission. Replaces
  * useConfirmPendingRTERAndProceed, which only covered the RTER case.
  */
-function useConfirmSubmitReportViolations(transactions: Array<OnyxEntry<Transaction>>, violationsCollection: OnyxCollection<TransactionViolations>, reportActions: ReportAction[]) {
+function useConfirmSubmitReportViolations(
+    transactions: Array<OnyxEntry<Transaction>>,
+    violationsCollection: OnyxCollection<TransactionViolations>,
+    reportActions: ReportAction[],
+    report: OnyxEntry<Report>,
+) {
     const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     return useCallback(
         (onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => {
-            const summary = getReportSubmitViolationSummary(transactions, violationsCollection);
+            const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report);
             if (!summary.hasRejectedExpense && !summary.hasPendingCardMatch && summary.otherViolationNames.size === 0) {
                 onProceed();
                 return;
@@ -36,8 +43,10 @@ function useConfirmSubmitReportViolations(transactions: Array<OnyxEntry<Transact
                 title: translate('iou.confirmSubmitReportViolations.title'),
                 subtitle: translate('iou.confirmSubmitReportViolations.description'),
                 prompt: bullets.map((bullet) => `${CONST.DOT_SEPARATOR} ${bullet}`).join('\n'),
+                promptStyles: styles.textDanger,
                 confirmText: translate('common.submitAnyway'),
                 cancelText: translate('common.cancel'),
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnablePromptScroll: true,
             }).then((result) => {
                 if (result.action !== ModalActions.CONFIRM) {
@@ -49,7 +58,7 @@ function useConfirmSubmitReportViolations(transactions: Array<OnyxEntry<Transact
                 onProceed(summary.hasRejectedExpense || summary.hasPendingCardMatch);
             });
         },
-        [transactions, violationsCollection, reportActions, showConfirmModal, translate],
+        [transactions, violationsCollection, reportActions, report, showConfirmModal, translate, styles],
     );
 }
 

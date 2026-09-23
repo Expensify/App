@@ -108,7 +108,7 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
-import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
+import {buildSubmitViolationBullets, getReportSubmitViolationSummary, hasReportBeenRejectedToSubmitter} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import variables from '@styles/variables';
 
@@ -2653,10 +2653,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // current user already dismissed does not reappear here and disagree with the row-level Submit
                     // buttons, which apply the same filter for the same reason.
                     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {};
+                    // A whole-report rejection is a report-level state (nextStep), not a TransactionViolations entry, so
+                    // it can't be picked up by getReportSubmitViolationSummary's transaction loop below - checked per
+                    // report here instead, same as the single-report call sites do by passing their report in directly.
+                    let hasAnyReportBeenRejectedToSubmitter = false;
                     for (const reportID of reportIDsToSubmit) {
                         const reportForViolations = getReportFromSearchSnapshot(reportID, searchResults?.data, allReports);
                         const policyForViolations = reportForViolations?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportForViolations.policyID}`] : undefined;
                         const reportOwnerLogin = getLoginByAccountID(reportForViolations?.ownerAccountID, personalDetails);
+                        if (hasReportBeenRejectedToSubmitter(reportForViolations)) {
+                            hasAnyReportBeenRejectedToSubmitter = true;
+                        }
                         for (const transaction of transactionsByReportID.get(reportID) ?? []) {
                             filteredViolationsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] =
                                 getTransactionViolations(transaction, allTransactionViolations, email ?? '', accountID, reportForViolations, reportOwnerLogin, policyForViolations) ?? [];
@@ -2725,7 +2732,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // Consolidate unique violations across every report being submitted, so the modal lists each
                     // violation once even if it appears on multiple selected reports.
                     const submitTransactions = [...reportIDsToSubmit].flatMap((reportID) => transactionsByReportID.get(reportID) ?? []);
-                    const summary = getReportSubmitViolationSummary(submitTransactions, filteredViolationsCollection);
+                    const summary = getReportSubmitViolationSummary(submitTransactions, filteredViolationsCollection, undefined);
+                    if (hasAnyReportBeenRejectedToSubmitter) {
+                        summary.hasRejectedExpense = true;
+                    }
 
                     if (!summary.hasRejectedExpense && !summary.hasPendingCardMatch && summary.otherViolationNames.size === 0) {
                         runSubmit();
@@ -2737,8 +2747,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         title: translate('iou.confirmSubmitReportViolations.title'),
                         subtitle: translate('iou.confirmSubmitReportViolations.description'),
                         prompt: bullets.map((bullet) => `${CONST.DOT_SEPARATOR} ${bullet}`).join('\n'),
+                        promptStyles: styles.textDanger,
                         confirmText: translate('common.submitAnyway'),
                         cancelText: translate('common.cancel'),
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         shouldEnablePromptScroll: true,
                     }).then((result) => {
                         if (result.action !== ModalActions.CONFIRM) {

@@ -288,6 +288,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         reportListHeaderTransactionsArray,
         reportListHeaderViolations,
         Object.values(reportListItemHeaderReportActions ?? {}),
+        parentReport ?? snapshotReport,
     );
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,

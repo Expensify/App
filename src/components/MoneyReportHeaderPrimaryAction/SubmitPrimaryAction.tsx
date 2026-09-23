@@ -99,7 +99,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions, moneyRequestReport);
 
     const {showConfirmModal} = useConfirmModal();
 

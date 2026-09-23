@@ -6,7 +6,9 @@ import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import type * as MockUseConfirmModalUtil from '../../utils/mockUseConfirmModal';
 
@@ -27,6 +29,11 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key),
 }));
 
+jest.mock('@hooks/useThemeStyles', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({textDanger: {color: 'mock-danger'}})),
+}));
+
 jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
@@ -43,6 +50,7 @@ function violation(name: TransactionViolation['name'], data?: TransactionViolati
 
 const transaction1 = createMock<Transaction>({transactionID: '1'});
 const reportActions: ReportAction[] = [];
+const report: OnyxEntry<Report> = undefined;
 
 describe('useConfirmSubmitReportViolations', () => {
     beforeEach(() => {
@@ -52,7 +60,7 @@ describe('useConfirmSubmitReportViolations', () => {
 
     it('calls onProceed immediately with no flag when there are no violations', () => {
         // Given a report with no transaction violations at all
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions, report));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -66,7 +74,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('shows the confirm modal with the rejected-expense bullet and does not call onProceed until confirmed', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -82,7 +90,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('does not call onProceed or mark-as-cash when the user cancels', async () => {
         // Given a report with a pending RTER card-match violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
         const onProceed = jest.fn();
 
         // When the user cancels the confirmation modal
@@ -99,7 +107,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('marks pending RTER transactions as cash and calls onProceed(true) when the user confirms', async () => {
         // Given a report with a pending RTER card-match violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
         const onProceed = jest.fn();
 
         // When the user confirms "Submit anyway"
@@ -117,7 +125,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report whose only violation is an "other" one (e.g. over category limit), which is informational only
         // and has nothing for the backend to resolve, unlike rejected-expense or pending-card-match
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
-        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions));
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
         const onProceed = jest.fn();
 
         // When the user confirms "Submit anyway"
@@ -129,5 +137,39 @@ describe('useConfirmSubmitReportViolations', () => {
         // must not run, since there's no rejected-expense or pending-card-match violation for the backend to resolve
         expect(mockMarkPendingRTERTransactionsAsCash).not.toHaveBeenCalled();
         expect(onProceed).toHaveBeenCalledWith(false);
+    });
+
+    it('shows the confirm modal with red styling on the violations text and the confirm button', () => {
+        // Given a report whose only transaction has a rejected-expense violation
+        const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
+        const onProceed = jest.fn();
+
+        // When the caller tries to submit
+        result.current(onProceed);
+
+        // Then the modal must be styled per the approved design (red violations text, red "Submit anyway" button),
+        // since design decided a green button didn't make sense for an action being discouraged
+        expect(getShowConfirmModalOption('promptStyles')).toEqual({color: 'mock-danger'});
+        expect(getShowConfirmModalOption('buttonVariant')).toBe(CONST.BUTTON_VARIANT.DANGER);
+    });
+
+    it('shows the confirm modal with the rejected-expense bullet when the whole report was rejected to the submitter', () => {
+        // Given a report with no transaction-level violations, but rejected in full (nextStep.messageKey is
+        // REJECTED_REPORT, report reopened to OPEN) - a report-level state, not a TransactionViolations entry
+        const rejectedReport = createMock<Report>({
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            nextStep: {message: [], icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
+        });
+        const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions, rejectedReport));
+        const onProceed = jest.fn();
+
+        // When the caller tries to submit
+        result.current(onProceed);
+
+        // Then the modal must still open with the rejected-expense bullet, since flaviadefaria confirmed a whole-report
+        // rejection is in scope even though no individual transaction carries the violation
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(getShowConfirmModalOption('prompt')).toContain('iou.confirmSubmitReportViolations.rejectedExpense');
     });
 });

@@ -5,7 +5,7 @@ import {hasPendingRTERViolation, hasTransactionBeenRejected, isBrokenConnectionV
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -17,11 +17,23 @@ type ReportSubmitViolationSummary = {
 };
 
 /**
+ * A whole-report rejection doesn't add a violation to the report's transactions - it's a report-level
+ * state (nextStep, set when the last action is REJECTED_TO_SUBMITTER) rather than a TransactionViolations entry.
+ */
+function hasReportBeenRejectedToSubmitter(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+}
+
+/**
  * Classifies a report's transaction violations into the three buckets shown by the "Submit report?"
  * confirmation modal: a rejected expense, a pending RTER/card-match, or everything else (informational only).
  */
-function getReportSubmitViolationSummary(transactions: Array<OnyxEntry<Transaction>>, violationsCollection: OnyxCollection<TransactionViolations>): ReportSubmitViolationSummary {
-    let hasRejectedExpense = false;
+function getReportSubmitViolationSummary(
+    transactions: Array<OnyxEntry<Transaction>>,
+    violationsCollection: OnyxCollection<TransactionViolations>,
+    report: OnyxEntry<Report>,
+): ReportSubmitViolationSummary {
+    let hasRejectedExpense = hasReportBeenRejectedToSubmitter(report);
     let hasPendingCardMatch = false;
     const otherViolationNames = new Set<ValueOf<typeof CONST.VIOLATIONS>>();
 
@@ -76,4 +88,4 @@ function buildSubmitViolationBullets(summary: ReportSubmitViolationSummary, tran
     return bullets;
 }
 
-export {getReportSubmitViolationSummary, buildSubmitViolationBullets};
+export {getReportSubmitViolationSummary, buildSubmitViolationBullets, hasReportBeenRejectedToSubmitter};

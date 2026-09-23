@@ -162,7 +162,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions, moneyRequestReport);
 
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
