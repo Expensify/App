@@ -821,7 +821,7 @@ const CONST = {
                 UBOS_LIST: 'ubos-list',
                 LEGAL_NAME: 'legal-name',
                 DATE_OF_BIRTH: 'date-of-birth',
-                SSN_LAST_4: 'ssnLast4',
+                SSN_LAST_4: 'ssn',
                 ADDRESS: 'address',
                 CONFIRMATION: 'confirmation',
             },
