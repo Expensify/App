@@ -9476,6 +9476,8 @@ ${reportName}`,
             category: '类别',
             tag: '标签',
         },
+        viewAsTable: '以表格形式查看',
+        viewAsSingleExpense: '以单条支出形式查看',
     },
     report: {
         newReport: {

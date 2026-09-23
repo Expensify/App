@@ -1622,6 +1622,7 @@ const CONST = {
             DUPLICATE_EXPENSE: 'duplicateExpense',
             DUPLICATE_REPORT: 'duplicateReport',
             MOVE_EXPENSE: 'moveExpense',
+            TOGGLE_TABLE_VIEW: 'toggleTableView',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -9389,6 +9390,7 @@ const CONST = {
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',
+            TOGGLE_TABLE_VIEW: 'MoreMenu-ToggleTableView',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
