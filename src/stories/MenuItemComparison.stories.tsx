@@ -10,9 +10,11 @@ import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import Section from '@components/Section';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -142,18 +144,18 @@ function SectionHeading({title, children}: {title: string; children?: string}) {
 
 function Comparison() {
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar', 'NewWindow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar', 'NewWindow', 'Download']);
 
     // The legacy external-link row anchors its context menu to the row itself, which the composable API does for the call site
     const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
 
-    if (!icons.Gear || !icons.FallbackAvatar || !icons.NewWindow) {
+    if (!icons.Gear || !icons.FallbackAvatar || !icons.NewWindow || !icons.Download) {
         return null;
     }
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
-            <SectionHeading title="Phase 4 — title styles">numberOfLinesTitle became numberOfLines on the text leaves.</SectionHeading>
+            <SectionHeading title="Phase 4 - styles" />
 
             <Card
                 title="description, numberOfLinesTitle, title"
@@ -280,6 +282,34 @@ function Comparison() {
                         onPress={noop}
                         value="$4.20"
                     />
+                }
+            />
+
+            <Card
+                title="icon, onPress, title, wrapperStyle={styles.sectionMenuItemTopDescription}"
+                legacy={
+                    <Section title="Share">
+                        <MenuItem
+                            title="Download"
+                            icon={icons.Download}
+                            onPress={noop}
+                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                        />
+                    </Section>
+                }
+                composable={
+                    <Section title="Share">
+                        <MenuItemSectionRow onPress={noop}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Download} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>Download</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItemSectionRow>
+                    </Section>
                 }
             />
 

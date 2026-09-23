@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 
-import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import UserPill from '@components/UserPill';
 
@@ -17,7 +17,19 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 jest.mock('@components/Badge', () => jest.fn(() => null));
-jest.mock('@components/MenuItem', () => jest.fn(() => null));
+jest.mock('@components/MenuItem', () =>
+    Object.assign(
+        jest.fn(() => null),
+        {
+            Row: jest.fn(() => null),
+            Leading: jest.fn(() => null),
+            Content: jest.fn(() => null),
+            Icon: jest.fn(() => null),
+            Title: jest.fn(() => null),
+        },
+    ),
+);
+jest.mock('@components/MenuItem/presets/MenuItemSectionRow', () => jest.fn(() => null));
 jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
 jest.mock(
     '@components/OfflineWithFeedback',
@@ -72,7 +84,7 @@ jest.mock('@userActions/Policy/Rules', () => ({
 const mockedUsePolicy = jest.mocked(usePolicy);
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedMenuItemWithTopDescription = jest.mocked(MenuItemWithTopDescription);
-const mockedMenuItem = jest.mocked(MenuItem);
+const mockedMenuItemSectionRow = jest.mocked(MenuItemSectionRow);
 const mockedUserPill = jest.mocked(UserPill);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
@@ -238,7 +250,7 @@ describe('AgentRulesSection', () => {
                 />,
             );
 
-            const onPress = mockedMenuItem.mock.calls.at(0)?.at(0)?.onPress;
+            const onPress = mockedMenuItemSectionRow.mock.calls.at(0)?.at(0)?.onPress;
             onPress?.(mockKeyboardEvent);
 
             expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID));
@@ -256,7 +268,7 @@ describe('AgentRulesSection', () => {
                 />,
             );
 
-            const onPress = mockedMenuItem.mock.calls.at(0)?.at(0)?.onPress;
+            const onPress = mockedMenuItemSectionRow.mock.calls.at(0)?.at(0)?.onPress;
             onPress?.(mockKeyboardEvent);
 
             expect(showReadOnlyModal).toHaveBeenCalledTimes(1);

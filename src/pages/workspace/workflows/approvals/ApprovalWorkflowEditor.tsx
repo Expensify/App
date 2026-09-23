@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -259,12 +260,18 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 />
 
                 {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
-                    <MenuItem
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                        icon={icons.Trashcan}
-                        title={translate('common.delete')}
-                        onPress={removeApprovalWorkflow}
-                    />
+                    <View style={styles.mt6}>
+                        <MenuItemSectionRow onPress={removeApprovalWorkflow}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Trashcan} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('common.delete')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItemSectionRow>
+                    </View>
                 )}
             </View>
         </ScrollView>

@@ -1,7 +1,9 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import TextPicker from '@components/TextPicker';
 
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import ScimTokenContent from './ScimTokenContent';
 
@@ -70,7 +73,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 inputID="identityProviderMetadata"
                 description={translate('domain.samlConfigurationDetails.identityProviderMetadata')}
                 label={translate('domain.samlConfigurationDetails.identityProviderMetadata')}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
+                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb3]}
                 numberOfLinesTitle={2}
                 titleStyle={[styles.fontSizeLabel, styles.textMono, styles.wordBreakAll]}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
@@ -89,84 +92,93 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 allowHTML
             />
 
-            <MenuItemWithTopDescription
-                titleComponent={
-                    <CopyableTextField
-                        value={samlMetadata.entityID}
-                        textStyle={styles.fontSizeLabel}
-                    />
-                }
-                description={translate('domain.samlConfigurationDetails.entityID')}
-                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                interactive={false}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
-            />
+            <MenuItemSectionRow>
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        <MenuItem.Label>{translate('domain.samlConfigurationDetails.entityID')}</MenuItem.Label>
+                        <CopyableTextField
+                            value={samlMetadata.entityID}
+                            textStyle={styles.fontSizeLabel}
+                            style={styles.mt1}
+                        />
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItemSectionRow>
 
-            <MenuItemWithTopDescription
-                titleComponent={
-                    <CopyableTextField
-                        value={samlMetadata.nameFormat}
-                        textStyle={styles.fontSizeLabel}
-                    />
-                }
-                description={translate('domain.samlConfigurationDetails.nameIDFormat')}
-                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                interactive={false}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
-            />
+            <MenuItemSectionRow>
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        <MenuItem.Label>{translate('domain.samlConfigurationDetails.nameIDFormat')}</MenuItem.Label>
+                        <CopyableTextField
+                            value={samlMetadata.nameFormat}
+                            textStyle={styles.fontSizeLabel}
+                            style={styles.mt1}
+                        />
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItemSectionRow>
 
-            <MenuItemWithTopDescription
-                titleComponent={
-                    <CopyableTextField
-                        value={samlMetadata.urlLogin}
-                        style={styles.mb2}
-                        textStyle={styles.fontSizeLabel}
-                    />
-                }
-                description={translate('domain.samlConfigurationDetails.loginUrl')}
-                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                interactive={false}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
-                hintText={translate('domain.samlConfigurationDetails.acsUrl')}
-            />
+            <MenuItemSectionRow>
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        <MenuItem.Label>{translate('domain.samlConfigurationDetails.loginUrl')}</MenuItem.Label>
+                        <CopyableTextField
+                            value={samlMetadata.urlLogin}
+                            textStyle={styles.fontSizeLabel}
+                            style={styles.mt1}
+                        />
+                    </MenuItem.Content>
+                </MenuItem.Row>
+                <FormHelpMessage
+                    isError={false}
+                    message={translate('domain.samlConfigurationDetails.acsUrl')}
+                    style={[styles.mt3, styles.mb0]}
+                />
+            </MenuItemSectionRow>
 
-            <MenuItemWithTopDescription
-                titleComponent={
-                    <CopyableTextField
-                        value={samlMetadata.urlLogout}
-                        style={styles.mb2}
-                        textStyle={styles.fontSizeLabel}
-                    />
-                }
-                description={translate('domain.samlConfigurationDetails.logoutUrl')}
-                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                interactive={false}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
-                hintText={translate('domain.samlConfigurationDetails.sloUrl')}
-            />
+            <MenuItemSectionRow>
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        <MenuItem.Label>{translate('domain.samlConfigurationDetails.logoutUrl')}</MenuItem.Label>
+                        <CopyableTextField
+                            value={samlMetadata.urlLogout}
+                            textStyle={styles.fontSizeLabel}
+                            style={styles.mt1}
+                        />
+                    </MenuItem.Content>
+                </MenuItem.Row>
+                <FormHelpMessage
+                    isError={false}
+                    message={translate('domain.samlConfigurationDetails.sloUrl')}
+                    style={[styles.mt3, styles.mb0]}
+                />
+            </MenuItemSectionRow>
 
-            <MenuItemWithTopDescription
-                titleComponent={
-                    <CopyableTextField
-                        value={samlMetadata.metaService}
-                        shouldDisplayShowMoreButton
-                        textStyle={styles.fontSizeLabel}
-                    />
-                }
-                description={translate('domain.samlConfigurationDetails.serviceProviderMetaData')}
-                descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                interactive={false}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
-            />
+            <MenuItemSectionRow>
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        <MenuItem.Label>{translate('domain.samlConfigurationDetails.serviceProviderMetaData')}</MenuItem.Label>
+                        <CopyableTextField
+                            value={samlMetadata.metaService}
+                            shouldDisplayShowMoreButton
+                            textStyle={styles.fontSizeLabel}
+                            style={styles.mt1}
+                        />
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItemSectionRow>
 
             {shouldShowScimToken && (
-                <MenuItemWithTopDescription
-                    titleComponent={<ScimTokenContent domainName={domainName} />}
-                    description={translate('domain.samlConfigurationDetails.oktaScimToken')}
-                    descriptionTextStyle={[styles.fontSizeLabel, styles.pb2]}
-                    interactive={false}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.pv0]}
-                />
+                <MenuItemSectionRow>
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <MenuItem.Label>{translate('domain.samlConfigurationDetails.oktaScimToken')}</MenuItem.Label>
+                            <View style={styles.mt1}>
+                                <ScimTokenContent domainName={domainName} />
+                            </View>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItemSectionRow>
             )}
         </>
     );
