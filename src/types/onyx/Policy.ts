@@ -1,4 +1,4 @@
-import type HrSyncResult from '@libs/API/HrSyncResult';
+import type MergeSyncResult from '@libs/API/MergeSyncResult';
 
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -3737,7 +3737,7 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 
     /** Optional result payload shown after a completed sync */
-    result?: HrSyncResult;
+    result?: MergeSyncResult;
 };
 
 /** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
@@ -3842,5 +3842,9 @@ export type {
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
+    CampfireExportDate,
+    CampfireVendor,
+    CampfireAccount,
+    CampfireExport,
     BusinessCentralCompany,
 };
