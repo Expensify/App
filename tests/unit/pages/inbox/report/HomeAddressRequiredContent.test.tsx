@@ -100,9 +100,24 @@ describe('HomeAddressRequiredContent', () => {
         });
     });
 
+    it('keeps the CTA when the workspace never saved a work arrangement', async () => {
+        // Given a workspace that turned the home and office method on before the work arrangement setting
+        // existed, so it has nothing stored for it
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policyID`, {id: 'policyID', commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}});
+        });
+
+        // When the prompt renders for a member who has no home address saved
+        render(<HomeAddressRequiredContent action={action} />);
+
+        // Then the CTA stays, because such a workspace measures every member's commute from their home
+        await waitFor(() => {
+            expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeTruthy();
+        });
+    });
+
     it.each([
         ['the members have no regular workplace', {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, isOfficeWorkArrangement: false}],
-        ['no arrangement has been picked', {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}],
         ['a fixed distance is excluded instead', {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 5}],
     ])('hides the CTA when the workspace stopped measuring commutes because %s', async (_case, commuterExclusions) => {
         // Given a workspace that no longer measures a commute from the member's home, leaving the prompt spent

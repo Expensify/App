@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {hasOfficeWorkArrangement} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -37,7 +38,7 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
 
     const [policyData] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => ({
-            isOfficeWorkArrangement: policy?.commuterExclusions?.isOfficeWorkArrangement,
+            isOfficeWorkArrangement: hasOfficeWorkArrangement(policy?.commuterExclusions),
             isHomeAndOfficeMethod: policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
             pendingFields: policy?.pendingFields,
             errorFields: policy?.errorFields,

@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {hasOfficeWorkArrangement} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
@@ -28,7 +29,7 @@ const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersona
 // its members are office-based. A workspace that has not loaded yet counts as still measuring, so a slow read
 // never hides a prompt the member does need to act on.
 const isCommuteStillMeasuredSelector = (policy: OnyxEntry<Policy>) =>
-    !policy || (policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !!policy.commuterExclusions.isOfficeWorkArrangement);
+    !policy || (policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && hasOfficeWorkArrangement(policy.commuterExclusions));
 
 function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
     const {translate} = useLocalize();

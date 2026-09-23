@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, hasOfficeWorkArrangement} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -124,7 +124,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             confirmModal.showModal({
                 component: StartingWorkArrangementModal,
                 props: {
-                    initialIsOffice: existingCommuterExclusions?.isOfficeWorkArrangement ?? true,
+                    initialIsOffice: hasOfficeWorkArrangement(existingCommuterExclusions),
                     onApply: (isOffice: boolean) => {
                         setSelectedKey(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE);
                         setInlineError('');
@@ -219,7 +219,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         <MenuItemWithTopDescription
             shouldShowRightIcon
             title={translate(
-                (existingCommuterExclusions?.isOfficeWorkArrangement ?? true)
+                hasOfficeWorkArrangement(existingCommuterExclusions)
                     ? 'workspace.distanceRates.commuterExclusions.workArrangement.officeBasedTitle'
                     : 'workspace.distanceRates.commuterExclusions.workArrangement.noRegularWorkplaceTitle',
             )}
