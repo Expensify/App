@@ -480,7 +480,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <View style={styles.flex1}>
                     <WorkspaceExpensifyCardsTable
                         policyID={policyID}
-                        policy={policy}
                         headerComponent={pageHeaderContent}
                         cards={cardRows}
                         selectionEnabled={cardRows.length > 0}
