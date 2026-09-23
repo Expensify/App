@@ -26,22 +26,21 @@ Depending on the access level assigned to you, you may be able to:
  - View expenses and chats
  - Create and submit expenses
  - Review reports
- - Update the member's account, workspace, and domain settings
- - Merge accounts on the member's behalf
- - Forward receipts to the member's account
+ - Update account, workspace, and domain settings
+ - Forward receipts to the account owner's account
 
-Some actions may be restricted if you've been granted Limited Access. A few actions are never available to Copilots, regardless of access level, including closing the account owner's account.
+Some actions may be restricted if you've been granted **Limited** access. 
 
 ## How to switch to a Copilot account
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to access.
+2. In the **Copilot: Delegated access** section, choose the account you want to access.
 3. Select **Switch**.
 
 ## How to remove yourself as a Copilot
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to remove yourself from. 
+2. In the **Copilot: Delegated access** section, choose the account you want to remove yourself from. 
 3. Select **Remove my copilot access**.
 4. Select **Remove access**.
 
@@ -66,7 +65,7 @@ When acting as a Copilot:
 
  - You'll see the expenses, reports, chats, and settings that belong to the account you're supporting, based on the permissions you've been granted.
  - Actions you perform are labeled as being completed on behalf of the account owner.
- - Some actions may be unavailable if you've been granted Limited Access.
+ - Some actions may be unavailable if you've been granted **Limited** access.
 
 **Note:** If you're acting as a Copilot, both you and the account owner count as active members when you perform billable activity in the account.
     
@@ -84,16 +83,14 @@ A dual-avatar indicator appears in the bottom-left corner when you're viewing an
 
 ## Why can't I perform certain actions?
 
-The account owner may have assigned you Limited Access, which restricts certain approval and payment actions.
-
-Some actions are never available to Copilots, even with Full Access. For example, if you select **Close account** in the account owner's **Security** settings, a message lets you know you don't have permission to take that action.
+The account owner may have assigned you **Limited** access, which restricts certain approval and payment actions.
 
 ## What are the different Copilot access levels?
 
 The account owner chooses your Copilot access level when granting access.
 
- - **Full Access** allows you to perform all available actions in the account.
- - **Limited Access** allows you to manage expenses and reports but restricts approval and payment-related actions, including approvals, payments, rejections, and holds.
+ - **Full** allows you to perform all available actions in the account.
+ - **Limited** allows you to manage expenses and reports but restricts approval and payment-related actions, including approvals, payments, rejections, and holds.
 
 If you need additional permissions, contact the account owner and ask them to update your Copilot access level.
 
