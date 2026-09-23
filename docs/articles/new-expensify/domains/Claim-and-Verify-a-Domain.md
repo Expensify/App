@@ -33,6 +33,8 @@ Each domain is listed in its own row, showing:
 - Verification status (Verified, Not verified)
 - The three dots **(⋮)** with management options
 
+![Workspaces page showing Domains tab]({{site.url}}/assets/images/Workspaces_Domains.png){:width="100%"}
+
 ## What happens after claiming a domain?
 
 Depending on your email setup:
