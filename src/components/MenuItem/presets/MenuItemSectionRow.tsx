@@ -38,4 +38,3 @@ function MenuItemSectionRow({children, onPress, isDisabled = false, sentryLabel,
 }
 
 export default MenuItemSectionRow;
-export type {MenuItemSectionRowProps};
