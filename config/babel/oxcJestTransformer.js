@@ -20,19 +20,19 @@ const TEST_FILE_RE = /\.(test|spec)\.[jt]sx?$/;
 // esbuild emits two CJS interop helpers verbatim, both of which behave differently from Babel's:
 // its export getters are non-configurable, so `jest.spyOn` cannot redefine them, and they read the
 // binding directly, so a circular import throws where Babel's interop returned undefined.
+// The patterns are regexes because esbuild renames helper locals when the module already binds that
+// name (`name` becomes `name2`), so an exact string match misses those files.
 const ESBUILD_HELPERS = [
     {
-        from: 'var __defProp = Object.defineProperty;',
-        to: 'var __defProp = (target, key, descriptor) => Object.defineProperty(target, key, {...descriptor, configurable: true});',
+        marker: 'var __defProp',
+        pattern: /var (__defProp\d*) = Object\.defineProperty;/,
+        replace: (_match, defProp) => `var ${defProp} = (target, key, descriptor) => Object.defineProperty(target, key, {...descriptor, configurable: true});`,
     },
     {
-        from: ['var __export = (target, all) => {', '  for (var name in all)', '    __defProp(target, name, { get: all[name], enumerable: true });', '};'].join('\n'),
-        to: [
-            'var __export = (target, all) => {',
-            '  for (const name of Object.keys(all))',
-            '    __defProp(target, name, {get: () => {try {return all[name]();} catch (e) {if (e instanceof ReferenceError) {return undefined;} throw e;}}, enumerable: true});',
-            '};',
-        ].join('\n'),
+        marker: 'var __export',
+        pattern: /var (__export\d*) = \(target, all\) => \{\s*for \(var (\w+) in all\)\s*(__defProp\d*)\(target, \2, \{ get: all\[\2\], enumerable: true \}\);\s*\};/,
+        replace: (_match, exportName, _loopVar, defProp) =>
+            `var ${exportName} = (target, all) => {\n  for (const key of Object.keys(all))\n    ${defProp}(target, key, {get: () => {try {return all[key]();} catch (e) {if (e instanceof ReferenceError) {return undefined;} throw e;}}, enumerable: true});\n};`,
     },
 ];
 
@@ -47,12 +47,15 @@ const ESBUILD_HELPERS = [
  */
 function patchEsbuildHelpers(code, sourcePath) {
     let patched = code;
-    for (const {from, to} of ESBUILD_HELPERS) {
-        if (patched.includes(from)) {
-            patched = patched.replace(from, to);
-        } else if (patched.includes(`${from.slice(0, from.indexOf(' ='))} =`)) {
+    for (const {marker, pattern, replace} of ESBUILD_HELPERS) {
+        if (!patched.includes(marker)) {
+            continue;
+        }
+        const next = patched.replace(pattern, replace);
+        if (next === patched) {
             throw new Error(`oxcJestTransformer: esbuild interop helper changed shape, update ESBUILD_HELPERS (while transforming ${sourcePath})`);
         }
+        patched = next;
     }
     return patched;
 }
