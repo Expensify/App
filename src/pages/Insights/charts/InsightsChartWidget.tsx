@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_CHART_STATE} from '@pages/Insights/resolveChartData';
@@ -40,10 +41,13 @@ type InsightsChartWidgetProps = {
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
+    /** Lets the reader change the time bucket the chart aggregates into. Only the headline chart offers it. */
+    onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
+
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, containerStyles}: InsightsChartWidgetProps) {
+function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, onGroupByChange, containerStyles}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -56,24 +60,39 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
         return null;
     }
 
+    const groupByControl = onGroupByChange ? (
+        <InsightsGroupByDropdown
+            groupBy={filters.groupBy}
+            onChange={onGroupByChange}
+        />
+    ) : null;
+
+    const headerMenu =
+        state === INSIGHTS_CHART_STATE.READY ? (
+            <WidgetHeaderMenu
+                testID={`insightsChartMenu-${chart.graphKey}`}
+                sentryLabel="InsightsChartMenu"
+                menuItems={[
+                    {
+                        text: translate('insightsPage.viewOnSpend'),
+                        icon: icons.Expand,
+                        onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
+                        shouldCallAfterModalHide: true,
+                    },
+                ]}
+            />
+        ) : null;
+
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
             containerStyles={containerStyles}
             titleRightContent={
-                state === INSIGHTS_CHART_STATE.READY ? (
-                    <WidgetHeaderMenu
-                        testID={`insightsChartMenu-${chart.graphKey}`}
-                        sentryLabel="InsightsChartMenu"
-                        menuItems={[
-                            {
-                                text: translate('insightsPage.viewOnSpend'),
-                                icon: icons.Expand,
-                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
-                                shouldCallAfterModalHide: true,
-                            },
-                        ]}
-                    />
+                !!groupByControl || !!headerMenu ? (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                        {groupByControl}
+                        {headerMenu}
+                    </View>
                 ) : null
             }
         >

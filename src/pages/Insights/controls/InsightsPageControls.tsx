@@ -6,7 +6,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import InsightsDateControl from './InsightsDateControl';
-import InsightsGroupByDropdown from './InsightsGroupByDropdown';
 import InsightsGroupCurrencyControl from './InsightsGroupCurrencyControl';
 import InsightsWorkspaceControl from './InsightsWorkspaceControl';
 
@@ -22,10 +21,6 @@ function InsightsPageControls({filters, onChange}: InsightsPageControlsProps) {
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2, styles.ph5, styles.pb3]}>
-            <InsightsGroupByDropdown
-                groupBy={filters.groupBy}
-                onChange={(groupBy) => onChange({groupBy})}
-            />
             <InsightsDateControl
                 value={filters.date}
                 onChange={(date) => onChange({date})}

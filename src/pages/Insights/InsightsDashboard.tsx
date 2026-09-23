@@ -49,9 +49,12 @@ type InsightsDashboardContentProps = {
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
+
+    /** Changes the time bucket the headline chart aggregates into */
+    onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -109,6 +112,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
                     chart={headlineChart}
                     filters={filters}
                     onRetry={onRetry}
+                    onGroupByChange={onGroupByChange}
                 />
                 <View style={styles.insightsChartGrid}>
                     {visibleCharts.map((chart) => (
@@ -184,6 +188,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 state={getDashboardState(dashboard, isOffline, headlineSnapshot)}
                 filters={filters}
                 onRetry={requestDashboard}
+                onGroupByChange={(groupBy) => setFilters({groupBy})}
             />
         </ScreenWrapper>
     );
