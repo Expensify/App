@@ -850,6 +850,15 @@ describe('SearchAutocompleteList', () => {
                     userToInvite: null,
                 },
             });
+            // Hand back a new options reference so the memo over getSearchOptions recomputes. Swapping the mock's
+            // return value alone leaves the cached client matches in place, so the hydrated report never arrives.
+            mockUseFilteredOptions.mockReturnValue({
+                options: {...mockedOptions},
+                isLoading: false,
+                loadMore: jest.fn(),
+                hasMore: false,
+                isLoadingMore: false,
+            });
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, [aliceReport.reportID]);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
