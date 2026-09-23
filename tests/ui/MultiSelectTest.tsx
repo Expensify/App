@@ -115,4 +115,31 @@ describe('MultiSelect', () => {
         const props = mockedSelectionList.mock.lastCall?.[0];
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
     });
+
+    it('passes undefined footerContent when neither isLoadingMore nor footer is provided', () => {
+        render(
+            <MultiSelect
+                value={[]}
+                items={items}
+                onChange={jest.fn()}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.footerContent).toBeUndefined();
+    });
+
+    it('passes footerContent when footer is provided', () => {
+        render(
+            <MultiSelect
+                value={[]}
+                items={items}
+                onChange={jest.fn()}
+                footer={<></>}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.footerContent).toBeDefined();
+    });
 });
