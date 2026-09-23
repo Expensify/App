@@ -61,6 +61,23 @@ describe('forwardLogsToSentry', () => {
         expect(breadcrumb?.data).not.toHaveProperty('transactionID');
     });
 
+    it('forwards a swallowed navigation call as an error, carrying the method and its call site', () => {
+        // Given an inert navigation call reported by the withNavigationFallback stub, at alert level with a stack
+        const packet = packetWith('[alrt] [withNavigationFallback] ignored navigation.setParams() outside a navigator screen', {
+            method: 'setParams',
+            stack: 'Error\n    at useReportActionsNewActionLiveTail',
+        });
+
+        // When the packet is mirrored to Sentry
+        forwardLogsToSentry(packet);
+
+        // Then it lands at error level, so a swallowed call is visible instead of silently doing nothing
+        expect(Sentry.logger.error).toHaveBeenCalledWith(
+            '[alrt] [withNavigationFallback] ignored navigation.setParams() outside a navigator screen',
+            expect.objectContaining({method: 'setParams', stack: 'Error\n    at useReportActionsNewActionLiveTail'}),
+        );
+    });
+
     it('does not add a breadcrumb for log lines that are not forwarded', () => {
         // Given a log line without a forwarded prefix
         const packet = packetWith('[info] [SequentialQueue] push() called', {command: 'OpenReport'});

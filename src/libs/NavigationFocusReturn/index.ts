@@ -18,7 +18,7 @@ import {isCycleIdle, Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusAr
 import CONST from '@src/CONST';
 
 import type {NavigationState} from '@react-navigation/native';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import setFifoEntry from './fifoMap';
@@ -171,17 +171,26 @@ function skipNextFocusRestore(): void {
 
 /** Native-only. Web captures via `focusin` so this stub exists only to keep the import cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function notifyPressedTrigger(_ref: RefObject<View | null> | null, _identifier?: string): void {}
+function notifyPressedTrigger(_ref: RefObject<ComponentRef<typeof View> | null> | null, _identifier?: string): void {}
 
 /** Native-only registry. Cross-platform stub. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<View | null>): () => void {
+function registerPressable(_routeKey: string, _identifier: string, _ref: RefObject<ComponentRef<typeof View> | null>): () => void {
     return () => {};
 }
 
 /** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
 function isFocusRestoreInProgress(): boolean {
     return isRestoringFocus;
+}
+
+/** Seeds the trigger candidate for focus restoration */
+function seedTriggerCandidate(element: HTMLElement): void {
+    if (getHadTabNavigation()) {
+        return;
+    }
+    lastMouseTrigger = element;
+    lastMouseTriggerAt = performance.now();
 }
 
 /* Empty = nothing focusable yet (detached mid-remount, missing attributes); caller's retry budget owns cleanup, not this function. */
@@ -290,6 +299,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         if (after === candidate) {
             triggerMap.delete(routeKey);
             lastRestoreTarget = candidate;
+            seedTriggerCandidate(candidate);
             scheduleReturnHoldRelease();
             return true;
         }
@@ -297,6 +307,7 @@ function restoreTriggerForRoute(routeKey: string, restoreBaseline: Element | nul
         if (after !== before && after && after !== document.body) {
             triggerMap.delete(routeKey);
             lastRestoreTarget = after instanceof HTMLElement ? after : candidate;
+            seedTriggerCandidate(lastRestoreTarget);
             scheduleReturnHoldRelease();
             return true;
         }

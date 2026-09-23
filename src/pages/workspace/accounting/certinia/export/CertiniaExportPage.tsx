@@ -36,7 +36,11 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const exportConfig = config?.export;
     const hasPSA = !!config?.hasPSA;
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.path}` : undefined;
-    const selectedVendor = data?.vendors?.find((vendor) => vendor.id === exportConfig?.vendorAccount);
+    // Skip the lookup when `vendorAccount` is empty (its seeded default) so we don't try to match an empty id against the synced vendor list.
+    const selectedVendor = exportConfig?.vendorAccount ? data?.vendors?.find((vendor) => vendor.id === exportConfig?.vendorAccount) : undefined;
+    // Only show "None" when no vendorAccount is configured. When a vendorAccount id is set but the synced vendor list
+    // hasn't populated the matching name yet, fall back to the saved id so admins don't think the setting was cleared.
+    const defaultVendorTitle = exportConfig?.vendorAccount ? (selectedVendor?.name ?? exportConfig.vendorAccount) : translate('common.none');
     const exportStatus = exportConfig?.exportStatus;
     const normalizedFFAExportStatus = getCertiniaFFAExportStatusValue(exportStatus);
     const normalizedReportExportStatus = getCertiniaReportExportStatusValue(exportStatus);
@@ -44,7 +48,9 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
 
     const preferredExporterRow: ExportRow = {
         description: translate('workspace.accounting.preferredExporter'),
-        title: exportConfig?.exporter ?? policyOwner,
+        // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        title: exportConfig?.exporter || policyOwner,
         onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path, exportPath)),
         subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORTER],
     };
@@ -102,7 +108,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.accounting.defaultVendor'),
-            title: selectedVendor?.name,
+            title: defaultVendorTitle,
             onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.path, exportPath)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT],
         },

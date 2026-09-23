@@ -139,7 +139,7 @@ describe('updateMoneyRequestVendor', () => {
     });
 
     it('falls back to the Onyx-cached transaction for vendor rollback when caller omits transaction', async () => {
-        const previousVendor = {externalID: 'v-old', isManuallySet: true};
+        const previousVendor = {externalID: 'v-old', wasManuallySet: true};
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
             ...baseTransaction,
             comment: {vendor: previousVendor},
@@ -179,7 +179,7 @@ describe('updateMoneyRequestVendor', () => {
         // The selected vendor's display name is persisted alongside the externalID so the title still
         // renders a human-readable label after the vendor later leaves the workspace's synced list.
         expect(transactionOptimistic.value).toEqual({
-            comment: {vendor: {externalID: 'v-new', name: 'New Vendor', isManuallySet: true}},
+            comment: {vendor: {externalID: 'v-new', name: 'New Vendor', wasManuallySet: true}},
             pendingFields: {vendor: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         });
     });
@@ -246,13 +246,13 @@ describe('updateMoneyRequestVendor', () => {
             // `oldVendor: null` signals "no prior vendor". Onyx strips nested nulls on merge, which
             // is fine — `ModifiedExpenseMessage` treats either key's presence as a vendor change.
             expect(getOriginalMessage(optimisticAction)).toMatchObject({
-                vendor: {externalID: 'v-new', name: 'New Vendor', isManuallySet: true},
+                vendor: {externalID: 'v-new', name: 'New Vendor', wasManuallySet: true},
                 oldVendor: null,
             });
         });
 
         it('builds an optimistic MODIFIED_EXPENSE with both `vendor` and `oldVendor` set when changing the vendor', () => {
-            const previousVendor = {externalID: 'v-old', isManuallySet: false};
+            const previousVendor = {externalID: 'v-old', wasManuallySet: false};
             const transactionWithVendor: Transaction = {
                 ...baseTransaction,
                 comment: {vendor: previousVendor},
@@ -271,12 +271,12 @@ describe('updateMoneyRequestVendor', () => {
             const optimisticAction = findOptimisticModifiedExpense();
             expect(getOriginalMessage(optimisticAction)).toMatchObject({
                 oldVendor: previousVendor,
-                vendor: {externalID: 'v-new', isManuallySet: true},
+                vendor: {externalID: 'v-new', wasManuallySet: true},
             });
         });
 
         it('builds an optimistic MODIFIED_EXPENSE with `vendor` null and `oldVendor` set when clearing the vendor', () => {
-            const previousVendor = {externalID: 'v-old', isManuallySet: true};
+            const previousVendor = {externalID: 'v-old', wasManuallySet: true};
             const transactionWithVendor: Transaction = {
                 ...baseTransaction,
                 comment: {vendor: previousVendor},

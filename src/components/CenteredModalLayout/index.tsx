@@ -4,9 +4,6 @@ import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 
 import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 
@@ -32,7 +29,7 @@ type CenteredModalLayoutProps = {
 
     /**
      * Whether the content wrapper should apply the bottom safe-area inset. Disable it when the children
-     * already handle the inset themselves (e.g. FeatureTrainingContent with `shouldUseScrollView`, whose
+     * already handle the inset themselves (e.g. FeatureTraining with `shouldUseScrollView`, whose
      * ScrollView content padding includes it), otherwise the inset is applied twice and renders as an
      * empty band under the content on devices with a bottom inset.
      */
@@ -41,12 +38,10 @@ type CenteredModalLayoutProps = {
 
 function CenteredModalLayout({children, width, height, onBackdropPress, contentStyle, addBottomSafeAreaPadding = true}: CenteredModalLayoutProps) {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const shouldDockToBottom = !onboardingIsMediumOrLargerScreenWidth;
 
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,

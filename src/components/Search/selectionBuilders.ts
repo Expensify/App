@@ -1,15 +1,101 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupEntry, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
+import type {SearchGroupBase, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
+
+/**
+ * Group-by snapshot rows carry the total number of transactions in the group. That total can be larger than the
+ * rows currently loaded when the query has a `limit:` smaller than the group.
+ */
+function getSearchGroupCount(group: SearchGroupBase | TransactionGroupListItemType | undefined): number | undefined {
+    if (!group || !('count' in group) || typeof group.count !== 'number') {
+        return undefined;
+    }
+    return group.count;
+}
+
+function getSearchGroupCountByKey(searchData: SearchResultDataType | undefined, groupKey: string | undefined): number | undefined {
+    if (!searchData || !groupKey || !isGroupEntry(groupKey)) {
+        return undefined;
+    }
+    return getSearchGroupCount(searchData[groupKey]);
+}
+
+/**
+ * Snapshot `count` is not decremented when a child is pending-delete, so drop those loaded children before
+ * comparing. A `limit:` that left children unloaded still leaves `count` larger than the remaining selectable
+ * rows, so that case stays a partial selection.
+ */
+function getRemainingSearchGroupCount(groupCount: number | undefined, loadedChildrenCount: number, loadedSelectableCount: number): number | undefined {
+    if (groupCount === undefined) {
+        return undefined;
+    }
+    const pendingDeleteLoadedCount = Math.max(loadedChildrenCount - loadedSelectableCount, 0);
+    return Math.max(groupCount - pendingDeleteLoadedCount, 0);
+}
+
+/**
+ * A group is fully selected only when every remaining transaction it contains is selected. If the group count
+ * is unknown (expense-report rows), the loaded selectable children are treated as the whole group.
+ */
+function isSelectionCoveringEntireGroup(groupCount: number | undefined, selectedCount: number, loadedSelectableCount: number): boolean {
+    if (selectedCount <= 0) {
+        return false;
+    }
+    if (groupCount === undefined) {
+        return loadedSelectableCount > 0 && selectedCount === loadedSelectableCount;
+    }
+    return selectedCount === groupCount;
+}
+
+type StampGroupCoverageFlagsParams = {
+    selectedTransactions: SelectedTransactions;
+    groupKey: string | undefined;
+    groupCount: number | undefined;
+    loadedChildrenCount: number;
+    loadedSelectableCount: number;
+};
+
+/**
+ * Sets `isEntireGroupSelected` from whether the selection covers the group's remaining transaction count.
+ * A `limit:` that leaves children unloaded must not look like a whole-group selection, because delete only
+ * removes the loaded rows. `isSelectedViaGroup` is left alone so export can still treat a group-row click as a
+ * group export.
+ */
+function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedChildrenCount, loadedSelectableCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
+    if (!groupKey) {
+        return selectedTransactions;
+    }
+
+    const nextSelectedTransactions = {...selectedTransactions};
+    let selectedCount = 0;
+    for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
+        if (key === groupKey || transaction.groupKey !== groupKey) {
+            continue;
+        }
+        selectedCount += 1;
+    }
+
+    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildrenCount, loadedSelectableCount);
+    const isEntireGroupSelected = isSelectionCoveringEntireGroup(remainingGroupCount, selectedCount, loadedSelectableCount);
+    for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
+        if (key !== groupKey && transaction.groupKey !== groupKey) {
+            continue;
+        }
+        nextSelectedTransactions[key] = {...transaction, groupKey, isEntireGroupSelected};
+    }
+
+    return nextSelectedTransactions;
+}
 
 type MapTransactionItemToSelectedEntryParams = {
     /** The transaction row being added to the selection */
@@ -24,7 +110,6 @@ type MapTransactionItemToSelectedEntryParams = {
     /** Email of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Report name-value pairs collection, used for the change-report eligibility archived check */
@@ -36,14 +121,14 @@ type MapTransactionItemToSelectedEntryParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** Keep the amount signed instead of taking its absolute value */
     allowNegativeAmount: boolean;
 
     /** The row's parent report, used for split eligibility */
     parentReport: OnyxEntry<Report> | undefined;
+
+    /** Approval workflow rules, used for split eligibility */
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -60,12 +145,12 @@ function mapTransactionItemToSelectedEntry({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     allowNegativeAmount,
     parentReport,
+    rules,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
-    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
-    const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID) : false;
+    const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID, rules);
+    const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID, item.policy) : false;
     const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
     const isUnreported = isExpenseUnreported(item);
     const reportForSplit = item.report ?? (isUnreported ? selfDMReport : undefined);
@@ -79,7 +164,7 @@ function mapTransactionItemToSelectedEntry({
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
-            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, item.policy, parentReport, isProduction),
+            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, rules, item.policy, parentReport),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -89,6 +174,7 @@ function mapTransactionItemToSelectedEntry({
                 report: item.report,
                 policy: item.policy,
                 reportNameValuePairs,
+                rules,
             }),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -97,6 +183,7 @@ function mapTransactionItemToSelectedEntry({
             reportID: item.reportID,
             policyID: item.policyID,
             amount: allowNegativeAmount ? amount : Math.abs(amount),
+            displayAmount: item.formattedTotal,
             groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
@@ -126,6 +213,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
                 reportID: item.reportID,
                 policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
                 amount: item.totalDisplaySpend ?? item.total ?? 0,
+                displayAmount: item.totalDisplaySpend ?? 0,
                 currency,
                 ...(currency ? {groupCurrency: currency} : {}),
             },
@@ -150,6 +238,7 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
             reportID: item.reportID,
             policyID: item.policyID ?? CONST.POLICY.ID_FAKE,
             amount: item.total ?? 0,
+            displayAmount: item.total ?? 0,
             currency,
             ...(currency ? {groupCurrency: currency} : {}),
         },
@@ -172,7 +261,6 @@ type PrepareTransactionsListParams = {
     /** Email of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** Report name-value pairs collection, used for the change-report eligibility archived check */
@@ -184,11 +272,11 @@ type PrepareTransactionsListParams = {
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
     selfDMReport: OnyxEntry<Report>;
 
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
     /** The row's parent report, used for split eligibility */
     parentReport: OnyxEntry<Report> | undefined;
+
+    /** Approval workflow rules, used for split eligibility */
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -205,8 +293,8 @@ function prepareTransactionsList({
     reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
-    isProduction,
     parentReport,
+    rules,
 }: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -223,9 +311,9 @@ function prepareTransactionsList({
         reportNameValuePairs,
         outstandingReportsByPolicyID,
         selfDMReport,
-        isProduction,
         allowNegativeAmount: false,
         parentReport,
+        rules,
     });
 
     return {
@@ -382,4 +470,14 @@ function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTra
     return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, getGroupCheckboxState, isRowChecked};
+export {
+    mapTransactionItemToSelectedEntry,
+    mapEmptyReportToSelectedEntry,
+    prepareTransactionsList,
+    deriveSelectedReports,
+    getGroupCheckboxState,
+    isRowChecked,
+    getSearchGroupCount,
+    getSearchGroupCountByKey,
+    stampGroupCoverageFlags,
+};

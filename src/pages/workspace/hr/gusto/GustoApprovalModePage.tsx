@@ -1,7 +1,7 @@
 import useLocalize from '@hooks/useLocalize';
 
 import {updateGustoApprovalMode} from '@libs/actions/connections/Gusto';
-import {isGustoConnected} from '@libs/HRUtils';
+import {isGustoConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -30,7 +30,7 @@ function GustoApprovalModePage({
         approvalModes: CONST.GUSTO.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.gusto?.config?.approvalMode ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
-        getHeaderTitle: () => translate('workspace.hr.approvalMode'),
+        getHeaderTitle: () => translate('workspace.merge.approvalMode'),
         handleSave: ({draftApprovalMode, currentApprovalMode}) => updateGustoApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 

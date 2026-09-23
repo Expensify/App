@@ -1,8 +1,8 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -87,7 +87,7 @@ function CopyPolicySettingsConfirmPage() {
         // Editing the workspace selection from this screen can introduce a Collect (Team) target that
         // requires an upgrade for the already-selected Control-only settings, bypassing the Upgrade step.
         // Re-gate at submit time and route to the Upgrade step instead of copying when one is still required.
-        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)) {
+        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
@@ -133,19 +133,17 @@ function CopyPolicySettingsConfirmPage() {
                         </View>
                     </View>
                     <View style={[styles.mt4]}>
-                        <MenuItemWithTopDescription
-                            title={translatedParts}
-                            description={translate('common.settings')}
+                        <MenuItemField
+                            name={translate('common.settings')}
+                            value={translatedParts}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectFeatures}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
-                        <MenuItemWithTopDescription
-                            title={targetPolicies.map((policy) => policy?.name).join(', ')}
-                            description={translate('common.workspaces')}
+                        <MenuItemField
+                            name={translate('common.workspaces')}
+                            value={targetPolicies.map((policy) => policy?.name).join(', ')}
+                            numberOfLinesValue={0}
                             onPress={navigateToSelectWorkspaces}
-                            shouldShowRightIcon
-                            numberOfLinesTitle={0}
                         />
                     </View>
                 </ScrollView>

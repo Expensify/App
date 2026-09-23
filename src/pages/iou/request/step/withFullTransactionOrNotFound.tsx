@@ -28,7 +28,6 @@ type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
     transaction: OnyxEntry<Transaction>;
 
-    /** Indicates whether the transaction data is loading */
     isLoadingTransaction?: boolean;
 };
 
@@ -36,7 +35,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.CREATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE
     | typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT
-    | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT
@@ -48,7 +47,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
-    | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO

@@ -73,6 +73,11 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.success,
         status: CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO,
     },
+    hasHomeAddressInfo: {
+        name: 'has missing home address info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_HOME_ADDRESS_INFO,
+    },
     hasEmployeeCardFeedErrors: accountCardFeedTestCases.employee,
     hasPolicyAdminCardFeedErrors: accountCardFeedTestCases.admin,
     hasLockedBankAccount: {
@@ -156,6 +161,14 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                     : undefined,
         },
         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
+            addresses:
+                status === CONST.INDICATOR_STATUS.HAS_HOME_ADDRESS_INFO
+                    ? []
+                    : [
+                          {
+                              street: '123 Test St',
+                          },
+                      ],
             errorFields:
                 status === CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR
                     ? {
@@ -172,6 +185,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             owner: name === accountCardFeedTestCases.admin.name ? 'johndoe12@expensify.com' : 'otheruser@expensify.com',
             role: name === accountCardFeedTestCases.admin.name ? 'admin' : 'user',
             policyAccountID: cardFeed.policyAccountID,
+            commuterExclusions: status === CONST.INDICATOR_STATUS.HAS_HOME_ADDRESS_INFO ? {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE} : undefined,
         },
         [ONYXKEYS.CARD_LIST]: {
             card123: {

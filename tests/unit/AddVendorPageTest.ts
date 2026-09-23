@@ -1,4 +1,4 @@
-import {findVendorByID, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 
 import {getSelectedVendorItem, getVendorSelectionItems} from '@pages/workspace/rules/MerchantRules/AddVendorPage';
 
@@ -20,6 +20,18 @@ const buildQBOPolicy = (vendors: Array<{id: string; name: string; currency: stri
             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                 config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
                 data: vendors === undefined ? {} : {vendors},
+            },
+        }),
+    });
+
+/** Sage Intacct policy whose Credit Card Charge export scopes vendor matching to Intacct. */
+const buildIntacctPolicy = (vendors: Array<{id: string; name: string; value: string}>): Policy =>
+    createMock<Policy>({
+        ...createRandomPolicy(0),
+        connections: createMock<Connections>({
+            [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                data: {vendors},
             },
         }),
     });
@@ -53,55 +65,80 @@ const buildQBOWithStaleXeroPolicy = (qboVendors: Array<{id: string; name: string
     });
 
 describe('AddVendorPage', () => {
+    const vendorUnavailable = 'Vendor unavailable';
+    const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
     describe('getVendorSelectionItems', () => {
         it('maps each matching vendor to a {name, value} picker item (value is the external vendor ID)', () => {
             const policy = buildQBOPolicy([
                 {id: 'v-1', name: 'Acme Co', currency: 'USD'},
                 {id: 'v-2', name: 'Globex', currency: 'USD'},
             ]);
-            expect(getVendorSelectionItems(policy)).toEqual([
+            expect(getVendorSelectionItems(policy, localeCompare)).toEqual([
                 {name: 'Acme Co', value: 'v-1'},
                 {name: 'Globex', value: 'v-2'},
             ]);
         });
 
+        it('sorts vendors alphabetically by name', () => {
+            const policy = buildQBOPolicy([
+                {id: 'v-2', name: 'Zebra', currency: 'USD'},
+                {id: 'v-1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v-3', name: 'Banana', currency: 'USD'},
+            ]);
+            expect(getVendorSelectionItems(policy, localeCompare)).toEqual([
+                {name: 'Acme Co', value: 'v-1'},
+                {name: 'Banana', value: 'v-3'},
+                {name: 'Zebra', value: 'v-2'},
+            ]);
+        });
+
         it('returns an empty list when the vendor list is loaded but empty', () => {
-            expect(getVendorSelectionItems(buildQBOPolicy([]))).toEqual([]);
+            expect(getVendorSelectionItems(buildQBOPolicy([]), localeCompare)).toEqual([]);
         });
 
         it('returns an empty list when the vendor list has not synced yet', () => {
-            expect(getVendorSelectionItems(buildQBOPolicy(undefined))).toEqual([]);
+            expect(getVendorSelectionItems(buildQBOPolicy(undefined), localeCompare)).toEqual([]);
         });
 
         it('sources supplier contacts on a Xero workspace', () => {
             const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-            expect(getVendorSelectionItems(policy)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
+            expect(getVendorSelectionItems(policy, localeCompare)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
         });
     });
 
     describe('getSelectedVendorItem', () => {
         it('resolves the stored vendorID to its current name', () => {
             const policy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
-            expect(getSelectedVendorItem(policy, 'v-1')).toEqual({name: 'Acme Co', value: 'v-1'});
+            expect(getSelectedVendorItem(policy, 'v-1', vendorUnavailable)).toEqual({name: 'Acme Co', value: 'v-1'});
         });
 
-        it('falls back to the raw external ID as the label when the vendor cannot be resolved', () => {
+        it('uses the unavailable label when a loaded active list does not contain the vendor', () => {
             const policy = buildQBOPolicy([]);
-            expect(getSelectedVendorItem(policy, 'v-missing')).toEqual({name: 'v-missing', value: 'v-missing'});
+            expect(getSelectedVendorItem(policy, 'v-missing', vendorUnavailable)).toEqual({name: vendorUnavailable, value: 'v-missing'});
+        });
+
+        it('preserves the raw ID while the active vendor list is hydrating', () => {
+            const policy = buildQBOPolicy(undefined);
+            expect(getSelectedVendorItem(policy, 'v-pending', vendorUnavailable)).toEqual({name: 'v-pending', value: 'v-pending'});
+        });
+
+        it('uses the unavailable label after the vendor-matching source is disconnected', () => {
+            expect(getSelectedVendorItem(createRandomPolicy(0), 'v-disconnected', vendorUnavailable)).toEqual({name: vendorUnavailable, value: 'v-disconnected'});
         });
 
         it('returns undefined when no vendorID is set', () => {
             const policy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
-            expect(getSelectedVendorItem(policy, undefined)).toBeUndefined();
-            expect(getSelectedVendorItem(policy, '')).toBeUndefined();
+            expect(getSelectedVendorItem(policy, undefined, vendorUnavailable)).toBeUndefined();
+            expect(getSelectedVendorItem(policy, '', vendorUnavailable)).toBeUndefined();
         });
 
-        it('falls back to the raw ID (not the stale name) when the vendorID only resolves against an inactive connection', () => {
+        it('uses the unavailable label (not the stale name) when the vendorID only resolves against an inactive connection', () => {
             // QBO is active; the stored ID matches only the lingering Xero connection, which the active picker can't offer.
             const policy = buildQBOWithStaleXeroPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}], {
                 xeroVendor: {id: 'xeroVendor', name: 'Stale Xero Vendor', email: 'stale@example.com'},
             });
-            expect(getSelectedVendorItem(policy, 'xeroVendor')).toEqual({name: 'xeroVendor', value: 'xeroVendor'});
+            expect(getSelectedVendorItem(policy, 'xeroVendor', vendorUnavailable)).toEqual({name: vendorUnavailable, value: 'xeroVendor'});
         });
     });
 
@@ -113,10 +150,15 @@ describe('AddVendorPage', () => {
      */
     describe('vendor rule row derivation (MerchantRulePageBase)', () => {
         const qboPolicy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
+        const intacctPolicy = buildIntacctPolicy([{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]);
         const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
 
         it('shows the row on QBO with the beta off because QBO vendor matching is generally available', () => {
             expect(hasVendorFeature(qboPolicy, false)).toBe(true);
+        });
+
+        it('shows the row on Sage Intacct with the beta off because Intacct vendor matching is generally available', () => {
+            expect(hasVendorFeature(intacctPolicy, false)).toBe(true);
         });
 
         it('hides the row on Xero when the beta is off because Xero vendor matching is not generally available yet', () => {
@@ -136,9 +178,9 @@ describe('AddVendorPage', () => {
             expect(isXeroActiveMatchingSource(xeroPolicy)).toBe(true);
         });
 
-        it('titles the row with the resolved vendor name, or nothing when unset', () => {
-            expect(findVendorByID(qboPolicy, 'v-1')?.name).toBe('Acme Co');
-            expect(findVendorByID(qboPolicy, undefined)).toBeUndefined();
+        it('uses the shared vendor display resolver for the row title', () => {
+            expect(getVendorRuleDisplayValue(qboPolicy, 'v-1', vendorUnavailable)).toBe('Acme Co');
+            expect(getVendorRuleDisplayValue(createRandomPolicy(0), 'v-disconnected', vendorUnavailable)).toBe(vendorUnavailable);
         });
     });
 });

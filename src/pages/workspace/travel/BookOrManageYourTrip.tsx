@@ -11,6 +11,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
@@ -24,11 +25,11 @@ import React from 'react';
 
 import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
 
-type GetStartedTravelProps = {
+type BookOrManageYourTripProps = {
     policyID: string;
 };
 
-function GetStartedTravel({policyID}: GetStartedTravelProps) {
+function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -45,6 +46,13 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
 
     const toggleAutoAddTripName = (enabled: boolean) => {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
+    };
+
+    const isCodingSyncBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_CODING_SYNC);
+    const isCodingSyncEnabled = policy?.travelSettings?.isCodingSyncEnabled ?? false;
+
+    const toggleCodingSync = (enabled: boolean) => {
+        setPolicyTravelSettings(policy, {isCodingSyncEnabled: enabled});
     };
 
     const handleManageTravel = () => {
@@ -98,13 +106,32 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     disabled={!canWriteMoreFeatures}
                     disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteMoreFeatures}
-                    pendingAction={policy?.pendingFields?.travelSettings}
+                    pendingAction={policy?.pendingFields?.autoAddTripName}
+                    errors={policy?.errorFields?.autoAddTripName ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'autoAddTripName')}
                     wrapperStyle={styles.mt3}
                 />
+                {isCodingSyncBetaEnabled && (
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                        subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
+                        shouldPlaceSubtitleBelowSwitch
+                        switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                        isActive={isCodingSyncEnabled}
+                        onToggle={toggleCodingSync}
+                        disabled={!canWriteMoreFeatures}
+                        disabledAction={withReadOnlyFallback()}
+                        showLockIcon={!canWriteMoreFeatures}
+                        pendingAction={policy?.pendingFields?.isCodingSyncEnabled}
+                        errors={policy?.errorFields?.isCodingSyncEnabled ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
+                        wrapperStyle={styles.mt3}
+                    />
+                )}
             </Section>
             <WorkspaceTravelBillingSection policyID={policyID} />
         </>
     );
 }
 
-export default GetStartedTravel;
+export default BookOrManageYourTrip;

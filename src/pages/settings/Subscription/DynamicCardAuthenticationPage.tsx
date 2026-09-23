@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -31,12 +32,13 @@ function DynamicCardAuthenticationPage({route}: DynamicCardAuthenticationPagePro
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.CARD_AUTHENTICATION.path);
     const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
     const policyID = route.params?.policyID;
+    const policy = usePolicy(policyID);
 
     // Runs on every challenge outcome (the iframe message carries no success/failure flag); the verify call is what
     // fetches the real result — success closes the add-card form via setupComplete, failure surfaces its error there.
     const verifyAuthenticationResult = () => {
         if (policyID) {
-            verifySetupIntentAndRequestPolicyOwnerChange(policyID, currentUserAccountID, currentUserEmail);
+            verifySetupIntentAndRequestPolicyOwnerChange(policy, currentUserAccountID, currentUserEmail);
             return;
         }
         verifySetupIntent(currentUserAccountID, true);

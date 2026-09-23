@@ -99,7 +99,7 @@ function CardSection() {
             confirmText: translate('subscription.cardSection.requestRefundModal.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
     };
@@ -120,7 +120,7 @@ function CardSection() {
             ],
         });
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
@@ -238,16 +238,20 @@ function CardSection() {
             subtitleMuted
             banner={BillingBanner}
         >
-            <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
-                {!isEmptyObject(defaultCard?.accountData) && (
+            {!isEmptyObject(defaultCard?.accountData) && (
+                <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                     <PaymentCardDetails
                         card={defaultCard}
                         rightComponent={<CardSectionActions />}
                     />
-                )}
-            </View>
+                </View>
+            )}
 
-            <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
+            {isEmptyObject(defaultCard?.accountData) && (
+                <View style={styles.mb3}>
+                    <CardSectionDataEmpty />
+                </View>
+            )}
             {billingStatus?.isRetryAvailable !== undefined && (
                 <CardSectionButton
                     isDisabled={isOffline || !billingStatus?.isRetryAvailable}

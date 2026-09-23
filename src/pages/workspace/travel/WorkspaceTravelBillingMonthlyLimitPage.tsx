@@ -72,7 +72,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
             prompt: translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.reduceLimitWarning'),
             confirmText: translate('common.confirm'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -100,6 +100,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
+                shouldShowLoadingImmediatelyOnPress={false}
             >
                 <View style={styles.mb4}>
                     <InputWrapper

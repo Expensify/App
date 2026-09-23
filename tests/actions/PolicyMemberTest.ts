@@ -227,6 +227,50 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Member.requestWorkspaceOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
+        });
+
+        it('Keep the existing payer when the workspace has a bank account', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: createMock<PolicyType['achAccount']>({bankAccountID: 1234, reimburser: 'owner@gmail.com'}),
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Member.requestWorkspaceOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe('owner@gmail.com');
+        });
     });
     describe('addBillingCardAndRequestPolicyOwnerChange', () => {
         it('Add billing card and change the workspace`s owner', async () => {
@@ -246,7 +290,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -290,7 +334,7 @@ describe('actions/PolicyMember', () => {
             };
 
             mockFetch?.pause?.();
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, 1, 'fake@gmail.com', fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, 1, 'fake@gmail.com', fakeCard);
             await waitForBatchedUpdates();
 
             const optimisticFormState = await getOnyxValue(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
@@ -318,7 +362,7 @@ describe('actions/PolicyMember', () => {
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -334,6 +378,37 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '123456',
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
+        });
     });
 
     describe('verifySetupIntentAndRequestPolicyOwnerChange', () => {
@@ -344,7 +419,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -368,7 +443,7 @@ describe('actions/PolicyMember', () => {
             const fakeAccountID = 42;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -384,6 +459,28 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
+        });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
         });
     });
 
@@ -1061,11 +1158,13 @@ describe('actions/PolicyMember', () => {
         });
 
         // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
-        it('should remove "detached" members', async () => {
+        it('should not remove unrelated members that only lack personal details', async () => {
             const policyID = '23456';
             const ownerEmail = 'owner@gmail.com';
             const userEmail = 'user@gmail.com';
-            const detachedUserEmail = 'detacheduser@gmail.com';
+            // Two members whose personal details aren't loaded, unrelated to the member being removed.
+            const missingDetailsEmail1 = 'missing1@gmail.com';
+            const missingDetailsEmail2 = 'missing2@gmail.com';
             const ownerAccountID = 1;
             const userAccountID = 4321;
 
@@ -1079,7 +1178,8 @@ describe('actions/PolicyMember', () => {
                 employeeList: {
                     [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
-                    [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail1]: {role: CONST.POLICY.ROLE.USER},
+                    [missingDetailsEmail2]: {role: CONST.POLICY.ROLE.USER},
                 },
             };
 
@@ -1099,8 +1199,56 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Only the selected member is removed; the other missing-details members stay.
             expect(employeeList?.[userEmail]).toBeUndefined();
-            expect(employeeList?.[detachedUserEmail]).toBeUndefined();
+            expect(employeeList?.[missingDetailsEmail1]).toBeDefined();
+            expect(employeeList?.[missingDetailsEmail2]).toBeDefined();
+            expect(employeeList?.[ownerEmail]).toBeDefined();
+        });
+
+        it('should also remove the paired login of a member invited by a secondary login', async () => {
+            const policyID = '23456';
+            const ownerEmail = 'owner@gmail.com';
+            const primaryEmail = 'primary@gmail.com';
+            const secondaryEmail = 'secondary@gmail.com';
+            const ownerAccountID = 1;
+            const primaryAccountID = 4321;
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ownerAccountID]: {login: ownerEmail},
+                [primaryAccountID]: {login: primaryEmail},
+            });
+
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                // primaryLoginsInvited maps the secondary login used at invite time to the primary login the backend returns.
+                primaryLoginsInvited: {[secondaryEmail]: primaryEmail},
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [primaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [secondaryEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Remove the primary (rendered) login; the paired secondary entry should be cleared as well.
+            Member.removeMembers(policy, [primaryEmail], {[primaryEmail]: primaryAccountID});
+
+            await waitForBatchedUpdates();
+
+            const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyResult) => {
+                        Onyx.disconnect(connection);
+                        resolve(policyResult?.employeeList);
+                    },
+                });
+            });
+
+            expect(employeeList?.[primaryEmail]).toBeUndefined();
+            expect(employeeList?.[secondaryEmail]).toBeUndefined();
             expect(employeeList?.[ownerEmail]).toBeDefined();
         });
     });

@@ -1,6 +1,7 @@
 import {emailRegex, keysToMask, maskOnyxState, ONYX_KEY_EXPORT_RULES, onyxKeysToMaskFragileData, onyxKeysToRemove, safeOnyxKeys} from '@libs/ExportOnyxState/common';
 import {isRecord} from '@libs/ObjectUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 describe('maskOnyxState', () => {
@@ -171,6 +172,53 @@ describe('maskOnyxState', () => {
             expect(report.customField).not.toBe('should-be-redacted');
         });
 
+        it('should preserve the nextStep enum values while masking the actor email', () => {
+            // Given a report with a nextStep whose messageKey, icon and etaKey are enum values the app translates and branches on
+            const mockReport = {
+                reportID: '123',
+                nextStep: {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: 12345,
+                    actorEmail: 'user@example.com',
+                    requiredDepositCurrency: CONST.CURRENCY.USD,
+                    eta: {
+                        etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK,
+                        dateTime: '2024-01-05T23:59:59Z',
+                    },
+                },
+            };
+
+            // When the state is masked for export
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}123`;
+            const result = maskOnyxState({[reportKey]: mockReport});
+            const report = result[reportKey];
+
+            if (!isRecord(report) || !isRecord(report.nextStep) || !isRecord(report.nextStep.eta)) {
+                throw new Error('Expected a report record with a nextStep in masked Onyx state');
+            }
+
+            // Then the enum values, the actor account ID, the deposit currency and the ETA date survive intact, so the imported state still renders
+            expect(report.nextStep).toMatchObject({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 12345,
+                requiredDepositCurrency: CONST.CURRENCY.USD,
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK,
+                    dateTime: '2024-01-05T23:59:59Z',
+                },
+            });
+
+            // Then the actor email is still masked, because it is personal data
+            expect(typeof report.nextStep.actorEmail).toBe('string');
+            if (typeof report.nextStep.actorEmail !== 'string') {
+                throw new Error('Expected a masked actor email');
+            }
+            expect(report.nextStep.actorEmail).toHaveLength('user@example.com'.length);
+            expect(report.nextStep.actorEmail).not.toBe('user@example.com');
+        });
+
         it('should remove sensitive and transient keys from export', () => {
             const input = {
                 session: mockSession,
@@ -209,6 +257,30 @@ describe('maskOnyxState', () => {
                 field2: 'value2',
             });
         });
+    });
+
+    it('should mask policy vendor names while preserving the matching fields', () => {
+        const vendorKey = `${ONYXKEYS.COLLECTION.POLICY_VENDORS}123`;
+        const externalID = 'vendor-1';
+        const input = {
+            [vendorKey]: {
+                [externalID]: {
+                    externalID,
+                    name: 'Acme Supplies',
+                    enabled: true,
+                    origin: 'quickbooksOnline',
+                },
+            },
+        };
+
+        const result = maskOnyxState(input);
+        const vendors = result[vendorKey];
+        if (!isRecord(vendors) || !isRecord(vendors[externalID])) {
+            throw new Error('Expected policy vendors record');
+        }
+
+        expect(vendors[externalID]).toMatchObject({externalID, enabled: true, origin: 'quickbooksOnline'});
+        expect(vendors[externalID].name).not.toBe('Acme Supplies');
     });
 
     describe('full pass-through safe collection keys', () => {
@@ -475,6 +547,20 @@ describe('Onyx key export coverage', () => {
         }
     });
 
+    it('removes the Cloudflare QA session from the export entirely', () => {
+        // The classification lists only prove the key is bucketed. This pins the actual behavior:
+        // both OAuth tokens must vanish from the exported state, not just get masked.
+        const input = {
+            [ONYXKEYS.CLOUDFLARE_SESSION]: {accessToken: 'oauth:access-token', refreshToken: 'oauth:refresh-token', expiresAt: 1753600000000},
+            [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: true,
+        };
+
+        const result = maskOnyxState(input, true);
+
+        expect(result[ONYXKEYS.CLOUDFLARE_SESSION]).toBeUndefined();
+        expect(Object.keys(result)).not.toContain(ONYXKEYS.CLOUDFLARE_SESSION);
+    });
+
     it('known-sensitive keys must never be classified as safe', () => {
         // Anything in safeOnyxKeys is exported with no masking at all. Every key below carries
         // credentials, tokens, banking data or personal details, so none of them may ever end up
@@ -504,6 +590,7 @@ describe('Onyx key export coverage', () => {
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             ONYXKEYS.ONFIDO_TOKEN,
             ONYXKEYS.ONFIDO_APPLICANT_ID,
+            ONYXKEYS.CLOUDFLARE_SESSION,
             ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS,
             ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
             ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING,

@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import TextWithTooltip from '@components/TextWithTooltip';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,9 +8,19 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type {ListItem, TravelDomainListItemProps} from './types';
+import type {ListItem, SelectableListItemProps} from './types';
 
 import SelectableListItem from './SelectableListItem';
+
+type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps<
+    TItem & {
+        /** Value of the domain */
+        value?: string;
+
+        /** Should display tag 'Recommended' */
+        isRecommended?: boolean;
+    }
+>;
 
 /**
  * A text row with a left-side checkbox and an optional "Recommended" badge. Used in the
@@ -32,6 +42,8 @@ function TravelDomainListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const showRecommendedTag = item.isRecommended ?? false;
+    // The bold heading style is the primitive's default; non-bold items reset the weight and color.
+    const titleStyle = [styles.flex1, item.isBold === false && [styles.fontWeightNormal, styles.textSupporting]];
 
     return (
         <SelectableListItem
@@ -44,17 +56,17 @@ function TravelDomainListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onSelectionButtonPress={onSelectionButtonPress}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            rightHandSideComponent={showRecommendedTag ? <Badge text={translate('travel.domainSelector.recommended')} /> : undefined}
             selectionButtonPosition={selectionButtonPosition}
         >
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
-                text={item.text ?? ''}
-                style={[styles.flex1, styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre]}
-            />
+            <>
+                <ListItemComposed.Title
+                    text={item.text ?? ''}
+                    style={titleStyle}
+                />
+                {showRecommendedTag && <Badge text={translate('travel.domainSelector.recommended')} />}
+            </>
         </SelectableListItem>
     );
 }

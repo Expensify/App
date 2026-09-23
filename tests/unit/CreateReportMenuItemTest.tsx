@@ -37,7 +37,7 @@ const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: jest.fn(() => false)}),
+    default: () => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)}),
 }));
 
 jest.mock('@hooks/useResponsiveLayout', () => ({
@@ -68,7 +68,6 @@ jest.mock('@libs/PolicyUtils', () => {
     const CONSTANTS = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
 
     return {
-        getDefaultChatEnabledPolicy: jest.fn((policies: Policy[]) => policies.at(0)),
         getGroupPoliciesWhereReportCanBeCreated: jest.fn((policies: Record<string, Policy> | undefined) =>
             Object.values(policies ?? {}).filter(
                 (policy): policy is Policy =>
@@ -87,7 +86,7 @@ jest.mock('@navigation/helpers/isOnSearchMoneyRequestReportPage', () => ({
 
 jest.mock('@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem', () => jest.fn(() => null));
 
-function makePolicy(id: string, type: Policy['type'], isPolicyExpenseChatEnabled: boolean): Policy {
+function makePolicy(id: string, type: Policy['type']): Policy {
     return {
         id,
         name: `${id} workspace`,
@@ -97,26 +96,25 @@ function makePolicy(id: string, type: Policy['type'], isPolicyExpenseChatEnabled
         owner: 'user@test.com',
         ownerAccountID: 1,
         employeeList: {},
-        isPolicyExpenseChatEnabled,
         isJoinRequestPending: false,
     } as Policy;
 }
 
-function setupUseOnyx() {
-    const personalPolicy = makePolicy('personal-1', CONST.POLICY.TYPE.PERSONAL, true);
-    const groupPolicy = makePolicy('team-1', CONST.POLICY.TYPE.TEAM, true);
-    const submitPolicy = makePolicy('submit-1', CONST.POLICY.TYPE.SUBMIT, true);
+function setupUseOnyx(activePolicyID = 'personal-1') {
+    const personalPolicy = makePolicy('personal-1', CONST.POLICY.TYPE.PERSONAL);
+    const groupPolicy = makePolicy('team-1', CONST.POLICY.TYPE.TEAM);
+    const submitPolicy = makePolicy('submit-1', CONST.POLICY.TYPE.SUBMIT);
+    const corporatePolicy = makePolicy('corporate-1', CONST.POLICY.TYPE.CORPORATE);
+    const policies = {
+        [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${groupPolicy.id}`]: groupPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy,
+        [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
+    };
     const values = new Map<string, unknown>([
-        [ONYXKEYS.NVP_ACTIVE_POLICY_ID, personalPolicy.id],
-        [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy],
-        [
-            ONYXKEYS.COLLECTION.POLICY,
-            {
-                [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${groupPolicy.id}`]: groupPolicy,
-                [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy,
-            },
-        ],
+        [ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicyID],
+        [`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, policies[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]],
+        [ONYXKEYS.COLLECTION.POLICY, policies],
         [ONYXKEYS.SESSION, {accountID: 1, email: 'user@test.com'}],
         [ONYXKEYS.BETAS, []],
         [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {}],
@@ -135,14 +133,19 @@ describe('CreateReportMenuItem', () => {
         setupUseOnyx();
     });
 
-    it('passes only report-creation workspaces to useCreateReport', () => {
+    it.each([
+        ['the personal workspace is active', 'personal-1'],
+        ['a workspace beyond the first two eligible ones is active', 'corporate-1'],
+    ])('passes every report-creation workspace to useCreateReport when %s', (_description, activePolicyID) => {
+        setupUseOnyx(activePolicyID);
+
         render(<CreateReportMenuItem />);
 
         const params = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        expect(params?.groupPoliciesWithChatEnabled).toHaveLength(2);
         expect(params?.groupPoliciesWithChatEnabled).toEqual([
             expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM}),
             expect.objectContaining({id: 'submit-1', type: CONST.POLICY.TYPE.SUBMIT}),
+            expect.objectContaining({id: 'corporate-1', type: CONST.POLICY.TYPE.CORPORATE}),
         ]);
     });
 });

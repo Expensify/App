@@ -54,14 +54,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
@@ -510,6 +502,8 @@ describe('actions/IOU', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            rules: undefined,
+            isVendorMatchingBetaEnabled: false,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -746,6 +740,7 @@ describe('actions/IOU', () => {
 
         function buildBaseParams(overrides: Record<string, unknown> = {}) {
             return {
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 allTransactionsList: {},
@@ -777,6 +772,7 @@ describe('actions/IOU', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
                 ...overrides,
             };
         }

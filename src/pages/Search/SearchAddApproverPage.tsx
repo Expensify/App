@@ -39,6 +39,7 @@ function SearchAddApproverPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const {isLoading, startWithLoading} = usePressLoading();
@@ -56,8 +57,10 @@ function SearchAddApproverPage() {
         const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
         const firstWorkspaceEmployees = employeeLists.at(0);
         const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, undefined, true, false);
         // We get the intersection here as we only want to show members who belong to all workspaces when adding an additional approver
+        // Resolve the translation once, not per member.
+        const hiddenText = translate('common.hidden');
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
                 const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
@@ -106,7 +109,7 @@ function SearchAddApproverPage() {
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails, translate});
+                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails, hiddenTranslation: hiddenText});
                 return {
                     text: displayName,
                     alternateText: email,
@@ -145,6 +148,7 @@ function SearchAddApproverPage() {
                     accountID: currentUserDetails.accountID,
                     email: currentUserDetails.email ?? '',
                     policy,
+                    rules,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     isTrackIntentUser,
@@ -166,7 +170,7 @@ function SearchAddApproverPage() {
             shouldShowLoadingImmediatelyOnPress={false}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
-            shouldBlendOpacity
+            blendButtonOpacity
         />
     );
 

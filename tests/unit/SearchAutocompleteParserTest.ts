@@ -1,5 +1,6 @@
 import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
 
+import {parseForAutocomplete} from '@libs/SearchAutocompleteUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
@@ -794,5 +795,37 @@ describe('autocomplete parser - limit filter', () => {
         const result: unknown = parse(query);
 
         expect(result).toEqual(expected);
+    });
+});
+
+describe('autocomplete parser - escaped values', () => {
+    test.each([
+        ['workspace:"Acme \\"US\\",Inc"', 'policyID', 'Acme "US",Inc'],
+        ['in:"Acme \\"US\\",Inc"', 'in', 'Acme "US",Inc'],
+        ['from:"Bob \\"The Builder\\" Smith"', 'from', 'Bob "The Builder" Smith'],
+        ['workspace:Globex\\,Ltd', 'policyID', 'Globex,Ltd'],
+    ])('reads %s back as a single value', (query, key, value) => {
+        const ranges = parseForAutocomplete(query)?.ranges ?? [];
+
+        expect(ranges.filter((range) => range.key === key).map((range) => range.value)).toEqual([value]);
+    });
+
+    test.each([
+        ['workspace:"Acme, Inc."', 'policyID', 'Acme, Inc.'],
+        ['workspace:"Globex,Ltd"', 'policyID', 'Globex,Ltd'],
+        ['workspace:A\\B', 'policyID', 'A\\B'],
+        ['merchant:"C:\\Users"', 'merchant', 'C:\\Users'],
+    ])('leaves an already persisted value %s unchanged', (query, key, value) => {
+        const ranges = parseForAutocomplete(query)?.ranges ?? [];
+
+        expect(ranges.filter((range) => range.key === key).map((range) => range.value)).toEqual([value]);
+    });
+
+    it('reports a range that spans the escaped source text, so substitutions splice cleanly', () => {
+        const query = 'workspace:"Acme \\"US\\",Inc"';
+        const ranges = parseForAutocomplete(query)?.ranges ?? [];
+        const range = ranges.find((candidate) => candidate.key === 'policyID');
+
+        expect(query.slice(range?.start, (range?.start ?? 0) + (range?.length ?? 0))).toBe('"Acme \\"US\\",Inc"');
     });
 });
