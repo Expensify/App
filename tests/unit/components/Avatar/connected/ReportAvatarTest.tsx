@@ -169,6 +169,7 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
 
         const singleAvatarContainerStyle = [{marginRight: 12}];
+        const subscriptAvatarContainerStyle = [{marginRight: 0}];
 
         render(
             <ReportAvatar
@@ -176,7 +177,7 @@ describe('ReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.SMALL}
                 singleAvatarContainerStyle={singleAvatarContainerStyle}
                 backdropColor="#ff0000"
-                noRightMarginOnSubscriptContainer
+                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
                 fallbackDisplayName={FALLBACK_NAME}
             />,
         );
@@ -187,8 +188,7 @@ describe('ReportAvatar (connected)', () => {
             size: CONST.AVATAR_SIZE.SMALL,
             backdropColor: '#ff0000',
             containerStyle: singleAvatarContainerStyle,
-            // The dispatcher translates `noRightMarginOnSubscriptContainer` into this container style
-            subscriptContainerStyle: {marginRight: 0},
+            subscriptContainerStyle: subscriptAvatarContainerStyle,
             fallbackDisplayName: FALLBACK_NAME,
         });
     });

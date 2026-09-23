@@ -95,7 +95,7 @@ function ReportAvatar({
                     size={size}
                     backdropColor={backdropColor}
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
-                    subscriptContainerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : undefined}
+                    subscriptContainerStyle={subscriptAvatarContainerStyle}
                     horizontalStacking={horizontalStacking}
                     sort={sort}
                     fallbackDisplayName={fallbackDisplayName}
