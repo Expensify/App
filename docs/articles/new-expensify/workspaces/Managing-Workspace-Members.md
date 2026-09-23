@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter, remove approver, approver warning, change approver, outstanding reports, replace approver with workspace owner]
 ---
 
 
@@ -25,11 +25,10 @@ To invite someone to your workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click **Invite member**.
-3. Search for the user by name, email, or phone number, then select them from the list.
-4. Click **Next** to open **Confirm details**.
-5. (Optional) Click **Role** to change the default role (Member).
-6. (Optional) Add a **Message** to the invitation.
-7. Click **Invite**.
+3. Search for the user by name, email, or phone number.
+4. (Optional) Click **Role** to change the default role (Member).
+5. (Optional) Add a message to the invitation.
+6. Click **Invite**.
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
@@ -73,16 +72,27 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Remove from Workspace**.
+3. In the right-hand panel, click **Remove from workspace**.
 4. Confirm by clicking **Remove**.
 
 ## Remove Multiple Members
 
-1. Go to **Workspaces > Members**.
+1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Select the checkboxes next to the members you want to remove.
-3. Click the **green dropdown arrow** in the top-right.
-4. Choose **Remove Member(s)**.
+3. Click the **[number] selected** dropdown in the top-right.
+4. Choose **Remove member**.
 5. Confirm by clicking **Remove**.
+
+## What the Approver Warning Means When You Remove a Member
+
+If any member you selected is an approver, the **Remove member** confirmation names them and tells you that the workspace owner will replace them in the approval workflow. The warning appears in both removal flows above, and it covers two kinds of approver:
+
+- **Workflow approvers** — members set as an approver under **Workspaces > [Workspace Name] > Workflows**.
+- **Report approvers** — members who are the current approver on an Outstanding report awaiting their approval, including approvers assigned through **Change approver** on an individual report.
+
+Reports that are already archived don’t trigger the warning. If no selected member is an approver, you’ll see the standard confirmation asking whether you’re sure you want to remove them.
+
+Learn more about [assigning an approver to a single report](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
 
 ---
 
