@@ -67,6 +67,18 @@ describe('Scheduler.scheduleWhenIdle', () => {
         expect(cancelScheduledCallback).toHaveBeenCalledTimes(1);
     });
 
+    it('waits for real idle when the caller opts out of the fallback timer', () => {
+        const callback = jest.fn();
+
+        Scheduler.scheduleWhenIdle(callback, {shouldUseFallbackTimer: false});
+        jest.advanceTimersByTime(CONST.PRE_INSERT_FULLSCREEN_DELAY * 10);
+        expect(callback).not.toHaveBeenCalled();
+
+        mockScheduledCallback?.();
+
+        expect(callback).toHaveBeenCalledTimes(1);
+    });
+
     it('cancels both the idle task and fallback timer', () => {
         const callback = jest.fn();
 

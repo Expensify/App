@@ -39,9 +39,12 @@ type WorkspaceExpensifyCardsTableRowProps = {
 
     /** Policy used to determine which limit types can be assigned from the inline editor */
     policy: OnyxEntry<Policy>;
+
+    /** Whether the Export account column is shown, so the row must keep its cell in step with the column */
+    shouldShowExportAccountColumn: boolean;
 };
 
-export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout, policy}: WorkspaceExpensifyCardsTableRowProps) {
+export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldUseNarrowTableLayout, policy, shouldShowExportAccountColumn}: WorkspaceExpensifyCardsTableRowProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FreezeCard']);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -71,7 +74,18 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
         }
     }
 
-    const accessibilityLabel = [cardholderName, item.name, cardType, limitTypeLabel, item.lastFourPAN, statusLabel, formattedLimit, formattedRemainingLimit, frozenByText]
+    const accessibilityLabel = [
+        cardholderName,
+        item.name,
+        cardType,
+        limitTypeLabel,
+        item.lastFourPAN,
+        statusLabel,
+        item.exportAccountTitle,
+        formattedLimit,
+        formattedRemainingLimit,
+        frozenByText,
+    ]
         .filter(Boolean)
         .join(', ');
 
@@ -110,7 +124,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
             {({hovered}) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         <UserAvatar
@@ -118,7 +132,7 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                             accountID={item.cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                             size={avatarSize}
                         />
-                        <View style={[styles.flex1, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <View style={[styles.flex1, styles.mnw0, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 numberOfLines={1}
@@ -196,6 +210,19 @@ export default function WorkspaceExpensifyCardsTableRow({item, rowIndex, shouldU
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={statusLabel}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowExportAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.exportAccountTitle ?? ''}
                             />
                         </View>
                     )}

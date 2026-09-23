@@ -1,7 +1,8 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -21,6 +22,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {openLink} from '@userActions/Link';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -124,15 +126,21 @@ function ImportFromFileStep() {
                     </PressableWithoutFeedback>
                     <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
                 </View>
-                <MenuItemWithTopDescription
-                    description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
-                    title={companyCardLayoutName}
-                    shouldShowRightIcon
-                    interactive
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID))}
-                    brickRoadIndicator={shouldShowLayoutNameError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldShowLayoutNameError ? translate('workspace.companyCards.addNewCard.cardLayoutNameRequired') : undefined}
-                />
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)))}>
+                    <MenuItemField.Row
+                        name={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
+                        value={companyCardLayoutName}
+                    >
+                        {!!shouldShowLayoutNameError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!shouldShowLayoutNameError && (
+                        <MenuItem.HelpText
+                            isError
+                            message={translate('workspace.companyCards.addNewCard.cardLayoutNameRequired')}
+                        />
+                    )}
+                </MenuItem.Root>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd, styles.gap3]}>
                     <Button
                         size={CONST.BUTTON_SIZE.LARGE}

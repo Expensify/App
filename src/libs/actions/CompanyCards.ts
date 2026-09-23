@@ -345,6 +345,7 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
 
     const parameters = {
         policyID,
+        domainAccountID: domainOrWorkspaceAccountID,
         bankName,
         liabilityType,
     };

@@ -39,6 +39,7 @@ type WorkspaceCompanyCardTableRowData = TableData &
         /** Provided only when `canEditName` is supported. */
         onRenameName?: (newName: string) => void;
 
+        exportAccountTitle?: string;
         onDismissError?: () => void;
     };
 
@@ -52,6 +53,9 @@ type WorkspaceCompanyCardTableRowProps = {
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
+
+    /** Whether the Export account column is shown, so the row must keep its cell in step with the column */
+    shouldShowExportAccountColumn: boolean;
 
     shouldUseNarrowTableLayout: boolean;
     rowIndex: number;
@@ -69,6 +73,7 @@ function WorkspaceCompanyCardTableRow({
     feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
+    shouldShowExportAccountColumn,
     rowIndex,
     isAssigningCardDisabled,
     canWriteCompanyCards,
@@ -119,7 +124,7 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName].filter(Boolean).join(', ');
+    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle].filter(Boolean).join(', ');
 
     return (
         <Table.Row
@@ -134,7 +139,7 @@ function WorkspaceCompanyCardTableRow({
             {({hovered}) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                        style={[styles.flex1, styles.mnw0, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         {isAssigned ? (
@@ -150,7 +155,7 @@ function WorkspaceCompanyCardTableRow({
                             CardFeedIcon
                         )}
 
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
+                        <View style={[styles.flex1, styles.mnw0, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={memberColumnTitle}
@@ -168,7 +173,7 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.justifyContentCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <TextWithTooltip
@@ -182,7 +187,7 @@ function WorkspaceCompanyCardTableRow({
 
                     {!shouldUseNarrowTableLayout && (
                         <View
-                            style={[styles.flex1, styles.justifyContentCenter]}
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
                             <InlineTextEditCell
@@ -191,6 +196,20 @@ function WorkspaceCompanyCardTableRow({
                                 canEdit={!!item.canEditName && !item.isCardDeleted}
                                 onSave={item.onRenameName}
                                 displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowExportAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.exportAccountTitle ?? ''}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}
