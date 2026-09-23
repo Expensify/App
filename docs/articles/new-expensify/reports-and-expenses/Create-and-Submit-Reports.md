@@ -46,11 +46,10 @@ You can select several reports on the **Reports** tab and submit them in one act
 
 **On mobile:**
 
-1. In the navigation tabs on the bottom, tap **Spend**.
-2. Under **Expense reports**, tap **Reports**.
-3. Long-press a report, then tap **Select** to enter selection mode.
-4. Select two or more reports you want to submit.
-5. Tap the button that shows how many reports you selected (for example, **2 selected**), then tap **Submit**.
+1. In the navigation tabs on the bottom, tap **Spend** > **Reports**.
+2. Long-press a report, then tap **Select** to enter selection mode.
+3. Select two or more reports you want to submit.
+4. Tap the button that shows how many reports you selected (for example, **2 selected**), then tap **Submit**.
 
 **Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**.
 
@@ -69,7 +68,7 @@ When you submit several reports at once and at least one of them can’t be subm
 
 If every report you selected is skipped, nothing is submitted and the **Submit reports** window lists all of them.
 
-**Note:** If your workspace does not use an approval workflow, the window is titled **Mark reports as done**.
+**Note:** If your workspace does not use an approval workflow, the window is titled **Mark reports as done** and the message reads **These reports couldn’t be marked as done. Check that expenses aren’t held or pending, then try again.**
 
 <!-- SCREENSHOT:
 Suggestion: Show the Submit reports window listing one skipped report, with the Got it button visible.
