@@ -1,8 +1,8 @@
 ---
 title: Manage Vendor Matching for Sage Intacct
 description: Learn how Sage Intacct vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [Sage Intacct, vendor matching, vendor, company card expenses, default vendor, Credit Card Charges, credit card export]
-internalScope: Audience is Workspace Admins using the Sage Intacct connection with Credit Card Charges company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover Sage Intacct connection setup or other export types.
+keywords: [Sage Intacct, vendor matching, vendor, company card expenses, default vendor, Credit Card Charges, credit card export, Vendor column, Spend, Edit columns]
+internalScope: Audience is Workspace Admins using the Sage Intacct connection with Credit Card Charges company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, vendor export order, and the Vendor column in Spend. Does not cover Sage Intacct connection setup or other export types.
 noindex: true
 sitemap: false
 ---
@@ -51,6 +51,22 @@ When company card expenses are exported, Expensify assigns vendors in the follow
 2. The **Default vendor** configured in workspace settings.
 3. Credit Card Misc, if neither of the above is available.
 
+## How to show the Vendor column in Spend for Sage Intacct vendor matching
+
+Add the **Vendor** column to review the vendor assigned to your non-reimbursable company card expenses without opening each expense. This feature is not available on mobile.
+
+1. Go to the **Spend** tab in the navigation tabs on the left.
+2. Click **Display**, then select **Edit columns**.
+3. Select **Vendor**.
+4. Click **Save**.
+
+Learn more about [customizing the Spend column view](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify).
+
+## What happens to the Vendor column when Sage Intacct vendor matching stops
+
+Vendor matching stops when you disconnect Sage Intacct, or when you change **Export company card expenses as** to an option other than **Credit Card Charges**.
+
+If no other workspace still has vendor matching active, the **Vendor** column is then removed from the **Spend** table, from the expense table on a report, from the **Edit columns** list, and from the **Current view** CSV export. Your other saved columns stay as they are, and the **Vendor** column comes back as soon as vendor matching is active on any workspace again.
 
 # FAQ
 

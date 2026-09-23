@@ -1,8 +1,8 @@
 ---
 title: Manage Vendor Matching for QuickBooks Online
 description: Learn how QuickBooks Online vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, and default vendor behavior.
-keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, Debit Card Misc, credit card export]
-internalScope: Audience is Workspace Admins using the QuickBooks Online connection with Credit card or Debit card company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, and vendor export order. Does not cover QuickBooks Online connection setup or other export types.
+keywords: [QuickBooks Online, vendor matching, vendor, company card expenses, default vendor, Credit Card Misc, Debit Card Misc, credit card export, Vendor column, Spend, Edit columns]
+internalScope: Audience is Workspace Admins using the QuickBooks Online connection with Credit card or Debit card company card exports. Covers imported vendors, automatic and manual vendor assignment, default vendor behavior, vendor export order, and the Vendor column in Spend. Does not cover QuickBooks Online connection setup or other export types.
 ---
 
 # Manage Vendor Matching for QuickBooks Online
@@ -54,6 +54,23 @@ When company card expenses are exported, Expensify assigns vendors in the follow
 If a vendor assigned to an expense becomes inactive in QuickBooks Online, or if the QuickBooks Online connection is removed, the expense displays a violation, similar to category, tag, and tax violations.
 
 Update the expense with an active vendor to clear the violation.
+
+## How to show the Vendor column in Spend for QuickBooks Online vendor matching
+
+Add the **Vendor** column to review the vendor assigned to your non-reimbursable company card expenses without opening each expense. This feature is not available on mobile.
+
+1. Go to the **Spend** tab in the navigation tabs on the left.
+2. Click **Display**, then select **Edit columns**.
+3. Select **Vendor**.
+4. Click **Save**.
+
+Learn more about [customizing the Spend column view](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify).
+
+## What happens to the Vendor column when QuickBooks Online vendor matching stops
+
+Vendor matching stops when you disconnect QuickBooks Online, or when you change **Export company card expenses as** to an option other than **Credit card** or **Debit card**.
+
+If no other workspace still has vendor matching active, the **Vendor** column is then removed from the **Spend** table, from the expense table on a report, from the **Edit columns** list, and from the **Current view** CSV export. Your other saved columns stay as they are, and the **Vendor** column comes back as soon as vendor matching is active on any workspace again.
 
 # FAQ
 
