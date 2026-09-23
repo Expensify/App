@@ -34,12 +34,11 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // The name-related fields we saw for each account last time, so we can spot which accounts changed.
 let previousDisplayNames: Record<string, string> = {};
