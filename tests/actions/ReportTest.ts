@@ -3515,7 +3515,7 @@ describe('actions/Report', () => {
                 conciergeChat,
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
