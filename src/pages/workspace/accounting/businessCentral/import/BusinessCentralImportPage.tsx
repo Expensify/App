@@ -33,14 +33,17 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const businessCentralConfig = policy?.connections?.businessCentral?.config;
     const businessCentralData = policy?.connections?.businessCentral?.data;
+
     // Integration-Server saves the connection with this on before the first import, so a connection that has not synced yet reads the same way.
     const enableNewCategories = businessCentralConfig?.enableNewCategories ?? true;
     const syncItems = businessCentralConfig?.coding?.syncItems ?? false;
     const syncTaxRates = businessCentralConfig?.coding?.syncTaxRates ?? false;
     const hasDimensions = !!businessCentralData?.dimensions?.length;
+
     // A US company has no VAT posting setup that can become a tax rate, so it has no tax row to offer.
     const hasVATPostingSetups = !!businessCentralData?.hasVATPostingSetups;
-    const sectionTitleStyle = [styles.textLabel, styles.textStrong, styles.lh16, styles.ph5];
+    const sectionTitleStyle = [styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pt4, styles.pb2];
+    const toggleRowStyle = [styles.mnh16, styles.ph5, styles.justifyContentCenter];
 
     return (
         <ConnectionLayout
@@ -59,7 +62,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.accounts')}
                 switchAccessibilityLabel={translate('workspace.accounting.accounts')}
-                wrapperStyle={[styles.mv3, styles.mh5]}
+                wrapperStyle={toggleRowStyle}
                 isActive
                 onToggle={() => {}}
                 disabled
@@ -67,7 +70,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.businessCentral.items')}
                 switchAccessibilityLabel={translate('workspace.businessCentral.items')}
-                wrapperStyle={[styles.mv3, styles.mh5]}
+                wrapperStyle={toggleRowStyle}
                 isActive={syncItems}
                 onToggle={() => policyID && updateBusinessCentralSyncItems(policyID, !syncItems, syncItems)}
                 pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS], businessCentralConfig?.pendingFields)}
@@ -77,7 +80,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.businessCentral.enableNewCategories')}
                 switchAccessibilityLabel={translate('workspace.businessCentral.enableNewCategories')}
-                wrapperStyle={[styles.mv3, styles.mh5]}
+                wrapperStyle={toggleRowStyle}
                 isActive={enableNewCategories}
                 onToggle={() => policyID && updateBusinessCentralEnableNewCategories(policyID, !enableNewCategories, enableNewCategories)}
                 pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES], businessCentralConfig?.pendingFields)}
@@ -97,7 +100,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                                 key={dimension.id}
                                 title={dimension.name}
                                 switchAccessibilityLabel={dimension.name}
-                                wrapperStyle={[styles.mv3, styles.mh5]}
+                                wrapperStyle={toggleRowStyle}
                                 isActive={isImported}
                                 onToggle={() =>
                                     policyID &&
@@ -123,7 +126,7 @@ function BusinessCentralImportPage({policy}: WithPolicyConnectionsProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.accounting.taxes')}
                         switchAccessibilityLabel={translate('workspace.accounting.taxes')}
-                        wrapperStyle={[styles.mv3, styles.mh5]}
+                        wrapperStyle={toggleRowStyle}
                         isActive={syncTaxRates}
                         onToggle={() => policyID && updateBusinessCentralSyncTaxRates(policyID, !syncTaxRates, syncTaxRates)}
                         pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES], businessCentralConfig?.pendingFields)}
