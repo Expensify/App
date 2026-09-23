@@ -1674,6 +1674,7 @@
 "../../tests/actions/TaskTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
+"../../tests/navigation/addCardToDigitalWalletUrlTests.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/navigation/cleanStaleReportActionBackToParamTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/navigation/ensureTabNavigatorRoutesTests.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/navigation/findFocusedRouteWithOnyxTabGuardTests.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1882,11 +1883,13 @@
 "../../tests/unit/TransactionNavigationUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/TransactionPreviewUtils.test.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/unit/TransactionTest.ts"	"no-restricted-imports"	1
+"../../tests/unit/TransactionUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/useAccountIDToNameMapTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/useGPSWaypointMarkersTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/useIsDomainUsingCardTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/useMoneyRequestReportPaginationTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/unit/useMoneyRequestReportScrollTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/useMoneyRequestReportVisibleActionsTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/usePersonalDetailSearchSelectorTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/usePreMountDestinationTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
