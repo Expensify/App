@@ -1,7 +1,7 @@
 ---
 title: Split Expenses 
 description: Learn how to create and submit expenses to a workspace or individual using SmartScan, manual entry, or distance tracking in Expensify.
-keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported, split reimbursable, reimbursable toggle missing on split, cash expenses rule, cash expense default, always non-reimbursable]
+keywords: [New Expensify, split expenses, split by percentage, split by day, split evenly, edit split, revert split, expense allocation, SmartScan, mileage, distance expense, validation rules, remove split, modify split, unreported expenses, split unreported, split reimbursable, reimbursable toggle missing, cash expense default, split tax, tax on split, per diem split tax, time split tax, distance split tax, track tax, tax field missing]
 internalScope: Audience is submitters, approvers and admins. Covers how to split, edit, and revert expenses in New Expensify using the Split feature. Does not cover Classic behavior.
 ---
 
@@ -12,7 +12,7 @@ Expensify makes it easy to split expenses by dividing a single transaction acros
 
 ## Who can split expenses
 
-- **Submitters** can split any editable expense they've created, including unreported expenses in their self-DM that haven't been added to a report yet
+- **Submitters** can split any editable expense they've created, excluding unreported expenses that haven't been added to a report yet (but this functionality will be available soon)
 - **Approvers** can split expenses assigned to them for approval
 - **Admins** can split any expense that hasn't been fully approved
 
@@ -115,9 +115,11 @@ Yes. Each split is treated as a regular expense and follows all workspace requir
 
 ## Why don’t I see the Reimbursable toggle on a split?
 
-The workspace’s **Cash expenses** rule is set to **Always reimbursable** or **Always non-reimbursable**. Those options fix the reimbursable value for every cash expense, so each split is created with the workspace default and the **Reimbursable** toggle is hidden — even if the original expense was created before an Admin changed the rule.
+The workspace’s **Cash expense default** rule is set to **Always reimbursable** or **Always non-reimbursable**. Those options fix the reimbursable value for every cash expense, so each split is created with the workspace default and the **Reimbursable** toggle is hidden. Imported company card expenses are always non-reimbursable, so their splits don’t show the toggle either. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
 
-Under the plain **Reimbursable** or **Non-reimbursable** options the value isn’t fixed, so each split starts with the original expense’s value and shows a **Reimbursable** toggle you can change. Imported company card expenses are always non-reimbursable, so their splits don’t show the toggle either. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#how-to-set-basic-rules-on-the-general-tab).
+## Why don’t I see a tax field on a per diem or time split?
+
+Per diem and time expenses are calculated from a workspace rate that doesn’t carry a tax rate, so no tax field appears on their split rows even when **Taxes** is enabled for the workspace. Splits of manually created expenses, receipts, and company card expenses still show a tax field when **Taxes** is enabled. Distance splits have one extra requirement: **Track tax** must also be enabled on the workspace’s distance rates, otherwise their split rows show no tax field either. The field is labeled **Tax** unless your workspace renamed it. [Learn how to enable Taxes in a workspace](/articles/new-expensify/workspaces/Track-Taxes) or [how to track tax on distance rates](/articles/new-expensify/workspaces/Set-distance-rates).
 
 ## Can I split a distance or mileage expense?
 
