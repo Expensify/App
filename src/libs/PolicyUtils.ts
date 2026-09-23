@@ -1155,14 +1155,36 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
 }
 
+// An anchored filter with no regex operators. Letter and digit escapes (\d, \w, ...) are classes, not literals.
+const LITERAL_PARENT_TAGS_FILTER = /^\^((?:\\[^A-Za-z0-9]|[^\\.*+?()[\]{}|^$])*)\$$/;
+const ESCAPED_CHARACTER = /\\(.)/g;
+
+/**
+ * Whether a parentTagsFilter matches a parent tag path.
+ * Filters are almost always an anchored, escaped parent path, which is compared as a string -
+ * compiling a RegExp per tag dominates scans over large tag lists.
+ */
+function matchesParentTagsFilter(filter: string | undefined, parentTagPath: string): boolean {
+    if (!filter) {
+        return true;
+    }
+
+    const literal = LITERAL_PARENT_TAGS_FILTER.exec(filter)?.[1];
+
+    if (literal !== undefined) {
+        return literal.replaceAll(ESCAPED_CHARACTER, '$1') === parentTagPath;
+    }
+
+    return new RegExp(filter).test(parentTagPath);
+}
+
 /**
  * Checks whether a policy tag is selectable under a given parent tag path.
  * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
  * while tags without a filter apply everywhere.
  */
 function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
-    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+    return matchesParentTagsFilter(policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter, parentTagPath);
 }
 
 /**
@@ -3655,6 +3677,7 @@ export {
     isTagInPolicy,
     findPolicyTagAtLevel,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     hasCustomCategories,
     hasConfiguredRules,
     isMaxExpenseAmountSet,

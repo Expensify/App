@@ -17,6 +17,7 @@ import {
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    matchesParentTagPath,
 } from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
@@ -268,8 +269,7 @@ function getTagVisibility({
 /**
  * Whether a tag list has an enabled tag under a parent tag path.
  *
- * Resolves on the first match, and skips disabled tags before touching their filter, because a parent filter is a
- * regular expression the caller has to compile to evaluate it.
+ * Resolves on the first match, and skips disabled tags before touching their filter.
  */
 function hasEnabledTagUnderParentTag(tags: PolicyTags | undefined, parentTag: string): boolean {
     for (const tagName in tags) {
@@ -283,9 +283,7 @@ function hasEnabledTagUnderParentTag(tags: PolicyTags | undefined, parentTag: st
             continue;
         }
 
-        const filterRegex = tag.rules?.parentTagsFilter;
-
-        if (!filterRegex || new RegExp(filterRegex).test(parentTag)) {
+        if (matchesParentTagPath(tag, parentTag)) {
             return true;
         }
     }
@@ -400,8 +398,7 @@ function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
         if (!policyTag.enabled) {
             return false;
         }
-        const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-        return !filterRegex || new RegExp(filterRegex).test(parentTag);
+        return matchesParentTagPath(policyTag, parentTag);
     });
 }
 

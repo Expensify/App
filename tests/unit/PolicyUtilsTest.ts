@@ -60,6 +60,7 @@ import {
     getTagGLCode,
     isTagInPolicy,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
@@ -1868,6 +1869,32 @@ describe('PolicyUtils', () => {
             const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
             expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
             expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
+        });
+    });
+
+    describe('matchesParentTagsFilter', () => {
+        it('matches an escaped literal filter against the exact parent tag path', () => {
+            // Given literal filters with escaped characters, as the backend writes them
+            const filter = '^TW Strategic Initiative \\- AI Workforce Design$';
+            const colonFilter = '^Sales\\\\:EMEA$';
+
+            // When matching them against parent tag paths
+            // Then only the unescaped path matches, not a prefix or a longer path
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design')).toBe(true);
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative')).toBe(false);
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design:Team')).toBe(false);
+            expect(matchesParentTagsFilter(colonFilter, 'Sales\\:EMEA')).toBe(true);
+            expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
+        });
+
+        it('evaluates filters with regex operators as regular expressions', () => {
+            // Given filters that are not plain anchored literals
+            // When matching them against parent tag paths
+            // Then they keep regex semantics - character classes, alternation and unanchored matches
+            expect(matchesParentTagsFilter('^Region\\d$', 'Region7')).toBe(true);
+            expect(matchesParentTagsFilter('^Region\\d$', 'RegionX')).toBe(false);
+            expect(matchesParentTagsFilter('^(Sales|Marketing)$', 'Marketing')).toBe(true);
+            expect(matchesParentTagsFilter('Sales', 'EMEA Sales')).toBe(true);
         });
     });
 
