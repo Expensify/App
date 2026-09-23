@@ -122,6 +122,23 @@ describe('calculateDynamicColumnWidths', () => {
             expect(result.widths).toEqual([70, 30]);
             expect(result.shouldScrollHorizontally).toBe(false);
         });
+
+        it('holds a column whose minimum is wider than its content to its content', () => {
+            // Given an empty column asking for a minimum wider than the content it has, next to a column that claims
+            // more of the row than it needs
+            const constraints = [
+                {contentWidth: 0, minWidth: 1, maxWidth: 2},
+                {contentWidth: 5, minWidth: 0, maxWidth: 8},
+            ];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 6);
+
+            // Then it takes its content width, because a minimum it never asked to fill would give it a negative share
+            // of the squeeze and a negative grid track
+            expect(result.widths).toEqual([0, 6]);
+            expect(sumOf(result.widths)).toBeLessThanOrEqual(6);
+        });
     });
 
     describe('behavior 3: the content does not fit, so the columns are squeezed', () => {

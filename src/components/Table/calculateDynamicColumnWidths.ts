@@ -73,7 +73,8 @@ function roundWidths(widths: number[], availableWidth: number, maxWidths: number
  * until every column fits its share. Each pass settles at least one column, so the column count bounds the passes.
  *
  * Splitting the leftover equally rather than in proportion to what each column asked for is what keeps an already-wide
- * column from also taking the largest share of the slack.
+ * column from also taking the largest share of the slack. A caller that cannot use this split because the columns came
+ * back wider than the row falls back to the proportional one.
  */
 function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], availableWidth: number): number[] {
     const widths = desiredWidths.map(() => 0);
@@ -125,7 +126,8 @@ function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], 
  * 1. Every column's content fits inside an equal share of the available width, so the columns stay equal (`1fr`).
  * 2. The content fits overall but unevenly, so a column whose content can't fit an equal share takes exactly the width
  *    it needs, and the remaining columns split what's left equally. A column with long content grows only as far as its
- *    content, rather than also claiming the largest share of the slack.
+ *    content, rather than also claiming the largest share of the slack. This holds unless the columns resolve wider
+ *    than the row, which hands the table to behavior 3 and its proportional split instead.
  * 3. The columns need more room than the row has, so they are squeezed toward their minimum widths, in proportion to
  *    how much room each has to give up. Free-text columns truncate as they shrink. A column holding a known, short set
  *    of values has its content width as its minimum, so it keeps every value in full. A table whose content fits but
@@ -177,7 +179,9 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
     // the dynamic ones to share. Sizing them to their own content is what keeps an empty column narrow in that case,
     // rather than leaving every column an equal share of room the table never had. Whether the table has been measured
     // at all is the caller's question, answered before it works out a budget.
-    const minWidths = constraints.map((constraint, index) => Math.min(constraint.minWidth, maxWidths.at(index) ?? 0));
+    // Never wider than what the column asked for, so that the room it has to give up can't come out negative and the
+    // shares below stay the right way up.
+    const minWidths = constraints.map((constraint, index) => Math.min(constraint.minWidth, desiredWidths.at(index) ?? 0));
     const totalMinWidth = sum(minWidths);
     if (totalMinWidth >= availableWidth) {
         return {
