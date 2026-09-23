@@ -97,23 +97,6 @@ You can update or remove approval workflows at any time as your team or process 
 
 Removing the limit doesn't remove the first approver — reports keep routing through the rest of the workflow.
 
-## What happens after you change the over-limit Additional approver or Report amount
-
-Expensify posts a system message in the workspace **#admins** room each time the over-limit **Additional approver** or the **Report amount** changes, so admins have an audit trail of who changed the approval workflow and when. The message names the approver whose reports forward, the threshold, and the previous setting. For example:
-
-- `set the approval workflow for approver@company.com to forward reports over $100.00 to second-approver@company.com`
-- `changed the approval workflow for approver@company.com to forward reports over $200.00 (previously $100.00)`
-- `changed the approval workflow for approver@company.com to forward reports over $200.00 to new-approver@company.com (previously forwarded to second-approver@company.com)`
-- `changed the approval workflow for approver@company.com to stop forwarding reports over $200.00 (previously forwarded to second-approver@company.com)`
-
-Changing the **Report amount** and the **Additional approver** in the same save posts one message covering both changes. Amounts use the workspace's report currency.
-
-<!-- SCREENSHOT:
-Suggestion: The workspace #admins room showing a system message that reads "set the approval workflow for approver@company.com to forward reports over $100.00 to second-approver@company.com"
-Location: Immediately after the example message list in this section
-Purpose: Confirms for admins that these approval workflow changes are logged in #admins rather than in the individual reports, which is where admins usually look for approver changes
--->
-
 ---
 
 ## Enable Concierge to auto-approve compliant reports
