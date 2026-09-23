@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, require GPS or map entry, manual entry disabled, odometer disabled, edit existing distance expense]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, change workspace, move expense to another workspace, distance rates updated for the new workspace, rate changed automatically, Concierge rate message]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -65,8 +65,6 @@ To create an expense by inputting a distance manually:
    - Other optional fields
 6. Select **Create expense**.
 
-**Note:** If your workspace has **Require GPS or map entry** enabled, you can't create a new manual distance expense. Selecting **Manual** shows a **Require GPS or map entry** message explaining that the workspace requires either map-based or GPS-tracked distance expenses. Select **Got it** to dismiss it, then use **Map** or **GPS** instead.
-
 ---
 
 ## How to create a Distance expense using Odometer readings (Web and Mobile)
@@ -89,8 +87,6 @@ To create an expense using your vehicle's odometer readings:
    - (Optional) Add a description, category, or tag.
 9. Select **Create expense**.
 
-**Note:** If your workspace has **Require GPS or map entry** enabled, you can't create a new odometer distance expense. Selecting **Odometer** shows a **Require GPS or map entry** message explaining that the workspace requires either map-based or GPS-tracked distance expenses. Select **Got it** to dismiss it, then use **Map** or **GPS** instead.
-
 Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
 
 ---
@@ -112,8 +108,6 @@ To edit the distance:
 
 When you switch the route on an already-created expense, the distance, amount, and merchant update to the newly selected route, and a "changed the distance" system message is posted in the expense thread.
 
-If your workspace enabled **Require GPS or map entry** after you created a manual or odometer distance expense, you can still edit that existing expense. Open it, select the **Distance** field, update the distance, and select **Save**. The **Require GPS or map entry** message only appears when you create a new manual or odometer expense.
-
 ---
 
 ## How reimbursement rates are set for Distance expenses
@@ -125,11 +119,8 @@ If you are creating expenses on a Workspace:
 - Workspace Admins set and manage the reimbursement rates for the workspace's distance unit (miles or kilometers).
 - When creating a Distance expense, the available reimbursement rates will show for selection.
 - When a Workspace has multiple rates with effective dates, Expensify automatically applies the rate whose date range matches the expense date, so you don't need to pick the right one manually.
-- If the Workspace excludes commutes, your commute is subtracted from map-based and GPS Distance expenses before the amount is calculated.
 
-[Learn how to manage distance rates as a Workspace Admin](/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
-
-[Learn how to exclude commutes from distance expenses](/articles/new-expensify/workspaces/Exclude-commutes-from-distance-expenses)
+[Learn how to set distance rates as a Workspace Admin](/articles/new-expensify/workspaces/Set-distance-rates)
 
 ### Distance expenses created outside of a Workspace
 
@@ -168,29 +159,19 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 Yes! You can edit the expense before it is approved. When editing a map-based Distance expense, two tabs appear at the top: **Map** and **Manual**. Select **Map** to update waypoints, or select **Manual** to type in the distance directly. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
-## Why can't I select Manual or Odometer when creating a Distance expense?
-
-Your workspace has **Require GPS or map entry** enabled, which limits new distance expenses to map-based routes or GPS-tracked trips. Selecting **Manual** or **Odometer** shows a **Require GPS or map entry** message. Use **Map** or **GPS** instead, or ask a workspace admin to turn the setting off.
-
-## Can I still edit a manual or odometer expense after my workspace requires GPS or map entry?
-
-Yes. **Require GPS or map entry** only applies to new distance expenses. Manual and odometer expenses you created before the setting was enabled stay editable until they're approved — open the expense, select the **Distance** field, enter the new distance, and select **Save**.
-
 ## Can I update the Distance expense unit or rate?
 
 The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
 
 If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
 
-## Why is my Distance expense shorter than the trip I entered?
-
-Your Workspace may exclude commutes from Distance expenses. When it does, the **Distance** field shows the reimbursable distance labeled with the trip's original distance, such as **Distance • Original: 25.00 mi**, and a hint below it shows how much was removed, such as **Removed 12 commuter miles**. A commute is only removed from map-based and GPS Distance expenses. To learn more, see [Exclude commutes from distance expenses](/articles/new-expensify/workspaces/Exclude-commutes-from-distance-expenses).
-
 ## What happens if a Distance expense is moved to a different Workspace?
 
-When a Distance expense is moved to another Workspace, it keeps its original unit and rate.
+Expensify automatically selects a rate from the destination Workspace, because the original Workspace's rates do not exist there. The rate is chosen the same way it is for a new Distance expense: the rate whose **Start date** and **End date** include the expense date. The distance and unit stay the same, and the amount is recalculated using the new rate.
 
-If the rate isn’t valid in the new Workspace, the expense will show a “Rate not valid for this workspace” violation. Selecting a valid rate will update the expense.
+Concierge posts a system message in the report reading `distance rates updated for the new workspace - [workspace name]`. The message names the destination Workspace but not a rate, because a report can hold several Distance expenses that each land on a different rate. To see what a single expense changed to, open that expense and check the "changed the rate" message in its thread.
+
+A Workspace Admin on the destination Workspace can still change the rate afterward by opening the expense and selecting the **Rate** field.
 
 ## Do I need to keep the mobile app open during GPS tracking?
 
