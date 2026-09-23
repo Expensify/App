@@ -4,8 +4,8 @@ import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
 import {findClosestPoint, useChartInteractions} from '@components/Charts/hooks';
-import type {ChartDataPoint} from '@components/Charts/types';
-import {createHorizontalBarPath, getBarColor, getFontLineMetrics, getXAxisLabel, getYAxisLabelWidth, measureTextWidth, truncateLabel} from '@components/Charts/utils';
+import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
+import {createHorizontalBarPath, getBarColor, getFontLineMetrics, getSeriesValue, getXAxisLabel, getYAxisLabelWidth, measureTextWidth, truncateLabel} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_ROTATIONS, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -36,9 +36,15 @@ const VALUE_AXIS_END_PADDING = 32;
  */
 const ROW_DOMAIN: [number, number] = [0, 1];
 
+/** Gap between the bars of one row, as a share of a bar's thickness */
+const BAR_WITHIN_GROUP_PADDING = 0.1;
+
 type HorizontalBarChartProps = {
-    /** Chart data points, one bar per point, listed top to bottom */
+    /** Chart data points, one row of bars per point, listed top to bottom */
     data: ChartDataPoint[];
+
+    /** The plotted series, one bar of every row each */
+    series: ChartSeries[];
 
     /** Measured width of the chart container */
     chartWidth: number;
@@ -55,11 +61,8 @@ type HorizontalBarChartProps = {
     /** Value-axis domain override (e.g. anchored at zero) */
     valueAxisDomain: [number] | undefined;
 
-    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
-    color: string | undefined;
-
-    /** Called with the data index of the pressed bar */
-    onBarPress: (index: number) => void;
+    /** Called with the data index of the pressed bar and the series it belongs to */
+    onBarPress: (index: number, seriesKey: string) => void;
 
     /** Pre-measured pixel width of each category label */
     labelWidths: number[];
@@ -72,7 +75,7 @@ type HorizontalBarChartProps = {
  * Renders the data as horizontal bars with category labels along the y-axis. Used when the
  * category labels don't fit under vertical bars, even rotated to 45°.
  */
-function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValue, valueAxisDomain, color, onBarPress, labelWidths, ellipsisWidth}: HorizontalBarChartProps) {
+function HorizontalBarChart({data, series, chartWidth, onLayout, fontManager, formatValue, valueAxisDomain, onBarPress, labelWidths, ellipsisWidth}: HorizontalBarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontSize = variables.iconSizeExtraSmall;
@@ -81,10 +84,10 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
     /** Center of the row at `index` on the row axis, with the first data point at the top */
     const getRowValue = (index: number) => 1 - (index + 0.5) / rowCount;
 
-    const chartData = data.map((point, index) => ({
-        x: point.total,
-        y: getRowValue(index),
-    }));
+    const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const primarySeriesKey = seriesKeys.at(0) ?? '';
+    // Every series contributes a point, so the value axis spans all of them even though the bars are drawn by hand below.
+    const chartData = data.flatMap((point, index) => seriesKeys.map((key) => ({x: getSeriesValue(point, key), y: getRowValue(index)})));
 
     // Category labels: rendered on the y-axis, truncated so they leave most of the width to the bars.
     const categoryLabelMaxWidth = Math.min(MAX_Y_AXIS_LABEL_WIDTH, chartWidth * MAX_CATEGORY_LABEL_WIDTH_RATIO);
@@ -107,9 +110,29 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
     const domainPadding = {top: 0, bottom: 0, left: 0, right: VALUE_AXIS_END_PADDING};
 
     // Grow with the number of rows so every category stays legible. The surrounding page scrolls.
-    const chartHeight = Math.max(CHART_CONTENT_MIN_HEIGHT, rowCount * MIN_BAR_ROW_HEIGHT + chartPadding.top + chartPadding.bottom);
+    const chartHeight = Math.max(CHART_CONTENT_MIN_HEIGHT, rowCount * series.length * MIN_BAR_ROW_HEIGHT + chartPadding.top + chartPadding.bottom);
     const rowHeight = (chartHeight - chartPadding.top - chartPadding.bottom) / rowCount;
-    const barThickness = (1 - BAR_INNER_PADDING) * rowHeight;
+    // A row is split into one slot per series, each bar leaving a gap to the next.
+    const groupThickness = (1 - BAR_INNER_PADDING) * rowHeight;
+    const slotThickness = groupThickness / series.length;
+    // A lone bar fills its row; grouped bars leave a gap to the next.
+    const barThickness = series.length > 1 ? slotThickness * (1 - BAR_WITHIN_GROUP_PADDING) : slotThickness;
+
+    /** Distance from the row's center to the center of the series' own bar */
+    const getSeriesOffset = (seriesIndex: number) => (seriesIndex - (series.length - 1) / 2) * slotThickness;
+
+    /** The series whose bar sits under `cursorY`, resolved from the row's top edge */
+    const resolveSeriesKey = (rowCenterY: number, cursorY: number): string => {
+        const seriesIndex = Math.min(series.length - 1, Math.max(0, Math.floor((cursorY - (rowCenterY - groupThickness / 2)) / slotThickness)));
+        return seriesKeys.at(seriesIndex) ?? primarySeriesKey;
+    };
+
+    /** Canvas y position of each row's center, so a press can be traced back to the bar under the cursor */
+    const rowCenters = useSharedValue<number[]>([]);
+
+    const handleBarPress = (index: number, cursor: {x: number; y: number}) => {
+        onBarPress(index, resolveSeriesKey(rowCenters.get().at(index) ?? cursor.y, cursor.y));
+    };
 
     const xZero = useSharedValue(0);
 
@@ -118,7 +141,7 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
         'worklet';
 
         const barRight = Math.max(args.targetX, xZero.get());
-        return Math.abs(args.cursorY - args.targetY) <= barThickness / 2 && args.cursorX >= 0 && args.cursorX <= barRight;
+        return Math.abs(args.cursorY - args.targetY) <= groupThickness / 2 && args.cursorX >= 0 && args.cursorX <= barRight;
     };
 
     /** Only the bar itself is pressable */
@@ -128,7 +151,7 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
         const currentXZero = xZero.get();
         const barLeft = Math.min(args.targetX, currentXZero);
         const barRight = Math.max(args.targetX, currentXZero);
-        return Math.abs(args.cursorY - args.targetY) <= barThickness / 2 && args.cursorX >= barLeft && args.cursorX <= barRight;
+        return Math.abs(args.cursorY - args.targetY) <= groupThickness / 2 && args.cursorX >= barLeft && args.cursorX <= barRight;
     };
 
     /** Rows are stacked vertically, so match the cursor to the nearest row by Y */
@@ -139,7 +162,7 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
     };
 
     const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
-        handlePress: onBarPress,
+        handlePress: handleBarPress,
         checkIsOver: checkIsOverRow,
         checkIsClickable: checkIsOverBar,
         resolveTargetIndex: findNearestRow,
@@ -149,9 +172,12 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
 
     const handleScaleChange = (xScale: Scale, yScale: Scale) => {
         xZero.set(xScale(0));
+        const centers = data.map((_, index) => yScale(getRowValue(index)));
+        rowCenters.set(centers);
         setPointPositions(
-            chartData.map((point) => xScale(point.x)),
-            chartData.map((point) => yScale(point.y)),
+            // The tooltip hangs off the longest bar of the row, so it clears every series.
+            data.map((point) => Math.max(...seriesKeys.map((key) => xScale(getSeriesValue(point, key))))),
+            centers,
         );
     };
 
@@ -162,13 +188,21 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
     // Bars are drawn from `data` rather than victory's `points`, because victory sorts numeric x values
     // (here: the totals), so `points` would no longer line up with the data indices used for colors.
     const renderBars = ({xScale, yScale}: CartesianChartRenderArg<{x: number; y: number}, 'y'>) =>
-        data.map((dataPoint, index) => (
-            <Path
-                key={`bar-${dataPoint.label}`}
-                path={createHorizontalBarPath(xScale(dataPoint.total), yScale(getRowValue(index)), xScale(0), barThickness, BAR_CORNER_RADIUS)}
-                color={getBarColor(color, index)}
-            />
-        ));
+        data.flatMap((dataPoint, index) =>
+            series.map((seriesItem, seriesIndex) => (
+                <Path
+                    key={`bar-${dataPoint.label}-${seriesItem.key}`}
+                    path={createHorizontalBarPath(
+                        xScale(getSeriesValue(dataPoint, seriesItem.key)),
+                        yScale(getRowValue(index)) + getSeriesOffset(seriesIndex),
+                        xScale(0),
+                        barThickness,
+                        BAR_CORNER_RADIUS,
+                    )}
+                    color={series.length > 1 ? (seriesItem.color ?? VictoryTheme.colors.default) : getBarColor(seriesItem.color, index)}
+                />
+            )),
+        );
 
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => (
         <>
@@ -240,6 +274,7 @@ function HorizontalBarChart({data, chartWidth, onLayout, fontManager, formatValu
                     matchedIndex={matchedIndex}
                     isTooltipActive={isTooltipActive}
                     data={data}
+                    series={series}
                     formatValue={formatValue}
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}

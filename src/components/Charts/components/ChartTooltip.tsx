@@ -119,13 +119,35 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition, placemen
     }, [initialTooltipPosition]);
 
     const tooltipBox = (
-        <View style={styles.chartTooltipBox}>
-            <Text
-                style={styles.chartTooltipText}
-                numberOfLines={1}
-            >
-                {content}
-            </Text>
+        <View style={[styles.chartTooltipBox, !singleRow && styles.chartTooltipBoxMultiSeries]}>
+            {singleRow ? (
+                <Text
+                    style={styles.chartTooltipText}
+                    numberOfLines={1}
+                >
+                    {`${title} • ${getRowContent(singleRow)}`}
+                </Text>
+            ) : (
+                <>
+                    <Text
+                        style={styles.chartTooltipTitle}
+                        numberOfLines={1}
+                    >
+                        {title}
+                    </Text>
+                    <View style={styles.chartTooltipRows}>
+                        {rows.map((row) => (
+                            <Text
+                                key={row.label}
+                                style={styles.chartTooltipText}
+                                numberOfLines={1}
+                            >
+                                {`${row.label} • ${getRowContent(row)}`}
+                            </Text>
+                        ))}
+                    </View>
+                </>
+            )}
         </View>
     );
 
