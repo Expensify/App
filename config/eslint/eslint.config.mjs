@@ -815,9 +815,6 @@ const config = defineConfig([
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
-        // Conductor scratch directory, gitignored. Oxlint already skips it, so ESLint has to as
-        // well or the two legs lint different file sets.
-        '.context/**',
         // Oxlint's own config. Its rule names are quoted object keys, which naming-convention flags by the
         // hundred; `**/*.config.mjs` below is ignored for the same kind of reason.
         'oxlint.config.mts',
