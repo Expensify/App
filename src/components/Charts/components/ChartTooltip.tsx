@@ -1,10 +1,12 @@
 import type {TooltipRow} from '@components/Charts/hooks/useTooltipData';
+import type {ChartTooltipPlacement} from '@components/Charts/types';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ComponentRef} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 
 import React, {useLayoutEffect, useRef} from 'react';
@@ -22,6 +24,9 @@ type ChartTooltipProps = {
     chartWidth: number;
 
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
+
+    /** Where the tooltip sits relative to `initialTooltipPosition`. Defaults to `above`. */
+    placement?: ChartTooltipPlacement;
 };
 
 function getRowContent(row: TooltipRow): string {
@@ -32,9 +37,10 @@ function getRowContent(row: TooltipRow): string {
     return `${row.amount} (${row.percentage})`;
 }
 
-function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTooltipProps) {
+function ChartTooltip({title, rows, chartWidth, initialTooltipPosition, placement = 'above'}: ChartTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isRightPlacement = placement === 'right';
 
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
@@ -47,7 +53,7 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTo
      * This prevents the "old" dimensions from being used to calculate the position
      * of "new" content, avoiding visual jumps or "ghosting" effects.
      */
-    const tooltipWrapperRef = useRef<View>(null);
+    const tooltipWrapperRef = useRef<ComponentRef<typeof View>>(null);
 
     useLayoutEffect(() => {
         tooltipWrapperRef.current?.measure((x: number, y: number, width: number) => {
@@ -69,10 +75,23 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTo
 
     /**
      * Animated style for the main tooltip container.
-     * Calculates the clamped center to keep the box within chart boundaries.
+     * Clamps the box horizontally to keep it within chart boundaries.
      */
     const tooltipStyle = useAnimatedStyle(() => {
-        const {y} = initialTooltipPosition.get();
+        const {x, y} = initialTooltipPosition.get();
+
+        if (isRightPlacement) {
+            const width = tooltipMeasuredWidth.get();
+
+            return {
+                position: 'absolute',
+                left: Math.max(0, Math.min(chartWidth - width, x)),
+                top: y,
+                /** Start the wrapper at the X point and center it vertically on the Y point */
+                transform: [{translateY: '-50%'}],
+                opacity: width > 0 ? 1 : 0,
+            };
+        }
 
         return {
             position: 'absolute',
@@ -82,7 +101,7 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTo
             transform: [{translateX: '-50%'}, {translateY: '-100%'}],
             opacity: tooltipMeasuredWidth.get() > 0 ? 1 : 0,
         };
-    }, [initialTooltipPosition]);
+    }, [initialTooltipPosition, isRightPlacement, chartWidth]);
 
     /**
      * Animated style for the pointer (triangle).
@@ -99,58 +118,59 @@ function ChartTooltip({title, rows, chartWidth, initialTooltipPosition}: ChartTo
         };
     }, [initialTooltipPosition]);
 
+    const tooltipBox = (
+        <View style={styles.chartTooltipBox}>
+            <Text
+                style={styles.chartTooltipText}
+                numberOfLines={1}
+            >
+                {content}
+            </Text>
+        </View>
+    );
+
     return (
         <Animated.View
             style={tooltipStyle}
             pointerEvents="none"
             ref={tooltipWrapperRef}
         >
-            <View style={styles.chartTooltipWrapper}>
-                <View style={[styles.chartTooltipBox, !singleRow && styles.chartTooltipBoxMultiSeries]}>
-                    {singleRow ? (
-                        <Text
-                            style={styles.chartTooltipText}
-                            numberOfLines={1}
-                        >
-                            {`${title} • ${getRowContent(singleRow)}`}
-                        </Text>
-                    ) : (
-                        <>
-                            <Text
-                                style={styles.chartTooltipTitle}
-                                numberOfLines={1}
-                            >
-                                {title}
-                            </Text>
-                            <View style={styles.chartTooltipRows}>
-                                {rows.map((row) => (
-                                    <Text
-                                        key={row.label}
-                                        style={styles.chartTooltipText}
-                                        numberOfLines={1}
-                                    >
-                                        {`${row.label} • ${getRowContent(row)}`}
-                                    </Text>
-                                ))}
-                            </View>
-                        </>
-                    )}
+            {isRightPlacement ? (
+                <View style={[styles.chartTooltipWrapper, styles.flexRow]}>
+                    <View
+                        style={[
+                            styles.chartTooltipPointer,
+                            {
+                                borderTopWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                borderBottomWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                borderRightWidth: VictoryTheme.tooltip.pointerHeight,
+                                borderTopColor: theme.transparent,
+                                borderBottomColor: theme.transparent,
+                                borderRightColor: theme.heading,
+                            },
+                        ]}
+                    />
+                    {tooltipBox}
                 </View>
-                <Animated.View
-                    style={[
-                        styles.chartTooltipPointer,
-                        {
-                            borderLeftWidth: VictoryTheme.tooltip.pointerWidth / 2,
-                            borderRightWidth: VictoryTheme.tooltip.pointerWidth / 2,
-                            borderTopWidth: VictoryTheme.tooltip.pointerHeight,
-                            borderLeftColor: theme.transparent,
-                            borderRightColor: theme.transparent,
-                            borderTopColor: theme.heading,
-                        },
-                        pointerStyle,
-                    ]}
-                />
-            </View>
+            ) : (
+                <View style={styles.chartTooltipWrapper}>
+                    {tooltipBox}
+                    <Animated.View
+                        style={[
+                            styles.chartTooltipPointer,
+                            {
+                                borderLeftWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                borderRightWidth: VictoryTheme.tooltip.pointerWidth / 2,
+                                borderTopWidth: VictoryTheme.tooltip.pointerHeight,
+                                borderLeftColor: theme.transparent,
+                                borderRightColor: theme.transparent,
+                                borderTopColor: theme.heading,
+                            },
+                            pointerStyle,
+                        ]}
+                    />
+                </View>
+            )}
         </Animated.View>
     );
 }

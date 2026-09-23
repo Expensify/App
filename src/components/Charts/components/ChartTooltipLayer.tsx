@@ -1,5 +1,5 @@
 import {useTooltipData} from '@components/Charts/hooks';
-import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
+import type {ChartDataPoint, ChartSeries, ChartTooltipPlacement} from '@components/Charts/types';
 
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
@@ -29,13 +29,16 @@ type ChartTooltipLayerProps = {
 
     /** The initial tooltip position (x, y) in canvas coordinates */
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
+
+    /** Where the tooltip sits relative to `initialTooltipPosition`. Defaults to `above`. */
+    placement?: ChartTooltipPlacement;
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition, placement}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     useAnimatedReaction(
@@ -70,6 +73,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatV
                 rows={tooltipData.rows}
                 chartWidth={chartWidth}
                 initialTooltipPosition={initialTooltipPosition}
+                placement={placement}
             />
         </Animated.View>
     );

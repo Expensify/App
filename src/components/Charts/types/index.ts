@@ -85,4 +85,7 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-export type {ChartDataPoint, ChartProps, ChartSeries, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+/** Where a chart tooltip sits relative to the data point it describes. */
+type ChartTooltipPlacement = 'above' | 'right';
+
+export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, ChartTooltipPlacement, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

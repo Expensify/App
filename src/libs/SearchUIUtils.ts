@@ -3624,7 +3624,7 @@ function getQuarterSections(
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
-            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
+            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
@@ -4659,6 +4659,13 @@ function isTodoSearch(recentSearchHash: number, suggestedSearches: Record<string
     return !!matchedSearchKey && TODO_SEARCH_KEYS.has(matchedSearchKey);
 }
 
+const SPEND_INSIGHT_KEYS = [
+    CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
+    CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+    CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
+    CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
+] as const satisfies SearchKey[];
+
 type TypeMenuSectionsParams = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number | undefined;
@@ -4847,13 +4854,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
             menuItems: [],
         };
 
-        const insightsSearchKeys = [
-            CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
-            CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
-            CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
-            CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
-        ];
+        const insightsSearchKeys = [...SPEND_INSIGHT_KEYS, CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER];
 
         for (const key of insightsSearchKeys) {
             if (!suggestedSearchesVisibility[key]) {
@@ -6312,6 +6313,7 @@ function getColumnsToShow({
     fallbackPolicyID,
     sortBy,
     shouldShowViolationsColumn = false,
+    isVendorColumnAvailable = true,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -6330,6 +6332,7 @@ function getColumnsToShow({
     fallbackPolicyID?: string;
     sortBy?: SearchSortBy;
     shouldShowViolationsColumn?: boolean;
+    isVendorColumnAvailable?: boolean;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -6547,7 +6550,8 @@ function getColumnsToShow({
 
     // If the user has set custom columns for the search, we need to respect their preference and order
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
-    const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
+    // The saved list outlives the vendor feature, so Vendor is dropped once no workspace has the feature anymore.
+    const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR));
     const isDefaultExpenseColumnSelection = arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns);
     const shouldUseCustomResult = !isDefaultExpenseColumnSelection && filteredVisibleColumns.length > 0;
 
@@ -6663,7 +6667,7 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
-            if (transaction.comment?.vendor?.externalID) {
+            if (isVendorColumnAvailable && transaction.comment?.vendor?.externalID) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
             }
 
@@ -7260,6 +7264,7 @@ export {
     getActions,
     getPrimaryAction,
     createTypeMenuSections,
+    SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,
     getItemBadgeText,

@@ -165,6 +165,8 @@ import Hourglass from '@assets/images/simple-illustrations/simple-illustration__
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
+import IceCreamNumberOne from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-1.svg';
+import IceCreamNumberTwo from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-2.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -434,6 +436,8 @@ const Illustrations = {
     House,
     HouseWithMap,
     HouseMoney,
+    IceCreamNumberOne,
+    IceCreamNumberTwo,
     LifeRing,
     Lightbulb,
     LockClosed,

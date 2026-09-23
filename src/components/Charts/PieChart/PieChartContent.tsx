@@ -165,7 +165,10 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
 
     return (
         <>
-            <GestureDetector gesture={combinedGesture}>
+            <GestureDetector
+                gesture={combinedGesture}
+                touchAction="pan-y"
+            >
                 <Animated.View
                     style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
                     onLayout={handleLayout}
