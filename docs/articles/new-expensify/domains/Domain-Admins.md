@@ -1,7 +1,7 @@
 ---
 title: Domain Admins
 description: Learn how to add and manage Domain Admins in New Expensify.
-internalScope: Audience is Domain Admins. Covers adding and removing Domain Admins and what Domain Admins can manage. Does not cover Domain Members, Domain Groups, SAML setup, or login troubleshooting.
+internalScope: Audience is Domain Admins. Covers adding and removing Domain Admins and what Domain Admins can manage. Does not cover reviewing requests for Domain Admin access, Domain Members, Domain Groups, SAML setup, or login troubleshooting.
 keywords: [New Expensify, domain admins, domain control, domain settings, domain management]
 ---
 
@@ -14,10 +14,12 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 **To add a Domain Admin:**
 1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
-3. Open **Domain Admins**.
+3. Open **Domain admins**.
 4. Enter the admin’s email address or phone number, then click **Add**.
 
 **Note:** A Domain Admin does not need an email address on the company domain. For example, an external bookkeeper can be a Domain Admin.
+
+Someone who tried to set up your domain themselves can ask for access instead of waiting for you to add them. [Learn how to approve or deny a Domain Admin request](/articles/new-expensify/domains/Review-Domain-Admin-Requests) when that happens.
 
 ---
 
@@ -26,7 +28,7 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 **To remove a Domain Admin:**
 1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
-3. Open **Domain Admins**.
+3. Open **Domain admins**.
 4. Select the admin, then click **Remove**.
 
 ---
@@ -47,7 +49,7 @@ Yes. Domain Admins do not need to use your company’s email domain. You can add
 
 ## How do I revoke Domain Admin access?
 
-Go to **Workspaces**, then select the **Domains** tab, open your domain, and select **Domain Admins**. From there, click **Remove** next to the person you want to revoke access for.
+Go to **Workspaces**, then select the **Domains** tab, open your domain, and select **Domain admins**. From there, click **Remove** next to the person you want to revoke access for.
 
 ## Who can be a Domain Admin
 
