@@ -1,12 +1,25 @@
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 
 import type {LayoutChangeEvent} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 import {useLayoutEffect, useRef, useState} from 'react';
 import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 const EXPAND_COLLAPSE_DURATION = 300;
+
+/** Runs the expand/collapse animation itself. Lives outside the hook so effects can call it without re-running on every render. */
+function animateHeightTo(animatedHeight: SharedValue<number>, target: number, setIsRendered: (isRendered: boolean) => void) {
+    animatedHeight.set(
+        withTiming(target, {duration: EXPAND_COLLAPSE_DURATION, easing}, (finished) => {
+            if (!finished || target) {
+                return;
+            }
+            scheduleOnRN(setIsRendered, false);
+        }),
+    );
+}
 
 function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: boolean, resetKey?: string) {
     const contentHeight = useSharedValue(0);
@@ -19,17 +32,6 @@ function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: 
     // recycled list cell scrolling back into view — lands on its final height instead, so scrolling the
     // list does not replay the expand animation.
     const shouldAnimateNextMeasurementRef = useRef(false);
-
-    const animateHeightTo = (target: number) => {
-        animatedHeight.set(
-            withTiming(target, {duration: EXPAND_COLLAPSE_DURATION, easing}, (finished) => {
-                if (!finished || target) {
-                    return;
-                }
-                scheduleOnRN(setIsRendered, false);
-            }),
-        );
-    };
 
     // FlashList may recycle this cell for a different group — reset measured height when the row identity changes.
     useLayoutEffect(() => {
@@ -59,9 +61,8 @@ function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: 
             shouldAnimateNextMeasurementRef.current = true;
             return;
         }
-        animateHeightTo(isExpanded ? contentHeight.get() : 0);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isExpanded]);
+        animateHeightTo(animatedHeight, isExpanded ? contentHeight.get() : 0, setIsRendered);
+    }, [isExpanded, contentHeight, animatedHeight]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         height: animatedHeight.get() + (shouldAddBorderHeight ? 1 : 0),
@@ -78,7 +79,7 @@ function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: 
 
         if (shouldAnimateNextMeasurementRef.current) {
             shouldAnimateNextMeasurementRef.current = false;
-            animateHeightTo(target);
+            animateHeightTo(animatedHeight, target, setIsRendered);
             return;
         }
         animatedHeight.set(target);
