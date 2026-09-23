@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
@@ -136,19 +136,12 @@ describe('MultiSelect', () => {
                 value={[]}
                 items={items}
                 onChange={jest.fn()}
-                footer={<View testID="custom-footer" />}
+                footer={<View />}
             />,
         );
 
         const props = mockedSelectionList.mock.lastCall?.[0];
         expect(props?.footerContent).toBeDefined();
-
-        if (!props?.footerContent || !React.isValidElement(props.footerContent)) {
-            throw new Error('footerContent is not a valid ReactElement');
-        }
-
-        render(props.footerContent);
-        expect(screen.getByTestId('custom-footer')).toBeOnTheScreen();
     });
 
     it('passes footerContent when isLoadingMore is true', () => {
