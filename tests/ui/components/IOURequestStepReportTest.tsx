@@ -248,7 +248,7 @@ describe('IOURequestStepReport', () => {
                 hasResults: true,
                 isLoading: false,
             },
-            data: {[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID_2}`]: buildReport(REPORT_ID_2)},
+            data: {[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID_2}` as const]: buildReport(REPORT_ID_2)},
         };
 
         // When the report field list is opened
@@ -322,7 +322,7 @@ describe('IOURequestStepReport', () => {
                 hasResults: true,
                 isLoading: false,
             },
-            data: {[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID_2}`]: buildMemberReport(REPORT_ID_2)},
+            data: {[`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID_2}` as const]: buildMemberReport(REPORT_ID_2)},
         };
 
         // When the admin opens Move to report for the expense
