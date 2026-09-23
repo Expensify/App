@@ -385,15 +385,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         // Resolve on tap from the module-scoped copies so this large page does not subscribe to whole collections.
         const lastAccessedReportID = findLastAccessedReport(false, guideAccountIDs, false, report.reportID)?.reportID;
         if (isRootGroupChat) {
-            leaveGroupChat(
-                report,
-                quickAction?.chatReportID?.toString() === report.reportID,
-                currentUserAccountID,
-                conciergeReportID,
-                introSelected,
-                isSelfTourViewed,
-                lastAccessedReportID,
-            );
+            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, lastAccessedReportID);
             return;
         }
 
