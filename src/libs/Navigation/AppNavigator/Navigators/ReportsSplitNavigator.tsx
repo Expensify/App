@@ -1,3 +1,4 @@
+import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -6,6 +7,7 @@ import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import {isTabRoutePreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationStateRoute, ReportsSplitNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -19,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
+import {useNavigationState} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 
 const loadReportScreen = () => require<{default: React.ComponentType<ReportScreenProps>}>('@pages/inbox/ReportScreen').default;
@@ -36,6 +39,7 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
     const shouldClearInitialReportActionsDefer = !!route.params && 'shouldDeferInitialReportActions' in route.params && route.params.shouldDeferInitialReportActions === true;
     const [shouldDeferInitialReportActions] = useState(() => shouldClearInitialReportActionsDefer);
+    const isInPreloadedTab = useNavigationState((tabState) => isTabRoutePreloaded(tabState, route.key));
 
     const [initialReportID] = useState(() => {
         // Deep links and REPORT_WITH_ID navigation pass the reportID in nested params,
@@ -58,7 +62,8 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, reportNameValuePairs);
+        // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), undefined, isOpenOnAdminRoom, undefined, reportNameValuePairs);
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
@@ -77,35 +82,39 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
 
     return (
         <FreezeWrapper>
-            <Split.Navigator
-                persistentScreens={[SCREENS.INBOX]}
-                sidebarScreen={SCREENS.INBOX}
-                defaultCentralScreen={SCREENS.REPORT}
-                parentRoute={route}
-                screenOptions={splitNavigatorScreenOptions.centralScreen}
-            >
-                <Split.Screen
-                    name={SCREENS.INBOX}
-                    getComponent={loadSidebarScreen}
-                    options={splitNavigatorScreenOptions.sidebarScreen}
-                />
-                <Split.Screen
-                    name={SCREENS.REPORT}
-                    initialParams={reportScreenInitialParams}
+            <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
+                <Split.Navigator
+                    persistentScreens={[SCREENS.INBOX]}
+                    sidebarScreen={SCREENS.INBOX}
+                    defaultCentralScreen={SCREENS.REPORT}
+                    parentRoute={route}
+                    screenOptions={splitNavigatorScreenOptions.centralScreen}
                 >
-                    {(screenProps: ReportScreenProps) => {
-                        const ReportScreen = loadReportScreen();
-                        // A split navigator can contain multiple report routes, but the Inbox defer should only apply to the route that mounted with the navigator.
-                        const initialReportRouteKey = screenProps.navigation.getState().routes.find((navigatorRoute: NavigationStateRoute) => navigatorRoute.name === SCREENS.REPORT)?.key;
-                        return (
-                            <ReportScreen
-                                {...screenProps}
-                                shouldDeferReportActions={shouldDeferInitialReportActions && initialReportRouteKey === screenProps.route.key}
-                            />
-                        );
-                    }}
-                </Split.Screen>
-            </Split.Navigator>
+                    <Split.Screen
+                        name={SCREENS.INBOX}
+                        getComponent={loadSidebarScreen}
+                        options={splitNavigatorScreenOptions.sidebarScreen}
+                    />
+                    <Split.Screen
+                        name={SCREENS.REPORT}
+                        initialParams={reportScreenInitialParams}
+                    >
+                        {(screenProps: ReportScreenProps) => {
+                            const ReportScreen = loadReportScreen();
+                            // A split navigator can contain multiple report routes, but the Inbox defer should only apply to the route that mounted with the navigator.
+                            const initialReportRouteKey = screenProps.navigation
+                                .getState()
+                                .routes.find((navigatorRoute: NavigationStateRoute) => navigatorRoute.name === SCREENS.REPORT)?.key;
+                            return (
+                                <ReportScreen
+                                    {...screenProps}
+                                    shouldDeferReportActions={shouldDeferInitialReportActions && initialReportRouteKey === screenProps.route.key}
+                                />
+                            );
+                        }}
+                    </Split.Screen>
+                </Split.Navigator>
+            </IsInPreloadedTabContext.Provider>
         </FreezeWrapper>
     );
 }

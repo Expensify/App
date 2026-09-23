@@ -12,7 +12,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type DimensionTypeSelectorProps = {
-    /** Error text to display */
     errorText?: string;
 
     /** Business type to display */
@@ -61,7 +60,6 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
                         showTooltip={false}
                         isFocused={option.isSelected}
                         onSelectRow={onDimensionTypeSelected}
-                        keyForList={option.keyForList}
                     />
                 ))}
                 {!!errorText && (

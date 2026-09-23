@@ -1,5 +1,4 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,7 +29,6 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.moreFeatures.timeTracking.title');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Clock']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canWriteMoreFeatures = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
@@ -47,7 +45,6 @@ function WorkspaceTimeTrackingPage({route}: WorkspaceTimeTrackingPageProps) {
                 headerText={translate('workspace.moreFeatures.timeTracking.title')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={illustrations.Clock}
                 addBottomSafeAreaPadding
                 shouldEnableMaxHeight={false}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}

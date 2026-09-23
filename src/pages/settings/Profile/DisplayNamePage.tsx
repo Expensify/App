@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, isRequiredFulfilled, isValidDisplayName} from '@libs/ValidationUtils';
 
 import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
@@ -88,10 +87,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
             />
             {isLoadingApp ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'DisplayNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
                 <FormProvider

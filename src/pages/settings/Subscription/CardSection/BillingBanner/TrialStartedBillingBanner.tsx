@@ -18,7 +18,7 @@ function TrialStartedBillingBanner() {
     const subtitle = !doesUserHavePaymentCardAdded(userBillingFundID) ? translate('subscription.billingBanner.trialStarted.subtitle') : '';
     return (
         <BillingBanner
-            title={translate('subscription.billingBanner.trialStarted.title', calculateRemainingFreeTrialDays(lastDayFreeTrial))}
+            title={translate('subscription.billingBanner.trialStarted.title', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)})}
             subtitle={subtitle}
             icon={illustrations.TreasureChest}
         />

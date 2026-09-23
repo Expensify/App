@@ -1,3 +1,4 @@
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
@@ -6,18 +7,20 @@ import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyReque
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
+import {useCallback, useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useOnyx from './useOnyx';
 import usePersonalPolicy from './usePersonalPolicy';
-import useSelfDMReport from './useSelfDMReport';
+import usePreferredPolicy from './usePreferredPolicy';
+import {useResolvedSelfDMReport} from './useSelfDMReport';
 
 type UseDefaultParticipantsParams = {
     /** The report the expense is being created from. Participants are derived from this report when it has any. */
@@ -28,9 +31,13 @@ type UseDefaultParticipantsParams = {
 
     /** The IOU type from the route params. */
     iouType?: IOUType;
+};
 
-    /** When false, the hook short-circuits and returns an empty list (the new manual expense flow beta is off). */
-    isNewManualExpenseFlowEnabled?: boolean;
+type UseDefaultParticipantsResult = {
+    /** The participants the expense should be created with (empty until they can be resolved). */
+    participants: Participant[];
+
+    isLoading: boolean;
 };
 
 /**
@@ -38,27 +45,36 @@ type UseDefaultParticipantsParams = {
  *
  * First it derives participants from the source report (workspace-chat entry point). When there are none and the
  * expense is started from the global "Create" (FAB) entry point, it falls back to the default expense policy chat
- * (or the selfDM report when auto-reporting is off), mirroring the resolution the confirmation step performs.
+ * (or the selfDM report when auto-reporting is off or an explicit personal destination is selected, and always for
+ * a track expense), mirroring the resolution the confirmation step performs. A restricted preferred workspace takes
+ * precedence over an explicit personal destination.
  *
  * Shared by `useResetIOUType` (to seed the freshly-rebuilt transaction so the confirmation's auto-assign effect
  * short-circuits) and `IOURequestStepConfirmation` (to compute the participants it auto-assigns) so both stay in sync.
  */
-function useDefaultParticipants({sourceReport, transaction, iouType, isNewManualExpenseFlowEnabled = true}: UseDefaultParticipantsParams): Participant[] {
+function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefaultParticipantsParams): UseDefaultParticipantsResult {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
-    const selfDMReport = useSelfDMReport();
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {selfDMReport, isLoading: isLoadingSelfDMReport} = useResolvedSelfDMReport();
+    const [activePolicyID, activePolicyIDResult] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const hasExplicitPersonalDestinationSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => !!activePolicyID && !isGroupPolicy(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]),
+        [activePolicyID],
+    );
+    const [hasExplicitPersonalDestination, policyCollectionResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasExplicitPersonalDestinationSelector});
+    const [amountOwed, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds, userBillingGracePeriodEndsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const accountID = currentUserPersonalDetails.accountID;
 
-    return useMemo(() => {
-        if (!isNewManualExpenseFlowEnabled) {
-            return [];
-        }
+    const isLoading =
+        !accountID ||
+        isLoadingSelfDMReport ||
+        isLoadingOnyxValue(activePolicyIDResult, policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult);
 
+    const participants = useMemo(() => {
         const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
         if (reportParticipants.length > 0) {
             return reportParticipants;
@@ -69,21 +85,30 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
             return [];
         }
 
+        if (iouType === CONST.IOU.TYPE.TRACK) {
+            return getMoneyRequestParticipantsFromReport(selfDMReport, accountID).filter((participant) => participant.selected);
+        }
+
+        if (hasExplicitPersonalDestination && !isRestrictedToPreferredPolicy) {
+            return getMoneyRequestParticipantsFromReport(selfDMReport, accountID).filter((participant) => participant.selected);
+        }
+
         const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
         if (!canUseDefaultPolicy) {
             return [];
         }
 
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-        const defaultTargetReport = shouldAutoReport ? getPolicyExpenseChat(accountID, defaultExpensePolicy?.id) : selfDMReport;
+        const defaultTargetReport = !shouldAutoReport ? selfDMReport : getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
         return getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
     }, [
-        isNewManualExpenseFlowEnabled,
         sourceReport,
         accountID,
         transaction?.isFromGlobalCreate,
         transaction?.isFromFloatingActionButton,
         iouType,
+        hasExplicitPersonalDestination,
+        isRestrictedToPreferredPolicy,
         defaultExpensePolicy,
         amountOwed,
         userBillingGracePeriodEnds,
@@ -91,6 +116,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         personalPolicy?.autoReporting,
         selfDMReport,
     ]);
+
+    return useMemo(() => ({participants, isLoading}), [participants, isLoading]);
 }
 
 export default useDefaultParticipants;

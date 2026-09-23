@@ -1,3 +1,7 @@
-type SetTimeout = typeof global.setTimeout & jest.Mock & typeof jasmine;
-
-export default () => !!((global.setTimeout as SetTimeout).mock || (global.setTimeout as SetTimeout).clock);
+export default () => {
+    const {setTimeout} = global;
+    if ('mock' in setTimeout && setTimeout.mock) {
+        return true;
+    }
+    return 'clock' in setTimeout && !!setTimeout.clock;
+};

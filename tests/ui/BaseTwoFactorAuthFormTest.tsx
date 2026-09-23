@@ -57,8 +57,8 @@ jest.mock('@userActions/Session', () => ({
     validateTwoFactorAuth: jest.fn(),
 }));
 
-const mockToggleTwoFactorAuth = toggleTwoFactorAuth as jest.MockedFunction<typeof toggleTwoFactorAuth>;
-const mockValidateTwoFactorAuth = validateTwoFactorAuth as jest.MockedFunction<typeof validateTwoFactorAuth>;
+const mockToggleTwoFactorAuth = jest.mocked(toggleTwoFactorAuth);
+const mockValidateTwoFactorAuth = jest.mocked(validateTwoFactorAuth);
 
 const RECOVERY_TOGGLE_LABEL = 'Use recovery code';
 const RECOVERY_BACK_LABEL = 'Use two-factor authentication code';

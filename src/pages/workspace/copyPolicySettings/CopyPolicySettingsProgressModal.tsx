@@ -123,7 +123,7 @@ function useCopyPolicySettingsProgressModal() {
             shouldShowCancelButton: true,
             onConfirm: () => {
                 clearCopyPolicySettings();
-                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
             },
             onCancel: () => {
                 clearCopyPolicySettings();
@@ -159,8 +159,7 @@ function CopyPolicySettingsProgressModal() {
             shouldShowCancelButton={shouldShowCancelButton}
             isTitleLoading={isTitleLoading}
             shouldHandleNavigationBack
-            success={!danger}
-            danger={danger}
+            buttonVariant={danger ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

@@ -1,4 +1,8 @@
 {
+    "ignoreIssues": {
+        "src/hooks/usePersonalDetails.ts": ["exports"],
+        "src/libs/PersonalDetailsUtils.ts": ["exports"]
+    },
     "workspaces": {
         ".": {
             "entry": [
@@ -9,13 +13,19 @@
                 "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
                 "config/rsbuild/**/*.{js,mjs,cjs,ts}",
+                "config/repack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
+                "tests/tooling/**/*.ts",
                 ".github/actions/javascript/**/*.ts",
+                "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",
                 "metro.config.js",
+                "config/babel/oxcJestTransformer.js",
                 "eslint.changed.config.mjs",
                 "react-native.config.js",
-                "rock.config.mjs"
+                "rock.config.mjs",
+                "rspack.config.mjs",
+                "src/components/HeaderWithBackButtonComposed/index.tsx"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
@@ -78,12 +88,11 @@
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
-        "@vercel/ncc",
         "bun",
         "shellcheck",
         "patch-package",
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert"]
+    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl"]
 }

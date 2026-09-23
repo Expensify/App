@@ -32,7 +32,14 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
-import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {
+    createFilteredMemberCountSelector,
+    createInvoiceConfigurationTextSelector,
+    getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
+    isCollectPolicy,
+    isInvoiceFieldsEnabled,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 
@@ -104,7 +111,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
           )
         : 0;
     const taxesCount = Object.values(sourcePolicy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-    const reportFieldsCount = Object.values(getReportFieldsByPolicyID(sourcePolicy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const policyFields = Object.values(getReportFieldsByPolicyID(sourcePolicy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportFieldsCount = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
+    const invoiceFieldsCount = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
     const codingRulesCount = Object.values(sourcePolicy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const connectedIntegration = getAllValidConnectedIntegration(sourcePolicy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const distanceRatesCount = Object.values(getDistanceRateCustomUnit(sourcePolicy)?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
@@ -112,7 +121,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const perDiemCount = Object.values(perDiemRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
-    const rules = getWorkspaceRules(sourcePolicy, translate);
+    const rules = getWorkspaceRules(sourcePolicy, translate, policyCategories);
     const shouldShowCurrency = hasCurrencyConflictWithAnyTarget(sourcePolicy, targetPolicies);
     const currencyBlockedByBA = isCurrencyBlockedByTargetBA(sourcePolicy, targetPolicies);
     const currencyNeededForWorkflows = needsCurrencyForWorkflows(sourcePolicy, targetPolicies);
@@ -133,7 +142,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
         codingRulesCount,
-        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && !!invoiceConfigurationText,
+        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && (!!invoiceConfigurationText || invoiceFieldsCount > 0 || isInvoiceFieldsEnabled(sourcePolicy)),
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
@@ -224,8 +233,12 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
             case 'receiptPartners':
                 return getReceiptPartnersCopySettingsDescription(sourcePolicy, translate);
-            case 'invoices':
-                return invoiceConfigurationText || undefined;
+            case 'invoices': {
+                const invoiceDetails = [invoiceConfigurationText, invoiceFieldsCount ? `${invoiceFieldsCount} ${translate('workspace.common.invoiceFields').toLowerCase()}` : '']
+                    .filter(Boolean)
+                    .join(', ');
+                return invoiceDetails || undefined;
+            }
             default:
                 return undefined;
         }
@@ -305,7 +318,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         setCopyPolicySettingsData({parts}).then(() => {
             // Copying Control-only settings onto a Collect (Team) target requires upgrading it first,
             // so insert the upgrade step before Confirm; otherwise skip straight to Confirm.
-            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)
+            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)
                 ? ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID)
                 : ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID);
             Navigation.navigate(nextRoute);

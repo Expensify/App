@@ -1,3 +1,4 @@
+import {fontScale, lineHeightScale} from '@styles/typography';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import type StyleUtilGenerator from '@styles/utils/generators/types';
@@ -262,9 +263,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             textStyle: {
                 color: theme.textReversed,
                 ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
+                fontSize: fontScale.micro,
                 overflow: 'hidden',
-                lineHeight: variables.lineHeightSmall,
+                lineHeight: lineHeightScale.micro,
                 textAlign: 'center',
             },
             pointerWrapperStyle: {

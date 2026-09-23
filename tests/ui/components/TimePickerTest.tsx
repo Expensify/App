@@ -9,6 +9,8 @@ import type {TextInput, TextInputProps} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import React, {act} from 'react';
 
+import mockCreateMock from '../../utils/createMock';
+
 // Store mocked inputs by testID so we can access them in tests
 const mockInputs: Record<string, TextInput> = {};
 
@@ -23,7 +25,7 @@ jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
 
         const mockInstance = originalReact.useMemo(
             () =>
-                ({
+                mockCreateMock<TextInput>({
                     focus: () => {
                         setIsFocused(true);
                     },
@@ -33,7 +35,7 @@ jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
                     isFocused: () => isFocused,
                     setNativeProps: () => {},
                     props,
-                }) as unknown as TextInput,
+                }),
             [isFocused, props],
         );
 

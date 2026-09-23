@@ -15,7 +15,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -158,7 +157,6 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
     };
 
     const isLoadingOnyxData = isLoadingOnyxValue(bankAccountListMetadata);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersBankAccountPage', isLoadingFromOnyx: isLoadingOnyxData};
 
     return (
         <ListFilterView
@@ -173,7 +171,6 @@ function BankAccountSelector({value = [], selectionListTextInputStyle, selection
                         color={theme.spinner}
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.pl3]}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (

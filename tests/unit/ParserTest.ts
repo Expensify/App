@@ -47,5 +47,27 @@ describe('Parser', () => {
         test('returns an empty string for an empty input', () => {
             expect(Parser.htmlToMarkdown('')).toBe('');
         });
+
+        test('resolves mention accountID to @name via accountIDToName map', () => {
+            const accountIDToName: Record<string, string> = {};
+            accountIDToName['123'] = 'alice@example.com';
+            expect(Parser.htmlToMarkdown('<mention-user accountID="123" />', {accountIDToName})).toBe('@alice@example.com');
+        });
+
+        test('returns @Hidden for mention when accountID is missing from the map', () => {
+            expect(Parser.htmlToMarkdown('<mention-user accountID="123" />', {accountIDToName: {}})).toBe('@Hidden');
+        });
+    });
+
+    describe('htmlToText', () => {
+        test('resolves mention accountID to @name via accountIDToName map', () => {
+            const accountIDToName: Record<string, string> = {};
+            accountIDToName['456'] = 'bob@example.com';
+            expect(Parser.htmlToText('<mention-user accountID="456" />', {accountIDToName})).toBe('@bob@example.com');
+        });
+
+        test('returns @Hidden for mention when accountID is missing from the map', () => {
+            expect(Parser.htmlToText('<mention-user accountID="456" />', {accountIDToName: {}})).toBe('@Hidden');
+        });
     });
 });

@@ -33,6 +33,9 @@ type UseDistanceRequestStateParams = {
     /** Whether the transaction is a distance request */
     isDistanceRequest: boolean;
 
+    /** Whether the expense sits on a workspace chat, which is what makes a workspace's commuter exclusions apply */
+    isPolicyExpenseChat: boolean;
+
     /** Current IOU amount, used to decide whether to seed the calculated amount */
     iouAmount: number;
 
@@ -56,6 +59,7 @@ function useDistanceRequestState({
     policyForMovingExpenses,
     isMovingTransactionFromTrackExpense,
     isDistanceRequest,
+    isPolicyExpenseChat,
     iouAmount,
     iouCurrencyCode,
 }: UseDistanceRequestStateParams) {
@@ -85,8 +89,10 @@ function useDistanceRequestState({
     const distanceRate = mileageRate.rate;
     const distanceUnit = mileageRate.unit;
     const calculateFromTransactionData = isMovingTransactionFromTrackExpense && !distanceRate;
-    const unit = calculateFromTransactionData ? transaction?.comment?.customUnit?.distanceUnit : distanceUnit;
-    const rate = calculateFromTransactionData ? Math.abs(iouAmount) / (transaction?.comment?.customUnit?.quantity ?? 1) : distanceRate;
+    const customUnit = transaction?.comment?.customUnit;
+    const unit = calculateFromTransactionData ? customUnit?.distanceUnit : distanceUnit;
+    const backCalculationQuantity = customUnit?.quantity;
+    const rate = calculateFromTransactionData && !!backCalculationQuantity ? Math.abs(iouAmount) / backCalculationQuantity : distanceRate;
     const currency = calculateFromTransactionData ? iouCurrencyCode : (mileageRate.currency ?? CONST.CURRENCY.USD);
     const prevRate = usePrevious(rate);
     const prevUnit = usePrevious(unit);
@@ -94,12 +100,33 @@ function useDistanceRequestState({
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
+    const amountUnit = unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const commuterExclusionData = DistanceRequestUtils.getCommuterExclusionDisplayData(customUnit, amountUnit);
+    const reimbursableDistance = commuterExclusionData?.reimbursableDistance;
+    const prevReimbursableDistance = usePrevious(reimbursableDistance);
+    const reimbursableDistanceInMeters = commuterExclusionData
+        ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, commuterExclusionData.distanceUnit)
+        : distance;
+    const shouldCalculateDistanceAmount =
+        isDistanceRequest &&
+        (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit || prevReimbursableDistance !== reimbursableDistance);
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
-    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
-    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
+    // How much of a trip the home and office method excludes is decided server-side and arrives on the route
+    // response, so a route held without the matching preview has a distance and an amount that are about to
+    // change. Report those as pending rather than showing figures the commute has not come off yet.
+    const isCommuterExclusionPreviewPending =
+        isPolicyExpenseChat &&
+        policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+        DistanceRequestUtils.isCommuterExclusionApplicableToRequestType(transaction?.iouRequestType) &&
+        hasRoute &&
+        !transaction?.errorFields?.route &&
+        !DistanceRequestUtils.hasCommuterExclusionPreviewForPolicy(transaction, policy);
+
+    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate || isCommuterExclusionPreviewPending) && !isMovingTransactionFromTrackExpense;
+
+    const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, amountUnit, rate ?? 0);
 
     return {
         policyDraft,

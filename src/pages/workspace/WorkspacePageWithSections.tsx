@@ -19,7 +19,6 @@ import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFrom
 import Navigation from '@libs/Navigation/Navigation';
 import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,8 +41,6 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
-
-        /** The text to display in the header */
         headerText: string;
 
         /** Main content of the page */
@@ -70,13 +67,11 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Policy feature permission needed to show this page */
         policyFeature?: PolicyFeature;
 
-        /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
 
         /** Makes firstRender ref display loading page before isLoading is change to true */
         showLoadingAsFirstRender?: boolean;
 
-        /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
         /**
@@ -86,16 +81,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
-        /** Content to be added to the header */
         headerContent?: ReactNode;
-
-        /** TestID of the component */
         testID?: string;
 
         /** Whether the page is loading, example any other API call in progress */
         isLoading?: boolean;
 
-        /** Whether to use the headline header */
         shouldUseHeadlineHeader?: boolean;
 
         /**
@@ -103,7 +94,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          */
         addBottomSafeAreaPadding?: boolean;
 
-        /** Content to be added as modal */
         modals?: ReactNode;
 
         /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
@@ -261,16 +251,7 @@ function WorkspacePageWithSections({
                 </HeaderWithBackButton>
                 {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={
-                                {
-                                    context: 'WorkspacePageWithSections',
-                                    isLoading,
-                                    shouldShowInitialLoading,
-                                } satisfies SkeletonSpanReasonAttributes
-                            }
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <>

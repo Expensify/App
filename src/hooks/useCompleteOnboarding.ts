@@ -18,7 +18,9 @@ import {useState} from 'react';
 
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from './useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnboardingMessages from './useOnboardingMessages';
@@ -29,6 +31,7 @@ import useResponsiveLayout from './useResponsiveLayout';
 type CompleteOnboardingParams = {
     featuresMap: OnboardingFeatureMapItem[];
     userReportedIntegration?: OnboardingAccounting;
+    userReportedIntegrationName?: string;
 };
 
 function useCompleteOnboarding() {
@@ -38,9 +41,11 @@ function useCompleteOnboarding() {
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
@@ -60,7 +65,7 @@ function useCompleteOnboarding() {
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
 
-    const completeOnboardingFlow = async ({featuresMap, userReportedIntegration}: CompleteOnboardingParams) => {
+    const completeOnboardingFlow = async ({featuresMap, userReportedIntegration, userReportedIntegrationName}: CompleteOnboardingParams) => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
         }
@@ -71,13 +76,14 @@ function useCompleteOnboarding() {
             const shouldCreateWorkspace = !onboardingPolicyID && !groupPolicy;
             const isAccountingEnabled = featuresMap.some((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && feature.enabled);
             const resolvedIntegration = isAccountingEnabled ? userReportedIntegration : undefined;
+            const resolvedIntegrationName = resolvedIntegration === 'other' ? userReportedIntegrationName : undefined;
             const email = currentUserPersonalDetails.email ?? '';
 
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
                 ? createWorkspace({
-                      policyOwnerEmail: undefined,
+                      policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                      policyName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -85,6 +91,7 @@ function useCompleteOnboarding() {
                       shouldAddOnboardingTasks: false,
                       companySize: onboardingCompanySize,
                       userReportedIntegration: resolvedIntegration,
+                      userReportedIntegrationName: resolvedIntegrationName,
                       featuresMap,
                       introSelected,
                       activePolicy,
@@ -94,7 +101,9 @@ function useCompleteOnboarding() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                       conciergeChat,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -110,6 +119,7 @@ function useCompleteOnboarding() {
                 onboardingPolicyID: policyID,
                 companySize: onboardingCompanySize,
                 userReportedIntegration: resolvedIntegration,
+                userReportedIntegrationName: resolvedIntegrationName,
                 firstName: currentUserPersonalDetails?.firstName,
                 lastName: currentUserPersonalDetails?.lastName,
                 selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
@@ -118,6 +128,7 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
+                delegateAccountID,
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 

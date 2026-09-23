@@ -25,7 +25,6 @@ type UsePreviewMessageAnimationParams = {
     /** Whether the RTER violation message should be shown */
     shouldShowRTERViolationMessage: boolean;
 
-    /** Whether the chat is a policy expense chat */
     isPolicyExpenseChat: boolean;
 
     /** Whether the chat is a trip room */
@@ -34,16 +33,12 @@ type UsePreviewMessageAnimationParams = {
     /** Whether the chat is an invoice room */
     isInvoiceRoom: boolean;
 
-    /** Whether the report is approved */
     isApproved: boolean;
-
-    /** Whether the IOU is settled */
     iouSettled: boolean;
 
     /** The previewed IOU report */
     iouReport: OnyxEntry<Report>;
 
-    /** Whether the report has non-reimbursable transactions */
     hasNonReimbursableTransactions: boolean;
 
     /** The total amount spent on the report */
@@ -64,13 +59,8 @@ type UsePreviewMessageAnimationParams = {
     /** The manager account ID */
     managerID: number;
 
-    /** Whether the paid animation is running */
     isPaidAnimationRunning: boolean;
-
-    /** Whether the approved animation is running */
     isApprovedAnimationRunning: boolean;
-
-    /** Whether the submitting animation is running */
     isSubmittingAnimationRunning: boolean;
 };
 
@@ -122,7 +112,7 @@ function usePreviewMessageAnimation({
         if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName({report: chatReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
+            payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
         } else {
             payerOrApproverName = getDisplayNameForParticipant({
                 accountID: managerID,

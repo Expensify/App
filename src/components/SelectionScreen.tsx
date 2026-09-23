@@ -36,16 +36,9 @@ type SelectionScreenProps<T = string> = {
     /** Used to set the testID for tests */
     displayName: string;
 
-    /** Title of the selection component */
     title?: TranslationPaths;
-
-    /** Custom content to display in the header */
     headerContent?: React.ReactNode;
-
-    /** Content to display if the list is empty */
     listEmptyContent?: React.JSX.Element | null;
-
-    /** Custom content to display in the footer of list component. */
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
@@ -54,19 +47,13 @@ type SelectionScreenProps<T = string> = {
     /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
     ListItem?: typeof SingleSelectListItem | typeof SingleSelectWithAvatarListItem;
 
-    /** The style is applied for the wrap component of list item */
     listItemWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | undefined;
 
-    /** Callback to fire when a row is pressed */
     onSelectRow: (item: SelectorType<T>) => void;
-
-    /** Callback to fire when back button is pressed */
     onBackButtonPress?: () => void;
-
-    /** The current policyID */
     policyID?: string;
 
     /** Defines which types of access should be verified */
@@ -78,16 +65,12 @@ type SelectionScreenProps<T = string> = {
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
 
-    /** Name of the current connection */
     connectionName: ConnectionName;
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction | null;
 
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
-
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
 
     /** A function to run when the X button next to the error is clicked */
@@ -102,7 +85,6 @@ type SelectionScreenProps<T = string> = {
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
-    /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
     /** Whether to allow each row's title to wrap onto multiple lines instead of truncating */

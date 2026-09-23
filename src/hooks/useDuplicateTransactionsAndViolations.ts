@@ -5,6 +5,9 @@ import type {Transaction, TransactionViolation, TransactionViolations} from '@sr
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo} from 'react';
+// Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
@@ -143,4 +146,38 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
     );
 }
 
+/**
+ * Same as {@link useDuplicateTransactionsAndViolations}, but reads the transaction and violation collections from live
+ * Onyx rather than the Search snapshot.
+ * More info: https://github.com/Expensify/App/pull/99279#discussion_r3892786625
+ * @param transactionIDs - Array of transaction IDs to check for duplicates.
+ * @returns - An object containing duplicate transactions and their violations.
+ */
+function useLiveDuplicateTransactionsAndViolations(transactionIDs: string[]): DuplicateTransactionsAndViolations {
+    const violationsSelectorMemo = useMemo(() => {
+        return (allTransactionsViolations: OnyxCollection<TransactionViolations>) => selectViolationsWithDuplicates(transactionIDs, allTransactionsViolations);
+    }, [transactionIDs]);
+
+    const [duplicateTransactionViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: violationsSelectorMemo,
+    });
+
+    const transactionSelector = useMemo(() => {
+        return (allTransactions: OnyxCollection<Transaction>) => selectTransactionsWithDuplicates(transactionIDs, allTransactions, duplicateTransactionViolations);
+    }, [transactionIDs, duplicateTransactionViolations]);
+
+    const [duplicateTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionSelector,
+    });
+
+    return useMemo(
+        () => ({
+            duplicateTransactions,
+            duplicateTransactionViolations,
+        }),
+        [duplicateTransactions, duplicateTransactionViolations],
+    );
+}
+
+export {useLiveDuplicateTransactionsAndViolations};
 export default useDuplicateTransactionsAndViolations;

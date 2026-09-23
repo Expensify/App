@@ -1,4 +1,4 @@
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getTodoReportsForSearchKey} from '@libs/TodosUtils';
 
 import CONST from '@src/CONST';
@@ -10,6 +10,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 // We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
+
+import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
 
 type TodoSearchResultsData = SearchResults['data'];
 
@@ -133,13 +135,14 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useAllPersonalDetailsWithoutSnapshots();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!searchKey) {
         return undefined;
@@ -159,6 +162,8 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,
+        areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        rules,
     });
 
     const metadata = computeMetadata(reports, transactionsByReportID);

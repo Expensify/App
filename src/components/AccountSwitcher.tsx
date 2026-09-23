@@ -4,8 +4,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -14,7 +16,7 @@ import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -27,6 +29,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import {canSwitchAccountsSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
@@ -34,7 +37,7 @@ import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
 
-import Avatar from './Avatar';
+import UserAvatar from './Avatar/UserAvatar';
 import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
@@ -44,9 +47,11 @@ import Tooltip from './Tooltip';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type AccountSwitcherProps = {
-    /* Whether the screen is focused. Used to hide the product training tooltip */
+    /** Whether the screen is focused. Used to hide the product training tooltip */
     isScreenFocused: boolean;
 };
+
+const filterMenuItem = (item: PopoverMenuItem, searchInput: string) => tokenizedSearch([item], searchInput, (option) => [option.text, option.description ?? '']).length > 0;
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -54,7 +59,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -65,6 +70,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+
+    const delegate = account?.delegatedAccess?.delegate;
+    const delegators = account?.delegatedAccess?.delegators ?? [];
+    const personalDetailsByLogin = usePersonalDetailsByLogins([delegate, ...delegators.map((delegator) => delegator.email)]);
 
     const buttonRef = useRef<View>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
@@ -73,11 +84,17 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     // Measured from the Switch button so the menu opens directly below it, rather than a fixed position.
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
-    const delegators = account?.delegatedAccess?.delegators ?? [];
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
-    const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const displayName = currentUserPersonalDetails?.displayName ?? '';
+    const isActingAsDelegate = !!delegate;
+    const canSwitchAccounts = canSwitchAccountsSelector(account);
+
+    const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
+    const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
+    if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
+        setWasAbleToSwitchAccounts(canSwitchAccounts);
+    }
+
+    const displayName = currentUserPersonalDetails.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -123,10 +140,108 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         [calculatePopoverPosition],
     );
 
+    // Keep the menu anchored to the button if the window is resized while it is open.
+    useLayoutEffect(() => {
+        if (!shouldShowDelegatorMenu) {
+            return;
+        }
+        measureDelegatorMenuPosition().then(setPopoverPosition);
+    }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
+
+    const createBaseMenuItem = (
+        personalDetails: PersonalDetails | undefined,
+        errors?: Errors,
+        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
+    ): PopoverMenuItem => {
+        const error = Object.values(errors ?? {}).at(0) ?? '';
+        return {
+            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
+            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
+            avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            icon: personalDetails?.avatar ?? '',
+            iconType: CONST.ICON_TYPE_AVATAR,
+            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
+            shouldIgnoreCompactStyle: true,
+            numberOfLinesDescription: 1,
+            errorText: error ?? '',
+            shouldShowRedDotIndicator: !!error,
+            errorTextStyle: styles.mt2,
+            ...additionalProps,
+        };
+    };
+
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
+        delegators
+            .filter(({email}) => email !== currentUserPersonalDetails.login)
+            .map(({email, role}) => {
+                const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                const error = getLatestError(errorFields?.connect?.[email]);
+                const personalDetails = personalDetailsByLogin[email];
+                return createBaseMenuItem(personalDetails, error, {
+                    badgeText: translate('delegate.role', role),
+                    onSelected: () => {
+                        if (isOffline) {
+                            close(showOfflineModal);
+                            return;
+                        }
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
+                            return;
+                        }
+                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                    },
+                });
+            }),
+        'text',
+        localeCompare,
+    );
+    const allMenuItems = [currentUserMenuItem, ...delegatorMenuItems];
+    const [searchInput, setSearchInput, filteredMenuItems] = useSearchResults(allMenuItems, filterMenuItem);
+    const shouldShowSearchInput = !isActingAsDelegate && delegators.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const menuItems = (): PopoverMenuItem[] => {
+        if (isActingAsDelegate) {
+            // Avoid duplicating the current user in the list when switching accounts
+            if (delegate === currentUserPersonalDetails.login) {
+                return [currentUserMenuItem];
+            }
+
+            const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
+
+            return [
+                createBaseMenuItem(personalDetailsByLogin[delegate], error, {
+                    onSelected: () => {
+                        if (isOffline) {
+                            close(showOfflineModal);
+                            return;
+                        }
+
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession})));
+                            return;
+                        }
+
+                        disconnect({stashedCredentials, stashedSession});
+                    },
+                }),
+                currentUserMenuItem,
+            ];
+        }
+
+        return shouldShowSearchInput ? filteredMenuItems : allMenuItems;
+    };
+
+    const hideDelegatorMenu = () => {
+        setShouldShowDelegatorMenu(false);
+        setSearchInput('');
+        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
+    };
+
     const onPressSwitcher = () => {
         hideProductTrainingTooltip();
         if (shouldShowDelegatorMenu) {
-            setShouldShowDelegatorMenu(false);
+            hideDelegatorMenu();
             return;
         }
         // Measure the button before opening so the menu renders at the right spot on the first frame.
@@ -135,14 +250,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             setShouldShowDelegatorMenu(true);
         });
     };
-
-    // Keep the menu anchored to the button if the window is resized while it is open.
-    useLayoutEffect(() => {
-        if (!shouldShowDelegatorMenu) {
-            return;
-        }
-        measureDelegatorMenuPosition().then(setPopoverPosition);
-    }, [shouldShowDelegatorMenu, windowWidth, windowHeight, measureDelegatorMenuPosition]);
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
@@ -167,138 +274,68 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
           }
         : {
               text: translate('delegate.copilotAccess'),
-              shiftVertical: 8,
-              shiftHorizontal: 8,
-              anchorAlignment: {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM},
               shouldRender: canSwitchAccounts,
           };
 
-    const createBaseMenuItem = (
-        personalDetails: PersonalDetails | undefined,
-        errors?: Errors,
-        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
-    ): PopoverMenuItem => {
-        const error = Object.values(errors ?? {}).at(0) ?? '';
-        return {
-            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
-            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
-            avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            icon: personalDetails?.avatar ?? '',
-            iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
-            shouldIgnoreCompactStyle: true,
-            numberOfLinesDescription: 1,
-            errorText: error ?? '',
-            shouldShowRedDotIndicator: !!error,
-            errorTextStyle: styles.mt2,
-            ...additionalProps,
-        };
-    };
-
-    const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
-
-        if (isActingAsDelegate) {
-            const delegateEmail = account?.delegatedAccess?.delegate ?? '';
-
-            // Avoid duplicating the current user in the list when switching accounts
-            if (delegateEmail === currentUserPersonalDetails.login) {
-                return [currentUserMenuItem];
-            }
-
-            const delegatePersonalDetails = getPersonalDetailByEmail(delegateEmail);
-            const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
-
-            return [
-                createBaseMenuItem(delegatePersonalDetails, error, {
-                    onSelected: () => {
-                        if (isOffline) {
-                            close(showOfflineModal);
-                            return;
-                        }
-
-                        if (isTrackingGPS) {
-                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession})));
-                            return;
-                        }
-
-                        disconnect({stashedCredentials, stashedSession});
-                    },
-                }),
-                currentUserMenuItem,
-            ];
-        }
-
-        const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
-            delegators
-                .filter(({email}) => email !== currentUserPersonalDetails.login)
-                .map(({email, role}) => {
-                    const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                    const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = getPersonalDetailByEmail(email);
-                    return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', role),
-                        onSelected: () => {
-                            if (isOffline) {
-                                close(showOfflineModal);
-                                return;
-                            }
-                            if (isTrackingGPS) {
-                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
-                                return;
-                            }
-                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-                        },
-                    });
-                }),
-            'text',
-            localeCompare,
-        );
-
-        return [currentUserMenuItem, ...delegatorMenuItems];
-    };
-
-    const hideDelegatorMenu = () => {
-        setShouldShowDelegatorMenu(false);
-        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
-    };
+    // A landscape phone is still a narrow layout, but the tall stacked header would eat most of the screen height there.
+    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
+    const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
+    const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
+    const shouldReserveSwitchButtonRow = shouldStackHeader && wasAbleToSwitchAccounts && !canSwitchAccounts && isAccountSwitchInFlight;
 
     return (
         <>
-            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
-                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
+            <View
+                style={
+                    shouldStackHeader
+                        ? [styles.alignItemsCenter, styles.gap4, styles.w100]
+                        : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]
+                }
+            >
+                <View
+                    style={
+                        shouldStackHeader
+                            ? [styles.alignItemsCenter, styles.gap3, styles.w100]
+                            : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]
+                    }
+                >
+                    <UserAvatar
+                        size={avatarSize}
+                        accountID={currentUserPersonalDetails.accountID}
+                        source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
-                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                    <View
+                        style={
+                            shouldStackHeader
+                                ? [styles.alignItemsCenter, styles.gap1, styles.w100]
+                                : [styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]
+                        }
+                    >
                         {doesDisplayNameContainEmojis ? (
                             <Text numberOfLines={1}>
                                 <TextWithEmojiFragment
                                     message={displayName}
-                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                    style={displayNameStyle}
                                 />
                             </Text>
                         ) : (
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                style={displayNameStyle}
                             >
                                 {formatPhoneNumber(displayName)}
                             </Text>
                         )}
                         <Text
                             numberOfLines={1}
-                            style={[styles.colorMuted, styles.fontSizeLabel]}
+                            style={[styles.colorMuted, styles.fontSizeLabel, shouldStackHeader && styles.textAlignCenter]}
                         >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100, shouldStackHeader && styles.textAlignCenter]}
                                 numberOfLines={1}
                             >
                                 AccountID: {accountID}
@@ -311,16 +348,22 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         {/* View wrapper forwards the hover events Tooltip injects; Button doesn't pass them to its underlying pressable, so the tooltip wouldn't show without it */}
                         <View>
                             <Button
-                                small
+                                size={CONST.BUTTON_SIZE.SMALL}
                                 ref={buttonRef}
-                                text={translate('delegate.switch')}
                                 onPress={onPressSwitcher}
                                 sentryLabel={CONST.SENTRY_LABEL.ACCOUNT_SWITCHER.SHOW_ACCOUNTS}
-                                shouldShowRightIcon
-                                iconRight={icons.CaretUpDown}
-                            />
+                            >
+                                <Button.Text>{translate('delegate.switch')}</Button.Text>
+                                <Button.Icon src={icons.CaretUpDown} />
+                            </Button>
                         </View>
                     </TooltipToRender>
+                )}
+                {!!shouldReserveSwitchButtonRow && (
+                    <View
+                        testID={CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID}
+                        style={styles.minHeightComponentSizeSmall}
+                    />
                 )}
             </View>
 
@@ -337,7 +380,18 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    searchInputOptions={
+                        shouldShowSearchInput
+                            ? {
+                                  label: translate('workspace.people.findMember'),
+                                  value: searchInput,
+                                  onChangeText: setSearchInput,
+                                  shouldShowEmptyState: filteredMenuItems.length === 0 && searchInput.length > 0,
+                                  style: styles.mb2,
+                              }
+                            : undefined
+                    }
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
                     shouldUseScrollView

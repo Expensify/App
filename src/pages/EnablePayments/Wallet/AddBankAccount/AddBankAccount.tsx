@@ -123,7 +123,7 @@ function AddBankAccount() {
     };
 
     if ((isSetupTypeChosen || isBankAccountAlreadyAdded) && isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'EnablePaymentsAddBankAccount', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

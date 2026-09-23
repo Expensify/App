@@ -23,6 +23,9 @@ type ImportMerchantRulesOptionParams = {
 
     /** Icon shown next to the option */
     icon: IconAsset;
+
+    /** Sends plans without merchant rules to the upgrade flow. Returns true when it navigated. */
+    tryNavigateToUpgrade?: () => boolean;
 };
 
 /**
@@ -35,6 +38,7 @@ function getImportMerchantRulesOption({
     showReadOnlyModal,
     translate,
     icon,
+    tryNavigateToUpgrade,
 }: ImportMerchantRulesOptionParams): DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>> {
     return {
         icon,
@@ -43,6 +47,9 @@ function getImportMerchantRulesOption({
         onSelected: () => {
             if (!canWriteRules) {
                 showReadOnlyModal();
+                return;
+            }
+            if (tryNavigateToUpgrade?.()) {
                 return;
             }
             Navigation.navigate(ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID));

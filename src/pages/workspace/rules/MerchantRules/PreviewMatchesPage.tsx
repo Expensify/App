@@ -15,7 +15,6 @@ import {getTransactionsMatchingCodingRule} from '@libs/actions/Policy/Rules';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 
@@ -23,7 +22,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type {CodingRuleFilter} from '@src/types/onyx/Policy';
@@ -34,12 +33,17 @@ import {FlashList} from '@shopify/flash-list';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-type PreviewMatchesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type PreviewMatchesPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES
+>;
 
 function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const ruleID = route.params.ruleID;
     const policyID = route.params.policyID;
-    const isEditing = ruleID !== ROUTES.NEW;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path, policyID, ruleID);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -71,7 +75,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
     const matchingTransactionsArray = Object.values(matchingTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const hasMatchingTransactions = !!(merchant && matchingTransactionsArray.length);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PreviewMatchesPage', isLoadingFromOnyx: !!isLoading};
     const isLoadedAndEmpty = !isLoading && !hasMatchingTransactions;
     const isLoadedWithTransactions = !isLoading && hasMatchingTransactions;
 
@@ -82,17 +85,11 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
             showTooltip
             item={{...item, keyForList: item.transactionID, errors: undefined}}
             onSelectRow={() => {}}
-            keyForList={item.transactionID}
         />
     );
 
     const goBack = () => {
-        if (isEditing) {
-            Navigation.goBack(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID));
-            return;
-        }
-
-        Navigation.goBack(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+        Navigation.goBack(backToRoute);
     };
 
     return (
@@ -114,7 +111,6 @@ function PreviewMatchesPage({route}: PreviewMatchesPageProps) {
                                 color={theme.spinner}
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.pl3]}
-                                reasonAttributes={reasonAttributes}
                             />
                         </View>
                     )}

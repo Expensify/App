@@ -15,10 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getMatchingVendors, getVendorEmptyState, hasVendorFeature, isXeroActiveMatchingSource, sortVendors} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
-
-import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 
 import variables from '@styles/variables';
 
@@ -49,7 +47,7 @@ function IOURequestStepVendor({
     transaction,
 }: IOURequestStepVendorProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
@@ -62,21 +60,24 @@ function IOURequestStepVendor({
         isPerDiemRequest: isPerDiemRequest(transaction),
     });
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const delegateAccountID = useDelegateAccountID();
 
-    const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const isFeatureAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
     const isOnXero = isXeroActiveMatchingSource(policy);
-    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
+    const emptyState = getVendorEmptyState(policy, translate);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
     const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const vendors = getMatchingVendors(policy);
+    const sortedVendors = sortVendors(vendors, localeCompare);
     const currentVendorID = transaction?.comment?.vendor?.externalID;
     const vendorLabel = isOnXero ? translate('common.supplier') : translate('common.vendor');
 
     const trimmedSearch = searchValue.trim().toLowerCase();
-    const vendorRows: VendorListItem[] = vendors
+    const vendorRows: VendorListItem[] = sortedVendors
         .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
         .map((vendor) => ({
             value: vendor.id,
@@ -86,7 +87,7 @@ function IOURequestStepVendor({
             searchText: vendor.name,
         }));
 
-    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
+    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed from the accounting integration) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
     const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
     const data: VendorListItem[] = shouldShowNoneRow
         ? [
@@ -120,6 +121,7 @@ function IOURequestStepVendor({
                 parentReport,
                 policy,
                 delegateAccountID,
+                transactionViolations,
             });
         }
         navigateBack();
@@ -133,8 +135,8 @@ function IOURequestStepVendor({
                 icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={isOnXero ? translate('workspace.xero.noSuppliersFound') : translate('workspace.qbo.noAccountsFound')}
-                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
+                title={emptyState.title}
+                subtitle={emptyState.subtitle}
                 containerStyle={styles.pb10}
             />
         ) : null;

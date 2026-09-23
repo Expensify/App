@@ -125,6 +125,42 @@ describe('useInboxTabSpanLifecycle', () => {
         expect(mockCancelSpan).not.toHaveBeenCalled();
     });
 
+    it('reports a repeat layout as warm', () => {
+        const {result} = renderHook(() => useInboxTabSpanLifecycle());
+
+        act(() => {
+            result.current();
+        });
+        mockEndSpanWithAttributes.mockClear();
+
+        act(() => {
+            result.current();
+        });
+
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(1);
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+    });
+
+    it('reports the same value from either end path', () => {
+        const {result} = renderHook(() => useInboxTabSpanLifecycle());
+
+        act(() => {
+            result.current();
+        });
+        mockEndSpanWithAttributes.mockClear();
+
+        act(() => {
+            result.current();
+        });
+        act(() => {
+            getFocusCallback()();
+        });
+
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(2);
+        expect(mockEndSpanWithAttributes).toHaveBeenNthCalledWith(1, SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        expect(mockEndSpanWithAttributes).toHaveBeenNthCalledWith(2, SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+    });
+
     it('does not cancel on unmount after layout has completed', () => {
         const {result, unmount} = renderHook(() => useInboxTabSpanLifecycle());
 

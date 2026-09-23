@@ -73,7 +73,6 @@ function buildSubmitPolicy(): Policy {
             [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
         },
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: true,
         pendingAction: null,
         errors: {},
     } as Policy;
@@ -210,8 +209,8 @@ describe('ImportedMembersPage', () => {
         );
         const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
             titleKey: 'spreadsheet.importSuccessfulTitle',
-            promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-            promptKeyParams: {added: 1, updated: 0},
+            promptKey: 'spreadsheet.importMembersAdded',
+            promptKeyParams: {count: 1},
             pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning',
         });
 

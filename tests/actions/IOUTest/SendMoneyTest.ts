@@ -1,6 +1,5 @@
 import {sendMoneyElsewhere} from '@libs/actions/IOU/SendMoney';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import type * as ReportActions from '@libs/actions/Report';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -11,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -35,14 +34,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual<typeof ReportActions>('@src/libs/actions/Report');
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
@@ -116,6 +107,7 @@ describe('actions/IOU/SendMoney', () => {
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     recipient: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 await waitForBatchedUpdates();

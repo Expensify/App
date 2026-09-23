@@ -15,7 +15,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 
 import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
-import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
 import WorkspaceWorkflowsPayerPage from '@pages/workspace/workflows/WorkspaceWorkflowsPayerPage';
 
 import CONST from '@src/CONST';
@@ -28,6 +28,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -44,25 +47,8 @@ jest.mock('react-native-render-html', () => {
 });
 
 jest.mock('@components/Modal/ReanimatedModal', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
-
-    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
-        const wasVisible = useRef<boolean>(isVisible);
-
-        useEffect(() => {
-            if (wasVisible.current && !isVisible) {
-                onModalHide?.();
-            }
-            wasVisible.current = isVisible;
-        }, [isVisible, onModalHide]);
-
-        if (!isVisible) {
-            return null;
-        }
-
-        return children as React.ReactElement;
-    };
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
 });
 
 TestHelper.setupGlobalFetchMock();
@@ -92,8 +78,9 @@ const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WOR
                         <Stack.Navigator initialRouteName={initialRouteName}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
-                                component={WorkspaceWorkflowsPage}
-                                initialParams={{policyID: POLICY_ID}}
+                                component={WorkspaceWorkflowsPageRevamp}
+                                // The payer row lives on the Payments tab, so deep-link straight to it.
+                                initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.PAYMENTS}}
                             />
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS_PAYER}
@@ -107,7 +94,7 @@ const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WOR
         </ComposeProviders>,
     );
 
-describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
+describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -116,10 +103,12 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
@@ -388,5 +377,61 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
 
         fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press'});
         expect(navigateSpy).toHaveBeenCalledWith('workspaces/workflows-payer-test/workflows/payer');
+    });
+
+    it('sets the payer without sharing when the policy has no withdrawal account', async () => {
+        const currentUserLogin = 'test@user.com';
+        const currentUserAccountID = 1;
+        const otherAdminLogin = 'other-admin@test.com';
+        const otherAdminAccountID = 2;
+        const bankAccountID = 123456;
+        const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
+
+        await TestHelper.signInWithTestUser(currentUserAccountID, currentUserLogin);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [currentUserAccountID]: TestHelper.buildPersonalDetails(currentUserLogin, currentUserAccountID),
+                [otherAdminAccountID]: TestHelper.buildPersonalDetails(otherAdminLogin, otherAdminAccountID, 'Other'),
+            });
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                buildPolicy({
+                    owner: currentUserLogin,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                        [otherAdminLogin]: {email: otherAdminLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                }),
+            );
+
+            // This account is linked to the policy. It is not the withdrawal account, because the policy has none.
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                    accountData: {
+                        bankAccountID,
+                        additionalData: {
+                            policyID: POLICY_ID,
+                            bankName: CONST.BANK_NAMES.GENERIC_BANK,
+                        },
+                        addressName: 'Test Address',
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
+                },
+            });
+        });
+
+        renderPage(SCREENS.WORKSPACE.WORKFLOWS_PAYER);
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(otherAdminLogin));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.save')));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(TestHelper.translateLocal('workflowsPayerPage.shareBankAccount.shareTitle'))).not.toBeOnTheScreen();
+        expect(closeRHPFlowSpy).toHaveBeenCalled();
     });
 });

@@ -4,6 +4,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from '@components/
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -41,6 +42,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const relevantTransactionIDs = useMemo(() => (isBulkHold ? selectedTransactionIDs : Object.keys(selectedTransactions)), [isBulkHold, selectedTransactionIDs, selectedTransactions]);
@@ -49,6 +51,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -72,7 +75,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     currentUserAccountID,
                     selectedTransactionViolations,
                     isTrackIntentUser,
-                    ancestors,
+                    delegateAccountID,
+                    {rules, ancestors},
                 );
                 clearSelectedTransactions(true);
             } else {
@@ -89,7 +93,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         currentUserAccountID,
                         transactionViolations,
                         isTrackIntentUser,
-                        ancestors,
+                        delegateAccountID,
+                        {rules, ancestors},
                     );
                 }
                 clearSelectedTransactions();
@@ -111,6 +116,8 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             currentUserAccountID,
             selectedTransactionViolations,
             isTrackIntentUser,
+            delegateAccountID,
+            rules,
         ],
     );
 

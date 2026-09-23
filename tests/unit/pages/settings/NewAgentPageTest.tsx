@@ -51,7 +51,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
 }));
-jest.mock('@components/Avatar', () => jest.fn(() => null));
 jest.mock('@components/ActivityIndicator', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID?: string}>}>('react-native');
@@ -63,7 +62,7 @@ jest.mock('@components/BlockingViews/BlockingView', () => {
     return ({title, subtitle}: {title: string; subtitle?: string}) =>
         ReactModule.createElement(ReactModule.Fragment, null, ReactModule.createElement(Text, null, title), subtitle ? ReactModule.createElement(Text, null, subtitle) : null);
 });
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
         Pressable: React.ComponentType<{accessibilityRole?: string; onPress?: () => void; children?: React.ReactNode}>;

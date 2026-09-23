@@ -1,5 +1,5 @@
 import AttachmentPicker from '@components/AttachmentPicker';
-import Avatar from '@components/Avatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -21,13 +21,15 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,13 +50,11 @@ import {
 } from '@libs/actions/Policy/Policy';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, getRulesDocumentSourceURL, getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyOwner} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
@@ -95,8 +95,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'Inbox', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {isBetaEnabled} = usePermissions();
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
 
@@ -146,7 +146,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!policyID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path));
     };
     const onPressName = () => {
         if (!policyID) {
@@ -176,7 +176,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!policyID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_PLAN.path));
     };
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
@@ -189,6 +189,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {showLockedAccountModal} = useLockedAccountActions();
     const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
     const rulesDocumentSourceURL = useMemo(
         () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
@@ -264,20 +265,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }, [fetchPolicyData]),
     );
 
-    const DefaultAvatar = useCallback(
-        () => (
-            <Avatar
-                imageStyles={styles.alignSelfCenter}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
-                fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                name={policyName}
-                avatarID={policyID}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-        ),
-        [expensifyIcons.FallbackWorkspaceAvatar, policy?.avatarURL, policyID, policyName, styles.alignSelfCenter],
+    const workspaceAvatar = (
+        <WorkspaceAvatar
+            source={policy?.avatarURL}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            name={policyName}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
     );
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
@@ -317,7 +311,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
-            createDynamicRoute(
+            buildDynamicRoute(
                 DYNAMIC_ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, currentUserPersonalDetails.accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>),
             ),
         );
@@ -326,26 +320,26 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const handleLeave = () => {
         const userEmail = session?.email ?? '';
         const ownerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate);
+        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, isApproverOfOutstandingReports);
         const isReimburser = policy?.achAccount?.reimburser === userEmail;
 
         if (isReimburser) {
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
-                success: true,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             });
             return;
         }
 
         showConfirmModal({
-            title: translate('common.leaveWorkspace'),
+            title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
             prompt,
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -361,7 +355,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
         clearInviteDraft(route.params.policyID);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
+        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
     };
 
     const canLeave = !isOwner;
@@ -458,15 +452,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         <View style={[styles.flexRow, styles.gap2]}>
             {isPolicyAdmin && (
                 <Button
-                    success
-                    text={translate('common.invite')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
-                    icon={expensifyIcons.UserPlus}
                     onPress={handleInvitePress}
-                    medium
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
-                />
+                >
+                    <Button.Icon src={expensifyIcons.UserPlus} />
+                    <Button.Text>{translate('common.invite')}</Button.Text>
+                </Button>
             )}
             {dropdownMenu}
         </View>
@@ -532,7 +527,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             policyFeature={CONST.POLICY.POLICY_FEATURE.OVERVIEW}
-            icon={illustrationIcons.Building}
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
@@ -553,13 +547,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policyID));
                         }}
                         source={policy?.avatarURL ?? ''}
-                        avatarID={policyID}
-                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                        name={policyName}
+                        avatar={workspaceAvatar}
+                        avatarStyle={styles.alignSelfStart}
                         enablePreview
-                        DefaultAvatar={DefaultAvatar}
-                        type={CONST.ICON_TYPE_WORKSPACE}
-                        fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
                         style={[(policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                         editIconStyle={styles.smallEditIconWorkspace}
                         isUsingDefaultAvatar={!policy?.avatarURL}
@@ -785,14 +775,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         return (
                                             <View style={[styles.flexRow]}>
                                                 <Button
-                                                    medium
-                                                    text={translate('common.chooseFile')}
                                                     onPress={() => {
                                                         openPicker({
                                                             onPicked: handleRulesDocumentPicked,
                                                         });
                                                     }}
-                                                />
+                                                >
+                                                    <Button.Text>{translate('common.chooseFile')}</Button.Text>
+                                                </Button>
                                             </View>
                                         );
                                     }}

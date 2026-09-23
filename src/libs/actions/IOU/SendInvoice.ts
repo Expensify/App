@@ -1,5 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -7,6 +9,9 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -22,7 +27,7 @@ import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,6 +95,7 @@ type SendInvoiceOptions = {
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -320,16 +326,8 @@ function buildOnyxDataForInvoice(
             redundantParticipants[accountID] = null;
         }
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticDataParams.personalDetailListAction,
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: successPersonalDetailListAction,
-        });
+        optimisticData.push(buildPersonalDetailsUpdate(optimisticDataParams.personalDetailListAction));
+        successData.push(buildPersonalDetailsUpdate(successPersonalDetailListAction));
     }
 
     successData.push(
@@ -636,13 +634,29 @@ function getSendInvoiceInformation({
     senderPolicyTags,
     formatPhoneNumber,
     delegateAccountID,
+    getCurrencyDecimals,
 }: SendInvoiceOptions): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
+    const {
+        amount = 0,
+        currency = '',
+        created = '',
+        merchant = '',
+        category = '',
+        tag = '',
+        taxCode: transactionTaxCode = '',
+        taxAmount = 0,
+        taxValue,
+        billable,
+        comment,
+        participants,
+    } = transaction ?? {};
+    const taxCode = resolveCurrentTaxCode(policy, transactionTaxCode);
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    const receiverLogin = addSMSDomainIfPhoneNumber(receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '');
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
@@ -669,6 +683,7 @@ function getSendInvoiceInformation({
         receiver.displayName ?? (receiverParticipant as Participant)?.login ?? '',
         amount,
         currency,
+        getCurrencyDecimals,
     );
 
     // STEP 3: Build optimistic receipt and transaction
@@ -702,7 +717,6 @@ function getSendInvoiceInformation({
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !getAllPersonalDetails()[receiverAccountID];
     if (shouldCreateOptimisticPersonalDetails) {
-        const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
             displayName: formatPhoneNumber(receiverLogin),
@@ -711,14 +725,26 @@ function getSendInvoiceInformation({
         };
 
         optimisticPersonalDetailListAction = {[receiverAccountID]: receiver};
+    } else if (!receiver.login) {
+        receiver = {...receiver, login: receiverLogin};
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction, undefined, undefined, delegateAccountID);
+    const reportPreviewAction = buildOptimisticReportPreview(
+        chatReport,
+        optimisticInvoiceReport,
+        getCurrencyDecimals,
+        trimmedComment,
+        optimisticTransaction,
+        undefined,
+        undefined,
+        delegateAccountID,
+    );
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport: optimisticInvoiceReport,
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
@@ -786,6 +812,7 @@ function sendInvoice({
     senderPolicyTags,
     formatPhoneNumber,
     delegateAccountID,
+    getCurrencyDecimals,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -822,6 +849,7 @@ function sendInvoice({
         senderPolicyTags: senderPolicyTags ?? {},
         formatPhoneNumber,
         delegateAccountID,
+        getCurrencyDecimals,
     });
 
     const parameters: SendInvoiceParams = {
