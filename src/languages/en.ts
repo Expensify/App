@@ -1071,12 +1071,7 @@ const translations = {
                 cta: 'Activate',
             },
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName} card addition needs your approval`,
                 subtitle: 'Expensify Card',
-                cta: 'Review',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Digital wallet',
             },
             reviewCardFraud: {
                 title: 'Review potential fraud on your Expensify Card',
@@ -2892,6 +2887,9 @@ const translations = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'digital wallet',
+        digitalWalletCapitalized: 'Digital wallet',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName} card addition needs your approval`,
+        review: 'Review',
         confirmHeading: 'Confirm your request',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Do you want to add your Expensify Card (ending in ${lastFourDigits}) to your ${walletName}?`,

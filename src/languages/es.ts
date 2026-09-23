@@ -978,12 +978,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Activa',
             },
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `La adición de la tarjeta ${walletName} necesita tu aprobación`,
                 subtitle: 'Tarjeta Expensify',
-                cta: 'Revisar',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Billetera digital',
             },
             reviewCardFraud: {
                 title: 'Revisa un posible fraude en tu tarjeta Expensify',
@@ -2700,6 +2695,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'billetera digital',
+        digitalWalletCapitalized: 'Billetera digital',
+        approvalNeeded: ({walletName}: {walletName: string}) => `La adición de la tarjeta ${walletName} necesita tu aprobación`,
+        review: 'Revisar',
         confirmHeading: 'Confirma tu solicitud',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `¿Quieres añadir tu Tarjeta Expensify (terminada en ${lastFourDigits}) a tu ${walletName}?`,
