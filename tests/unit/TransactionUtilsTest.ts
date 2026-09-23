@@ -2084,7 +2084,7 @@ describe('TransactionUtils', () => {
             // When we check whether its required fields are empty
             const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
 
-            // Then the carve-out still applies, because being unreported is the only condition for allowing $0
+            // Then the amount is still not treated as missing, because being unreported is the only condition for allowing $0
             expect(result).toBe(false);
         });
 
@@ -2106,7 +2106,7 @@ describe('TransactionUtils', () => {
             // When we check whether its required fields are empty
             const result = TransactionUtils.areRequiredFieldsEmpty(transaction, openReport as Report);
 
-            // Then the valid merchant means nothing is missing, unchanged by the unreported carve-out
+            // Then the valid merchant means nothing is missing, unchanged by the rule that only unreported expenses allow $0
             expect(result).toBe(false);
         });
     });
