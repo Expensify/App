@@ -721,13 +721,110 @@ describe('OnboardingGuard', () => {
         });
 
         it('should ALLOW GO_BACK, which stays inside the onboarding flow', () => {
-            // When the user steps back within onboarding. Only NAVIGATE and PUSH can leave the flow,
-            // so everything else keeps the pre-existing ALLOW
+            // When the user steps back within onboarding. GO_BACK keeps the pre-existing ALLOW
             const goBackAction: NavigationAction = {type: 'GO_BACK'};
 
             const result = OnboardingGuard.evaluate(stateWithOnboardingNavigator, goBackAction, authenticatedContext);
 
             expect(result.type).toBe('ALLOW');
+        });
+
+        it('should ALLOW a NAVIGATE whose target is an onboarding screen rather than the navigator', () => {
+            // When an in-flow Navigation.navigate() reaches the root router already narrowed to the step screen
+            const navigateToStepAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+                payload: {name: SCREENS.ONBOARDING.PERSONAL_DETAILS},
+            };
+
+            const result = OnboardingGuard.evaluate(stateWithOnboardingNavigator, navigateToStepAction, authenticatedContext);
+
+            // Then the guard admits it, because the step belongs to the flow it protects
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should ALLOW DISMISS_MODAL, which is how the completed flow exits', () => {
+            const dismissModalAction: NavigationAction = {type: CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL};
+
+            const result = OnboardingGuard.evaluate(stateWithOnboardingNavigator, dismissModalAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+    });
+
+    describe('OldDot transition finishing while the onboarding modal is focused (#101768)', () => {
+        beforeEach(async () => {
+            // Given a user who needs onboarding, sitting on the OnboardingModalNavigator
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('should BLOCK a POP_TO whose target is outside the onboarding flow', () => {
+            // When LogOutPreviousUserPage calls goBack(ROUTES.HOME) and goUp turns it into POP_TO, which would
+            // remove the OnboardingModalNavigator from the root stack
+            const popToHomeAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.POP_TO,
+                payload: {name: SCREENS.HOME},
+            };
+
+            const result = OnboardingGuard.evaluate(stateWithOnboardingNavigator, popToHomeAction, authenticatedContext);
+
+            expect(result.type).toBe('BLOCK');
+            if (result.type === 'BLOCK') {
+                expect(result.reason).toBe('Cannot navigate away from onboarding before it is completed');
+            }
+        });
+
+        it('should BLOCK a REPLACE whose target is outside the onboarding flow', () => {
+            // When goUp has to replace the focused route instead, because the target is more than one route down
+            const replaceWithReportsAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+                payload: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            };
+
+            const result = OnboardingGuard.evaluate(stateWithOnboardingNavigator, replaceWithReportsAction, authenticatedContext);
+
+            expect(result.type).toBe('BLOCK');
+            if (result.type === 'BLOCK') {
+                expect(result.reason).toBe('Cannot navigate away from onboarding before it is completed');
+            }
+        });
+
+        it('should ALLOW a REPLACE that targets the onboarding navigator itself', () => {
+            // When the user advances between onboarding steps with forceReplace
+            const replaceWithinOnboardingAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+                payload: {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR},
+            };
+
+            const result = OnboardingGuard.evaluate(stateWithOnboardingNavigator, replaceWithinOnboardingAction, authenticatedContext);
+
+            expect(result.type).toBe('ALLOW');
+        });
+
+        it('should ALLOW POP_TO and REPLACE away once onboarding is completed', async () => {
+            // Given the completion flag has reached the guard's Onyx subscription
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await waitForBatchedUpdates();
+
+            const popToHomeAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.POP_TO,
+                payload: {name: SCREENS.HOME},
+            };
+            const replaceWithReportsAction: NavigationAction = {
+                type: CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+                payload: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            };
+
+            // Then neither exit is blocked, because shouldSkipOnboarding returns before the focused-modal check
+            expect(OnboardingGuard.evaluate(stateWithOnboardingNavigator, popToHomeAction, authenticatedContext).type).toBe('ALLOW');
+            expect(OnboardingGuard.evaluate(stateWithOnboardingNavigator, replaceWithReportsAction, authenticatedContext).type).toBe('ALLOW');
         });
 
         it('should ALLOW a NAVIGATE away once onboarding is completed', async () => {
