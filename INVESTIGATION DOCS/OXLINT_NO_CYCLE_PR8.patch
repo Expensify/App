@@ -1,0 +1,143 @@
+diff --git a/src/libs/Navigation/Navigation.ts b/src/libs/Navigation/Navigation.ts
+index e1e695c335e..8ad356790bf 100644
+--- a/src/libs/Navigation/Navigation.ts
++++ b/src/libs/Navigation/Navigation.ts
+@@ -49,7 +49,7 @@ import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/g
+ import originalCloseRHPFlow from './helpers/closeRHPFlow';
+ import getActiveTabName from './helpers/getActiveTabName';
+ import getFocusedReportParams from './helpers/getFocusedReportParams';
+-import getPathFromState from './helpers/getPathFromState';
++import getActiveRoute from './helpers/getActiveRoute';
+ import getStateFromPath from './helpers/getStateFromPath';
+ import getTopmostReportParams from './helpers/getTopmostReportParams';
+ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
+@@ -246,27 +246,6 @@ function closeSidePanelOnNarrowScreen(route: Route) {
+     SidePanelActions.closeSidePanel(true);
+ }
+ 
+-/**
+- * Returns the current active route.
+- */
+-function getActiveRoute(): string {
+-    if (!navigationRef.isReady()) {
+-        return '';
+-    }
+-
+-    const currentRoute = navigationRef.current?.getCurrentRoute();
+-    if (!currentRoute?.name) {
+-        return '';
+-    }
+-
+-    const routeFromState = getPathFromState(navigationRef.getRootState());
+-
+-    if (routeFromState) {
+-        return routeFromState;
+-    }
+-
+-    return '';
+-}
+ /**
+  * Returns the route of a report opened in RHP.
+  */
+diff --git a/src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts b/src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts
+index a0dda7d7a72..5a1ce3a90c0 100644
+--- a/src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts
++++ b/src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts
+@@ -1,5 +1,5 @@
+ import Log from '@libs/Log';
+-import Navigation from '@libs/Navigation/Navigation';
++import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
+ 
+ import type {Route} from '@src/ROUTES';
+ 
+@@ -73,7 +73,7 @@ const createDynamicRoute = (dynamicRouteSuffixWithParams: string, basePath?: str
+         throw new Error(`The route name ${suffixPath} is not supported in createDynamicRoute`);
+     }
+ 
+-    const routePath = basePath ?? Navigation.getActiveRoute();
++    const routePath = basePath ?? getActiveRoute();
+     return combinePathAndSuffix(routePath, dynamicRouteSuffixWithParams);
+ };
+ 
+diff --git a/src/libs/Navigation/helpers/getActiveRoute.ts b/src/libs/Navigation/helpers/getActiveRoute.ts
+new file mode 100644
+index 00000000000..609de265445
+--- /dev/null
++++ b/src/libs/Navigation/helpers/getActiveRoute.ts
+@@ -0,0 +1,30 @@
++import navigationRef from '@libs/Navigation/navigationRef';
++
++import getPathFromState from './getPathFromState';
++
++/**
++ * Returns the current active route.
++ *
++ * Lives in its own module rather than in `Navigation.ts` so that callers needing only the active path do not
++ * have to import the whole navigation barrel, which pulls in the action layer and closes import cycles.
++ */
++function getActiveRoute(): string {
++    if (!navigationRef.isReady()) {
++        return '';
++    }
++
++    const currentRoute = navigationRef.current?.getCurrentRoute();
++    if (!currentRoute?.name) {
++        return '';
++    }
++
++    const routeFromState = getPathFromState(navigationRef.getRootState());
++
++    if (routeFromState) {
++        return routeFromState;
++    }
++
++    return '';
++}
++
++export default getActiveRoute;
+diff --git a/src/libs/Navigation/helpers/getStateFromPath.ts b/src/libs/Navigation/helpers/getStateFromPath.ts
+index c2d50ab6fe3..429c798d0ec 100644
+--- a/src/libs/Navigation/helpers/getStateFromPath.ts
++++ b/src/libs/Navigation/helpers/getStateFromPath.ts
+@@ -1,5 +1,5 @@
+ import Log from '@libs/Log';
+-import {linkingConfig} from '@libs/Navigation/linkingConfig';
++import {config} from '@libs/Navigation/linkingConfig/config';
+ 
+ import type {Route} from '@src/ROUTES';
+ import {DYNAMIC_ROUTES} from '@src/ROUTES';
+@@ -71,7 +71,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
+     }
+ 
+     // This function is used in the linkTo function where we want to use default getStateFromPath function.
+-    const state = RNGetStateFromPath(normalizedPathAfterRedirection, linkingConfig.config);
++    const state = RNGetStateFromPath(normalizedPathAfterRedirection, config);
+ 
+     if (!state) {
+         throw new Error('Failed to parse the path to a navigation state.');
+diff --git a/tests/navigation/createDynamicRouteTests.ts b/tests/navigation/createDynamicRouteTests.ts
+index b54c74429d6..0dfcbf8386f 100644
+--- a/tests/navigation/createDynamicRouteTests.ts
++++ b/tests/navigation/createDynamicRouteTests.ts
+@@ -1,8 +1,9 @@
++import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
+ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+-import Navigation from '@libs/Navigation/Navigation';
+ 
+-jest.mock('@libs/Navigation/Navigation', () => ({
+-    getActiveRoute: jest.fn(),
++jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
++    __esModule: true,
++    default: jest.fn(),
+ }));
+ 
+ jest.mock('@libs/Log', () => ({
+@@ -24,7 +25,7 @@ jest.mock('@src/ROUTES', () => ({
+ }));
+ 
+ describe('createDynamicRoute', () => {
+-    const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
++    const mockGetActiveRoute = jest.mocked(getActiveRoute);
+ 
+     beforeEach(() => {
+         jest.clearAllMocks();

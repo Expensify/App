@@ -1,0 +1,704 @@
+From c1e8a7dfe3bd7671a5d0ab088917bdf3bcfed2fd Mon Sep 17 00:00:00 2001
+From: Lukasz Modzelewski <lukasz.modzelewski@callstack.com>
+Date: Thu, 10 Sep 2026 15:23:39 +0200
+Subject: [PATCH] Extract policy category Onyx data builders and
+ sortAlphabetically into leaf modules
+
+---
+ src/components/AccountSwitcher.tsx            |   2 +-
+ src/components/ApprovalWorkflowSection.tsx    |   2 +-
+ src/components/ApproverSelectionList.tsx      |   3 +-
+ .../WorkspaceMembersSelectionList.tsx         |   3 +-
+ src/hooks/useDomainGroupFilter.ts             |   2 +-
+ src/libs/AttendeeUtils.ts                     |   2 +-
+ src/libs/OptionsListUtils/index.ts            |   5 -
+ src/libs/actions/Policy/Category.ts           | 150 +---------------
+ src/libs/actions/Policy/Policy.ts             |   2 +-
+ .../Policy/PolicyCategoriesOnyxData.ts        | 165 ++++++++++++++++++
+ src/libs/sortAlphabetically.ts                |  13 ++
+ src/pages/ReportSubmitToContent.tsx           |   3 +-
+ .../Admins/DomainAddPrimaryContactPage.tsx    |   3 +-
+ src/pages/settings/Copilot/CopilotPage.tsx    |   2 +-
+ .../companyCards/assignCard/AssigneeStep.tsx  |   3 +-
+ .../expensifyCard/issueNew/AssigneeStep.tsx   |   3 +-
+ .../ChangeReceiptBillingAccountPage.tsx       |   3 +-
+ ...amicEditInviteReceiptPartnerPolicyPage.tsx |   3 +-
+ .../DynamicInviteReceiptPartnerPolicyPage.tsx |   3 +-
+ .../approvals/ApprovalWorkflowEditor.tsx      |   2 +-
+ tests/ui/AssignCardAssigneeStepTest.tsx       |   1 -
+ .../ChangeReceiptBillingAccountPageTest.tsx   |   1 -
+ tests/ui/IssueNewCardAssigneeStepTest.tsx     |   4 -
+ tests/ui/ReportSubmitToContentTest.tsx        |   1 -
+ tests/unit/OptionsListUtilsTest.tsx           |   2 +-
+ 25 files changed, 206 insertions(+), 177 deletions(-)
+ create mode 100644 src/libs/actions/Policy/PolicyCategoriesOnyxData.ts
+ create mode 100644 src/libs/sortAlphabetically.ts
+
+diff --git a/src/components/AccountSwitcher.tsx b/src/components/AccountSwitcher.tsx
+index 1c8c29290b21..f299b4a13634 100644
+--- a/src/components/AccountSwitcher.tsx
++++ b/src/components/AccountSwitcher.tsx
+@@ -14,7 +14,7 @@ import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate'
+ import {close} from '@libs/actions/Modal';
+ import {getLatestError} from '@libs/ErrorUtils';
+ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+-import {sortAlphabetically} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ 
+ import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+ 
+diff --git a/src/components/ApprovalWorkflowSection.tsx b/src/components/ApprovalWorkflowSection.tsx
+index 3ea506b28f5a..dfee732692b8 100644
+--- a/src/components/ApprovalWorkflowSection.tsx
++++ b/src/components/ApprovalWorkflowSection.tsx
+@@ -5,7 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
+ import useTheme from '@hooks/useTheme';
+ import useThemeStyles from '@hooks/useThemeStyles';
+ 
+-import {sortAlphabetically} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+ 
+ import CONST from '@src/CONST';
+diff --git a/src/components/ApproverSelectionList.tsx b/src/components/ApproverSelectionList.tsx
+index 2775c1edf2ab..e8d05f150967 100644
+--- a/src/components/ApproverSelectionList.tsx
++++ b/src/components/ApproverSelectionList.tsx
+@@ -6,7 +6,8 @@ import useOnyx from '@hooks/useOnyx';
+ import useThemeStyles from '@hooks/useThemeStyles';
+ 
+ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
++import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+ import tokenizedSearch from '@libs/tokenizedSearch';
+diff --git a/src/components/WorkspaceMembersSelectionList.tsx b/src/components/WorkspaceMembersSelectionList.tsx
+index 9de7f5f901b6..945e5e430cab 100644
+--- a/src/components/WorkspaceMembersSelectionList.tsx
++++ b/src/components/WorkspaceMembersSelectionList.tsx
+@@ -8,7 +8,8 @@ import usePolicy from '@hooks/usePolicy';
+ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+ 
+ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
++import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
+ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+ import tokenizedSearch from '@libs/tokenizedSearch';
+diff --git a/src/hooks/useDomainGroupFilter.ts b/src/hooks/useDomainGroupFilter.ts
+index 5848fea19e1a..fe813469d69e 100644
+--- a/src/hooks/useDomainGroupFilter.ts
++++ b/src/hooks/useDomainGroupFilter.ts
+@@ -1,7 +1,7 @@
+ import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
+ import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
+ 
+-import {sortAlphabetically} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ 
+ import CONST from '@src/CONST';
+ import ONYXKEYS from '@src/ONYXKEYS';
+diff --git a/src/libs/AttendeeUtils.ts b/src/libs/AttendeeUtils.ts
+index b6084cc5a40c..d8bb22a93e33 100644
+--- a/src/libs/AttendeeUtils.ts
++++ b/src/libs/AttendeeUtils.ts
+@@ -7,7 +7,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+ 
+ import type {OnyxEntry} from 'react-native-onyx';
+ 
+-import {sortAlphabetically} from './OptionsListUtils';
++import sortAlphabetically from './sortAlphabetically';
+ 
+ function getNormalizedString(value?: string): string | undefined {
+     const normalizedValue = value?.trim();
+diff --git a/src/libs/OptionsListUtils/index.ts b/src/libs/OptionsListUtils/index.ts
+index e930227de314..76b61fad091d 100644
+--- a/src/libs/OptionsListUtils/index.ts
++++ b/src/libs/OptionsListUtils/index.ts
+@@ -3046,10 +3046,6 @@ function filterAndOrderOptions<T extends SearchOptionData>(
+     };
+ }
+ 
+-function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey, localeCompare: LocaleContextProps['localeCompare']): T[] {
+-    return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
+-}
+-
+ function getEmptyOptions(): OptionsResult {
+     return {
+         options: {
+@@ -3138,7 +3134,6 @@ export {
+     recentReportComparator,
+     shouldUseBoldText,
+     shouldUseFullTitleForOption,
+-    sortAlphabetically,
+     personalDetailsComparator,
+     processSearchString,
+ };
+diff --git a/src/libs/actions/Policy/Category.ts b/src/libs/actions/Policy/Category.ts
+index 37086756c81e..8d579cc6db70 100644
+--- a/src/libs/actions/Policy/Category.ts
++++ b/src/libs/actions/Policy/Category.ts
+@@ -51,6 +51,8 @@ import type {PartialDeep} from 'type-fest';
+ import lodashCloneDeep from 'lodash/cloneDeep';
+ import Onyx from 'react-native-onyx';
+ 
++import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories, DEFAULT_MCC_GROUP} from './PolicyCategoriesOnyxData';
++
+ type CreatePolicyCategoryParams = {
+     policyID: string;
+     categoryName: string;
+@@ -117,156 +119,8 @@ function appendSetupCategoriesOnboardingData(
+     return onyxData;
+ }
+ 
+-function buildOptimisticPolicyWithExistingCategories(policyID: string, categories: PolicyCategories) {
+-    const categoriesValues = Object.values(categories);
+-    const optimisticCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+-        if (category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+-            return acc;
+-        }
+-        acc[category.name] = {
+-            ...category,
+-            errors: null,
+-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+-        };
+-        return acc;
+-    }, {});
+-
+-    const successCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+-        acc[category.name] = {
+-            errors: null,
+-            pendingAction: null,
+-        };
+-        return acc;
+-    }, {});
+-
+-    const failureCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+-        acc[category.name] = {
+-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
+-        };
+-        return acc;
+-    }, {});
+-
+-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT> = {
+-        optimisticData: [
+-            {
+-                onyxMethod: Onyx.METHOD.MERGE,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+-                value: optimisticCategoryMap,
+-            },
+-            {
+-                onyxMethod: Onyx.METHOD.SET,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+-                value: null,
+-            },
+-        ],
+-        successData: [
+-            {
+-                onyxMethod: Onyx.METHOD.MERGE,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+-                value: successCategoryMap,
+-            },
+-        ],
+-        failureData: [
+-            {
+-                onyxMethod: Onyx.METHOD.MERGE,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+-                value: failureCategoryMap,
+-            },
+-        ],
+-    };
+-
+-    return onyxData;
+-}
+-
+-function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
+-    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+-        acc[category] = {
+-            name: category,
+-            enabled: true,
+-            errors: null,
+-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+-        };
+-        return acc;
+-    }, {});
+-
+-    const successCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+-        acc[category] = {
+-            errors: null,
+-            pendingAction: null,
+-        };
+-        return acc;
+-    }, {});
+-
+-    const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
+-        acc[category] = {
+-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
+-        };
+-        return acc;
+-    }, {});
+-
+-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT> = {
+-        optimisticData: [
+-            {
+-                onyxMethod: Onyx.METHOD.MERGE,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+-                value: optimisticCategoryMap,
+-            },
+-            {
+-                onyxMethod: Onyx.METHOD.SET,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+-                value: null,
+-            },
+-        ],
+-        successData: [
+-            {
+-                onyxMethod: Onyx.METHOD.MERGE,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+-                value: successCategoryMap,
+-            },
+-        ],
+-        failureData: [
+-            {
+-                onyxMethod: Onyx.METHOD.MERGE,
+-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+-                value: failureCategoryMap,
+-            },
+-        ],
+-    };
+-
+-    return onyxData;
+-}
+-
+ type DefaultMccGroupID = keyof typeof CONST.POLICY.DEFAULT_MCC_GROUPS;
+ 
+-const DEFAULT_MCC_GROUP: Record<string, MccGroup> = Object.fromEntries(
+-    Object.entries(CONST.POLICY.DEFAULT_MCC_GROUPS).map(([groupID, definition]) => [
+-        groupID,
+-        {
+-            ...definition,
+-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+-        },
+-    ]),
+-);
+-
+-function buildOptimisticMccGroup() {
+-    const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
+-        mccGroup: Object.fromEntries(Object.entries(DEFAULT_MCC_GROUP).map(([groupID, group]) => [groupID, {...group}])),
+-    };
+-
+-    const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
+-    for (const key of Object.keys(optimisticMccGroup.mccGroup)) {
+-        successMccGroup.mccGroup[key] = {pendingAction: null};
+-    }
+-
+-    const mccGroupData = {
+-        optimisticData: optimisticMccGroup,
+-        successData: successMccGroup,
+-        failureData: {mccGroup: null},
+-    };
+-
+-    return mccGroupData;
+-}
+-
+ function isDefaultMccGroupID(groupID: string): groupID is DefaultMccGroupID {
+     return Object.hasOwn(CONST.POLICY.DEFAULT_MCC_GROUPS, groupID);
+ }
+diff --git a/src/libs/actions/Policy/Policy.ts b/src/libs/actions/Policy/Policy.ts
+index c9839ca94f86..abd49f219e87 100644
+--- a/src/libs/actions/Policy/Policy.ts
++++ b/src/libs/actions/Policy/Policy.ts
+@@ -166,7 +166,7 @@ import {subMinutes} from 'date-fns/subMinutes';
+ import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
+ import Onyx from 'react-native-onyx';
+ 
+-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
++import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './PolicyCategoriesOnyxData';
+ 
+ type ReportCreationData = Record<
+     string,
+diff --git a/src/libs/actions/Policy/PolicyCategoriesOnyxData.ts b/src/libs/actions/Policy/PolicyCategoriesOnyxData.ts
+new file mode 100644
+index 000000000000..b4551c0a78c0
+--- /dev/null
++++ b/src/libs/actions/Policy/PolicyCategoriesOnyxData.ts
+@@ -0,0 +1,165 @@
++/**
++ * Optimistic Onyx data builders for policy categories and their default MCC groups.
++ *
++ * They live outside `Category.ts` so that callers needing only the optimistic payload do not have to import that
++ * module, which pulls in `ReportUtils`, `PolicyUtils` and the task action layer and closes an import cycle.
++ */
++import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
++
++import CONST from '@src/CONST';
++import ONYXKEYS from '@src/ONYXKEYS';
++import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
++import type {MccGroup} from '@src/types/onyx/Policy';
++import type {OnyxData} from '@src/types/onyx/Request';
++
++import Onyx from 'react-native-onyx';
++
++function buildOptimisticPolicyWithExistingCategories(policyID: string, categories: PolicyCategories) {
++    const categoriesValues = Object.values(categories);
++    const optimisticCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
++        if (category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
++            return acc;
++        }
++        acc[category.name] = {
++            ...category,
++            errors: null,
++            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
++        };
++        return acc;
++    }, {});
++
++    const successCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
++        acc[category.name] = {
++            errors: null,
++            pendingAction: null,
++        };
++        return acc;
++    }, {});
++
++    const failureCategoryMap = categoriesValues.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
++        acc[category.name] = {
++            errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
++        };
++        return acc;
++    }, {});
++
++    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT> = {
++        optimisticData: [
++            {
++                onyxMethod: Onyx.METHOD.MERGE,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
++                value: optimisticCategoryMap,
++            },
++            {
++                onyxMethod: Onyx.METHOD.SET,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
++                value: null,
++            },
++        ],
++        successData: [
++            {
++                onyxMethod: Onyx.METHOD.MERGE,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
++                value: successCategoryMap,
++            },
++        ],
++        failureData: [
++            {
++                onyxMethod: Onyx.METHOD.MERGE,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
++                value: failureCategoryMap,
++            },
++        ],
++    };
++
++    return onyxData;
++}
++
++function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
++    const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
++        acc[category] = {
++            name: category,
++            enabled: true,
++            errors: null,
++            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
++        };
++        return acc;
++    }, {});
++
++    const successCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
++        acc[category] = {
++            errors: null,
++            pendingAction: null,
++        };
++        return acc;
++    }, {});
++
++    const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
++        acc[category] = {
++            errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
++        };
++        return acc;
++    }, {});
++
++    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT> = {
++        optimisticData: [
++            {
++                onyxMethod: Onyx.METHOD.MERGE,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
++                value: optimisticCategoryMap,
++            },
++            {
++                onyxMethod: Onyx.METHOD.SET,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
++                value: null,
++            },
++        ],
++        successData: [
++            {
++                onyxMethod: Onyx.METHOD.MERGE,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
++                value: successCategoryMap,
++            },
++        ],
++        failureData: [
++            {
++                onyxMethod: Onyx.METHOD.MERGE,
++                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
++                value: failureCategoryMap,
++            },
++        ],
++    };
++
++    return onyxData;
++}
++
++const DEFAULT_MCC_GROUP: Record<string, MccGroup> = Object.fromEntries(
++    Object.entries(CONST.POLICY.DEFAULT_MCC_GROUPS).map(([groupID, definition]) => [
++        groupID,
++        {
++            ...definition,
++            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
++        },
++    ]),
++);
++
++function buildOptimisticMccGroup() {
++    const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
++        mccGroup: Object.fromEntries(Object.entries(DEFAULT_MCC_GROUP).map(([groupID, group]) => [groupID, {...group}])),
++    };
++
++    const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
++    for (const key of Object.keys(optimisticMccGroup.mccGroup)) {
++        successMccGroup.mccGroup[key] = {pendingAction: null};
++    }
++
++    const mccGroupData = {
++        optimisticData: optimisticMccGroup,
++        successData: successMccGroup,
++        failureData: {mccGroup: null},
++    };
++
++    return mccGroupData;
++}
++
++export {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories, DEFAULT_MCC_GROUP};
+diff --git a/src/libs/sortAlphabetically.ts b/src/libs/sortAlphabetically.ts
+new file mode 100644
+index 000000000000..6e86e3247552
+--- /dev/null
++++ b/src/libs/sortAlphabetically.ts
+@@ -0,0 +1,13 @@
++/**
++ * Sorts a list of objects by one of their string keys using the caller's locale comparator.
++ *
++ * It lives outside `OptionsListUtils` so that callers needing only this sort do not have to import that module,
++ * which pulls in `ReportUtils` and the action layer and closes an import cycle.
++ */
++import type {LocaleContextProps} from '@components/LocaleContextProvider';
++
++function sortAlphabetically<T extends Partial<Record<TKey, string | undefined>>, TKey extends keyof T>(items: T[], key: TKey, localeCompare: LocaleContextProps['localeCompare']): T[] {
++    return items.sort((a, b) => localeCompare(a[key]?.toLowerCase() ?? '', b[key]?.toLowerCase() ?? ''));
++}
++
++export default sortAlphabetically;
+diff --git a/src/pages/ReportSubmitToContent.tsx b/src/pages/ReportSubmitToContent.tsx
+index 1a94aa5aa526..5bafa8e2f152 100644
+--- a/src/pages/ReportSubmitToContent.tsx
++++ b/src/pages/ReportSubmitToContent.tsx
+@@ -24,7 +24,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
+ import {search} from '@libs/actions/Search';
+ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+ import Navigation from '@libs/Navigation/Navigation';
+-import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically} from '@libs/OptionsListUtils';
++import {getSearchValueForPhoneOrEmail, getUserToInviteOption} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {getKnownAccountIDByLogin, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
+ import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
+ import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+diff --git a/src/pages/domain/Admins/DomainAddPrimaryContactPage.tsx b/src/pages/domain/Admins/DomainAddPrimaryContactPage.tsx
+index 55a23741fc27..c4192ca8c049 100644
+--- a/src/pages/domain/Admins/DomainAddPrimaryContactPage.tsx
++++ b/src/pages/domain/Admins/DomainAddPrimaryContactPage.tsx
+@@ -9,7 +9,8 @@ import useLocalize from '@hooks/useLocalize';
+ import useOnyx from '@hooks/useOnyx';
+ 
+ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
++import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+ import tokenizedSearch from '@libs/tokenizedSearch';
+ 
+diff --git a/src/pages/settings/Copilot/CopilotPage.tsx b/src/pages/settings/Copilot/CopilotPage.tsx
+index c1b08b9ec141..13ddb75ccb27 100644
+--- a/src/pages/settings/Copilot/CopilotPage.tsx
++++ b/src/pages/settings/Copilot/CopilotPage.tsx
+@@ -30,7 +30,7 @@ import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate, re
+ import {getLatestError} from '@libs/ErrorUtils';
+ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+ import Navigation from '@libs/Navigation/Navigation';
+-import {sortAlphabetically} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+ 
+ import type {AnchorPosition} from '@styles/index';
+diff --git a/src/pages/workspace/companyCards/assignCard/AssigneeStep.tsx b/src/pages/workspace/companyCards/assignCard/AssigneeStep.tsx
+index bbbf0bf65e2e..3d9b3726c571 100644
+--- a/src/pages/workspace/companyCards/assignCard/AssigneeStep.tsx
++++ b/src/pages/workspace/companyCards/assignCard/AssigneeStep.tsx
+@@ -21,7 +21,8 @@ import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardN
+ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
++import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+ import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+diff --git a/src/pages/workspace/expensifyCard/issueNew/AssigneeStep.tsx b/src/pages/workspace/expensifyCard/issueNew/AssigneeStep.tsx
+index 971f33eba325..cb499c9d69f5 100644
+--- a/src/pages/workspace/expensifyCard/issueNew/AssigneeStep.tsx
++++ b/src/pages/workspace/expensifyCard/issueNew/AssigneeStep.tsx
+@@ -18,7 +18,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
+ import {searchUserInServer} from '@libs/actions/Report';
+ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
++import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+ import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+diff --git a/src/pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage.tsx b/src/pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage.tsx
+index 75ec5eb3b409..9b6ae25bda2d 100644
+--- a/src/pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage.tsx
++++ b/src/pages/workspace/receiptPartners/ChangeReceiptBillingAccountPage.tsx
+@@ -18,7 +18,8 @@ import {changePolicyUberBillingAccount} from '@libs/actions/Policy/Policy';
+ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+ import Navigation from '@libs/Navigation/Navigation';
+ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+-import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
++import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import type {MemberForList} from '@libs/OptionsListUtils';
+ import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+ import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+diff --git a/src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx b/src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx
+index 5871caf7014e..2c20ec9c26a2 100644
+--- a/src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx
++++ b/src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx
+@@ -23,7 +23,8 @@ import {clearUberEmployeeError, inviteWorkspaceEmployeesToUber} from '@libs/acti
+ import Navigation from '@libs/Navigation/Navigation';
+ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+-import {formatMemberForList, getHeaderMessage, sortAlphabetically} from '@libs/OptionsListUtils';
++import {formatMemberForList, getHeaderMessage} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import type {MemberForList} from '@libs/OptionsListUtils';
+ import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+ import tokenizedSearch from '@libs/tokenizedSearch';
+diff --git a/src/pages/workspace/receiptPartners/DynamicInviteReceiptPartnerPolicyPage.tsx b/src/pages/workspace/receiptPartners/DynamicInviteReceiptPartnerPolicyPage.tsx
+index f9b86146be35..b5aad78870f3 100644
+--- a/src/pages/workspace/receiptPartners/DynamicInviteReceiptPartnerPolicyPage.tsx
++++ b/src/pages/workspace/receiptPartners/DynamicInviteReceiptPartnerPolicyPage.tsx
+@@ -18,7 +18,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
+ import {clearErrors, inviteWorkspaceEmployeesToUber} from '@libs/actions/Policy/Policy';
+ import Navigation from '@libs/Navigation/Navigation';
+ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+-import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
++import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import type {MemberForList} from '@libs/OptionsListUtils';
+ import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+ import tokenizedSearch from '@libs/tokenizedSearch';
+diff --git a/src/pages/workspace/workflows/approvals/ApprovalWorkflowEditor.tsx b/src/pages/workspace/workflows/approvals/ApprovalWorkflowEditor.tsx
+index 6a1538efdf08..3bd39ebe5c28 100644
+--- a/src/pages/workspace/workflows/approvals/ApprovalWorkflowEditor.tsx
++++ b/src/pages/workspace/workflows/approvals/ApprovalWorkflowEditor.tsx
+@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
+ 
+ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+ import Navigation from '@libs/Navigation/Navigation';
+-import {sortAlphabetically} from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {isControlPolicy} from '@libs/PolicyUtils';
+ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+ import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+diff --git a/tests/ui/AssignCardAssigneeStepTest.tsx b/tests/ui/AssignCardAssigneeStepTest.tsx
+index c82d341ae211..cf22eec82e40 100644
+--- a/tests/ui/AssignCardAssigneeStepTest.tsx
++++ b/tests/ui/AssignCardAssigneeStepTest.tsx
+@@ -106,7 +106,6 @@ jest.mock('@libs/PolicyUtils', () => ({
+     isDeletedPolicyEmployee: jest.fn(() => false),
+ }));
+ jest.mock('@libs/OptionsListUtils', () => ({
+-    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => [...items].sort((a, b) => cmp(a[key] ?? '', b[key] ?? '')),
+     getSearchValueForPhoneOrEmail: (value: string) => value,
+ }));
+ jest.mock('@libs/PersonalDetailOptionsListUtils', () => ({
+diff --git a/tests/ui/ChangeReceiptBillingAccountPageTest.tsx b/tests/ui/ChangeReceiptBillingAccountPageTest.tsx
+index 0e9d0ecf5e0d..ee030b408b37 100644
+--- a/tests/ui/ChangeReceiptBillingAccountPageTest.tsx
++++ b/tests/ui/ChangeReceiptBillingAccountPageTest.tsx
+@@ -86,7 +86,6 @@ jest.mock('@hooks/useDebouncedState', () =>
+ 
+ jest.mock('@libs/OptionsListUtils', () => ({
+     formatMemberForList: (member: Record<string, unknown>) => ({...member}),
+-    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => [...items].sort((a, b) => cmp(a[key] ?? '', b[key] ?? '')),
+     getSearchValueForPhoneOrEmail: (value: string) => value,
+     getHeaderMessage: () => '',
+ }));
+diff --git a/tests/ui/IssueNewCardAssigneeStepTest.tsx b/tests/ui/IssueNewCardAssigneeStepTest.tsx
+index bfdeb5c1f99d..46826b25160a 100644
+--- a/tests/ui/IssueNewCardAssigneeStepTest.tsx
++++ b/tests/ui/IssueNewCardAssigneeStepTest.tsx
+@@ -101,10 +101,6 @@ jest.mock('@libs/PolicyUtils', () => ({
+ }));
+ jest.mock('@libs/OptionsListUtils', () => ({
+     getSearchValueForPhoneOrEmail: (value: string) => value,
+-    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => {
+-        items.sort((a, b) => cmp(a[key] ?? '', b[key] ?? ''));
+-        return items;
+-    },
+ }));
+ jest.mock('@libs/PersonalDetailOptionsListUtils', () => ({getHeaderMessage: () => ''}));
+ jest.mock('@libs/PersonalDetailsUtils', () => ({
+diff --git a/tests/ui/ReportSubmitToContentTest.tsx b/tests/ui/ReportSubmitToContentTest.tsx
+index 3318c0899af7..f1e3469cd401 100644
+--- a/tests/ui/ReportSubmitToContentTest.tsx
++++ b/tests/ui/ReportSubmitToContentTest.tsx
+@@ -88,7 +88,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({dismissToPreviousRHP: jest.fn()
+ jest.mock('@libs/OptionsListUtils', () => ({
+     getSearchValueForPhoneOrEmail: jest.fn((value: string) => value),
+     getUserToInviteOption: jest.fn(() => null),
+-    sortAlphabetically: jest.fn((items: unknown[]) => items),
+ }));
+ jest.mock('@libs/PersonalDetailsUtils', () => ({
+     getKnownAccountIDByLogin: jest.fn(() => undefined),
+diff --git a/tests/unit/OptionsListUtilsTest.tsx b/tests/unit/OptionsListUtilsTest.tsx
+index 205134936dd1..3c4720861c25 100644
+--- a/tests/unit/OptionsListUtilsTest.tsx
++++ b/tests/unit/OptionsListUtilsTest.tsx
+@@ -41,8 +41,8 @@ import {
+     orderPersonalDetailsOptions,
+     orderWorkspaceOptions,
+     recentReportComparator,
+-    sortAlphabetically,
+ } from '@libs/OptionsListUtils';
++import sortAlphabetically from '@libs/sortAlphabetically';
+ import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
+ import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
+ import type {OptionData} from '@libs/ReportUtils';
+-- 
+2.50.1 (Apple Git-155)
+

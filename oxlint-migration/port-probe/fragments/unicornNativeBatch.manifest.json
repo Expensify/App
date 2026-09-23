@@ -1,0 +1,38 @@
+{
+    "unicorn/no-array-for-each": {
+        "fixture": "fixtures/unicornNativeBatch.ts",
+        "oxlintRule": "unicorn/no-array-for-each",
+        "expected": 1,
+        "why": "enabled bare in production; Array#forEach with a callback, with the for-of loop the rule asks for sitting above it as a control"
+    },
+    "unicorn/prefer-array-find": {
+        "fixture": "fixtures/unicornNativeBatch.ts",
+        "oxlintRule": "unicorn/prefer-array-find",
+        "expected": 1,
+        "why": "enabled bare in production; `filter(...)[0]` with a `.find()` control so the row cannot be pinned by an always-reporting file"
+    },
+    "unicorn/prefer-set-has": {
+        "fixture": "fixtures/unicornNativeBatch.ts",
+        "oxlintRule": "unicorn/prefer-set-has",
+        "expected": 1,
+        "why": "enabled bare in production; neither tool reports a lone membership test, so the array is read by two `.includes()` calls and the finding lands on its declaration"
+    },
+    "unicorn/prefer-set-size": {
+        "fixture": "fixtures/unicornNativeBatch.ts",
+        "oxlintRule": "unicorn/prefer-set-size",
+        "expected": 1,
+        "why": "enabled bare in production; the inline `[...new Set(x)].length` is the only shape ESLint reports under @typescript-eslint/parser, because its isSet() needs the variable definition's kind and typescript-eslint's scope manager omits it, while oxlint also reports the `const set = new Set()` and Array.from forms -- the fixture therefore stays on the shared shape"
+    },
+    "unicorn/prefer-string-replace-all": {
+        "fixture": "fixtures/unicornNativeBatch.ts",
+        "oxlintRule": "unicorn/prefer-string-replace-all",
+        "expected": 1,
+        "why": "enabled bare in production; a global regex passed to String#replace, with a replaceAll control below it"
+    },
+    "unicorn/prefer-at": {
+        "fixture": "fixtures/unicornPreferAt.ts",
+        "oxlintRule": "unicorn/prefer-at",
+        "expected": 1,
+        "why": "tripwire for the rule oxlint enables and production ESLint does not, at default options: oxlint does emit two identical diagnostics for the single `slice(-1)[0]` in raw --format json (open upstream double-report), but the harness counts unique (file, line, rule) so the row is plain parity at 1 and the doubling is only visible in oxlint's own error total"
+    }
+}

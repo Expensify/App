@@ -239,4 +239,4 @@ function reactCompilerDiagnostics(filename, sourceText) {
     return cache.get(filename);
 }
 
-export {RULE_BY_CATEGORY, reactCompilerDiagnostics};
+export {CONFIG_CATEGORY, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};

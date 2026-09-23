@@ -1,0 +1,74 @@
+{
+    "react-native-a11y/has-accessibility-props": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-accessibility-props",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema -- fixture proves the npm plugin reaches the sidecar"
+    },
+    "react-native-a11y/has-valid-accessibility-actions": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-actions",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-component-type": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-component-type",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-ignores-invert-colors": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-ignores-invert-colors",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-live-region": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-live-region",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-role": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-role",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-state": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-state",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-states": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-states",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-traits": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-traits",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-accessibility-value": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-accessibility-value",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/has-valid-important-for-accessibility": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/has-valid-important-for-accessibility",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    },
+    "react-native-a11y/no-nested-touchables": {
+        "fixture": "fixtures/a11yNpmBatch.tsx",
+        "oxlintRule": "react-native-a11y/no-nested-touchables",
+        "expected": 1,
+        "why": "enabled bare in production, absent from oxlint's schema"
+    }
+}

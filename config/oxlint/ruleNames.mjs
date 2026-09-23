@@ -1,3 +1,6 @@
+// Plain .mjs so the bun lint pipeline, oxlint's JS plugin runtime and the Python harness can all
+// read one copy; only the first of those can load TypeScript. The two tables are exported because
+// oxlint-migration/ruleMap.py reads them, not because JS callers use them.
 const OXLINT_RULE_RENAMES = {
     'no-object-constructor': 'no-new-object',
     'no-new-native-nonconstructor': 'no-new-symbol',
@@ -85,4 +88,4 @@ function oxlintCodeToESLintRuleID(code) {
     return `${plugin}/${rule}`;
 }
 
-export {hostedRuleNames, oxlintCodeToESLintRuleID};
+export {HOSTED_RULE_ORIGIN, OXLINT_RULE_RENAMES, hostedRuleNames, oxlintCodeToESLintRuleID};
