@@ -17,6 +17,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {TextInput as TextInputType} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -50,10 +51,10 @@ function TextSelectorModal({
     const [currentValue, setValue] = useState(value);
     const [isClosing, setIsClosing] = useState(false);
 
-    const inputRef = useRef<TextInputType | null>(null);
+    const inputRef = useRef<ComponentRef<typeof TextInputType> | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const inputCallbackRef = (ref: TextInputType | null) => {
+    const inputCallbackRef = (ref: ComponentRef<typeof TextInputType> | null) => {
         inputRef.current = ref;
     };
 

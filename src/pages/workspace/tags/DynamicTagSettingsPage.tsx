@@ -14,6 +14,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -60,6 +61,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const orderWeight = Number(route.params.orderWeight);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
@@ -103,7 +106,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
             });
             return;
         }
-        setWorkspaceTagEnabled(policyData, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled(policyData, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight, isVendorMatchingBetaEnabled);
     };
 
     const navigateToEditTag = () => {
@@ -263,7 +266,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                     if (!currentPolicyTag?.name) {
                                         return;
                                     }
-                                    deletePolicyTags(policyData, [currentPolicyTag.name]);
+                                    deletePolicyTags(policyData, [currentPolicyTag.name], isVendorMatchingBetaEnabled);
                                     Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
                                 }
                             }}

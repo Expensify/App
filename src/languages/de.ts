@@ -536,9 +536,11 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Folgen Sie uns auf LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge hat eine Antwort!',
         collapseReasoning: 'Begründung einklappen',
         expandReasoning: 'Begründung erweitern',
         enableNotifications: {prompt: 'Möchten Sie benachrichtigt werden, wenn Concierge antwortet?', cta: 'Benachrichtigen'},
+        feedback: {prompt: 'War diese Antwort hilfreich?', useful: 'Hilfreiche Antwort', notUseful: 'Nicht hilfreiche Antwort', thanks: 'Danke für Ihr Feedback!'},
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -621,10 +623,6 @@ const translations: TranslationDeepObject<typeof en> = {
         problemGettingImageYouPasted: 'Beim Abrufen des von dir eingefügten Bildes ist ein Problem aufgetreten',
         commentExceededMaxLength: (formattedMaxLength: string) => `Die maximale Kommentarlänge beträgt ${formattedMaxLength} Zeichen.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `Die maximale Aufgaben-Titellänge beträgt ${formattedMaxLength} Zeichen.`,
-    },
-    baseUpdateAppModal: {
-        updateApp: 'App aktualisieren',
-        updatePrompt: 'Eine neue Version dieser App ist verfügbar.\nAktualisiere jetzt oder starte die App später neu, um die neuesten Änderungen herunterzuladen.',
     },
     deeplinkWrapper: {
         launching: 'Expensify wird gestartet',
@@ -975,12 +973,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um eine Erstattung zu erhalten'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName}-Kartenergänzung erfordert Ihre Zustimmung`,
                 subtitle: 'Expensify Karte',
-                cta: 'Überprüfen',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Digitale Brieftasche',
             },
             reviewCardFraud: {
                 title: 'Möglichen Betrug mit Ihrer Expensify Karte überprüfen',
@@ -1080,6 +1073,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Überprüfen Sie 1 Ausgabe',
                 other: `Überprüfen Sie ${count} Ausgaben`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Prüfen Sie 1 Domain-Admin-Anfrage',
+                other: `Prüfen Sie ${count} Domain-Admin-Anfragen`,
+            }),
         },
         upcomingTravel: 'Bevorstehende Reisen',
         upcomingTravelSection: {
@@ -1163,6 +1160,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Bitten Sie Concierge, Ihre Ausgaben zu analysieren oder Unterstützung zu erhalten',
             inputPlaceholderMobile: 'Stellen Sie Concierge eine Frage',
         },
+    },
+    insightsPage: {
+        viewOnSpend: 'In Ausgaben anzeigen',
+        emptyState: {title: 'Nichts anzuzeigen', subtitle: 'Versuchen Sie, Ihre Kriterien oben anzupassen'},
+        noExpensesState: {title: 'Sehen Sie, wohin Ihr Geld fließt', subtitle: 'Sobald Sie Ausgaben haben, finden Sie Ausgabentrends, Top-Händler und mehr.'},
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1268,6 +1270,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Neue Karten und Transaktionen können etwas Zeit benötigen, bis sie erscheinen. Bitte haben Sie etwas Geduld.',
         importMembersRolePermissionWarning: 'Sie haben keine Berechtigung, einige Mitgliederrollen zuzuweisen. Alle betroffenen neuen Mitglieder wurden als Mitglieder eingeladen.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 Anbieter wurde übersprungen, weil er in diesem Workspace nicht existiert.',
+            other: `${count} Anbieter wurden übersprungen, weil sie in diesem Workspace nicht existieren.`,
+        }),
     },
     receipt: {
         upload: 'Beleg hochladen',
@@ -1294,6 +1300,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lass es los',
         dropMessage: 'Datei hierher ziehen',
         flash: 'Blitz',
+        flipCamera: 'Kamera wechseln',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
         gallery: 'Galerie',
@@ -1807,6 +1814,8 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotRejectExpense: 'Die Ausgabe konnte nicht abgelehnt werden, da sie möglicherweise bereits verschoben oder abgelehnt wurde.',
         },
         moveExpenses: 'Zum Bericht verschieben',
+        autoReport: 'Automatischer Bericht',
+        autoReportDescription: 'Im Namen des Mitarbeiters zu Berichtsentwürfen hinzufügen',
         moveExpensesMaxTransactionsError: `Berichte sind auf ${CONST.REPORT.MAX_TRANSACTIONS} Ausgaben begrenzt. Bitte verschiebe einige in einen anderen Bericht.`,
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
         submitReportTo: {
@@ -1820,11 +1829,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Wähle eine Option, um die approvierende Person für diesen Bericht zu ändern. (Aktualisiere deine <a href="${workflowSettingLink}">Workspace-Einstellungen</a>, um dies dauerhaft für alle Berichte zu ändern.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
             reassignedApproverMessage: (managerID: number) => `hat den Genehmigenden über eine Workflow-Aktualisierung neu zu <mention-user accountID="${managerID}"/> zugewiesen`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `Genehmigenden in <mention-user accountID="${newApproverID}"/> geändert, <mention-user accountID="${previousApproverID}"/> übersprungen`
+                    : `Genehmigenden in <mention-user accountID="${newApproverID}"/> geändert`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
                 addApproverSubtitle: 'Füge dem bestehenden Workflow eine weitere genehmigende Person hinzu.',
                 bypassApprovers: 'Genehmigende umgehen',
                 bypassApproversSubtitle: 'Sich selbst als finale:n Genehmiger:in zuweisen und alle verbleibenden Genehmiger:innen überspringen.',
+                reassignApprover: 'Genehmiger neu zuweisen',
+                reassignApproverSubtitle: 'Überspringe die aktuelle genehmigende Person und weise eine neue zu.',
+                reassignApproverPageHeader: 'Wähle eine ersetzende genehmigende Person aus und folge dann dem restlichen Genehmigungs-Workflow.',
             },
             addApprover: {
                 subtitle: 'Wählen Sie eine zusätzliche genehmigende Person für diesen Bericht, bevor wir ihn durch den restlichen Genehmigungsworkflow leiten.',
@@ -2181,6 +2197,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profil-Avatar',
         customInstructions: 'Benutzerdefinierte Anweisungen',
         copilotIntoAccount: 'Copilot in Konto',
+        viewMemberHistory: 'Mitgliedsverlauf anzeigen',
+        viewAgentHistory: 'Agentenverlauf anzeigen',
         publicSection: {
             title: 'Öffentlich',
             subtitle: 'Diese Angaben werden in deinem öffentlichen Profil angezeigt. Jede:r kann sie sehen.',
@@ -2547,7 +2565,6 @@ const translations: TranslationDeepObject<typeof en> = {
         verifyNewDeviceDescription: 'Scannen Sie den QR-Code mit Ihrem neuen Gerät und geben Sie dann den Code ein, um die Einrichtung abzuschließen.',
         downloadCodes: 'Codes herunterladen',
         copyCodes: 'Codes kopieren',
-        twoFactorAuthIsRequiredNetSuiteDescription: 'Aus Sicherheitsgründen erfordert NetSuite zur Verbindung der Integration eine Zwei-Faktor-Authentifizierung.',
     },
     recoveryCodeForm: {
         error: {
@@ -2765,6 +2782,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'digitale Brieftasche',
+        digitalWalletCapitalized: 'Digitale Brieftasche',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName}-Kartenergänzung erfordert Ihre Zustimmung`,
+        review: 'Überprüfen',
         confirmHeading: 'Bestätigen Sie Ihre Anfrage',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Möchten Sie Ihre Expensify Karte (endet auf ${lastFourDigits}) zu Ihrem ${walletName} hinzufügen?`,
@@ -2822,6 +2842,15 @@ const translations: TranslationDeepObject<typeof en> = {
             updateAddress: 'Adresse aktualisieren',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Zu ${platform} Wallet hinzugefügt`,
+        cardAddedToWalletPage: {
+            title: 'Alles bereit!',
+            description: 'Deine Karte wurde zu Apple Wallet hinzugefügt.',
+            firstSupportingText: 'Apple Pay ist eine einfachere Art, in Geschäften, in Apps und online mit deinem iPhone, deiner Apple Watch, deinem iPad und deinem Mac zu bezahlen.',
+            secondSupportingText: 'Nutze Apple Pay überall, wo du diese\nSymbole siehst.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Kontaktloses Bezahlen',
+            buttonText: 'Verstanden',
+        },
         cardDetailsLoadingFailure: 'Beim Laden der Kartendetails ist ein Fehler aufgetreten. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
         validateCardTitle: 'Stellen wir sicher, dass du es bist',
         enterSecurityCode: (contactMethod: string) =>
@@ -3139,6 +3168,7 @@ ${amount} für ${merchant} – ${date}`,
         agentName: 'Name der Agentin/des Agenten',
         instructions: 'Eigene Anweisungen schreiben',
         chatWithAgent: 'Mit Agent chatten',
+        viewAgentHistory: 'Agentenverlauf anzeigen',
         copilotIntoAccount: 'Copilot ins Konto',
         deleteAgent: 'Agent löschen',
         deleteAgentTitle: 'Agent löschen?',
@@ -3322,7 +3352,7 @@ ${amount} für ${merchant} – ${date}`,
             agentSignInBlocked:
                 'Agent-Konten können nicht direkt verwendet werden. Um ein Agent-Konto zu nutzen, melden Sie sich mit Ihrem eigenen Konto an und greifen Sie über Copilot darauf zu.',
         },
-        cannotGetAccountDetails: 'Kontodetails konnten nicht abgerufen werden. Bitte melde dich erneut an.',
+        cannotGetAccountDetails: 'Kontodaten konnten nicht abgerufen werden. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         loginForm: 'Anmeldeformular',
         notYou: (user: string) => `Nicht ${user}?`,
     },
@@ -3365,12 +3395,14 @@ ${amount} für ${merchant} – ${date}`,
         employees: {
             title: 'Wie viele Mitarbeitende haben Sie?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1–4 Mitarbeitende',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–10 Mitarbeitende',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1–10 Mitarbeitende',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11–50 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5–9 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10–50 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101–1.000 Mitarbeitende',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Mehr als 1.000 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5–10 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1–10 Mitarbeitende',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11–50 Mitarbeitende',
         },
         accounting: {
             title: 'Verwendest du eine Buchhaltungssoftware?',
@@ -3914,8 +3946,11 @@ ${amount} für ${merchant} – ${date}`,
                 'Dieses Bankkonto kann nicht gelöscht werden, da es für Zahlungen mit der Expensify Karte verwendet wird. Wenn Sie dieses Konto trotzdem löschen möchten, wenden Sie sich bitte an Concierge.',
             sameDepositAndWithdrawalAccount: 'Die Einzahlungs- und Auszahlungskonten sind identisch.',
         },
+        unlockAlreadyRequestedTitle: 'Anfrage bereits eingereicht',
+        unlockAlreadyRequestedDescription: 'Ihre Anfrage zur Entsperrung dieses Bankkontos wurde bereits gesendet. Concierge meldet sich bei Ihnen, falls noch etwas benötigt wird.',
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
         countrySelectionStepHeader: 'Wo befindet sich dein Bankkonto?',
         accountDetailsStepHeader: 'Wie lauten deine Kontodetails?',
         accountTypeStepHeader: 'Was für ein Konto ist das?',
@@ -5345,6 +5380,9 @@ ${amount} für ${merchant} – ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagenausgaben werden beim Bezahlen exportiert',
                 },
             },
+            fxExpenseAccount: 'Sage Intacct Konto für Währungsumrechnungsgebühren',
+            fxExpenseAccountDescription:
+                'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland getätigten Zahlung übernimmt, buchen wir diese Kosten in Sage Intacct als Journalbuchung auf dieses Konto.',
         },
         certinia: {
             title: 'Certinia',
@@ -5442,6 +5480,11 @@ ${amount} für ${merchant} – ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Zuweisungen',
                 },
             },
+            fxExpenseAccount: 'Konto für Währungsumrechnungsgebühren',
+            fxExpenseAccountDescription:
+                'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland getätigten Zahlung übernimmt, fügen wir diese Kosten der Verbindlichkeitsrechnung als Position hinzu, die diesem Konto zugeordnet ist.',
+            noExpenseAccountsFound: 'Keine Konten gefunden',
+            noExpenseAccountsFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Hauptbuchkonten in Certinia hinzugefügt wurden.',
         },
         netsuite: {
             subsidiary: 'Tochtergesellschaft',
@@ -5612,6 +5655,7 @@ ${amount} für ${merchant} – ${date}`,
             noSubsidiariesFoundDescription: 'Bitte füge in NetSuite eine Tochtergesellschaft hinzu und synchronisiere die Verbindung erneut',
             tokenInput: {
                 title: 'NetSuite-Einrichtung',
+                connectWithTokenAuthentication: 'Stattdessen mit tokenbasierter Authentifizierung (SOAP) verbinden',
                 formSteps: {
                     installBundle: {
                         title: 'Expensify-Bundle installieren',
@@ -6621,6 +6665,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 expensifyCardBannerLearnMoreButton: 'Mehr erfahren',
                 statementCloseDateTitle: 'Abrechnungsschlussdatum',
                 statementCloseDateDescription: 'Teile uns mit, wann dein Kreditkartenkontoauszug abgeschlossen wird, und wir erstellen einen passenden Auszug in Expensify.',
+                exportAccount: 'Konto exportieren',
             },
             workflows: {
                 title: 'Workflows',
@@ -6877,6 +6922,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 other: (count: number) => `${count} Tags`,
             }),
             showTagGLCodes: 'Kontenplan-Codes beim Auswählen eines Tags anzeigen',
+            showTagGLCodesSubtitle: 'Wenn ein Kontenplan-Code nicht angezeigt wird, ist er für dieses Tag in Ihrem Buchhaltungssystem nicht verfügbar.',
         },
         taxes: {
             subtitle: 'Steuernamen und -sätze hinzufügen und Standardwerte festlegen.',
@@ -8163,6 +8209,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 importColumnUpdatedCategory: 'Aktualisierte Kategorie',
                 importColumnUpdatedTag: 'Aktualisiertes Tag',
                 importColumnUpdatedDescription: 'Aktualisierte Beschreibung',
+                importColumnUpdatedVendor: 'Lieferant aktualisiert',
                 expensesWith: 'Für Ausgaben mit:',
                 expensesExactlyMatching: 'Für Ausgaben mit genau folgender Übereinstimmung:',
                 applyUpdates: 'Diese Aktualisierungen anwenden:',
@@ -8673,12 +8720,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
-                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
-                added: 'Hinzugefügt',
-                removed: 'Entfernt',
-                skipped: 'Übersprungen',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 Mitarbeiter',
                     other: (count: number) => `${count} Mitarbeitende`,
                 }),
@@ -8709,6 +8751,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 Kandidat',
+                    other: (count: number) => `${count} Kandidat:innen`,
+                }),
+            },
         },
         merge: {
             connections: 'Verbindungen',
@@ -8737,6 +8785,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             syncingModalTitle: 'Ihre Verbindung wird synchronisiert',
             syncingModalDescription: 'Die erste Verbindung kann einige Zeit dauern. Sie werden über alle Fehler benachrichtigt.',
             syncLimitReached: {title: 'Versuchen Sie es morgen noch einmal', prompt: 'Sie haben Ihr Synchronisierungslimit für heute erreicht.'},
+            syncResults: {
+                title: (provider: string) => `${provider}-Synchronisierung abgeschlossen`,
+                successTitle: (provider: string) => `Ihre ${provider}-Verbindung wurde erfolgreich synchronisiert!`,
+                added: 'Hinzugefügt',
+                removed: 'Entfernt',
+                skipped: 'Übersprungen',
+            },
         },
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
@@ -8751,11 +8806,32 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Campfire aus, von der Sie Daten importieren möchten.',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
             noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
             importDescription: 'Wählen Sie aus, welche Kodierungskonfigurationen aus Campfire importiert werden sollen.',
             accountTypesDescription: 'Ihre Campfire-Konten werden als Kategorien importiert.',
             enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
             enableNewAccountsDescription: 'Neue Campfire-Konten werden als Kategorien verfügbar sein.',
             dimensionsImport: 'Alle Campfire-Dimensionen werden als Tags importiert',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Campfire exportiert werden.',
+            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {VENDOR_BILL: {label: 'Lieferantenrechnungen'}}},
+            exportDate: {
+                label: 'Rechnungsdatum des Lieferanten',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Campfire.',
+                values: {
+                    LAST_EXPENSE: {label: 'Datum der letzten Ausgabe', description: 'Datum der jüngsten Ausgabe im Bericht.'},
+                    REPORT_EXPORTED: {label: 'Exportdatum', description: 'Datum, an dem der Bericht nach Campfire exportiert wurde.'},
+                    REPORT_SUBMITTED: {label: 'Eingereichtes Datum', description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Firmenkarten-Ausgaben exportieren als', values: {JOURNAL_ENTRY: {label: 'Buchungsbelege'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für alle Firmenkarten',
+                description: 'Wählen Sie einen Standard-Campfire-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin Unternehmenskartentransaktionen exportiert werden sollen.'},
+            noAccountsFound: 'Keine Konten gefunden',
+            noAccountsFoundDescription: 'Bitte fügen Sie Konten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -8767,6 +8843,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Dynamics 365 Business Central-Tochtergesellschaft aus, die mit diesem Workspace synchronisiert werden soll.',
             noCompaniesFound: 'Keine Unternehmen gefunden',
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Business Central hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {
@@ -9597,6 +9675,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         bulkActions: {
             editMultiple: 'Mehrere bearbeiten',
             editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
+            editFinalizedExpensesTitle: 'Abgeschlossene Ausgaben bearbeiten?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 der ${total} von Ihnen ausgewählten Ausgaben befindet sich in einem genehmigten oder bezahlten Bericht. Sie sind dabei, eine abgeschlossene Ausgabe zu bearbeiten. Sind Sie sicher?`,
+                other: `${count} der ${total} von Ihnen ausgewählten Ausgaben befinden sich in genehmigten oder bezahlten Berichten. Sie sind dabei, abgeschlossene Ausgaben zu bearbeiten. Sind Sie sicher?`,
+            }),
             editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben übernommen und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
@@ -9692,6 +9775,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorie',
                 [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
                 [CONST.SEARCH.GROUP_BY.TAG]: 'Tag',
+                [CONST.SEARCH.GROUP_BY.DAY]: 'Tag',
                 [CONST.SEARCH.GROUP_BY.MONTH]: 'Monat',
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
@@ -9712,6 +9796,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
             },
             filterType: {label: 'Filtertyp', has: {positive: 'hat', negative: 'hat nicht'}, is: {positive: 'ist', negative: 'ist nicht'}},
+            created: 'Erstellt',
+            createdDate: 'Erstellungsdatum',
+            transactionStatus: {
+                label: 'Transaktionsstatus',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Ausstehend',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Gebucht',
+                hint: 'Gilt nur für Kartentransaktionen.',
+            },
         },
         display: {
             label: 'Anzeige',
@@ -9735,6 +9827,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Kategorien',
             [CONST.SEARCH.GROUP_BY.MERCHANT]: 'Händler',
             [CONST.SEARCH.GROUP_BY.TAG]: 'Tags',
+            [CONST.SEARCH.GROUP_BY.DAY]: 'Tage',
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Monate',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
@@ -10713,6 +10806,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: ({count}: {count: number}) => ({
                     one: 'Testversion: Noch 1 Tag übrig!',
                     other: `Testversion: Noch ${count} Tage übrig!`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: 'Noch 1 Tag übrig!',
+                    other: `Noch ${count} Tage übrig!`,
                 }),
                 subtitle: 'Füge eine Zahlungskarte hinzu, um alle deine Lieblingsfunktionen weiterhin nutzen zu können.',
             },

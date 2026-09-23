@@ -49,6 +49,12 @@ const ONYXKEYS = {
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
+    /** Pagination state for tag filter search (hasMore, nextCursor). RAM-only so it resets on app restart. */
+    RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION: 'searchTagFiltersPagination',
+
+    /** Paginated tag search results. RAM-only so it resets on app restart. */
+    RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS: 'searchTagFiltersResults',
+
     /** Boolean flag set whenever we are searching for users in the server */
     RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
 
@@ -124,9 +130,6 @@ const ONYXKEYS = {
     /** Contains a list of all currencies available to the user - user can
      * select a currency based on the list */
     CURRENCY_LIST: 'currencyList',
-
-    /** Indicates whether an update is available and ready to be installed. */
-    RAM_ONLY_UPDATE_AVAILABLE: 'updateAvailable',
 
     /** Indicates that a request to join a screen share with a GuidesPlus agent was received */
     SCREEN_SHARE_REQUEST: 'screenShareRequest',
@@ -818,11 +821,11 @@ const ONYXKEYS = {
     /** Persisted draft for the new-agent avatar selection flow */
     AGENT_NEW_AVATAR_DRAFT: 'agentNewAvatarDraft',
 
+    /** Pagination state of the workspace rooms page, keyed by policyID */
+    POLICY_ROOMS_METADATA: 'policyRoomsMetadata',
+
     /** Maps an agent's optimistic accountID to the real one assigned by CreateAgent, consumed and cleared by replaceOptimisticAgentWithActualAgent */
     OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
-
-    /** Set when the rooms page has finished loading for the first time */
-    ARE_POLICY_ROOMS_LOADED: 'arePolicyRoomsLoaded',
 
     /**
      * Determines whether billing is required when the user downgrades their plan.
@@ -978,6 +981,9 @@ const ONYXKEYS = {
         // Search Page related
         SNAPSHOT: 'snapshot_',
 
+        /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
+        INSIGHTS: 'insights_',
+
         // Shared NVPs
         /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
         SHARED_NVP_AGENT_PROMPT: 'sharedNVP_agentPrompt_',
@@ -1039,6 +1045,9 @@ const ONYXKEYS = {
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
 
         NVP_EXPENSIFY_REPORT_PDF_FILENAME: 'nvp_expensify_report_PDFFilename_',
+
+        /** Marker written when the user has already requested to unlock a locked business bank account */
+        NVP_LOCKED_VBA_UNLOCK_REQUESTED: 'nvp_expensify_vbaUnlockRequested_',
 
         /** The last submission method (Submit / Submit via PDF) the user chose on a given workspace, so the Submit button can default to it. Keyed by policyID. */
         NVP_PREFERRED_REPORT_SUBMISSION_METHOD: 'preferredReportSubmissionMethod_',
@@ -1560,12 +1569,14 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SELECTED_DISTANCE_REQUEST_TAB]: OnyxTypes.SelectedTabRequest;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME]: string;
+    [ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED]: string;
     [ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD]: ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN]: boolean;
     [ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN]: boolean;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
+    [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.AgentPrompt;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
@@ -1641,7 +1652,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PERSONAL_DETAILS_METADATA]: Record<string, OnyxTypes.PersonalDetailsMetadata>;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.CURRENCY_LIST]: OnyxTypes.CurrencyList;
-    [ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
@@ -1744,8 +1754,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
     [ONYXKEYS.AGENT_NEW_AVATAR_DRAFT]: OnyxTypes.AgentNewAvatarDraft;
+    [ONYXKEYS.POLICY_ROOMS_METADATA]: Record<string, OnyxTypes.PolicyRoomsMetadata>;
     [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: Record<string, number>;
-    [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.NVP_HOME_SELECTED_INSIGHT]:
@@ -1778,6 +1788,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
+    [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION]: OnyxTypes.SearchTagFiltersPaginationState;
+    [ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS]: OnyxTypes.SearchTagFilterItem[];
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
