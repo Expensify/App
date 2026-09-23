@@ -9,12 +9,10 @@ import Text from '@components/Text';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT} from '@libs/ProductMarketingWindowUtils';
 
-import CONST from '@src/CONST';
 import en from '@src/languages/en';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import React from 'react';
@@ -25,7 +23,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const USER_EMAIL = 'user@example.com';
 const USER_ACCOUNT_ID = 7;
-const POLICY_ID = 'product-marketing-policy';
 const FIRST_SCREEN_TEXT = 'First screen content';
 const SECOND_SCREEN_TEXT = 'Second screen content';
 const MODAL_SCREEN_TEXT = 'Centered modal screen content';
@@ -35,23 +32,6 @@ if (!announcement) {
     throw new Error('These tests require an active product marketing announcement; update them if the active announcement is removed.');
 }
 const windowHeading = en.productMarketingWindow.heading;
-
-function buildAdminPolicy(): Policy {
-    return {
-        id: POLICY_ID,
-        name: 'Test Workspace',
-        type: CONST.POLICY.TYPE.CORPORATE,
-        role: CONST.POLICY.ROLE.ADMIN,
-        owner: USER_EMAIL,
-        outputCurrency: 'USD',
-        employeeList: {
-            [USER_EMAIL]: {
-                email: USER_EMAIL,
-                role: CONST.POLICY.ROLE.ADMIN,
-            },
-        },
-    } as Policy;
-}
 
 type TestRootParamList = {
     [SCREENS.CONCIERGE]: undefined;
@@ -117,8 +97,6 @@ describe('ProductMarketingWindow across navigation', () => {
                 [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
             });
             await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
-            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             await waitForBatchedUpdatesWithAct();
         });
 

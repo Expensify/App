@@ -1,25 +1,23 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
 import {dismissMarketingWindow} from '@libs/actions/User';
-import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import openExternalLink from '@libs/openExternalLink';
-import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
+import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import {activeAdminPoliciesSelector} from '@src/selectors/Policy';
 import {accountIDSelector, isSupportalSessionSelector} from '@src/selectors/Session';
-import type {Policy, Session} from '@src/types/onyx';
+import type {Session} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
 import React, {useState} from 'react';
@@ -51,16 +49,6 @@ type ProductMarketingWindowManagerProps = {
  * Mounted in the authenticated root navigator's extra content so it stays mounted across route changes.
  */
 function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindowManagerProps) {
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    // Only the ID is selected out of the policy collection: returning the admin policies themselves makes
-    // useOnyx deep-compare every policy object on each collection update, which costs tens of ms on large accounts.
-    const [targetAdminPolicyID, targetAdminPolicyIDMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<Policy>) => {
-            const activeAdminPolicies = activeAdminPoliciesSelector(policies, currentUserLogin);
-            return (activeAdminPolicies.find((policy) => policy.id === activePolicyID) ?? activeAdminPolicies.at(0))?.id;
-        },
-    });
     // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
     // Responsive popover sheets and route-backed right-docked navigation remain exempt.
     const [isProductMarketingWindowCovered = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
@@ -74,7 +62,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
     const [hasCompletedGuidedSetupFlow, onboardingMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [accountIDsWithObservedActiveOnboarding, setAccountIDsWithObservedActiveOnboarding] = useState<ReadonlySet<number>>(() => new Set());
-    // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
+    // OpenApp provides the dismissal data; wait for it to avoid a startup flash of an already-dismissed window.
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     // The session changes before loading/delegate data during Copilot entry. A failed connection keeps the original account ID.
@@ -88,23 +76,13 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     }
 
     const announcement = ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT;
-    // Every illustration-backed variant is resolved up front because useMemoizedLazyIllustrations doesn't reload
-    // assets when the requested names change after mount (e.g. when the audience flips after policies arrive).
-    const illustrationNames = announcement ? [announcement.admin.visual, announcement.member?.visual].flatMap((visual) => (visual?.type === 'illustration' ? [visual.name] : [])) : [];
+    const illustrationNames = announcement?.visual.type === 'illustration' ? [announcement.visual.name] : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
-    const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
+    const isDismissed = isProductMarketingAnnouncementDismissed(announcement, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading =
-        isLoadingOnyxValue(
-            lastDismissedMarketingWindowMetadata,
-            targetAdminPolicyIDMetadata,
-            activePolicyIDMetadata,
-            isLoadingAppMetadata,
-            currentAccountIDMetadata,
-            stashedAccountIDMetadata,
-            accountMetadata,
-            onboardingMetadata,
-        ) || isLoadingApp;
+        isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, isLoadingAppMetadata, currentAccountIDMetadata, stashedAccountIDMetadata, accountMetadata, onboardingMetadata) ||
+        isLoadingApp;
     const shouldSuppressForOnboardingSession = hasCompletedGuidedSetupFlow === false || (currentAccountID !== undefined && accountIDsWithObservedActiveOnboarding.has(currentAccountID));
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const navigation = useNavigation();
@@ -116,7 +94,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
 
     if (
         !announcement ||
-        !variant ||
+        isDismissed ||
         isLoading ||
         isProductMarketingWindowCovered ||
         isAnonymousSession ||
@@ -139,20 +117,15 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     };
 
     const completeCta = () => {
-        // Record the dismissal before leaving so the window doesn't flash again during navigation.
+        // Record the dismissal before leaving so the window doesn't flash again while the new tab opens.
         persistDismissal();
-        const destination = variant.ctaDestination;
-        if (destination.type === 'externalLink') {
-            openExternalLink(destination.url);
-            return;
-        }
-        Navigation.navigate(destination.route);
+        openExternalLink(announcement.ctaUrl);
     };
 
     return (
         <ProductMarketingWindow
-            variant={variant}
-            illustration={variant.visual.type === 'illustration' ? illustrations[variant.visual.name] : undefined}
+            announcement={announcement}
+            illustration={announcement.visual.type === 'illustration' ? illustrations[announcement.visual.name] : undefined}
             onCtaPress={completeCta}
             onDismiss={dismiss}
         />

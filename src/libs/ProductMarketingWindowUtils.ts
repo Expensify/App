@@ -4,7 +4,6 @@ import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
 
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,19 +19,13 @@ type ProductMarketingAnnouncementVisual =
           name: IllustrationName;
       };
 
-/** Where the primary CTA sends the user: an in-app route, or an external page opened in a new tab. */
-type ProductMarketingCtaDestination =
-    | {
-          type: 'route';
-          route: Route;
-      }
-    | {
-          type: 'externalLink';
-          url: string;
-      };
+type ProductMarketingAnnouncementUpdateKey = ValueOf<typeof CONST.MARKETING_WINDOW_UPDATE_KEYS>;
 
-/** One audience-specific content variant of a product marketing announcement. All content is authored by marketing per release. */
-type ProductMarketingAnnouncementVariant = {
+/** A single product marketing announcement, shown to every user. All content is authored by marketing per release. */
+type ProductMarketingAnnouncement = {
+    /** Stable key for this product update. A later update must use a new key. */
+    updateKey: ProductMarketingAnnouncementUpdateKey;
+
     /** Marketing-supplied product screenshot or fallback illustration shown at the top of the window. */
     visual: ProductMarketingAnnouncementVisual;
 
@@ -45,31 +38,8 @@ type ProductMarketingAnnouncementVariant = {
     /** Label of the primary CTA button. */
     ctaLabel: TranslationPaths;
 
-    /** Where the primary CTA sends the user. */
-    ctaDestination: ProductMarketingCtaDestination;
-};
-
-type ProductMarketingAnnouncementUpdateKey = ValueOf<typeof CONST.MARKETING_WINDOW_UPDATE_KEYS>;
-
-/** A single product marketing announcement with audience-targeted content variants. */
-type ProductMarketingAnnouncement = {
-    /** Stable key shared by every audience variant of this product update. A later update must use a new key. */
-    updateKey: ProductMarketingAnnouncementUpdateKey;
-
-    /** Variant shown to users who are an admin on at least one active workspace. Admin prevails when a user is both member and admin. */
-    admin: ProductMarketingAnnouncementVariant;
-
-    /** Optional variant shown to users without an admin role on any active workspace. */
-    member?: ProductMarketingAnnouncementVariant;
-};
-
-/** September 2026 targets everyone, so both audiences share one variant instead of duplicating identical content. */
-const september2026Variant: ProductMarketingAnnouncementVariant = {
-    visual: {type: 'image', source: September2026PromoImage},
-    heading: 'productMarketingWindow.heading',
-    body: 'productMarketingWindow.body',
-    ctaLabel: 'common.learnMore',
-    ctaDestination: {type: 'externalLink', url: CONST.CLAUDE_MCP_HELP_URL},
+    /** External page the primary CTA opens in a new tab. */
+    ctaUrl: string;
 };
 
 /**
@@ -79,8 +49,11 @@ const september2026Variant: ProductMarketingAnnouncementVariant = {
  */
 const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null = {
     updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_SEPTEMBER_2026,
-    admin: september2026Variant,
-    member: september2026Variant,
+    visual: {type: 'image', source: September2026PromoImage},
+    heading: 'productMarketingWindow.heading',
+    body: 'productMarketingWindow.body',
+    ctaLabel: 'common.learnMore',
+    ctaUrl: CONST.CLAUDE_MCP_HELP_URL,
 };
 
 /**
@@ -94,20 +67,5 @@ function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingA
     return isAnnouncementDismissed || isStale;
 }
 
-/**
- * Resolves the content variant of the announcement the user should see, or undefined when no window should be shown.
- * Dismissal never falls through to another announcement — when the active announcement is dismissed, nothing is shown.
- */
-function getProductMarketingAnnouncementVariant(
-    announcement: ProductMarketingAnnouncement | null,
-    hasActiveAdminPolicies: boolean,
-    lastDismissedMarketingWindow: OnyxEntry<string>,
-): ProductMarketingAnnouncementVariant | undefined {
-    if (!announcement || isProductMarketingAnnouncementDismissed(announcement, lastDismissedMarketingWindow)) {
-        return undefined;
-    }
-    return hasActiveAdminPolicies ? announcement.admin : announcement.member;
-}
-
-export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed, getProductMarketingAnnouncementVariant};
-export type {ProductMarketingAnnouncement, ProductMarketingAnnouncementVariant};
+export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed};
+export type {ProductMarketingAnnouncement};
