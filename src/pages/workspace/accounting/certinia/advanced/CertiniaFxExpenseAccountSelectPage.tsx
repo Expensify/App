@@ -46,9 +46,6 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
         isSelected: selectedAccountID === account.id,
     }));
 
-    // A Certinia chart of accounts runs to hundreds of General Ledger Accounts, so the list needs a search box.
-    const {filteredData: filteredAccounts, textInputOptions} = useSelectionListSearch(accountOptions);
-
     const saveSelectedAccount = () => {
         if (hasChanges && policyID) {
             updateFinancialForceFxExpenseAccount(policyID, selectedAccountID, config?.fxExpenseAccount ?? null);
@@ -56,7 +53,10 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
         Navigation.goBack(backPath);
     };
 
-    const {listData, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(filteredAccounts, expenseAccounts.length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(accountOptions, expenseAccounts.length, saveSelectedAccount);
+
+    // A Certinia chart of accounts runs to hundreds of General Ledger Accounts, so the list needs a search box.
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -92,6 +92,7 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
             onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.certinia.fxExpenseAccount"
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT)}

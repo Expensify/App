@@ -39,6 +39,9 @@ type SelectionScreenProps<T = string> = {
     title?: TranslationPaths;
     headerContent?: React.ReactNode;
     listEmptyContent?: React.JSX.Element | null;
+
+    /** Skip listEmptyContent when the list is empty because of search, not a missing dataset. */
+    shouldShowListEmptyContent?: boolean;
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
@@ -110,6 +113,7 @@ function SelectionScreen<T = string>({
     title,
     headerContent,
     listEmptyContent,
+    shouldShowListEmptyContent,
     listFooterContent,
     data,
     ListItem = SingleSelectListItem,
@@ -171,6 +175,7 @@ function SelectionScreen<T = string>({
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         textInputOptions={textInputOptions}
                         listEmptyContent={listEmptyContent}
+                        shouldShowListEmptyContent={shouldShowListEmptyContent}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
                         style={{listItemWrapperStyle}}
