@@ -118,10 +118,10 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
 
-    // Priority order. RBR / urgent-error rows come first, then GBR / setup nudges — with one deliberate
-    // exception: the subscription renewal nudge ranks above the connection errors because it has a hard
-    // deadline (the owner silently loses their rate on the end date), so burying it is worse than the
-    // RBR-before-GBR rule it breaks.
+    // Priority order. Urgent RBR error rows come first, then GBR setup nudges. The subscription renewal
+    // nudge is the one deliberate exception to that. It ranks above the connection errors because the
+    // owner silently loses their rate on the end date, so burying it costs more than keeping every error
+    // row first.
     // 1. Fix failed billing (existing customers with declined cards)
     // 2. Overdue subscription invoice for the billing owner
     // 3. Potential card fraud
