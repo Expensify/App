@@ -145,55 +145,37 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         }
 
         if (isOwner) {
-            menuItems.push({
-                icon: icons.Trashcan,
-                text: translate('workspace.common.delete'),
-                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
-                onSelected: () => {
-                    if (isLoadingBill) {
-                        return;
-                    }
+            if (canArchivePolicies) {
+                menuItems.push({
+                    icon: icons.Inbox,
+                    text: translate('workspace.common.archive'),
+                    shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
+                    onSelected: () => {
+                        if (isLoadingBill) {
+                            return;
+                        }
 
-                    // All the pre-deletion checks and the confirmation modal are handled by DeleteWorkspaceFlow, mounted by the page.
-                    onDeleteWorkspace(item.policyID);
-                },
-                shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
-                shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
-            });
-        }
-    }
+                        onArchiveWorkspace(item.policyID);
+                    },
+                    shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
+                    shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
+                });
+            } else {
+                menuItems.push({
+                    icon: icons.Trashcan,
+                    text: translate('workspace.common.delete'),
+                    shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
+                    onSelected: () => {
+                        if (isLoadingBill) {
+                            return;
+                        }
 
-    if (isOwner) {
-        if (canArchivePolicies) {
-            menuItems.push({
-                icon: icons.Inbox,
-                text: translate('workspace.common.archive'),
-                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
-                onSelected: () => {
-                    if (isLoadingBill) {
-                        return;
-                    }
-
-                    onArchiveWorkspace(item.policyID);
-                },
-                shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
-                shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
-            });
-        } else {
-            menuItems.push({
-                icon: icons.Trashcan,
-                text: translate('workspace.common.delete'),
-                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
-                onSelected: () => {
-                    if (isLoadingBill) {
-                        return;
-                    }
-
-                    onDeleteWorkspace(item.policyID);
-                },
-                shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
-                shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
-            });
+                        onDeleteWorkspace(item.policyID);
+                    },
+                    shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
+                    shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
+                });
+            }
         }
     }
 
