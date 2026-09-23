@@ -964,12 +964,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: '銀行口座を追加して払い戻しを受け取りましょう'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName}カードの追加には承認が必要です`,
                 subtitle: 'Expensify カード',
-                cta: 'レビュー',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google ウォレット',
-                digitalWallet: 'デジタルウォレット',
             },
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',
@@ -2762,6 +2757,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google ウォレット',
         digitalWallet: 'デジタルウォレット',
+        digitalWalletCapitalized: 'デジタルウォレット',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName}カードの追加には承認が必要です`,
+        review: 'レビュー',
         confirmHeading: 'リクエストを確認してください',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) => `${walletName} に、末尾が ${lastFourDigits} の Expensify カードを追加しますか？`,
         deny: '拒否',
