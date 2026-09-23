@@ -3301,6 +3301,34 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
             expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, chatReportRNVP, invoiceReceiverPolicy)).toBe(false);
         });
+
+        it('reads the archived state only from the chatReportRNVP parameter, not from Onyx', async () => {
+            // Given an invoice whose chat report is marked archived in Onyx but the RNVP is not passed as a parameter
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+            const archivedRNVP: ReportNameValuePairs = {private_isArchived: DateUtils.getDBTime()};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`, archivedRNVP);
+            await waitForBatchedUpdates();
+
+            const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+            if (!invoiceReceiverPolicyID) {
+                throw new Error('Expected the invoice receiver to be a business policy.');
+            }
+            const iouReport = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+            const invoiceReceiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiverPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiverPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            // When canIOUBePaid is called without chatReportRNVP
+            // Then it must not fall back to the module-level Onyx cache, so the invoice is still considered payable —
+            // callers are responsible for passing the chat report's RNVP explicitly
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined, invoiceReceiverPolicy)).toBe(true);
+
+            // When the archived RNVP is passed explicitly
+            // Then paying is blocked
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, archivedRNVP, invoiceReceiverPolicy)).toBe(false);
+        });
     });
 
     describe('canApproveIOU', () => {

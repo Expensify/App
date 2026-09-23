@@ -49,6 +49,7 @@ function useReportPreviewActionDecision({
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [chatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
@@ -63,7 +64,7 @@ function useReportPreviewActionDecision({
         currentUserDetails.accountID,
         transactions,
         false,
-        undefined,
+        chatReportRNVP,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
@@ -77,7 +78,7 @@ function useReportPreviewActionDecision({
             currentUserDetails.accountID,
             transactions,
             true,
-            undefined,
+            chatReportRNVP,
             invoiceReceiverPolicy,
         );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;

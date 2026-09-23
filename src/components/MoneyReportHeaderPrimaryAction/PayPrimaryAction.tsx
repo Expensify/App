@@ -75,6 +75,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
+    const [chatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -95,7 +96,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         accountID,
         transaction ? [transaction] : undefined,
         false,
-        undefined,
+        chatReportRNVP,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
@@ -109,7 +110,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             accountID,
             transaction ? [transaction] : undefined,
             true,
-            undefined,
+            chatReportRNVP,
             invoiceReceiverPolicy,
         );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;

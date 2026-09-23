@@ -75,6 +75,7 @@ function useSelectionModeReportActions({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [chatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -122,7 +123,18 @@ function useSelectionModeReportActions({
     const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
-        canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
+        canIOUBePaidAction(
+            report,
+            chatReport,
+            policy,
+            bankAccountList,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            transactions,
+            onlyShowPayElsewhere,
+            chatReportRNVP,
+            invoiceReceiverPolicy,
+        );
     const canIOUBePaid = getCanIOUBePaid();
     const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;

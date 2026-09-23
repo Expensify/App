@@ -78,9 +78,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         chatReportPolicyID: chatReport?.policyID,
     });
 
-    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, undefined, invoiceReceiverPolicy);
+    const chatReportRNVP = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
+    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, chatReportRNVP, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere =
-        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, undefined, invoiceReceiverPolicy);
+        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, chatReportRNVP, invoiceReceiverPolicy);
 
     const {currency} = iouReport ?? {};
 

@@ -38,6 +38,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [chatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
     );
@@ -58,12 +59,23 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
         currentUserAccountID,
         undefined,
         false,
-        undefined,
+        chatReportRNVP,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
         !canIOUBePaid &&
-        canIOUBePaidAction(iouReport, chatReport, activePolicy, bankAccountList, currentUserDetails.login ?? '', currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+        canIOUBePaidAction(
+            iouReport,
+            chatReport,
+            activePolicy,
+            bankAccountList,
+            currentUserDetails.login ?? '',
+            currentUserAccountID,
+            undefined,
+            true,
+            chatReportRNVP,
+            invoiceReceiverPolicy,
+        );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
     const {onApprove} = useConfirmApproval(reportID, startApprovedAnimation);
