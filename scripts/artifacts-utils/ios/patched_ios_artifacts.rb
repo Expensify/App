@@ -6,6 +6,7 @@
 require 'digest'
 require 'fileutils'
 require 'json'
+require 'pathname'
 require 'uri'
 
 module PatchedIOSArtifacts
@@ -57,6 +58,7 @@ module PatchedIOSArtifacts
             "#{resolution['version']}#{ENV['RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'] == '1' ? '+dsym' : ''}" : nil
 
         force_rncore_podspec_reevaluation if @using_prebuilt
+        force_hermes_podspec_reevaluation
     end
 
     def self.artifacts_stamp_path
@@ -74,13 +76,56 @@ module PatchedIOSArtifacts
         link = File.join(SOURCE_LINK_ROOT, @package_name, File.basename(tarball))
         return link if File.symlink?(link) && File.identical?(link, tarball)
 
+        assert_ours(SOURCE_LINK_ROOT)
         FileUtils.mkdir_p(File.dirname(link))
-        # A directory here would make ln_s create the link inside it, so the podspec would point at a directory.
+        assert_ours(File.dirname(link))
+        # Renaming onto a real directory raises, and the podspec would end up pointing at that directory.
         FileUtils.remove_entry(link) if File.directory?(link) && !File.symlink?(link)
         staging = "#{link}.#{Process.pid}"
-        File.symlink(tarball, staging)
-        File.rename(staging, link)
+        begin
+            FileUtils.rm_f(staging)
+            File.symlink(tarball, staging)
+            File.rename(staging, link)
+        ensure
+            FileUtils.rm_f(staging)
+        end
         link
+    end
+
+    HERMES_CLI_PREFIX = '${PODS_ROOT}'
+
+    # hermes-engine.podspec resolves the compiler with require.resolve, so its absolute path would
+    # reach Podfile.lock. Xcode expands PODS_ROOT before the bundling phase reads this.
+    def self.pods_root_relative_path(path)
+        return nil unless path.start_with?('/') && File.exist?(path)
+
+        relative = Pathname.new(path).relative_path_from(Pod::Config.instance.project_pods_root)
+        "#{HERMES_CLI_PREFIX}/#{relative}"
+    end
+
+    # Every account shares /tmp, so a path owned by someone else is either left over from a second
+    # user or a way to aim the React-Core-prebuilt source at a tarball we did not download.
+    def self.assert_ours(path)
+        return unless File.symlink?(path) || File.exist?(path)
+
+        info = File.lstat(path)
+        raise "#{LOG_PREFIX} #{path} is a link. Remove it and run pod install again." if info.symlink?
+        raise "#{LOG_PREFIX} #{path} belongs to another account, so the React-Core-prebuilt source link " \
+              'cannot be written. Remove it and run pod install again.' unless info.uid == Process.uid
+    end
+
+    # A stored podspec keeps whatever compiler path it was written with, and CocoaPods reuses that
+    # copy instead of reading the podspec again.
+    def self.force_hermes_podspec_reevaluation
+        sandbox = Pod::Config.instance.sandbox
+        stored = File.join(sandbox.specifications_root, 'hermes-engine.podspec.json')
+        return unless File.exist?(stored)
+
+        hermes_cli_path = JSON.parse(File.read(stored)).dig('user_target_xcconfig', 'HERMES_CLI_PATH').to_s
+        return if hermes_cli_path.empty? || hermes_cli_path.start_with?(HERMES_CLI_PREFIX)
+
+        sandbox.remove_local_podspec('hermes-engine')
+        log('The hermes-engine podspec carries a machine-specific compiler path; re-evaluating it.')
     end
 
     # CocoaPods memoizes external :podspec sources and may skip re-reading ours, whose source is
@@ -329,3 +374,30 @@ class ReactNativeCoreUtils
         destination
     end
 end
+
+# The bundling phase runs this path and CocoaPods hashes the stored podspec into SPEC CHECKSUMS,
+# so this is the last point where the path can be made machine independent.
+module PatchedHermesCliPath
+    def store_podspec(name, podspec, external_source = false, json = false)
+        rewrite_hermes_cli_path(podspec) if name.to_s == 'hermes-engine' && podspec.is_a?(Pod::Specification)
+        super
+    end
+
+    def rewrite_hermes_cli_path(podspec)
+        settings = podspec.attributes_hash['user_target_xcconfig']
+        hermes_cli_path = settings.is_a?(Hash) ? settings['HERMES_CLI_PATH'] : nil
+        return unless hermes_cli_path.to_s.start_with?('/')
+
+        stable = PatchedIOSArtifacts.pods_root_relative_path(hermes_cli_path)
+        raise "#{PatchedIOSArtifacts::LOG_PREFIX} Cannot place #{hermes_cli_path} relative to the Pods " \
+              'root, so hermes-engine would get a checksum that no other machine reproduces.' if stable.nil?
+
+        settings['HERMES_CLI_PATH'] = stable
+    end
+
+    private :rewrite_hermes_cli_path
+end
+
+require 'cocoapods/sandbox'
+
+Pod::Sandbox.prepend(PatchedHermesCliPath)
