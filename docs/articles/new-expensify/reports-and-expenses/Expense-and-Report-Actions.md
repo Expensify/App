@@ -167,6 +167,17 @@ Open a report to see available actions.
 
 ---
 
+## How to move a report using Change workspace
+
+1. Open the report.
+2. Select **More > Change workspace**.
+3. Select the workspace you want to move the report to. The checkmark moves to that workspace, and the report is not moved yet.
+4. Select **Save**.
+
+**Save** stays disabled until you select a workspace that is different from the report’s current one. To leave the report where it is, select the back arrow instead of **Save**.
+
+---
+
 ## What happens after you take a report action
 
 - **Submit** → moves report to approval
@@ -175,7 +186,7 @@ Open a report to see available actions.
 - **Export** → sends report data externally
 - **Reject** → sends report back for updates
 - **Unapprove** → reopens the report before payment
-- **Cancel payment** → returns the report to the status it had before payment, such as **Approved** or **Done**, and adds a message in the report chat recording the cancellation
+- **Change workspace** → moves the report once you select a workspace and select **Save**
 
 ---
 
@@ -188,12 +199,6 @@ An error message appears with next steps. You can fix the issue and retry the ex
 ## Why can’t I cancel a payment?
 
 Payments can only be canceled before processing begins. Manual payments cannot be canceled.
-
-## How can I tell that a payment was canceled?
-
-Open the report and look for the message in the report chat that records the cancellation. That message is the only place a canceled payment is reported.
-
-The report itself returns to the status it had before payment, so its status badge reads **Approved** or **Done** rather than **Paid**. Expensify does not add a separate canceled label to the report preview, the expense, or the expense count beside the status badge.
 
 ## Why can’t I see “Bypass approvers”?
 
