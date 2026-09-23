@@ -102,6 +102,7 @@ describe('useExportActions - template export status modal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsOffline = false;
+        mockReportTransactions = {transaction1: {...createRandomTransaction(1), reportID: REPORT_ID}};
     });
 
     it('queues the export with progress tracking', () => {
@@ -136,6 +137,18 @@ describe('useExportActions - template export status modal', () => {
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
         expect(mockShowDecisionModal).toHaveBeenCalled();
+    });
+
+    it('does not queue the export and shows the empty report modal when the report has no expenses', () => {
+        mockReportTransactions = {};
+        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
+
+        act(() => {
+            result.current.beginExportWithTemplate('Test Template', 'csv', [], EXPORT_NAME, POLICY_ID);
+        });
+
+        expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({prompt: 'common.downloadFailedEmptyReportDescription:1'}));
     });
 });
 

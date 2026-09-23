@@ -942,6 +942,7 @@ export {
     extractEmojis,
     getAddedEmojis,
     isFirstLetterEmoji,
+    findEmojiByName,
     hasAccountIDEmojiReacted,
     getRemovedSkinToneEmoji,
     getSpacersIndexes,
