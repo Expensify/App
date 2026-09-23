@@ -95,6 +95,33 @@ describe('calculateDynamicColumnWidths', () => {
             expect(sumOf(result.widths)).toBe(1163);
             expect(result.shouldScrollHorizontally).toBe(false);
         });
+
+        it('holds a capped column to its maximum while the others take up the slack', () => {
+            // Given a row with more room than the columns' content needs, where resolving it leaves the last column a
+            // share wider than its 50px cap
+            const constraints = [buildFitContentConstraints(300), buildConstraints(30, 30, 60), buildConstraints(200, 10, 50)];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 400);
+
+            // Then the capped column stops at 50px and the room it cannot use goes to the column that can
+            expect(result.widths).toEqual([320, 30, 50]);
+            expect(result.widths.at(2)).toBeLessThanOrEqual(50);
+            expect(result.shouldScrollHorizontally).toBe(false);
+        });
+
+        it('resolves a row where no column has any room to give up', () => {
+            // Given two columns that both have to fit their content, so neither can be squeezed, in a row a capped
+            // column claims more of than it needs
+            const constraints = [buildFitContentConstraints(70), buildConstraints(30, 30, 40)];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 105);
+
+            // Then each column takes its own width rather than a ratio worked out by dividing by zero
+            expect(result.widths).toEqual([70, 30]);
+            expect(result.shouldScrollHorizontally).toBe(false);
+        });
     });
 
     describe('behavior 3: the content does not fit, so the columns are squeezed', () => {
