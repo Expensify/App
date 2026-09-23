@@ -6,12 +6,12 @@ import useOnyx from '@hooks/useOnyx';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
-import {getTransitionLinkEmailParams, isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 
-import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {isDelegateSession, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -23,8 +23,6 @@ import type SCREENS from '@src/SCREENS';
 import React, {useEffect} from 'react';
 
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
-
-const TRANSITION_SIGN_OUT_LOG = '[TransitionSignOut][LogOutPreviousUserPage]';
 
 // This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
 // out if the transition is for another user.
@@ -44,12 +42,10 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
-            const {email: linkEmail, delegatorEmail: linkDelegatorEmail} = getTransitionLinkEmailParams(transitionURL ?? undefined);
-            Log.info(`${TRANSITION_SIGN_OUT_LOG} Signing out the current session because the transition link names another account`, false, {
-                sessionEmail,
-                linkEmail,
-                linkDelegatorEmail,
-                authTokenType,
+            Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                isDelegateSession: isDelegateSession(session),
+                isSupportalLogin,
             });
             // We don't want to close react-native app in this particular case.
             signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);

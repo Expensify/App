@@ -4,13 +4,11 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
-import Log from '@libs/Log';
 import AuthScreensInitHandler from '@libs/Navigation/AppNavigator/AuthScreensInitHandler';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import {isRecord} from '@libs/ObjectUtils';
 import Pusher from '@libs/Pusher';
-import {didUserLogInDuringSession, getTransitionLinkEmailParams, isLoggingInAsNewUser} from '@libs/SessionUtils';
+import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtils';
 
 import {openApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -73,8 +71,8 @@ jest.mock('@libs/Navigation/currentUrl', () => ({
 
 jest.mock('@libs/SessionUtils', () => ({
     isLoggingInAsNewUser: jest.fn(() => false),
+    isLoggingInAsDelegate: jest.fn(() => false),
     didUserLogInDuringSession: jest.fn(() => false),
-    getTransitionLinkEmailParams: jest.fn(() => ({email: null, delegatorEmail: null})),
 }));
 
 jest.mock('@libs/ActiveClientManager', () => ({
@@ -101,6 +99,7 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Session', () => ({
     signOutAndRedirectToSignIn: jest.fn(),
     cleanupSession: jest.fn(),
+    isDelegateSession: jest.fn(() => false),
 }));
 
 jest.mock('@userActions/User', () => ({
@@ -129,7 +128,6 @@ const mockedGetCurrentUrl = jest.mocked(getCurrentUrl);
 const mockedIsActiveRoute = jest.mocked(Navigation.isActiveRoute);
 const mockedIsLoggingInAsNewUser = jest.mocked(isLoggingInAsNewUser);
 const mockedDidUserLogInDuringSession = jest.mocked(didUserLogInDuringSession);
-const mockedGetTransitionLinkEmailParams = jest.mocked(getTransitionLinkEmailParams);
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
 const mockedSubscribeToUserEvents = jest.mocked(subscribeToUserEvents);
@@ -156,7 +154,6 @@ describe('AuthScreensInitHandler', () => {
         mockedGetCurrentUrl.mockReturnValue('');
         mockedIsLoggingInAsNewUser.mockReturnValue(false);
         mockedDidUserLogInDuringSession.mockReturnValue(false);
-        mockedGetTransitionLinkEmailParams.mockReturnValue({email: null, delegatorEmail: null});
         mockedIsClientTheLeader.mockReturnValue(true);
         mockedIsReady.mockReturnValue(Promise.resolve());
         mockedIsActiveRoute.mockReturnValue(false);
@@ -269,8 +266,6 @@ describe('AuthScreensInitHandler', () => {
     it('signs out when logging in as new user during transition', async () => {
         mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}`);
         mockedIsLoggingInAsNewUser.mockReturnValue(true);
-        mockedGetTransitionLinkEmailParams.mockReturnValue({email: 'other@test.com', delegatorEmail: 'delegator@test.com'});
-        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
         await waitForBatchedUpdates();
@@ -279,19 +274,6 @@ describe('AuthScreensInitHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
-
-        // And the log record carries the account fields the comparison used, so one row says which account the link
-        // named and how it differed from the session
-        const decisionLogs = logInfoSpy.mock.calls.filter(([, , parameters]) => isRecord(parameters) && 'linkEmail' in parameters);
-        expect(decisionLogs).toHaveLength(1);
-        expect(decisionLogs.at(0)?.at(2)).toEqual({
-            sessionEmail: 'test@test.com',
-            linkEmail: 'other@test.com',
-            linkDelegatorEmail: 'delegator@test.com',
-            authTokenType: null,
-        });
-
-        logInfoSpy.mockRestore();
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {

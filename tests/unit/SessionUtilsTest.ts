@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName, getPartnerCredentials, getTransitionLinkEmailParams, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, getPartnerCredentials, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -109,45 +109,6 @@ describe('SessionUtils', () => {
             ['should return true when delegatorEmail value contains encoded characters', '?delegatorEmail=user%40example.com', true],
         ])('%s', (_description, transitionURL, expectedResult) => {
             expect(isLoggingInAsDelegate(transitionURL)).toBe(expectedResult);
-        });
-    });
-
-    describe('getTransitionLinkEmailParams', () => {
-        test('reads the raw email value when the link is a full URL', () => {
-            // Given a HybridApp transition link, where URLSearchParams mangles the first query key of a full URL
-            const transitionURL = 'https://example.com?email=user%40example.com&delegatorEmail=delegate@example.com';
-
-            // When the link is read for the transition sign-out decision
-            const linkEmails = getTransitionLinkEmailParams(transitionURL);
-
-            // Then both accounts it names come back, the email as the un-decoded value the decision also compares
-            expect(linkEmails.email).toBe('user%40example.com');
-            expect(linkEmails.delegatorEmail).toBe('delegate@example.com');
-        });
-
-        test('reads nothing when the link names no account', () => {
-            // Given a supportal transition link, which carries a token and no email
-            const transitionURL = '?authTokenType=support&shortLivedAuthToken=abc';
-
-            // When the link is read for the transition sign-out decision
-            const linkEmails = getTransitionLinkEmailParams(transitionURL);
-
-            // Then neither account is named, so the log records an absent value rather than a guess
-            expect(linkEmails.email).toBeNull();
-            expect(linkEmails.delegatorEmail).toBeNull();
-        });
-
-        test('does not read the credentials the link also carries', () => {
-            // Given a transition link that names an account and carries short-lived credentials
-            const transitionURL = '?email=user@example.com&shortLivedAuthToken=secret-token&encryptedAuthToken=encrypted-token';
-
-            // When the link is read for the transition sign-out decision
-            const linkEmails = getTransitionLinkEmailParams(transitionURL);
-
-            // Then the account it names comes back and no credential does
-            expect(linkEmails.email).toBe('user@example.com');
-            expect(JSON.stringify(linkEmails)).not.toContain('secret-token');
-            expect(JSON.stringify(linkEmails)).not.toContain('encrypted-token');
         });
     });
 });

@@ -386,7 +386,7 @@ function signOutAndRedirectToSignIn(
     shouldForceUseStashedSession?: boolean,
     signOutReason: SignOutReason = CONST.SIGN_OUT_REASON.USER_SIGN_OUT,
 ) {
-    Log.info('Redirecting to Sign In because signOut() was called', false, {signOutReason});
+    Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 
     if (isAnonymousUser()) {
