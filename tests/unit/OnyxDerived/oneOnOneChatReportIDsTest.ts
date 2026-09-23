@@ -35,10 +35,6 @@ const aliceKey = getParticipantsChatKey([ME, ALICE]);
 const bobKey = getParticipantsChatKey([ME, BOB]);
 
 describe('oneOnOneChatReportIDs', () => {
-    beforeEach(() => {
-        oneOnOneChatReportIDsConfig.onReset?.();
-    });
-
     it('indexes 1:1 chats by participant set on a full compute', () => {
         const reports = collection(chatWith('10', ALICE), chatWith('20', BOB));
 
@@ -109,25 +105,36 @@ describe('oneOnOneChatReportIDs', () => {
         expect(afterCleanup).toEqual({[aliceKey]: '30'});
     });
 
-    it('rebuilds when the account ID changes, because that changes what counts as a 1:1 chat', () => {
+    it('rebuilds when SESSION changes, because a different account ID changes what counts as a 1:1 chat', () => {
         const reports = collection(chatWith('10', ALICE), chatWith('20', BOB));
         const currentValue = oneOnOneChatReportIDsConfig.compute([reports, session], {});
         expect(currentValue).toEqual({[aliceKey]: '10', [bobKey]: '20'});
 
-        // Signed in as a third party now, so neither report is a 1:1 chat any more. Report 20 is deliberately left
-        // out of the delta: applying the delta alone would leave its stale entry behind, only a rebuild clears it.
-        const asOutsider = oneOnOneChatReportIDsConfig.compute([reports, {accountID: 99}], {currentValue, sourceValues: delta(['10', chatWith('10', ALICE)])});
+        // Signed in as a third party now, so neither report is a 1:1 chat any more. Neither report is in a delta:
+        // only the SESSION change can clear their entries.
+        const asOutsider = oneOnOneChatReportIDsConfig.compute([reports, {accountID: 99}], {currentValue, sourceValues: {}, triggeredKeys: new Set([ONYXKEYS.SESSION])});
 
         expect(asOutsider).toEqual({});
     });
 
-    it('rebuilds instead of applying a delta when the module state was lost, for example after a reload', () => {
+    it('rebuilds on the first compute after a reload, so a stale restored index is corrected', () => {
         const reports = collection(chatWith('10', ALICE));
+        // Bob's chat was deleted after the index was last written, and Alice's chat arrived before the first compute.
         const staleValue = {[bobKey]: '99'};
 
-        // No prior compute in this lifetime, so the stale restored value must not be merged into.
-        const next = oneOnOneChatReportIDsConfig.compute([reports, session], {currentValue: staleValue, sourceValues: delta(['10', chatWith('10', ALICE)])});
+        // The engine's first flush has no baselines to diff against, so it passes no sourceValues, while
+        // triggeredKeys holds every dependency.
+        const next = oneOnOneChatReportIDsConfig.compute([reports, session], {
+            currentValue: staleValue,
+            triggeredKeys: new Set([ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION]),
+        });
 
         expect(next).toEqual({[aliceKey]: '10'});
+    });
+
+    it('builds nothing until the current account ID is known', () => {
+        const reports = collection(chatWith('10', ALICE));
+
+        expect(oneOnOneChatReportIDsConfig.compute([reports, {}], {})).toEqual({});
     });
 });
