@@ -704,6 +704,7 @@ const SCREENS = {
             RILLET_ADVANCED: 'Policy_Accounting_Rillet_Advanced',
             RILLET_EXPORT_METHOD: 'Policy_Accounting_Rillet_Export_Method',
             RILLET_BILL_PAYMENT_ACCOUNT: 'Policy_Accounting_Rillet_Bill_Payment_Account',
+            RILLET_FX_EXPENSE_ACCOUNT: 'Policy_Accounting_Rillet_Fx_Expense_Account',
             RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Expensify_Card_Settlement_Account',
             RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: 'Policy_Accounting_Rillet_Travel_Invoicing_Settlement_Account',
             DUALENTRY_SETUP: 'Policy_Accounting_DualEntry_Setup',

@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,6 +47,8 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const accountingMethod = rilletConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
     const billPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
+    const fxExpenseAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.fxExpenseAccountCode);
     const syncExpensifyCardSettlements = rilletConfig?.sync?.syncExpensifyCardSettlements ?? true;
     const settlementsBankAccount = rilletData?.bankAccounts?.find((bankAccount) => bankAccount.id === rilletConfig?.sync?.settlementsBankAccountID);
     const syncTravelInvoicingSettlements = rilletConfig?.sync?.syncTravelInvoicingSettlements ?? true;
@@ -134,6 +137,19 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         )}
                     </MenuItemField>
                 </OfflineWithFeedback>
+                {canConfigureCurrencyConversionFees && (
+                    <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
+                        <MenuItemField
+                            name={translate('workspace.rillet.fxExpenseAccount.label')}
+                            onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT.getRoute(policyID)) : undefined)}
+                            value={fxExpenseAccount ? `${fxExpenseAccount.code} ${fxExpenseAccount.name}` : undefined}
+                        >
+                            {areSettingsInErrorFields([CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE], rilletConfig?.errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                        </MenuItemField>
+                    </OfflineWithFeedback>
+                )}
             </Accordion>
             {isExpensifyCardsEnabled && (
                 <>

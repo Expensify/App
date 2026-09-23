@@ -6069,6 +6069,10 @@ const translations = {
                 label: 'Bill payment account',
                 description: "Choose where to pay bills from and we'll create the payment in Rillet.",
             },
+            fxExpenseAccount: {
+                label: 'Rillet currency conversion fee account',
+                description: "When your company covers the currency conversion cost on a payment made abroad, we'll post that cost to this account in Rillet as a journal entry.",
+            },
             syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
             settlementAccount: {
                 label: 'Expensify Card settlement account',
