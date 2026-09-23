@@ -4819,11 +4819,11 @@ function getReasonAndReportActionThatRequiresAttention(
     currentUserAccountID: number,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
+    transactionViolations?: OnyxCollection<TransactionViolations>,
     allReportActionsParam?: OnyxCollection<ReportActions>,
     reports?: OnyxCollection<Report>,
     policiesParam?: OnyxCollection<Policy>,
     reportMetadataParam?: OnyxEntry<ReportMetadata>,
-    transactionViolations?: OnyxCollection<TransactionViolations>,
 ): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -5012,18 +5012,7 @@ function requiresAttentionFromCurrentUser(
     isReportArchived = false,
     transactionViolations?: OnyxCollection<TransactionViolations>,
 ) {
-    return !!getReasonAndReportActionThatRequiresAttention(
-        optionOrReport,
-        currentUserLogin,
-        currentUserAccountID,
-        parentReportAction,
-        isReportArchived,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        transactionViolations,
-    );
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, transactionViolations);
 }
 
 /**
@@ -13874,11 +13863,11 @@ function generateReportAttributes({
             currentUserAccountID,
             parentReportAction,
             isReportArchived,
+            transactionViolations,
             reportActions,
             reports,
             policies,
             reportMetadata,
-            transactionViolations,
         ) ?? {};
 
     return {

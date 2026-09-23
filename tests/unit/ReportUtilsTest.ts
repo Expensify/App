@@ -11915,7 +11915,15 @@ describe('ReportUtils', () => {
             expect(resultWithout?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
 
             // With the param, the function should find DEW_APPROVE_FAILED from the passed param
-            const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+            const resultWith = getReasonAndReportActionThatRequiresAttention(
+                report,
+                currentUserEmail,
+                currentUserAccountID,
+                undefined,
+                isReportArchived.current,
+                undefined,
+                allReportActionsParam,
+            );
             expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
         });
 
@@ -12276,6 +12284,7 @@ describe('ReportUtils', () => {
                 currentUserAccountID,
                 undefined,
                 isReportArchived.current,
+                undefined,
                 undefined,
                 undefined,
                 policiesParam,

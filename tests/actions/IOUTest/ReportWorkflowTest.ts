@@ -23,6 +23,7 @@ import {
     getIOUReportActionWithBadge,
     getInvoiceReceiverPolicyID,
     isPayer,
+    reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
@@ -5169,6 +5170,29 @@ describe('actions/IOU/ReportWorkflow', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
                 }),
             ).toBe(false);
+
+            // Then the option list does not list the chat for a GBR when it has no pre-computed requiresAttention and computes it from the violations it passes
+            expect(
+                reasonForReportToBeInOptionList({
+                    report: {...fakeChatReport, type: CONST.REPORT.TYPE.CHAT},
+                    chatReport: undefined,
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    excludeEmptyChats: false,
+                    doesReportHaveViolations: false,
+                    isReportArchived: false,
+                    draftComment: undefined,
+                    currentUserLogin: RORY_EMAIL,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    conciergeReportID: undefined,
+                    transactionViolations: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${fakeTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: 'violation'}],
+                    },
+                    derivedIsEmptyReport: undefined,
+                    hasGuidesEmails: false,
+                }),
+            ).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
         });
 
         it('should not return SUBMIT actionBadge when the open report only has pending card transactions', async () => {

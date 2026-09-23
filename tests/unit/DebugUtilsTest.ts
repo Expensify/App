@@ -69,6 +69,67 @@ const TEST_OBJECT_TYPE = {
     f: 'boolean',
 } satisfies ObjectType<Record<string, unknown>>;
 
+/** Stores an open expense report owned by Rory whose only expense was auto-rejected, and returns its chat and the violations collection */
+async function setUpAutoRejectedOpenReport() {
+    const chatReportID = '500';
+    const iouReportID = '501';
+    const policyID = '502';
+    const policy: Policy = {
+        ...createRandomPolicy(Number(policyID)),
+        id: policyID,
+        type: CONST.POLICY.TYPE.TEAM,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        role: CONST.POLICY.ROLE.USER,
+        harvesting: {enabled: false},
+    };
+    const chatReport: Report = {
+        reportID: chatReportID,
+        reportName: 'Workspace chat',
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        isOwnPolicyExpenseChat: true,
+        hasOutstandingChildRequest: false,
+    };
+    const iouReport: Report = {
+        reportID: iouReportID,
+        chatReportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        policyID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        ownerAccountID: RORY_ACCOUNT_ID,
+        managerID: RORY_ACCOUNT_ID,
+    };
+    const transaction: Transaction = {
+        ...createRandomTransaction(0),
+        reportID: iouReportID,
+        amount: 100,
+        status: CONST.TRANSACTION.STATUS.POSTED,
+        bank: '',
+        merchant: 'TestMerchant',
+        modifiedMerchant: 'TestMerchant',
+    };
+    const reportPreviewAction = createMock<ReportAction>({
+        reportActionID: iouReportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+        created: '2024-08-08 19:00:00.000',
+        childReportID: iouReportID,
+        message: [{type: 'TEXT', text: 'Report preview', html: 'Report preview'}],
+    });
+    const transactionViolations = {
+        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}],
+    };
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
+    await waitForBatchedUpdates();
+
+    return {chatReport, transactionViolations};
+}
+
 describe('DebugUtils', () => {
     describe('onyxDataToString', () => {
         it('returns "undefined" when data is undefined', () => {
@@ -1090,6 +1151,28 @@ describe('DebugUtils', () => {
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
+        it('does not return hasGBR when every expense of the open report was auto-rejected', async () => {
+            // Given an open expense report owned by the current user whose only expense carries an auto-rejected violation
+            const {chatReport, transactionViolations} = await setUpAutoRejectedOpenReport();
+
+            // When the debug page asks why the chat is visible in the LHN, passing the violations like the LHN derived value does
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: chatReport,
+                chatReport: undefined,
+                doesReportHaveViolations: false,
+                isReportArchived: false,
+                draftComment: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                conciergeReportID: undefined,
+                hasGuidesEmails: false,
+                derivedIsEmptyReport: undefined,
+                transactionViolations,
+            });
+
+            // Then the reason is not hasGBR, because the SUBMIT badge is suppressed when nothing is submittable, matching the LHN row
+            expect(reason).not.toBe('debug.reasonVisibleInLHN.hasGBR');
+        });
     });
     describe('getReasonAndReportActionForGBRInLHNRow', () => {
         beforeAll(() => {
@@ -1301,62 +1384,7 @@ describe('DebugUtils', () => {
         });
         it('returns undefined reason when every expense of the open report was auto-rejected', async () => {
             // Given an open expense report owned by the current user whose only expense carries an auto-rejected violation
-            const chatReportID = '500';
-            const iouReportID = '501';
-            const policyID = '502';
-            const policy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                id: policyID,
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                role: CONST.POLICY.ROLE.USER,
-                harvesting: {enabled: false},
-            };
-            const chatReport: Report = {
-                reportID: chatReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID,
-                isOwnPolicyExpenseChat: true,
-                hasOutstandingChildRequest: false,
-            };
-            const iouReport: Report = {
-                reportID: iouReportID,
-                chatReportID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                policyID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                ownerAccountID: RORY_ACCOUNT_ID,
-                managerID: RORY_ACCOUNT_ID,
-            };
-            const transaction: Transaction = {
-                ...createRandomTransaction(0),
-                reportID: iouReportID,
-                amount: 100,
-                status: CONST.TRANSACTION.STATUS.POSTED,
-                bank: '',
-                merchant: 'TestMerchant',
-                modifiedMerchant: 'TestMerchant',
-            };
-            const reportPreviewAction = createMock<ReportAction>({
-                reportActionID: iouReportID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                created: '2024-08-08 19:00:00.000',
-                childReportID: iouReportID,
-                message: [{type: 'TEXT', text: 'Report preview', html: 'Report preview'}],
-            });
-            const transactionViolations = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
-                    {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION},
-                ],
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
-            await waitForBatchedUpdates();
+            const {chatReport, transactionViolations} = await setUpAutoRejectedOpenReport();
 
             // When the debug page asks why the chat shows a GBR, passing the violations like the LHN derived value does
             const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(chatReport, RORY_EMAIL, RORY_ACCOUNT_ID, false, transactionViolations) ?? {};
