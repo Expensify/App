@@ -4,13 +4,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -414,7 +415,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the different split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level
@@ -425,7 +426,7 @@ describe('Navigate', () => {
             expect(lastRootRoute?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.SETTINGS);
         });
 
-        it('shows Subscription behind the payment-card RHP when navigating from Reports', () => {
+        it('shows Profile behind the display name RHP when navigating from Reports', () => {
             render(
                 <TestNavigationContainer
                     initialState={{
@@ -463,7 +464,7 @@ describe('Navigate', () => {
             );
 
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(ROUTES.SETTINGS_DISPLAY_NAME);
             });
 
             const rootState = navigationRef.current?.getRootState();
@@ -474,7 +475,54 @@ describe('Navigate', () => {
             const tabState = rootState?.routes.at(0)?.state;
             const activeTab = tabState?.routes.at(tabState.index ?? 0);
             expect(activeTab?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
-            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+        });
+
+        it.each([
+            ['add payment card', () => createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)],
+            ['add US bank account', () => ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute()],
+            ['personal card details', () => ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute('123')],
+            ['enter signer info', () => ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute('1', '2', false)],
+            ['app download links', () => createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path)],
+        ])('keeps Reports behind the %s RHP when opened in-app', (_label, getRoute) => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {
+                                            name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [{name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID: '1'}}],
+                                            },
+                                        },
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(getRoute());
+            });
+
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+            const tabState = rootState?.routes.at(0)?.state;
+            expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
         });
 
         it('preserves report navigation history when opening a workspace from an RHP', () => {
@@ -575,7 +623,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             });
 
             // Then push the RHP at root level

@@ -4,10 +4,12 @@ import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React, {useMemo} from 'react';
 
@@ -25,7 +27,7 @@ function CardSectionActions() {
             {
                 icon: icons.CreditCard,
                 text: translate('subscription.cardSection.changeCard'),
-                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
+                onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)),
             },
             {
                 icon: icons.MoneyCircle,

@@ -27,6 +27,7 @@ jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
     return {
         RHP_TO_DOMAIN: {},
         RHP_TO_HOME: {Home: 'home'},
+        RHP_TO_HOME_DEEPLINK: {[SCREENS_MOCK.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: SCREENS_MOCK.HOME},
         RHP_TO_SEARCH: {},
         // Deeplink-only mapping: create-flow entry points resolve to the Search fullscreen under the RHP.
         RHP_TO_SEARCH_DEEPLINK: {
@@ -37,6 +38,7 @@ jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
             [SCREENS_MOCK.TRACK_EXPENSE]: SCREENS_MOCK.SEARCH.ROOT,
         },
         RHP_TO_SETTINGS: {},
+        RHP_TO_SETTINGS_DEEPLINK: {[SCREENS_MOCK.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: SCREENS_MOCK.SETTINGS.WALLET.ROOT},
         RHP_TO_SIDEBAR: {},
         RHP_TO_WORKSPACE: {},
         RHP_TO_WORKSPACES_LIST: {},
@@ -289,6 +291,34 @@ describe('getMatchingFullScreenRoute - deeplink-only search relations', () => {
             const result = getMatchingFullScreenRoute(route);
 
             expect(result).toBeUndefined();
+        },
+    );
+});
+
+describe('getMatchingFullScreenRoute - deeplink-only settings and home relations', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('resolves the personal card details screen to the wallet when built from a path (isDeeplink=true)', () => {
+        const result = getMatchingFullScreenRoute({name: SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS, params: {cardID: '1'}}, true);
+
+        expect(result?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        const activeTab = result && 'state' in result ? result.state?.routes.at(result.state.index ?? 0) : undefined;
+        expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.WALLET.ROOT);
+    });
+
+    it('resolves the enter signer info screen to Home when built from a path (isDeeplink=true)', () => {
+        const result = getMatchingFullScreenRoute({name: SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO}, true);
+
+        expect(result?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+        expect(result && 'state' in result ? result.state?.routes.at(0)?.name : undefined).toBe(SCREENS.HOME);
+    });
+
+    it.each([SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS, SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO])(
+        'does not resolve %s to a fullscreen for in-app navigation (isDeeplink=false)',
+        (screenName) => {
+            expect(getMatchingFullScreenRoute({name: screenName})).toBeUndefined();
         },
     );
 });
