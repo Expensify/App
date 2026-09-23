@@ -87,6 +87,10 @@ export default function WorkspaceTagsTable({
             key: 'name',
             label: translate('common.name'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [

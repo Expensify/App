@@ -200,6 +200,10 @@ function WorkspaceCompanyCardsTable({
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             sortable: true,
+            styling: {
+                // editableCellHeader matches the padded card name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
         },
         {
             key: 'actions',
