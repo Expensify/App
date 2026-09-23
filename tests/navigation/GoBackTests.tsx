@@ -6,13 +6,14 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import * as NavigationFocusReturn from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {InitialState} from '@react-navigation/native';
+import type {EventArg, InitialState, NavigationAction} from '@react-navigation/native';
 
 import React, {createContext, useContext} from 'react';
 
@@ -760,6 +761,22 @@ describe('Go back on the narrow layout', () => {
         const policyA = 'policy-a';
         const policyB = 'policy-b';
 
+        type BeforeRemoveEvent = EventArg<'beforeRemove', true, {action: NavigationAction}>;
+
+        function preventRemove(event: BeforeRemoveEvent) {
+            event.preventDefault();
+        }
+
+        /** Stands in for a guard on the routes named `routeName`, and lets every other removal through */
+        function guardOn(routeName: string, guard: (event: BeforeRemoveEvent) => void) {
+            return (event: BeforeRemoveEvent, route: {name: string}) => {
+                if (route.name !== routeName) {
+                    return;
+                }
+                guard(event);
+            };
+        }
+
         function buildStateWithModalOverWorkspaces(...workspaceSplits: WorkspaceScopeRoute[]): InitialState {
             return buildStateWithModalOverTab(WORKSPACES_TAB_INDEX, ...workspaceSplits);
         }
@@ -801,16 +818,15 @@ describe('Go back on the narrow layout', () => {
             expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
         });
 
-        it('Should stop at a pop a beforeRemove listener prevented', () => {
+        it('Should stop at a pop prevented by a beforeRemove listener', () => {
             // Given a modal over two workspace splits, whose closing a discard-changes guard prevents
-            const guard = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
+            const guard = jest.fn(preventRemove);
             render(
                 <TestNavigationContainer
                     initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))}
-                    onBeforeRemove={(event, route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && guard(event)}
+                    onBeforeRemove={guardOn(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, guard)}
                 />,
             );
-            const rootStateBefore = navigationRef.current?.getRootState();
             const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
 
             // When going back to a screen that needs the modal closed and the splits under it popped too
@@ -823,17 +839,41 @@ describe('Go back on the narrow layout', () => {
             // screens under the form
             expect(dispatchSpy).toHaveBeenCalledTimes(1);
             expect(guard).toHaveBeenCalledTimes(1);
-            expect(navigationRef.current?.getRootState()).toEqual(rootStateBefore);
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]);
+            const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            expect(workspaceState?.routes).toHaveLength(2);
+        });
+
+        it('Should disarm the focus-restore skip when the pop it was armed for is prevented', () => {
+            // Given a modal over a workspace split, whose closing a discard-changes guard prevents
+            render(
+                <TestNavigationContainer
+                    initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA))}
+                    onBeforeRemove={guardOn(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, preventRemove)}
+                />,
+            );
+            const skipSpy = jest.spyOn(NavigationFocusReturn, 'skipNextFocusRestore');
+            const cancelSkipSpy = jest.spyOn(NavigationFocusReturn, 'cancelSkipNextFocusRestore');
+
+            // When a form-submit goBack arms the skip for a pop the guard then prevents
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA), {shouldSkipFocusRestore: true});
+            });
+
+            // Then the skip is disarmed, so a cancelled prompt can't leave it to eat the next Back's focus restore
+            expect(skipSpy).toHaveBeenCalledTimes(1);
+            expect(cancelSkipSpy).toHaveBeenCalledTimes(1);
         });
 
         it('Should stop at a prevented pop after an earlier pop went through', () => {
             // Given a modal over two workspace splits, where closing the modal goes through but a guard on the covering
             // split prevents popping it
-            const guard = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
+            const guard = jest.fn(preventRemove);
             render(
                 <TestNavigationContainer
                     initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))}
-                    onBeforeRemove={(event, route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR && guard(event)}
+                    onBeforeRemove={guardOn(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, guard)}
                 />,
             );
             const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
@@ -850,6 +890,81 @@ describe('Go back on the narrow layout', () => {
             expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
             const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             expect(workspaceState?.routes).toHaveLength(2);
+        });
+
+        it('Should take only the prevented pop once the guard lets the user leave', () => {
+            // Given a modal over two workspace splits, whose closing a guard prevents until the user confirms leaving
+            let hasConfirmed = false;
+            const guard = jest.fn((event: BeforeRemoveEvent) => {
+                if (hasConfirmed) {
+                    return;
+                }
+                event.preventDefault();
+            });
+            render(
+                <TestNavigationContainer
+                    initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))}
+                    onBeforeRemove={guardOn(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, guard)}
+                />,
+            );
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+            const blockedAction = guard.mock.calls.at(0)?.at(0)?.data.action;
+            expect(blockedAction).toBeDefined();
+
+            // When the user confirms, and the guard replays the pop it blocked, as useDiscardChangesConfirmation does
+            hasConfirmed = true;
+            act(() => {
+                if (!blockedAction) {
+                    return;
+                }
+                navigationRef.current?.dispatch(blockedAction);
+            });
+
+            // Then the modal closes onto split B: the pops to split A that goUp stopped before are not taken. This pins
+            // the known limit, so a change that resumes goUp after the replay shows up here
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
+            const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            expect(workspaceState?.routes).toHaveLength(2);
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyB});
+        });
+
+        it('Should not jump tabs when a guard prevents uncovering the underlying tab navigator', () => {
+            // Given a modal over a pushed tab navigator, over one that already has the target tab active, where a guard
+            // on the pushed tab navigator prevents popping it
+            const initialState: InitialState = {
+                index: 2,
+                routes: [
+                    ...buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA)).routes,
+                    ...buildWorkspaceNavigationStateWithActiveTab(1, buildWorkspaceSplitRoute(policyB)).routes,
+                    {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.RIGHT_MODAL.SETTINGS}]}},
+                ],
+            };
+            const guard = jest.fn(preventRemove);
+            render(
+                <TestNavigationContainer
+                    initialState={initialState}
+                    onBeforeRemove={guardOn(NAVIGATORS.TAB_NAVIGATOR, guard)}
+                />,
+            );
+            const pushedTabStateBefore = navigationRef.current?.getRootState().routes.at(1)?.state;
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            // When going back to a screen in the underlying tab navigator
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            // Then the modal closes, but nothing goes out past the prevented pop: jumping tabs in the underlying tab
+            // navigator would change the screens under the guard's prompt
+            expect(guard).toHaveBeenCalledTimes(1);
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: 'JUMP_TO'}));
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
+            expect(rootState?.routes.at(1)?.state?.index).toBe(pushedTabStateBefore?.index);
         });
 
         it('Should restore the tab the fallback route belongs to when the tab navigator is focused elsewhere', () => {

@@ -55,7 +55,7 @@ type BeforeRemoveListener = (event: BeforeRemoveEvent, route: RouteProp<ParamLis
 type TestNavigationContainerProps = {
     initialState: InitialState;
 
-    /** Called on `beforeRemove` of the right modal and of every workspace split, so a test can stand in for a guard */
+    /** Called on `beforeRemove` of every tab navigator, the right modal and every workspace split, so a test can stand in for a guard */
     onBeforeRemove?: BeforeRemoveListener;
 };
 
@@ -235,6 +235,7 @@ function TestRightModalNavigator() {
 }
 
 function TestTabNavigator() {
+    useTestBeforeRemoveListener();
     return (
         <TabNav.Navigator screenOptions={{headerShown: false}}>
             <TabNav.Screen

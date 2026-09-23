@@ -6,7 +6,7 @@ import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfCompose
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
-import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
+import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -528,9 +528,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return false;
     }
 
-    // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    // Returns false when a `beforeRemove` listener (e.g. the discard-changes prompt) prevented the action. React Navigation
-    // reports that synchronously, as a `noop` `__unsafe_action__` for the action it dropped.
+    // Arms the focus-restore skip before dispatch (PUSH_PARAMS consumes it inside the router) and disarms it if the
+    // action was dropped, so a cancelled prompt can't leak it. Returns false when the action was dropped: prevented by a
+    // `beforeRemove` guard or a no-op, both reported as a `noop` `__unsafe_action__`. Pinned by the tests in `GoBackTests.tsx`.
     const dispatch = (actionToDispatch: NavigationAction): boolean => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
@@ -544,14 +544,17 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         });
         navigationContainer.dispatch(actionToDispatch);
         unsubscribe();
+        if (!wasApplied && options?.shouldSkipFocusRestore) {
+            cancelSkipNextFocusRestore();
+        }
         return wasApplied;
     };
 
     // Once these pops are out, going back has happened, so nothing below may report a failure to go up.
     const popsToNavigator = getPopsToNavigatorWithBackToRoute(navigationContainer.getRootState(), action, compareParams);
     for (const popToNavigator of popsToNavigator) {
-        // The guard that prevented this pop owns the navigation from here. Going on would change the screens under its
-        // prompt, or send it this pop again, which it takes as Back over the open prompt and closes the prompt.
+        // A prevented pop hands control to its guard: going on would change screens under its prompt or re-send the pop,
+        // which closes the prompt. On confirm the guard replays only this pop, which usually is the whole way back.
         if (!dispatch(popToNavigator)) {
             return true;
         }
