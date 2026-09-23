@@ -628,15 +628,20 @@ function openReportFromDeepLink(
                                 return false;
                             }
 
-                            setDeepLinkToOpenAfterOnboarding((conciergeChatReportID) => {
-                                // ConciergePage resolves the chat itself, but straight after onboarding the report data is
-                                // still settling, so it holds a full page skeleton. Go to the chat directly when it is known.
-                                if (conciergeChatReportID && route === ROUTES.CONCIERGE) {
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), {waitForTransition: true});
-                                    return true;
-                                }
-
-                                return openDeepLink();
+                            setDeepLinkToOpenAfterOnboarding(() => {
+                                // Onboarding can finish before OpenApp has, and a report route opened then sits on its loading skeleton.
+                                const loadingConnection = Onyx.connectWithoutView({
+                                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                    // Stays subscribed until the data is loaded, so there is no early return to take.
+                                    // eslint-disable-next-line rulesdir/prefer-early-return
+                                    callback: (isLoadingReportData) => {
+                                        if (!isLoadingReportData) {
+                                            Onyx.disconnect(loadingConnection);
+                                            openDeepLink();
+                                        }
+                                    },
+                                });
+                                return true;
                             });
                             return true;
                         };

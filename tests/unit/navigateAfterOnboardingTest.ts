@@ -252,18 +252,6 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 
-    it('should hand the concierge report ID to the parked deep link', () => {
-        // Given a parked link and an account whose Concierge chat is already known
-        const openDeepLink = jest.fn(() => true);
-        setDeepLinkToOpenAfterOnboarding(openDeepLink);
-
-        // When onboarding finishes
-        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
-
-        // Then the ID is passed through, so the link can skip the Concierge utility page and its skeleton
-        expect(openDeepLink).toHaveBeenCalledWith(REPORT_ID);
-    });
-
     it('should only replay a parked deep link once', () => {
         // Given a link parked once and two onboarding exits
         const navigate = jest.spyOn(Navigation, 'navigate');
