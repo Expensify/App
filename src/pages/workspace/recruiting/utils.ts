@@ -115,6 +115,7 @@ function getConfigRows(
             field: 'approvalMode',
             description: translate('workspace.recruiting.defaultApprover'),
             title: getDefaultApproverLabel(policy, policyEmployeePersonalDetails, translate, formatPhoneNumber),
+            numberOfLinesTitle: 2,
             route: ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE.getRoute(policyID),
             pendingAction: config?.pendingFields?.approvalMode,
             errors: config?.errorFields?.approvalMode,
