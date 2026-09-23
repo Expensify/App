@@ -1,3 +1,4 @@
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -27,6 +28,7 @@ type ScaledDistanceEReceiptProps = {
  */
 function ScaledDistanceEReceipt({transaction}: ScaledDistanceEReceiptProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [boxWidth, setBoxWidth] = useState(0);
     const [boxHeight, setBoxHeight] = useState(0);
     const [cardHeight, setCardHeight] = useState(0);
@@ -51,7 +53,7 @@ function ScaledDistanceEReceipt({transaction}: ScaledDistanceEReceiptProps) {
             testID="scaled-distance-e-receipt"
         >
             <View
-                style={[{width: variables.eReceiptHoverCardWidth}, {transform: [{scale}]}]}
+                style={[StyleUtils.getWidthStyle(variables.eReceiptHoverCardWidth), StyleUtils.getTransformScaleStyle(scale)]}
                 onLayout={onCardLayout}
                 testID="scaled-distance-e-receipt-card"
             >
