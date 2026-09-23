@@ -1,4 +1,4 @@
-// cspell:ignore hermesv profdata devicectl libdav intops libwebp fprofile CPLUSPLUSFLAGS ARCHS profraw cnts hermesvm
+// cspell:ignore hermesv profdata devicectl libdav intops libwebp fprofile CPLUSPLUSFLAGS ARCHS profraw cnts hermesvm unprofiled
 
 /** iOS-specific release builds, signing, native profile persistence, retrieval, and instrumentation checks. */
 
@@ -186,7 +186,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
             ];
         }
         if (kind === 'optimized') {
-            const clangProfileFlags = `-fprofile-instr-use=${mergedProfilePath}`;
+            const clangProfileFlags = `-fprofile-instr-use=${mergedProfilePath} -Wno-error=profile-instr-unprofiled`;
             return [
                 ...baseSettings,
                 `OTHER_CFLAGS=$(inherited) ${clangProfileFlags}`,
