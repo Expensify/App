@@ -17,6 +17,7 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -47,7 +48,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeText, setRangeText] = useState(() =>

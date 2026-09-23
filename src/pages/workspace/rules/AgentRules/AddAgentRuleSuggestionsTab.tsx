@@ -111,6 +111,7 @@ function AddAgentRuleSuggestionsTab({onSelectSuggestion}: AddAgentRuleSuggestion
                     accessibilityLabel={translate('workspace.rules.agentRules.findSuggestion')}
                     value={searchValue}
                     onChangeText={setSearchValue}
+                    shouldHideClearButton={false}
                     autoGrowHeight={false}
                     role={CONST.ROLE.SEARCHBOX}
                 />

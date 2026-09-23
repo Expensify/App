@@ -70,6 +70,7 @@ const SCREENS = {
         CHANGE_APPROVER: {
             ROOT: 'Search_Change_Approver_Root',
             ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+            REASSIGN_APPROVER: 'Search_Change_Approver_Reassign_Approver',
         },
     },
     SETTINGS: {
@@ -88,6 +89,7 @@ const SCREENS = {
         BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
         DEVICE_MANAGEMENT: 'Settings_Device_Management',
         CLOSE: 'Settings_Close',
+        CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'Settings_CloseAccount_ConfirmValidateCode',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmValidateCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
@@ -183,6 +185,7 @@ const SCREENS = {
             ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: 'Settings_Wallet_EnablePayments_ConfirmValidateCode',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             CARD_ADD_TO_DIGITAL_WALLET: 'Settings_Wallet_Card_Add_To_Digital_Wallet',
+            CARD_ADDED_TO_WALLET: 'Settings_Wallet_Card_Added_To_Wallet',
             CARD_CHANGE_PIN: 'Settings_Wallet_Card_Change_PIN',
             CARD_CHANGE_PIN_ATM: 'Settings_Wallet_Card_Change_PIN_ATM',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
@@ -525,6 +528,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
             QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
             QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
+            QUICKBOOKS_ONLINE_CUSTOM_DIMENSION: 'Policy_Accounting_Quickbooks_Online_Import_Custom_Dimension',
             QUICKBOOKS_ONLINE_CUSTOMERS: 'Policy_Accounting_Quickbooks_Online_Import_Customers',
             QUICKBOOKS_ONLINE_LOCATIONS: 'Policy_Accounting_Quickbooks_Online_Import_Locations',
             QUICKBOOKS_ONLINE_ITEMS: 'Policy_Accounting_Quickbooks_Online_Import_Items',
@@ -682,6 +686,7 @@ const SCREENS = {
             CERTINIA_EXPORT_DATE: 'Policy_Accounting_Certinia_Export_Date',
             CERTINIA_DEFAULT_VENDOR: 'Policy_Accounting_Certinia_Default_Vendor',
             CERTINIA_ADVANCED: 'Policy_Accounting_Certinia_Advanced',
+            CERTINIA_FX_EXPENSE_ACCOUNT: 'Policy_Accounting_Certinia_Fx_Expense_Account',
             CERTINIA_TAGS_MAPPING: 'Policy_Accounting_Certinia_Tags_Mapping',
             CERTINIA_REPORT_EXPORT_STATUS: 'Policy_Accounting_Certinia_Report_Export_Status',
             CERTINIA_COMPANY_SELECTOR: 'Policy_Accounting_Certinia_Company_Selector',
@@ -745,6 +750,7 @@ const SCREENS = {
         HR_MERGE_FINAL_APPROVER: 'Workspace_HR_Merge_Final_Approver',
         HR_MERGE_GROUPS: 'Workspace_HR_Merge_Groups',
         RECRUITING: 'Workspace_Recruiting',
+        DYNAMIC_RECRUITING_SYNC_RESULTS: 'Dynamic_Recruiting_Sync_Results',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
@@ -1136,6 +1142,7 @@ const SCREENS = {
     REPORT_CHANGE_APPROVER: {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
+        REASSIGN_APPROVER: 'Report_Change_Approver_Reassign_Approver',
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',
