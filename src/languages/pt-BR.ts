@@ -1421,8 +1421,6 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
-        pendingMatchSubmitTitle: 'Enviar relatório',
-        pendingMatchSubmitDescription: 'Algumas despesas estão pendentes de correspondência com uma transação de cartão de crédito. Deseja marcá-las como dinheiro?',
         confirmSubmitReportViolations: {
             title: 'Enviar relatório?',
             description: 'Este relatório tem violações de política. Tem certeza de que deseja enviá-lo sem fazer alterações?',

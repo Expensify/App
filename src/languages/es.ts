@@ -1403,8 +1403,6 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
-        pendingMatchSubmitTitle: 'Enviar informe',
-        pendingMatchSubmitDescription: 'Algunos gastos están pendientes de coincidencia con una transacción de tarjeta de crédito. ¿Deseas marcarlos como efectivo?',
         confirmSubmitReportViolations: {
             title: '¿Enviar informe?',
             description: 'Este informe tiene infracciones de política. ¿Seguro que quieres enviarlo sin hacer cambios?',

@@ -1406,8 +1406,6 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '保留中の照合',
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
-        pendingMatchSubmitTitle: 'レポートを提出',
-        pendingMatchSubmitDescription: '一部の経費がクレジットカード取引との照合待ちです。現金としてマークしますか？',
         confirmSubmitReportViolations: {
             title: 'レポートを送信しますか？',
             description: 'このレポートにはポリシー違反があります。変更を加えずに送信してもよろしいですか？',

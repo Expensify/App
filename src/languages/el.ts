@@ -1472,8 +1472,6 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
-        pendingMatchSubmitTitle: 'Υποβολή αναφοράς',
-        pendingMatchSubmitDescription: 'Κάποιες δαπάνες αναμένουν αντιστοίχιση με συναλλαγή πιστωτικής κάρτας. Θέλετε να τις σημάνετε ως μετρητά;',
         confirmSubmitReportViolations: {
             title: 'Υποβολή αναφοράς;',
             description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',

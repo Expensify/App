@@ -1429,8 +1429,6 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
-        pendingMatchSubmitTitle: 'Soumettre le rapport',
-        pendingMatchSubmitDescription: 'Certaines dépenses sont en attente de rapprochement avec une transaction par carte de crédit. Voulez-vous les marquer comme espèces ?',
         confirmSubmitReportViolations: {
             title: 'Soumettre le rapport ?',
             description: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le soumettre sans apporter de modifications ?',

@@ -17,6 +17,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLiveReportActionsForViolations from '@hooks/useLiveReportActionsForViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
@@ -281,13 +282,13 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [reportListItemHeaderReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(snapshotReport?.reportID ?? reportItem.reportID)}`);
+    const liveReportActionsForViolations = useLiveReportActionsForViolations(snapshotReport?.reportID ?? reportItem.reportID);
     const {transactions: reportListHeaderTransactions, violations: reportListHeaderViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const reportListHeaderTransactionsArray = useMemo(() => Object.values(reportListHeaderTransactions), [reportListHeaderTransactions]);
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
         reportListHeaderTransactionsArray,
         reportListHeaderViolations,
-        Object.values(reportListItemHeaderReportActions ?? {}),
+        liveReportActionsForViolations,
         parentReport ?? snapshotReport,
     );
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({

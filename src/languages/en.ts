@@ -1518,8 +1518,6 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
-        pendingMatchSubmitTitle: 'Submit report',
-        pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
         confirmSubmitReportViolations: {
             title: 'Submit report?',
             description: 'This report has policy violations. Are you sure you want to submit it without making changes?',

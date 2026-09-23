@@ -9,8 +9,6 @@ import type {Report, ReportAction, Transaction, TransactionViolations} from '@sr
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
@@ -30,36 +28,33 @@ function useConfirmSubmitReportViolations(
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    return useCallback(
-        (onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => {
-            const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report);
-            if (!summary.hasRejectedExpense && !summary.hasPendingCardMatch && summary.otherViolationNames.size === 0) {
-                onProceed();
+    return (onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => {
+        const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report);
+        if (!summary.hasRejectedExpense && !summary.hasPendingCardMatch && summary.otherViolationNames.size === 0) {
+            onProceed();
+            return;
+        }
+
+        const bullets = buildSubmitViolationBullets(summary, translate);
+        showConfirmModal({
+            title: translate('iou.confirmSubmitReportViolations.title'),
+            subtitle: translate('iou.confirmSubmitReportViolations.description'),
+            prompt: bullets.map((bullet) => `${CONST.DOT_SEPARATOR} ${bullet}`).join('\n'),
+            promptStyles: styles.textDanger,
+            confirmText: translate('common.submitAnyway'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldEnablePromptScroll: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-
-            const bullets = buildSubmitViolationBullets(summary, translate);
-            showConfirmModal({
-                title: translate('iou.confirmSubmitReportViolations.title'),
-                subtitle: translate('iou.confirmSubmitReportViolations.description'),
-                prompt: bullets.map((bullet) => `${CONST.DOT_SEPARATOR} ${bullet}`).join('\n'),
-                promptStyles: styles.textDanger,
-                confirmText: translate('common.submitAnyway'),
-                cancelText: translate('common.cancel'),
-                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                shouldEnablePromptScroll: true,
-            }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                if (summary.hasPendingCardMatch) {
-                    markPendingRTERTransactionsAsCash(transactions, violationsCollection, reportActions);
-                }
-                onProceed(summary.hasRejectedExpense || summary.hasPendingCardMatch);
-            });
-        },
-        [transactions, violationsCollection, reportActions, report, showConfirmModal, translate, styles],
-    );
+            if (summary.hasPendingCardMatch) {
+                markPendingRTERTransactionsAsCash(transactions, violationsCollection, reportActions);
+            }
+            onProceed(summary.hasRejectedExpense || summary.hasPendingCardMatch);
+        });
+    };
 }
 
 export default useConfirmSubmitReportViolations;

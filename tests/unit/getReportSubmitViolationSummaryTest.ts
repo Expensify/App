@@ -34,7 +34,7 @@ function violation(name: TransactionViolation['name'], data?: TransactionViolati
 function rejectedReport(): Report {
     return createMock<Report>({
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
-        nextStep: {message: [], icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
+        nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
     });
 }
 
@@ -144,7 +144,7 @@ describe('getReportSubmitViolationSummary', () => {
             {[violationsKey('1')]: []},
             createMock<Report>({
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                nextStep: {message: [], icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
+                nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
             }),
         );
 

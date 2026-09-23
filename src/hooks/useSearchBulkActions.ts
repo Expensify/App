@@ -3151,6 +3151,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserLogin,
         bankAccountList,
         styles.integrationIcon,
+        styles.textDanger,
         showConfirmModal,
         clearSelectedTransactions,
         handleBasicExport,

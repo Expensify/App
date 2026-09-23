@@ -159,7 +159,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // REJECTED_REPORT, report reopened to OPEN) - a report-level state, not a TransactionViolations entry
         const rejectedReport = createMock<Report>({
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            nextStep: {message: [], icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
+            nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
         });
         const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], {}, reportActions, rejectedReport));
         const onProceed = jest.fn();

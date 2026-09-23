@@ -14,6 +14,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLiveReportActionsForViolations from '@hooks/useLiveReportActionsForViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
@@ -220,15 +221,8 @@ function TransactionListItemInner<TItem extends ListItem>({
     const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
 
     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
-    // Live (not snapshot) report actions: markPendingRTERTransactionsAsCash needs the IOU action's current
-    // childReportID to resolve the transaction thread, which a stale search snapshot may not have yet.
-    const [liveReportActionsForViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
-        [transaction],
-        filteredViolationsCollection,
-        Object.values(liveReportActionsForViolations ?? {}),
-        reportForViolations,
-    );
+    const liveReportActionsForViolations = useLiveReportActionsForViolations(transactionItem.reportID);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations([transaction], filteredViolationsCollection, liveReportActionsForViolations, reportForViolations);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
