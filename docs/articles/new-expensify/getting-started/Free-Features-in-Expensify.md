@@ -96,8 +96,7 @@ Export your data for taxes, budgeting, or sharing with an accountant.
 ### Web
 1. Click **Spend** > **Expenses**.
 2. Tick the boxes of the expenses you want to export. 
-3. Click **Selected** at the top.
-4. Choose **Export** from the dropdown menu.
+3. In the bar that appears at the bottom of the list, click **Export**. If you don't see it, click **More** first.
 
 ### Mobile
 CSV export is only available on the web. Log in on desktop to export expenses.
