@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
@@ -107,6 +106,7 @@ import Onyx from 'react-native-onyx';
 
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
+import isCreatedMissing from './isCreatedMissing';
 
 type TransactionParams = {
     amount: number;
@@ -715,13 +715,6 @@ function getNegatedAmountTransaction(transaction: Transaction): Transaction {
         modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
         ...(transaction.convertedAmount != null && {convertedAmount: -transaction.convertedAmount}),
     };
-}
-
-function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
-    if (!transaction) {
-        return true;
-    }
-    return transaction?.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
