@@ -159,6 +159,8 @@ This is why you may see the following warning when editing a workflow:
 
 Deleting and recreating the workflow won't change this, because the limitation is tied to the shared approver's forwarding rather than to any one submitter's workflow.
 
+**Note:** Expensify is rolling out an update that stores each approval workflow separately, so the same approver can forward to different people in different workflows. If your account has the update, the warning above doesn't appear and editing an approver in one workflow leaves the other workflows unchanged. Everything described in this answer applies to accounts that don't have the update yet.
+
 To keep a second-level approver limited to a single submitter, that submitter's first approver must be unique to their chain — that is, not shared as an approver for any other member. If your goal is instead to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
 
 ## How can I assign custom approval workflows to specific members?
