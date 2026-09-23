@@ -620,10 +620,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `评论的最大长度为 ${formattedMaxLength} 个字符。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `任务标题最长为 ${formattedMaxLength} 个字符。`,
     },
-    baseUpdateAppModal: {
-        updateApp: '更新应用',
-        updatePrompt: '此应用有新版本可用。\n现在更新，或稍后重启应用以下载最新更改。',
-    },
     deeplinkWrapper: {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
@@ -942,12 +938,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: '添加银行账户以接收报销'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName} 卡添加需要您的批准`,
                 subtitle: 'Expensify 卡',
-                cta: '审核',
-                appleWallet: 'Apple 钱包',
-                googleWallet: 'Google 钱包',
-                digitalWallet: '数字钱包',
             },
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',
@@ -1770,11 +1761,18 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `已将审批人更改为 <mention-user accountID="${newApproverID}"/>，跳过了 <mention-user accountID="${previousApproverID}"/>`
+                    : `已将审批人更改为 <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: '添加审批人',
                 addApproverSubtitle: '向现有工作流程添加额外审批人。',
                 bypassApprovers: '跳过审批人',
                 bypassApproversSubtitle: '将自己设为最终批准人并跳过所有剩余批准人。',
+                reassignApprover: '重新指派审批人',
+                reassignApproverSubtitle: '跳过当前审批人并指派新的审批人。',
+                reassignApproverPageHeader: '选择一位替代审批人，然后按剩余的审批流程进行。',
             },
             addApprover: {
                 subtitle: '在将此报表提交到其余审批流程之前，请选择一位额外的审批人。',
@@ -2115,7 +2113,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewUserHistory: '查看用户历史记录',
+        viewMemberHistory: '查看成员历史记录',
         viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
@@ -2679,6 +2677,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple 钱包',
         googleWallet: 'Google 钱包',
         digitalWallet: '数字钱包',
+        digitalWalletCapitalized: '数字钱包',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName} 卡添加需要您的批准`,
+        review: '审核',
         confirmHeading: '确认你的请求',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) => `是否要将尾号为 ${lastFourDigits} 的 Expensify 卡添加到您的 ${walletName}？`,
         deny: '拒绝',
@@ -3800,8 +3801,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             deletePaymentBankAccount: '此银行账户无法删除，因为它被用于 Expensify 卡付款。如果您仍希望删除此账户，请联系 Concierge。',
             sameDepositAndWithdrawalAccount: '存款账户和取款账户相同。',
         },
+        unlockAlreadyRequestedTitle: '请求已提交',
+        unlockAlreadyRequestedDescription: '您解锁此银行账户的请求已发送。如需其他信息，Concierge 会与您联系。',
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
         countrySelectionStepHeader: '您的银行账户位于哪个国家/地区？',
         accountDetailsStepHeader: '你的账户详情是什么？',
         accountTypeStepHeader: '这是哪种类型的账户？',
@@ -5246,6 +5250,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: '任务',
                 },
             },
+            fxExpenseAccount: '货币兑换手续费科目',
+            fxExpenseAccountDescription: '当您的公司承担一笔境外付款的货币兑换成本时，我们会将该成本作为一行添加到应付发票中，并记入此科目。',
+            noExpenseAccountsFound: '未找到账户',
+            noExpenseAccountsFoundDescription: '在 Certinia 中添加总账科目后，请再次同步连接。',
         },
         netsuite: {
             subsidiary: '子公司',
@@ -6617,6 +6625,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 other: (count: number) => `${count} 个标签`,
             }),
             showTagGLCodes: '在选择标签时显示总账科目代码',
+            showTagGLCodesSubtitle: '如果某个总账科目代码未显示，则说明此标签在您的会计系统中不可用。',
         },
         taxes: {
             subtitle: '添加税种名称、税率，并设置默认值。',
@@ -9219,6 +9228,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: '批量编辑',
             editMultipleTitle: '编辑多个费用',
+            editFinalizedExpensesTitle: '编辑已完成的费用？',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `您选择的 ${total} 笔费用中有 1 笔位于已批准或已支付的报表中。您即将编辑已完成的费用。您确定吗？`,
+                other: `您选择的 ${total} 笔费用中有 ${count} 笔位于已批准或已支付的报表中。您即将编辑已完成的费用。您确定吗？`,
+            }),
             editMultipleDescription: '更改将应用于所有选中的报销，并覆盖任何先前设置的值。',
             approve: '批准',
             pay: '支付',

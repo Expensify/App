@@ -330,7 +330,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         {!!accountID && !isAnonymousUserSession() && (
                             <MenuItem
                                 shouldShowRightIcon
-                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.viewUserHistory')}
+                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.viewMemberHistory')}
                                 icon={expensifyIcons.MagnifyingGlass}
                                 onPress={() => {
                                     const query = buildQueryStringFromFilterFormValues({
