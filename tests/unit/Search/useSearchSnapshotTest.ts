@@ -95,6 +95,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getValidGroupBy: (...args: unknown[]) => mockGetValidGroupBy(...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     isSearchDataLoaded: (...args: unknown[]) => mockIsSearchDataLoaded(...args),
+    isTransactionGroupListItemType: (item: Record<string, unknown>) => 'transactions' in item,
 }));
 
 // The optimistic-tracking hooks are mocked so this suite exercises the hook's WIRING (correct inputs in,
@@ -470,7 +471,8 @@ describe('useSearchSnapshot', () => {
     it('caps filteredData to the rendered rows so bulk actions cannot reach unrendered ones', () => {
         const searchResults = makeSearchResults();
         mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        const rows = Array.from({length: 5}, (_value, index) => ({transactionID: `${index}`, keyForList: `${index}`}));
+        // live to-do rows, the only ones capped, are report groups
+        const rows = Array.from({length: 5}, (_value, index) => ({reportID: `${index}`, keyForList: `${index}`, transactions: []}));
         mockGetSections.mockReturnValue([rows, rows.length, false]);
         // sorted order reverses the section order, so slicing `filteredData` on its own would select the wrong rows
         mockGetSortedSections.mockReturnValue([...rows].reverse());
@@ -487,7 +489,7 @@ describe('useSearchSnapshot', () => {
         );
 
         expect(result.current.data.map((item) => item.keyForList)).toEqual(['4', '3']);
-        expect(result.current.filteredData).toBe(result.current.data);
+        expect(result.current.filteredData).toEqual(result.current.data);
         // uncapped, or the offline reveal would never know there are more cached rows
         expect(result.current.filteredDataLength).toBe(5);
     });

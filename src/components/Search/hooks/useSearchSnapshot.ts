@@ -15,7 +15,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
 import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -85,7 +85,7 @@ type UseSearchSnapshotParams = {
      *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
-    /** Row cap for `data`. Live searches page on this instead of a server cursor. */
+    /** Row cap for `data`. Live (to-do) searches page on this instead of a server cursor; their rows are all report groups. */
     visibleRowLimit?: number;
 
     /** Rows ticked here stay rendered past `visibleRowLimit`. */
@@ -108,8 +108,7 @@ function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransa
             continue;
         }
         shownRowCount += 1;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group rows expose nested transactions
-        const isRowSelected = isKeySelected(row.keyForList) || !!(row as TransactionGroupListItemType).transactions?.some((transaction) => isKeySelected(transaction.keyForList));
+        const isRowSelected = isKeySelected(row.keyForList) || (isTransactionGroupListItemType(row) && row.transactions.some((transaction) => isKeySelected(transaction.keyForList)));
         if (shownRowCount <= rowLimit || !!row.shouldAnimateInHighlight || isRowSelected) {
             end = index + 1;
         }
@@ -450,9 +449,8 @@ function useSearchSnapshot({
     const rowLimitEnd = visibleRowLimit === undefined ? stableSortedData.length : getRowLimitEnd(stableSortedData, visibleRowLimit, selectedTransactions, isOffline);
     const isRowLimitApplied = rowLimitEnd < stableSortedData.length;
     const visibleData = isRowLimitApplied ? stableSortedData.slice(0, rowLimitEnd) : stableSortedData;
-    // selection runs off this, so cap it too or "select all" reaches rows that were never rendered
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `visibleData` is a sorted slice of the same rows
-    const visibleFilteredData = isRowLimitApplied ? (visibleData as SearchData) : filteredData;
+    // selection runs off this, so cap it too or "select all" reaches rows that were never rendered; live rows are all report groups
+    const visibleFilteredData = isRowLimitApplied ? visibleData.filter(isTransactionGroupListItemType) : filteredData;
 
     return {
         data: visibleData,
