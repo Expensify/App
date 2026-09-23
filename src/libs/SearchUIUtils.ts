@@ -3624,7 +3624,7 @@ function getQuarterSections(
                     ? buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON
                     : undefined;
             const formattedQuarter = DateUtils.getFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
-            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter);
+            const shortFormattedQuarter = DateUtils.getShortFormattedQuarterForSearch(quarterGroup.year, quarterGroup.quarter, dateFnsLocale);
 
             quarterSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,

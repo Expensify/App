@@ -705,7 +705,10 @@ const CONST = {
         // 12-hour clock and its own `μ.μ.` marker. `p` is a date-fns extension, and still needs `{locale}`.
         LOCAL_TIME_FORMAT: 'p',
         YEAR_MONTH_FORMAT: 'yyyyMM',
-        MONTH_FORMAT: 'MMMM',
+        // `LLLL` is the standalone month, not `MMMM`. Greek and Polish inflect the month name when it accompanies
+        // a day, so `stycznia` means "of January". A month shown on its own, like a picker list or a statement
+        // heading, needs the nominative `styczeń` instead. Both uses of this constant are a month standing alone.
+        MONTH_FORMAT: 'LLLL',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
