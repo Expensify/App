@@ -59,7 +59,8 @@ describe('Parser', () => {
         });
 
         test('resolves mention-report reportID to report name via reportIDToName map', () => {
-            const reportIDToName: Record<string, string> = {['42']: 'Expense Report'};
+            const reportIDToName: Record<string, string> = {};
+            reportIDToName['42'] = 'Expense Report';
             expect(Parser.htmlToMarkdown('<mention-report reportID="42" />', {reportIDToName})).toBe('Expense Report');
         });
 
@@ -80,7 +81,8 @@ describe('Parser', () => {
         });
 
         test('resolves mention-report reportID to report name via reportIDToName map', () => {
-            const reportIDToName: Record<string, string> = {['99']: 'Trip Report'};
+            const reportIDToName: Record<string, string> = {};
+            reportIDToName['99'] = 'Trip Report';
             expect(Parser.htmlToText('<mention-report reportID="99" />', {reportIDToName})).toBe('Trip Report');
         });
 

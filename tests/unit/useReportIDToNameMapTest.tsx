@@ -53,11 +53,9 @@ describe('useReportIDToNameMap', () => {
     });
 
     it('maps multiple reports and skips null entries', async () => {
-        await Onyx.multiSet({
-            [`${ONYXKEYS.COLLECTION.REPORT}10`]: createReport('10', {reportName: 'Trip Report'}),
-            [`${ONYXKEYS.COLLECTION.REPORT}11`]: createReport('11', {reportName: undefined}),
-            [`${ONYXKEYS.COLLECTION.REPORT}12`]: null,
-        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, createReport('10', {reportName: 'Trip Report'}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}11`, createReport('11', {reportName: undefined}));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}12`, null);
 
         const {result} = await renderReportIDToNameMap();
 
