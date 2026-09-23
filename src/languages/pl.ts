@@ -626,10 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `Maksymalna długość komentarza to ${formattedMaxLength} znaków.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `Maksymalna długość tytułu zadania to ${formattedMaxLength} znaków.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Zaktualizuj aplikację',
-        updatePrompt: 'Nowa wersja tej aplikacji jest dostępna.\nZaktualizuj ją teraz lub uruchom ponownie później, aby pobrać najnowsze zmiany.',
-    },
     deeplinkWrapper: {
         launching: 'Uruchamianie Expensify',
         expired: 'Twoja sesja wygasła.',
@@ -983,12 +979,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Dodaj konto bankowe, aby otrzymać zwrot'},
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `Dodanie karty ${walletName} wymaga twojej akceptacji`,
                 subtitle: 'Karta Expensify',
-                cta: 'Przegląd',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Portfel cyfrowy',
             },
             reviewCardFraud: {
                 title: 'Sprawdź potencjalne oszustwo na swojej Karcie Expensify',
@@ -1098,6 +1089,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 many: `Przejrzyj ${count} wydatków`,
                 other: `Przejrzyj ${count} wydatku`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Przejrzyj 1 prośbę administratora domeny',
+                few: `Przejrzyj ${count} prośby administratora domeny`,
+                many: `Przejrzyj ${count} próśb administratora domeny`,
+                other: `Przejrzyj ${count} prośby administratora domeny`,
+            }),
         },
         upcomingTravel: 'Nadchodząca podróż',
         upcomingTravelSection: {
@@ -1183,6 +1180,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Poproś Concierge o przeanalizowanie swoich wydatków lub uzyskaj pomoc',
             inputPlaceholderMobile: 'Zapytaj Concierge o cokolwiek',
         },
+    },
+    insightsPage: {
+        viewOnSpend: 'Zobacz w Wydatkach',
+        emptyState: {title: 'Nic do wyświetlenia', subtitle: 'Spróbuj zmienić kryteria powyżej'},
+        noExpensesState: {title: 'Zobacz, na co idą twoje pieniądze', subtitle: 'Gdy będziesz mieć wydatki, zobaczysz trendy w wydawaniu, najważniejszych sprzedawców i więcej.'},
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1853,11 +1855,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby zmienić to na stałe dla wszystkich raportów).`,
             changedApproverMessage: (managerID: number) => `zmienił(a) akceptującego na <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ponownie przypisał(a) akceptującego do <mention-user accountID="${managerID}"/> w wyniku aktualizacji przepływu pracy`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `zmienił(a) akceptującego na <mention-user accountID="${newApproverID}"/>, pominął(-ęła) <mention-user accountID="${previousApproverID}"/>`
+                    : `zmienił(a) akceptującego na <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Dodaj zatwierdzającego',
                 addApproverSubtitle: 'Dodaj dodatkową osobę zatwierdzającą do istniejącego przepływu zatwierdzania.',
                 bypassApprovers: 'Pomiń zatwierdzających',
                 bypassApproversSubtitle: 'Przypisz siebie jako ostatecznego akceptującego i pomiń wszystkich pozostałych akceptujących.',
+                reassignApprover: 'Zmień zatwierdzającego',
+                reassignApproverSubtitle: 'Pomiń obecną osobę zatwierdzającą i przypisz nową.',
+                reassignApproverPageHeader: 'Wybierz zastępczą osobę zatwierdzającą, a następnie kontynuuj pozostały przepływ zatwierdzania.',
             },
             addApprover: {
                 subtitle: 'Wybierz dodatkowego akceptującego ten raport, zanim przekażemy go dalej w procesie akceptacji.',
@@ -2215,7 +2224,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Awatar profilu',
         customInstructions: 'Niestandardowe instrukcje',
         copilotIntoAccount: 'Copilot do konta',
-        viewUserHistory: 'Zobacz historię użytkownika',
+        viewMemberHistory: 'Zobacz historię członka',
         viewAgentHistory: 'Zobacz historię agenta',
         publicSection: {
             title: 'Public',
@@ -2800,6 +2809,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'portfel cyfrowy',
+        digitalWalletCapitalized: 'Portfel cyfrowy',
+        approvalNeeded: ({walletName}: {walletName: string}) => `Dodanie karty ${walletName} wymaga twojej akceptacji`,
+        review: 'Przegląd',
         confirmHeading: 'Potwierdź swoje żądanie',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Czy chcesz dodać swoją Kartę Expensify (kończącą się na ${lastFourDigits}) do portfela ${walletName}?`,
@@ -3359,7 +3371,7 @@ ${amount} dla ${merchant} - ${date}`,
             invalidFormatEmailLogin: 'Wprowadzony adres e-mail jest nieprawidłowy. Popraw jego format i spróbuj ponownie.',
             agentSignInBlocked: 'Na konta agenta nie można logować się bezpośrednio. Żeby korzystać z agenta, zaloguj się na własne konto i uzyskaj do niego dostęp przez Copilota.',
         },
-        cannotGetAccountDetails: 'Nie można pobrać szczegółów konta. Spróbuj zalogować się ponownie.',
+        cannotGetAccountDetails: 'Nie udało się pobrać szczegółów konta. Poczekaj kilka minut i spróbuj ponownie.',
         loginForm: 'Formularz logowania',
         notYou: (user: string) => `To nie ${user}?`,
     },
@@ -3947,6 +3959,7 @@ ${amount} dla ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
         countrySelectionStepHeader: 'Gdzie znajduje się Twoje konto bankowe?',
         accountDetailsStepHeader: 'Jakie są szczegóły Twojego konta?',
         accountTypeStepHeader: 'Jakiego typu jest to konto?',
@@ -5453,6 +5466,11 @@ ${amount} dla ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Przydziały',
                 },
             },
+            fxExpenseAccount: 'Konto opłat za przewalutowanie',
+            fxExpenseAccountDescription:
+                'Kiedy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, dodamy ten koszt do faktury do zapłaty jako pozycję zaksięgowaną na to konto.',
+            noExpenseAccountsFound: 'Nie znaleziono kont',
+            noExpenseAccountsFoundDescription: 'Po dodaniu kont księgi głównej w Certinia zsynchronizuj ponownie połączenie.',
         },
         netsuite: {
             subsidiary: 'Spółka zależna',
@@ -6617,6 +6635,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 expensifyCardBannerLearnMoreButton: 'Dowiedz się więcej',
                 statementCloseDateTitle: 'Data zamknięcia zestawienia',
                 statementCloseDateDescription: 'Daj nam znać, kiedy kończy się okres rozliczeniowy Twojej karty, a utworzymy w Expensify pasujące zestawienie.',
+                exportAccount: 'Eksportuj konto',
             },
             workflows: {
                 title: 'Przepływy pracy',
@@ -6871,6 +6890,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 other: (count: number) => `${count} tagi`,
             }),
             showTagGLCodes: 'Pokaż kody GL przy wybieraniu tagu',
+            showTagGLCodesSubtitle: 'Jeśli kod GL nie jest wyświetlany, nie jest dostępny dla tego taga w twoim systemie księgowym.',
         },
         taxes: {
             subtitle: 'Dodaj nazwy podatków, stawki i ustaw domyślne.',
@@ -8737,6 +8757,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             subsidiarySelectDescription: 'Wybierz spółkę zależną w Campfire, z której chcesz zaimportować dane.',
             noSubsidiariesFound: 'Nie znaleziono żadnych spółek zależnych',
             noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę w Campfire i zsynchronizuj połączenie ponownie',
+            noVendorsFound: 'Nie znaleziono dostawców',
+            noVendorsFoundDescription: 'Dodaj proszę dostawców w Campfire i zsynchronizuj połączenie ponownie',
             importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z Campfire.',
             accountTypesDescription: 'Twoje konta Campfire zostaną zaimportowane jako kategorie.',
             enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
@@ -9581,6 +9603,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         bulkActions: {
             editMultiple: 'Edytuj wiele',
             editMultipleTitle: 'Edytuj wiele wydatków',
+            editFinalizedExpensesTitle: 'Edytować sfinalizowane wydatki?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 z ${total} wybranych wydatków znajduje się w zatwierdzonym lub opłaconym raporcie. Zamierzasz edytować sfinalizowany wydatek. Czy na pewno?`,
+                few: `${count} z ${total} wybranych wydatków znajdują się w zatwierdzonych lub opłaconych raportach. Zamierzasz edytować sfinalizowane wydatki. Czy na pewno?`,
+                many: `${count} z ${total} wybranych wydatków znajduje się w zatwierdzonych lub opłaconych raportach. Zamierzasz edytować sfinalizowane wydatki. Czy na pewno?`,
+                other: `${count} z ${total} wybranych wydatków znajduje się w zatwierdzonych lub opłaconych raportach. Zamierzasz edytować sfinalizowane wydatki. Czy na pewno?`,
+            }),
             editMultipleDescription: 'Zmiany zostaną ustawione dla wszystkich wybranych wydatków i nadpiszą wszystkie wcześniej ustawione wartości.',
             approve: 'Zatwierdź',
             pay: 'Zapłać',

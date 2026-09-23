@@ -499,6 +499,7 @@ const WRITE_COMMANDS = {
     UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS: 'UpdateFinancialForceSyncReimbursedReports',
     UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE: 'UpdateFinancialForceTaxNonBillable',
     UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY: 'UpdateFinancialForceExportForeignCurrency',
+    UPDATE_FINANCIAL_FORCE_FX_EXPENSE_ACCOUNT: 'UpdateFinancialForceFxExpenseAccount',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
     UPDATE_SAGE_INTACCT_AUTO_SYNC: 'UpdateSageIntacctAutoSync',
     UPDATE_SAGE_INTACCT_ACCOUNTING_METHOD: 'UpdateSageIntacctAccountingMethod',
@@ -1215,6 +1216,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_FX_EXPENSE_ACCOUNT]: Parameters.UpdateFinancialForceGenericTypeParams<'settingValue', string>;
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET]: Parameters.ConnectPolicyToRilletParams;
     [WRITE_COMMANDS.SELECT_INTUIT_ENTERPRISE_SUITE_ENTITY]: Parameters.SelectIntuitEnterpriseSuiteEntityParams;
@@ -1744,6 +1746,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     LINK_CARD_FEED_TO_POLICY: 'LinkCardFeedToPolicy',
     REVEAL_CARD_PIN: 'RevealCardPIN',
     CHANGE_CARD_PIN: 'ChangeCardPIN',
+    OPEN_SEARCH_TAG_FILTERS_PAGE: 'OpenSearchTagFiltersPage',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1792,6 +1795,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.LINK_CARD_FEED_TO_POLICY]: Parameters.LinkCardToPolicyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: Parameters.ChangeCardPINParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE]: Parameters.OpenSearchTagFiltersPageParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

@@ -625,10 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大文字数は${formattedMaxLength}文字です。`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'アプリを更新',
-        updatePrompt: 'このアプリの新しいバージョンが利用可能です。\n今すぐアップデートするか、後でアプリを再起動して最新の変更をダウンロードしてください。',
-    },
     deeplinkWrapper: {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
@@ -967,12 +963,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: '銀行口座を追加して払い戻しを受け取りましょう'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `${walletName}カードの追加には承認が必要です`,
                 subtitle: 'Expensify カード',
-                cta: 'レビュー',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google ウォレット',
-                digitalWallet: 'デジタルウォレット',
             },
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',
@@ -1069,6 +1060,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `${count} 件の経費を確認`,
                 other: `${count} 件の経費を確認`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: `${count} 件のドメイン管理者リクエストを確認`,
+                other: `${count} 件のドメイン管理者リクエストを確認`,
+            }),
         },
         upcomingTravel: '今後の出張',
         upcomingTravelSection: {
@@ -1152,6 +1147,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Concierge に経費の分析を依頼するか、サポートを受けます',
             inputPlaceholderMobile: 'Concierge に何でも聞いてください',
         },
+    },
+    insightsPage: {
+        viewOnSpend: '支出で表示',
+        emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
+        noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1807,11 +1807,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `承認者を <mention-user accountID="${newApproverID}"/> に変更し、<mention-user accountID="${previousApproverID}"/> をスキップしました`
+                    : `承認者を <mention-user accountID="${newApproverID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
                 addApproverSubtitle: '既存のワークフローに追加の承認者を追加します。',
                 bypassApprovers: '承認者をバイパス',
                 bypassApproversSubtitle: '自分を最終承認者として割り当て、残りの承認者をすべてスキップする。',
+                reassignApprover: '承認者を再割り当て',
+                reassignApproverSubtitle: '現在の承認者をスキップし、新しい承認者を割り当てます。',
+                reassignApproverPageHeader: '代わりの承認者を選択し、残りの承認ワークフローに従ってください。',
             },
             addApprover: {
                 subtitle: '残りの承認ワークフローへ回付する前に、このレポートの追加承認者を選択してください。',
@@ -2165,7 +2172,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
-        viewUserHistory: 'ユーザー履歴を表示',
+        viewMemberHistory: 'メンバー履歴を表示',
         viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
@@ -2743,6 +2750,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google ウォレット',
         digitalWallet: 'デジタルウォレット',
+        digitalWalletCapitalized: 'デジタルウォレット',
+        approvalNeeded: ({walletName}: {walletName: string}) => `${walletName}カードの追加には承認が必要です`,
+        review: 'レビュー',
         confirmHeading: 'リクエストを確認してください',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) => `${walletName} に、末尾が ${lastFourDigits} の Expensify カードを追加しますか？`,
         deny: '拒否',
@@ -3300,7 +3310,7 @@ ${date} の ${merchant} への ${amount}`,
             agentSignInBlocked:
                 'エージェントアカウントには直接サインインすることはできません。エージェントを利用するには、ご自身のアカウントでサインインし、Copilot 経由でアクセスしてください。',
         },
-        cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。もう一度サインインしてください。',
+        cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。数分待ってから、もう一度お試しください。',
         loginForm: 'ログインフォーム',
         notYou: (user: string) => `${user}ではありませんか？`,
     },
@@ -3886,6 +3896,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
         countrySelectionStepHeader: '銀行口座はどこにありますか？',
         accountDetailsStepHeader: 'あなたの口座情報は何ですか？',
         accountTypeStepHeader: 'これはどの種類のアカウントですか？',
@@ -5375,6 +5386,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'アサインメント',
                 },
             },
+            fxExpenseAccount: '通貨換算手数料勘定',
+            fxExpenseAccountDescription: '海外での支払いに対する通貨換算コストを会社が負担する場合、そのコストをこの勘定科目でコード化した明細行として、買掛請求書に追加します。',
+            noExpenseAccountsFound: 'アカウントが見つかりません',
+            noExpenseAccountsFoundDescription: 'Certinia で総勘定元帳勘定科目を追加した後に、接続を再同期してください。',
         },
         netsuite: {
             subsidiary: '子会社',
@@ -6521,6 +6536,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 expensifyCardBannerLearnMoreButton: '詳細はこちら',
                 statementCloseDateTitle: '取引明細書の締め日',
                 statementCloseDateDescription: 'カード明細の締め日を教えていただければ、Expensify 内に対応する明細を作成します。',
+                exportAccount: 'アカウントを書き出す',
             },
             workflows: {
                 title: 'ワークフロー',
@@ -6777,6 +6793,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 other: (count: number) => `${count} 件のタグ`,
             }),
             showTagGLCodes: 'タグ選択時にGLコードを表示する',
+            showTagGLCodesSubtitle: '総勘定元帳コードが表示されていない場合、お使いの会計システムではそのタグに利用できません。',
         },
         taxes: {
             subtitle: '税名と税率を追加し、デフォルトを設定します。',
@@ -8631,6 +8648,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'データを取り込みたい Campfire 内の子会社を選択してください。',
             noSubsidiariesFound: '子会社が見つかりません',
             noSubsidiariesFoundDescription: 'Campfire でエンティティを追加して、接続をもう一度同期してください',
+            noVendorsFound: '取引先が見つかりません',
+            noVendorsFoundDescription: 'Campfire にベンダーを追加して、もう一度接続を同期してください',
             importDescription: 'Campfire からインポートするコーディング設定を選択してください。',
             accountTypesDescription: 'Campfire のアカウントはカテゴリとしてインポートされます。',
             enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
@@ -9470,6 +9489,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: '複数を編集',
             editMultipleTitle: '複数の経費を編集',
+            editFinalizedExpensesTitle: '確定済みの経費を編集しますか？',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `選択した${total}件の経費のうち1件が、承認済みまたは支払済みのレポートに含まれています。確定済みの経費を編集しようとしています。よろしいですか？`,
+                other: `選択した${total}件の経費のうち${count}件が、承認済みまたは支払済みのレポートに含まれています。確定済みの経費を編集しようとしています。よろしいですか？`,
+            }),
             editMultipleDescription: '変更は選択されたすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
             pay: '支払う',

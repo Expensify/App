@@ -289,6 +289,7 @@ const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<Repor
 const ReportChangeApproverModalStackNavigator = createModalStackNavigator<ReportChangeApproverParamList>({
     [SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/DynamicReportChangeApproverPage').default,
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/ReportAddApproverPage').default,
+    [SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER]: () => require<ReactComponentModule>('../../../../pages/ReportReassignApproverPage').default,
 });
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
@@ -917,6 +918,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_STATUS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaExportStatusPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_DATE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaExportDatePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DEFAULT_VENDOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaDefaultVendorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_FX_EXPENSE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/advanced/CertiniaFxExpenseAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/advanced/CertiniaAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_REPORT_EXPORT_STATUS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaReportExportStatusPage').default,
@@ -1325,6 +1328,7 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.MERGE_REPORTS_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReportsMergeReports').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeApproverPage').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAddApproverPage').default,
+    [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReassignApproverPage').default,
     [SCREENS.SEARCH.EDIT_MULTIPLE_TRANSACTIONS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultiplePage').default,
     [SCREENS.SEARCH.EDIT_MULTIPLE_AMOUNT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleAmountPage').default,
     [SCREENS.SEARCH.EDIT_MULTIPLE_DESCRIPTION_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleDescriptionPage').default,

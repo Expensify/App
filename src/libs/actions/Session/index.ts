@@ -1599,7 +1599,11 @@ function waitForUserSignIn(): Promise<boolean> {
 function handleExitToNavigation(exitTo: Route) {
     waitForUserSignIn().then(() => {
         Navigation.waitForProtectedRoutes().then(() => {
-            Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            if (navigationRef.canGoBack()) {
+                Navigation.pop(navigationRef.getRootState().key);
+            } else {
+                Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            }
             Navigation.navigate(exitTo, {waitForTransition: true});
         });
     });
