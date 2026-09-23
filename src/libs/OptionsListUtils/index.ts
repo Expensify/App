@@ -404,7 +404,7 @@ function getPersonalDetailOptionText({accountID, hasReport, personalDetails, log
             accountID,
             personalDetailsData: hasReport ? undefined : (personalDetails ?? undefined),
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
-            translate,
+            hiddenTranslation: translate('common.hidden'),
         }) || formatPhoneNumberPhoneUtils(login ?? '')
     );
 }
@@ -489,6 +489,10 @@ function createOption({
     let reportName;
     result.participantsList = personalDetailList;
 
+    // Resolve display-name translations once per option, then pass the strings to getDisplayNameForParticipant.
+    const hiddenText = translateFn('common.hidden');
+    const youText = translateFn('common.you').toLowerCase();
+
     if (report) {
         result.private_isArchived = privateIsArchived;
         result.keyForList = String(report.reportID);
@@ -554,7 +558,8 @@ function createOption({
                       shouldAddCurrentUserPostfix: true,
                       personalDetailsData: personalDetails ?? undefined,
                       formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                      translate: translateFn,
+                      hiddenTranslation: hiddenText,
+                      youTranslation: youText,
                   })
                 : '');
 
@@ -889,10 +894,17 @@ function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: number) 
 }
 
 /**
+ * Verifies that a single option (category or tag) is enabled and not pending deletion
+ */
+function isOptionEnabled(option?: PolicyTag | PolicyCategory): boolean {
+    return !!option?.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+/**
  * Verifies that there is at least one enabled option
  */
 function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
-    return Object.values(options).some((option: PolicyTag | PolicyCategory) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return Object.values(options).some(isOptionEnabled);
 }
 
 /**
@@ -1389,6 +1401,7 @@ type CreateOptionFromReportParams = {
     policyTags?: OnyxEntry<PolicyTagLists>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     isTrackIntentUser?: boolean;
+    currentUserAccountID: number;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
@@ -1406,6 +1419,7 @@ function createOptionFromReport({
     policyTags,
     visibleReportActionsData = {},
     isTrackIntentUser,
+    currentUserAccountID,
     convertToDisplayString,
 }: CreateOptionFromReportParams) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
@@ -1428,6 +1442,7 @@ function createOptionFromReport({
             visibleReportActionsData,
             sortedActions,
             isTrackIntentUser,
+            currentUserAccountID,
         }),
     };
 }
@@ -1744,6 +1759,7 @@ function getUserToInviteOption({
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     loginList = {},
     currentUserEmail,
+    currentUserAccountID,
     visibleReportActionsData = {},
     rules,
 }: GetUserToInviteConfig & {visibleReportActionsData?: VisibleReportActionsDerivedValue; dateFnsLocale: DateFnsLocale | undefined; rules: OnyxCollection<Rule>}): SearchOptionData | null {
@@ -1792,6 +1808,7 @@ function getUserToInviteOption({
         pendingDeleteMemberAccountIDs: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
+        currentUserAccountID,
     });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
@@ -2494,6 +2511,7 @@ function getValidOptions(
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
                 searchInputValue,
+                currentUserAccountID,
             },
             rules,
         );
@@ -2936,7 +2954,7 @@ function filterUserToInvite(
     config: FilterUserToInviteConfig,
     rules: OnyxCollection<Rule>,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}} = config;
+    const {canInviteUser = true, excludeLogins = {}, currentUserAccountID} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -2965,6 +2983,7 @@ function filterUserToInvite(
         currentUserEmail,
         rules,
         ...config,
+        currentUserAccountID,
     });
 }
 
@@ -3007,6 +3026,7 @@ function filterOptions<T extends SearchOptionData>(
         {
             ...config,
             searchInputValue: searchInputValueForInvite,
+            currentUserAccountID,
         },
         rules,
     );
@@ -3176,6 +3196,7 @@ export {
     isDisablingOrDeletingLastEnabledCategory,
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
+    isOptionEnabled,
     isPersonalDetailsReady,
     optionsOrderAndGroupBy,
     optionsOrderBy,

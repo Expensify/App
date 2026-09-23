@@ -2752,13 +2752,18 @@ function getExportIntegrationLastMessageText(translate: LocalizedTranslate, repo
     return fragments.reduce((acc, fragment) => `${acc} ${fragment.text}`, '');
 }
 
-function getExportIntegrationMessageHTML(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): string {
-    const fragments = getExportIntegrationActionFragments(translate, reportAction, integrationName);
+function getExportIntegrationMessageHTML(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string, shouldOmitTrailingPeriod = false): string {
+    const fragments = getExportIntegrationActionFragments(translate, reportAction, integrationName, shouldOmitTrailingPeriod);
     const htmlFragments = fragments.map((fragment) => (fragment.url ? `<a href="${fragment.url}">${fragment.text}</a>` : fragment.text));
     return htmlFragments.join(' ');
 }
 
-function getExportIntegrationActionFragments(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, integrationName?: string): Array<{text: string; url: string}> {
+function getExportIntegrationActionFragments(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction>,
+    integrationName?: string,
+    shouldOmitTrailingPeriod = false,
+): Array<{text: string; url: string}> {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         throw Error(`received wrong action type. actionName: ${reportAction?.actionName}`);
     }
@@ -2817,7 +2822,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
         const reimbursableUrl = reimbursableUrls.at(0) ?? '';
         let suffix = '';
         if (linkItemCount === 1) {
-            suffix = '.';
+            suffix = shouldOmitTrailingPeriod ? '' : '.';
         } else if (linkItemCount === 3) {
             suffix = ',';
         }
