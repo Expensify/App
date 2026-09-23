@@ -103,51 +103,60 @@ describe('SAMLSignInPage', () => {
     });
 
     it('closes an in-app browser that never came back when the user goes back', async () => {
+        // Given an in-app browser on iOS that opened and never returned a result
         mockedOpenAuthSessionAsync.mockReturnValue(new Promise(() => {}));
-
         renderPage();
         await waitForBatchedUpdatesWithAct();
         expect(mockedOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
 
+        // When the user presses back
         fireEvent.press(screen.getByLabelText(translateLocal('common.back')));
         await waitForBatchedUpdatesWithAct();
 
+        // Then the browser is closed and the user leaves the page once
         expect(dismissAuthSession).toHaveBeenCalledTimes(1);
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
     });
 
     it('closes an in-app browser that never came back when the page unmounts', async () => {
+        // Given an in-app browser on iOS that opened and never returned a result
         mockedOpenAuthSessionAsync.mockReturnValue(new Promise(() => {}));
-
         const {unmount} = renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the page unmounts
         unmount();
 
+        // Then the browser is closed and the next SAML attempt is no longer blocked
         expect(dismissAuthSession).toHaveBeenCalledTimes(1);
         expect(setIsAuthenticatingWithShortLivedToken).toHaveBeenLastCalledWith(false);
     });
 
     it('leaves once when the user cancels the in-app browser', async () => {
+        // Given an in-app browser the user cancels
         mockedOpenAuthSessionAsync.mockResolvedValue({type: WebBrowserResultType.CANCEL});
 
+        // When the page opens it
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // Then there is nothing left to close and the user leaves the page once
         expect(dismissAuthSession).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
     });
 
     it('does not try to close the in-app browser on Android', async () => {
+        // Given an in-app browser on Android that opened and never returned a result
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
         mockedOpenAuthSessionAsync.mockReturnValue(new Promise(() => {}));
-
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
+        // When the user presses back
         fireEvent.press(screen.getByLabelText(translateLocal('common.back')));
         await waitForBatchedUpdatesWithAct();
 
+        // Then only the page is left, since Android cannot close the browser
         expect(dismissAuthSession).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
     });
