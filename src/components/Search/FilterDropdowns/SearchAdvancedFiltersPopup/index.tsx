@@ -21,7 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFilterNegatableValue, hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
+import {hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -268,7 +268,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                     />
                     <FilterList
                         type={searchAdvancedFiltersForm?.type}
-                        policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                         selectedFilter={isDescribeMode ? undefined : activeFilter}
                         onHoverIn={hoverFilter}
                         onPointerMove={trackPointerMovement}
