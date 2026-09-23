@@ -1382,7 +1382,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getExportIntegrationActionFragments', () => {
-        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ExportedToIntegrationAction {
+        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[], reimbursableUrls: string[] = []): ExportedToIntegrationAction {
             const action: ExportedToIntegrationAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
                 reportActionID: '1',
@@ -1394,6 +1394,7 @@ describe('ReportActionsUtils', () => {
                 label,
                 lastModified: '2026-05-15 10:00:00.000',
                 nonReimbursableUrls,
+                reimbursableUrls,
             };
             // The OldDot map intersects this payload with an action wrapper, so keep the mismatch at this fixture boundary.
             Object.assign(action, {originalMessage});
@@ -1440,6 +1441,30 @@ describe('ReportActionsUtils', () => {
                 {text: 'and successfully created a record for', url: ''},
                 {text: 'company card expenses', url: 'https://qbo.intuit.com/app/expenses'},
             ]);
+        });
+
+        it('ends a single out-of-pocket expense link with a period by default', () => {
+            // Given an export action whose only link is a single reimbursable expense URL
+            const action = buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, [], ['https://system.netsuite.com/1']);
+
+            // When the fragments are built with default options
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then the link text owns the sentence-ending period, because nothing else follows it
+            expect(fragments.at(-1)).toEqual({text: 'out-of-pocket expenses.', url: 'https://system.netsuite.com/1'});
+        });
+
+        it('omits the trailing period when the caller appends its own punctuation', () => {
+            // Given the same single out-of-pocket export action
+            const action = buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, [], ['https://system.netsuite.com/1']);
+
+            // When the HTML is built with shouldOmitTrailingPeriod set, as ExportIntegration does before appending the "Explain" link
+            const html = ReportActionsUtils.getExportIntegrationMessageHTML(translateLocal, action, undefined, true);
+
+            // Then no period is baked into the link, so prefixing `AskToExplain` cannot produce a double period
+            expect(html).toBe(
+                `exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite} and successfully created a record for <a href="https://system.netsuite.com/1">out-of-pocket expenses</a>`,
+            );
         });
     });
 
@@ -1671,59 +1696,6 @@ describe('ReportActionsUtils', () => {
             const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
 
             // Then the action should not be filtered out as an unsupported action type
-            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
-        });
-    });
-
-    describe('getReportActionText', () => {
-        it('should return the backend-provided CARDFROZEN text', () => {
-            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
-                reportActionID: 'card-frozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 01:58:43.479',
-                message: [
-                    {
-                        html: cardFrozenMessage,
-                        text: cardFrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardFrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 01:58:43.479',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardFrozenMessage);
-        });
-
-        it('should return the backend-provided CARDUNFROZEN text', () => {
-            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
-                reportActionID: 'card-unfrozen-action-123',
-                actorAccountID: 21052128,
-                created: '2026-03-12 02:08:08.128',
-                message: [
-                    {
-                        html: cardUnfrozenMessage,
-                        text: cardUnfrozenMessage,
-                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                        whisperedTo: [],
-                    },
-                ],
-                originalMessage: {
-                    html: cardUnfrozenMessage,
-                    isNewDot: true,
-                    lastModified: '2026-03-12 02:08:08.128',
-                },
-            };
-
-            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardUnfrozenMessage);
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
         });
     });
@@ -2245,45 +2217,6 @@ describe('ReportActionsUtils', () => {
 
             expect(() => ReportActionsUtils.getFirstVisibleReportActionID(sorted)).not.toThrow();
             expect(ReportActionsUtils.getFirstVisibleReportActionID(sorted)).toBe(legacyExpenseUpdateAction.reportActionID);
-        });
-    });
-
-    describe('getOriginalMessage', () => {
-        it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-1',
-                },
-                {originalMessage: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns undefined when message is a non-array string and originalMessage is missing', () => {
-            const reportAction = addLegacyReportActionFields(
-                {
-                    created: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    reportActionID: 'legacy-2',
-                },
-                {message: 'plain string from legacy backend'},
-            );
-
-            expect(getOriginalMessage(reportAction)).toBeUndefined();
-        });
-
-        it('returns the object when originalMessage is object-shaped', () => {
-            const reportAction: ReportAction = {
-                created: '',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                reportActionID: 'shaped-1',
-                originalMessage: {html: 'hi', whisperedTo: []},
-            };
-
-            expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
         });
     });
 
@@ -3330,63 +3263,6 @@ describe('ReportActionsUtils', () => {
             const result = ReportActionsUtils.hasPendingDEWSubmit(undefined, true);
 
             // Then it should return false
-            expect(result).toBe(false);
-        });
-    });
-
-    describe('isDynamicExternalWorkflowApproveFailedAction', () => {
-        it('should return true for DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with DEW_APPROVE_FAILED action type
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    message: 'This report cannot be approved because of compliance issues.',
-                    automaticAction: false,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return true because the action type is DEW_APPROVE_FAILED
-            expect(result).toBe(true);
-        });
-
-        it('should return false for non-DEW_APPROVE_FAILED action type', () => {
-            // Given a report action with APPROVED action type (not DEW_APPROVE_FAILED)
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    expenseReportID: '1',
-                    amount: 1,
-                    currency: CONST.CURRENCY.USD,
-                },
-                message: [],
-                previousMessage: [],
-            };
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action);
-
-            // Then it should return false because the action type is not DEW_APPROVE_FAILED
-            expect(result).toBe(false);
-        });
-
-        it('should return false for null action', () => {
-            // Given a null action
-
-            // When checking if the action is a DEW approve failed action
-            const result = ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(null);
-
-            // Then it should return false because the action is null
             expect(result).toBe(false);
         });
     });

@@ -1,5 +1,7 @@
-import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {createTypeMenuSections, SPEND_INSIGHT_KEYS} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Policy, Session} from '@src/types/onyx';
@@ -16,6 +18,7 @@ import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -141,4 +144,24 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     return typeMenuSections;
 };
 
+const spendInsightKeys = new Set<SearchKey>(SPEND_INSIGHT_KEYS);
+
+const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
+    const {isBetaEnabled} = usePermissions();
+
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+        return typeMenuSections;
+    }
+
+    return typeMenuSections.flatMap((section) => {
+        const menuItems = section.menuItems.filter((item) => !spendInsightKeys.has(item.key));
+        if (menuItems.length === section.menuItems.length) {
+            return section;
+        }
+        return menuItems.length > 0 ? {...section, menuItems} : [];
+    });
+};
+
 export default useSearchTypeMenuSections;
+export {useSearchTypeMenuSectionsForNavigation};
