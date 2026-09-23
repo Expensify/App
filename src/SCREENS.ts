@@ -70,6 +70,7 @@ const SCREENS = {
         CHANGE_APPROVER: {
             ROOT: 'Search_Change_Approver_Root',
             ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+            REASSIGN_APPROVER: 'Search_Change_Approver_Reassign_Approver',
         },
     },
     SETTINGS: {
@@ -685,6 +686,7 @@ const SCREENS = {
             CERTINIA_EXPORT_DATE: 'Policy_Accounting_Certinia_Export_Date',
             CERTINIA_DEFAULT_VENDOR: 'Policy_Accounting_Certinia_Default_Vendor',
             CERTINIA_ADVANCED: 'Policy_Accounting_Certinia_Advanced',
+            CERTINIA_FX_EXPENSE_ACCOUNT: 'Policy_Accounting_Certinia_Fx_Expense_Account',
             CERTINIA_TAGS_MAPPING: 'Policy_Accounting_Certinia_Tags_Mapping',
             CERTINIA_REPORT_EXPORT_STATUS: 'Policy_Accounting_Certinia_Report_Export_Status',
             CERTINIA_COMPANY_SELECTOR: 'Policy_Accounting_Certinia_Company_Selector',
@@ -729,6 +731,11 @@ const SCREENS = {
             CAMPFIRE_EXISTING_CONNECTIONS: 'Policy_Accounting_Campfire_Existing_Connections',
             CAMPFIRE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Campfire_Subsidiary_Selector',
             CAMPFIRE_IMPORT: 'Policy_Accounting_Campfire_Import',
+            CAMPFIRE_EXPORT: 'Policy_Accounting_Campfire_Export',
+            CAMPFIRE_PREFERRED_EXPORTER: 'Policy_Accounting_Campfire_Preferred_Exporter',
+            CAMPFIRE_VENDOR_BILL_DATE: 'Policy_Accounting_Campfire_Vendor_Bill_Date',
+            CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR: 'Policy_Accounting_Campfire_Default_Company_Card_Vendor',
+            CAMPFIRE_COMPANY_CARD_ACCOUNT: 'Policy_Accounting_Campfire_Company_Card_Account',
             BUSINESS_CENTRAL_PREREQUISITES: 'Policy_Accounting_Business_Central_Prerequisites',
             BUSINESS_CENTRAL_SETUP: 'Policy_Accounting_Business_Central_Setup',
             BUSINESS_CENTRAL_COMPANY_SELECTOR: 'Policy_Accounting_Business_Central_Company_Selector',
@@ -748,6 +755,7 @@ const SCREENS = {
         HR_MERGE_FINAL_APPROVER: 'Workspace_HR_Merge_Final_Approver',
         HR_MERGE_GROUPS: 'Workspace_HR_Merge_Groups',
         RECRUITING: 'Workspace_Recruiting',
+        DYNAMIC_RECRUITING_SYNC_RESULTS: 'Dynamic_Recruiting_Sync_Results',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
@@ -1139,6 +1147,7 @@ const SCREENS = {
     REPORT_CHANGE_APPROVER: {
         DYNAMIC_ROOT: 'Dynamic_Report_Change_Approver_Root',
         ADD_APPROVER: 'Report_Change_Approver_Add_Approver',
+        REASSIGN_APPROVER: 'Report_Change_Approver_Reassign_Approver',
     },
     TEST_TOOLS_MODAL: {
         ROOT: 'TestToolsModal_Root',

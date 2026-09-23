@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -91,6 +91,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         return () => {
@@ -98,8 +99,10 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         };
     }, []);
 
-    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
-        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout && isFocused) {
+        // If mobile selection mode is enabled but only one or no transactions remain, turn it off. The selection mode
+        // is shared with every screen, so this report only gets to turn it off while it is the focused one. Another
+        // screen on top of it, such as the add existing expense modal, owns the mode for as long as it is open.
         const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
         if (visibleTransactions.length <= 1) {
             turnOffMobileSelectionMode();
