@@ -10,8 +10,10 @@ import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useW
 import {
     useFlatNavigationBarAccountAvatarStyle,
     useFlatNavigationBarLayoutWidthStyle,
+    useFlatNavigationBarPeekShadowStyle,
     useFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,
+    useSearchSidebarCollapseFadeStyle,
 } from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
@@ -122,6 +124,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const layoutWidthStyle = useFlatNavigationBarLayoutWidthStyle();
     const visualWidthStyle = useFlatNavigationBarVisualWidthStyle();
     const accountAvatarStyle = useFlatNavigationBarAccountAvatarStyle();
+    const logoFadeStyle = useSearchSidebarCollapseFadeStyle();
+    const peekShadowStyle = useFlatNavigationBarPeekShadowStyle();
 
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
@@ -230,8 +234,14 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                         style={[styles.flatNavigationBarContainer, styles.stickToLeft, styles.zIndex1, visualWidthStyle]}
                         testID="FlatNavigationBar"
                     >
+                        <Animated.View
+                            style={[styles.flatNavigationBarPeekShadow, peekShadowStyle]}
+                            pointerEvents="none"
+                        />
                         <View style={[styles.flatNavigationBarHeader, isVisuallyCollapsed && styles.flatNavigationBarHeaderCollapsed]}>
-                            {!isVisuallyCollapsed && <FlatNavLogo />}
+                            <Animated.View style={[styles.flatNavigationBarLogoContainer, logoFadeStyle]}>
+                                <FlatNavLogo />
+                            </Animated.View>
                             <PressableWithFeedback
                                 onPress={toggleSidebar}
                                 role={CONST.ROLE.BUTTON}
@@ -254,7 +264,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 showsVerticalScrollIndicator={false}
                             >
                                 <NavigationTabBarFloatingActionButton
-                                    containerStyle={[styles.flexGrow0, styles.pv0, styles.flatNavigationBarCreateRow]}
+                                    containerStyle={[styles.flexGrow0, styles.pv0, styles.flatNavigationBarCreateRow, isVisuallyCollapsed && styles.flatNavigationBarCreateRowCollapsed]}
                                     shouldShowReceiptButton={false}
                                     shouldUseSmallSuccessButton
                                     label={isVisuallyCollapsed ? undefined : translate('common.create')}

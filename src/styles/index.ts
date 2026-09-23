@@ -836,15 +836,36 @@ const staticStyles = (theme: ThemeColors) =>
         // The wordmark's glyphs sit high in its viewBox, so a couple of pixels down optically centers it against the create button.
         // Nudges the wordmark down to sit optically centred against the collapse icon, without the offset
         // adding to the header's height.
+        // Absolute so the wordmark can stay mounted and fade, without pushing the toggle off the rail's centre.
+        flatNavigationBarLogoContainer: {
+            position: 'absolute',
+            left: 20,
+            top: 0,
+            bottom: 0,
+            justifyContent: 'center',
+        },
+
         flatNavigationBarLogo: {
             marginTop: 2,
             marginBottom: -2,
         },
 
+        // Drawn as its own layer so the shadow can fade on its own. The box matches the bar, and the view is
+        // otherwise transparent, so only the shadow around it shows.
+        flatNavigationBarPeekShadow: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            boxShadow: theme.shadow,
+        },
+
         flatNavigationBarHeader: {
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
+            overflow: 'hidden',
             height: variables.flatNavigationBarHeaderHeight,
             marginBottom: variables.flatNavigationBarHeaderMarginBottom,
             paddingLeft: 20,
@@ -873,8 +894,14 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         flatNavigationBarCreateRow: {
-            marginHorizontal: 12,
+            marginHorizontal: variables.flatNavigationBarCreateRowMarginHorizontal,
             marginBottom: 16,
+        },
+
+        // The row stretches its children by default, which would widen the icon-only button past its 32px square.
+        // Starting it instead lets it size to its own content, which the row's margin already centres in the rail.
+        flatNavigationBarCreateRowCollapsed: {
+            alignItems: 'flex-start',
         },
 
         flatNavigationBarItem: {

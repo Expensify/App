@@ -141,6 +141,13 @@ function useSearchSidebarToggleButtonStyle() {
 // Sliding it by half that difference lines it up, and the transform animates where a padding change would jump.
 const ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X = -(variables.avatarSizeSmall - variables.iconSizeNormal) / 2;
 
+/** The shadow only reads while a collapsed bar is peeking over the content; expanded, it has nothing to sit above. */
+function useFlatNavigationBarPeekShadowStyle() {
+    const {isPeeking: peeking} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...fadeTransitionStyle, opacity: peeking ? 1 : 0}), [peeking]);
+}
+
 function useFlatNavigationBarAccountAvatarStyle() {
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
@@ -166,6 +173,7 @@ export {
     getFlatNavigationBarWidth,
     useFlatNavigationBarAccountAvatarStyle,
     useFlatNavigationBarLayoutWidthStyle,
+    useFlatNavigationBarPeekShadowStyle,
     useFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,
     useSearchSidebarLayoutWidthStyle,

@@ -66,8 +66,8 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
     }
 }
 
-// Past this many characters a workspace name no longer fits the header on one line at the headline size.
-const LONG_POLICY_NAME_LENGTH = 12;
+// At this many characters a workspace name no longer fits the header on one line at the headline size.
+const LONG_POLICY_NAME_LENGTH = 15;
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
@@ -120,7 +120,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     ]);
 
     const policyName = policy?.name ?? '';
-    const isPolicyNameLong = policyName.length > LONG_POLICY_NAME_LENGTH;
+    const isPolicyNameLong = policyName.length >= LONG_POLICY_NAME_LENGTH;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
 

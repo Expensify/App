@@ -90,6 +90,9 @@ function FlatNavItem({
     const styles = useThemeStyles();
     const theme = useTheme();
 
+    // Collapsed rows have nowhere to put a badge, so a row that has one shows the same green dot the Inbox uses.
+    const resolvedStatusIndicatorColor = statusIndicatorColor ?? (isCollapsed && !!badgeText ? theme.iconSuccessFill : undefined);
+
     return (
         <PressableWithFeedback
             onPress={onPress}
@@ -115,12 +118,12 @@ function FlatNavItem({
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
                             />
-                            {!!statusIndicatorColor && (
+                            {!!resolvedStatusIndicatorColor && (
                                 <View
                                     style={[
                                         styles.navigationTabBarStatusIndicator,
                                         styles.flatNavigationBarStatusIndicator,
-                                        styles.statusIndicatorColor(statusIndicatorColor),
+                                        styles.statusIndicatorColor(resolvedStatusIndicatorColor),
                                         // The dot's stroke reads as a gap punched out of the row, so it has to track the row's background.
                                         getStatusIndicatorBorderStyle(isSelected, hovered, styles),
                                     ]}
