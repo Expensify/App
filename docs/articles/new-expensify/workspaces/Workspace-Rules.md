@@ -1,15 +1,15 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions]
-internalScope: Audience is Workspace Admins. Full rule management requires the Control plan; Collect plan workspaces can enable Rules and configure Billable expenses and Require fields, while all other rules require upgrading to Control. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, cash expense default, always reimbursable, always non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
 
-If your approval requirements can't be handled using Workspace Rules alone, create an agent rule. Agent rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create agent rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
+If your approval requirements can't be handled using Workspace Rules alone, create an Agent Rule. Agent Rules are AI-powered rules that let Workspace Admins automate report reviews, routing, approvals, and other workspace actions using natural-language instructions. [Learn how to create Agent Rules](/articles/new-expensify/ai-agents/Create-Agent-Rules).
 
 ---
 
@@ -24,40 +24,22 @@ To activate Rules for your workspace:
 
 ---
 
-## What rules are available on the Collect plan
-
-Workspaces on the **Collect** plan can enable **Rules** and configure two settings:
-
-- **Billable expenses** – Set whether expenses are billable by default.
-- **Require fields** – Require specific fields to be completed on expenses.
-
-All other rules, including creating a new rule and the other Rules tabs, require [upgrading to the Control plan](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Change-Your-Workspace-Plan). Selecting a Control-only rule prompts you to upgrade.
-
----
-
 # How to configure Expense Rules
 
-Once enabled, click the **Rules** tab in the left menu. Rules are organized into three tabs:
+Once enabled, go to the **Rules** tab in the left menu to manage expense-level settings.
 
-- **General** – Set spend controls and defaults that apply to all expenses.
-- **Card restrictions** – Block or limit Expensify Card spend at the point of sale.
-- **Expense defaults** – Automatically update expense fields without the submitter doing anything.
+## Expense Rule options
 
-To add a card restriction or expense default, click **Add rule**, then choose **Restrict card spend** or **Apply expense defaults**.
-
-## How to configure rules on the General tab
-
-Open the **General** tab, click a row to open its settings, make your changes, and click **Save**.
-
-- **Flag expenses older than** – Flag expenses older than a set number of days.
-- **Flag expenses above amount** – Flag expenses that exceed a set amount.
-- **Flag receipt line items** – Flag receipts that contain restricted line items (such as alcohol, gambling, or tobacco) for manual review.
-- **Require receipts** – Require receipts, and optionally itemized receipts, when spend exceeds a set amount, unless overridden by a category rule.
-- **Require fields for all expenses** – Require specific fields, such as category and tag, on every expense.
-- **Cash expenses** – Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
-- **Billable expenses** – Choose whether cash and credit card expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
+- **Receipt required amount** – Set the minimum amount that requires a receipt (supports decimals).
+- **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
+- **Max expense amount** – Set a per-expense spending cap (supports decimals).
+- **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
+- **Cash expense default** - Choose how cash expenses are created. A cash expense is any expense that isn't an imported company card transaction, including manually created expenses, receipts, per diem, distance, and time expenses. Select **Reimbursable** or **Non-reimbursable** to set a starting value that members can change on each expense, or select **Always reimbursable** or **Always non-reimbursable** to fix the value for every cash expense. When you select an **Always** option, the **Reimbursable** toggle is hidden on the expense and on every split created from it. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
+- **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
+- **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
-- **Attendee tracking** – Track the per-person cost for every expense.
+- **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
+- **Public receipt visibility** – Control who can view receipt images. When enabled, receipts are viewable by anyone with the URL, even people who don't have access to the report. When disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
 ![]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_01.png){:width="100%"}
 
@@ -161,7 +143,7 @@ To manage them:
 Available options:
 
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace). You can also set and manage this rate from the **Expense defaults** tab on the **Rules** page. [Learn how to set a default tax rate for a category](/articles/new-expensify/workspaces/Set-a-default-tax-rate-for-a-category).
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
@@ -201,7 +183,7 @@ You can set workspace-wide defaults to automate categorization and tagging.
 
 ## Who can manage workspace rules?
 
-Workspace Admins on the **Control** plan can enable, update, or disable all workspace rules. Workspace Admins on the **Collect** plan can enable **Rules** and configure **Billable expenses** and **Require fields**; all other rules require upgrading to the Control plan.
+Only Workspace Admins on the **Control** plan can enable, update, or disable workspace rules.
 
 ## What happens if I turn workspace rules off?
 
@@ -230,6 +212,10 @@ The **Spend** section only appears after the Expensify Card is enabled for the w
 ## What happens if I disable eReceipts?
 
 Disabling eReceipts hides any previously generated eReceipts. Re-enabling the feature will restore those receipts.
+
+## Who can view receipts when Public receipt visibility is enabled?
+
+When **Public receipt visibility** is enabled, receipts are viewable by anyone with the URL, and access to the report containing the receipt is not required. This is useful when you want to share receipt links with people outside your workspace, such as a client or external accountant. When it's disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
 ## Will disabling rules affect submitted or approved expenses?
 
