@@ -118,17 +118,20 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
 
-    // Priority order (RBR / urgent-error rows first, then GBR / setup nudges):
+    // Priority order. RBR / urgent-error rows come first, then GBR / setup nudges — with one deliberate
+    // exception: the subscription renewal nudge ranks above the connection errors because it has a hard
+    // deadline (the owner silently loses their rate on the end date), so burying it is worse than the
+    // RBR-before-GBR rule it breaks.
     // 1. Fix failed billing (existing customers with declined cards)
     // 2. Overdue subscription invoice for the billing owner
     // 3. Potential card fraud
-    // 4. Broken bank connections (company cards)
-    // 5. Broken bank connections (personal cards)
-    // 6. Locked bank accounts (workspace VBAs and personal)
-    // 7. Broken policy connections (accounting + HR)
-    // 8. Validate account
-    // 9. Add home address (commuter exclusions, homeAndOffice method)
-    // 10. Renew subscription (annual subscription lapsing with auto-renew off)
+    // 4. Renew subscription (annual subscription lapsing with auto-renew off)
+    // 5. Broken bank connections (company cards)
+    // 6. Broken bank connections (personal cards)
+    // 7. Locked bank accounts (workspace VBAs and personal)
+    // 8. Broken policy connections (accounting + HR)
+    // 9. Validate account
+    // 10. Add home address (commuter exclusions, homeAndOffice method)
     // 11. Add payment card (trial ended, no payment card)
     // 12. Add bank account for a queued reimbursement
     // 13. Enter signer info for global bank accounts
@@ -166,7 +169,16 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 4: Broken company card connections
+    // Priority 4: Annual subscription lapsing with auto-renew off
+    if (shouldShowSubscriptionExpiring) {
+        items.push(
+            <RenewSubscription
+                key="renew-subscription"
+                endDate={subscriptionEndDate}
+            />,
+        );
+    }
+    // Priority 5: Broken company card connections
     for (const connection of brokenCompanyCardConnections) {
         const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
         if (!card) {
@@ -181,7 +193,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 5: Broken personal card connections
+    // Priority 6: Broken personal card connections
     for (const connection of brokenPersonalCardConnections) {
         const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
         if (!card) {
@@ -194,7 +206,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 6: Locked bank accounts
+    // Priority 7: Locked bank accounts
     for (const lockedBankAccount of lockedBankAccounts) {
         items.push(
             <UnlockBankAccount
@@ -204,7 +216,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 7: Broken policy connections (accounting + HR)
+    // Priority 8: Broken policy connections (accounting + HR)
     for (const connection of brokenPolicyConnections) {
         items.push(
             <FixPolicyConnection
@@ -216,22 +228,13 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 8: Validate account
+    // Priority 9: Validate account
     if (shouldShowValidateAccount) {
         items.push(<ValidateAccount key="validate-account" />);
     }
-    // Priority 9: Add home address (commuter exclusions, homeAndOffice method)
+    // Priority 10: Add home address (commuter exclusions, homeAndOffice method)
     if (shouldShowAddHomeAddress) {
         items.push(<AddHomeAddress key="add-home-address" />);
-    }
-    // Priority 10: Annual subscription lapsing with auto-renew off
-    if (shouldShowSubscriptionExpiring) {
-        items.push(
-            <RenewSubscription
-                key="renew-subscription"
-                endDate={subscriptionEndDate}
-            />,
-        );
     }
     // Priority 11: Add payment card (trial ended, no payment card)
     if (shouldShowAddPaymentCard) {
