@@ -198,6 +198,6 @@ oxlint-migration/dep-only-api.json
 __pycache__/
 oxlint-migration/port-probe/oxlint.fixtures.merged*.json
 
-# Oxlint leg configs derived from .oxlintrc.json for one sharded run (scripts/lint/oxlint/OxlintLinter.ts)
+# Oxlint leg configs derived from oxlint.config.mts for one sharded run (scripts/lint/oxlint/OxlintLinter.ts)
 .oxlintrc.js-plugins.*.json
 .oxlintrc.type-aware.*.json

@@ -1,4 +1,4 @@
-"""Does .oxlintrc.json still say the same thing as ESLint's config?
+"""Does oxlint.config.mts still say the same thing as ESLint's config?
 
     python3 oxlint-migration/checkConfigDrift.py [--json <path>] [--files <file> ...]
 

@@ -1260,6 +1260,7 @@
         "config/eslint/eslint.seatbelt.tsv",
         "config/oxlint/oxlint.seatbelt.tsv",
         "INVESTIGATION DOCS/**",
+        "oxlint.config.mts",
         "tests/unit/BankAccountUtilsTest.ts",
         "tests/unit/__snapshots__/ReportAlternateTextParityTest.ts.snap",
         "evals/proposalPolice/fixtures/**"

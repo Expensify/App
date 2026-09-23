@@ -45,7 +45,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 TREE = os.path.join(HERE, 'tree')
 
 sys.path.insert(0, os.path.join(ROOT, 'oxlint-migration'))
-from ruleMap import is_on, load_jsonc
+from ruleMap import is_on, load_oxlint_config
 
 EXPECTED_MESSAGE_DIFFS = {
 }
@@ -66,12 +66,12 @@ def code_tokens(text):
 
 
 def enabled_custom_rules():
-    """Custom rules enabled anywhere in .oxlintrc.json, with the option value used there.
+    """Custom rules enabled anywhere in oxlint.config.mts, with the option value used there.
 
     Rules that are `off` everywhere are out of scope on purpose: they are off because they are
     blocked upstream, and testing a rule the config does not run would prove nothing.
     """
-    config = load_jsonc(os.path.join(ROOT, '.oxlintrc.json'))
+    config = load_oxlint_config()
     scopes = [config.get('rules', {})] + [override.get('rules', {}) for override in config.get('overrides', [])]
     rules = {}
     for scope in scopes:

@@ -16,9 +16,9 @@ import Pipeline from '../../scripts/lint/LintPipeline';
 import {
     defaultShardCount,
     deriveLegConfigs,
-    isOxlintConfig,
     isTransientFailure,
     jsPluginName,
+    loadOxlintConfig,
     mergeShardResults,
     normalizeOxlintDiagnostics,
     parseOxlintStdout,
@@ -557,12 +557,9 @@ describe('oxlint sharding', () => {
 });
 
 describe('oxlint rule names', () => {
-    it('every rule id in the oxlint seatbelt is one the enabled config still produces through the mapping', () => {
+    it('every rule id in the oxlint seatbelt is one the enabled config still produces through the mapping', async () => {
         const root = path.join(import.meta.dir, '..', '..');
-        const config: unknown = Bun.JSONC.parse(fs.readFileSync(path.join(root, '.oxlintrc.json'), 'utf8'));
-        if (!isOxlintConfig(config)) {
-            throw new Error('.oxlintrc.json is not an object');
-        }
+        const config = await loadOxlintConfig(root);
         const configuredRules = [config.rules, ...(config.overrides ?? []).map((override) => override.rules)].flatMap((rules) => Object.keys(rules ?? {}));
         const toDiagnosticCode = (rule: string) => {
             const slash = rule.lastIndexOf('/');
@@ -596,17 +593,14 @@ function knownOxlintPlugins(schema: unknown): string[] {
 }
 
 describe('oxlint config', () => {
-    it('names only plugins oxlint knows, at the root and in every override', () => {
+    it('names only plugins oxlint knows, at the root and in every override', async () => {
         // An unknown name in an override's `plugins` array is not an error: the override's other rules
         // keep working while the rules the missing plugin owns report nothing.
         const root = path.join(import.meta.dir, '..', '..');
         const known = new Set(knownOxlintPlugins(JSON.parse(fs.readFileSync(path.join(root, 'node_modules/oxlint/configuration_schema.json'), 'utf8'))));
         expect(known.size).toBeGreaterThan(5);
 
-        const config: unknown = Bun.JSONC.parse(fs.readFileSync(path.join(root, '.oxlintrc.json'), 'utf8'));
-        if (!isOxlintConfig(config)) {
-            throw new Error('.oxlintrc.json is not an object');
-        }
+        const config = await loadOxlintConfig(root);
         const named = [config.plugins, ...(config.overrides ?? []).map((override) => override.plugins)].flatMap((plugins: unknown) =>
             Array.isArray(plugins) ? plugins.map((entry: unknown) => entry) : [],
         );

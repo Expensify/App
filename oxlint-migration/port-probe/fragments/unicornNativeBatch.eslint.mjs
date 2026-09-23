@@ -1,6 +1,6 @@
 import {createRequire} from 'node:module';
 // Shard for the unicornNativeBatch fixtures: the five unicorn/* rules eslint-config-expensify enables
-// (configs/private/unicorn.js, all bare "error") plus unicorn/prefer-at, which .oxlintrc.json enables and the
+// (configs/private/unicorn.js, all bare "error") plus unicorn/prefer-at, which oxlint.config.mts enables and the
 // production ESLint config does not -- enabled here at default options so the prefer-at tripwire has an oracle.
 // The base probe config does not wire this plugin, so this shard registers it for its own fixtures.
 import path from 'node:path';

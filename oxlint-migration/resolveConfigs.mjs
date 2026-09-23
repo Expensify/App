@@ -14,7 +14,6 @@
 // carrying options nothing in any config authored, and every rule with defaults reads as drift.
 import minimatchPackage from 'minimatch';
 import {execFileSync} from 'node:child_process';
-import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -59,47 +58,9 @@ function resolve(paths, blocks) {
     return rules;
 }
 
-// oxlint's config is JSONC, so `JSON.parse` cannot read it. A `//` inside a string is not a comment.
-function parseJsonc(source) {
-    let out = '';
-    let inString = false;
-    let index = 0;
-    while (index < source.length) {
-        const char = source[index];
-        if (inString) {
-            out += char;
-            if (char === '\\') {
-                out += source[index + 1] ?? '';
-                index += 2;
-                continue;
-            }
-            if (char === '"') {
-                inString = false;
-            }
-            index += 1;
-            continue;
-        }
-        if (char === '"') {
-            inString = true;
-            out += char;
-            index += 1;
-            continue;
-        }
-        if (char === '/' && source[index + 1] === '/') {
-            while (index < source.length && source[index] !== '\n') {
-                index += 1;
-            }
-            continue;
-        }
-        out += char;
-        index += 1;
-    }
-    return JSON.parse(out);
-}
-
 const eslintBlocks = (await import(path.join(ROOT, 'config/eslint/eslint.config.mjs'))).default;
 
-const oxlintConfig = parseJsonc(fs.readFileSync(path.join(ROOT, '.oxlintrc.json'), 'utf8'));
+const oxlintConfig = (await import(path.join(ROOT, 'oxlint.config.mts'))).default;
 // `excludeFiles` maps onto ESLint's `ignores`, so `blockApplies` handles both shapes with one
 // predicate. Dropping it would make an override look wider than it is: `src/styles/**` minus two
 // files is not `src/styles/**`.

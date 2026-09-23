@@ -6,7 +6,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 
 // Same typed wiring as fragments/typedSample.eslint.mjs: projectService resolves through
 // fixtures/tsconfig.json, which is the nearest tsconfig tsgolint picks up on the oxlint side.
-// Options are production's, copied from the .oxlintrc.json override that enables each rule for TS
+// Options are production's, copied from the oxlint.config.mts override that enables each rule for TS
 // files (last override wins where a rule appears twice, e.g. no-duplicate-type-constituents).
 export default [
     {

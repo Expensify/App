@@ -29,7 +29,7 @@ const FIXTURES = [
 // these fixtures is one component whose only problem is the non-fatal one, so nothing fails the
 // compile and nothing is returned.
 //
-// They are still `error` in .oxlintrc.json, and correctly so: in real code the category usually
+// They are still `error` in oxlint.config.mts, and correctly so: in real code the category usually
 // shares a function with something fatal and rides along on the abort. Counter.tsx in section 6 is
 // exactly that, reporting set-state-in-effect on line 12 because the ref read on line 8 fails the
 // compile. Whole-repo that is set-state-in-effect 47 of ESLint's 127, and static-components 2 of 2.
@@ -142,7 +142,7 @@ check(JSON.stringify(counterLines) === JSON.stringify([8, 12]), 'Counter.tsx rep
 // at once, which is the 129-finding gap `npm run compare-oxlint` prints per rule.
 //
 // Asserted as exactly [7] so this is a tripwire: if it ever returns all three, upstream stopped
-// aborting at the first failure and .oxlintrc.json should be revisited.
+// aborting at the first failure and oxlint.config.mts should be revisited.
 const twoComponents = diagnose(path.join(PROBE_DIR, 'TwoComponents.tsx'));
 const twoLines = twoComponents.map((diagnostic) => diagnostic.loc.start.line).sort((first, second) => first - second);
 check(
@@ -172,12 +172,12 @@ check(
 console.log('\n8. every rc/* rule is enabled, including the ones that only report part of what ESLint does');
 // A rule that under-reports shows up as a count in `npm run compare-oxlint`. A rule switched off
 // reads exactly like a clean codebase, so none of them are switched off.
-const oxlintrc = fs.readFileSync(path.join(repoRoot, '.oxlintrc.json'), 'utf8');
-const severityOf = (rule) => oxlintrc.match(new RegExp(`"rc/${rule}":\\s*"(error|off)"`))?.[1];
+const oxlintConfig = (await import(path.join(repoRoot, 'oxlint.config.mts'))).default;
+const severityOf = (rule) => oxlintConfig.rules?.[`rc/${rule}`];
 const notEnabled = ALL_RULES.filter((rule) => severityOf(rule) !== 'error');
 check(
     notEnabled.length === 0,
-    'all rc/* rules are "error" in .oxlintrc.json',
+    'all rc/* rules are "error" in oxlint.config.mts',
     notEnabled.length === 0 ? `${ALL_RULES.length} of ${ALL_RULES.length}` : `not "error": ${notEnabled.map((rule) => `rc/${rule} (is ${severityOf(rule) ?? 'missing'})`).join(', ')}`,
 );
 

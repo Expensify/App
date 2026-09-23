@@ -1,6 +1,6 @@
 import {createRequire} from 'node:module';
 // Shard for the importNativeBatch fixtures: the import/* rules oxlint implements natively. Severities and
-// options are the production ones -- .oxlintrc.json for the oxlint side, and what `eslint --print-config`
+// options are the production ones -- oxlint.config.mts for the oxlint side, and what `eslint --print-config`
 // resolves for the production ESLint config on the ESLint side (both agree: bare "error" except
 // consistent-type-specifier-style prefer-top-level and extensions' ignorePackages + never map).
 // The two rules production scopes to plain JS (import/named, and import/no-named-as-default-member, which is
@@ -10,7 +10,7 @@ import {createRequire} from 'node:module';
 // "Missing file extension" finding for every specifier it cannot resolve, and an absolute specifier never
 // resolves, so the two rules cannot share a file at parity counts: ESLint would report 2 where oxlint
 // reports 1. oxlint needs --import-plugin for the same reason its config needs plugins: ["import"] at the
-// root -- .oxlintrc.json has it there -- and the fragment format has no root plugins key, so the flag in
+// root -- oxlint.config.mts has it there -- and the fragment format has no root plugins key, so the flag in
 // importNativeBatch.oxlint.json carries it. Without that flag oxlint still reports the syntactic import
 // rules but goes silent on every rule that has to resolve a module (no-self-import, named,
 // no-named-as-default-member), silently, which is exactly the failure this probe exists to catch.

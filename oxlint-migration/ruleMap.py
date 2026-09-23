@@ -77,7 +77,7 @@ PORT_PLAN = {
         'effort': 'none', 'proven': True,
         'notes': 'ESLint allows .js/.jsx/.tsx at the root and turns the rule off for .js/.jsx/.mjs/.cjs, '
                  'leaving .ts/.mts/.cts as the only live scope, and JSX does not parse there (parse '
-                 'error, not a finding). 0 findings on either tool, no seatbelt row; off in .oxlintrc.json '
+                 'error, not a finding). 0 findings on either tool, no seatbelt row; off in oxlint.config.mts '
                  'since 2026-09-15 with the reason beside it',
     },
     'react-hooks/gating': {
@@ -205,7 +205,7 @@ def norm_es_folded(rid):
 
 
 def norm_ox_config(rule_id):
-    """Map an .oxlintrc.json rule key to its ESLint name."""
+    """Map an oxlint.config.mts rule key to its ESLint name."""
     if rule_id.startswith('typescript/'):
         return '@typescript-eslint/' + rule_id.split('/', 1)[1]
     if rule_id.startswith('core/'):
@@ -225,11 +225,33 @@ def is_on(value):
     return sev not in ('off', 'allow', 0, '0')
 
 
+OXLINT_CONFIG = os.path.join(ROOT, 'oxlint.config.mts')
+_oxlint_configs = {}
+
+
+def load_oxlint_config(path=None):
+    """The oxlint config as a dict.
+
+    Production's is a TypeScript module, so node evaluates it rather than a parser reading it. A
+    `.json`/`.jsonc` path (the port-probe fixture configs) is still read as JSONC.
+    """
+    path = path or OXLINT_CONFIG
+    if path.endswith(('.json', '.jsonc')):
+        return load_jsonc(path)
+    if path not in _oxlint_configs:
+        script = 'const m = await import(process.argv[1]); console.log(JSON.stringify(m.default));'
+        out = subprocess.run(['node', '--input-type=module', '-e', script, '--', path], capture_output=True, text=True, cwd=ROOT)
+        if out.returncode != 0:
+            raise RuntimeError(f'could not load {path}:\n{out.stderr.strip()}')
+        _oxlint_configs[path] = json.loads(out.stdout.strip().splitlines()[-1])
+    return _oxlint_configs[path]
+
+
 def load_jsonc(path):
     """json.load for oxlint configs, which are JSONC.
 
-    The comments are not decoration: every `"off"` in .oxlintrc.json carries the reason it is off
-    on the line above it, so the parser has to tolerate them.
+    The port-probe fixture configs are JSONC, and their comments carry the reason next to each
+    `"off"`, so the parser has to tolerate them.
     """
     text = open(path).read()
     out, index, end = [], 0, len(text)
@@ -250,9 +272,9 @@ def load_jsonc(path):
 
 
 def oxlint_enabled_rules(config_path=None):
-    """Rule names (ESLint naming) enabled anywhere in .oxlintrc.json -- root or overrides."""
-    path = config_path or os.path.join(ROOT, '.oxlintrc.json')
-    config = load_jsonc(path)
+    """Rule names (ESLint naming) enabled anywhere in oxlint.config.mts -- root or overrides."""
+    path = config_path or OXLINT_CONFIG
+    config = load_oxlint_config(path)
     enabled = set()
     for scope in [config.get('rules', {})] + [o.get('rules', {}) for o in config.get('overrides', [])]:
         for rid, val in scope.items():
@@ -267,8 +289,8 @@ def oxlint_disabled_rules(config_path=None):
     Separates a deliberate `"off"` (reason in a comment next to it, and in PORT_PLAN) from a rule
     that is merely absent, which reads the same in a diff but means something else entirely.
     """
-    path = config_path or os.path.join(ROOT, '.oxlintrc.json')
-    config = load_jsonc(path)
+    path = config_path or OXLINT_CONFIG
+    config = load_oxlint_config(path)
     enabled = oxlint_enabled_rules(path)
     disabled = {}
     scopes = [('root', config.get('rules', {}))]
@@ -366,9 +388,9 @@ def js_plugin_rules(config_path=None):
     which declares the alias in the config instead of leaving it to the plugin's meta.name.
     A declared name wins, exactly as it does in oxlint.
     """
-    path = config_path or os.path.join(ROOT, '.oxlintrc.json')
+    path = config_path or OXLINT_CONFIG
     config_dir = os.path.dirname(os.path.abspath(path))
-    config = load_jsonc(path)
+    config = load_oxlint_config(path)
     entries = list(config.get('jsPlugins') or [])
     for override in config.get('overrides', []):
         entries.extend(override.get('jsPlugins') or [])

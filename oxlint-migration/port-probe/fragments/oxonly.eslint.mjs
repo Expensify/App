@@ -16,7 +16,7 @@ const reportNameUtils = await import(pathToFileURL(path.resolve(here, '../../../
 
 const plugin = (mod) => ({rules: (mod?.rules ?? mod?.default?.rules) || {}});
 
-// Production's alias map (.oxlintrc.json and config/eslint/eslint.config.mjs agree on it) written
+// Production's alias map (oxlint.config.mts and config/eslint/eslint.config.mjs agree on it) written
 // out once. `@userActions` must stay ahead of `@libs` in the object order, like both configs do:
 // the plugin takes the first alias whose directory contains the import.
 const alias = {

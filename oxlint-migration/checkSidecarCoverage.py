@@ -31,7 +31,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, 'rule-tester'))
 from compareRuleTester import TREE, build_tree, enabled_custom_rules
-from ruleMap import is_on, js_plugin_rules, load_jsonc
+from ruleMap import is_on, js_plugin_rules, load_oxlint_config
 
 MANIFEST = os.path.join(HERE, 'port-probe', 'fixtures.manifest.json')
 
@@ -71,7 +71,7 @@ def enabled_sidecar_rules():
     something the shipped config never runs.
     """
     aliases = set(js_plugin_rules().values())
-    config = load_jsonc(os.path.join(ROOT, '.oxlintrc.json'))
+    config = load_oxlint_config()
     scopes = [config.get('rules', {})] + [override.get('rules', {}) for override in config.get('overrides', [])]
     rules = {}
     for scope in scopes:
