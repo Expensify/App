@@ -4,8 +4,10 @@ import useContainerWidth from '@hooks/useContainerWidth';
 
 import type {LayoutChangeEvent} from 'react-native';
 
+import createMock from '../../utils/createMock';
+
 function createLayoutEvent(width: number): LayoutChangeEvent {
-    return {nativeEvent: {layout: {x: 0, y: 0, width, height: 0}}} as LayoutChangeEvent;
+    return createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width, height: 0}}});
 }
 
 describe('useContainerWidth', () => {

@@ -15,6 +15,7 @@ namespace margelo::nitro::utils {
     // load custom methods/properties
     registerHybrids(this, [](Prototype& prototype) {
       prototype.registerHybridGetter("appStartTime", &HybridAppStartTimeModuleSpec::getAppStartTime);
+      prototype.registerHybridGetter("appStartupMarkers", &HybridAppStartTimeModuleSpec::getAppStartupMarkers);
     });
   }
 

@@ -92,7 +92,7 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
                 title={label || translate('common.state')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    Navigation.goBack(currentState ? appendParam(backPath, 'state', currentState) : backPath, {compareParams: false});
+                    Navigation.goBack(backPath, {compareParams: false});
                 }}
             />
             {/* This empty, non-harmful view fixes the issue with SelectionList scrolling and shouldUseDynamicMaxToRenderPerBatch. It can be removed without consequences if a solution for SelectionList is found. See comment https://github.com/Expensify/App/pull/36770#issuecomment-2017028096 */}

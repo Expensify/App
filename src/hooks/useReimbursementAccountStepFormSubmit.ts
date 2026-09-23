@@ -3,11 +3,11 @@ import type {FormOnyxKeys} from '@components/Form/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {SubStepProps} from './useSubStep/types';
+import type {SubPageProps} from './useSubPage/types';
 
 import useStepFormSubmit from './useStepFormSubmit';
 
-type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
+type UseReimbursementAccountStepFormSubmitParams = Pick<SubPageProps, 'onNext'> & {
     formId?: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>;
     shouldSaveDraft: boolean;

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 
@@ -29,19 +29,13 @@ import {View} from 'react-native';
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
-    /** Subscription plan to display */
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal: boolean;
 
-    /** Whether the plan is currently used */
     isSelected: boolean;
-
-    /** Closes comparison modal */
     closeComparisonModal?: () => void;
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 };
 
@@ -82,7 +76,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
 
         if (planType === CONST.POLICY.TYPE.TEAM) {
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id)));
             return;
         }
 

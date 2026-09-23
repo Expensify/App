@@ -66,6 +66,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 **Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
 
+**Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
@@ -91,6 +93,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 4. Select the new role and confirm.
 
 **Note:** People admins can change a member’s role between **Member** and **Auditor** only. Granting or removing the admin role or any scoped admin role (such as Card admin, People admin, or Payments admin) requires a Workspace admin.
+
+**Note:** You can’t change the role of the member set as the workspace’s authorized payer. Their **Role** can’t be edited and role-change options are hidden until you assign a different payer. To change their role, first go to **Workspaces > Workflows**, open **Payments**, and set a different admin as the **Payer**.
 
 ---
 

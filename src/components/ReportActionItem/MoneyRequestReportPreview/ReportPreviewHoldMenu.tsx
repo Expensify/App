@@ -1,8 +1,8 @@
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 
-import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
-import CONST from '@src/CONST';
+import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 
 import React from 'react';
 
@@ -15,19 +15,19 @@ import {useReportPreviewActions, useReportPreviewData, useReportPreviewHoldMenu}
 function ReportPreviewHoldMenu() {
     const holdMenu = useReportPreviewHoldMenu();
     const {iouReport, chatReport, transactions} = useReportPreviewData();
-    const {startAnimation, startApprovedAnimation, onHoldMenuClose} = useReportPreviewActions();
+    const {startAnimation, onHoldMenuClose} = useReportPreviewActions();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     if (!holdMenu || !iouReport) {
         return null;
     }
 
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, holdMenu.canPay, transactions);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, holdMenu.canPay, transactions, convertToDisplayString);
 
     return (
         <ProcessMoneyReportHoldMenu
             nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-            requestType={holdMenu.requestType}
             fullAmount={fullAmount}
             onClose={onHoldMenuClose}
             isVisible
@@ -37,13 +37,7 @@ function ReportPreviewHoldMenu() {
             moneyRequestReport={iouReport}
             transactionCount={transactions.length}
             hasNonHeldExpenses={!hasOnlyHeldExpenses}
-            onConfirm={() => {
-                if (holdMenu.requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                    startApprovedAnimation();
-                } else {
-                    startAnimation();
-                }
-            }}
+            onConfirm={startAnimation}
         />
     );
 }

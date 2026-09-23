@@ -13,7 +13,6 @@ import useNetwork from '@hooks/useNetwork';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 
@@ -33,7 +32,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 import type VideoPlayerProps from './types';
 
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
-import * as VideoUtils from './utils';
+import {buildVideoSourceURL} from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -78,8 +77,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
-    // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
+    const [sourceURL] = useState(() => buildVideoSourceURL(url, encryptedAuthToken));
     const isPopoverVisible = useIsPopoverVisible();
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);

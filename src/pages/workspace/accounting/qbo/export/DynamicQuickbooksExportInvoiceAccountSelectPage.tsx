@@ -14,6 +14,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -33,6 +34,7 @@ type CardListItem = ListItem & {
 
 function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -72,11 +74,11 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
                 containerStyle={styles.pb10}
             />
         ),
-        [illustrations.Telescope, translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10, integrationName],
     );
 
     return (
@@ -86,7 +88,7 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DynamicQuickbooksExportInvoiceAccountSelectPage"
             data={data}
-            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
+            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription', integrationName)}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportInvoice}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

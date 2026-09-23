@@ -17,9 +17,10 @@ import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
+
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -45,11 +46,12 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import PusherHelper from '../../utils/PusherHelper';
 import * as TestHelper from '../../utils/TestHelper';
-import {formatPhoneNumber, getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -126,8 +128,8 @@ describe('actions/IOU/TrackExpense', () => {
 
     beforeEach(async () => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.createGlobalFetchMock();
+        global.fetch = mockFetch;
         await Onyx.clear();
         currencyListProvider = await initCurrencyListContext({
             keys: ONYXKEYS,
@@ -176,6 +178,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             });
 
@@ -183,6 +186,8 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.pause?.();
 
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -212,6 +217,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -233,6 +239,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 reportNameValuePairs: {},
                 reportAttributes: undefined,
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             });
 
@@ -307,6 +314,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When the user submits the transaction to the selfDM report
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -338,6 +347,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -382,6 +392,7 @@ describe('actions/IOU/TrackExpense', () => {
             const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: selfDMReportActions,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: reportActionableTrackExpense?.reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -410,6 +421,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When the user confirms the category for the tracked expense
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -446,6 +459,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -514,6 +528,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create a tracked expense
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -540,6 +556,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -561,6 +578,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Share the tracked expense with an accountant
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -599,6 +618,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -658,6 +678,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create a tracked expense
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -684,6 +706,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -705,6 +728,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Share the tracked expense with an accountant
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -743,6 +768,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -805,6 +831,8 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -832,6 +860,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -851,6 +880,8 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.pause?.();
 
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -891,6 +922,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -949,6 +981,8 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -977,6 +1011,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -996,6 +1031,8 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.pause?.();
 
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -1036,6 +1073,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1097,13 +1135,13 @@ describe('actions/IOU/TrackExpense', () => {
             // Build the REPORT_PREVIEW action OUTSIDE Onyx and pass it explicitly.
             // If the implementation falls back to deprecatedAllReportActions (Onyx) instead of using this explicit param,
             // the unarchive failure-data entry will not be generated and the assertion below will fail.
-            const reportPreviewAction: ReportAction = {
+            const reportPreviewAction = createMock<ReportAction>({
                 reportActionID: 'preview-1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportID: archivedExpenseReportID,
                 created: DateUtils.getDBTime(),
                 message: [],
-            } as unknown as ReportAction;
+            });
             const explicitReportActionsList = {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${accountantExpenseChatID}`]: {
                     [reportPreviewAction.reportActionID]: reportPreviewAction,
@@ -1114,6 +1152,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create the tracked expense first
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -1141,6 +1181,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1161,6 +1202,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When sharing the tracked expense with the accountant, passing the explicit reportActionsList
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: ownPolicyExpenseChat,
                 isDraftPolicy: false,
@@ -1190,6 +1233,7 @@ describe('actions/IOU/TrackExpense', () => {
                     formatPhoneNumber,
                 },
                 reportActionsList: explicitReportActionsList,
+                rules: undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
@@ -1237,6 +1281,8 @@ describe('actions/IOU/TrackExpense', () => {
             transactionOverrides: Partial<Parameters<typeof trackExpense>[0]['transactionParams']> = {},
         ): Parameters<typeof trackExpense>[0] {
             return {
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report,
                 isDraftPolicy: false,
@@ -1264,13 +1310,12 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             };
         }
 
         it('should post onboarding tasks to the threaded conciergeChat instead of the deprecated CONCIERGE_REPORT_ID fallback when tracking to a draft workspace', async () => {
             mockFetch?.pause?.();
-            // Given the deprecated Onyx.connect fallback points at a DIFFERENT report than the threaded param,
-            // so the assertions below fail if trackExpense stops forwarding conciergeChat to buildPolicyData (#66411)
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'deprecated-fallback-track');
 
             // And a draft workspace expense chat (getTrackExpenseInformation only creates the workspace for draft reports)
@@ -1294,6 +1339,7 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 ...getDefaultTrackExpenseParams(draftExpenseChat),
                 isDraftPolicy: true,
+                isDraftChatReport: true,
                 policyParams: {policy: draftPolicy},
                 // introSelected with no choice yet — the only state in which buildPolicyData adds onboarding tasks
                 introSelected: {},
@@ -1465,6 +1511,7 @@ describe('actions/IOU/TrackExpense', () => {
             // When a draft is created for categorization
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
+                reportActions: selfDMReportActions,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID: actionableWhisper?.reportActionID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -1494,6 +1541,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When the expense is categorized and submitted to workspace
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -1527,6 +1576,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1589,6 +1639,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When trackExpense is called on policy expense chat
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
                 isDraftPolicy: false,
@@ -1618,6 +1670,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1899,6 +1952,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1933,6 +1987,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1960,6 +2015,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: true
             const result = getTrackExpenseInformation({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 parentChatReport: selfDMReport,
                 participantParams: {
@@ -1989,6 +2046,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -2008,6 +2066,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: false
             const result = getTrackExpenseInformation({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 parentChatReport: selfDMReport,
                 participantParams: {
@@ -2037,6 +2097,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -2058,6 +2119,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: true
             const resultWithTourViewed = getTrackExpenseInformation({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 parentChatReport: policyExpenseChat,
                 participantParams: {
@@ -2087,6 +2150,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             // Then result should be valid
@@ -2096,6 +2160,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isSelfTourViewed: false
             const resultWithoutTourViewed = getTrackExpenseInformation({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 parentChatReport: {
                     ...policyExpenseChat,
@@ -2128,6 +2194,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -2167,6 +2234,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isDraftChatReport: true
             const result = getTrackExpenseInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 parentChatReport: draftSelfDMReport,
                 participantParams: {
@@ -2197,6 +2265,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
                 isDraftChatReport: true,
+                rules: undefined,
             });
 
             // Then createdWorkspaceParams should be defined because the report is a draft
@@ -2215,6 +2284,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // When getTrackExpenseInformation is called with isDraftChatReport: false
             const result = getTrackExpenseInformation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 parentChatReport: liveSelfDMReport,
                 participantParams: {
@@ -2245,6 +2315,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
                 isDraftChatReport: false,
+                rules: undefined,
             });
 
             // Then createdWorkspaceParams should be undefined because the report is not a draft
@@ -2307,6 +2378,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Create a tracked expense
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -2333,6 +2406,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2422,6 +2496,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -2430,6 +2505,7 @@ describe('actions/IOU/TrackExpense', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2493,18 +2569,18 @@ describe('actions/IOU/TrackExpense', () => {
                 (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => reportAction.reportActionID === createIOUAction?.reportActionID,
             );
             expect(createIOUAction).toBeTruthy();
+            const passedThreadReportActions = {[REPORT_ACTION?.reportActionID ?? '1']: REPORT_ACTION} as ReportActions;
 
             // When deleting expense
-            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                transaction?.transactionID,
+            const {optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                createIOUAction!,
-                false,
-                RORY_ACCOUNT_ID,
-                undefined,
-                undefined,
-            );
+                reportAction: createIOUAction!,
+                isChatReportArchived: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActions: passedThreadReportActions,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction thread report should be ready to be deleted
@@ -2514,6 +2590,10 @@ describe('actions/IOU/TrackExpense', () => {
             );
             expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null})]));
             expect(successData).toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null})]));
+            // And the failure rollback restores the report actions passed in as a param
+            expect(failureData).toEqual(
+                expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: passedThreadReportActions})]),
+            );
         });
 
         it('should NOT delete the transaction thread regardless of whether there are no visible comments in the thread, if isMovingTransactionFromTrackExpense equals true.', async () => {
@@ -2534,6 +2614,7 @@ describe('actions/IOU/TrackExpense', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
@@ -2542,6 +2623,7 @@ describe('actions/IOU/TrackExpense', () => {
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
+                currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2563,16 +2645,16 @@ describe('actions/IOU/TrackExpense', () => {
             });
 
             // When deleting expense
-            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
-                selfDMReport,
-                transaction?.transactionID,
+            const {optimisticData, successData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation({
+                chatReport: selfDMReport,
+                transactionID: transaction?.transactionID,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                createIOUAction!,
-                false,
-                RORY_ACCOUNT_ID,
-                undefined,
-                true,
-            );
+                reportAction: createIOUAction!,
+                isChatReportArchived: false,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionThreadReportActions: undefined,
+                isMovingTransactionFromTrackExpense: true,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction thread report should be ready to be deleted
@@ -2612,6 +2694,8 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                isDraftChatReport: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
                 isDraftPolicy: true,
@@ -2639,6 +2723,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2695,6 +2780,8 @@ describe('actions/IOU/TrackExpense', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const result = deleteTrackExpense({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionThreadReportActions: undefined,
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
                 chatReportActions: undefined,
@@ -2811,6 +2898,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [transaction],
                     iouReport,
                     chatReport,
@@ -2826,6 +2914,8 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });
@@ -2885,6 +2975,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
                     chatReport,
@@ -2900,6 +2991,8 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });
@@ -2929,6 +3022,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
                     chatReport,
@@ -2944,6 +3038,8 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });
@@ -2973,6 +3069,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
                     chatReport,
@@ -2988,6 +3085,8 @@ describe('actions/IOU/TrackExpense', () => {
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });

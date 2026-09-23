@@ -24,7 +24,7 @@ jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
 jest.mock('@hooks/useDebouncedState', () => jest.fn(() => [mockSearchTerm, mockSearchTerm, jest.fn()]));
 jest.mock('@hooks/useFilteredOptions', () => jest.fn(() => ({options: {recentReports: [], personalDetails: []}, isLoading: false})));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({email: 'me@expensify.com', accountID: 999})));
-jest.mock('@hooks/useSortedActions', () => jest.fn(() => ({})));
+jest.mock('@hooks/useSortedReportActionsData', () => jest.fn(() => ({})));
 jest.mock('@hooks/useReportAttributes', () => jest.fn(() => ({})));
 jest.mock('@hooks/usePrivateIsArchivedMap', () => jest.fn(() => ({})));
 jest.mock('@hooks/useLocalize', () =>
@@ -36,7 +36,7 @@ jest.mock('@libs/actions/Report', () => ({searchInServer: jest.fn()}));
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => false}));
 jest.mock('@libs/OptionsListUtils', () => ({
     // Build a minimal option object from the report id the component passes in.
-    createOptionFromReport: (report: {reportID: string}) => ({reportID: report.reportID, keyForList: report.reportID, text: `Report ${report.reportID}`}),
+    createOptionFromReport: ({report}: {report: {reportID: string}}) => ({reportID: report.reportID, keyForList: report.reportID, text: `Report ${report.reportID}`}),
     getSearchOptions: () => ({options: {recentReports: mockDefaultReports, personalDetails: []}}),
     filterAndOrderOptions: () => ({recentReports: mockRecentReports, personalDetails: []}),
     getAlternateText: () => '',

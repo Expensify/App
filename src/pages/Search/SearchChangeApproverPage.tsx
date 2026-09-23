@@ -82,7 +82,6 @@ function SearchChangeApproverPage() {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
@@ -102,6 +101,7 @@ function SearchChangeApproverPage() {
     };
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const hasAutoAppliedRef = useRef(false);
     // Set when navigating to WORKSPACE_UPGRADE; prevents the auto-close in useLayoutEffect from
@@ -174,7 +174,6 @@ function SearchChangeApproverPage() {
 
             if (report.managerID !== currentUserDetails.accountID) {
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
                 assignReportToMe(
                     report,
                     currentUserDetails.accountID,
@@ -182,9 +181,9 @@ function SearchChangeApproverPage() {
                     policy,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
-                    reportNextStep,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    rules,
                 );
             }
         }
@@ -283,19 +282,16 @@ function SearchChangeApproverPage() {
     const listHeader =
         selectedPolicies.length === 1 ? (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`)} />
+                <RenderHTML
+                    html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id, CONST.TAB.WORKFLOWS.APPROVALS)}`)}
+                />
             </View>
         ) : (
             <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.bulkSubtitle')}</Text>
         );
 
     if (!isOffline && isLoadingBulkChangeApproverPage) {
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={{context: 'SearchChangeApproverPage'}}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

@@ -26,7 +26,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -299,6 +298,7 @@ function BaseTextInput({
     const autoGrowMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
+    const autoGrowVerticalInset = StyleUtils.getAutoGrowHeightInputVerticalInset(newTextInputContainerStyles, isMultiline && hasLabel);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
@@ -308,10 +308,6 @@ function BaseTextInput({
     const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
     const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
-    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BaseTextInput.isLoading',
-        isLoading: !!inputProps.isLoading,
-    };
 
     return (
         <>
@@ -426,7 +422,10 @@ function BaseTextInput({
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
-                                        ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
+                                        ? [
+                                              StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0, autoGrowVerticalInset),
+                                              styles.verticalAlignTop,
+                                          ]
                                         : []),
                                     isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
                                     // Add disabled color theme when field is not editable.
@@ -474,7 +473,6 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
-                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
                             {/* Render rightHandSideComponent only when clear button is not shown

@@ -1,5 +1,7 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -13,7 +15,6 @@ import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendi
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 
-import TravelInvoicingContinuousReconciliationSection from '@pages/workspace/accounting/common/TravelInvoicingContinuousReconciliationSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -141,13 +142,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     onCloseError={section.onCloseError}
                 />
             ))}
-            <TravelInvoicingContinuousReconciliationSection
-                policy={policy}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-                isAutoSyncEnabled={!!config?.autoSync?.enabled}
-                toggleWrapperStyle={[styles.ph5, styles.pv3]}
-            />
-
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}
@@ -156,13 +150,15 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     key={translate('workspace.sageIntacct.paymentAccount')}
                     pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
-                        description={translate('workspace.sageIntacct.paymentAccount')}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('workspace.sageIntacct.paymentAccount')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
-                        brickRoadIndicator={areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                        value={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
+                    >
+                        {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>

@@ -43,6 +43,10 @@ const secureNgrokURL = addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', '
 const secureExpensifyUrl = addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
+// addTrailingForwardSlash('') returns '/', which would look configured
+const normalizeOptionalRoot = (value: string): string => (value ? addTrailingForwardSlash(value) : '');
+const qaExpensifyURL = normalizeOptionalRoot(get(Config, 'QA_EXPENSIFY_URL', ''));
+const qaSecureExpensifyURL = normalizeOptionalRoot(get(Config, 'QA_SECURE_EXPENSIFY_URL', ''));
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
 
 // Throw errors on dev if config variables are not set correctly
@@ -82,6 +86,8 @@ export default {
         DEFAULT_SECURE_API_ROOT: secureURLRoot,
         STAGING_API_ROOT: stagingExpensifyURL,
         STAGING_SECURE_API_ROOT: stagingSecureExpensifyUrl,
+        QA_API_ROOT: qaExpensifyURL,
+        QA_SECURE_API_ROOT: qaSecureExpensifyURL,
         LEGACY_PARTNER_NAME: get(Config, 'LEGACY_EXPENSIFY_PARTNER_NAME', getDefaultLegacyPartnerConfig().name),
         LEGACY_PARTNER_PASSWORD: get(Config, 'LEGACY_EXPENSIFY_PARTNER_PASSWORD', getDefaultLegacyPartnerConfig().password),
         PARTNER_NAME: get(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
@@ -98,6 +104,7 @@ export default {
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: get(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
+        QA_APP_KEY: get(Config, 'PUSHER_QA_APP_KEY', ''),
         SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
@@ -133,10 +140,21 @@ export default {
     },
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
+    // Turn off locally when profiling to keep the Activity gate's StrictMode double renders out of the measurements
+    USE_ACTIVITY_SCREEN_STRICT_MODE_IN_DEV: true,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
     SKIP_ONBOARDING: get(Config, 'SKIP_ONBOARDING', 'false') === 'true',
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
+    // Auth for the Cloudflare Access-protected QA server. Empty values disable the feature entirely
+    QA_AUTH: {
+        API_ROOT: qaExpensifyURL,
+        TEAM_DOMAIN: get(Config, 'QA_CF_TEAM_DOMAIN', ''),
+        CLIENT_ID: get(Config, 'QA_CF_OAUTH_CLIENT_ID', ''),
+        // Which Access-protected endpoint the test tool calls to verify auth is a property of the
+        // environment. The dev worker exposes an echo route, another QA host will offer something else
+        CHECK_PATH: get(Config, 'QA_AUTH_CHECK_PATH', '').replace(/^\/+/, ''),
+    },
     SENTRY_DSN: get(Config, 'SENTRY_DSN', 'https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840'),
 } as const;

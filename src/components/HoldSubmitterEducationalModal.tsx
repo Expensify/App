@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+import FeatureTraining from './FeatureTraining';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
 
@@ -18,9 +19,12 @@ type HoldSubmitterEducationalModalProps = {
 
     /** Method to trigger when pressing confirm button */
     onConfirm: () => void;
+
+    /** Whether the expense is from a DM (direct message) report */
+    isDM?: boolean;
 };
 
-function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducationalModalProps) {
+function HoldSubmitterEducationalModal({onClose, onConfirm, isDM}: HoldSubmitterEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HoldExpense']);
@@ -29,22 +33,27 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
 
     return (
         <FeatureTrainingModal
-            title={translate('iou.holdEducationalTitle')}
-            description={translate('iou.whatIsHoldExplain')}
-            confirmText={translate('common.buttonConfirm')}
-            image={illustrations.HoldExpense}
-            contentFitImage="cover"
             width={variables.holdEducationModalWidth}
-            illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-            contentInnerContainerStyles={styles.mb5}
             modalInnerContainerStyle={styles.pt0}
-            illustrationOuterContainerStyle={styles.p0}
             onClose={onClose}
             onConfirm={onConfirm}
             shouldCloseOnConfirm={false}
             shouldUseScrollView
         >
-            <HoldMenuSectionList />
+            <FeatureTraining.Illustration
+                image={illustrations.HoldExpense}
+                contentFitImage="cover"
+                aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                outerContainerStyle={styles.p0}
+            />
+            <FeatureTraining.Body>
+                <FeatureTraining.BodyText style={styles.mb5}>
+                    <FeatureTraining.Title>{translate('iou.holdEducationalTitle')}</FeatureTraining.Title>
+                    <FeatureTraining.Description>{translate(isDM ? 'iou.whatIsHoldExplainDM' : 'iou.whatIsHoldExplain')}</FeatureTraining.Description>
+                    <HoldMenuSectionList isDM={isDM} />
+                </FeatureTraining.BodyText>
+                <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+            </FeatureTraining.Body>
         </FeatureTrainingModal>
     );
 }

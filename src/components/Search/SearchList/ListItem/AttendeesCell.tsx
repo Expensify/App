@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
-import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID, getDefaultAvatar} from '@libs/UserAvatarUtils';
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -38,6 +38,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
         return {
             id: accountID,
             name: attendee.displayName ?? attendee.email,
+            displayName: attendee.displayName ?? attendee.email ?? '',
             source: (attendee.avatarUrl || getDefaultAvatar({accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
             type: CONST.ICON_TYPE_AVATAR,
         };
@@ -48,44 +49,48 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const StyleUtils = useStyleUtils();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
     const size = CONST.AVATAR_SIZE.X_SMALL;
-    const maxAvatarsInRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
+    const maxAvatarsPerRow = CONST.AVATAR_ROW_SIZE.DEFAULT;
     const oneAvatarSize = StyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3 + 2 * oneAvatarBorderWidth;
     const height = StyleUtils.getAvatarSizeWithBorder(size);
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), styles.overflowHidden]);
 
-    const icons = sortIconsByName(attendeeIcons, personalDetails, localeCompare);
-    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name));
+    // Attendee icons carry their own `displayName`, so sorting needs no personal-details subscription
+    const icons = sortIconsByName(attendeeIcons, undefined, localeCompare);
+    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(getAccountIDFromAvatarID(icon.id), formatPhoneNumber, translate, icon.name));
 
     return (
         <View
             style={avatarContainerStyles}
             testID="AttendeesCell-Row"
         >
-            {[...icons].splice(0, maxAvatarsInRow).map((icon, index) => (
+            {[...icons].splice(0, maxAvatarsPerRow).map((icon, index) => (
                 <UserDetailsTooltip
                     // eslint-disable-next-line react/no-array-index-key
                     key={`stackedAvatars-${icon.id}-${index}`}
-                    accountID={Number(icon.id)}
+                    accountID={getAccountIDFromAvatarID(icon.id)}
                     icon={icon}
                     fallbackUserDetails={{
                         displayName: icon.name,
                     }}
                     shouldRender
                 >
-                    <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, -oneAvatarBorderWidth), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
-                        <Avatar
+                    <View
+                        style={[
+                            StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, -oneAvatarBorderWidth),
+                            StyleUtils.getAvatarBorderRadius(size, StyleUtils.getShapeFromIconType(icon.type)),
+                        ]}
+                    >
+                        <UserAvatar
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                     theme,
                                     isHovered,
                                     isPressed,
                                     isInReportAction: true,
-                                    shouldUseCardBackground: true,
+                                    avatarBorderColor: theme.cardBG,
                                     isActive: false,
                                     customPressedBorderColor: theme.activeComponentBG,
                                 }),
@@ -93,19 +98,17 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                             ]}
                             source={icon.source}
                             size={size}
-                            name={icon.name}
-                            avatarID={icon.id}
-                            type={icon.type}
+                            accountID={getAccountIDFromAvatarID(icon.id)}
                             fallbackIcon={icon.fallbackIcon}
                             testID="AttendeesCell-Avatar"
                         />
                     </View>
                 </UserDetailsTooltip>
             ))}
-            {icons.length > maxAvatarsInRow && (
+            {icons.length > maxAvatarsPerRow && (
                 <Tooltip
                     // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                    text={tooltipTexts.slice(maxAvatarsInRow - 1, maxAvatarsInRow + 9).join(', ')}
+                    text={tooltipTexts.slice(maxAvatarsPerRow - 1, maxAvatarsPerRow + 9).join(', ')}
                     shouldRender
                 >
                     <View
@@ -118,13 +121,13 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                                 isHovered,
                                 isPressed,
                                 isInReportAction: true,
-                                shouldUseCardBackground: true,
+                                avatarBorderColor: theme.cardBG,
                                 customPressedBorderColor: theme.activeComponentBG,
                             }),
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
-                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
+                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
                             StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
                         ]}
                     >
@@ -132,7 +135,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                             <Text
                                 style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(size), styles.userSelectNone, styles.textMicroBold, styles.buttonSuccessText]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            >{`+${icons.length - maxAvatarsInRow}`}</Text>
+                            >{`+${icons.length - maxAvatarsPerRow}`}</Text>
                         </View>
                     </View>
                 </Tooltip>

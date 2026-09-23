@@ -2,15 +2,17 @@ import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 
 import {
     areAllTransactionsExpenseCompatible,
+    getTransactionEditContext,
     hasCustomUnitMerchantInSelection,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReports,
     withSnapshotTransactions,
 } from '../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils';
+import createMock from '../utils/createMock';
 
 const POLICY_A = 'policyA';
 const POLICY_B = 'policyB';
@@ -19,21 +21,29 @@ const REPORT_ID = 'report1';
 const TRANSACTION_ID_1 = 'tx1';
 const TRANSACTION_ID_2 = 'tx2';
 const TRANSACTION_ID_3 = 'tx3';
+const TRANSACTION_DATA_KEY_1: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` = `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`;
+const REPORT_DATA_KEY: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`;
 
 function makeTransaction(transactionID: string, reportID: string): Transaction {
-    return {transactionID, reportID, amount: 100, currency: 'USD', created: '2025-01-01', comment: {}} as Transaction;
+    return createMock<Transaction>({
+        transactionID,
+        reportID,
+        amount: 100,
+        currency: 'USD',
+        created: '2025-01-01',
+        comment: {},
+    });
 }
 
 function makeReport(reportID: string, policyID: string): Report {
-    return {reportID, policyID, type: 'expense'} as unknown as Report;
+    return createMock<Report>({reportID, policyID, type: 'expense'});
 }
 
 describe('SearchEditMultipleUtils', () => {
     describe('withSnapshotTransactions', () => {
         it('fills missing transactions from snapshot', () => {
-            const snapshotData = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`]: makeTransaction(TRANSACTION_ID_1, REPORT_ID),
-            } as unknown as SearchResults['data'];
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[TRANSACTION_DATA_KEY_1] = makeTransaction(TRANSACTION_ID_1, REPORT_ID);
 
             const merged = withSnapshotTransactions(undefined, snapshotData);
 
@@ -44,9 +54,8 @@ describe('SearchEditMultipleUtils', () => {
             const existing = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`]: makeTransaction(TRANSACTION_ID_1, 'existingReport'),
             };
-            const snapshotData = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`]: makeTransaction(TRANSACTION_ID_1, 'snapshotReport'),
-            } as unknown as SearchResults['data'];
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[TRANSACTION_DATA_KEY_1] = makeTransaction(TRANSACTION_ID_1, 'snapshotReport');
 
             const merged = withSnapshotTransactions(existing, snapshotData);
 
@@ -66,9 +75,8 @@ describe('SearchEditMultipleUtils', () => {
 
     describe('withSnapshotReports', () => {
         it('fills missing reports from snapshot', () => {
-            const snapshotData = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeReport(REPORT_ID, POLICY_A),
-            } as unknown as SearchResults['data'];
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_A);
 
             const merged = withSnapshotReports(undefined, snapshotData);
 
@@ -79,9 +87,8 @@ describe('SearchEditMultipleUtils', () => {
             const existing = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeReport(REPORT_ID, POLICY_A),
             };
-            const snapshotData = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeReport(REPORT_ID, POLICY_B),
-            } as unknown as SearchResults['data'];
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_B);
 
             const merged = withSnapshotReports(existing, snapshotData);
 
@@ -95,9 +102,8 @@ describe('SearchEditMultipleUtils', () => {
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`]: makeTransaction(TRANSACTION_ID_1, REPORT_ID),
             };
-            const snapshotData = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeReport(REPORT_ID, POLICY_A),
-            } as unknown as SearchResults['data'];
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_A);
 
             // Without snapshot merge — falls back to activePolicyID
             const withoutMerge = getSearchBulkEditPolicyID([TRANSACTION_ID_1], POLICY_B, allTransactions, undefined);
@@ -110,10 +116,9 @@ describe('SearchEditMultipleUtils', () => {
         });
 
         it('resolves policyID when transaction is only in snapshot', () => {
-            const snapshotData = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID_1}`]: makeTransaction(TRANSACTION_ID_1, REPORT_ID),
-                [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: makeReport(REPORT_ID, POLICY_A),
-            } as unknown as SearchResults['data'];
+            const snapshotData = createMock<SearchResults['data']>({});
+            snapshotData[TRANSACTION_DATA_KEY_1] = makeTransaction(TRANSACTION_ID_1, REPORT_ID);
+            snapshotData[REPORT_DATA_KEY] = makeReport(REPORT_ID, POLICY_A);
 
             const mergedTransactions = withSnapshotTransactions(undefined, snapshotData);
             const mergedReports = withSnapshotReports(undefined, snapshotData);
@@ -143,9 +148,21 @@ describe('SearchEditMultipleUtils', () => {
     });
 
     describe('hasCustomUnitMerchantInSelection', () => {
-        const manualTransaction = {transactionID: TRANSACTION_ID_1, reportID: 'report1', comment: {}} as Transaction;
-        const perDiemTransaction = {transactionID: TRANSACTION_ID_2, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM} as unknown as Transaction;
-        const distanceTransaction = {transactionID: TRANSACTION_ID_3, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE} as unknown as Transaction;
+        const manualTransaction = createMock<Transaction>({
+            transactionID: TRANSACTION_ID_1,
+            reportID: 'report1',
+            comment: {},
+        });
+        const perDiemTransaction = createMock<Transaction>({
+            transactionID: TRANSACTION_ID_2,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+        });
+        const distanceTransaction = createMock<Transaction>({
+            transactionID: TRANSACTION_ID_3,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+        });
 
         it('returns true when any transaction is an unreported per-diem request', () => {
             const contexts = [{transaction: manualTransaction}, {transaction: perDiemTransaction}];
@@ -168,9 +185,9 @@ describe('SearchEditMultipleUtils', () => {
     });
 
     describe('areAllTransactionsExpenseCompatible', () => {
-        const expenseReport = {reportID: 'expenseReport1', type: CONST.REPORT.TYPE.EXPENSE} as Report;
-        const iouReport = {reportID: 'iouReport1', type: CONST.REPORT.TYPE.IOU} as Report;
-        const invoiceReport = {reportID: 'invoiceReport1', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const expenseReport = createMock<Report>({reportID: 'expenseReport1', type: CONST.REPORT.TYPE.EXPENSE});
+        const iouReport = createMock<Report>({reportID: 'iouReport1', type: CONST.REPORT.TYPE.IOU});
+        const invoiceReport = createMock<Report>({reportID: 'invoiceReport1', type: CONST.REPORT.TYPE.INVOICE});
 
         it('returns true when every reported transaction is on an expense report', () => {
             const contexts = [
@@ -212,9 +229,9 @@ describe('SearchEditMultipleUtils', () => {
     });
 
     describe('isBulkEditTaxTrackingEnabled', () => {
-        const taxEnabledPolicy = {id: POLICY_A, tax: {trackingEnabled: true}} as unknown as Policy;
-        const taxDisabledPolicy = {id: POLICY_B, tax: {trackingEnabled: false}} as unknown as Policy;
-        const activeTaxEnabledPolicy = {id: POLICY_C, tax: {trackingEnabled: true}} as unknown as Policy;
+        const taxEnabledPolicy = createMock<Policy>({id: POLICY_A, tax: {trackingEnabled: true}});
+        const taxDisabledPolicy = createMock<Policy>({id: POLICY_B, tax: {trackingEnabled: false}});
+        const activeTaxEnabledPolicy = createMock<Policy>({id: POLICY_C, tax: {trackingEnabled: true}});
 
         it('returns true when all transactions are unreported and the bulk-edit workspace has tax enabled', () => {
             const contexts = [
@@ -267,6 +284,31 @@ describe('SearchEditMultipleUtils', () => {
         it('returns false when the selection contains per-diem or time transactions, regardless of policy', () => {
             const contexts = [{transaction: makeTransaction(TRANSACTION_ID_1, 'report1'), transactionPolicy: taxEnabledPolicy}];
             expect(isBulkEditTaxTrackingEnabled(contexts, taxEnabledPolicy, true)).toBe(false);
+        });
+    });
+
+    describe('getTransactionEditContext', () => {
+        it('returns the report actions of the transaction report so callers can reuse them without re-indexing the collection', () => {
+            const transaction = makeTransaction(TRANSACTION_ID_1, REPORT_ID);
+            const iouAction = createMock<ReportAction>({
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {IOUTransactionID: TRANSACTION_ID_1, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            });
+            const reportActionsForReport = {[iouAction.reportActionID]: iouAction};
+
+            const allTransactions = {[TRANSACTION_DATA_KEY_1]: transaction};
+            const allReports = {[REPORT_DATA_KEY]: makeReport(REPORT_ID, POLICY_A)};
+            const allReportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: reportActionsForReport};
+
+            const context = getTransactionEditContext(TRANSACTION_ID_1, allTransactions, allReports, allReportActions, undefined);
+
+            expect(context?.reportActions).toEqual(reportActionsForReport);
+            expect(context?.reportAction).toEqual(iouAction);
+        });
+
+        it('returns null when the transaction is not found', () => {
+            expect(getTransactionEditContext('missing', {}, {}, {}, undefined)).toBeNull();
         });
     });
 });

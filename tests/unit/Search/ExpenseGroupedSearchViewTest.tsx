@@ -29,9 +29,10 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+const mockIsOffline = {current: false};
 jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({
-        isOffline: false,
+        isOffline: mockIsOffline.current,
     })),
 );
 
@@ -139,13 +140,23 @@ const STABLE_QUERY_JSON: SearchQueryJSON = {
 
 const STABLE_COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.ACTION];
 
-/** Builds group rows, each carrying child transactions; `deletedTransactions` marks transaction indices as pending-delete. */
-function createMockGroupData(groups: Array<{transactionCount: number; deletedTransactions?: Set<number>}>): SearchListItem[] {
+// Counts group rows whose AnimatedExitRow has a live FadeOutUp `exiting` animation. Each row's Animated.View always
+// receives an `entering` prop (identifying the wrapper) and an `exiting` prop that is only non-null when armed.
+function countArmedExitAnimations(root: ReturnType<typeof render>['UNSAFE_root']): number {
+    return root.findAll((node) => typeof node.type !== 'string' && !!node.props && 'entering' in node.props && node.props.exiting != null).length;
+}
+
+/**
+ * Builds group rows, each carrying child transactions. `deletedTransactions` marks transaction indices as
+ * pending-delete; `isPendingDelete` flags the group row itself, which is what a whole-group delete does.
+ */
+function createMockGroupData(groups: Array<{transactionCount: number; deletedTransactions?: Set<number>; isPendingDelete?: boolean}>): SearchListItem[] {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test fixtures are intentionally partial group rows
     return groups.map((group, i) => ({
         keyForList: `group-${i}`,
         cardID: i,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
+        pendingAction: group.isPendingDelete ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
         transactions: Array.from({length: group.transactionCount}, (_, j) => ({
             keyForList: `txn-${i}-${j}`,
             transactionID: `${i}-${j}`,
@@ -173,7 +184,7 @@ type RenderOverrides = {
 };
 
 function renderView(overrides: RenderOverrides = {}) {
-    const data = overrides.data ?? createMockGroupData([{transactionCount: 1}, {transactionCount: 1}, {transactionCount: 1}]);
+    let data = overrides.data ?? createMockGroupData([{transactionCount: 1}, {transactionCount: 1}, {transactionCount: 1}]);
 
     function Wrapper() {
         const onSelectRow = useCallback((item: SearchListItem) => overrides.onSelectRow?.(item), []);
@@ -191,6 +202,7 @@ function renderView(overrides: RenderOverrides = {}) {
                 columns={columns}
                 canSelectMultiple={overrides.canSelectMultiple ?? false}
                 isActionColumnWide={false}
+                columnSizeOptions={{}}
                 isMobileSelectionModeEnabled={overrides.isMobileSelectionModeEnabled ?? false}
                 tableHeaderVisible={overrides.tableHeaderVisible ?? false}
                 hasLoadedAllTransactions={overrides.hasLoadedAllTransactions ?? true}
@@ -216,11 +228,19 @@ function renderView(overrides: RenderOverrides = {}) {
         );
     }
 
-    return render(
+    const buildTree = () => (
         <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider, ScrollOffsetContextProvider]}>
             <Wrapper />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+    const result = render(buildTree());
+    return {
+        ...result,
+        setData: (nextData: SearchListItem[]) => {
+            data = nextData;
+            result.rerender(buildTree());
+        },
+    };
 }
 
 beforeAll(() => Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT]}));
@@ -233,6 +253,7 @@ beforeEach(() => {
     mockToggleAll.mockClear();
     mockSelectedTransactions.current = {};
     mockTopBar.current = null;
+    mockIsOffline.current = false;
     for (const key of Object.keys(mockRowSelect)) {
         delete mockRowSelect[key];
     }
@@ -308,5 +329,69 @@ describe('ExpenseGroupedSearchView', () => {
 
         expect(onSelectRow).toHaveBeenCalledTimes(1);
         expect(mockToggle).not.toHaveBeenCalled();
+    });
+
+    it('does not arm the FadeOutUp exit on a stable group row, so it cannot flicker on remount', async () => {
+        const {UNSAFE_root: root} = renderView({data: createMockGroupData([{transactionCount: 1}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(countArmedExitAnimations(root)).toBe(0);
+    });
+
+    it('drops a group row flagged pending delete from the list', async () => {
+        renderView({data: createMockGroupData([{transactionCount: 2, isPendingDelete: true}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('row-group-0')).toBeNull();
+        expect(screen.getByTestId('row-group-1')).toBeOnTheScreen();
+    });
+
+    it('keeps a group row flagged pending delete out of the list after its child transactions are cleared', async () => {
+        // Deleting every expense in a group clears the children from their sub-snapshot before the next Search
+        // response drops the group entry. The row must not come back across that window.
+        const {setData} = renderView({data: createMockGroupData([{transactionCount: 2, isPendingDelete: true}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        act(() => setData(createMockGroupData([{transactionCount: 0, isPendingDelete: true}, {transactionCount: 1}])));
+        await waitForBatchedUpdates();
+
+        expect(screen.queryByTestId('row-group-0')).toBeNull();
+    });
+
+    it('brings a group row back when a failed delete clears its pending-delete flag', async () => {
+        const {setData} = renderView({data: createMockGroupData([{transactionCount: 2, isPendingDelete: true}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+        expect(screen.queryByTestId('row-group-0')).toBeNull();
+
+        act(() => setData(createMockGroupData([{transactionCount: 2}, {transactionCount: 1}])));
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
+    });
+
+    it('keeps a group row flagged pending delete visible while offline so its pending-delete styling shows', async () => {
+        mockIsOffline.current = true;
+        renderView({data: createMockGroupData([{transactionCount: 2, isPendingDelete: true}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
+    });
+
+    it('keeps a group row whose child transactions are all pending delete, since only the group flag removes a row', async () => {
+        // A group is deleted by flagging its own snapshot entry. Reading the state off the children instead is what
+        // made the row flicker, because the children are cleared before the group entry is.
+        renderView({data: createMockGroupData([{transactionCount: 2, deletedTransactions: new Set([0, 1])}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
+    });
+
+    it('keeps a group row whose transactions have not loaded yet', async () => {
+        // An empty transaction list also means "this group's sub-snapshot has not arrived", so an empty group that is
+        // not flagged must still render.
+        renderView({data: createMockGroupData([{transactionCount: 0}, {transactionCount: 1}])});
+        await waitForBatchedUpdates();
+
+        expect(screen.getByTestId('row-group-0')).toBeOnTheScreen();
     });
 });

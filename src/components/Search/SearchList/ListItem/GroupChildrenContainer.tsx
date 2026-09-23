@@ -1,5 +1,3 @@
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useTheme from '@hooks/useTheme';
@@ -12,8 +10,10 @@ import Animated from 'react-native-reanimated';
 import type {GroupChildrenContentProps} from './types';
 
 import GroupChildrenContent from './GroupChildrenContent';
+import {useGroupCheckboxState} from './useGroupChildren';
 
 type GroupChildrenContainerProps = GroupChildrenContentProps & {
+    isFirstItem?: boolean;
     isLastItem?: boolean;
 };
 
@@ -29,19 +29,19 @@ function GroupChildrenContainer({
     onLongPressRow,
     nonPersonalAndWorkspaceCards,
     onUndelete,
+    isFirstItem = false,
     isLastItem,
     newTransactionID,
-    bankAccountList,
-    cardFeeds,
-    conciergeReportID,
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {selectedTransactions} = useSearchSelectionContext();
-    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
+    const hasBorder = !isFirstItem;
+    const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
+    const {isSelectAllChecked} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: item.transactions});
 
-    const isSelected = !!item.isSelected || (item.transactions.length > 0 && item.transactions.every((transaction) => selectedTransactions[transaction.transactionID]?.isSelected));
+    // Only the rows this container holds decide its background, so a group still waiting for its first page is not painted as selected.
+    const isSelected = !!item.isSelected || (item.transactions.length > 0 && isSelectAllChecked);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -62,6 +62,7 @@ function GroupChildrenContainer({
                 {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
                 animatedHighlightStyle,
                 isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                hasBorder && styles.tableBorder,
             ]}
         >
             <Animated.View style={animatedStyle}>
@@ -83,9 +84,6 @@ function GroupChildrenContainer({
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             onUndelete={onUndelete}
                             newTransactionID={newTransactionID}
-                            bankAccountList={bankAccountList}
-                            cardFeeds={cardFeeds}
-                            conciergeReportID={conciergeReportID}
                         />
                     </Animated.View>
                 ) : null}

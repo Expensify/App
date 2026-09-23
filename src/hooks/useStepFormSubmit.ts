@@ -4,9 +4,9 @@ import * as FormActions from '@userActions/FormActions';
 
 import type {OnyxFormKey, OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-import type {SubStepProps} from './useSubStep/types';
+import type {SubPageProps} from './useSubPage/types';
 
-type UseStepFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
+type UseStepFormSubmitParams = Pick<SubPageProps, 'onNext'> & {
     formId: OnyxFormKey;
     fieldIds: ReadonlyArray<string | number | symbol>;
     shouldSaveDraft: boolean;
@@ -33,7 +33,7 @@ function useStepFormSubmitImpl({formId, onNext, fieldIds, shouldSaveDraft}: UseS
     };
 }
 
-type UseStepFormSubmitParamsGeneric<T extends keyof OnyxFormValuesMapping> = Pick<SubStepProps, 'onNext'> & {
+type UseStepFormSubmitParamsGeneric<T extends keyof OnyxFormValuesMapping> = Pick<SubPageProps, 'onNext'> & {
     formId: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<T>>;
     shouldSaveDraft: boolean;

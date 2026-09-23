@@ -168,7 +168,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
 }
 
 function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFeed, style, onFieldSelected, onError}: ReportFieldBaseProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -267,7 +267,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
 
     const listItems = Object.values(fieldList ?? {}).map((field) => {
         if (field.type === CONST.REPORT_FIELD_TYPES.DATE) {
-            return {key: field.fieldID, name: field.name, value: getDateDisplayValue(getFilterKey(field.name), getDateValue(field.name), translate), field};
+            return {key: field.fieldID, name: field.name, value: getDateDisplayValue(getFilterKey(field.name), getDateValue(field.name), translate, dateFnsLocale), field};
         }
 
         return {key: field.fieldID, name: field.name, value: getValue(field.name), field};

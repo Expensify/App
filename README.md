@@ -94,6 +94,7 @@ Often times in order to write a unit test, you may need to mock data, a componen
 to help run our Unit tests.
 
 * To run the **Jest unit tests**: `npm run test`
+* To run the **Bun tests** — `server/` plus the `.github/` and `scripts/` tooling tests: `npm run test:bun` — see [tests/tooling/README.md](tests/tooling/README.md)
 * UI tests guidelines can be found [here](tests/ui/README.md)
 
 ## Performance tests

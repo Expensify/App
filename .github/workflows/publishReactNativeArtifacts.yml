@@ -38,7 +38,7 @@ on:
       - patches/react-native/react-native+*.patch
       - patches/react-native/@react-native+*.patch
       - Mobile-Expensify
-      - scripts/compute-patches-hash.sh
+      - scripts/artifacts-utils/compute-patches-hash.sh
 
 jobs:
   verifyPatches:
@@ -51,8 +51,8 @@ jobs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
     steps:
       - name: Checkout
-        # v1
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f
+        # v1.7.0
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056
         with:
           submodules: true
           ref: ${{ github.event.before || 'main' }}
@@ -62,8 +62,8 @@ jobs:
         if: ${{ github.event.after != '' }}
         id: getOldPatchesHash
         run: |
-          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         if: ${{ github.event.after != '' }}
@@ -80,8 +80,8 @@ jobs:
       - name: Get new patches hash
         id: getNewPatchesHash
         run: |
-          echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
-          echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
+          echo "HYBRID_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
+          echo "STANDALONE_APP_HASH=$(./scripts/artifacts-utils/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
         if: ${{ github.event.after != '' }}

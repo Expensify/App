@@ -1,7 +1,9 @@
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +14,7 @@ import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sani
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
 
@@ -27,9 +30,11 @@ type SearchPageInputProps = {
 
 function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const {translate} = useLocalize();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {currentSearchKey} = useSearchQueryContext();
 
     const [textInputValue, setTextInputValue] = useState('');
 
@@ -44,13 +49,16 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
 
     function submitSearch(query: string) {
         const queryWithContext = getKeywordQueryWithCurrentSearchContext(query, queryJSON);
-        const updatedQuery = getQueryWithUpdatedValues(queryWithContext);
+        // queryWithContext is derived from queryJSON whose amount filters are already in backend cents,
+        // so skip the amount conversion to avoid multiplying the value by 100 again on every keyword change.
+        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, true, policies);
 
         if (!updatedQuery) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+        // A keyword narrows the current search instead of starting a new one, so it keeps the search key.
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, searchKey: currentSearchKey}));
     }
 
     return (
@@ -73,9 +81,9 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
                 submitSearch(textInputValue);
             }}
             containerStyles={[shouldUseNarrowLayout ? styles.flex1 : undefined]}
-            textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
-            inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
-            touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.searchPageInputNarrowTouchableWrapper : styles.searchPageInputWideTouchableWrapper}
+            textInputContainerStyles={shouldUseNarrowLayout ? [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2] : [styles.pb0, styles.ph2]}
+            inputStyle={shouldUseNarrowLayout ? [styles.w100, styles.textLabel] : [styles.w100, styles.lineHeightUndefined, styles.fontSizeLabel]}
+            touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.h11 : styles.searchPageInputWideTouchableWrapper}
             clearButtonStyle={shouldUseNarrowLayout ? undefined : styles.mh0}
             clearButtonIconSize={shouldUseNarrowLayout ? undefined : variables.iconSizeSmall}
             placeholderTextColor={theme.textSupporting}

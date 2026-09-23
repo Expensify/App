@@ -1,6 +1,6 @@
 import RenderHTML from '@components/RenderHTML';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -37,8 +37,11 @@ type AgentRowData = TableData & {
 };
 
 type AgentsTableProps = {
-    /** The list of agents to render as rows */
+    ref?: React.Ref<TableHandle<AgentRowData, AgentsTableColumnKey, string>> | undefined;
     agents: AgentRowData[];
+
+    /** Content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 
     /** Whether rows can be selected (enables selection UI) */
     canSelectAgents: boolean;
@@ -46,11 +49,10 @@ type AgentsTableProps = {
     /** Keys of the currently selected rows */
     selectedKeys: string[];
 
-    /** Called with the updated selected row keys when the selection changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, headerComponent, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -93,11 +95,21 @@ export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRo
     );
 
     if (!areAgentsLoaded) {
-        return <Table.LoadingState context="AgentsTable" />;
+        // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
+        return (
+            <>
+                {headerComponent}
+                <Table.LoadingState />
+            </>
+        );
     }
+
+    const searchBarComponent = <Table.FilterBar label={translate('agentsPage.findAgent')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
+            ref={ref}
             data={agents}
             columns={agentsTableColumns}
             renderItem={renderTableItem}
@@ -110,7 +122,7 @@ export default function AgentsTable({agents, canSelectAgents, selectedKeys, onRo
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <Table.FilterBar label={translate('agentsPage.findAgent')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 headerMedia={illustrations.TvScreenRobot}
                 headerStyles={styles.emptyStateCardIllustrationContainer}

@@ -16,6 +16,7 @@ type CreateWorkspaceParams = {
     file?: File;
     companySize?: string;
     userReportedIntegration?: string;
+    userReportedIntegrationName?: string;
     memberData?: string;
     features?: string;
     shouldAddGuideWelcomeMessage?: boolean;

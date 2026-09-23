@@ -1,5 +1,5 @@
-import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -16,6 +16,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 
+import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
@@ -40,20 +41,14 @@ const isImageFile = (file: FileObject) => !!hasHeicOrHeifExtension(file) || Str.
 function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const [isValidatingFiles, setIsValidatingFiles] = useState(false);
-    const [isValidatingReceipts, setIsValidatingReceipts] = useState<boolean>();
-    const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [fileError, setFileError] = useState<FileValidationError | null>(null);
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
     // Index of the PDF currently being validated — thumbnails are rendered one at a time (see
     // PDFValidationComponent below), and this advances to the next PDF when the current one settles.
     const [validatedPDFCount, setValidatedPDFCount] = useState(0);
-    const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
-    const [errorQueue, setErrorQueue] = useState<FileValidationError[]>([]);
-    const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const validatedPDFs = useRef<FileObject[]>([]);
@@ -64,6 +59,12 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const originalFileOrder = useRef<Map<string, number>>(new Map());
     const pendingAfterHide = useRef<() => void>(() => {});
     const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+    const validFilesToUploadRef = useRef<FileObject[]>([]);
+    const currentValidationState = useRef<ValidationState>({
+        isValidatingReceipts: false,
+        isValidatingMultipleFiles: false,
+    });
+    const isMountedRef = useRef(true);
 
     const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
         const originalIndex = originalFileOrder.current.get(oldFile?.uri ?? '');
@@ -86,6 +87,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     useEffect(() => {
         return () => {
+            isMountedRef.current = false;
             if (!loaderTimeoutRef.current) {
                 return;
             }
@@ -96,21 +98,20 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const reset = () => {
         setIsValidatingFiles(false);
-        setIsValidatingReceipts(undefined);
-        setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
         setValidatedPDFCount(0);
         setIsLoaderVisible(false);
-        setValidFilesToUpload([]);
-        setFileError(null);
-        setErrorQueue([]);
-        setCurrentErrorIndex(0);
         validatedPDFs.current = [];
         validFiles.current = [];
         filesToValidate.current = [];
         dataTransferItemList.current = [];
         collectedErrors.current = [];
         originalFileOrder.current.clear();
+        validFilesToUploadRef.current = [];
+        currentValidationState.current = {
+            isValidatingReceipts: false,
+            isValidatingMultipleFiles: false,
+        };
     };
 
     const runPendingAfterHide = () => {
@@ -119,12 +120,96 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         action();
     };
 
-    const hideModalAndReset = () => {
-        pendingAfterHide.current = reset;
-        setIsErrorModalVisible(false);
+    const getModalPrompt = (error: FileValidationError | null) => {
+        if (!error) {
+            return '';
+        }
+        const fileValidationErrorText = getFileValidationErrorText(translate, error, {
+            isValidatingReceipt: currentValidationState.current.isValidatingReceipts,
+        });
+        const prompt = fileValidationErrorText.reason;
+        if (error.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
+            return (
+                <Text>
+                    {prompt}
+                    <TextLink href={CONST.BULK_UPLOAD_HELP_URL}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
+                </Text>
+            );
+        }
+        return prompt;
+    };
+
+    const showErrorModal = async (error: FileValidationError, currentIndex: number, allErrors: FileValidationError[]) => {
+        const fileValidationErrorText = getFileValidationErrorText(translate, error, {
+            isValidatingReceipt: currentValidationState.current.isValidatingReceipts,
+        });
+
+        const result = await showConfirmModal({
+            title: fileValidationErrorText.title,
+            prompt: getModalPrompt(error),
+            confirmText: translate(currentValidationState.current.isValidatingMultipleFiles ? 'common.continue' : 'common.close'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: currentValidationState.current.isValidatingMultipleFiles,
+        });
+
+        if (!isMountedRef.current) {
+            return;
+        }
+
+        // User cancelled
+        if (result.action !== ModalActions.CONFIRM) {
+            pendingAfterHide.current = reset;
+            runPendingAfterHide();
+            return;
+        }
+
+        // Handle MAX_FILE_LIMIT_EXCEEDED separately
+        if (error.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            // showErrorModal and validateAndResizeFiles call each other (mutual recursion), so one of the two
+            // will always be referenced before its `const` declaration — safe since neither runs until later.
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current, currentValidationState.current);
+            return;
+        }
+
+        // Show next error if available
+        if (currentIndex < allErrors.length - 1) {
+            const nextIndex = currentIndex + 1;
+            const nextError = allErrors.at(nextIndex);
+            if (nextError) {
+                if (currentValidationState.current.isValidatingMultipleFiles && currentIndex === allErrors.length - 2 && validFilesToUploadRef.current.length === 0) {
+                    currentValidationState.current.isValidatingMultipleFiles = false;
+                }
+                showErrorModal(nextError, nextIndex, allErrors);
+                return;
+            }
+        }
+
+        // No more errors, proceed with valid files
+        const sortedFiles = sortFilesByOriginalOrder(validFilesToUploadRef.current, originalFileOrder.current);
+        const proceedWithValidFiles = () => {
+            if (sortedFiles.length !== 0) {
+                onFilesValidated(sortedFiles, dataTransferItemList.current);
+            }
+            reset();
+        };
+
+        // If we're validating attachments we need to wait for the error modal close
+        // transition to finish before opening the attachment modal
+        if (currentValidationState.current.isValidatingReceipts === false) {
+            pendingAfterHide.current = proceedWithValidFiles;
+            runPendingAfterHide();
+            return;
+        }
+
+        proceedWithValidFiles();
     };
 
     const checkIfAllValidatedAndProceed = () => {
+        if (!isMountedRef.current) {
+            return;
+        }
+
         if (!validatedPDFs.current || !validFiles.current) {
             return;
         }
@@ -134,17 +219,14 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
 
         if (validFiles.current.length > 0) {
-            setValidFilesToUpload(validFiles.current);
+            validFilesToUploadRef.current = validFiles.current;
         }
 
         if (collectedErrors.current.length > 0) {
             const uniqueErrors = deduplicateErrors(collectedErrors.current);
-            setErrorQueue(uniqueErrors);
-            setCurrentErrorIndex(0);
             const firstError = uniqueErrors.at(0);
             if (firstError) {
-                setFileError(firstError);
-                setIsErrorModalVisible(true);
+                showErrorModal(firstError, 0, uniqueErrors);
             }
         } else if (validFiles.current.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
@@ -153,7 +235,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
     };
 
-    async function validateAndResizeFiles(files: FileObject[], items: DataTransferItem[], validationState: ValidationState) {
+    const validateAndResizeFiles = async (files: FileObject[], items: DataTransferItem[], validationState: ValidationState) => {
         if (files.length === 0) {
             return;
         }
@@ -218,46 +300,46 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
             const convertedFilesToResize: FileObject[] = [];
             const convertedFiles: FileObject[] = [];
-            await Promise.all(
-                filesToConvert.map(
-                    (file) =>
-                        new Promise<void>((resolve) => {
-                            convertHeicImage(file, {
-                                onSuccess: (convertedFile) => {
-                                    if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                                        convertedFilesToResize.push(convertedFile);
-                                        resolve();
-                                        return;
-                                    }
 
-                                    if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                                        collectedErrors.current.push({
-                                            error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
-                                            isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
-                                        });
-                                        resolve();
-                                        return;
-                                    }
+            for (const file of filesToConvert) {
+                // Convert sequentially to avoid the native memory pressure caused by processing multiple HEIC images in parallel.
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise<void>((resolve) => {
+                    convertHeicImage(file, {
+                        onSuccess: (convertedFile) => {
+                            if (validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                                convertedFilesToResize.push(convertedFile);
+                                resolve();
+                                return;
+                            }
 
-                                    convertedFiles.push(convertedFile);
-                                    resolve();
-                                },
-                                onError: () => {
-                                    Log.warn('HEIC conversion failed, falling back to original file', {fileName: file.name});
-                                    convertedFiles.push(file);
-                                    resolve();
-                                },
+                            if (!validationState.isValidatingReceipts && convertedFile.size && convertedFile.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                                collectedErrors.current.push({
+                                    error: CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
+                                    isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                                });
+                                resolve();
+                                return;
+                            }
+
+                            convertedFiles.push(convertedFile);
+                            updateFileOrderMapping(file, convertedFile);
+                            resolve();
+                        },
+                        onError: () => {
+                            Log.warn('HEIC conversion failed, blocking file', {fileName: file.name});
+                            collectedErrors.current.push({
+                                error: CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED,
+                                isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
                             });
-                        }),
-                ),
-            );
+                            resolve();
+                        },
+                    });
+                });
+            }
 
             filesToResize.push(...convertedFilesToResize);
             validNonPdfFiles.push(...convertedFiles);
-
-            for (const [index, convertedFile] of convertedFiles.entries()) {
-                updateFileOrderMapping(filesToConvert.at(index), convertedFile);
-            }
         }
 
         if (filesToResize.length > 0) {
@@ -273,15 +355,25 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 } else {
                     const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
                     if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
-                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
+                        collectedErrors.current.push({
+                            error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE,
+                            isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                        });
                     } else {
-                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
+                        collectedErrors.current.push({
+                            error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED,
+                            isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+                        });
                     }
                 }
             }
         }
 
         const handleNext = () => {
+            if (!isMountedRef.current) {
+                return;
+            }
+
             if (pdfsToLoad.length) {
                 validFiles.current = validNonPdfFiles;
                 setValidatedPDFCount(0);
@@ -290,17 +382,14 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             }
 
             if (validNonPdfFiles.length > 0) {
-                setValidFilesToUpload(validNonPdfFiles);
+                validFilesToUploadRef.current = validNonPdfFiles;
             }
 
             if (collectedErrors.current.length > 0) {
                 const uniqueErrors = deduplicateErrors(collectedErrors.current);
-                setErrorQueue(uniqueErrors);
-                setCurrentErrorIndex(0);
                 const firstError = uniqueErrors.at(0);
                 if (firstError) {
-                    setFileError(firstError);
-                    setIsErrorModalVisible(true);
+                    showErrorModal(firstError, 0, uniqueErrors);
                 }
             } else if (validNonPdfFiles.length > 0) {
                 const sortedFiles = sortFilesByOriginalOrder(validNonPdfFiles, originalFileOrder.current);
@@ -334,7 +423,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         };
 
         extendLoaderIfNeeded();
-    }
+    };
 
     const validateFiles = (files: FileObject[], items?: DataTransferItem[], validationOptions?: ValidationOptions) => {
         if (isValidatingFiles) {
@@ -348,61 +437,20 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             isValidatingReceipts: validationOptions?.isValidatingReceipts ?? DEFAULT_IS_VALIDATING_RECEIPTS,
             isValidatingMultipleFiles: files.length > 1,
         };
-        setIsValidatingReceipts(validationState.isValidatingReceipts);
-        setIsValidatingMultipleFiles(validationState.isValidatingMultipleFiles);
+        currentValidationState.current = validationState;
 
         if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
             filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             if (items) {
                 dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             }
-            setFileError({error: CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
-            setIsErrorModalVisible(true);
+            const error = {
+                error: CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED,
+                isValidatingMultipleFiles: validationState.isValidatingMultipleFiles,
+            };
+            showErrorModal(error, 0, [error]);
         } else {
             validateAndResizeFiles(files, items ?? [], validationState);
-        }
-    };
-
-    const onConfirmError = () => {
-        if (fileError?.error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-            setIsErrorModalVisible(false);
-            const validationState: ValidationState = {
-                isValidatingReceipts: isValidatingReceipts ?? false,
-                isValidatingMultipleFiles,
-            };
-            validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current, validationState);
-            return;
-        }
-
-        if (currentErrorIndex < errorQueue.length - 1) {
-            const nextIndex = currentErrorIndex + 1;
-            const nextError = errorQueue.at(nextIndex);
-            if (nextError) {
-                if (isValidatingMultipleFiles && currentErrorIndex === errorQueue.length - 2 && validFilesToUpload.length === 0) {
-                    setIsValidatingMultipleFiles(false);
-                }
-                setCurrentErrorIndex(nextIndex);
-                setFileError(nextError);
-                return;
-            }
-        }
-
-        const sortedFiles = sortFilesByOriginalOrder(validFilesToUpload, originalFileOrder.current);
-        // If we're validating attachments we need to wait for the error modal close
-        // transition to finish before opening the attachment modal
-        if (isValidatingReceipts === false && fileError) {
-            pendingAfterHide.current = () => {
-                if (sortedFiles.length !== 0) {
-                    onFilesValidated(sortedFiles, dataTransferItemList.current);
-                }
-                reset();
-            };
-            setIsErrorModalVisible(false);
-        } else {
-            if (sortedFiles.length !== 0) {
-                onFilesValidated(sortedFiles, dataTransferItemList.current);
-            }
-            hideModalAndReset();
         }
     };
 
@@ -425,7 +473,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             }}
             onPassword={() => {
                 validatedPDFs.current.push(pdfFileToValidate);
-                if (isValidatingReceipts === true) {
+                if (currentValidationState.current.isValidatingReceipts === true) {
                     collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
                 } else {
                     validFiles.current.push(pdfFileToValidate);
@@ -442,42 +490,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         />
     ) : undefined;
 
-    const fileValidationErrorText = getFileValidationErrorText(translate, fileError, {isValidatingReceipt: isValidatingReceipts});
-
-    const getModalPrompt = () => {
-        if (!fileError) {
-            return '';
-        }
-        const prompt = fileValidationErrorText.reason;
-        if (fileError.error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
-            return (
-                <Text>
-                    {prompt}
-                    <TextLink href={CONST.BULK_UPLOAD_HELP_URL}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
-                </Text>
-            );
-        }
-        return prompt;
-    };
-
-    const ErrorModal = (
-        <ConfirmModal
-            title={fileValidationErrorText.title}
-            onConfirm={onConfirmError}
-            onCancel={hideModalAndReset}
-            onModalHide={runPendingAfterHide}
-            isVisible={isErrorModalVisible}
-            prompt={getModalPrompt()}
-            confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}
-            cancelText={translate('common.cancel')}
-            shouldShowCancelButton={isValidatingMultipleFiles}
-        />
-    );
-
     return {
         PDFValidationComponent,
         validateFiles,
-        ErrorModal,
     };
 }
 

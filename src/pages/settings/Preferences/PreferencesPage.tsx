@@ -8,7 +8,6 @@ import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -36,7 +35,6 @@ import usePreferencesSectionIllustration from './usePreferencesSectionIllustrati
 
 function PreferencesPage() {
     const {getCurrencySymbol} = useCurrencyListActions();
-    const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
@@ -66,7 +64,6 @@ function PreferencesPage() {
         >
             <HeaderWithBackButton
                 title={translate('common.preferences')}
-                icon={illustrations.Gears}
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter

@@ -65,7 +65,30 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     return !!accountData.allowDebit;
 }
 
-function getBankAccountConnectionStatus(state: string | undefined): BankAccountConnectionStatus | undefined {
+function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
+    return {
+        labelKey: 'walletPage.bankAccountStatus.incomplete',
+        messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
+        actionKey: 'walletPage.bankAccountStatus.finish',
+        tone: 'danger',
+        brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+    };
+}
+
+/**
+ * Only the USD flow has a test transaction step, and the backend puts non-USD accounts in PENDING while they are still
+ * being set up. So for those, PENDING means the setup is incomplete rather than waiting on the user to confirm test
+ * transactions.
+ *
+ * This keys off currency rather than country because currency is what selects the flow everywhere else. See
+ * ReimbursementAccountPage, which routes a PENDING account to the validation (test transaction) step only when the
+ * currency is USD. An absent currency is treated as USD, matching BankAccount.getCurrency().
+ */
+function getBankAccountConnectionStatus(state: string | undefined, currency?: string): BankAccountConnectionStatus | undefined {
+    if (state === CONST.BANK_ACCOUNT.STATE.PENDING && !!currency && currency !== CONST.CURRENCY.USD) {
+        return getIncompleteBankAccountStatus();
+    }
+
     switch (state) {
         case CONST.BANK_ACCOUNT.STATE.OPEN:
             return {
@@ -73,13 +96,7 @@ function getBankAccountConnectionStatus(state: string | undefined): BankAccountC
                 tone: 'success',
             };
         case CONST.BANK_ACCOUNT.STATE.SETUP:
-            return {
-                labelKey: 'walletPage.bankAccountStatus.incomplete',
-                messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
-                actionKey: 'walletPage.bankAccountStatus.finish',
-                tone: 'danger',
-                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-            };
+            return getIncompleteBankAccountStatus();
         case CONST.BANK_ACCOUNT.STATE.PENDING:
             return {
                 labelKey: 'walletPage.bankAccountStatus.pending',

@@ -12,6 +12,7 @@ import lodashSortBy from 'lodash/sortBy';
 
 import type {OptionTree} from './OptionsListUtils';
 
+import DateUtils from './DateUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -220,17 +221,17 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
  * param {string} dateTimeString
  * returns {string} example: 2023-05-16 11:10 PM
  */
-function formatDateTimeTo12Hour(dateTimeString: string): string {
+function formatDateTimeTo12Hour(translate: LocalizedTranslate, dateTimeString: string): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, 'hh:mm a, yyyy-MM-dd');
+    return `${DateUtils.formatTimeWithPeriod(translate, date, CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD)}, ${format(date, CONST.DATE.FNS_FORMAT_STRING)}`;
 }
 
-function getTimeForDisplay(transaction: OnyxEntry<Transaction>) {
+function getTimeForDisplay(transaction: OnyxEntry<Transaction>, translate: LocalizedTranslate) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    return `${formatDateTimeTo12Hour(customUnitRateDate.start)} - ${formatDateTimeTo12Hour(customUnitRateDate.end)}`;
+    return `${formatDateTimeTo12Hour(translate, customUnitRateDate.start)} - ${formatDateTimeTo12Hour(translate, customUnitRateDate.end)}`;
 }
 
 function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {

@@ -7,6 +7,9 @@ type ImportCSVCompanyCardsParams = {
 
     /** Stringified JSON array of imported row data */
     csvData: string;
+
+    /** Account that owns the feed */
+    domainAccountID?: number;
 };
 
 export default ImportCSVCompanyCardsParams;

@@ -15,6 +15,8 @@ import CONST from '@src/CONST';
 
 import type {RefObject} from 'react';
 
+import createMock from '../../utils/createMock';
+
 jest.mock('@pages/inbox/report/ReportActionCompose/ComposerContext', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@pages/inbox/report/ReportActionCompose/ComposerContext');
@@ -44,19 +46,21 @@ jest.mock('@libs/getPlatform', () => ({
 const mockUseComposerEditState = jest.mocked(ComposerContext.useComposerEditState);
 const mockUseComposerActions = jest.mocked(ComposerContext.useComposerActions);
 const mockUseComposerEditActions = jest.mocked(ComposerContext.useComposerEditActions);
-const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockUpdateNativeSelectionValue = jest.mocked(ReportActionComposeUtils.updateNativeSelectionValue);
 
-function makeComposerRef(overrides?: Partial<ComposerRef>): RefObject<ComposerRef | null> {
+type ComposerRefOverrides = Partial<Pick<ComposerRef, 'blur' | 'isFocused' | 'setNativeProps' | 'setSelection' | 'focus'>>;
+
+function makeComposerRef(overrides?: ComposerRefOverrides): RefObject<ComposerRef | null> {
     return {
-        current: {
+        current: createMock<ComposerRef>({
             blur: jest.fn(),
             isFocused: jest.fn(() => false),
             setNativeProps: jest.fn(),
             setSelection: jest.fn(),
             focus: jest.fn(),
             ...overrides,
-        } as unknown as ComposerRef,
+        }),
     };
 }
 

@@ -11,6 +11,9 @@ type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 type RawChartData = {
     x: string | number;
     y: number;
+    label?: string;
+    currency?: string;
+    searchQuery?: string;
 };
 
 type RawLegendData = {
@@ -64,6 +67,14 @@ type CartesianChartData = {
     [key: `${YKey}`]: number;
 };
 
+type ChartPointMetadata = {
+    label?: string;
+    currency?: string;
+    searchQuery?: string;
+};
+
+type ChartPointMetadataByYKey = Partial<Record<YKey, Record<string, ChartPointMetadata>>>;
+
 type PolarChartData = {
     [LABEL_KEY]: string | number;
     [VALUE_KEY]: number;
@@ -112,7 +123,6 @@ type LabelItem = {
     /** Text horizontal anchor  */
     textAnchor?: TextAnchor;
 
-    /** Text vertical anchor  */
     verticalAnchor?: TextAnchor;
 };
 
@@ -123,22 +133,11 @@ type LegendItemEntry = {
     /** The color of the text */
     color?: Color;
 
-    /** Font size */
     fontSize?: number;
-
-    /** Font weight */
     fontWeight?: 'normal' | 'bold';
-
-    /** Font family */
     fontFamily?: string;
-
-    /** Font style */
     fontStyle?: string;
-
-    /** The color of the symbol */
     symbolColor?: Color;
-
-    /** Symbol size */
     symbolSize?: number;
 };
 
@@ -149,7 +148,6 @@ type LegendItem = {
     /** Position on the Y-axis */
     y: number;
 
-    /** Legend entries */
     entries: LegendItemEntry[];
 
     /** Space between entries */
@@ -178,6 +176,7 @@ type ProcessNodeResult = {
     categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    pointMetadata: ChartPointMetadataByYKey;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
@@ -197,6 +196,7 @@ export type {
     RawShiftedLineSegmentStyle,
     YKey,
     CartesianChartData,
+    ChartPointMetadata,
     CartesianChartProps,
     TextAnchor,
     ResolvedPieLabel,

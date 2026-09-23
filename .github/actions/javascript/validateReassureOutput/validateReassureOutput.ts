@@ -47,7 +47,7 @@ const run = (): boolean => {
     return true;
 };
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

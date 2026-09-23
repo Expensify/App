@@ -10,16 +10,18 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useMemo} from 'react';
 
-type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_CATEGORY | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_CATEGORY>;
 
 function AddCategoryPage({route}: AddCategoryPageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== ROUTES.NEW;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_CATEGORY_FROM_EXPENSE.path, policyID, ruleID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -35,8 +37,6 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
             });
     }, [policyCategories]);
 
-    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
-
     const onSave = (value?: string) => {
         updateDraftMerchantRule({category: value});
     };
@@ -45,15 +45,16 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
         <RuleSelectionBase
             titleKey="common.category"
             testID="AddCategoryPage"
-            selectedItem={selectedCategoryItem}
-            items={categoryItems}
-            onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
-            backToRoute={backToRoute}
-        />
+        >
+            <RuleSelectionBase.Picker
+                selectedItem={selectedCategoryItem}
+                items={categoryItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+            />
+        </RuleSelectionBase>
     );
 }
-
-AddCategoryPage.displayName = 'AddCategoryPage';
 
 export default AddCategoryPage;

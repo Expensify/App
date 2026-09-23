@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {updatePronouns as updatePronounsPersonalDetails} from '@userActions/PersonalDetails';
 
@@ -107,7 +106,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
             testID="PronounsPage"
         >
             {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'PronounsPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes} />
+                <FullScreenLoadingIndicator />
             ) : (
                 <>
                     <CollapsibleHeaderOnKeyboard>

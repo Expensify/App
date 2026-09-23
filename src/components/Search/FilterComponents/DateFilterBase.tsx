@@ -62,7 +62,6 @@ type DateFilterBaseProps = {
     shouldShowButtonsOnlyWithDateModifier?: boolean;
     /** Whether to render the built-in HeaderWithBackButton. Defaults to true. */
     shouldShowHeader?: boolean;
-    /** The ref handle */
     ref?: React.Ref<DateFilterBaseHandle>;
     style?: StyleProp<ViewStyle>;
 };
@@ -88,7 +87,7 @@ function DateFilterBase({
     style,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {isLoading, startWithLoading} = usePressLoading();
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
@@ -97,6 +96,7 @@ function DateFilterBase({
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeDisplayText, setRangeDisplayText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(
+            dateFnsLocale,
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
             normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
@@ -106,21 +106,27 @@ function DateFilterBase({
     useEffect(() => {
         setRangeDisplayText(
             getDateRangeDisplayValueFromFormValue(
+                dateFnsLocale,
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
                 normalizedDefaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
             ),
         );
-    }, [normalizedDefaultDateValues]);
+    }, [normalizedDefaultDateValues, dateFnsLocale]);
 
     const handleDateValuesChange = useCallback(
         (values: SearchDateValues) => {
             setRangeDisplayText(
-                getDateRangeDisplayValueFromFormValue(values[CONST.SEARCH.DATE_MODIFIERS.RANGE], values[CONST.SEARCH.DATE_MODIFIERS.AFTER], values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
+                getDateRangeDisplayValueFromFormValue(
+                    dateFnsLocale,
+                    values[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+                    values[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                    values[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                ),
             );
             onDateValuesChange?.(values);
         },
-        [onDateValuesChange],
+        [onDateValuesChange, dateFnsLocale],
     );
 
     const isDateModifierControlled = selectedDateModifierProp !== undefined;
@@ -261,11 +267,12 @@ function DateFilterBase({
                 <>
                     {!selectedDateModifier && (
                         <Button
-                            text={translate('common.reset')}
                             onPress={reset}
                             style={[styles.mh4, styles.mt4]}
-                            large
-                        />
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{translate('common.reset')}</Button.Text>
+                        </Button>
                     )}
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.save')}

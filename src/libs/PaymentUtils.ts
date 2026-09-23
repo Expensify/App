@@ -6,11 +6,13 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -47,14 +49,16 @@ type SelectPaymentTypeParams = {
     isASAPSubmitBetaEnabled: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
-    iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    rules: OnyxCollection<Rule>;
     betas: OnyxEntry<Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BusinessBankAccountOption = {
@@ -222,14 +226,16 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isASAPSubmitBetaEnabled,
         confirmApproval,
         iouReport,
-        iouReportNextStep,
+        rules,
         betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        delegateAccountID,
         isTrackIntentUser,
         ownerLogin,
+        getCurrencyDecimals,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -253,11 +259,11 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy,
+                rules,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
@@ -265,7 +271,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 ownerLogin,
                 full: true,
                 delegateEmail,
+                delegateAccountID,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         }
         return;
@@ -335,8 +343,11 @@ function getActivePaymentType(
 
 /**
  * Get the last 4 digits of a bank account used for payment.
+ *
+ * `policyACHAccountNumber` is the account number of the policy's default reimbursement account
+ * (`policy.achAccount.accountNumber`), used as a fallback when the payment doesn't name an account.
  */
-function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
+function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policyACHAccountNumber: string | undefined): string {
     const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
 
     if (bankAccount?.accountData?.accountNumber) {
@@ -347,7 +358,7 @@ function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAcc
     if (bankAccountID != null) {
         return '';
     }
-    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+    return policyACHAccountNumber?.slice(-4) ?? '';
 }
 
 export {

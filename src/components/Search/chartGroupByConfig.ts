@@ -17,8 +17,16 @@ import type {
 import type {GroupedItem, SearchGroupBy} from './types';
 
 type ChartGroupByConfig = {
+    /** Name of the icon rendered next to the chart title */
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
+
+    /** Returns the full label for a group */
     getLabel: (item: GroupedItem) => string;
+
+    /** Returns the compact label for chart axes, or undefined to fall back to `getLabel` */
+    getShortLabel?: (item: GroupedItem) => string | undefined;
+
+    /** Builds the query fragment appended to the current query to drill into a group's transactions */
     getFilterQuery: (item: GroupedItem) => string;
 };
 
@@ -61,6 +69,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.MONTH]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
+        getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
         getFilterQuery: (item: GroupedItem) => {
             const monthItem = item as TransactionMonthGroupListItemType;
             const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
@@ -70,6 +79,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.WEEK]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
+        getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.shortFormattedWeek : undefined),
         getFilterQuery: (item: GroupedItem) => {
             const weekItem = item as TransactionWeekGroupListItemType;
             const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
@@ -88,6 +98,7 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.QUARTER]: {
         titleIconName: 'Calendar',
         getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
+        getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
         getFilterQuery: (item: GroupedItem) => {
             const quarterItem = item as TransactionQuarterGroupListItemType;
             const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);

@@ -16,6 +16,7 @@ import type {ValueOf} from 'type-fest';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
@@ -46,6 +47,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const {iouTransactionID, requestParentReportAction} = useMoneyReportTransactionThread();
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const {chatReport: chatIOUReport} = useGetIOUReportFromReportAction(requestParentReportAction);
 
@@ -55,6 +57,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
@@ -76,11 +79,22 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+                const shouldShowHoldEducationalModal = isReportSubmitter || isChatReportDM;
+                const isDismissed = shouldShowHoldEducationalModal ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
-                if (isDismissed || isChatReportDM || shouldSuppressPromotionalUI) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
-                } else if (isReportSubmitter) {
+                if (isDismissed || shouldSuppressPromotionalUI) {
+                    changeMoneyRequestHoldStatus(
+                        requestParentReportAction,
+                        transaction,
+                        isOffline,
+                        currentUserLogin ?? '',
+                        currentUserAccountID,
+                        transactionViolations,
+                        isTrackIntentUser,
+                        delegateAccountID,
+                        rules,
+                    );
+                } else if (shouldShowHoldEducationalModal) {
                     onHoldEducationalOpen();
                 } else {
                     onRejectModalOpen(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
@@ -102,7 +116,17 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser);
+                changeMoneyRequestHoldStatus(
+                    requestParentReportAction,
+                    transaction,
+                    isOffline,
+                    currentUserLogin ?? '',
+                    currentUserAccountID,
+                    transactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    rules,
+                );
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {

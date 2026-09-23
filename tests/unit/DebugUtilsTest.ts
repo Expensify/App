@@ -5,20 +5,18 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
+import {getObjectKeys} from '@libs/ObjectUtils';
 import {getAllReportErrors} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
-
-import type ReportActionName from '../../src/types/onyx/ReportActionName';
 
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -35,7 +33,12 @@ const MOCK_REPORT_ACTION: ReportAction = {
     originalMessage: undefined,
 };
 
-const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
+const MOCK_TRANSACTION: Transaction = {
+    ...createRandomTransaction(0),
+
+    // The shared factory leaves this off, so name it here to exercise its branch of the draft property validator.
+    commuterExclusionPreview: {policyID: '1', hasExclusion: true, isWholeTripExcluded: false, commuteDistanceMeters: 100},
+};
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
 const RORY_EMAIL = 'rory@email.com';
@@ -396,6 +399,50 @@ describe('DebugUtils', () => {
         });
     });
 
+    describe('validateStringRecord', () => {
+        it('does not throw SyntaxError when value is "undefined"', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('undefined');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a string representation of an empty object', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{}');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a valid string representation of a string-to-string record', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":"CostCenterB","1":"IndicationZ"}');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when value is just a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('a');
+            }).toThrow();
+        });
+
+        it('throws SyntaxError when value is a string representation of an array', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('["a"]');
+            }).toThrow();
+        });
+
+        it('does not throw SyntaxError when value is "null" (treated as an empty value)', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('null');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when a value in the record is not a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":1}');
+            }).toThrow();
+        });
+    });
+
     describe('validateObject', () => {
         describe('value is undefined', () => {
             it('does not throw SyntaxError', () => {
@@ -517,7 +564,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateReportDraftProperty', () => {
-        describe.each(Object.keys(MOCK_REPORT) as Array<keyof Report>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_REPORT))('%s', (key) => {
             describe('is undefined', () => {
                 it(`${DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key) ? 'throws SyntaxError' : 'does not throw SyntaxError'}`, () => {
                     if (DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key)) {
@@ -566,7 +613,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateReportActionDraftProperty', () => {
-        describe.each(Object.keys(MOCK_REPORT_ACTION) as Array<keyof ReportAction>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_REPORT_ACTION))('%s', (key) => {
             it(`${DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
                 if (DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key)) {
                     expect(() => {
@@ -609,7 +656,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateTransactionDraftProperty', () => {
-        describe.each(Object.keys(MOCK_TRANSACTION) as Array<keyof Transaction>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_TRANSACTION))('%s', (key) => {
             it(`${DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
                 if (DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key)) {
                     expect(() => {
@@ -659,9 +706,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid number', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                accountID: '2' as unknown as number,
+                accountID: '2',
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -677,9 +724,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid date', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                created: 2 as unknown as string,
+                created: 2,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -695,9 +742,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid boolean', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                isLoading: 2 as unknown as boolean,
+                isLoading: 2,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -713,9 +760,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is missing', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                actionName: undefined as unknown as ReportActionName,
+                actionName: undefined,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -752,6 +799,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBeNull();
@@ -764,6 +812,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: 'Hello world!',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
@@ -779,6 +828,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
@@ -793,6 +843,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
@@ -811,6 +862,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
@@ -837,6 +889,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
@@ -856,6 +909,7 @@ describe('DebugUtils', () => {
                 isReportArchived: isReportArchived.current,
                 doesReportHaveViolations: false,
                 draftComment: '',
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
@@ -870,6 +924,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
@@ -881,6 +936,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
@@ -941,6 +997,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
@@ -1001,6 +1058,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: true,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
@@ -1013,6 +1071,7 @@ describe('DebugUtils', () => {
                 doesReportHaveViolations: false,
                 draftComment: '',
                 isReportArchived: undefined,
+                hasGuidesEmails: false,
                 conciergeReportID: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
@@ -1038,8 +1097,9 @@ describe('DebugUtils', () => {
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
+                    // @ts-expect-error -- persisted join requests can contain an empty choice.
                     message: {
-                        choice: '' as JoinWorkspaceResolution,
+                        choice: '',
                         policyID: '0',
                     },
                 }),
@@ -1125,8 +1185,9 @@ describe('DebugUtils', () => {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
+                    // @ts-expect-error -- persisted join requests can contain an empty choice.
                     message: {
-                        choice: '' as JoinWorkspaceResolution,
+                        choice: '',
                         policyID: '0',
                     },
                 }),
@@ -1206,8 +1267,11 @@ describe('DebugUtils', () => {
                     email: RORY_EMAIL,
                 },
             });
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report, RORY_EMAIL, 12345) ?? {};
+            const report = MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`];
+            if (!report) {
+                throw new Error('Expected the report fixture to be present');
+            }
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, RORY_EMAIL, 12345) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns undefined report action when report has no GBR', () => {
@@ -1303,19 +1367,11 @@ describe('DebugUtils', () => {
                         modifiedCreated: '',
                     }),
                 };
-                const {reportAction} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
-                        chatReportR14932,
-                        undefined,
-                        transactionForTest,
-                        undefined,
-                        false,
-                        {},
-                        false,
-                        12345,
-                    ) ?? {};
+                const report = MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`];
+                if (!report) {
+                    throw new Error('Expected the report fixture to be present');
+                }
+                const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, undefined, transactionForTest, undefined, false, {}, false, 12345) ?? {};
                 expect(reportAction).toBe(undefined);
             });
             describe('There is a report action with smart scan errors', () => {

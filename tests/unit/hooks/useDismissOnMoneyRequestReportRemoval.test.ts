@@ -14,13 +14,13 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockUseIsFocused = jest.fn().mockReturnValue(true);
+const mockUseIsFocused = jest.fn<boolean, []>().mockReturnValue(true);
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
-        useIsFocused: () => mockUseIsFocused() as boolean,
+        useIsFocused: () => mockUseIsFocused(),
     };
 });
 

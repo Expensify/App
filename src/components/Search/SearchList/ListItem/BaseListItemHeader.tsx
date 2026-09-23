@@ -52,7 +52,6 @@ type ColumnStyleKey =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER;
 
 type BaseListItemHeaderProps<TItem extends ListItem> = {
-    /** The group item being rendered */
     item: BaseGroupListItemType;
 
     /** The display name to show for this group */
@@ -64,7 +63,6 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     /** The column style key for sizing (e.g., CATEGORY, MERCHANT) */
     columnStyleKey: ColumnStyleKey;
 
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -79,7 +77,6 @@ type BaseListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */

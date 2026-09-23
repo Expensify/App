@@ -29,7 +29,6 @@ import AddReactionBubble from './AddReactionBubble';
 import ReportActionReactionBubble from './ReportActionReactionBubble';
 
 type ReportActionItemEmojiReactionsProps = {
-    /** The report action that these reactions are for */
     reportAction: ReportAction;
 
     /** The ID of the chat report this action belongs to */
@@ -41,7 +40,6 @@ type ReportActionItemEmojiReactionsProps = {
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
 
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
@@ -49,7 +47,6 @@ type FormattedReaction = {
     /** The emoji codes to display in the bubble */
     emojiCodes: string[];
 
-    /** IDs of users used the reaction */
     userAccountIDs: number[];
 
     /** Total reaction count */
@@ -61,10 +58,7 @@ type FormattedReaction = {
     /** Oldest timestamp of when the emoji was added */
     oldestTimestamp: string;
 
-    /** Callback to fire on press */
     onPress: () => void;
-
-    /** The name of the emoji */
     reactionEmojiName: string;
 
     /** The type of action that's pending */
@@ -79,6 +73,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
     const reportActionID = reportAction.reportActionID;
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     // Prime the locale emoji table when this action has reactions.
     // Skip the default locale since getLocalizedEmojiName never reads localeEmojis for it.
@@ -97,7 +92,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
             });
             return;
         }
-        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, ignoreSkinToneOnCompare);
+        toggleEmojiReaction(reportID, reportAction, emoji, emojiReactions, skinTone, currentUserAccountID, reportActions, ignoreSkinToneOnCompare);
     };
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone

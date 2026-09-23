@@ -8,8 +8,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 let transactionReportIDMapping: Record<string, string> = {};
 
-let transactionToReportIDMap: Record<string, string> = {};
-
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
@@ -37,7 +35,14 @@ export default createOnyxDerivedValueConfig({
             transactionsToProcess = Array.from(transactionKeys);
         }
 
-        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+        // A full compute visits every transaction, so rebuild from scratch instead of merging into the
+        // value restored from disk. After a reload transactionReportIDMapping is empty, so the removal
+        // below never runs and an expense stays listed under a report it has already left.
+        const isFullCompute = !transactionsUpdates && !transactionViolationsUpdates;
+        if (isFullCompute) {
+            transactionReportIDMapping = {};
+        }
+        const reportTransactionsAndViolations = !isFullCompute && currentValue ? {...currentValue} : {};
 
         // Track which reportID entries have been cloned so we only clone once per reportID.
         // This avoids mutating nested objects that are still referenced by the cached value.
@@ -56,7 +61,8 @@ export default createOnyxDerivedValueConfig({
 
         for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
-            const reportID = transaction?.reportID;
+            // A reject the server refused leaves a stale local copy behind
+            const reportID = transaction?.rejectFailedFromReportID ?? transaction?.reportID;
 
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
             const previousReportID = transactionReportIDMapping[transactionKey];
@@ -74,8 +80,8 @@ export default createOnyxDerivedValueConfig({
                 delete transactionReportIDMapping[transactionKey];
             }
 
-            if (!reportID) {
-                delete transactionToReportIDMap[transactionKey];
+            if (!transaction || !reportID) {
+                delete transactionReportIDMapping[transactionKey];
                 continue;
             }
 
@@ -116,6 +122,5 @@ export default createOnyxDerivedValueConfig({
     onReset: () => {
         previousViolations = {};
         transactionReportIDMapping = {};
-        transactionToReportIDMap = {};
     },
 });

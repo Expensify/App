@@ -43,43 +43,24 @@ type AddressFormProps = ForwardedFSClassProps & {
     /** Translate key for Street name */
     streetTranslationKey: TranslationPaths;
 
-    /** Default values */
     defaultValues?: Address;
-
-    /** Form values */
     values?: Address;
 
     /** Any errors that can arise from form validation */
     errors?: AddressErrors;
 
-    /** The map for inputID of the inputs */
     inputKeys: AddressInputKeys;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** Additional styles to apply to container */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** Indicates if country selector should be displayed */
     shouldDisplayCountrySelector?: boolean;
-
-    /** Indicates if state selector should be displayed */
     shouldDisplayStateSelector?: boolean;
-
-    /** Label for the state selector */
     stateSelectorLabel?: string;
-
-    /** The title of the state selector modal */
     stateSelectorModalHeaderTitle?: string;
-
-    /** The title of the state selector search input */
     stateSelectorSearchInputTitle?: string;
-
-    /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
-
-    /** Indicates if country can be changed by user */
     shouldAllowCountryChange?: boolean;
 };
 

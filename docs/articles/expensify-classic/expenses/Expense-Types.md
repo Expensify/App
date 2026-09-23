@@ -1,6 +1,7 @@
 ---
 title: Expense Types
 description: Learn how to organize reports by expense type and identify different expense categories in Expensify.
+keywords: [expense types, reimbursable, non-reimbursable, billable, out-of-pocket, out of pocket, out-of-pocket expenses]
 ---
 
 Understanding expense types in Expensify helps you track and categorize business spending more effectively. This guide covers how to organize reports by expense type and explains the differences between reimbursable, non-reimbursable, and billable expenses.

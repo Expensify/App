@@ -1,3 +1,5 @@
+import {isRecord} from '@libs/ObjectUtils';
+
 import HttpUtils from '@src/libs/HttpUtils';
 import Log from '@src/libs/Log';
 import * as Network from '@src/libs/Network';
@@ -12,12 +14,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
  */
 import MockedOnyx from 'react-native-onyx';
 
-import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
-
 import * as TestHelper from '../utils/TestHelper';
+import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
+const Onyx = MockedOnyx;
 
 // We need to NOT mock Log so we can test its actual behavior
 jest.unmock('@src/libs/Log');
@@ -35,9 +36,11 @@ async function processNetworkQueue() {
     await waitForBatchedUpdates();
 }
 
+type LogInfoParameters = NonNullable<Parameters<typeof Log.info>[2]>;
+
 type LogLine = {
     message: string;
-    parameters: unknown;
+    parameters: LogInfoParameters;
     timestamp: string;
 };
 
@@ -46,11 +49,29 @@ type CapturedLogRequest = {
     logPacket: string | undefined;
 };
 
+function isLogInfoParameters(value: unknown): value is LogInfoParameters {
+    if (typeof value === 'string') {
+        return true;
+    }
+    if (Array.isArray(value)) {
+        return value.every(isRecord);
+    }
+    return isObject(value);
+}
+
+function isLogLine(value: unknown): value is LogLine {
+    return isObject(value) && typeof value.message === 'string' && typeof value.timestamp === 'string' && 'parameters' in value && isLogInfoParameters(value.parameters);
+}
+
 function parseLogPacket(logPacket: string | undefined): LogLine[] {
     if (!logPacket) {
         return [];
     }
-    return JSON.parse(logPacket) as LogLine[];
+    const parsed: unknown = JSON.parse(logPacket);
+    if (!Array.isArray(parsed) || !parsed.every(isLogLine)) {
+        throw new Error('Expected log packet to contain log lines.');
+    }
+    return parsed;
 }
 
 /**
@@ -63,8 +84,8 @@ function mockHttpUtilsXhr(): CapturedLogRequest[] {
     HttpUtils.xhr = jest.fn().mockImplementation((command: string, data: Record<string, unknown>) => {
         if (command === 'Log') {
             capturedRequests.push({
-                email: data.email as string | null | undefined,
-                logPacket: data.logPacket as string | undefined,
+                email: data.email === null || typeof data.email === 'string' ? data.email : undefined,
+                logPacket: typeof data.logPacket === 'string' ? data.logPacket : undefined,
             });
         }
         return Promise.resolve({jsonCode: 200, requestID: '123'});
@@ -279,8 +300,8 @@ describe('LogTest', () => {
         HttpUtils.xhr = jest.fn().mockImplementation((command: string, data: Record<string, unknown>) => {
             if (command === 'Log') {
                 capturedRequests.push({
-                    email: data.email as string | null | undefined,
-                    logPacket: data.logPacket as string | undefined,
+                    email: data.email === null || typeof data.email === 'string' ? data.email : undefined,
+                    logPacket: typeof data.logPacket === 'string' ? data.logPacket : undefined,
                 });
 
                 // Fail requests for USER_A_EMAIL

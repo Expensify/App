@@ -42,7 +42,6 @@ type CalendarPickerProps = {
     /** Day component to render for dates */
     DayComponent?: typeof Day;
 
-    /** A function called when the date is selected */
     onSelected?: (selectedDate: string) => void;
 
     /** Optional style override for the header container */
@@ -91,7 +90,7 @@ function CalendarPicker({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const pressableRef = useRef<View>(null);
     const monthPressableRef = useRef<View>(null);
     const [currentDateView, setCurrentDateView] = useState(() => getInitialCurrentDateView(value, minDate, maxDate));
@@ -218,8 +217,8 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames().map((month) => Str.UCFirst(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek().map((day) => day.toUpperCase());
+    const monthNames = DateUtils.getMonthNames(dateFnsLocale).map((month) => Str.UCFirst(month));
+    const daysOfWeek = DateUtils.getDaysOfWeek(dateFnsLocale).map((day) => day.toUpperCase());
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;
@@ -398,7 +397,7 @@ function CalendarPicker({
                             };
                             const key = `${index}_day-${day}`;
                             const fullDate = day ? new Date(currentYearView, currentMonthView, day) : null;
-                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate) : '';
+                            const accessibilityDateLabel = fullDate ? DateUtils.formatToLongDateWithWeekday(fullDate, dateFnsLocale) : '';
                             return (
                                 <PressableWithoutFeedback
                                     key={key}

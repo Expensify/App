@@ -1,11 +1,14 @@
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+import getVictoryChartTreeTypeface from '@components/Charts/utils/getVictoryChartTreeTypeface';
 import type {ChartType, LabelItem, LegendItem, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeAdjustedOverlayY from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeAdjustedOverlayY';
 import computeDynamicChartHeight from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
 import parseStyles from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseStyles';
+import scaleVictoryChartContextValue, {disposeScaledFonts} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
 
 import type {TNode} from 'react-native-render-html';
 
-import React, {createContext, useContext} from 'react';
+import React, {createContext, useContext, useEffect} from 'react';
 
 type VictoryChartContextValue = {
     tnode: TNode;
@@ -21,9 +24,13 @@ type VictoryChartContextValue = {
     categories: ProcessNodeResult['categories'];
     labelItems: ProcessNodeResult['labelItems'];
     legendItems: ProcessNodeResult['legendItems'];
+    pointMetadata: ProcessNodeResult['pointMetadata'];
     chartContentStyles: ReturnType<typeof parseStyles>['nodeStyles'];
     chartContainerStyles: ReturnType<typeof parseStyles>['parentNodeStyles'];
     type: ChartType;
+
+    /** Factor already applied to this context's pixel values (1 inline); raw tnode pixel attributes must be multiplied by it */
+    pixelScale: number;
 };
 
 const VictoryChartContext = createContext<VictoryChartContextValue | null>(null);
@@ -37,7 +44,7 @@ type VictoryChartProviderProps = {
 
 /** Supplies parsed chart config to chart sub-components. Callers must parse and validate the tnode first. */
 function VictoryChartProvider({tnode, processedResult, type, children}: VictoryChartProviderProps) {
-    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems} = processedResult;
+    const {data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, categories, labelItems, legendItems, pointMetadata} = processedResult;
     const {nodeStyles: chartContentStyles, parentNodeStyles: chartContainerStyles} = parseStyles(tnode);
     const parsedDesignHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
     const itemCount = categories?.length ?? Object.keys(data).length;
@@ -66,14 +73,40 @@ function VictoryChartProvider({tnode, processedResult, type, children}: VictoryC
         padding,
         isHorizontal,
         categories,
+        pointMetadata,
         labelItems: effectiveLabelItems,
         legendItems: effectiveLegendItems,
         chartContentStyles: effectiveChartContentStyles,
         chartContainerStyles,
         type,
+        pixelScale: 1,
     };
 
     return <VictoryChartContext.Provider value={contextValue}>{children}</VictoryChartContext.Provider>;
+}
+
+type VictoryChartScaledProviderProps = {
+    /** Uniform factor to scale all pixel-space chart config by (may be > 1) */
+    scale: number;
+
+    /** Chart sub-tree to re-provide the scaled context to */
+    children: React.ReactNode;
+};
+
+/**
+ * Re-provides the chart context with every pixel-space value scaled by a uniform factor, so the
+ * expand modal can re-render the chart natively at a larger size.
+ */
+function VictoryChartScaledProvider({scale, children}: VictoryChartScaledProviderProps) {
+    const value = useVictoryChartContext();
+    const typefaces = useChartTypefaces();
+    const typeface = getVictoryChartTreeTypeface(typefaces);
+    const scaledValue = scaleVictoryChartContextValue(value, scale, typeface);
+
+    // Release the Skia fonts created for this scale once they are replaced or unmounted
+    useEffect(() => () => disposeScaledFonts(scaledValue, value), [scaledValue, value]);
+
+    return <VictoryChartContext.Provider value={scaledValue}>{children}</VictoryChartContext.Provider>;
 }
 
 function useVictoryChartContext(): VictoryChartContextValue {
@@ -84,4 +117,5 @@ function useVictoryChartContext(): VictoryChartContextValue {
     return context;
 }
 
-export {VictoryChartProvider, useVictoryChartContext};
+export {VictoryChartProvider, VictoryChartScaledProvider, useVictoryChartContext};
+export type {VictoryChartContextValue};
