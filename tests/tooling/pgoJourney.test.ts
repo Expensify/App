@@ -2,7 +2,7 @@ import {describe, expect, it} from 'bun:test';
 
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
-import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, scrollDistance, spendSectionTapPoint} from '@scripts/pgo/journeyWorkload';
+import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, inAppBackTapPoint, scrollDistance, spendSectionTapPoint} from '@scripts/pgo/journeyWorkload';
 
 const fixture = {
     accountEmail: 'heavy@example.com',
@@ -151,6 +151,15 @@ describe('PGO journey safeguards', () => {
         expect(findTabNode(nodes, 'Account')?.label).toBe('Account, My settings. Your review is required.');
     });
 
+    it('accepts a duplicated Android navigation subtree but rejects distinct tab targets', () => {
+        const tab = {type: 'android.view.View', label: 'Inbox. Your review is required', rect: {x: 216, y: 1968, width: 216, height: 186}};
+        const snapshot = (tabs: Array<typeof tab>) =>
+            parseJourneySnapshot({appBundleId: 'test.app', nodes: [{type: 'Application', rect: {x: 0, y: 0, width: 1080, height: 2280}}, ...tabs]}, 'test.app');
+
+        expect(findTabNode(snapshot([tab, tab]), 'Inbox')?.x).toBe(216);
+        expect(() => findTabNode(snapshot([tab, {...tab, rect: {...tab.rect, x: 432}}]), 'Inbox')).toThrow('Ambiguous Inbox tab');
+    });
+
     it('targets the visible All filter rather than the iOS strip cell center over Unread', () => {
         // Given an iOS accessibility cell whose bounds cover the whole Inbox filter strip.
         const nodes = parseJourneySnapshot(
@@ -168,6 +177,25 @@ describe('PGO journey safeguards', () => {
         const tapPoint = allFilterTapPoint(nodes);
         // Then it stays left of Unread.
         expect(tapPoint).toEqual({x: 51, y: 135});
+    });
+
+    it('taps the iOS search Back button even when the keyboard marks it non-hittable', () => {
+        // Given the search screen's bounded Back button beneath an open keyboard.
+        const nodes = parseJourneySnapshot(
+            {
+                appBundleId: 'test.app',
+                nodes: [
+                    {type: 'Application', rect: {width: 390, height: 844, x: 0, y: 0}},
+                    {label: 'Back', type: 'Button', hittable: false, rect: {width: 40, height: 40, x: 8, y: 59}},
+                    {label: 'Back', type: 'Button', rect: {width: 40, height: 40, x: 300, y: 700}},
+                ],
+            },
+            'test.app',
+        );
+        // When the journey looks for the in-app Back control.
+        const tapPoint = inAppBackTapPoint(nodes);
+        // Then it chooses the top-left button rather than the keyboard area.
+        expect(tapPoint).toEqual({x: 28, y: 79});
     });
 
     it('detects iOS report scrolling when offscreen accessibility labels stay loaded', () => {

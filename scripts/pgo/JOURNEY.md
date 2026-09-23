@@ -2,7 +2,7 @@
 
 <!-- cspell:ignore profraw profdata UDID XCTest -->
 
-`journey.ts` drives the installed app through its accessibility tree using `agent-device` (developed with version 0.20.6). It runs without an LLM. The same TypeScript workload accepts an Android serial or iOS UDID. It uses labels and test IDs, and sizes scroll gestures from the device's reported bounds. The app must use English and portrait orientation. The full Android journey, including message sending and native profile export, has been validated on a physical Samsung phone. iOS execution still needs live validation.
+`journey.ts` drives the installed app through its accessibility tree using `agent-device` (developed with version 0.20.6). It runs without an LLM. The same TypeScript workload accepts an Android serial or iOS UDID. It uses labels and test IDs, and sizes scroll gestures from the device's reported bounds. The app must use English and portrait orientation. The full journey, including message sending and native profile export, has been validated on a physical Samsung phone and iPhone 13 Pro.
 
 ## Account and device setup
 
@@ -62,7 +62,7 @@ Start with three repetitions per platform. Use the recorded duration and resulti
 
 On September 23, 2026, the Android navigation-only run completed in 6 minutes 7 seconds. Two complete instrumented recordings passed in 7 minutes 1 second and 6 minutes 55 seconds, excluding preflight. Each sent two messages and exported four raw profiles; both recordings merged successfully, separately and together. These timings include automation overhead and the final account/preference check; they are not app performance measurements. The first recording's four profiles were also checked individually for nonzero native counters.
 
-On the same day, a complete instrumented iOS recording passed on a connected iPhone 13 Pro in 6 minutes 35 seconds, excluding preflight. It sent two approved messages to the account's personal chat, exported two raw profiles, and produced a 15 MB merged profile with 23,822 functions showing nonzero execution counts. The final check confirmed the heavy account and #focus off. This is one validation recording; the three-repetition training batch remains to be collected.
+On the same day, a complete instrumented iOS validation recording passed on a connected iPhone 13 Pro in 6 minutes 35 seconds, excluding preflight. A subsequent three-repetition training batch passed in 6 minutes 41 seconds, 6 minutes 35 seconds, and 6 minutes 37 seconds per journey. The batch exported six raw profiles and produced a 15 MB merged profile containing 77,590 functions. Every repetition sent two approved messages to the account's personal chat, then confirmed the heavy account and #focus off. These timings include automation overhead; they are not app performance measurements.
 
 The collector checks that the installed app can flush profiles, discards setup output, clears previous device profiles, and starts a fresh process for each repetition. It flushes once after a successful journey and verification, then archives that run's raw files. It merges only after every requested repetition succeeds. Failed batches produce no final merged profile. A failed send is never retried automatically.
 
@@ -76,4 +76,4 @@ Use an exclusive device lease on a persistent runner: Linux or macOS with an arm
 
 Run these steps for each staging or production release candidate before publication. Pin the compiler, SDK, dependencies, architecture, build settings, and automation version; retain them alongside the profile. The current runner records source revisions but does not validate binary provenance. The release pipeline must enforce that the training artifact and optimized build match, and keep simultaneous jobs from sharing a device or profile output directory. Store signing credentials separately from the fixture.
 
-This change supplies the journey and profile collection hook for local and CI execution. Connecting it to the store release workflows, validating iOS, and measuring held-out interactive performance remain separate integration steps.
+This change supplies the journey and profile collection hook for local and CI execution. Connecting it to the store release workflows and measuring held-out interactive performance remain separate integration steps.

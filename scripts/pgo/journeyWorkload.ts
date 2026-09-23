@@ -75,7 +75,7 @@ async function prepareJourney(device: JourneyDevice, fixture: JourneyFixture): P
     }
     pressPreferences(device);
     await ensureFocusDisabled(device, true);
-    device.back();
+    pressInAppBack(device);
     await showTab(device, 'Inbox');
     console.log('Verified the approved heavy account and disabled #focus.');
 }
@@ -89,7 +89,7 @@ async function verifyJourneyAccount(device: JourneyDevice, fixture: JourneyFixtu
     }
     pressPreferences(device);
     await ensureFocusDisabled(device, false);
-    device.back();
+    pressInAppBack(device);
     await showTab(device, 'Inbox');
 }
 
@@ -139,7 +139,7 @@ async function showTab(device: JourneyDevice, tab: string): Promise<void> {
             device.command('press', String(Math.round(tabNode.x + tabNode.width / 2)), String(Math.round(tabNode.y + tabNode.height / 2)), '--settle');
             return;
         }
-        device.back();
+        pressInAppBack(device);
         await sleep(300);
     }
     throw new Error(`Cannot return to the ${tab} tab.`);
@@ -162,6 +162,42 @@ function pressPreferences(device: JourneyDevice): void {
         return;
     }
     device.pressLabel('Preferences');
+}
+
+function pressInAppBack(device: JourneyDevice): void {
+    if (device.platform === 'ios') {
+        const tapPoint = inAppBackTapPoint(device.snapshot());
+        if (tapPoint) {
+            device.command('press', String(tapPoint.x), String(tapPoint.y), '--settle');
+            return;
+        }
+    }
+    device.back();
+}
+
+/** The iOS search Back button remains visible but is reported non-hittable while the keyboard is open. */
+function inAppBackTapPoint(nodes: JourneyNode[]): {x: number; y: number} | undefined {
+    const screen = nodes.find((node) => node.type === 'Application');
+    if (!screen) {
+        return undefined;
+    }
+    const candidates = nodes.filter(
+        (node) =>
+            node.type === 'Button' &&
+            normalizeLabel(node.label) === 'Back' &&
+            node.enabled &&
+            node.width > 0 &&
+            node.height > 0 &&
+            node.x >= 0 &&
+            node.y >= 0 &&
+            node.x < screen.width * 0.25 &&
+            node.y < screen.height * 0.2,
+    );
+    if (candidates.length > 1) {
+        throw new Error('Ambiguous in-app Back control on iOS.');
+    }
+    const back = candidates.at(0);
+    return back ? {x: Math.round(back.x + back.width / 2), y: Math.round(back.y + back.height / 2)} : undefined;
 }
 
 function selectSpendSection(device: JourneyDevice, section: 'Expenses' | 'Reports'): void {
@@ -212,10 +248,22 @@ function findTabNode(nodes: JourneyNode[], tab: string): JourneyNode | undefined
         const matches = label === tab || label.startsWith(`${tab}.`) || label.startsWith(`${tab},`);
         return matches && (!screen || (node.y >= screen.height * 0.7 && node.width >= screen.width * 0.1 && node.height >= screen.height * 0.05));
     });
-    if (candidates.length > 1) {
+    const first = candidates.at(0);
+    const duplicatedNode =
+        first &&
+        candidates.every(
+            (node) =>
+                node.type === first.type &&
+                normalizeLabel(node.label) === normalizeLabel(first.label) &&
+                node.x === first.x &&
+                node.y === first.y &&
+                node.width === first.width &&
+                node.height === first.height,
+        );
+    if (candidates.length > 1 && !duplicatedNode) {
         throw new Error(`Ambiguous ${tab} tab in the accessibility tree.`);
     }
-    return candidates.at(0);
+    return first;
 }
 
 async function scrollBothWays(device: JourneyDevice, count: number, requireMovement: boolean, firstDirection: 'up' | 'down' = 'down'): Promise<void> {
@@ -293,4 +341,15 @@ function findReportResult(nodes: JourneyNode[], prefix: string, personalChatTitl
     return matches.at(0)?.label;
 }
 
-export {allFilterTapPoint, contentSignature, findReportResult, findTabNode, prepareJourney, runJourneyWorkload, scrollDistance, spendSectionTapPoint, verifyJourneyAccount};
+export {
+    allFilterTapPoint,
+    contentSignature,
+    findReportResult,
+    findTabNode,
+    inAppBackTapPoint,
+    prepareJourney,
+    runJourneyWorkload,
+    scrollDistance,
+    spendSectionTapPoint,
+    verifyJourneyAccount,
+};
