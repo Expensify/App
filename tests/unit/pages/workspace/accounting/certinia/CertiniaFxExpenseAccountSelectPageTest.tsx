@@ -2,6 +2,8 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionScreen from '@components/SelectionScreen';
 
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
+
 import {updateFinancialForceFxExpenseAccount} from '@libs/actions/connections/FinancialForce';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -46,7 +48,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@hooks/useSelectionListSearch', () => ({
     __esModule: true,
-    default: (data: unknown[]) => ({filteredData: data, textInputOptions: {}}),
+    default: jest.fn((data: unknown[]) => ({filteredData: data, textInputOptions: {}})),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -176,6 +178,23 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
         // Then: the list stays empty so SelectionScreen can show the empty-state BlockingView.
         expect(selectionScreenProps.data).toEqual([]);
         expect(selectionScreenProps.confirmButtonOptions?.showButton).toBe(false);
+        expect(selectionScreenProps.shouldShowListEmptyContent).toBe(true);
+    });
+
+    it('lets search filter out None instead of leaving it stuck at the top', () => {
+        // Given: search matched nothing, including None.
+        jest.mocked(useSelectionListSearch).mockImplementationOnce(() => ({
+            filteredData: [],
+            textInputOptions: {value: 'zzzz'},
+        }));
+
+        // When: the picker is opened with a chart of accounts.
+        const selectionScreenProps = renderPicker({hasPSAOnly: false, expenseAccounts: [TRAVEL_ACCOUNT]});
+
+        // Then: the list is empty and the chart-of-accounts empty view stays hidden.
+        expect(selectionScreenProps.data).toEqual([]);
+        expect(selectionScreenProps.shouldShowListEmptyContent).toBe(false);
+        expect(selectionScreenProps.confirmButtonOptions?.showButton).toBe(true);
     });
 
     it('does not persist until Save is pressed', () => {

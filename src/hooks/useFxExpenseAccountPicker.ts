@@ -20,7 +20,7 @@ function useFxExpenseAccountPicker(persistedAccount: string | undefined) {
         setDraftAccountID(value);
     };
 
-    const buildList = (filteredAccounts: SelectorType[], sourceAccountCount: number, onConfirm: () => void) => {
+    const buildList = (accountOptions: SelectorType[], sourceAccountCount: number, onConfirm: () => void) => {
         // Don't prepend None onto an empty account list or the empty-state BlockingView never shows.
         const shouldShowNoneOption = sourceAccountCount > 0 || persisted.length > 0;
         const noneOption: SelectorType = {
@@ -32,7 +32,8 @@ function useFxExpenseAccountPicker(persistedAccount: string | undefined) {
         const noneOptionKey = shouldShowNoneOption ? CONST.SEARCH.NONE_OPTION_KEY : undefined;
 
         return {
-            listData: shouldShowNoneOption ? [noneOption, ...filteredAccounts] : filteredAccounts,
+            // Search this list; None is a normal row so a miss does not leave it stuck on screen.
+            searchableList: shouldShowNoneOption ? [noneOption, ...accountOptions] : accountOptions,
             initiallyFocusedOptionKey: persisted.length > 0 ? persisted : noneOptionKey,
             confirmButtonOptions: {
                 showButton: shouldShowNoneOption,
