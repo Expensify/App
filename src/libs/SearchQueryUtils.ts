@@ -40,6 +40,7 @@ import type {
     IsFilterValue,
     IsFilterValues,
     ReceiptTypeValue,
+    TransactionStatusValue,
     SearchAdvancedFiltersKey,
     SearchNegatableFilterKeys,
 } from '@src/types/form/SearchAdvancedFiltersForm';
@@ -104,12 +105,13 @@ const operatorToCharMap = {
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
+const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
-
+const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -178,24 +180,239 @@ function sanitizeSearchValue(str: string) {
     return escaped;
 }
 
-const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
+function getKeywordQueryForSearchInput(keywords: string[]) {
+    const keywordQuery = keywords.map(sanitizeSearchValue).join(' ');
+
+    // An unmatched opening quote is a literal keyword character, not a phrase delimiter.
+    // Show it as entered only when there is no later quote that could close it on resubmission.
+    if (keywords.at(0)?.startsWith('"') && keywordQuery.startsWith('\\"') && !keywordQuery.slice(2).includes('"')) {
+        return keywordQuery.slice(1);
+    }
+
+    return keywordQuery;
+}
+
+function sanitizeSearchValuePreservingEscapes(str: string) {
+    let escaped = '';
+
+    for (let index = 0; index < str.length; index++) {
+        const char = str.at(index) ?? '';
+        if (char !== '\\') {
+            escaped += /["“”]/.test(char) ? `\\${char}` : char;
+            continue;
+        }
+
+        let nextIndex = index;
+        while (str.at(nextIndex) === '\\') {
+            nextIndex++;
+        }
+
+        const backslashCount = nextIndex - index;
+        const nextChar = str.at(nextIndex);
+        if (nextChar === ',') {
+            escaped += `${'\\'.repeat(backslashCount)}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
+        if (nextChar && /["“”]/.test(nextChar)) {
+            escaped += `${'\\'.repeat(backslashCount + (backslashCount % 2 === 0 ? 1 : 0))}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
+        escaped += '\\'.repeat(backslashCount + (backslashCount % 2));
+        index = nextIndex - 1;
+    }
+
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || escaped.includes(',')) {
+        return `"${escaped}"`;
+    }
+
+    return escaped;
+}
+
+const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(?:-[^\\s:><=]+)+)`;
+const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
+const syntaxValuePattern = '"(?:\\\\.|[^"\\\\])*"|[^\\s]+';
+const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*(${syntaxValuePattern})`, 'gi');
+const syntaxWithoutValueRegex = new RegExp(`^${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+
+function quoteSyntaxSpans(segment: string) {
+    return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
+        const syntaxValue = match.slice(prefix.length).trim();
+        const sanitizedSyntaxValue = sanitizeSearchValuePreservingEscapes(syntaxValue);
+        return `${prefix}${sanitizedSyntaxValue.startsWith('"') ? sanitizedSyntaxValue : `"${sanitizedSyntaxValue}"`}`;
+    });
+}
+
+function isEscaped(str: string, index: number) {
+    let backslashCount = 0;
+    for (let i = index - 1; i >= 0 && str.at(i) === '\\'; i--) {
+        backslashCount++;
+    }
+    return backslashCount % 2 === 1;
+}
+
+function isQuoteChar(char: string | undefined) {
+    return char === '"' || char === '“' || char === '”';
+}
+
+function isCompleteQuotedValue(str: string) {
+    return isQuoteChar(str.at(0)) && str.length > 1 && isQuoteChar(str.at(-1)) && !isEscaped(str, str.length - 1);
+}
+
+function hasUnescapedQuote(str: string) {
+    for (let index = 0; index < str.length; index++) {
+        if (isQuoteChar(str.at(index)) && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function hasClosingQuote(str: string, openingQuoteIndex: number) {
+    for (let index = openingQuoteIndex + 1; index < str.length; index++) {
+        if (isQuoteChar(str.at(index)) && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function tokenizeKeywordSegments(keywords: string) {
+    const segments: string[] = [];
+    let index = 0;
+
+    while (index < keywords.length) {
+        while (index < keywords.length && /\s/.test(keywords.at(index) ?? '')) {
+            index++;
+        }
+
+        if (index >= keywords.length) {
+            break;
+        }
+
+        const start = index;
+        const startsWithQuote = isQuoteChar(keywords.at(index)) && hasClosingQuote(keywords, index);
+        let insideQuote = startsWithQuote;
+        if (startsWithQuote) {
+            index++;
+        }
+
+        while (index < keywords.length) {
+            const char = keywords.at(index);
+
+            if (!insideQuote && /\s/.test(char ?? '')) {
+                break;
+            }
+
+            if (char === '\\') {
+                // Match the search parser's escapedChar rule: a backslash does not escape whitespace.
+                index += /[,"“”\\]/.test(keywords.at(index + 1) ?? '') ? 2 : 1;
+                continue;
+            }
+
+            if (isQuoteChar(char)) {
+                if (insideQuote) {
+                    index++;
+                    if (startsWithQuote) {
+                        break;
+                    }
+                    insideQuote = false;
+                    continue;
+                }
+
+                if (hasClosingQuote(keywords, index) && !syntaxWithoutValueRegex.test(keywords.slice(start, index))) {
+                    insideQuote = true;
+                }
+            }
+
+            index++;
+        }
+
+        segments.push(keywords.slice(start, index));
+    }
+
+    return segments;
+}
+
+const groupByWithoutValueRegex = new RegExp(`^${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+
+function getGroupByValueForValidation(segment: string) {
+    const valueWithoutTrailingCommas = segment.replaceAll(/,+$/g, '');
+    return isCompleteQuotedValue(valueWithoutTrailingCommas) ? valueWithoutTrailingCommas.slice(1, -1) : valueWithoutTrailingCommas;
+}
+
+function getUnclosedQuotedGroupByValue(segment: string | undefined) {
+    if (!segment || !isQuoteChar(segment.at(0)) || hasClosingQuote(segment, 0)) {
+        return;
+    }
+
+    const value = segment.slice(1);
+    return VALID_GROUP_BYS.has(value.toLowerCase()) ? value : undefined;
+}
+
+function shouldCombineKeywordSegments(segment: string, nextSegment: string | undefined) {
+    if (!nextSegment || !syntaxWithoutValueRegex.test(segment)) {
+        return false;
+    }
+
+    const nextSegmentValue = getGroupByValueForValidation(nextSegment);
+    return syntaxWithoutValueRegex.test(nextSegment) || (groupByWithoutValueRegex.test(segment) && !VALID_GROUP_BYS.has(nextSegmentValue.toLowerCase()));
+}
+
+function sanitizeIncompleteQuotedValue(str: string) {
+    const sanitized = sanitizeSearchValue(str);
+    return sanitized.startsWith('"') ? sanitized : `"${sanitized}"`;
+}
+
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
  * keyword instead of being parsed as the `type` filter. Plain keywords (e.g. `foo`) are left untouched.
  */
 function escapeKeyword(keywords: string) {
-    return (
-        keywords
-            .match(/"([^"]*)"|(\S+)/g)
-            ?.map((q) => {
-                if (q.toLowerCase().match(syntaxRegex)) {
-                    return `"${q}"`;
-                }
-                return q;
-            })
-            .join(' ') ?? ''
-    );
+    const segments = tokenizeKeywordSegments(keywords);
+    let skipNextSegment = false;
+
+    return segments
+        .map((segment, index) => {
+            if (skipNextSegment) {
+                skipNextSegment = false;
+                return '';
+            }
+
+            const nextSegment = segments.at(index + 1);
+            const unclosedGroupByValue = groupByWithoutValueRegex.test(segment) ? getUnclosedQuotedGroupByValue(nextSegment) : undefined;
+            if (unclosedGroupByValue) {
+                skipNextSegment = true;
+                return `${segment}${unclosedGroupByValue}`;
+            }
+
+            skipNextSegment = shouldCombineKeywordSegments(segment, nextSegment);
+            const q = skipNextSegment ? `${segment} ${nextSegment}` : segment;
+
+            if (isQuoteChar(q.at(0))) {
+                return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);
+            }
+
+            // A quoted span embedded in an ordinary token is one keyword; syntax inside it is literal text.
+            if (/\s/.test(segment) && hasUnescapedQuote(segment)) {
+                return sanitizeSearchValuePreservingEscapes(q);
+            }
+
+            const quotedSyntax = quoteSyntaxSpans(q).trim();
+            if (quotedSyntax !== q) {
+                return quotedSyntax;
+            }
+
+            return hasUnescapedQuote(q) || q.includes('\\') ? sanitizeSearchValuePreservingEscapes(q) : q;
+        })
+        .filter(Boolean)
+        .join(' ');
 }
 
 function getRangeQueryValue(from?: string, to?: string) {
@@ -775,6 +992,7 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+
         result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
@@ -1024,6 +1242,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
+                    filterKey === FILTER_KEYS.TRANSACTION_STATUS ||
                     filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
             ) {
@@ -1384,11 +1603,9 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
  * Reverse operation of buildQueryStringFromFilterFormValues()
  */
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
-    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -1445,6 +1662,11 @@ function buildFilterFormValuesFromQuery(
             } else {
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
             }
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.find((transactionStatus): transactionStatus is TransactionStatusValue =>
+                VALID_TRANSACTION_STATUSES.has(transactionStatus),
+            );
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
@@ -1524,17 +1746,8 @@ function buildFilterFormValuesFromQuery(
             filtersForm[filterKey] = filterValues.find((currency) => validCurrencies.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const uniqueTags = new Set<string>();
-            const tagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags);
-            for (const tagList of tagLists) {
-                for (const policyTagList of Object.values(tagList ?? {})) {
-                    for (const tag of Object.values(policyTagList.tags ?? {})) {
-                        uniqueTags.add(tag.name);
-                    }
-                }
-            }
-            uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((name) => uniqueTags.has(name));
+            // Tag values are kept as-is: with server-side tag pagination the local tag data is never complete, so validating against it would silently drop valid tags
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();
@@ -2730,6 +2943,7 @@ export {
     buildCannedSearchQuery,
     resolvePolicyIDFromName,
     sanitizeSearchValue,
+    getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,

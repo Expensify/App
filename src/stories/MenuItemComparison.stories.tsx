@@ -26,6 +26,7 @@ import {contextMenuRef, showContextMenu} from '@pages/inbox/report/ContextMenu/R
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {Meta} from 'storybook-react-rsbuild';
 
 import React, {useRef} from 'react';
@@ -144,7 +145,7 @@ function Comparison() {
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar', 'NewWindow']);
 
     // The legacy external-link row anchors its context menu to the row itself, which the composable API does for the call site
-    const popoverAnchor = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
 
     if (!icons.Gear || !icons.FallbackAvatar || !icons.NewWindow) {
         return null;
@@ -152,6 +153,136 @@ function Comparison() {
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
+            <SectionHeading title="Phase 4 — title styles">numberOfLinesTitle became numberOfLines on the text leaves.</SectionHeading>
+
+            <Card
+                title="description, numberOfLinesTitle, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Cancellation"
+                        title="Free until 24 hours before pickup, then the daily rate is charged"
+                        numberOfLinesTitle={2}
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Cancellation</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={2}>Free until 24 hours before pickup, then the daily rate is charged</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Cancellation"
+                        value="Free until 24 hours before pickup, then the daily rate is charged"
+                        numberOfLinesValue={2}
+                    />
+                }
+            />
+
+            <Card
+                title="description, numberOfLinesTitle, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="List values"
+                        title="Engineering, Design, Product, Marketing, Sales, Support, Finance"
+                        numberOfLinesTitle={5}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>List values</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={5}>Engineering, Design, Product, Marketing, Sales, Support, Finance</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="List values"
+                        onPress={noop}
+                        value="Engineering, Design, Product, Marketing, Sales, Support, Finance"
+                        numberOfLinesValue={5}
+                    />
+                }
+            />
+
+            <Card
+                title="description, numberOfLinesTitle={0}, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Invite message"
+                        title="Hello! You have been invited to join the workspace. Take a look around and add your first expense."
+                        numberOfLinesTitle={0}
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Invite message</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={0}>
+                                    Hello! You have been invited to join the workspace. Take a look around and add your first expense.
+                                </MenuItem.FieldValue>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Invite message"
+                        value="Hello! You have been invited to join the workspace. Take a look around and add your first expense."
+                        numberOfLinesValue={0}
+                    />
+                }
+            />
+
+            <Card
+                title="description, style, titleStyle, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Tax amount"
+                        title="$4.20"
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Tax amount</MenuItem.FieldName>
+                                <MenuItem.FieldValue>$4.20</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Tax amount"
+                        onPress={noop}
+                        value="$4.20"
+                    />
+                }
+            />
+
             <SectionHeading title="Trailing interactions — copy and external link">
                 Leaves that own a row-wide behaviour instead of a prop: MenuItem.Copy takes over the row&apos;s long press (and shows a copy button on a hovered read-only row),
                 MenuItem.ExternalLink marks the row as leaving the app and offers the URL through the context menu. Both make the row block text selection on their own.
@@ -349,6 +480,85 @@ function Comparison() {
                     >
                         <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                     </MenuItemField>
+                }
+            />
+
+            <Card
+                title="brickRoadIndicator, description, errorText, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Country"
+                        title="United States"
+                        shouldShowRightIcon
+                        onPress={noop}
+                        brickRoadIndicator={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}
+                        errorText="Please select a country"
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItemField.Row
+                            name="Country"
+                            value="United States"
+                        >
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText
+                            isError
+                            message="Please select a country"
+                        />
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, hintText, non-interactive, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Limit type"
+                        title="Smart limit"
+                        interactive={false}
+                        hintText="Resets every month"
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItemField.Row
+                            name="Limit type"
+                            value="Smart limit"
+                        />
+                        <MenuItem.HelpText message="Resets every month" />
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="description, errorText, hintText, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Limit type"
+                        title="Smart limit"
+                        shouldShowRightIcon
+                        onPress={noop}
+                        errorText="Please select a limit type"
+                        hintText="Resets every month"
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItemField.Row
+                            name="Limit type"
+                            value="Smart limit"
+                        >
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        <MenuItem.HelpText
+                            isError
+                            message="Please select a limit type"
+                        />
+                        <MenuItem.HelpText message="Resets every month" />
+                    </MenuItem.Root>
                 }
             />
 

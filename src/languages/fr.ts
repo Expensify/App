@@ -624,11 +624,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du commentaire est de ${formattedMaxLength} caractères.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du titre de la tâche est de ${formattedMaxLength} caractères.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Mettre à jour l’application',
-        updatePrompt:
-            'Une nouvelle version de cette application est disponible.\nMettez-la à jour maintenant ou redémarrez l’application plus tard pour télécharger les dernières modifications.',
-    },
     deeplinkWrapper: {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
@@ -1085,6 +1080,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `Examiner ${count} dépense`,
                 other: `Examiner ${count} dépenses`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: `Examiner ${count} demande d'administrateur de domaine`,
+                other: `Examiner ${count} demandes d'administrateur de domaine`,
+            }),
         },
         upcomingTravel: 'Voyages à venir',
         upcomingTravelSection: {
@@ -1167,6 +1166,14 @@ const translations: TranslationDeepObject<typeof en> = {
             goodEvening: ({name}: {name?: string}) => (name ? `Bonsoir, ${name}.` : 'Bonsoir.'),
             inputPlaceholder: 'Demander à Concierge d’analyser vos dépenses ou d’obtenir de l’aide',
             inputPlaceholderMobile: 'Demander n’importe quoi à Concierge',
+        },
+    },
+    insightsPage: {
+        viewOnSpend: 'Voir dans Dépenses',
+        emptyState: {title: 'Rien à afficher', subtitle: 'Essayez de modifier vos critères ci-dessus'},
+        noExpensesState: {
+            title: 'Voyez où va votre argent',
+            subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
     },
     allSettingsScreen: {
@@ -1274,6 +1281,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'L’apparition de nouvelles cartes et transactions peut prendre un certain temps, veuillez patienter.',
         importMembersRolePermissionWarning: 'Vous n’avez pas l’autorisation d’assigner certains rôles de membre. Tous les nouveaux membres concernés ont été invités en tant que membres.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fournisseur a été ignoré car il n’existe pas dans cet espace de travail.',
+            other: `${count} fournisseurs ont été ignorés car ils n’existent pas dans cet espace de travail.`,
+        }),
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -2190,6 +2201,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
+        viewMemberHistory: 'Voir l’historique du membre',
+        viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
@@ -2831,6 +2844,15 @@ const translations: TranslationDeepObject<typeof en> = {
             updateAddress: 'Mettre à jour l’adresse',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Ajouté au portefeuille ${platform}`,
+        cardAddedToWalletPage: {
+            title: 'Tout est prêt !',
+            description: 'Votre carte a été ajoutée à Apple Wallet.',
+            firstSupportingText: 'Apple Pay est un moyen plus simple de payer en magasin, dans les apps et en ligne avec votre iPhone, votre Apple Watch, votre iPad et votre Mac.',
+            secondSupportingText: 'Utilisez Apple Pay partout où vous voyez\nces symboles.',
+            applePayMark: 'Apple Pay',
+            contactlessMark: 'Paiement sans contact',
+            buttonText: 'Compris',
+        },
         cardDetailsLoadingFailure: 'Une erreur s’est produite lors du chargement des détails de la carte. Veuillez vérifier votre connexion Internet et réessayer.',
         validateCardTitle: 'Vérifions que c’est bien vous',
         enterSecurityCode: (contactMethod: string) =>
@@ -3148,6 +3170,7 @@ ${amount} pour ${merchant} - ${date}`,
         agentName: 'Nom de l’agent',
         instructions: 'Écrire des instructions personnalisées',
         chatWithAgent: 'Discuter avec l’agent',
+        viewAgentHistory: 'Voir l’historique de l’agent',
         copilotIntoAccount: 'Copilote dans le compte',
         deleteAgent: 'Supprimer l’agent',
         deleteAgentTitle: 'Supprimer l’agent ?',
@@ -3331,7 +3354,7 @@ ${amount} pour ${merchant} - ${date}`,
                 'Les comptes d’agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
-        cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
+        cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez patienter quelques minutes, puis réessayer.',
         loginForm: 'Formulaire de connexion',
         notYou: (user: string) => `Pas ${user} ?`,
     },
@@ -3375,12 +3398,14 @@ ${amount} pour ${merchant} - ${date}`,
         employees: {
             title: 'Combien d’employés avez-vous ?',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1 à 4 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5 à 10 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1 à 10 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11 à 50 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5 à 9 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '10 à 50 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51 à 100 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101 à 1 000 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Plus de 1 000 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM]: '5 à 10 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO]: '1 à 10 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL]: '11 à 50 employés',
         },
         accounting: {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
@@ -3926,6 +3951,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
         countrySelectionStepHeader: 'Où se situe votre compte bancaire ?',
         accountDetailsStepHeader: 'Quelles sont les informations de votre compte ?',
         accountTypeStepHeader: 'Quel type de compte est-ce ?',
@@ -6641,6 +6667,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 expensifyCardBannerLearnMoreButton: 'En savoir plus',
                 statementCloseDateTitle: 'Date de clôture du relevé',
                 statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte, et nous créerons un relevé correspondant dans Expensify.',
+                exportAccount: 'Exporter le compte',
             },
             workflows: {
                 title: 'Workflows',
@@ -6900,6 +6927,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: (count: number) => `${count} tags`,
             }),
             showTagGLCodes: 'Afficher les codes GL lors de la sélection d’un tag',
+            showTagGLCodesSubtitle: 'Si un code GL n’est pas affiché, il n’est pas disponible pour ce tag dans votre système comptable.',
         },
         taxes: {
             subtitle: 'Ajoutez des noms de taxes, des taux et définissez des valeurs par défaut.',
@@ -8187,6 +8215,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 importColumnUpdatedCategory: 'Catégorie mise à jour',
                 importColumnUpdatedTag: 'Tag mis à jour',
                 importColumnUpdatedDescription: 'Description mise à jour',
+                importColumnUpdatedVendor: 'Fournisseur mis à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',
@@ -8694,12 +8723,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 }
             },
             syncResults: {
-                title: (provider: string) => `Synchronisation ${provider} terminée`,
-                successTitle: (provider: string) => `Connexion ${provider} synchronisée avec succès !`,
-                added: 'Ajouté',
-                removed: 'Supprimé',
-                skipped: 'Ignoré',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 employé',
                     other: (count: number) => `${count} employés`,
                 }),
@@ -8730,6 +8754,12 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
+            syncResults: {
+                importedCount: () => ({
+                    one: '1 candidat',
+                    other: (count: number) => `${count} candidat·s`,
+                }),
+            },
         },
         merge: {
             connections: 'Connexions',
@@ -8758,6 +8788,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
+            syncResults: {
+                title: (provider: string) => `Synchronisation ${provider} terminée`,
+                successTitle: (provider: string) => `Connexion à ${provider} synchronisée avec succès !`,
+                added: 'Ajouté',
+                removed: 'Supprimé',
+                skipped: 'Ignoré',
+            },
         },
         emptyDomain: {
             title: 'Renforcez votre sécurité avec des domaines',
@@ -8772,6 +8809,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subsidiarySelectDescription: 'Choisissez la filiale dans Campfire à partir de laquelle vous souhaitez importer des données.',
             noSubsidiariesFound: 'Aucune filiale trouvée',
             noSubsidiariesFoundDescription: 'Veuillez ajouter une entité dans Campfire et synchroniser à nouveau la connexion',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Campfire et synchroniser de nouveau la connexion',
             importDescription: 'Choisissez les configurations de codage à importer depuis Campfire.',
             accountTypesDescription: 'Vos comptes Campfire seront importés en tant que catégories.',
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
@@ -8788,6 +8827,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subsidiarySelectDescription: 'Sélectionnez la filiale Dynamics 365 Business Central à synchroniser avec cet espace de travail.',
             noCompaniesFound: 'Aucune entreprise trouvée',
             noCompaniesFoundDescription: 'Veuillez ajouter une société dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Business Central et synchroniser à nouveau la connexion',
         },
     },
     getAssistancePage: {
@@ -9621,6 +9662,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
             editMultipleTitle: 'Modifier plusieurs dépenses',
+            editFinalizedExpensesTitle: 'Modifier des dépenses finalisées ?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 des ${total} dépenses que vous avez sélectionnées figure sur une note de frais approuvée ou payée. Vous êtes sur le point de modifier une dépense finalisée. Êtes-vous sûr ?`,
+                other: `${count} des ${total} dépenses que vous avez sélectionnées figurent sur des notes de frais approuvées ou payées. Vous êtes sur le point de modifier des dépenses finalisées. Êtes-vous sûr ?`,
+            }),
             editMultipleDescription: 'Les modifications seront définies pour toutes les dépenses sélectionnées et remplaceront toutes les valeurs définies précédemment.',
             approve: 'Approuver',
             pay: 'Payer',
@@ -9737,6 +9783,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporter',
             },
             filterType: {label: 'Type de filtre', has: {positive: 'a', negative: 'n’a pas'}, is: {positive: 'est', negative: 'n’est pas'}},
+            created: 'Créé',
+            createdDate: 'Date de création',
+            transactionStatus: {
+                label: 'Statut de la transaction',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'En attente',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
+                hint: 'S’applique uniquement aux transactions par carte.',
+            },
         },
         display: {
             label: 'Affichage',
@@ -10737,6 +10791,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 title: ({count}: {count: number}) => ({
                     one: `Essai : il reste ${count} jour !`,
                     other: `Essai : il reste ${count} jours !`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `Il reste ${count} jour !`,
+                    other: `Il reste ${count} jours !`,
                 }),
                 subtitle: 'Ajoutez une carte de paiement pour continuer à utiliser toutes vos fonctionnalités préférées.',
             },
