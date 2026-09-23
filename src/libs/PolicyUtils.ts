@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 
 import CONST from '@src/CONST';
@@ -41,10 +42,11 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -698,8 +700,9 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
         return undefined;
     }
 
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -707,6 +710,21 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
     }
 
     return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+}
+
+/**
+ * Payer fields to merge into the successData of an ownership transfer. The backend keeps the former payer when the
+ * workspace has a bank account, so only reassign when there is none and the outgoing owner is the resolved payer.
+ */
+function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin: string): NullishDeep<Policy> {
+    if (!policy || policy.achAccount?.bankAccountID || getReimburserEmail(policy) !== policy.owner) {
+        return {};
+    }
+
+    return {
+        ...(policy.reimburser ? {reimburser: newOwnerLogin} : {}),
+        ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: newOwnerLogin}} : {}),
+    };
 }
 
 /**
@@ -728,8 +746,9 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     }
 
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-    const isAutoReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
-    const isManualReimbursement = policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isAutoReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+    const isManualReimbursement = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
 
     // Reimbursement is disabled for this workspace.
     if (!isAutoReimbursement && !isManualReimbursement) {
@@ -801,7 +820,7 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
 function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
     return (personalDetails: PersonalDetailsList | undefined): number => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, false, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, false, false);
 
         return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
             const accountID = policyMemberEmailsToAccountIDs[email];
@@ -853,14 +872,20 @@ const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxInputOrEntry<Policy>, currentUserAccountID: number | undefined): boolean => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>, currentUserAccountID: number | undefined): boolean =>
+    !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
  *
  * If includeMemberWithErrors is false, We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined, includeMemberWithErrors = false, includeMemberWithPendingDelete = true): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(
+    employeeList: PolicyEmployeeList | undefined,
+    personalDetailsByLogins?: PersonalDetailsByLogin,
+    includeMemberWithErrors = false,
+    includeMemberWithPendingDelete = true,
+): MemberEmailsToAccountIDs {
     const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
     for (const email of Object.keys(members)) {
@@ -876,7 +901,7 @@ function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | unde
                 continue;
             }
         }
-        const personalDetail = getPersonalDetailByEmail(email);
+        const personalDetail = personalDetailsByLogins?.[email] ?? getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
             continue;
         }
@@ -906,7 +931,7 @@ function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, emp
     }
 
     const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
 
     for (const [email, accountID] of Object.entries(memberAccountIDs)) {
         if (email.toLowerCase() === normalizedEmail) {
@@ -1130,14 +1155,36 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
 }
 
+// An anchored filter with no regex operators. Letter and digit escapes (\d, \w, ...) are classes, not literals.
+const LITERAL_PARENT_TAGS_FILTER = /^\^((?:\\[^A-Za-z0-9]|[^\\.*+?()[\]{}|^$])*)\$$/;
+const ESCAPED_CHARACTER = /\\([\s\S])/g;
+
+/**
+ * Whether a parentTagsFilter matches a parent tag path.
+ * Filters are almost always an anchored, escaped parent path, which is compared as a string -
+ * compiling a RegExp per tag dominates scans over large tag lists.
+ */
+function matchesParentTagsFilter(filter: string | undefined, parentTagPath: string): boolean {
+    if (!filter) {
+        return true;
+    }
+
+    const literal = LITERAL_PARENT_TAGS_FILTER.exec(filter)?.[1];
+
+    if (literal !== undefined) {
+        return literal.replaceAll(ESCAPED_CHARACTER, '$1') === parentTagPath;
+    }
+
+    return new RegExp(filter).test(parentTagPath);
+}
+
 /**
  * Checks whether a policy tag is selectable under a given parent tag path.
  * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
  * while tags without a filter apply everywhere.
  */
 function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
-    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+    return matchesParentTagsFilter(policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter, parentTagPath);
 }
 
 /**
@@ -1633,8 +1680,24 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+/**
+ * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
+ * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
+ * disabled, which hides Pay on its approved reports.
+ */
+function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | undefined {
+    switch (policy?.reimbursementChoice) {
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        case CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL:
+            return CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        default:
+            return policy?.reimbursementChoice;
+    }
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
-    return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
 /**
@@ -1778,9 +1841,20 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
+/**
+ * Whether Invoice Fields is enabled for the policy.
+ * Respects the `areInvoiceFieldsEnabled` toggle and verifies the policy has access to the feature (Control only).
+ */
+function isInvoiceFieldsEnabled(policy: OnyxEntry<Policy> | null): boolean {
+    return !!policy?.areInvoiceFieldsEnabled && canPolicyAccessFeature(policy ?? undefined, CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED);
+}
+
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
         return arePolicyRulesEnabled(policy, policyCategories);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED) {
+        return isInvoiceFieldsEnabled(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
@@ -2230,8 +2304,31 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
+
+    // Walks the records instead of `Object.values(...).some(...)`: a tag list can hold thousands of tags, and copying
+    // them into an array to ask whether any of them has a filter costs that copy on every caller render.
     // An empty tag list arrives without the `tags` key, despite the type.
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    for (const tagListName in policyTagList) {
+        if (!Object.hasOwn(policyTagList, tagListName)) {
+            continue;
+        }
+
+        const tags = policyTagList[tagListName]?.tags;
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (tag?.rules?.parentTagsFilter || tag?.parentTagsFilter) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -2547,6 +2644,16 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
+function getSageIntacctExpenseAccounts(policy: Policy | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.intacct?.data?.expenseAccounts ?? [];
+    return expenseAccounts.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
 function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
@@ -2686,10 +2793,21 @@ function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config?.isConfigured;
 }
 
+function isBusinessCentralVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.config?.isConfigured;
+}
+
+/**
+ * True when Campfire is connected AND configured.
+ */
+function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config?.isConfigured;
+}
+
 /**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central → Campfire) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2705,29 +2823,35 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, Rillet, and DualEntry branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Rillet, and DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
- *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
+ *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
- *   - Rillet (R4) configured connection. Beta required
- *   - DualEntry configured connection. Beta required
+ *   - Rillet (R4) configured connection. GA, so no beta required
+ *   - DualEntry configured connection. GA, so no beta required
+ *   - Business Central configured connection. Beta required
+ *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy)) {
+    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return (
-        isVendorMatchingBetaEnabled &&
-        (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy))
-    );
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy));
+}
+
+/**
+ * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
+ */
+function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
+    return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
 }
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, or DualEntry) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2767,6 +2891,12 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isDualEntryVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
+    }
+    if (isBusinessCentralVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
     }
     return undefined;
 }
@@ -2812,12 +2942,33 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isDualEntryVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
     }
+    if (isBusinessCentralVendorMatchingActive(policy)) {
+        const businessCentralVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.data?.vendors;
+        if (businessCentralVendors === undefined) {
+            return undefined;
+        }
+
+        // A vendor blocked as `All` can't be used in Business Central, so coding an expense
+        // to it would export to a record Business Central rejects.
+        // `Payment` only blocks paying the vendor, and purchase invoices can still post
+        return businessCentralVendors
+            .filter((vendor) => vendor.blocked !== CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL)
+            .map((vendor) => ({
+                id: vendor.id,
+                name: vendor.name,
+                currency: '',
+                email: vendor.email,
+            }));
+    }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors === undefined ? undefined : getCampfireVendors(policy);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, or DualEntry). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -2907,7 +3058,32 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: rilletVendor.email ?? '',
         };
     }
+    const businessCentralVendor = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.data?.vendors?.find((vendor) => vendor.id === vendorID);
+    if (businessCentralVendor) {
+        return {
+            id: businessCentralVendor.id,
+            name: businessCentralVendor.name,
+            currency: '',
+            email: businessCentralVendor.email ?? '',
+        };
+    }
+    const campfireVendor = getCampfireVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (campfireVendor) {
+        return campfireVendor;
+    }
     return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Display name of a transaction's vendor, or an empty string when none is assigned. The workspace's synced vendor list
+ * wins so renames in the accounting system show through. The name stored on the transaction covers vendors since
+ * removed from that list.
+ */
+function getVendorDisplayName(policy: OnyxEntry<Policy>, vendor: TransactionCommentVendor | undefined): string {
+    if (!vendor?.externalID) {
+        return '';
+    }
+    return findVendorByID(policy, vendor.externalID)?.name ?? vendor.name ?? '';
 }
 
 /**
@@ -2957,6 +3133,16 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.dualEntry.noVendorsFound'),
                 subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+            return {
+                title: translate('workspace.businessCentral.noVendorsFound'),
+                subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            return {
+                title: translate('workspace.campfire.noVendorsFound'),
+                subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -2981,6 +3167,14 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
         return [];
     }
     return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/** Campfire vendor matching uses only active vendor-type records, never customers or inactive vendors */
+function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors;
+    return (vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
 /** DualEntry export settings and expense matching must use vendors available to the selected company */
@@ -3387,6 +3581,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.netsuite?.options?.config?.exporter,
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
+        policy?.connections?.campfire?.config?.export?.exporter,
     ];
 }
 
@@ -3475,6 +3670,7 @@ export {
     getConnectedIntegration,
     getConnectionExporters,
     findVendorByID,
+    getVendorDisplayName,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
@@ -3484,11 +3680,14 @@ export {
     getXeroSupplierByID,
     getXeroSuppliers,
     getDualEntryVendors,
+    getCampfireVendors,
     isRilletVendorMatchingActive,
+    isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
+    hasVendorFeatureOnAnyPolicy,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -3511,6 +3710,7 @@ export {
     isTagInPolicy,
     findPolicyTagAtLevel,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     hasCustomCategories,
     hasConfiguredRules,
     isMaxExpenseAmountSet,
@@ -3563,9 +3763,11 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
+    getReimbursementChoice,
     isSubmitterAndApprover,
     isSubmitAndClose,
     isTaxTrackingEnabled,
@@ -3602,6 +3804,7 @@ export {
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getSageIntacctBankAccounts,
+    getSageIntacctExpenseAccounts,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -3678,6 +3881,7 @@ export {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     isPerDiemEnabled,
     isPerDiemEligiblePolicy,
+    isInvoiceFieldsEnabled,
     getTravelStep,
     isWorkspaceProvisionedForTravel,
     hasAcceptedTravelTerms,

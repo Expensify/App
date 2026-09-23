@@ -45,6 +45,7 @@ import {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
+    getDomainOrWorkspaceAccountID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
     getFeedNameForDisplay,
@@ -58,7 +59,9 @@ import {
     getTranslationKeyForCardStatus,
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
+    hasActiveExpensifyCard,
     hasAssignedCardMatching,
+    hasCardPendingDigitalWalletApproval,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
     isBrokenConnectionPastDismissThreshold,
@@ -70,11 +73,14 @@ import {
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
     isActiveCard,
+    isActiveExpensifyCard,
+    isCardPendingDigitalWalletApproval,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
     isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
@@ -111,7 +117,7 @@ import * as fs from 'fs';
 import lodashSortBy from 'lodash/sortBy';
 import * as path from 'path';
 
-import createRandomCard from '../utils/collections/card';
+import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import createMock from '../utils/createMock';
 import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1408,6 +1414,23 @@ describe('CardUtils', () => {
             const cardFeeds = undefined;
             const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
             expect(selectedFeed).toBe(undefined);
+        });
+    });
+
+    describe('getDomainOrWorkspaceAccountID', () => {
+        it('Should return the domain account that owns a domain feed', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {domainID: 1234567});
+            expect(accountID).toBe(1234567);
+        });
+
+        it('Should return the workspace account when the feed has no domain', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {});
+            expect(accountID).toBe(7654321);
+        });
+
+        it('Should return the workspace account when there is no feed data', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, undefined);
+            expect(accountID).toBe(7654321);
         });
     });
 
@@ -4438,6 +4461,24 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('isPersonalCardBrokenConnection', () => {
+        it('returns true for account-not-found, which is actionable for personal cards but ignored for company feed health', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS};
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(true);
+        });
+
+        it('returns false while a personal-card sync is pending', () => {
+            const card: Card = {
+                ...createRandomCard(1),
+                lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS,
+                pendingFields: {lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(false);
+        });
+    });
+
     describe('isLastScrapePastDismissThreshold', () => {
         afterEach(() => {
             jest.restoreAllMocks();
@@ -5053,6 +5094,84 @@ describe('getDomainByFundID', () => {
     });
 });
 
+describe('isActiveExpensifyCard', () => {
+    it('is true for an Expensify Card in an active state', () => {
+        expect(isActiveExpensifyCard(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}))).toBe(true);
+    });
+
+    it('is false for an Expensify Card that is no longer active', () => {
+        expect(isActiveExpensifyCard(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}))).toBe(false);
+    });
+
+    it('is false for a company card, which never has an Expensify Card wallet prompt', () => {
+        expect(isActiveExpensifyCard(createRandomCompanyCard(1))).toBe(false);
+    });
+});
+
+describe('isCardPendingDigitalWalletApproval', () => {
+    it('is true when the card has a wallet addition awaiting approval', () => {
+        const card: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({
+                pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+            }),
+        };
+        expect(isCardPendingDigitalWalletApproval(card)).toBe(true);
+    });
+
+    it('is false when the card has no wallet addition awaiting approval', () => {
+        expect(isCardPendingDigitalWalletApproval(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}))).toBe(false);
+    });
+});
+
+describe('hasActiveExpensifyCard', () => {
+    it('is true when the user holds an active Expensify Card', () => {
+        const cardList: CardList = {'1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
+        expect(hasActiveExpensifyCard(cardList)).toBe(true);
+    });
+
+    it('is false when the user only holds company cards', () => {
+        const cardList: CardList = {'1': createRandomCompanyCard(1)};
+        expect(hasActiveExpensifyCard(cardList)).toBe(false);
+    });
+
+    it('is false when there is no card list', () => {
+        expect(hasActiveExpensifyCard(undefined)).toBe(false);
+    });
+});
+
+describe('hasCardPendingDigitalWalletApproval', () => {
+    it('is true when any Expensify Card has a wallet addition awaiting approval', () => {
+        const cardList: CardList = {
+            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+            '2': {
+                ...createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
+                nameValuePairs: createMock<Card['nameValuePairs']>({
+                    pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY, cardLastFourDigits: '1234'},
+                }),
+            },
+        };
+        expect(hasCardPendingDigitalWalletApproval(cardList)).toBe(true);
+    });
+
+    it('is false when the pending approval sits on a card that is no longer active', () => {
+        const cardList: CardList = {
+            '1': {
+                ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.CLOSED}),
+                nameValuePairs: createMock<Card['nameValuePairs']>({
+                    pendingDigitalWalletApproval: {walletProvider: CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, cardLastFourDigits: '1234'},
+                }),
+            },
+        };
+        expect(hasCardPendingDigitalWalletApproval(cardList)).toBe(false);
+    });
+
+    it('is false when no card has a wallet addition awaiting approval', () => {
+        const cardList: CardList = {'1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN})};
+        expect(hasCardPendingDigitalWalletApproval(cardList)).toBe(false);
+    });
+});
+
 describe('toMonthlySettlementDate', () => {
     it('reads the value as the day of the month, not as milliseconds since the epoch', () => {
         expect(toMonthlySettlementDate(10)?.getDate()).toBe(10);
@@ -5087,5 +5206,10 @@ describe('getWalletProviderNameKey', () => {
 
     it('falls back to the generic key when the provider is missing, which happens when the card provider reports UNKNOWN', () => {
         expect(getWalletProviderNameKey(undefined)).toBe('digitalWallet');
+    });
+
+    it('capitalizes only the generic key, since the brand names already read correctly at the start of a sentence', () => {
+        expect(getWalletProviderNameKey(undefined, true)).toBe('digitalWalletCapitalized');
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, true)).toBe('appleWallet');
     });
 });

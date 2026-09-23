@@ -61,14 +61,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -1782,6 +1774,7 @@ describe('actions/Duplicate', () => {
             const conciergeChat = {reportID: 'concierge-duplicate-1'};
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 conciergeChat,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -1829,6 +1822,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -1901,6 +1895,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
@@ -1965,6 +1960,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
@@ -2022,6 +2018,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
@@ -2094,6 +2091,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
@@ -2175,6 +2173,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
@@ -2243,6 +2242,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2304,6 +2304,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2374,6 +2375,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
@@ -2428,6 +2430,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: undefined,
@@ -2477,6 +2480,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2527,6 +2531,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
@@ -2579,6 +2584,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
@@ -2637,6 +2643,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
@@ -2710,6 +2717,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
@@ -2784,6 +2792,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
@@ -2841,6 +2850,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
@@ -2909,6 +2919,7 @@ describe('actions/Duplicate', () => {
 
             // When duplicating the transaction
             duplicateExpenseTransaction({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transaction: mockCashExpense,
@@ -3088,6 +3099,7 @@ describe('actions/Duplicate', () => {
         const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
 
         const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
+            isVendorMatchingBetaEnabled: false,
             dateFnsLocale: undefined,
             sourceReport: undefined,
             sourceReportTransactions: sourceTransactions,
@@ -3104,7 +3116,6 @@ describe('actions/Duplicate', () => {
             },
             ownerPersonalDetails: mockOwnerPersonalDetails,
             isASAPSubmitBetaEnabled: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
@@ -3844,6 +3855,7 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
@@ -3902,6 +3914,7 @@ describe('actions/Duplicate', () => {
             };
 
             bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
                 dateFnsLocale: undefined,
                 conciergeChat: undefined,
                 transactionIDs: ['bulk_reported', 'bulk_unreported'],
@@ -4005,6 +4018,7 @@ describe('actions/Duplicate', () => {
         });
 
         const getDefaultBulkParams = (reportIDs: string[], overrides: Partial<BulkDuplicateReportsParams> = {}): BulkDuplicateReportsParams => ({
+            isVendorMatchingBetaEnabled: false,
             dateFnsLocale: undefined,
             selectedReports: reportIDs.map((id) => ({
                 reportID: id,
@@ -4032,7 +4046,6 @@ describe('actions/Duplicate', () => {
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'}},
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],

@@ -1,3 +1,4 @@
+import ConnectToBusinessCentralFlow from '@components/ConnectToBusinessCentralFlow';
 import ConnectToCampfireFlow from '@components/ConnectToCampfireFlow';
 import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToDualEntryFlow from '@components/ConnectToDualEntry';
@@ -36,6 +37,7 @@ import React from 'react';
 
 import type {AccountingIntegration} from './types';
 
+import {isCertiniaFFAConnection} from './certinia/utils';
 import {
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
@@ -72,7 +74,17 @@ function getAccountingIntegrationData(
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
     expensifyIcons?: Record<
-        'IntacctSquare' | 'IntuitSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'CampfireSquare',
+        | 'IntacctSquare'
+        | 'IntuitSquare'
+        | 'QBOSquare'
+        | 'XeroSquare'
+        | 'NetSuiteSquare'
+        | 'QBDSquare'
+        | 'CertiniaSquare'
+        | 'RilletSquare'
+        | 'DualEntrySquare'
+        | 'CampfireSquare'
+        | 'BusinessCentralSquare',
         IconAsset
     >,
     cardFeeds?: CombinedCardFeeds,
@@ -356,6 +368,7 @@ function getAccountingIntegrationData(
                     CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
                     CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                    CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
@@ -423,9 +436,12 @@ function getAccountingIntegrationData(
                       CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
                       CONST.CERTINIA_CONFIG.SYNC_TAX,
                   ];
-            const certiniaSubscribedAdvancedSettings = certiniaConfig?.hasPSA
-                ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
-                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS];
+            const certiniaSubscribedAdvancedSettings = [
+                ...(certiniaConfig?.hasPSA
+                    ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
+                    : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS]),
+                ...(isCertiniaFFAConnection(certiniaConfig) ? [CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT] : []),
+            ];
             let certiniaTitle = translate('workspace.certinia.title');
             if (certiniaConnection && certiniaConfig?.hasPSA) {
                 certiniaTitle = translate('workspace.certinia.titlePSA');
@@ -579,13 +595,13 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
                     CONST.CAMPFIRE_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.CAMPFIRE_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.campfire?.data?.fields?.map((field) => `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.CAMPFIRE_CONFIG.EXPORTER,
                     CONST.CAMPFIRE_CONFIG.EXPORT_DATE,
@@ -624,6 +640,32 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: policy?.connections?.campfire?.config?.pendingFields,
                 errorFields: policy?.connections?.campfire?.config?.errorFields,
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            return {
+                title: translate('workspace.accounting.businessCentral'),
+                icon: expensifyIcons?.BusinessCentralSquare,
+                setupConnectionFlow: (
+                    <ConnectToBusinessCentralFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.businessCentral.alias,
+                    backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
+                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        : ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES.getRoute(policyID),
+                },
+                pendingFields: policy?.connections?.businessCentral?.config?.pendingFields,
+                errorFields: policy?.connections?.businessCentral?.config?.errorFields,
             };
         }
         default:

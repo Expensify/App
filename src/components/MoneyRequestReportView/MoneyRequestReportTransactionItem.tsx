@@ -5,12 +5,11 @@ import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
@@ -22,7 +21,6 @@ import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/Tra
 
 import variables from '@styles/variables';
 
-import {dismissRejectExpenseError} from '@userActions/IOU/RejectMoneyRequest';
 import {clearError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -95,7 +93,7 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
     inlineEdit?: InlineEditValues;
 
     /** Highlight animation style, computed by the parent so its state survives the narrow↔wide swap on resize. */
-    animatedHighlightStyle: ReturnType<typeof useAnimatedHighlightStyle>;
+    animatedHighlightStyle: ReturnType<typeof useRowHighlightAnimation>;
 
     shouldSkipDeferRBR?: boolean;
 };
@@ -165,13 +163,7 @@ function MoneyRequestReportTransactionItemBody({
     const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
     const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
 
-    // A reject error means the server no longer has this expense on this report, so dismissing it drops the stale
-    // local copy rather than just hiding the message. Any other error is a plain dismiss.
     const dismissTransactionError = () => {
-        if (hasRejectError) {
-            dismissRejectExpenseError(transaction.transactionID);
-            return;
-        }
         clearError(transaction.transactionID);
     };
 
@@ -318,17 +310,14 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
     const {shouldBeHighlighted} = props;
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    const theme = useTheme();
     // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
     const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !props.shouldScrollHorizontally);
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: shouldBeHighlighted,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 

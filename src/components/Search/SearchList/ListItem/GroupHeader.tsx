@@ -6,13 +6,14 @@ import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -29,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -42,6 +44,7 @@ import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, Transac
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -105,6 +108,7 @@ function GroupHeader({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -144,6 +148,7 @@ function GroupHeader({
             type: snapshotSearchType,
             shouldShowViolationsColumn: queryHasViolationFilter(groupItem.transactionsQueryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
+            isVendorColumnAvailable,
         });
     }
 
@@ -184,10 +189,9 @@ function GroupHeader({
         keyForList: item.groupKeyForList,
     });
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });
 
@@ -282,6 +286,13 @@ function GroupHeader({
                         {...commonProps}
                     />
                 );
+            case CONST.SEARCH.GROUP_BY.DAY:
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
+                        {...commonProps}
+                    />
+                );
             case CONST.SEARCH.GROUP_BY.MONTH:
                 return (
                     <MonthListItemHeader
@@ -339,7 +350,7 @@ function GroupHeader({
     );
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
