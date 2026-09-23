@@ -88,7 +88,10 @@ describe('BankAccounts', () => {
             addPersonalBankAccount({}, undefined);
             const [, , onyxData] = mockWrite.mock.calls.at(-1) ?? [];
             const personalBankAccountFailure = onyxData?.failureData?.find((update) => update.key === ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccountFailure?.value);
+            if (!personalBankAccountFailure?.value) {
+                throw new Error('addPersonalBankAccount did not write failureData for PERSONAL_BANK_ACCOUNT');
+            }
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccountFailure.value);
             await waitForBatchedUpdates();
 
             // Then the server's specific message still wins over the generic fallback
