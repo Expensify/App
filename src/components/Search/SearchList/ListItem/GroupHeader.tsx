@@ -10,6 +10,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -31,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
+import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -108,6 +110,7 @@ function GroupHeader({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -147,6 +150,7 @@ function GroupHeader({
             type: snapshotSearchType,
             shouldShowViolationsColumn: queryHasViolationFilter(groupItem.transactionsQueryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
+            isVendorColumnAvailable,
         });
     }
 
@@ -349,7 +353,7 @@ function GroupHeader({
     );
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
         useCopyableTextRowPress();
 

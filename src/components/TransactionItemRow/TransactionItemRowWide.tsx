@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
+import {getTagGLCode, getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
@@ -92,6 +92,7 @@ function TransactionItemRowWide({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    isDateColumnCreated = false,
     submittedColumnSize,
     approvedColumnSize,
     postedColumnSize,
@@ -245,7 +246,7 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide}), styles.editableCellColumn]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide, isDateColumnCreated}), styles.editableCellColumn]}
                     >
                         <DateCell
                             canEdit={canEditDate}
@@ -401,6 +402,15 @@ function TransactionItemRowWide({
                             canEdit={canEditMerchant}
                             onSave={onEditMerchant}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VENDOR)]}
+                    >
+                        <TextCell text={getVendorDisplayName(policy, transactionItem.comment?.vendor)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:

@@ -18,6 +18,7 @@ import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -56,7 +57,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
         useCopyableTextRowPress();
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);

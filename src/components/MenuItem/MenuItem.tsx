@@ -60,7 +60,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode, Ref} from 'react';
+import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -93,7 +93,7 @@ type NoIcon = {
 type MenuItemBaseProps = ForwardedFSClassProps &
     WithSentryLabel &
     Pick<HoverableProps, 'shouldUseNativeHoverEvents'> & {
-        ref?: PressableRef | Ref<View>;
+        ref?: PressableRef | Ref<ComponentRef<typeof View>>;
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
         interactive?: boolean;
 
@@ -584,8 +584,8 @@ function MenuItem({
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {isExecuting} = useMenuItemGroupState() ?? {};
     const {singleExecution, waitForNavigate} = useMenuItemGroupActions() ?? {};
-    const popoverAnchor = useRef<View>(null);
-    const pressableRef = useRef<View>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     const {isPressStartOnCopyableText, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
         useCopyableTextRowPress();
     useRemoveNonInteractiveClickHandler(pressableRef, interactive);
