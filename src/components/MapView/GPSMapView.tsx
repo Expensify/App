@@ -1,4 +1,5 @@
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useLocationServicesRemountKey from '@hooks/useLocationServicesRemountKey';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import useLocalize from '@src/hooks/useLocalize';
@@ -53,8 +54,12 @@ function GPSMapView({accessToken, ...contentProps}: GPSMapViewProps) {
         });
     });
 
+    // A map created while Location services were off never gets a location fix again, so it is recreated once they come back
+    const mapInstanceKey = useLocationServicesRemountKey();
+
     return !isOffline && isAccessTokenReady && foregroundLocationPermissionsGranted !== null ? (
         <GPSMapViewContent
+            key={mapInstanceKey}
             {...contentProps}
             foregroundLocationPermissionsGranted={foregroundLocationPermissionsGranted}
         />
