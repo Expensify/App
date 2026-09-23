@@ -37,19 +37,19 @@ After submitting, the report status updates and a **”submitted”** entry appe
 
 You can select several reports on the **Reports** tab and submit them in one action.
 
-**On web:**
+**Web:**
 
 1. In the navigation tabs on the left, select **Spend**.
 2. Under **Expense reports**, select **Reports**.
 3. Select the checkbox on two or more reports you want to submit.
-4. Select the button that shows how many reports you selected (for example, **2 selected**), then select **Submit**.
+4. Select the **X selected** button (for example, **2 selected**), then select **Submit**.
 
-**On mobile:**
+**Mobile:**
 
 1. In the navigation tabs on the bottom, tap **Spend** > **Reports**.
 2. Long-press a report, then tap **Select** to enter selection mode.
 3. Select two or more reports you want to submit.
-4. Tap the button that shows how many reports you selected (for example, **2 selected**), then tap **Submit**.
+4. Tap the **X selected** button (for example, **2 selected**), then tap **Submit**.
 
 **Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**.
 
