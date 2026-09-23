@@ -522,6 +522,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         stateNum={reportItem.stateNum}
                         statusNum={reportItem.statusNum}
                         isSelected={isSelected}
+                        shouldAllowStatusTextSelection
                     />
                 )}
                 <AvatarTooltipsProvider isEnabled={showTooltip}>

@@ -5,6 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -29,6 +30,7 @@ function UserInfoAndActionButtonRow({
     stateNum,
     statusNum,
     isSelected,
+    shouldAllowStatusTextSelection = false,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType | ExpenseReportListItemType;
     shouldShowUserInfo: boolean;
@@ -36,6 +38,7 @@ function UserInfoAndActionButtonRow({
     stateNum: ExpenseReportListItemType['stateNum'];
     statusNum: ExpenseReportListItemType['statusNum'];
     isSelected?: boolean;
+    shouldAllowStatusTextSelection?: boolean;
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -64,12 +67,17 @@ function UserInfoAndActionButtonRow({
                 />
             )}
             {!!statusText && !!reportStatusColorStyle && (
-                <StatusBadge
-                    text={statusText}
-                    backgroundColor={badgeBackgroundColor}
-                    textColor={reportStatusColorStyle.textColor}
-                    tooltipText={tooltipText}
-                />
+                <View
+                    style={shouldAllowStatusTextSelection ? styles.userSelectText : undefined}
+                    dataSet={shouldAllowStatusTextSelection ? COPYABLE_TEXT_DATA_SET : undefined}
+                >
+                    <StatusBadge
+                        text={statusText}
+                        backgroundColor={badgeBackgroundColor}
+                        textColor={reportStatusColorStyle.textColor}
+                        tooltipText={tooltipText}
+                    />
+                </View>
             )}
         </View>
     );
