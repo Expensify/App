@@ -37,7 +37,7 @@ import type {BarChartProps} from './types';
  */
 const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
-function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -45,7 +45,6 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
-    const defaultBarColor = VictoryTheme.colors.default;
 
     const chartData = data.map((point, index) => ({
         x: index,
@@ -165,7 +164,7 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = Number(point.xValue);
         const dataPoint = data.at(dataIndex);
-        const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
+        const barColor = color ?? VictoryTheme.colors.getColor(dataIndex);
 
         return (
             <Bar

@@ -147,13 +147,12 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
     });
 }
 
-function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', onBarPress}: BarChartProps) {
+function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color = colors.blue400, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaHeight, setBarAreaHeight] = useState(0);
-    const barColor = colors.blue400;
 
     // Transpose: value on the x-axis, category index on the y-axis.
     // Categories are reversed (index 0 mapped to the top row) so a descending-sorted ranking reads top-to-bottom.
@@ -364,7 +363,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
                 <Path
                     key={`horizontal-bar-${data.at(index)?.label ?? index}`}
                     path={path}
-                    color={barColor}
+                    color={color}
                 />
             );
         });

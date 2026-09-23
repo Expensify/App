@@ -3,8 +3,8 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 type BarChartProps = CartesianChartProps & {
     onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
 
-    /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
-    useSingleColor?: boolean;
+    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
+    color?: string;
 };
 
 /** Adds the wrapper-resolved orientation. Only the dispatcher receives `isHorizontal`. Callers and bodies use `BarChartProps`. */

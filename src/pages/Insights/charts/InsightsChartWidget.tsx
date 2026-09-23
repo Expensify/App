@@ -87,6 +87,7 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
+                        color={chart.color}
                     />
                 </View>
             )}
