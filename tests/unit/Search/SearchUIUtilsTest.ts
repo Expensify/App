@@ -11306,6 +11306,34 @@ describe('SearchUIUtils', () => {
             ).toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
         });
 
+        test('Should drop the vendor column from the saved list and the report view when the vendor feature is unavailable', () => {
+            // Given a saved Search column list that includes Vendor, and an expense that still carries a vendor
+            const transactionWithVendor = {...createRandomTransaction(3), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            // When no workspace has the vendor feature anymore
+            const searchColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: [transactionWithVendor],
+                visibleColumns: pickedColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                isVendorColumnAvailable: false,
+            });
+            const reportColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: [transactionWithVendor],
+                visibleColumns: [],
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                isExpenseReportView: true,
+                isVendorColumnAvailable: false,
+            });
+
+            // Then the Search table keeps the other saved columns but not Vendor, and the report view does not auto-show it either
+            expect(searchColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+            expect(searchColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(reportColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        });
+
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,

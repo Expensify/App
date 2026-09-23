@@ -7,10 +7,9 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getActionErrorsByTransaction, getTransactionSortValue, isSortableColumnName} from '@libs/ReportUtils';
+import {getTransactionSortValue, isSortableColumnName} from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
-import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
 import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -70,7 +69,7 @@ type UseMoneyRequestReportSortedTransactionsParams = {
     /** List of transactions belonging to one report */
     transactions: OnyxTypes.Transaction[];
 
-    /** Report actions of the report, used to resolve per-transaction thread report IDs and RBR errors */
+    /** Report actions of the report, used to resolve per-transaction thread report IDs */
     reportActions: OnyxTypes.ReportAction[];
 
     /** List of transactions that arrived when the report was open — these rows get highlighted */
@@ -93,7 +92,7 @@ type UseMoneyRequestReportSortedTransactionsResult = {
     /** Column-header sort handler; ignores non-sortable columns */
     onSortPress: (selectedSortBy: SearchSortBy, selectedSortOrder: SortOrder) => void;
 
-    /** Transactions sorted by the current column/direction, RBR-flagged rows first on the default sort */
+    /** Transactions sorted by the current column/direction */
     sortedTransactions: TransactionWithOptionalHighlight[];
 
     /** `sortedTransactions` with card fields resolved from the card list — the array the view renders */
@@ -139,7 +138,6 @@ function useMoneyRequestReportSortedTransactions({
     });
 
     const {sortBy, sortOrder} = sortConfig;
-    const isDefaultSort = sortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && sortOrder === CONST.SEARCH.SORT_ORDER.ASC;
 
     const onSortPress = (selectedSortBy: SearchSortBy, selectedSortOrder: SortOrder) => {
         if (!isSortableColumnName(selectedSortBy)) {
@@ -148,59 +146,31 @@ function useMoneyRequestReportSortedTransactions({
         setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
     };
 
-    // In a single pass over reportActions, build:
-    // - reportActionsMap: keyed by reportActionID for transactionHasRBR.
-    // - transactionThreadReportIDByTransactionID: transactionID → transaction-thread report ID, so each row can pass it
-    //   to the RBR, letting rows without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx
-    //   subscriptions). Without this, the per-row alternative would re-scan every report action (O(transactions × actions)).
-    const reportActionsMap: Record<string, OnyxTypes.ReportAction> = {};
+    // Maps each transactionID to its transaction-thread report ID, so each row can pass it to the RBR, letting rows
+    // without RBR content early-return instead of mounting the heavy RBR inner (6 Onyx subscriptions). Without this,
+    // the per-row alternative would re-scan every report action (O(transactions x actions)).
     const transactionThreadReportIDByTransactionID = new Map<string, string>();
     for (const action of reportActions) {
-        reportActionsMap[action.reportActionID] = action;
-        if (isMoneyRequestAction(action)) {
-            const iouTransactionID = getOriginalMessage(action)?.IOUTransactionID;
-            // First match wins to mirror getIOUActionForTransactionID's `.find` semantics (reportActions are sorted newest→oldest).
-            if (iouTransactionID && action.childReportID && !transactionThreadReportIDByTransactionID.has(iouTransactionID)) {
-                transactionThreadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
-            }
+        if (!isMoneyRequestAction(action)) {
+            continue;
+        }
+        const iouTransactionID = getOriginalMessage(action)?.IOUTransactionID;
+        // First match wins to mirror getIOUActionForTransactionID's `.find` semantics (reportActions are sorted newest→oldest).
+        if (iouTransactionID && action.childReportID && !transactionThreadReportIDByTransactionID.has(iouTransactionID)) {
+            transactionThreadReportIDByTransactionID.set(iouTransactionID, action.childReportID);
         }
     }
 
-    // Precompute the set of RBR-flagged transaction IDs so the default sort can float them to the top
-    let rbrTransactionIDs: Set<string> | null = null;
-    if (isDefaultSort && allTransactionViolations) {
-        const login = currentUserDetails?.login ?? '';
-        const accountID = currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        // Precompute report-action errors once so each transaction's RBR check is an O(1) lookup instead of
-        // re-scanning every report action (O(transactions × actions)).
-        const actionErrors = getActionErrorsByTransaction(report?.reportID, reportActionsMap);
-        rbrTransactionIDs = new Set<string>();
-        for (const transaction of transactions) {
-            const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
-            if (transactionHasRBR(transaction, violations, login, accountID, report, ownerLogin, policy, reportActionsMap, actionErrors)) {
-                rbrTransactionIDs.add(transaction.transactionID);
-            }
-        }
-    }
-
-    const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) => {
-        // When on default sort (Date/ASC), prioritize RBR-flagged transactions
-        if (rbrTransactionIDs) {
-            const aHasRBR = rbrTransactionIDs.has(a.transactionID);
-            const bHasRBR = rbrTransactionIDs.has(b.transactionID);
-            if (aHasRBR !== bHasRBR) {
-                return aHasRBR ? -1 : 1;
-            }
-        }
-        return compareValues(
+    const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) =>
+        compareValues(
             getTransactionSortValue(a, sortBy, report, policy, policyCategories, policyTagLists),
             getTransactionSortValue(b, sortBy, report, policy, policyCategories, policyTagLists),
             sortOrder,
             sortBy,
             localeCompare,
             true,
-        );
-    });
+        ),
+    );
 
     const resolvedTransactions = resolveTransactionCardFields(sortedTransactions, cardList, translate);
 

@@ -8646,26 +8646,56 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
-        it('should return false when the report does not have participants', () => {
-            const report = LHNTestUtils.getFakeReport([]);
+        it('should return false when a DM does not have participants', () => {
+            // Given a DM with no participants, which takes its name and avatar from `participants` alone
+            const report: Report = {...LHNTestUtils.getFakeReport(), participants: undefined};
             const currentReportId = '';
-            const isInFocusMode = true;
-            expect(
-                shouldReportBeInOptionList({
-                    report,
-                    chatReport: mockedChatReport,
-                    currentReportId,
-                    isInFocusMode,
-                    isDefaultRoomsBetaEnabled: true,
-                    doesReportHaveViolations: false,
-                    excludeEmptyChats: false,
-                    draftComment: '',
-                    isReportArchived: undefined,
-                    hasGuidesEmails: false,
-                    conciergeReportID: undefined,
-                    derivedIsEmptyReport: undefined,
-                }),
-            ).toBeFalsy();
+
+            // When it is evaluated outside focus mode, so only the participants check can exclude it
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is excluded, because there would be nothing to render in the option item
+            expect(result).toBeFalsy();
+        });
+
+        it('should return true when a policy expense chat does not have participants', () => {
+            // Given a policy expense chat with no participants, as SearchForTodos returns it to keep its payload small
+            const report: Report = {...LHNTestUtils.getFakeReportWithPolicy(), participants: undefined};
+            const currentReportId = '';
+
+            // When it is evaluated for the option list
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is kept, because a workspace chat renders its name and icon from its policy
+            expect(result).toBeTruthy();
         });
 
         it('should return false when the report is the report that the user cannot access due to policy restrictions', () => {
@@ -17490,7 +17520,7 @@ describe('ReportUtils', () => {
                 formatPhoneNumber,
                 accountID: hiddenAccountID,
                 personalDetailsData: personalDetailsWithHidden,
-                translate: translateLocal,
+                hiddenTranslation: translateLocal('common.hidden'),
             });
 
             expect(result).toBe(translateLocal('common.hidden'));
@@ -17517,23 +17547,21 @@ describe('ReportUtils', () => {
                 accountID: hiddenAccountID,
                 shouldUseShortForm: true,
                 personalDetailsData: personalDetailsWithHidden,
-                translate: translateLocal,
+                hiddenTranslation: translateLocal('common.hidden'),
             });
 
             expect(result).toBe(translateLocal('common.hidden'));
             expect(result).not.toBe('ShortName');
         });
 
-        it('resolves the hidden participant fallback through the provided translate function', () => {
+        it('resolves the hidden participant fallback through the provided hiddenTranslation string', () => {
             const hiddenAccountID = 909090;
-            // A known participant with no displayName/login resolves to the hidden label, which must come from the provided translate function.
-            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
-
+            // A known participant with no displayName/login resolves to the hidden label, which must come from the provided hiddenTranslation string.
             const displayName = getDisplayNameForParticipant({
                 accountID: hiddenAccountID,
                 formatPhoneNumber,
                 personalDetailsData: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
-                translate: translateWithHiddenMarker,
+                hiddenTranslation: 'HiddenMarker',
             });
 
             expect(displayName).toBe('HiddenMarker');

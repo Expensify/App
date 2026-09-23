@@ -44,7 +44,7 @@ const wrapper = ({children}: {children: ReactNode}) => (
     </LocaleContextProvider>
 );
 
-/** A deterministic transaction with none of the random fields that could trip an RBR on their own. */
+/** A deterministic transaction with none of the random fields that could affect sorting or violations. */
 function buildTransaction(transactionID: string, overrides: Partial<Transaction> = {}): Transaction {
     return {
         ...createRandomTransaction(Number(transactionID)),
@@ -179,41 +179,6 @@ describe('useMoneyRequestReportSortedTransactions', () => {
         expect(result.current.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
         expect(result.current.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         expect(getIDs(result.current.sortedTransactions)).toEqual(['2', '1']);
-    });
-
-    it('should float RBR-flagged transactions to the top on the default sort', async () => {
-        // Given the newest transaction has a visible violation
-        const transactions = [buildTransaction('1', {created: '2024-01-01'}), buildTransaction('2', {created: '2024-01-02'}), buildTransaction('3', {created: '2024-01-03'})];
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}3`, MISSING_CATEGORY_VIOLATIONS);
-
-        // When the hook sorts on the default Date/ASC sort
-        const {result} = await renderSortedTransactions(buildParams({transactions}));
-
-        // Then the flagged transaction comes first so the user sees what needs attention
-        expect(getIDs(result.current.sortedTransactions)).toEqual(['3', '1', '2']);
-    });
-
-    it('should not float RBR-flagged transactions once the user picks another sort', async () => {
-        // Given the newest transaction has a visible violation
-        const transactions = [buildTransaction('1', {created: '2024-01-01'}), buildTransaction('2', {created: '2024-01-02'}), buildTransaction('3', {created: '2024-01-03'})];
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}3`, MISSING_CATEGORY_VIOLATIONS);
-        const {result} = await renderSortedTransactions(buildParams({transactions}));
-
-        // When the user explicitly sorts by date descending
-        act(() => {
-            result.current.onSortPress(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
-        });
-
-        // Then the chosen sort is respected as-is
-        expect(getIDs(result.current.sortedTransactions)).toEqual(['3', '2', '1']);
-
-        // When the user switches back to date ascending
-        act(() => {
-            result.current.onSortPress(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.ASC);
-        });
-
-        // Then the default sort floats the flagged transaction again
-        expect(getIDs(result.current.sortedTransactions)).toEqual(['3', '1', '2']);
     });
 
     it('should expose the IDs of newly added transactions for highlighting', async () => {
