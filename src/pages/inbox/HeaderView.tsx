@@ -27,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -93,7 +94,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useRoute} from '@react-navigation/native';
 import {accountGuideDetailsSelector} from '@selectors/Account';
-import {accountIDSelector, isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
+import {accountIDSelector, isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
@@ -155,7 +156,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
     const firstParticipantAccountID = participants.at(0) ?? CONST.DEFAULT_NUMBER_ID;
-    const [isParticipantOptimistic = true] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(firstParticipantAccountID)});
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, translate, undefined, isSelfDM);
@@ -313,6 +313,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const [firstParticipantPersonalDetail] = usePersonalDetail(firstParticipantAccountID);
+    const isParticipantOptimistic = isPersonalDetailOptimistic(firstParticipantPersonalDetail);
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;

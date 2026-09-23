@@ -1,5 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,7 +11,7 @@ import TextCommentFragment from '@pages/inbox/report/comment/TextCommentFragment
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -26,7 +27,7 @@ function MemberChangeContent({action}: MemberChangeContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const memberChangeLogReportActionMessage = isMemberChangeAction(action) ? getOriginalMessage(action) : undefined;
-    const [actorDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(action.actorAccountID)});
+    const [actorDetails] = usePersonalDetail(action.actorAccountID);
     const [targetAccountDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(memberChangeLogReportActionMessage?.targetAccountIDs)});
     const [memberChangeLogRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${memberChangeLogReportActionMessage?.reportID}`);
     const derivedMemberChangeLogRoomReportName = useDerivedReportNameByReportID(memberChangeLogRoomReport?.reportID);

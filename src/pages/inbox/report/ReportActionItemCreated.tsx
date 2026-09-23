@@ -8,6 +8,7 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticPersonalDetails from '@hooks/useOptimisticPersonalDetails';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 
@@ -47,15 +48,16 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const optimisticPersonalDetails = useOptimisticPersonalDetails();
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
             .map(Number)
             .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [isParticipantOptimistic = true] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
+    const [otherParticipantPersonalDetail] = usePersonalDetail(otherParticipantAccountID);
+    const isParticipantOptimistic = isPersonalDetailOptimistic(otherParticipantPersonalDetail);
 
     if (!isChatReport(report)) {
         return null;

@@ -68,9 +68,9 @@ jest.mock('@hooks/useOnyx', () =>
     jest.fn((key: string, options?: {selector?: unknown}) => {
         switch (key) {
             case mockPersonalDetailsListKey:
-                // With a selector this read is `submitterLogin` (the report owner's login); without one it is the
-                // full personal-details map.
-                return options?.selector ? ['submitter@example.com'] : [mockPersonalDetailsList];
+                // With a selector this read is the report owner's personal detail; without one it is the full
+                // personal-details map.
+                return options?.selector ? [{login: 'submitter@example.com'}] : [mockPersonalDetailsList];
             case mockLoginsKey:
                 return [{}];
             default:
@@ -118,7 +118,7 @@ jest.mock('@userActions/IOU/ReportWorkflow', () => ({submitReport: jest.fn()}));
 
 jest.mock('@selectors/Account', () => ({delegateEmailSelector: jest.fn()}));
 jest.mock('@selectors/Onboarding', () => ({isTrackIntentUserSelector: jest.fn()}));
-jest.mock('@src/selectors/PersonalDetails', () => ({personalDetailsLoginSelector: jest.fn(() => jest.fn())}));
+jest.mock('@src/selectors/PersonalDetails', () => ({personalDetailsSelector: jest.fn(() => jest.fn())}));
 
 // Read the props off the real `SelectionList` mock (no re-derived narrowed shape), so the test stops compiling if a
 // prop it reads (`confirmButtonOptions`, `listEmptyContent`, `textInputOptions`, `children`…) is renamed or retyped.

@@ -2,6 +2,7 @@ import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainNameSelector} from '@src/selectors/Domain';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -28,7 +28,8 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
 
     const {domainAccountID, accountID} = route.params;
 
-    const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});
+    const [member] = usePersonalDetail(accountID);
+    const memberLogin = member?.login;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     const {translate} = useLocalize();

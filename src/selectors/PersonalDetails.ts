@@ -128,6 +128,7 @@ export {
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
+    isPersonalDetailOptimistic,
     optimisticPersonalDetailsSelector,
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
