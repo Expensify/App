@@ -3635,6 +3635,7 @@ export {
     getXeroSupplierByID,
     getXeroSuppliers,
     getDualEntryVendors,
+    getCampfireVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
