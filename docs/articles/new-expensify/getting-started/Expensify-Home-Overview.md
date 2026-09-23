@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, Time sensitive, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, unpaid invoice, invoice past due, service interruption, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, To-dos, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, Time sensitive, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, unpaid invoice, invoice past due, service interruption, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the Time sensitive, To-dos, Recently added, Spend over time and other insights, Discover, Announcements, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -31,7 +31,7 @@ Home is made up of a small set of sections that summarize what’s happening in 
 
 Home includes:
 - **Time sensitive** (when applicable)
-- **For you**
+- **To-dos**
 - **Recently added**
 - **Spend over time** and other insights (when applicable)
 - **Getting started** (when applicable)
@@ -45,7 +45,7 @@ Each section provides context so you know where to go next.
 
 ## How the Time sensitive section works on Home
 
-The **Time sensitive** section appears only when there is something that requires immediate attention.
+The **Time sensitive** section appears only when there is something that requires immediate attention. It sits at the top of the same Home card as **To-dos**, above the **To-dos** heading.
 
 These alerts appear when:
 - A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
@@ -55,26 +55,30 @@ These alerts appear when:
 - A subscription invoice is unpaid, which the Workspace owner sees as **Pay your invoice by [date] to avoid service interruption** while the payment is still within the grace period, or as **Your payment is past due, please pay your invoice** once the grace period ends
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
-Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger alerts in this section.
+Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger **Time sensitive** alerts.
 
-Each alert includes a button that takes you where the issue is resolved. For an unpaid subscription invoice, select **Review** to open your invoices on the **Spend** page.
+Each **Time sensitive** row also shows the workspace or page it relates to above the row title, so you can tell which account or workspace needs attention. Each alert includes a button that takes you where the issue is resolved. For an unpaid subscription invoice, select **Review** to open your invoices on the **Spend** page.
 
 If there are no urgent issues, this section will not appear.
 
 ---
 
-## How the For you section works on Home
+## How the To-dos section works on Home
 
-The **For you** section highlights items that may need your attention like:
+The **To-dos** section highlights items that may need your attention like:
 - “1 report to submit”
 - “2 reports to approve”
 - “Pay 3 reports”
 
+This section was previously called **For you**.
+
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
-If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. 
+If you recently created your account, the **To-dos** section stays hidden until you have your first to-do to submit, approve, export, or pay. 
 
-After the section has appeared, if there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
+After the section has appeared, if there’s nothing that needs action, the **To-dos** section may appear empty. This means you’re fully caught up.
+
+To learn what qualifies as a to-do and where each item takes you, see [Learn how the To-dos section works](/articles/new-expensify/getting-started/Understanding-the-To-dos-Section).
 
 ![]({{site.url}}/assets/images/home2.png){:width="100%"}
 
@@ -166,13 +170,13 @@ No, they serve different purposes. Home provides an overview of what needs atten
 
 Not directly. Home links you to other parts of Expensify where actions are completed.
 
-## Why does the For you section sometimes appear empty?
+## Why does the To-dos section sometimes appear empty?
 
-If there are no current financial to-dos, the **For you** section may appear empty. This means there’s nothing that requires action at that time.
+If there are no current financial to-dos, the **To-dos** section may appear empty. This means there’s nothing that requires action at that time. The caught-up message only appears when both **To-dos** and **Time sensitive** are empty.
 
-## Why don’t I see the For you section at all?
+## Why don’t I see the To-dos section at all?
 
-If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. After your first to-do appears, the section stays on Home—even when you’re caught up and it’s empty.
+If you recently created your account, the **To-dos** section stays hidden until you have your first to-do to submit, approve, export, or pay. After your first to-do appears, the section stays on Home—even when you’re caught up and it’s empty.
 
 ## How does the Recently added section decide what to show?
 
