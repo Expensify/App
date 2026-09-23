@@ -216,6 +216,10 @@ function IOURequestStartPage({
     // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
+    // Scan opens its confirmation on a separate route after a receipt is selected. This page remains mounted below that route,
+    // but it must not guard the standalone confirmation's successful submit. The discard guard here belongs only to the
+    // confirmation rendered by this page: Manual in tabbed flows, or PAY which has no tabs.
+    const isEmbeddedConfirmationActive = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL);
 
     const [isSignDirty, setIsSignDirty] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -240,8 +244,8 @@ function IOURequestStartPage({
         }, []),
     );
 
-    const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
-    const isEmbeddedDirty = shouldEmbedConfirmation && !hasSubmitted && (isSignDirty || hasAmountChanged);
+    const getEmbeddedHasUnsavedChanges = () => isEmbeddedConfirmationActive && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
+    const isEmbeddedDirty = isEmbeddedConfirmationActive && !hasSubmitted && (isSignDirty || hasAmountChanged);
 
     const handleInputBlur = () => {
         if (isDiscardModalOpenRef.current) {
@@ -295,8 +299,8 @@ function IOURequestStartPage({
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
-        shouldEnableNewFocusManagement: shouldEmbedConfirmation,
-        shouldPromptWhenUnfocused: shouldEmbedConfirmation,
+        shouldEnableNewFocusManagement: isEmbeddedConfirmationActive,
+        shouldPromptWhenUnfocused: isEmbeddedConfirmationActive,
         onConfirmWhenUnfocused: () => Navigation.closeRHPFlow(),
         onCancel: restoreLastFocusedInput,
         onVisibilityChange: (isVisible) => {
