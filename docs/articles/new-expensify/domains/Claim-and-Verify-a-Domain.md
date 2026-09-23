@@ -87,6 +87,7 @@ Purpose: Shows members that landing on Access restricted is an expected state wi
 ## What happens after you ask for admin access
 
 - Your request goes to the existing Domain Admins for that domain. An admin has to add you before you can manage it.
+- Those admins are prompted to act on it: a **Review 1 domain admin request** to-do appears on their **Home**, and a count badge appears on their **Domains** tab.
 - A domain you asked about from the **Domain exists** page does **not** appear on your **Domains** tab while the request is pending, because you don’t have access to it yet.
 - If you ask again for the same domain before an admin responds, the button is disabled and reads **Request sent**, so you don’t send a duplicate request. This applies on both the **Domain exists** page and the **Access restricted** screen.
 
