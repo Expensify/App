@@ -14,7 +14,7 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 **To add a Domain Admin:**
 1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
-3. Open **Domain admins**.
+3. Select **Domain admins**.
 4. Enter the admin’s email address or phone number, then click **Add**.
 
 **Note:** A Domain Admin does not need an email address on the company domain. For example, an external bookkeeper can be a Domain Admin.
