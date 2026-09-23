@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter, select all members, remove multiple members, find member search]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter]
 ---
 
 
@@ -52,7 +52,7 @@ You can filter the member list by role to quickly find specific groups of member
    - **Editors** – Members with the Editor role (Submit workspaces only).
    - **Members** – Members with the Member role.
 
-Each selected role appears in the filter bar, and the member list updates immediately to show only members matching the selected roles. To remove a filter, click the **X**. You can also combine role filters with the **Find member** search box to narrow results further.
+Each selected role appears in the filter bar, and the member list updates immediately to show only members matching the selected roles. To remove a filter, click the **X**. You can also combine role filters with the search bar to narrow results further.
 
 The roles available depend on your workspace type, so the options change if you switch your workspace plan.
 
@@ -68,6 +68,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 **Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
 
+**Note:** Members can also remove themselves. When someone leaves a workspace, Expensify warns them first if reports are waiting for their approval. Learn how to [leave a workspace](/articles/new-expensify/workspaces/Leave-a-Workspace).
+
 ## Remove a Single Member
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
@@ -78,14 +80,10 @@ If someone no longer needs access to your workspace, you can remove them individ
 ## Remove Multiple Members
 
 1. Go to **Workspaces > Members**.
-2. Select the checkboxes next to the members you want to remove. To select every member currently listed, use the **Select all** checkbox in the table header.
-3. Click the selected count button in the top-right — for example, **2 selected**.
-4. Select **Remove members**. If you selected a single member, this reads **Remove member**.
+2. Select the checkboxes next to the members you want to remove.
+3. Click the **green dropdown arrow** in the top-right.
+4. Choose **Remove Member(s)**.
 5. Confirm by clicking **Remove**.
-
-**Note:** You can’t select yourself, so **Select all** only selects the other members in the list.
-
-**Note:** Changing what the member list shows clears your selection. If you type in **Find member**, clear that search, or change a role filter, every checkbox is unchecked and the top-right button returns to **Invite member**. Narrow the list first, then select the members you want to remove.
 
 ---
 
