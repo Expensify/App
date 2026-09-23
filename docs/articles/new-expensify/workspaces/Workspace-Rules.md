@@ -26,19 +26,27 @@ To activate Rules for your workspace:
 
 # How to configure Expense Rules
 
-Once enabled, go to the **Rules** tab in the left menu to manage expense-level settings.
+Once enabled, click the **Rules** tab in the left menu. Rules are organized into three tabs:
 
-## Expense Rule options
+- **General** – Set spend controls and defaults that apply to all expenses.
+- **Card restrictions** – Block or limit Expensify Card spend at the point of sale.
+- **Expense defaults** – Automatically update expense fields without the submitter doing anything.
 
-- **Receipt required amount** – Set the minimum amount that requires a receipt (supports decimals).
-- **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
-- **Max expense amount** – Set a per-expense spending cap (supports decimals).
-- **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
-- **Cash expense default** - Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
-- **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
-- **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
+To add a card restriction or expense default, click **Add rule**, then choose **Restrict card spend** or **Apply expense defaults**.
+
+## How to configure rules on the General tab
+
+Open the **General** tab, click a row to open its settings, make your changes, and click **Save**.
+
+- **Flag expenses older than** – Flag expenses older than a set number of days.
+- **Flag expenses above amount** – Flag expenses that exceed a set amount.
+- **Flag receipt line items** – Flag receipts that contain restricted line items (such as alcohol, gambling, or tobacco) for manual review.
+- **Require receipts** – Require receipts, and optionally itemized receipts, when spend exceeds a set amount, unless overridden by a category rule.
+- **Require fields for all expenses** – Require specific fields, such as category and tag, on every expense.
+- **Cash expenses** – Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
+- **Billable expenses** – Choose whether cash and credit card expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
-- **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
+- **Attendee tracking** – Track the per-person cost for every expense.
 
 ![]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_01.png){:width="100%"}
 
