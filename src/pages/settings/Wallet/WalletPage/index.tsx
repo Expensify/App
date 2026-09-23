@@ -28,6 +28,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,7 +59,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -128,6 +129,7 @@ function WalletPage() {
     const kycWallRef = useContext(KYCWallContext);
     const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
     const personalCardList = useBankLinkedPersonalCards();
+    useRefreshPendingDigitalWalletApproval();
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -816,7 +818,7 @@ function WalletPage() {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<ComponentRef<typeof View> | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
@@ -824,7 +826,7 @@ function WalletPage() {
                                             if (hasActivatedWallet) {
                                                 return (
                                                     <MenuItem
-                                                        ref={buttonRef as ForwardedRef<View>}
+                                                        ref={buttonRef as ForwardedRef<ComponentRef<typeof View>>}
                                                         title={translate('common.transferBalance')}
                                                         icon={icons.Transfer}
                                                         onPress={(event) => {
@@ -871,7 +873,7 @@ function WalletPage() {
                                                 <MenuItem
                                                     title={translate('walletPage.enableWallet')}
                                                     icon={icons.Wallet}
-                                                    ref={buttonRef as ForwardedRef<View>}
+                                                    ref={buttonRef as ForwardedRef<ComponentRef<typeof View>>}
                                                     onPress={() => {
                                                         if (isAccountLocked) {
                                                             showLockedAccountModal();
