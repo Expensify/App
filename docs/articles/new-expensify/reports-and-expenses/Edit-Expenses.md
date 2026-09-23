@@ -1,8 +1,8 @@
 ---
 title: Edit Expenses
 description: Learn how to edit individual expenses, and edit multiple expenses at once.
-keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit multi-level tags, edit one tag level]
-internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk. Does not cover creating, submitting or reopening reports, or configuring tags. 
+keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit multi-level tags, edit one tag level, bulk edit reimbursable, reimbursable greyed out, reimbursable disabled edit multiple]
+internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk and why Reimbursable can be disabled. Does not cover creating, submitting or reopening reports, or configuring tags. 
 ---
 
 # Edit Expenses 
@@ -83,6 +83,7 @@ On Draft and Outstanding reports, you can edit:
  - Description
  - Merchant
  - Date
+ - Reimbursable
  - Other fields like Category, Tag and Attendees
 
 **Note:** Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid or Done reports cannot be edited. [Learn how to unapprove a report](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
@@ -113,7 +114,13 @@ No, expenses on Paid and Done reports are locked and cannot be reopened for edit
 
 ## Why are some fields not editable in the Edit multiple panel?
 
-If a field is restricted for any selected expense (for example, amount on a card expense), it will be disabled in the **Edit multiple** panel.
+If a field is restricted for any selected expense (for example, amount on a card expense), it will be disabled in the **Edit multiple** panel. Deselect that expense to edit the field on the rest of your selection.
+
+## Why is the Reimbursable field greyed out in Edit multiple?
+
+**Reimbursable** is greyed out when at least one selected expense has a locked reimbursable value, such as an expense on a Done or Paid report. A report you closed with **Mark as done** is locked this way, so selecting it alongside an editable expense disables **Reimbursable** for the whole selection. Deselect the locked expense to set **Reimbursable** on the rest of your selection.
+
+**Reimbursable** does not appear in the panel at all when your Workspace fixes the reimbursable value for cash expenses under **Rules**, or when the selection includes a company card expense, an invoice, or a personal expense sent to someone. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
 
 ## Why don't I see the Attendees field in Edit multiple?
 
