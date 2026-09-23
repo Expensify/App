@@ -5,7 +5,7 @@ import * as API from '@libs/API';
 import type {SetVacationDelegateParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {getKnownAccountIDByLogin, getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
@@ -200,7 +200,7 @@ type InviteVacationDelegateToWorkspacesOptions = {
  */
 function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, personalDetailsByLogins, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
     // The delegate may have been picked from the selector without existing in personal details yet, so fall back to an optimistic accountID.
-    const knownDelegateAccountID = getKnownAccountIDByLogin(delegate);
+    const knownDelegateAccountID = personalDetailsByLogins[delegate]?.accountID;
     const delegateAccountID = knownDelegateAccountID ?? generateAccountID(delegate);
     const invitedEmailsToAccountIDs = {[delegate]: delegateAccountID};
     const isNewDelegate = knownDelegateAccountID === undefined;

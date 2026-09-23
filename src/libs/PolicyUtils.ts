@@ -925,7 +925,7 @@ function getAccountIDForSubmitManagerEmail(
         return undefined;
     }
 
-    const fromPersonalDetails = getKnownAccountIDByLogin(trimmed);
+    const fromPersonalDetails = personalDetailsByLogins[trimmed]?.accountID;
     if (fromPersonalDetails !== undefined) {
         return fromPersonalDetails;
     }
