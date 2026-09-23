@@ -39,7 +39,6 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {syncReimbursedReports} = config?.sync ?? {};
     const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(config?.fxExpenseAccount);
     const expenseAccountOptions = getSageIntacctExpenseAccounts(policy, selectedAccountID);
-    const {filteredData: filteredAccounts, textInputOptions} = useSelectionListSearch(expenseAccountOptions);
 
     const saveSelectedAccount = () => {
         if (hasChanges) {
@@ -48,7 +47,8 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
     };
 
-    const {listData, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(filteredAccounts, expenseAccountOptions.length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(expenseAccountOptions, expenseAccountOptions.length, saveSelectedAccount);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -85,6 +85,7 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID))}
             title="workspace.sageIntacct.fxExpenseAccount"
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}

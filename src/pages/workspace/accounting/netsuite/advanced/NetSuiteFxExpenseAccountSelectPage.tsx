@@ -39,7 +39,6 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
     const config = policy?.connections?.netsuite?.options.config;
     const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(config?.fxExpenseAccount);
     const netsuiteFxExpenseAccountOptions = getNetSuiteExpenseAccountOptions(policy ?? undefined, selectedAccountID);
-    const {filteredData: filteredAccounts, textInputOptions} = useSelectionListSearch(netsuiteFxExpenseAccountOptions);
 
     const saveSelectedAccount = () => {
         if (hasChanges && policyID) {
@@ -48,7 +47,8 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
     };
 
-    const {listData, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(filteredAccounts, netsuiteFxExpenseAccountOptions.length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(netsuiteFxExpenseAccountOptions, netsuiteFxExpenseAccountOptions.length, saveSelectedAccount);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
 
     const listEmptyContent = (
         <BlockingView
@@ -83,6 +83,7 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             title="workspace.netsuite.advancedConfig.fxExpenseAccount"
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={shouldHideReimbursedReportsSection(config) || !canConfigureCurrencyConversionFees}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}

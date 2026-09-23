@@ -39,7 +39,6 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
     const expenseAccounts = data?.expenseAccounts ?? [];
     const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(config?.fxExpenseAccount);
     const xeroSelectorOptions = getXeroExpenseAccounts(expenseAccounts, selectedAccountID);
-    const {filteredData: filteredAccounts, textInputOptions} = useSelectionListSearch(xeroSelectorOptions);
 
     const saveSelectedAccount = () => {
         if (hasChanges) {
@@ -48,7 +47,8 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
     };
 
-    const {listData, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(filteredAccounts, expenseAccounts.length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(xeroSelectorOptions, expenseAccounts.length, saveSelectedAccount);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -85,6 +85,7 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
             title="workspace.xero.advancedConfig.xeroFxExpenseAccount"
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             pendingAction={settingsPendingAction([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}

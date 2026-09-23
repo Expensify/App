@@ -47,8 +47,6 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
         keyForList: id,
         isSelected: selectedAccountID === id,
     }));
-    const {filteredData: filteredAccounts, textInputOptions} = useSelectionListSearch(qboOnlineSelectorOptions);
-
     const saveSelectedAccount = () => {
         if (hasChanges) {
             updateQuickbooksOnlineFxExpenseAccount(policyID, selectedAccountID, qboConfig?.fxExpenseAccount);
@@ -56,7 +54,8 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
         Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
     };
 
-    const {listData, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(filteredAccounts, (expenseAccounts ?? []).length, saveSelectedAccount);
+    const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(qboOnlineSelectorOptions, (expenseAccounts ?? []).length, saveSelectedAccount);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
@@ -90,6 +89,7 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
             shouldUpdateFocusedIndex
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             title="workspace.qbo.advancedConfig.qboFxExpenseAccount"
             headerTitleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboFxExpenseAccount', integrationName)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
