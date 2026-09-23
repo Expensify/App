@@ -1,7 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index a65347b..562f92c 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-@@ -467,7 +467,7 @@ function RecyclerView(props) {
+@@ -469,7 +469,7 @@ const RecyclerViewComponent = (props, ref) => {
                  isHorizontalRTL && viewToMeasureBoundedSize,
                  renderHeader,
                  !isHorizontalRTL && viewToMeasureBoundedSize,
@@ -11,9 +12,10 @@ diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js 
                              return 0;
                          }
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts
+index fd2ff94..f617bd6 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts
-@@ -19,7 +19,7 @@ export interface ViewHolderCollectionProps<T> {
+@@ -19,7 +19,7 @@ export interface ViewHolderCollectionProps<TItem> {
          index: number;
      }>;
      /** Function to get layout information for a specific index */
@@ -23,9 +25,10 @@ diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollec
      viewHolderCollectionRef: React.Ref<ViewHolderCollectionRef>;
      /** Map to store refs for each ViewHolder instance */
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+index e66d406..3d3e4b0 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-@@ -290,6 +290,13 @@ export function ViewHolderCollection(props) {
+@@ -290,6 +290,13 @@ export const ViewHolderCollection = (props) => {
      return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
          hasData &&
          renderEntriesRef.current.map(([reactKey, { index }]) => {
@@ -39,7 +42,7 @@ diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollec
              const item = data[index];
              // Suppress separators for items in the last row to prevent
              // height mismatch. The last data item has no separator (no
-@@ -298,7 +305,7 @@ export function ViewHolderCollection(props) {
+@@ -298,7 +305,7 @@ export const ViewHolderCollection = (props) => {
                  ? data[index + 1]
                  : undefined;
              return (React.createElement(ViewHolder, { key: reactKey, index: index, item: item, trailingItem: trailingItem, layout: {
@@ -49,9 +52,10 @@ diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollec
          })));
  };
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index 3782805..cac633c 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-@@ -705,7 +705,7 @@ function RecyclerView<T>(props: RecyclerViewProps<T>) {
+@@ -709,7 +709,7 @@ const RecyclerViewComponent = <T,>(
              data={data}
              horizontal={horizontal}
              renderStack={recyclerViewManager.getRenderStack()}
@@ -61,9 +65,10 @@ diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx 
                if (!shouldRenderFromBottom || !recyclerViewManager.hasLayout()) {
                  return 0;
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx b/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx
+index a652beb..5af6016 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx
-@@ -23,7 +23,7 @@ export interface ViewHolderCollectionProps<T> {
+@@ -23,7 +23,7 @@ export interface ViewHolderCollectionProps<TItem> {
    /** Map of indices to React keys for each rendered item */
    renderStack: Map<string, { index: number }>;
    /** Function to get layout information for a specific index */
@@ -72,7 +77,7 @@ diff --git a/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollect
    /** Ref to control layout updates from parent components */
    viewHolderCollectionRef: React.Ref<ViewHolderCollectionRef>;
    /** Map to store refs for each ViewHolder instance */
-@@ -176,6 +176,13 @@ export function ViewHolderCollection<T>(props: ViewHolderCollectionProps<T>) {
+@@ -176,6 +176,13 @@ export const ViewHolderCollection = <TItem,>(
        {containerLayout &&
          hasData &&
          Array.from(renderStack.entries(), ([reactKey, { index }]) => {
@@ -86,7 +91,7 @@ diff --git a/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollect
            const item = data[index];
            // Suppress separators for items in the last row to prevent
            // height mismatch. The last data item has no separator (no
-@@ -192,7 +199,7 @@ export function ViewHolderCollection<T>(props: ViewHolderCollectionProps<T>) {
+@@ -192,7 +199,7 @@ export const ViewHolderCollection = <TItem,>(
                item={item}
                trailingItem={trailingItem}
                layout={{

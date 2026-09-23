@@ -2176,6 +2176,7 @@ const ROUTES = {
         },
     },
     CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
+    CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP: 'search/change-approver/reassign',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -2526,7 +2527,9 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
         route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/add-to-digital-wallet` as const,
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
+        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/add-to-digital-wallet`, backTo),
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
@@ -2716,6 +2719,10 @@ const ROUTES = {
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
+    },
+    REPORT_CHANGE_APPROVER_REASSIGN_APPROVER: {
+        route: 'r/:reportID/change-approver/reassign',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/reassign` as const,
     },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',

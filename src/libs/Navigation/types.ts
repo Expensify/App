@@ -168,6 +168,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
         /** cardID of the card waiting to be added to a digital wallet */
         cardID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
         cardID: string;
@@ -3529,6 +3531,7 @@ type SearchReportActionsParamList = {
     };
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: undefined;
 };
 
 type SearchFullscreenNavigatorParamList = {
@@ -3630,6 +3633,9 @@ type ReportChangeApproverParamList = {
         reportID: string;
     };
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: {
+        reportID: string;
+    };
+    [SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER]: {
         reportID: string;
     };
 };

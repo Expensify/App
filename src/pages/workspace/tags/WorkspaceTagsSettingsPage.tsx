@@ -3,8 +3,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Switch from '@components/Switch';
-import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -22,6 +20,7 @@ import {getTagLists as getTagListsUtil, isMultiLevelTags as isMultiLevelTagsUtil
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -85,28 +84,19 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     </OfflineWithFeedback>
                 )}
                 {!!policy?.glCodes && (
-                    <OfflineWithFeedback
-                        errors={policy?.errorFields?.showTagGLCodes}
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.tags.showTagGLCodes')}
+                        subtitle={translate('workspace.tags.showTagGLCodesSubtitle')}
+                        switchAccessibilityLabel={translate('workspace.tags.showTagGLCodes')}
+                        shouldPlaceSubtitleBelowSwitch
+                        isActive={policy?.showTagGLCodes ?? false}
+                        onToggle={updateShowTagGLCodes}
                         pendingAction={policy?.pendingFields?.showTagGLCodes}
-                        errorRowStyles={styles.mh5}
-                        onClose={() => clearPolicyErrorField(policyID, 'showTagGLCodes')}
-                    >
-                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text
-                                style={[styles.textNormal, styles.flex1, styles.mr2]}
-                                accessible={false}
-                                aria-hidden
-                            >
-                                {translate('workspace.tags.showTagGLCodes')}
-                            </Text>
-                            <Switch
-                                isOn={policy?.showTagGLCodes ?? false}
-                                accessibilityLabel={translate('workspace.tags.showTagGLCodes')}
-                                onToggle={updateShowTagGLCodes}
-                                disabled={!policy?.areTagsEnabled}
-                            />
-                        </View>
-                    </OfflineWithFeedback>
+                        disabled={!policy?.areTagsEnabled}
+                        wrapperStyle={[styles.pv2, styles.mh5]}
+                        errors={policy?.errorFields?.showTagGLCodes ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'showTagGLCodes')}
+                    />
                 )}
             </View>
         );

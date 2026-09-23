@@ -623,10 +623,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `La lunghezza massima del commento è di ${formattedMaxLength} caratteri.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La lunghezza massima del titolo dell'attività è di ${formattedMaxLength} caratteri.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Aggiorna app',
-        updatePrompt: 'È disponibile una nuova versione di questa app.\nAggiorna ora o riavvia l’app più tardi per scaricare le modifiche più recenti.',
-    },
     deeplinkWrapper: {
         launching: 'Avvio di Expensify',
         expired: 'La tua sessione è scaduta.',
@@ -977,12 +973,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Aggiungi un conto bancario per ricevere il rimborso'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `L’aggiunta della carta ${walletName} richiede la tua approvazione`,
                 subtitle: 'Carta Expensify',
-                cta: 'Rivedi',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Portafoglio digitale',
             },
             reviewCardFraud: {
                 title: 'Esamina una possibile frode sulla tua Carta Expensify',
@@ -1834,11 +1825,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Scegli un'opzione per cambiare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dello spazio di lavoro</a> per cambiarlo in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l’approvatore in <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `ha cambiato l’approvatore in <mention-user accountID="${newApproverID}"/>, ha saltato <mention-user accountID="${previousApproverID}"/>`
+                    : `ha cambiato l’approvatore in <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
                 addApproverSubtitle: 'Aggiungi un ulteriore approvatore al flusso di approvazione esistente.',
                 bypassApprovers: 'Ignora approvatori',
                 bypassApproversSubtitle: 'Impostati come approvatore finale e salta tutti gli approvatori rimanenti.',
+                reassignApprover: 'Riassegna approvatore',
+                reassignApproverSubtitle: 'Salta l’approvatore attuale e assegna un nuovo approvatore.',
+                reassignApproverPageHeader: 'Scegli un approvatore sostitutivo e poi segui il resto del flusso di approvazione.',
             },
             addApprover: {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo report prima che venga instradato attraverso il resto del flusso di approvazione.',
@@ -2193,7 +2191,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar profilo',
         customInstructions: 'Istruzioni personalizzate',
         copilotIntoAccount: "Copilot nell'account",
-        viewUserHistory: 'Visualizza cronologia utente',
+        viewMemberHistory: 'Visualizza cronologia membro',
         viewAgentHistory: 'Visualizza cronologia agente',
         publicSection: {
             title: 'Pubblico',
@@ -2774,6 +2772,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'portafoglio digitale',
+        digitalWalletCapitalized: 'Portafoglio digitale',
+        approvalNeeded: ({walletName}: {walletName: string}) => `L’aggiunta della carta ${walletName} richiede la tua approvazione`,
+        review: 'Rivedi',
         confirmHeading: 'Conferma la tua richiesta',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Vuoi aggiungere la tua Carta Expensify (che termina con ${lastFourDigits}) al tuo ${walletName}?`,
@@ -3927,6 +3928,7 @@ ${amount} per ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Lo SWIFT/BIC deve essere lungo 8 o 11 caratteri, con 6 lettere seguite da 2 oppure 5 lettere o numeri.',
         countrySelectionStepHeader: 'Dove si trova il tuo conto bancario?',
         accountDetailsStepHeader: 'Quali sono i dettagli del tuo account?',
         accountTypeStepHeader: 'Che tipo di conto è questo?',
@@ -6873,6 +6875,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 other: (count: number) => `${count} tag`,
             }),
             showTagGLCodes: 'Mostra i codici GL quando selezioni un tag',
+            showTagGLCodesSubtitle: 'Se un codice GL non viene visualizzato, non è disponibile per quel tag nel tuo sistema contabile.',
         },
         taxes: {
             subtitle: 'Aggiungi nomi e aliquote delle imposte e imposta i valori predefiniti.',
@@ -9618,6 +9621,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         bulkActions: {
             editMultiple: 'Modifica multipli',
             editMultipleTitle: 'Modifica più spese',
+            editFinalizedExpensesTitle: 'Modificare le spese finalizzate?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 delle ${total} spese che hai selezionato si trova in un report approvato o pagato. Stai per modificare una spesa finalizzata. Sei sicuro?`,
+                other: `${count} delle ${total} spese che hai selezionato si trovano in report approvati o pagati. Stai per modificare spese finalizzate. Sei sicuro?`,
+            }),
             editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sovrascriveranno qualsiasi valore impostato in precedenza.',
             approve: 'Approva',
             pay: 'Paga',
