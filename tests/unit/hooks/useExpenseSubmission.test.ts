@@ -216,7 +216,6 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         participants: [{accountID: 42, login: 'them@test.com', selected: true}],
         iouType: CONST.IOU.TYPE.REQUEST,
         action: CONST.IOU.ACTION.CREATE,
-        requestType: undefined,
         isDistanceRequest: false,
         isManualDistanceRequest: false,
         isOdometerDistanceRequest: false,
@@ -272,7 +271,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
                 // When the request is created before a persisted chat can be resolved
                 await act(async () => {
-                    result.current.createTransaction(false, false);
+                    result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
                 });
                 await waitForBatchedUpdatesWithAct();
 
@@ -301,7 +300,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 const {result} = renderHook(() => useExpenseSubmission(params));
                 await waitForBatchedUpdatesWithAct();
                 await act(async () => {
-                    result.current.createTransaction(false, false);
+                    result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
                 });
                 await waitForBatchedUpdatesWithAct();
             }
@@ -359,7 +358,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -378,7 +377,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -416,7 +415,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -436,7 +435,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -463,7 +462,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         action: CONST.IOU.ACTION.SUBMIT,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -473,7 +471,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -509,7 +507,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                     buildParams({
                         transaction: distanceTransaction,
                         transactions: [distanceTransaction],
-                        requestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                         isDistanceRequest: true,
                         isManualDistanceRequest: true,
                     }),
@@ -518,7 +515,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
 
             const transactionParams = mockCreateDistanceRequestAction.mock.calls.at(-1)?.at(0)?.transactionParams;
@@ -541,7 +538,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                     buildParams({
                         transaction: distanceTransaction,
                         transactions: [distanceTransaction],
-                        requestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                         isDistanceRequest: true,
                         isManualDistanceRequest: true,
                     }),
@@ -551,7 +547,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             // When the distance request is submitted
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
 
             // Then the reserved ID is forwarded, so the chat is built at the ID the screen subscribes to
@@ -565,7 +561,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -584,7 +580,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -599,7 +595,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -621,7 +617,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -648,7 +644,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -662,7 +658,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -678,7 +674,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -688,7 +683,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -703,7 +698,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -713,7 +707,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -728,7 +722,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -738,7 +731,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -756,7 +749,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -766,7 +758,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -792,7 +784,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -806,7 +798,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -823,7 +815,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -839,7 +831,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -854,7 +846,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -869,7 +861,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -884,7 +876,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -910,7 +902,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -936,7 +928,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -963,7 +955,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -991,7 +983,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1020,7 +1012,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1053,7 +1045,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1088,7 +1080,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1116,7 +1108,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(false, true);
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -1144,7 +1136,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(false, true);
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -1166,7 +1158,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(false, true);
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -1181,7 +1173,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1200,7 +1192,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
