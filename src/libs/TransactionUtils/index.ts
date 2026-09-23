@@ -1,3 +1,6 @@
+/* eslint-disable max-lines */
+// TransactionUtils aggregates the shared transaction helpers, so its length grows with the number of utilities it collects rather than with any one
+// of them. Splitting it is a repo-wide refactor, so the rule is suppressed here the same way it is in ReportUtils, ReportActionsUtils and SearchUIUtils.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
@@ -454,8 +457,7 @@ function isScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance expense, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
- * it's transactionID match what was already generated.
+ * @param [existingTransactionID] Reuse this ID when a distance expense already created an empty transaction.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
     const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
@@ -597,6 +599,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
                   filename: receipt?.name ?? filename,
                   state: receiptState ?? receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY,
                   isTestDriveReceipt: receipt.isTestDriveReceipt,
+                  pageCount: receipt.pageCount,
               }
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,
@@ -725,7 +728,10 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
+    // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
+    // a missing field on an expense report either, where only the merchant is checked.
+    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -911,11 +917,17 @@ function getUpdatedTransaction({
                       policy,
                       storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
+                      hasTripChanged: waypointsActuallyChanged,
                   })
                 : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            } else if (waypointsActuallyChanged) {
+                // The exclusion described the trip being replaced, so it goes with it rather than showing a deduction that no longer applies.
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusion', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.reimbursableDistance', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusionMethod', null);
             }
 
             const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);

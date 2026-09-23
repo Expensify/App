@@ -85,7 +85,8 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildPolicyData} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
+import {buildInviteToRoomOnyxData} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
@@ -1052,6 +1053,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             hasOwnedPaidPolicy: undefined,
             betas,
             isSelfTourViewed,
+            delegateAccountID,
         });
         createdWorkspaceParams = workspaceData.params;
         onyxData.optimisticData?.push(...(workspaceData.optimisticData ?? []));
@@ -1077,7 +1079,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
-        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules);
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
@@ -1088,7 +1090,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 total: amount,
                 currency,
                 nonReimbursableTotal: amount,
-                betas,
+                isASAPSubmitBetaEnabled,
                 optimisticIOUReportID: optimisticExpenseReportID,
                 reportTransactions,
                 getCurrencyDecimals,
@@ -1702,7 +1704,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         existingTransaction: explicitExistingTransaction,
         isSelfTourViewed,
         conciergeChat,
-        betas,
         personalDetails,
         shouldDeferAutoSubmit,
         delegateAccountID,
@@ -1710,6 +1711,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        isVendorMatchingBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1794,6 +1796,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation({
+        isVendorMatchingBetaEnabled,
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
         participantParams,
@@ -1821,7 +1824,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
@@ -1924,6 +1926,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       companySize: undefined,
                       isSelfTourViewed,
                       conciergeChat,
+                      delegateAccountID,
                   })?.guidedSetupData
                 : undefined;
 
@@ -2018,7 +2021,6 @@ function convertBulkTrackedExpensesToIOU({
     policyRecentlyUsedCurrencies,
     quickAction,
     personalDetails,
-    betas,
     policyTagList,
     selfDMReportActions,
     delegateAccountID,
@@ -2026,7 +2028,9 @@ function convertBulkTrackedExpensesToIOU({
     formatPhoneNumber,
     getCurrencyDecimals,
     rules,
+    isVendorMatchingBetaEnabled,
 }: {
+    isVendorMatchingBetaEnabled: boolean | undefined;
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
@@ -2037,7 +2041,6 @@ function convertBulkTrackedExpensesToIOU({
     policyRecentlyUsedCurrencies: string[];
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
@@ -2146,6 +2149,7 @@ function convertBulkTrackedExpensesToIOU({
             transactionThreadReportID: moneyRequestTransactionThreadReportID,
             onyxData,
         } = getMoneyRequestInformation({
+            isVendorMatchingBetaEnabled,
             parentChatReport: chatReport,
             participantParams,
             transactionParams,
@@ -2159,7 +2163,6 @@ function convertBulkTrackedExpensesToIOU({
             quickAction,
             policyRecentlyUsedCurrencies,
             personalDetails,
-            betas,
             policyParams: {
                 policyTagList,
             },
@@ -2402,7 +2405,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, undefined, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,

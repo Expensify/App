@@ -1,23 +1,18 @@
+import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useMemo} from 'react';
-
-import AvatarWithDelegateAvatar from './AvatarWithDelegateAvatar';
-import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
-import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
+import {View} from 'react-native';
 
 type NavigationTabBarAvatarProps = {
     isSelected?: boolean;
@@ -32,47 +27,9 @@ type NavigationTabBarAvatarProps = {
 function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-
-    const delegateEmail = account?.delegatedAccess?.delegate ?? '';
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {status} = useAccountTabIndicatorStatus();
 
-    /**
-     * Renders the appropriate avatar component based on user state (delegate, emoji status, or default profile)
-     * with the correct active (ring) state for selection and hover effects.
-     */
-    const renderAvatar = (active: boolean, isHovered: boolean) => {
-        if (delegateEmail) {
-            return (
-                <AvatarWithDelegateAvatar
-                    delegateEmail={delegateEmail}
-                    isHovered={isHovered}
-                    isSelected={active}
-                    containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
-                />
-            );
-        }
-
-        if (emojiStatus) {
-            return (
-                <AvatarWithOptionalStatus
-                    emojiStatus={emojiStatus}
-                    isSelected={active}
-                    containerStyle={styles.sidebarStatusAvatarWithEmojiContainer}
-                />
-            );
-        }
-
-        return (
-            <ProfileAvatarWithIndicator
-                isSelected={active}
-                containerStyles={styles.tn0Half}
-            />
-        );
-    };
     const accountAccessibilityState = useMemo(() => ({selected: isSelected}), [isSelected]);
 
     return (
@@ -88,7 +45,12 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
         >
             {({hovered}) => (
                 <>
-                    {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered), hovered)}
+                    <View style={styles.tn0Half}>
+                        <AccountNavigationAvatar
+                            isSelected={isSelected || (!shouldUseNarrowLayout && hovered)}
+                            isHovered={hovered}
+                        />
+                    </View>
                     <Text
                         numberOfLines={2}
                         style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}

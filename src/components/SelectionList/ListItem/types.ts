@@ -1,5 +1,4 @@
 import type {HoldMenuCallback} from '@components/Search';
-import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
@@ -15,22 +14,10 @@ import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import type {ReactElement, ReactNode} from 'react';
+import type {PropsWithChildren, ReactNode} from 'react';
 import type {BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-
-import type BareUserListItem from './BareUserListItem';
-import type BaseListItem from './BaseListItem';
-import type InviteMemberListItem from './InviteMemberListItem';
-import type MultiSelectListItem from './MultiSelectListItem';
-import type SingleSelectListItem from './SingleSelectListItem';
-import type SingleSelectWithAvatarListItem from './SingleSelectWithAvatarListItem';
-import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
-import type SplitListItem from './SplitListItem';
-import type TravelDomainListItem from './TravelDomainListItem';
-import type UserListItem from './UserListItem';
-import type UserSelectionListItem from './UserSelectionListItem';
 
 type ListItem<K extends string | number = string> = {
     text?: string;
@@ -68,8 +55,15 @@ type ListItem<K extends string | number = string> = {
 
     accountID?: number | null;
     login?: string | null;
+
+    /** Content rendered before the text column (e.g. an avatar or icon) */
     leftElement?: ReactNode;
+
+    /** Content rendered beside the text (e.g. a badge or inline icon) */
     rightElement?: ReactNode;
+
+    /** Standalone control (e.g. a button) rendered after the selection button at the row's end */
+    actionElement?: ReactNode;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: Icon[];
@@ -148,6 +142,8 @@ type CommonListItemProps<TItem extends ListItem> = {
     pressableStyle?: StyleProp<ViewStyle>;
     pressableWrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Style of the offline-feedback content container that wraps the pressable and its error row */
     containerStyle?: StyleProp<ViewStyle>;
     errorRowStyles?: StyleProp<ViewStyle>;
 
@@ -181,10 +177,7 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Overrides the row's selected state (aria-selected, highlight). Defaults to `item.isSelected`; pass it when selection isn't stored on the item itself. */
     isSelected?: boolean;
-
-    /** Whether to show the right caret icon */
-    shouldShowRightCaret?: boolean;
-} & TRightHandSideComponent<TItem>;
+};
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
 
@@ -194,10 +187,6 @@ type ExtendedTargetedEvent = TargetedEvent & {
         /** A boolean value that indicates whether the device dispatches touch events. */
         firesTouchEvents: boolean;
     };
-};
-
-type TRightHandSideComponent<TItem extends ListItem> = {
-    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactNode | null | undefined) | ReactNode | null;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -221,11 +210,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
      */
     shouldSyncFocus?: boolean;
 
-    shouldDisplayRBR?: boolean;
-
-    /** Boolean whether to display the right icon */
-    shouldShowRightCaret?: boolean;
-
     titleStyles?: StyleProp<TextStyle>;
     titleContainerStyles?: StyleProp<ViewStyle>;
     shouldHighlightSelectedItem?: boolean;
@@ -245,36 +229,20 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     isFirstItem?: boolean;
 };
 
-type ValidListItem =
-    | typeof BaseListItem
-    | typeof InviteMemberListItem
-    | typeof MultiSelectListItem
-    | typeof SearchRouterItem
-    | typeof SingleSelectListItem
-    | typeof SingleSelectWithAvatarListItem
-    | typeof SpendCategorySelectorListItem
-    | typeof SplitListItem
-    | typeof TravelDomainListItem
-    | typeof BareUserListItem
-    | typeof UserListItem
-    | typeof UserSelectionListItem;
-
-type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
-    ForwardedFSClassProps & {
+/** Props of the ListItem pressable root. Row content comes as children and reads hover/focus/tooltip state from ListItemContext */
+type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<
+    Omit<CommonListItemProps<TItem>, 'showTooltip' | 'wrapperStyle' | 'isMultilineSupported' | 'isAlternateTextMultilineSupported' | 'alternateTextNumberOfLines' | 'titleNumberOfLines'> & {
         item: TItem;
+
+        /** Whether content inside the row should show tooltips */
+        shouldShowTooltip: boolean;
+
         /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */
         accessibilityLabel?: string;
         shouldPreventEnterKeySubmit?: boolean;
         errorRowStyles?: StyleProp<ViewStyle>;
-        FooterComponent?: ReactElement;
-        children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
         shouldSyncFocus?: boolean;
         hoverStyle?: StyleProp<ViewStyle>;
-        shouldDisplayRBR?: boolean;
-        /** Test ID of the component. Used to locate this view in end-to-end tests. */
-        testID?: string;
-        /** Whether to show the right caret icon */
-        shouldShowRightCaret?: boolean;
         shouldHighlightSelectedItem?: boolean;
         shouldDisableHoverStyle?: boolean;
 
@@ -283,7 +251,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
          * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
          */
         accessible?: boolean;
-    };
+    }
+>;
 
 type SpendRuleListItemType = ListItem & {
     /** The action for this rule */
@@ -299,12 +268,19 @@ type SpendRuleListItemType = ListItem & {
 };
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
-type SelectableListItemProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'containerStyle'> & {
-    onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+type SelectableListItemProps<TItem extends ListItem> = Omit<ListItemPressableProps<TItem>, 'containerStyle' | 'shouldShowTooltip'> &
+    ForwardedFSClassProps & {
+        /** Whether text in the row should show tooltips on overflow (forwarded to the pressable as shouldShowTooltip) */
+        showTooltip: boolean;
 
-    /** Which side of the row to render the selection button on */
-    selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
-};
+        /** Style of the row View that lays out the selection button, children, and the item's action element */
+        wrapperStyle?: StyleProp<ViewStyle>;
+
+        /** Callback to fire when the selection button is pressed */
+        onSelectionButtonPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+
+        selectionButtonPosition?: ValueOf<typeof CONST.SELECTION_BUTTON_POSITION>;
+    };
 
 type SplitListItemType = ListItem &
     SplitExpense & {
@@ -341,20 +317,7 @@ type SplitListItemType = ListItem &
         onInputFocus?: (item: SplitListItemType) => void;
     };
 
-type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
-type SpendRuleListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
-type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Element rendered before the text column. Falls back to `item.leftElement` when omitted. */
-    leftElement?: ReactNode;
-};
-
 type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
-type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
-type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
@@ -368,37 +331,17 @@ type WorkspaceListItemType = {
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
 
-type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps<
-    TItem & {
-        /** Value of the domain */
-        value?: string;
-
-        /** Should display tag 'Recommended' */
-        isRecommended?: boolean;
-    }
->;
-
-type UserSelectionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
 export type {
     SpendRuleListItemType,
-    SpendRuleListItemProps,
-    BaseListItemProps,
+    ListItemPressableProps,
     ExtendedTargetedEvent,
     ListItem,
     ListItemProps,
     ListItemFocusEventHandler,
-    BaseSelectListItemProps,
-    ValidListItem,
     SelectableListItemProps,
     SingleSelectListItemProps,
-    MultiSelectListItemProps,
-    TravelDomainListItemProps,
-    SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
     SplitListItemType,
-    SplitListItemProps,
     WorkspaceListItemType,
-    UserSelectionListItemProps,
 };

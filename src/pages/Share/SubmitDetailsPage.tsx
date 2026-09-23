@@ -12,6 +12,7 @@ import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -88,7 +89,7 @@ function SubmitDetailsPage({
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
+    const [personalDetails] = useAllPersonalDetails();
     const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
     const routeReportID = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const draftReportID = unknownUserDetails ? unknownUserDetails.reportID : routeReportID;
@@ -147,7 +148,8 @@ function SubmitDetailsPage({
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
@@ -431,6 +433,7 @@ function SubmitDetailsPage({
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled,
                     getCurrencyDecimals,
                     report: reportToSubmit,
                     participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
@@ -469,7 +472,6 @@ function SubmitDetailsPage({
                     draftTransactionIDs,
                     isSelfTourViewed,
                     conciergeChat,
-                    betas,
                     personalDetails,
                     optimisticTransactionID,
                     isTrackIntentUser,
