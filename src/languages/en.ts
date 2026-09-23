@@ -669,10 +669,6 @@ const translations = {
         commentExceededMaxLength: (formattedMaxLength: string) => `The maximum comment length is ${formattedMaxLength} characters.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `The maximum task title length is ${formattedMaxLength} characters.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Update app',
-        updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app later to download the latest changes.',
-    },
     deeplinkWrapper: {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
@@ -1167,6 +1163,10 @@ const translations = {
                 one: 'Export 1 report',
                 other: `Export ${count} reports`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Review 1 domain admin request',
+                other: `Review ${count} domain admin requests`,
+            }),
             begin: 'Begin',
             emptyStateMessages: {
                 thumbsUpStarsTitle: "You're done!",
@@ -1259,6 +1259,17 @@ const translations = {
         insightsSection: {
             chartUnavailable: 'Chart unavailable',
             notEnoughData: 'We don’t have enough data to populate this chart yet',
+        },
+    },
+    insightsPage: {
+        viewOnSpend: 'View on Spend',
+        emptyState: {
+            title: 'Nothing to show',
+            subtitle: 'Try adjusting your criteria above',
+        },
+        noExpensesState: {
+            title: 'See where your money goes',
+            subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
         },
     },
     allSettingsScreen: {
@@ -2293,7 +2304,7 @@ const translations = {
         profileAvatar: 'Profile avatar',
         customInstructions: 'Custom instructions',
         copilotIntoAccount: 'Copilot into account',
-        viewUserHistory: 'View user history',
+        viewMemberHistory: 'View member history',
         viewAgentHistory: 'View agent history',
         publicSection: {
             title: 'Public',
@@ -3441,7 +3452,7 @@ const translations = {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
             agentSignInBlocked: "Agent accounts can't be signed into directly. To use an agent, sign in with your own account and access it via Copilot.",
         },
-        cannotGetAccountDetails: "Couldn't retrieve account details. Please try to sign in again.",
+        cannotGetAccountDetails: "Couldn't retrieve account details. Please wait a few minutes and try again.",
         loginForm: 'Login form',
         notYou: (user: string) => `Not ${user}?`,
     },
@@ -6219,6 +6230,8 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Campfire.',
             accountTypesDescription: 'Your Campfire accounts will import as categories.',
             enableNewAccountsTitle: 'Enable newly imported accounts',
@@ -6947,6 +6960,7 @@ const translations = {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
             showTagGLCodes: 'Show GL codes when selecting a tag',
+            showTagGLCodesSubtitle: "If a GL code isn't displayed, it isn't available for that tag in your accounting system.",
             trackBillable: 'Track billable expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
@@ -9784,6 +9798,11 @@ const translations = {
         bulkActions: {
             editMultiple: 'Edit multiple',
             editMultipleTitle: 'Edit multiple expenses',
+            editFinalizedExpensesTitle: 'Edit finalized expenses?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 of the ${total} expenses you selected is on an approved or paid report. You’re about to edit a finalized expense. Are you sure?`,
+                other: `${count} of the ${total} expenses you selected are on approved or paid reports. You’re about to edit finalized expenses. Are you sure?`,
+            }),
             // cspell:disable
             editMultipleDescription: 'Changes will be set for all selected expenses and will override any previously set values.',
             approve: 'Approve',
