@@ -56,7 +56,9 @@ Use this method when you already see both duplicate expenses on the Expenses pag
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Expenses**.
 2. Select two expenses to merge.
-3. Choose **Selected**, then select **Merge**.
+3. Choose **Merge**:
+   - **On web:** Select **Merge** in the bar that appears at the bottom of the list. If you don't see it, select **More** first.
+   - **On mobile:** Tap **Selected**, then select **Merge**.
 4. If both expenses have receipts, select the one you want to keep.
 5. Choose which expense details to apply to the final expense. 
 6. Select **Merge expenses**.
@@ -135,7 +137,3 @@ You won’t see **Merge** if:
 ## Can I undo a merged expense?
 
 No. Merging expenses can't be undone, so review the details before confirming.
-
-## Can I merge two reports instead of two expenses?
-
-Yes. Merging reports is a separate action that combines whole reports into one. Learn how to [merge reports](/articles/new-expensify/reports-and-expenses/How-to-Merge-Reports).

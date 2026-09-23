@@ -1,8 +1,8 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report, submit multiple reports, bulk submit reports, reports couldn't be submitted, submit reports window]
-internalScope: Audience is members and Workspace Admins. Covers creating, submitting, editing, and retracting expense reports, including submitting several reports at once from the Reports tab and admin-created reports. Does not cover approvals, reimbursements, or exports.
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report]
+internalScope: Audience is members and Workspace Admins. Covers creating, submitting, editing, and retracting expense reports, including admin-created reports. Does not cover approvals, reimbursements, or exports.
 ---
 
 This article explains how to create, add expenses to, submit, and retract expense reports.
@@ -13,7 +13,7 @@ Follow these steps to build an expense report manually.
 
 1. In the navigation tabs (on the left on Web, on the bottom on Mobile), select **+ Create**.
 2. Select **Create report** to open a draft report on your default workspace.
-  - Reports are opened on your default workspace. To switch workspaces select **More > Change workspace**, select the workspace you want, then select **Save**.
+  - Reports are opened on your default workspace. To switch workspaces select **More > Change workspace**.
 3. Select **Add expense** to add the first expense. You can create a new expense or add an existing expense.
  
 **Note:** To add additional expenses to an existing report, select **More > Add** expense. 
@@ -30,52 +30,6 @@ After submitting, the report status updates and a **”submitted”** entry appe
 **Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. 
 
 **Note:** If some expenses on the report are on hold when you submit, the held expenses move to a new report in the **Draft** state, while the unheld expenses stay on the submitted report.
-
----
-
-## How to submit multiple expense reports at once
-
-You can select several reports on the **Reports** tab and submit them in one action.
-
-**On web:**
-
-1. In the navigation tabs on the left, select **Spend**.
-2. Under **Expense reports**, select **Reports**.
-3. Select the checkbox on two or more reports you want to submit.
-4. Select the button that shows how many reports you selected (for example, **2 selected**), then select **Submit**.
-
-**On mobile:**
-
-1. In the navigation tabs on the bottom, tap **Spend**.
-2. Under **Expense reports**, tap **Reports**.
-3. Long-press a report, then tap **Select** to enter selection mode.
-4. Select two or more reports you want to submit.
-5. Tap the button that shows how many reports you selected (for example, **2 selected**), then tap **Submit**.
-
-**Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**.
-
----
-
-## What happens when some of the selected reports can’t be submitted
-
-A report can’t be submitted when every expense on it is on hold, or when every transaction on it is a pending card transaction.
-
-When you submit several reports at once and at least one of them can’t be submitted:
-
-- The reports that can be submitted are submitted.
-- The reports that can’t be submitted are skipped and stay in their current status.
-- A **Submit reports** window opens and lists the reports that were skipped, with the message **These reports couldn’t be submitted. Check that expenses aren’t held or pending, then try again.**
-- Select **Got it** to close the window.
-
-If every report you selected is skipped, nothing is submitted and the **Submit reports** window lists all of them.
-
-**Note:** If your workspace does not use an approval workflow, the window is titled **Mark reports as done**.
-
-<!-- SCREENSHOT:
-Suggestion: Show the Submit reports window listing one skipped report, with the Got it button visible.
-Location: After the bulleted list in this section.
-Purpose: Helps members recognize the window that explains why part of their selection was not submitted, instead of assuming the submit action failed entirely.
--->
 
 ---
 
@@ -131,7 +85,9 @@ This helps keep reports moving forward and ensures expenses are submitted and ap
 ## How Workspace Admins can create a report by moving multiple expenses
 
 1. Select two or more reported or unreported company card expenses, or reported reimbursable expenses.
-2. Select the **Selected** button.
+2. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 3. Select **Move expenses**.
 4. Select **Create report** to add the expenses to a report on the member's default workspace. 
    - You must be a Workspace Admin on that workspace.
@@ -238,10 +194,6 @@ When you submit a report that has a mix of held and unheld expenses, the held ex
 ## Why can’t I submit a report when all expenses are on hold?
 
 If every expense on the report is on hold, you’ll see the message **Unable to submit report**. Take at least one expense off hold, then submit the report again.
-
-## Why weren’t all of the reports I selected submitted?
-
-When you submit several reports at once, any report where every expense is on hold or every transaction is a pending card transaction is skipped. The rest of your selection is still submitted, and a **Submit reports** window lists the reports that were skipped. Take the expenses off hold, or wait for the pending transactions to post, then submit those reports again.
 
 ## Can I remove an expense after submitting?
 

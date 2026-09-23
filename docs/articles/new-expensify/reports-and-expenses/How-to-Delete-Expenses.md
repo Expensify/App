@@ -1,8 +1,8 @@
 ---
 title: How to Delete Expenses
 description: Learn how to delete expenses in New Expensify, including how to remove expenses from reports, when you need to retract a report, and why some expenses can’t be deleted.
-keywords: [New Expensify, delete expenses, remove expense, delete expense report, company card expense delete, retract report delete expense, cannot delete expense Expensify, undelete expense, restore deleted expense, find deleted expenses, delete a group of expenses, delete grouped expenses, group disappears after delete, delete every expense in a group]
-internalScope: Audience includes all members. Covers deleting individual expenses, deleting expenses from reports, deleting every expense in a group on the Spend page, retracting reports to enable deletion, company card deletion rules, finding and un-deleting deleted expenses. Does not cover editing expenses, reimbursement workflows, expense approvals beyond deletion requirements.
+keywords: [New Expensify, delete expenses, remove expense, delete expense report, company card expense delete, retract report delete expense, cannot delete expense Expensify, undelete expense, restore deleted expense, find deleted expenses]
+internalScope: Audience includes all members. Covers deleting individual expenses, deleting expenses from reports, retracting reports to enable deletion, company card deletion rules, finding and un-deleting deleted expenses. Does not cover editing expenses, reimbursement workflows, expense approvals beyond deletion requirements.
 ---
 
 # How to delete expenses 
@@ -25,31 +25,11 @@ Most expenses can be deleted directly. If an expense is on a submitted report or
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Select the expenses you want to delete.
-3. Choose **X selected**, then **Delete**.
-4. Choose **Delete** again to confirm.
+3. Choose **Delete**:
+   - **On web:** Select **Delete** in the bar that appears at the bottom of the list. If you don't see it, select **More** first.
+   - **On mobile:** Tap **Selected**, then select **Delete**.
 
-**Note:** The bulk action button shows how many expenses you selected, for example **3 selected**. You can only delete your own Unreported, Draft, and Outstanding expenses. You can’t delete expenses created by other members.
-
----
-
-## How to delete every expense in a group on the Spend page
-
-When your results are grouped, each group row has its own checkbox that selects every expense the group is currently showing. Learn how to [group results by dimension](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
-2. Group your results, for example by **Category** or by **Merchant**.
-3. Select the group’s checkbox to select every expense in that group. You can also expand the group and select each expense individually.
-4. Choose **X selected**, then **Delete**.
-5. Choose **Delete** again to confirm.
-
----
-
-## What happens after you delete every expense in a group
-
-- When you delete every expense a group contains, the whole group row is removed from your results.
-- When your results show fewer expenses than the group contains, only the expenses you selected are deleted. The group stays in your results and collapses, and the expenses that weren’t shown are untouched. Expand the group again to load them.
-- While you’re offline, the group row stays in your results and is shown as pending until you reconnect and the deletion reaches Expensify.
-- If the deletion fails, the group row returns to your results.
+**Note:** You can only delete your own Unreported, Draft, and Outstanding expenses. You can’t delete expenses created by other members.
 
 ---
 
@@ -58,7 +38,7 @@ When your results are grouped, each group row has its own checkbox that selects 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Open the report that contains the expense.
 3. Select the expense you want to delete.
-4. Choose **X selected**, then **Delete**.
+4. Choose **Selected**, then **Delete**.
 
 **Note:** You can only delete expenses from your own Unreported, Draft, and Outstanding reports. If the report is Approved, Done or Paid, it will need to be retracted first before deleting the expense. [Learn how to retract a report](/articles/new-expensify/reports-and-expenses/Edit-Expense-Reports). 
 
@@ -103,7 +83,9 @@ Deleted expenses are not permanently removed. You can find and restore them from
 1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Spend** > **Expenses**.
 2. Filter by **Status** = **Deleted** and click **Apply**.
 3. Select the expenses you want to restore using the checkboxes.
-4. Choose **X selected**, then **Undelete**.
+4. Choose **Undelete**:
+   - **On web:** Select **Undelete** in the bar that appears at the bottom of the list. If you don't see it, select **More** first.
+   - **On mobile:** Tap **Selected**, then select **Undelete**.
 
 The restored expenses return to your account. 
 

@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, Refresh needed, page out of date, results not loading, refresh the Spend page]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -57,19 +57,22 @@ Each row represents an expense and includes:
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
   - **Delete:** To remove expenses from the expense report.
 
-**Note:** The bulk action menu appears after selecting at least one expense.
+**Note:** The bulk actions appear after you select at least one expense.
+
+- **On web:** They appear in a bar at the bottom of the list that shows how many rows you selected, for example **2 selected**. The bar shows the most common actions as buttons and puts the rest behind **More**, so select **More** if you don't see the action you want. The search box and filters stay visible while the bar is open. To clear your selection, select the close icon at the right of the bar or press the Escape key.
+- **On mobile:** Tap **Selected** to open the same list of actions.
 
 ## How to move expenses between reports
 
 **From the report table**
 
 1. Select the expense(s) using checkboxes.
-2. Click **Move to report** from the bulk action menu.
+2. Click **Move to report** from the bulk actions. On web, click **More** in the bar at the bottom of the list if you don't see it.
 3. In the right-hand panel, select from the following options:
    - Create report
-   - An existing draft report
+   - An existing draft or submitted report
    - Remove from report 
-4. The expenses are moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
+4. The expenses are moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
 **From the expense details**
 
@@ -77,9 +80,9 @@ Each row represents an expense and includes:
 2. Click **Move to report** from the bulk action menu.
 3. In the right-hand panel, select from the following options:
    - Create report
-   - An existing draft report
+   - An existing draft or submitted report
    - Remove from report 
-4. The expense is moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
+4. The expense is moved. A system message records the move when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message.
 
 ## How to add a new expense to the table
 - The expense appears in the table.  
@@ -124,16 +127,6 @@ The currency picker can't be opened in these cases:
 
 ---
 
-## What to do when the Spend page shows "Refresh needed"
-
-If Expensify can't load the latest results for the **Spend** page, the page shows the heading **Refresh needed** with the line "This page is out of date, refresh to see the latest".
-
-Nothing has been deleted or changed. Only the list on screen is out of date.
-
-Click **Refresh** to load the current results. If the list still doesn't load, [learn how to troubleshoot a page that won't load](/articles/new-expensify/settings/General-product-troubleshooting).
-
----
-
 # Filters
 
 ## How to apply filters in New Expensify
@@ -170,30 +163,6 @@ You can also combine filters with a keyword search for even more precision. For 
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
 
-## How filters are saved for each Spend view
-
-Every view in the **Spend** sidebar keeps its own filters. This includes the suggested searches, such as **Expenses** and **Reports**, and every saved search.
-
-- When you apply a filter, switch to another view, and come back, the filters you left in place are still applied.
-- Some views start with default filters that define what the view shows. Default filters appear first in the filters bar and have no **x** button, so you can't remove them.
-- Filters you add appear after the default filters, and each one has an **x** button to remove it.
-
-## How to reset filters on a Spend view
-
-The **Reset** button appears in the filters bar as soon as a view's filters differ from its default filters.
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
-2. Select the view you want to reset.
-3. In the filters bar, click **Reset**.
-
-The view returns to its default filters, and **Reset** disappears until you change the filters again.
-
-<!-- SCREENSHOT:
-Suggestion: The Spend page filters bar on web with a default filter pill shown first without an x button, a user-added filter pill with an x button after it, and the Reset button visible at the end of the bar.
-Location: Immediately after the steps in "How to reset filters on a Spend view"
-Purpose: Members can't tell from text alone which pills are removable, and the Reset button only appears once filters differ from the defaults, so a capture confirms both what a default pill looks like and where Reset sits.
--->
-
 ## How to export from the Spend page
 
 The **Current view** option within the **Export** menu lets you download a CSV of exactly what you're currently seeing on the Spend page—your active filters, column configuration, and ordering are all preserved. The exported file is named `Expensify_<current_view>_<unique id>.csv`. Once you initiate the export, you can choose to wait for the download to finish or have **Concierge** send it to you once it's ready.
@@ -229,12 +198,6 @@ If you create a draft report and have unreported expenses in your SelfDM, a prom
 ## Can I export reports from the Spend page?
 Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
 
-## Why are my filters still applied when I return to a view?
-Each view on the **Spend** page remembers the filters you last used, so you can pick up where you left off. Click **Reset** in the filters bar to return that view to its default filters.
-
-## Why can't I remove some filters?
-Filters that are part of a view's default filters define what that view shows, so they have no **x** button. Click **Reset** to return the view to its default filters.
-
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.
 
@@ -243,12 +206,6 @@ Previews update **in real time** as expenses are added or removed. Deleted repor
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
-
-## Why does the Spend page say "Refresh needed"?
-Expensify couldn't load the latest results, so the list you're looking at is out of date. Click **Refresh** to load the current results. Your expenses and reports aren't affected — only the view is stale.
-
-## Why do I see "Oops... Something went wrong" instead of "Refresh needed"?
-That message means the search itself wasn't valid, which usually happens when a search operator is typed incorrectly. Refreshing won't fix it, so no **Refresh** button appears. Correct the search and run it again. Learn how to [use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 
 ## Why can't I change the total spend currency?
 The currency picker is only disabled in two cases: when you're offline, or while the totals are still loading. Both happen because converting the total requires a refresh from Expensify. Reconnect or wait for the totals to finish loading to enable it.

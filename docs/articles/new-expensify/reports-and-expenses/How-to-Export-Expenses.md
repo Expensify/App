@@ -1,7 +1,7 @@
 ---
 title: How to Export Expenses
 description: Learn how to export expenses from the Expenses page to CSV using default or custom export templates, and how to download their receipts, in New Expensify.
-keywords: [New Expensify, export expenses, CSV export, download expenses, download receipts, expense receipts, receipt zip, expense export template, bulk export expenses, expense data, select all matching expenses, all matching items selected]
+keywords: [New Expensify, export expenses, CSV export, download expenses, download receipt, download receipts, expense receipts, receipt zip, expense export template, bulk export expenses, expense data]
 internalScope: Audience is all members. Covers exporting expenses from the Expenses page to CSV using export templates (both individually and in bulk) and downloading the receipts on selected expenses. Does not cover exporting reports to CSV or PDF (see Export-Reports.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
@@ -27,8 +27,10 @@ You'll receive the exported CSV file in a message from Concierge.
 ## How to export multiple expenses
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
-2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all. If there is more than one page of expenses, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
-3. Select the selection button at the top (for example, **3 selected**, or **All matching items selected** if you chose **Select all**).
+2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
@@ -39,12 +41,14 @@ You'll receive the exported CSV file in a message from Concierge.
 You can download the receipts attached to your selected expenses in a single ZIP file.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
-2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all. If there is more than one page of expenses, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
-3. Select the selection button at the top (for example, **3 selected**, or **All matching items selected** if you chose **Select all**).
-4. Select **Download receipts**.
+2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all.
+3. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
+4. Select **Download receipts**, or **Download receipt** if only one selected expense has a receipt.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
-**Note:** **Download receipts** only appears when at least one selected expense has a receipt. Deleted expenses are not included in the download.
+**Note:** This action only appears when at least one selected expense has a receipt. It reads **Download receipt** when exactly one selected expense has a receipt, and **Download receipts** when more than one does. Deleted expenses are not included in the download.
 
 ## How to export the columns currently displayed using Export current view
 
@@ -52,8 +56,10 @@ Use **Export current view** to download a CSV that matches the columns currently
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
-3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all. If there is more than one page of expenses, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
-4. Select the selection button at the top (for example, **3 selected**, or **All matching items selected** if you chose **Select all**).
+3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
+4. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 5. Select **Export**.
 6. Select **Export current view**.
 
@@ -63,12 +69,6 @@ The CSV includes one row per expense using the same columns displayed on the pag
 
 # FAQ
 
-## Why does the selection button say All matching items selected?
-
-On the **Expenses** page, the selection button reads **All matching items selected** when you choose **Select all**, because the selection covers every expense that matches your current filters, not only the expenses loaded on the page. If you then clear the checkbox on any expense, the button switches to the exact number selected (for example, **48 selected**). Selecting that expense again returns the button to **All matching items selected**.
-
-If you choose **Select all on this page**, the button always shows a number, because the selection is limited to the expenses on the current page.
-
 ## What export templates can I choose from? 
 
 Expensify offers pre-built export templates, or you can build your own custom export template. 
@@ -76,7 +76,6 @@ Expensify offers pre-built export templates, or you can build your own custom ex
    - **Basic export** - Essential fields including date, amount, merchant, category, and receipt URL.
    - **All Data - expense level** - One row per expense with all available data fields.
    - **Canadian Multiple Tax Export** - One row per expense with a separate column for each tax (such as GST and PST). This template only appears when the workspace currency is set to CAD.
-   - **Reconciliation - All Expenses** - One row per expense with the fields used to reconcile card spend, such as posted date, card name, custom card name, bank, MCC, and expense status. This template only appears if you're a **Workspace admin** or **Card admin** of a workspace that has company cards or the Expensify Card enabled.
    - **Custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
 ## Where do I find the exported file?
@@ -95,9 +94,13 @@ If all selected expenses are deleted, only the **Basic export** template is avai
 
 Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
 
-## Why don't I see Download receipts for my selected expenses?
+## Why don't I see Download receipt or Download receipts for my selected expenses?
 
-**Download receipts** only appears when at least one selected expense has a receipt attached. If none of the selected expenses have receipts, the option is hidden.
+This action only appears when at least one selected expense has a receipt attached. If none of the selected expenses have receipts, the option is hidden.
+
+## Why does the receipt download option sometimes read Download receipt instead of Download receipts?
+
+The label follows the number of receipts the download will include. It reads **Download receipt** when exactly one selected expense has a receipt, and **Download receipts** when more than one does. The download itself is the same either way.
 
 ## Are deleted expenses included when I download receipts?
 

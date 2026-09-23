@@ -1,7 +1,7 @@
 ---
 title: Approve Expenses
 description: Approve, hold, reject, and unapprove submitted expenses
-keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, reject expense error, expense already moved or rejected, could not reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
+keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
 internalScope: Audience is Workspace approvers and admins. Covers approving and managing submitted expenses and reports. Does not cover creating or submitting expenses.
 ---
 
@@ -32,7 +32,7 @@ On any expense submitted on a report, the approver can:
 
 ## How to review and approve a report
 
-When a report is submitted to you for approval it will appear in the **To-dos** section on **Home**, and under **Spend** in the **Expense reports** section, under **Needs approval**. 
+When a report is submitted to you for approval it will appear in the **For you** section on **Home**, and under **Spend** in the **Expense reports** section, under **Needs approval**. 
 
 To review and approve a report submitted to you for approval: 
 
@@ -44,20 +44,12 @@ To review and approve a report submitted to you for approval:
 
 ## How to approve a report that contains held expenses
 
-If a report contains one or more held expenses, clicking **Approve** at the top of the report — or on the report preview in a chat — opens a dropdown menu instead of approving right away. The menu explains that the report contains held expenses and gives you two options:
+If a report contains one or more held expenses, clicking **Approve** (from within the report or from the **Reports** page) displays a confirmation modal with two options:
 
 - **Approve only [non-held amount]**: Approves only the compliant (non-held) expenses. The held expenses are moved to a separate report so they can be reviewed independently.
 - **Approve [full amount]**: Approves the entire report, including all held expenses.
 
-Each option shows the amount it will approve, so you can compare the two before you choose.
-
 If every expense on the report is held, only the **Approve [full amount]** option is available.
-
-<!-- SCREENSHOT:
-Suggestion: The open Approve dropdown menu on a submitted report that has one held expense, showing the held-expense explanation and both options with their amounts.
-Location: Immediately after the two approval options in this section.
-Purpose: Approvers expect a confirmation modal and may not notice that the amounts differ between the two options; seeing the menu prevents them from approving the full report when they meant to approve only the compliant expenses.
--->
 
 ---
 
@@ -70,8 +62,6 @@ Purpose: Approvers expect a confirmation modal and may not notice that the amoun
 5. Click **Save**.
 
 The approver you added is now the current approver, and the original workflow will continue after their approval. 
-
-**Note:** If that approver is later removed from the workspace, the **Remove member** confirmation warns that they’re an approver and that the workspace owner will replace them, and the report is reassigned to the workspace owner. Learn more about [removing a member who is an approver](/articles/new-expensify/workspaces/Managing-Workspace-Members).
 
 ---
 
@@ -92,7 +82,9 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
 2. Select two or more reports using the checkboxes.
-3. Choose **Selected**, then **Change approver**.
+3. Choose **Change approver**:
+   - **On web:** Select **Change approver** in the bar that appears at the bottom of the list. If you don't see it, select **More** first.
+   - **On mobile:** Tap **Selected**, then select **Change approver**.
 4. Select **Add approver** or **Bypass approvers**.
 5. If you selected **Add approver**, choose the approver and click **Save**.
 
@@ -158,23 +150,6 @@ The rejected expense will be removed from the report, and the submitter will be 
 
 ---
 
-## How to resolve the error when an expense cannot be rejected
-
-If the expense was moved to another report or already rejected by someone else before your rejection went through, the expense stays on the report with this error:
-
-**The expense could not be rejected because it may have already been moved or rejected.**
-
-This is most common when you reject an expense while offline, because your rejection is only sent once you reconnect.
-
-To clear the error:
-
-1. Open the report that shows the error.
-2. Click the **X** next to the error message.
-
-The outdated row is removed from the report. The expense itself is not deleted — it remains on the report it was moved to, or it keeps the rejection that was already applied. While the error is displayed, the expense row cannot be opened or edited.
-
----
-
 # FAQ
 
 ## Why can't I action a pending expense? 
@@ -186,10 +161,6 @@ Only Workspace admins can bypass the prescribed approval workflow. If **Prevent 
 ## What’s the difference between rejecting a report and rejecting an expense?
 
 Rejecting a report sends the entire report back while keeping all expenses grouped together. Rejecting an expense removes only that expense from the report and sends it back to the submitter.
-
-## Why did my expense rejection fail after I came back online?
-
-A rejection made while offline is only sent once you reconnect. If the expense was moved to another report or rejected by someone else in the meantime, the rejection can no longer be applied and the expense shows an error on the report. Click the **X** next to the error message to remove the outdated row.
 
 ## Why can’t I unapprove a report?
 
