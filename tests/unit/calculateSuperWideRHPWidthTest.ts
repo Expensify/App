@@ -43,10 +43,9 @@ describe('calculateSuperWideRHPWidth', () => {
             // the spare room over the wide RHP width, so the card never clips its own panes.
             const windowWidth = 1440;
             const sidePanelWidth = 375;
-            const shrunkWidth = calculateSuperWideRHPWidth(windowWidth) - calculateMaxSidePanelRHPShrink(windowWidth);
-
             // The spare room is 1080 - 925 = 155, less than the 375px panel, so the sheet keeps 925.
-            expect(shrunkWidth).toBe(925);
+            const shrink = Math.min(sidePanelWidth, calculateMaxSidePanelRHPShrink(windowWidth));
+            expect(calculateSuperWideRHPWidth(windowWidth) - shrink).toBe(925);
         });
 
         it('leaves no spare room once the wide RHP floor takes over', () => {
