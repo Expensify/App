@@ -87,7 +87,7 @@ You can choose from a wide range of columns, including:
 - **Custom field 2** – The Custom field 2 value set for the report submitter
 - **International reimbursement IDs** – The reference IDs for international reimbursements on the report
 
-The **Vendor** column only appears in **Edit columns** when at least one of your workspaces uses vendor matching. If none of your workspaces does, the column isn't listed. To learn how vendors are assigned, [learn more about vendor matching for QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
+The **Vendor** column only appears when at least one of your workspaces uses vendor matching. When none of your workspaces uses vendor matching anymore, the column isn't listed in **Edit columns** and it's also removed from the **Expenses** table, even if you already saved it in your column layout. Your saved layout is kept, so the column comes back on its own as soon as a workspace uses vendor matching again. To learn how vendors are assigned, [learn more about vendor matching for QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
 
 To view the full list of available columns, click **Display** in the **Spend** tab, then select **Edit columns**.
 
