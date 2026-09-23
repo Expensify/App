@@ -9,11 +9,10 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
@@ -51,9 +50,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
 
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
