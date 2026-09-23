@@ -139,7 +139,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const [shouldShowRuleTypes, setShouldShowRuleTypes] = useState(!canDescribeRule);
     const [generationID, setGenerationID] = useState<string>();
 
-    const [submittedPrompt, setSubmittedPrompt] = useState<string>();
+    const [promptDraft] = useOnyx(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM_DRAFT);
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
@@ -173,7 +173,6 @@ function RulesNewPage({route}: RulesNewPageProps) {
         const prompt = values.prompt.trim();
         clearNewRulePromptError();
         clearGeneratedRule();
-        setSubmittedPrompt(prompt);
         setGenerationID(generateRule(policyID, prompt));
     };
 
@@ -269,8 +268,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                     <RulesNewPromptForm
                         onSubmit={describeRule}
                         onBuildManually={() => setShouldShowRuleTypes(true)}
-                        onCreateAgentRule={canOfferAgentRule && submittedPrompt ? () => createAgentRuleFromPrompt(submittedPrompt) : undefined}
-                        onPromptChange={() => setSubmittedPrompt(undefined)}
+                        onCreateAgentRule={canOfferAgentRule ? () => createAgentRuleFromPrompt(promptDraft?.prompt?.trim() ?? '') : undefined}
                         isLoading={!!generationID && !generatedRuleForCurrentPrompt}
                     />
                 ) : (
