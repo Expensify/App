@@ -11,7 +11,7 @@ async function runJourneyWorkload(device: JourneyDevice, fixture: JourneyFixture
     if (device.hasLabel('No thanks')) {
         device.pressLabel('No thanks');
     }
-    device.pressLabel('All');
+    selectAllInboxFilter(device);
     await scrollBothWays(device, fixture.scrolls, true);
 
     console.log('Opening and scrolling a populated report.');
@@ -22,7 +22,9 @@ async function runJourneyWorkload(device: JourneyDevice, fixture: JourneyFixture
     await openReport(device, fixture.personalChat, true);
     for (let messageNumber = 1; messageNumber <= (navigationOnly ? 0 : 2); messageNumber += 1) {
         // Check the destination immediately before every write. Search-result matching alone is insufficient.
-        device.waitLabel(fixture.personalChat.title);
+        if (!device.hasLabel(fixture.personalChat.title)) {
+            throw new Error('The personal chat title is not visible before sending.');
+        }
         const composer = device.snapshot().find((node) => node.identifier === 'composer');
         if (!composer) {
             throw new Error('The personal chat composer is missing.');
@@ -31,7 +33,9 @@ async function runJourneyWorkload(device: JourneyDevice, fixture: JourneyFixture
             throw new Error('The personal chat contains an existing draft. Clear or send it manually before running the journey.');
         }
         const token = `PGO ${runID} message ${messageNumber}`;
-        device.fill('composer', `${token} draft`);
+        if (device.platform === 'android') {
+            device.fill('composer', `${token} draft`);
+        }
         device.fill('composer', `${token}. Answered by Codex, instructed by Chris.`);
         device.pressLabel('Send');
         await waitForMessage(device, token);
@@ -39,13 +43,13 @@ async function runJourneyWorkload(device: JourneyDevice, fixture: JourneyFixture
 
     console.log('Scrolling Spend expenses and reports.');
     await showTab(device, 'Spend');
-    device.pressLabel('Expenses');
+    selectSpendSection(device, 'Expenses');
     device.waitLabel('Filters');
     await scrollBothWays(device, fixture.scrolls, true);
-    device.pressLabel('Reports');
+    selectSpendSection(device, 'Reports');
     device.waitLabel('Filters');
     await scrollBothWays(device, Math.max(4, Math.floor(fixture.scrolls / 2)), true);
-    device.pressLabel('Expenses');
+    selectSpendSection(device, 'Expenses');
 
     console.log('Switching tabs and reopening the report.');
     for (let cycle = 0; cycle < fixture.tabCycles; cycle += 1) {
@@ -66,12 +70,10 @@ async function prepareJourney(device: JourneyDevice, fixture: JourneyFixture): P
     }
     await showTab(device, 'Account');
     device.command('scroll', 'top', '--settle');
-    try {
-        device.waitLabel(fixture.accountEmail);
-    } catch {
+    if (!device.hasLabel(fixture.accountEmail)) {
         throw new Error(`SIGN_IN_REQUIRED: Ask Chris to sign into ${fixture.accountEmail}. The journey cannot run on another account.`);
     }
-    device.pressLabel('Preferences');
+    pressPreferences(device);
     await ensureFocusDisabled(device, true);
     device.back();
     await showTab(device, 'Inbox');
@@ -82,15 +84,16 @@ async function prepareJourney(device: JourneyDevice, fixture: JourneyFixture): P
 async function verifyJourneyAccount(device: JourneyDevice, fixture: JourneyFixture): Promise<void> {
     await showTab(device, 'Account');
     device.command('scroll', 'top', '--settle');
-    device.waitLabel(fixture.accountEmail);
-    device.pressLabel('Preferences');
+    if (!device.hasLabel(fixture.accountEmail)) {
+        throw new Error(`The account changed during the journey. Expected ${fixture.accountEmail}; discard this run.`);
+    }
+    pressPreferences(device);
     await ensureFocusDisabled(device, false);
     device.back();
     await showTab(device, 'Inbox');
 }
 
 async function ensureFocusDisabled(device: JourneyDevice, allowChange: boolean): Promise<void> {
-    device.waitLabel('Priority mode');
     if (device.hasLabel('Priority mode, Most recent')) {
         return;
     }
@@ -123,15 +126,17 @@ async function openReport(device: JourneyDevice, report: JourneyReport, isPerson
     }
     device.pressLabel(resultLabel);
     device.wait(idSelector('composer'));
-    device.waitLabel(report.title);
+    if (!device.hasLabel(report.title)) {
+        throw new Error(`The opened report does not show the expected title ${report.title}.`);
+    }
 }
 
 async function showTab(device: JourneyDevice, tab: string): Promise<void> {
     // Use app back navigation instead of Android's hardware Back, which can dismiss the keyboard or leave the app.
     for (let attempt = 0; attempt < 5; attempt += 1) {
-        const tabLabel = findTabLabel(device.snapshot(), tab);
-        if (tabLabel) {
-            device.pressLabel(tabLabel);
+        const tabNode = findTabNode(device.snapshot(), tab);
+        if (tabNode) {
+            device.command('press', String(Math.round(tabNode.x + tabNode.width / 2)), String(Math.round(tabNode.y + tabNode.height / 2)), '--settle');
             return;
         }
         device.back();
@@ -140,18 +145,77 @@ async function showTab(device: JourneyDevice, tab: string): Promise<void> {
     throw new Error(`Cannot return to the ${tab} tab.`);
 }
 
+function selectAllInboxFilter(device: JourneyDevice): void {
+    const tapPoint = allFilterTapPoint(device.snapshot());
+    if (tapPoint) {
+        device.command('press', String(tapPoint.x), String(tapPoint.y), '--settle');
+        return;
+    }
+    device.pressLabel('All');
+}
+
+function pressPreferences(device: JourneyDevice): void {
+    const cell = device.snapshot().filter((node) => normalizeLabel(node.label) === 'Preferences' && node.type === 'Cell' && node.width > 0 && node.height > 0);
+    const preferenceCell = cell.length === 1 ? cell.at(0) : undefined;
+    if (preferenceCell) {
+        device.command('press', String(Math.round(preferenceCell.x + preferenceCell.width / 2)), String(Math.round(preferenceCell.y + preferenceCell.height / 2)), '--settle');
+        return;
+    }
+    device.pressLabel('Preferences');
+}
+
+function selectSpendSection(device: JourneyDevice, section: 'Expenses' | 'Reports'): void {
+    const tapPoint = spendSectionTapPoint(device.snapshot(), section);
+    if (tapPoint) {
+        device.command('press', String(tapPoint.x), String(tapPoint.y), '--settle');
+        return;
+    }
+    device.pressLabel(section);
+}
+
+/** On iOS, Expenses labels the whole horizontal strip while Reports has its own bounds. */
+function spendSectionTapPoint(nodes: JourneyNode[], section: 'Expenses' | 'Reports'): {x: number; y: number} | undefined {
+    const screenWidth = nodes.find((node) => node.type === 'Application')?.width;
+    if (!screenWidth || !nodes.some((node) => normalizeLabel(node.label) === 'Expenses' && node.type === 'Cell' && node.width >= screenWidth * 0.8)) {
+        return undefined;
+    }
+    const reports = nodes.find((node) => normalizeLabel(node.label) === 'Reports' && node.x > 0 && node.height > 0);
+    if (!reports) {
+        throw new Error('Cannot locate the Expenses and Reports segments in Spend.');
+    }
+    return {x: Math.round(section === 'Reports' ? reports.x + reports.width / 2 : reports.x / 2), y: Math.round(reports.y + reports.height / 2)};
+}
+
+/** iOS exposes the whole filter strip as the All cell; its center lands on Unread. */
+function allFilterTapPoint(nodes: JourneyNode[]): {x: number; y: number} | undefined {
+    const screenWidth = nodes.find((node) => node.type === 'Application')?.width;
+    if (!screenWidth || !nodes.some((node) => normalizeLabel(node.label) === 'All' && node.width >= screenWidth * 0.8)) {
+        return undefined;
+    }
+    const unread = nodes.find((node) => normalizeLabel(node.label) === 'Unread' && node.x > 0 && node.height > 0);
+    if (!unread) {
+        throw new Error('Cannot locate the All filter inside the iOS Inbox strip.');
+    }
+    return {x: Math.round(unread.x / 2), y: Math.round(unread.y + unread.height / 2)};
+}
+
 /** iOS appends unread/review status to tab accessibility labels. */
-function findTabLabel(nodes: JourneyNode[], tab: string): string | undefined {
-    const screenHeight = nodes.find((node) => node.type === 'Application')?.height;
+function findTabNode(nodes: JourneyNode[], tab: string): JourneyNode | undefined {
+    const screen =
+        nodes.find((node) => node.type === 'Application') ??
+        nodes
+            .filter((node) => node.x === 0 && node.y === 0 && node.width > 0 && node.height > 0)
+            .toSorted((left, right) => right.width * right.height - left.width * left.height)
+            .at(0);
     const candidates = nodes.filter((node) => {
         const label = normalizeLabel(node.label);
         const matches = label === tab || label.startsWith(`${tab}.`) || label.startsWith(`${tab},`);
-        return matches && (!screenHeight || node.y >= screenHeight * 0.7);
+        return matches && (!screen || (node.y >= screen.height * 0.7 && node.width >= screen.width * 0.1 && node.height >= screen.height * 0.05));
     });
     if (candidates.length > 1) {
         throw new Error(`Ambiguous ${tab} tab in the accessibility tree.`);
     }
-    return candidates.at(0)?.label;
+    return candidates.at(0);
 }
 
 async function scrollBothWays(device: JourneyDevice, count: number, requireMovement: boolean, firstDirection: 'up' | 'down' = 'down'): Promise<void> {
@@ -196,9 +260,11 @@ async function waitForMessage(device: JourneyDevice, token: string): Promise<voi
 }
 
 function contentSignature(nodes: JourneyNode[]): string {
+    const screenHeight = nodes.find((node) => node.type === 'Application')?.height;
     return nodes
-        .map((node) => normalizeLabel(node.label))
-        .filter(Boolean)
+        .filter((node) => !screenHeight || (node.y + node.height > screenHeight * 0.13 && node.y < screenHeight * 0.88))
+        .filter((node) => !!normalizeLabel(node.label))
+        .map((node) => `${normalizeLabel(node.label)}:${Math.round(node.y / 8)}`)
         .join('\n');
 }
 
@@ -227,4 +293,4 @@ function findReportResult(nodes: JourneyNode[], prefix: string, personalChatTitl
     return matches.at(0)?.label;
 }
 
-export {findReportResult, findTabLabel, prepareJourney, runJourneyWorkload, scrollDistance, verifyJourneyAccount};
+export {allFilterTapPoint, contentSignature, findReportResult, findTabNode, prepareJourney, runJourneyWorkload, scrollDistance, spendSectionTapPoint, verifyJourneyAccount};

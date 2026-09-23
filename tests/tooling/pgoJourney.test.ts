@@ -2,7 +2,7 @@ import {describe, expect, it} from 'bun:test';
 
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
-import {findReportResult, findTabLabel, scrollDistance} from '@scripts/pgo/journeyWorkload';
+import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, scrollDistance, spendSectionTapPoint} from '@scripts/pgo/journeyWorkload';
 
 const fixture = {
     accountEmail: 'heavy@example.com',
@@ -141,12 +141,74 @@ describe('PGO journey safeguards', () => {
                     {type: 'Application', rect: {width: 390, height: 844, y: 0}},
                     {label: 'Inbox', rect: {width: 390, height: 50, y: 80}},
                     {label: 'Inbox. Your review is required', rect: {width: 78, height: 71, y: 749}},
+                    {label: 'Inbox', type: 'StaticText', rect: {width: 26, height: 14, y: 793}},
                     {label: 'Account, My settings. Your review is required.', rect: {width: 78, height: 71, y: 749}},
                 ],
             },
             'test.app',
         );
-        expect(findTabLabel(nodes, 'Inbox')).toBe('Inbox. Your review is required');
-        expect(findTabLabel(nodes, 'Account')).toBe('Account, My settings. Your review is required.');
+        expect(findTabNode(nodes, 'Inbox')?.label).toBe('Inbox. Your review is required');
+        expect(findTabNode(nodes, 'Account')?.label).toBe('Account, My settings. Your review is required.');
+    });
+
+    it('targets the visible All filter rather than the iOS strip cell center over Unread', () => {
+        // Given an iOS accessibility cell whose bounds cover the whole Inbox filter strip.
+        const nodes = parseJourneySnapshot(
+            {
+                appBundleId: 'test.app',
+                nodes: [
+                    {type: 'Application', rect: {width: 390, height: 844, x: 0, y: 0}},
+                    {label: 'All', type: 'Cell', rect: {width: 390, height: 52, x: 0, y: 115}},
+                    {label: 'Unread', type: 'Other', rect: {width: 136, height: 40, x: 102, y: 115}},
+                ],
+            },
+            'test.app',
+        );
+        // When the journey chooses the All filter's tap point.
+        const tapPoint = allFilterTapPoint(nodes);
+        // Then it stays left of Unread.
+        expect(tapPoint).toEqual({x: 51, y: 135});
+    });
+
+    it('detects iOS report scrolling when offscreen accessibility labels stay loaded', () => {
+        // Given the same report labels at different vertical positions after a scroll.
+        const reportNodes = (firstMessageY: number) =>
+            parseJourneySnapshot(
+                {
+                    appBundleId: 'test.app',
+                    nodes: [
+                        {type: 'Application', rect: {width: 390, height: 844, y: 0}},
+                        {label: 'Old message', rect: {width: 390, height: 40, y: firstMessageY - 80}},
+                        {label: 'Recent message', rect: {width: 390, height: 40, y: firstMessageY}},
+                    ],
+                },
+                'test.app',
+            );
+        // When content signatures are compared.
+        const before = contentSignature(reportNodes(500));
+        const after = contentSignature(reportNodes(266));
+        // Then movement is visible despite identical labels.
+        expect(before).not.toBe(after);
+    });
+
+    it('targets the visible iOS Spend segments despite a wide Expenses strip cell', () => {
+        // Given an Expenses cell that covers the full segment strip and a bounded Reports control.
+        const nodes = parseJourneySnapshot(
+            {
+                appBundleId: 'test.app',
+                nodes: [
+                    {type: 'Application', rect: {width: 390, height: 844, x: 0, y: 0}},
+                    {label: 'Expenses', type: 'Cell', rect: {width: 1426, height: 52, x: 0, y: 115}},
+                    {label: 'Reports', type: 'Other', rect: {width: 94, height: 40, x: 125, y: 115}},
+                ],
+            },
+            'test.app',
+        );
+        // When each section is selected.
+        const expenses = spendSectionTapPoint(nodes, 'Expenses');
+        const reports = spendSectionTapPoint(nodes, 'Reports');
+        // Then both tap points land inside their visible segments.
+        expect(expenses).toEqual({x: 63, y: 135});
+        expect(reports).toEqual({x: 172, y: 135});
     });
 });

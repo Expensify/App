@@ -12,6 +12,7 @@ type JourneyNode = {
     enabled: boolean;
     width: number;
     height: number;
+    x: number;
     y: number;
 };
 
@@ -34,7 +35,7 @@ function createJourneyDevice(options: {platform: PlatformName; device: string; a
         }
         if (!isRecord(response) || response.success !== true || result.status !== 0) {
             const error = isRecord(response) && isRecord(response.error) ? response.error : undefined;
-            throw new Error(`Device command ${args.at(0)} failed: ${typeof error?.message === 'string' ? error.message : result.stderr.trim()}`);
+            throw new Error(`Device command ${args.at(0)} ${args.at(1) ?? ''} failed: ${typeof error?.message === 'string' ? error.message : result.stderr.trim()}`);
         }
         return response.data;
     }
@@ -81,6 +82,7 @@ function createJourneyDevice(options: {platform: PlatformName; device: string; a
     }
 
     return {
+        platform: options.platform,
         command,
         snapshot,
         wait,
@@ -115,6 +117,7 @@ function parseJourneySnapshot(data: unknown, appID: string): JourneyNode[] {
             enabled: node.enabled !== false,
             width: isRecord(node.rect) && typeof node.rect.width === 'number' ? node.rect.width : 0,
             height: isRecord(node.rect) && typeof node.rect.height === 'number' ? node.rect.height : 0,
+            x: isRecord(node.rect) && typeof node.rect.x === 'number' ? node.rect.x : 0,
             y: isRecord(node.rect) && typeof node.rect.y === 'number' ? node.rect.y : 0,
         }));
 }
