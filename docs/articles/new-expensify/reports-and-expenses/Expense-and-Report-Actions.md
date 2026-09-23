@@ -61,7 +61,8 @@ Use this guide to understand:
 - Mark as exported
 
 **Paid or Done reports**
-- Download
+- Cancel payment
+- Download report
 - Print
 - Mark as exported
 
@@ -84,7 +85,7 @@ Use this guide to understand:
 
 **Payer**
 - Pay reports
-- Cancel payment (before processing)
+- Cancel payment (while Expensify can still stop the payment)
 
 **Workspace Admin**
 - Export reports
@@ -126,12 +127,12 @@ Use this guide to understand:
 | **Export to accounting system** | When accounting integration is enabled | Workspace Admin | Sends data externally |
 | **Duplicate expense** | Non-card expenses | Submitter | Creates a copy of an expense |
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
-| **Download** | Any report | All roles | Downloads a PDF copy |
+| **Download report** | Any report | All roles | Downloads a PDF copy |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
 | **View details** | Any report | All roles | Opens report details |
-| **Cancel payment** | Before payment processing | Payer | Cancels a pending payment |
+| **Cancel payment** | On a manual payment, or on a bank payment while Expensify can still stop the transfer | Payer | Cancels the payment and returns the report to Approved |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
@@ -142,14 +143,14 @@ Use this guide to understand:
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
 | **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense on your primary workspace with the same details. Date is set to today and receipts are not copied |
 | **Duplicate report** | On reports the submitter owns, in any state | Submitter | Creates a copy of the report and its non-card expenses. Date is set to today and receipts are not copied |
-| **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
+| **Download report** | Any report state | All roles | Downloads a copy of the report as a PDF |
 | **Print** | Any report status except Draft | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
 | **Reject** | On Outstanding reports | Assigned approver | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Received payment** | On approved, closed, or reimbursed expense reports where no bank payment has been initiated | Submitter | Confirms that payment was received outside of Expensify and marks the report as paid |
-| **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer | Cancels pending payment |
+| **Cancel payment** | Always on a manual payment. On a bank payment, only while Expensify can still stop the transfer, which it confirms when you open the report | Payer | Cancels the payment and returns the report to Approved |
 
 ---
 
@@ -167,17 +168,6 @@ Open a report to see available actions.
 
 ---
 
-## How to move a report using Change workspace
-
-1. Open the report.
-2. Select **More > Change workspace**.
-3. Select the workspace you want to move the report to. The checkmark moves to that workspace, and the report is not moved yet.
-4. Select **Save**.
-
-**Save** stays disabled until you select a workspace that is different from the report’s current one. To leave the report where it is, select the back arrow instead of **Save**.
-
----
-
 ## What happens after you take a report action
 
 - **Submit** → moves report to approval
@@ -186,7 +176,6 @@ Open a report to see available actions.
 - **Export** → sends report data externally
 - **Reject** → sends report back for updates
 - **Unapprove** → reopens the report before payment
-- **Change workspace** → moves the report once you select a workspace and select **Save**
 
 ---
 
@@ -198,7 +187,12 @@ An error message appears with next steps. You can fix the issue and retry the ex
 
 ## Why can’t I cancel a payment?
 
-Payments can only be canceled before processing begins. Manual payments cannot be canceled.
+**Cancel payment** only appears while Expensify can still stop the payment.
+
+- On a bank payment, Expensify checks whether the transfer can still be stopped when you open the report. Once the money is on its way to the recipient’s bank, **Cancel payment** no longer appears. Some payments send the money right away, so **Cancel payment** never appears for them.
+- On a manual payment recorded with **Mark as paid**, **Cancel payment** stays available, because no money moved through Expensify.
+
+If **Cancel payment** is not available on a bank payment, contact your bank directly to ask whether the transfer can still be stopped.
 
 ## Why can’t I see “Bypass approvers”?
 
