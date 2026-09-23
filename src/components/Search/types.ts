@@ -477,6 +477,9 @@ type SearchChartProps = {
 
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
+
+    /** Color every bar is drawn in. Only a bar chart reads it. */
+    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
