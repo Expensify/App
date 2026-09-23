@@ -181,6 +181,7 @@ describe('maskOnyxState', () => {
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                     actorAccountID: 12345,
                     actorEmail: 'user@example.com',
+                    requiredDepositCurrency: CONST.CURRENCY.USD,
                     eta: {
                         etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK,
                         dateTime: '2024-01-05T23:59:59Z',
@@ -197,11 +198,12 @@ describe('maskOnyxState', () => {
                 throw new Error('Expected a report record with a nextStep in masked Onyx state');
             }
 
-            // Then the enum values, the actor account ID and the ETA date survive intact, so the imported state still renders
+            // Then the enum values, the actor account ID, the deposit currency and the ETA date survive intact, so the imported state still renders
             expect(report.nextStep).toMatchObject({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: 12345,
+                requiredDepositCurrency: CONST.CURRENCY.USD,
                 eta: {
                     etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK,
                     dateTime: '2024-01-05T23:59:59Z',

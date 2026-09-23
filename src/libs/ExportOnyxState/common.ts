@@ -137,6 +137,7 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
             'actorAccountID',
             'etaKey',
             'dateTime',
+            'requiredDepositCurrency',
         ],
         maskList: ['reportName', 'description', 'ownerAccountID', 'managerID', 'lastMessageText', 'lastMessageHtml', 'actorEmail'],
     },
