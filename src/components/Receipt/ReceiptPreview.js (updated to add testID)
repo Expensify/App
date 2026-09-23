@@ -1,0 +1,8 @@
+@@
+   return (
+-    <TouchableOpacity onPress={onPress} style={styles.container}>
++    <TouchableOpacity
++      onPress={onPress}
++      style={styles.container}
++      testID="receipt-preview-touchable"
++    >
