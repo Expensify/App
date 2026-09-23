@@ -1117,5 +1117,124 @@ describe('SearchPageNarrow', () => {
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
             expect(mockSearch.mock.calls.some(([params]) => (params?.offset ?? 0) > CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(false);
         });
+
+        it('does not fetch pages already on screen again after a first-page refresh rewinds the snapshot', async () => {
+            // Given a to-do tab whose second page already answered
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 3 + 10);
+            await seedTodoSnapshot(true);
+            searchWritesLoadingState();
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE, true);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE * 2);
+            mockSearch.mockClear();
+
+            // When a bulk action refreshes the first page, which rewinds the snapshot offset to 0
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {search: {offset: 0, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, isLoading: true}});
+            });
+            await answerTodoPage(0, true);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then nothing is fetched again and the rows stay, because live rows are still in Onyx
+            expect(mockSearch).not.toHaveBeenCalled();
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE * 2);
+
+            // When the list reaches its end
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then it asks for the page after the rows on screen, not the ones the refresh rewound past
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2}));
+        });
+
+        it('keeps paging while another search on the same tab is running', async () => {
+            // Given a to-do tab whose second page already answered
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 2 + 20);
+            await seedTodoSnapshot(true);
+            searchWritesLoadingState();
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE, true);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            // When a first-page refresh is on the wire, which parks the shared snapshot in its loading state
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {search: {offset: 0, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, isLoading: true}});
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the next page is still asked for, because the running request is not the page the list is waiting on
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2}));
+        });
+
+        it('waits for the first page to answer before paging in cached rows locally', async () => {
+            // Given a first visit to a to-do tab, where the first page is still on the wire and the server hasn't said whether it has more
+            const rowCount = CONST.SEARCH.RESULTS_PAGE_SIZE + 20;
+            await seedTodoReports(rowCount);
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {
+                    search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, offset: 0, hash: todoQueryJSON?.hash, isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING},
+                });
+            });
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            // When the list reaches its end
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the rows stay at one page, because `hasMoreResults` is only a default until the server answers
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When the first page answers that the server has nothing more
+            await answerTodoPage(0, false);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the end the list already reached pages the cached rows in, without waiting for another end
+            expect(renderedRowKeys()).toHaveLength(rowCount);
+            expect(mockSearch).not.toHaveBeenCalled();
+        });
     });
 });

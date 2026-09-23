@@ -167,8 +167,8 @@ function Search({
     const [offset, setOffset] = useState(0);
     // a page left running by a previous mount is still in flight, so wait for it rather than revealing or skipping its rows
     const isLivePageRunningAtMount = () => shouldUseLiveData && isSearchPending(searchResults) && (searchResults?.search?.offset ?? 0) > 0;
-    // live paging owns its in-flight flag; the shared snapshot isLoading is forced off for live
-    const [isPagingLive, setIsPagingLive] = useState(isLivePageRunningAtMount);
+    // live paging owns its in-flight flag, keyed to the offset it asked for so other searches on this hash don't read as ours
+    const [livePageOffset, setLivePageOffset] = useState(() => (isLivePageRunningAtMount() ? searchResults?.search?.offset : undefined));
     const [isLivePageAdopted, setIsLivePageAdopted] = useState(isLivePageRunningAtMount);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -200,13 +200,15 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
+    const isSnapshotPending = isSearchPending(searchResults);
+
     // gate on state: loading so it self-clears — Onyx resolves loading on every response
-    const isLivePageInFlight = shouldUseLiveData && isPagingLive && searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADING;
+    const isLivePageInFlight = shouldUseLiveData && livePageOffset !== undefined && livePageOffset === searchResults?.search?.offset && isSnapshotPending;
 
     // live results drop `errors`, so the response code is the only failure signal left
     const didLastLivePageFail = shouldUseLiveData && typeof searchResults?.search?.responseJsonCode === 'number';
 
-    const {liveRowLimit, setRevealedLiveRows} = useLiveRowLimit(searchResults?.search?.offset, isLivePageInFlight || didLastLivePageFail);
+    const {liveRowLimit, answeredOffset: answeredLiveOffset, setRevealedLiveRows} = useLiveRowLimit(searchResults?.search?.offset, isSnapshotPending || didLastLivePageFail);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -853,8 +855,19 @@ function Search({
     const wantedOffsetRef = useRef<number | undefined>(undefined);
 
     const fetchMoreResults = useCallback(() => {
+        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
+        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
+        // Live rows don't come from the snapshot, so live paging follows the pages that answered instead.
+        const serverOffset = shouldUseLiveData ? answeredLiveOffset : (searchResults?.search?.offset ?? 0);
+        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+
         // a failed page never writes `hasMoreResults`, and a failure doesn't mean the server is out of rows
         if (!searchResults?.search?.hasMoreResults && !didLastLivePageFail) {
+            // before the first answer `hasMoreResults` is only the default, so wait for the server to say it is out of pages
+            if (shouldUseLiveData && isSnapshotPending && !isOffline) {
+                wantedOffsetRef.current = nextOffset;
+                return;
+            }
             // the server has nothing left, but the live scan can still hold rows past the cap: page those in locally
             if (shouldUseLiveData && allDataLength > liveRowLimit) {
                 setRevealedLiveRows((rows) => rows + CONST.SEARCH.RESULTS_PAGE_SIZE);
@@ -863,9 +876,6 @@ function Search({
             return;
         }
 
-        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
-        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
-        const serverOffset = searchResults?.search?.offset ?? 0;
         if (!isFocused || shouldShowLoadingState) {
             return;
         }
@@ -875,7 +885,7 @@ function Search({
             // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
             if (isLivePageAdopted && !isOffline) {
                 setIsLivePageAdopted(false);
-                handleSearch({queryJSON, searchKey: currentSearchKey, offset: serverOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+                handleSearch({queryJSON, searchKey: currentSearchKey, offset: nextOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
             }
             return;
         }
@@ -885,8 +895,6 @@ function Search({
         }
 
         // the cap can outrun the cursor, and pulling the cursor up to it would skip server pages for good
-        // failureData parks the cursor on the page it never delivered, so retry that same offset
-        const nextOffset = didLastLivePageFail ? serverOffset : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
         wantedOffsetRef.current = nextOffset;
         // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
         if (isLoadingMorePage || isOffline) {
@@ -906,12 +914,14 @@ function Search({
         });
         // offline path returned above, so we never arm with no request running
         if (shouldUseLiveData) {
-            setIsPagingLive(true);
+            setLivePageOffset(nextOffset);
         }
     }, [
         isFocused,
         isOffline,
         shouldUseLiveData,
+        answeredLiveOffset,
+        isSnapshotPending,
         liveRowLimit,
         setRevealedLiveRows,
         didLastLivePageFail,
@@ -931,10 +941,11 @@ function Search({
     // Ask again for a page that never arrived, either because a search was still running when the list hit
     // its end or because a first-page response replaced it. Both leave the request with nothing to retry it.
     useEffect(() => {
-        const serverOffset = searchResults?.search?.offset ?? 0;
+        const serverOffset = shouldUseLiveData ? answeredLiveOffset : (searchResults?.search?.offset ?? 0);
         // A first-page response that lands after the page it displaces drags the cursor back below the page we
         // hold, after that page's arrival already cleared the intent. The list has not moved, so arm it again.
-        if (wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
+        // Live rows stay in Onyx through that, so there is nothing to fetch again.
+        if (!shouldUseLiveData && wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
             wantedOffsetRef.current = offset;
         }
 
@@ -943,13 +954,14 @@ function Search({
             return;
         }
 
-        if (serverOffset >= wantedOffset) {
+        // a failed live page waits for the next end rather than retrying on its own
+        if (serverOffset >= wantedOffset || didLastLivePageFail) {
             wantedOffsetRef.current = undefined;
             return;
         }
 
         fetchMoreResults();
-    }, [fetchMoreResults, isLoadingMorePage, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.offset]);
+    }, [answeredLiveOffset, didLastLivePageFail, fetchMoreResults, isLoadingMorePage, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.offset, shouldUseLiveData]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
