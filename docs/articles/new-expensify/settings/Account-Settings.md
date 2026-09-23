@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [New Expensify, profile, account preferences, notifications, language, time format, 12-hour clock, 24-hour clock, theme, high contrast mode, timezone, personal information, phone number, security code]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, high contrast mode, timezone, personal information, phone number, security code]
 ---
 
 # Account Settings
@@ -93,28 +93,6 @@ Expensify supports the following languages:
 
 ---
 
-## What time format each language uses
-
-Your **Language** setting also controls whether times display on a 12-hour or a 24-hour clock. Expensify uses the standard clock for the language you select, so you cannot set the time format separately.
-
-| Language | Clock | Example |
-| --- | --- | --- |
-| English | 12-hour | 2:05 PM |
-| German (Deutsch) | 24-hour | 14:05 |
-| Spanish (Español) | 24-hour | 14:05 |
-| French (Français) | 24-hour | 14:05 |
-| Italian (Italiano) | 24-hour | 14:05 |
-| Dutch (Nederlands) | 24-hour | 14:05 |
-| Polish (Polski) | 24-hour | 14:05 |
-| Portuguese (Português – Brasil) | 24-hour | 14:05 |
-| Greek (Ελληνικά) | 12-hour | 2:05 μ.μ. |
-| Japanese (日本語) | 24-hour | 14:05 |
-| Chinese (中文 (简体)) | 12-hour | 下午 2:05 |
-
-This applies everywhere Expensify shows a time, including chat message timestamps, a chat member's local time, the **Clear After** time on your status, trip details, and per diem start and end times.
-
----
-
 ## How to manage notification settings
 
 To manage notification settings:
@@ -144,8 +122,11 @@ To set or update your pronouns:
 
 1. Go to **Account > Profile**.
 2. Click **Pronouns**.
-3. Choose your pronouns from the list of options.
-4. Click **Save**.
+3. Type a word or letters into the **Search to see options** field. No pronouns are listed until you type a search term.
+4. Select your pronouns from the search results.
+5. Click **Save**.
+
+When you reopen **Pronouns**, the search field is pre-filled with your saved pronouns. Your saved pronouns stay pinned to the top of the search results as you search, so your current selection is always visible.
 
 ---
 
@@ -212,12 +193,6 @@ Your photo helps teammates identify you easily in chats, reports, and notificati
 
 ## Will changing my language affect reports?
 No. It only changes the language of your user interface, not the content of your reports.
-
-## Can I change the time format without changing my language?
-No. The clock Expensify uses follows your **Language** setting, so switching to a 12-hour or 24-hour clock means selecting a language that uses it.
-
-## Why do times show on a 24-hour clock after I change my language?
-Most languages Expensify supports use a 24-hour clock, so times such as 2:05 PM display as 14:05. Select **English** to see times on a 12-hour clock.
 
 ## Can I disable all Expensify app notifications?
 Yes. From the navigation tabs, go to **Account > Preferences** and toggle off both update and sound notifications.
