@@ -32,7 +32,7 @@ Expensify offers flexible options to search and export expenses and reports in v
    - **Current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses those same columns.
    - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
-**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or use **Select all** to match every report, then the export is prepared in the background. You can wait for the file to download automatically, or select **Send me the file when it's ready** to have Concierge deliver it instead. Selecting this option allows the export window to be closed while the file is generated. Once the export is ready, Expensify sends it through Concierge and by email. If the export cannot be generated, Expensify displays an error in the export window or sends the error through Concierge if **Send me the file when it’s ready** was selected.
+**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or use **Select all** to match every report, then the export is prepared in the background. You can wait for the file to download automatically, or select **Send me the file when it's ready** to have Concierge deliver it instead. Selecting this option allows the export window to be closed while the file is generated. Once the export is ready, Expensify sends it through Concierge and by email. If you keep the export window open until the export finishes, the window switches to **Your file is ready!** so you can select **Download file** right away. If the export cannot be generated, Expensify displays an error in the export window or sends the error through Concierge if **Send me the file when it’s ready** was selected.
 
 **Note:** Report-level templates only appear if you select full reports.
 
@@ -149,7 +149,7 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 ## How do I receive my export?
 
-**Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead.
+**Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead. If you keep the export window open until the export finishes, the window switches to **Your file is ready!** so you can select **Download file** without waiting for the chat message.
 
 ## What happens if I refresh the page while my file is preparing?
 
