@@ -65,13 +65,32 @@ function getDelegatorEmailFromURL(url?: string): string | undefined {
 }
 
 /**
- * Looks for *email* param in given URL using regex. URLSearchParams can't be used here because
- * transitionURL is a full URL, not a query string, so it mangles the first param's key.
+ * Looks for *email* param in given URL using regex
  */
 function getEmailFromTransitionURL(url?: string): string | undefined {
-    const emailParamRegex = /[?&]email=([^&]*)/g;
-    const matches = emailParamRegex.exec(url ?? '');
-    return matches?.[1];
+    if (!url) {
+        return undefined;
+    }
+
+    const [urlWithoutHash] = url.split('#', 2);
+    const queryIndex = urlWithoutHash.indexOf('?');
+    if (queryIndex === -1) {
+        return undefined;
+    }
+
+    const queryString = urlWithoutHash.slice(queryIndex + 1);
+    const match = queryString.match(/(?:^|&)email=([^&]*)/);
+    const email = match?.[1];
+
+    if (!email) {
+        return undefined;
+    }
+
+    try {
+        return decodeURIComponent(email);
+    } catch {
+        return email;
+    }
 }
 
 let loggedInDuringSession: boolean | undefined;
