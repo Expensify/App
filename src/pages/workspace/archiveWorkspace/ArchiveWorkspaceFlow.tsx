@@ -1,4 +1,3 @@
-import ConfirmModal from '@components/ConfirmModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 
@@ -13,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {close as closeVisibleModal} from '@libs/actions/Modal';
 import {archivePolicy, calculateBillNewDot, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -22,7 +22,6 @@ import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
@@ -31,7 +30,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ArchiveWorkspaceFlowProps = {
@@ -114,8 +113,6 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
     const {shouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
 
-    const [archiveError, setArchiveError] = useState<{translationKey?: TranslationPaths; message?: string}>();
-
     const hideArchiveErrorModal = useCallback(() => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
     }, [policyID, policy?.pendingAction]);
@@ -125,45 +122,67 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
         onDismiss();
     }, [hideArchiveErrorModal, onDismiss]);
 
-    const closeArchiveErrorModal = useCallback(() => {
-        setArchiveError(undefined);
-        dismissArchiveFlow();
-    }, [dismissArchiveFlow]);
-
     const showArchiveErrorModal = useCallback(() => {
         if (!isFocused) {
             dismissArchiveFlow();
             return;
         }
 
-        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
-        setArchiveError({translationKey: isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'});
-    }, [dismissArchiveFlow, isBlockedByExpensifyCards, isFocused]);
+        showConfirmModal({
+            title: translate('workspace.common.archive'),
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        // This modal is only shown when one of the two blockers applies, and Expensify Cards take priority when both do.
+                        html={translate(isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError')}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            dismissArchiveFlow();
+                        }}
+                    />
+                </View>
+            ),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+            shouldHandleNavigationBack: false,
+        }).then(() => {
+            dismissArchiveFlow();
+        });
+    }, [closeModal, dismissArchiveFlow, isBlockedByExpensifyCards, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
 
-    const didCompletePendingArchive = !isOffline && prevIsPendingArchive && !isPendingArchive;
-    const shouldLatchArchiveErrorModal = didCompletePendingArchive && !!policyLatestErrorMessage && isFocused;
+    const showGenericArchiveErrorModal = useCallback(
+        (errorMessage: string) => {
+            if (!isFocused) {
+                dismissArchiveFlow();
+                return;
+            }
 
-    if (shouldLatchArchiveErrorModal && !archiveError) {
-        setArchiveError(
-            isBlockedByExpensifyCards || isBlockedByTravelBilling
-                ? {translationKey: isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'}
-                : {message: policyLatestErrorMessage},
-        );
-    }
+            const prompt = CONST.HTML_TAG_REGEX.test(errorMessage) ? (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML
+                        html={errorMessage}
+                        onConciergeLinkPress={() => {
+                            closeModal();
+                            dismissArchiveFlow();
+                        }}
+                    />
+                </View>
+            ) : (
+                errorMessage
+            );
 
-    const archiveErrorMessage = archiveError?.translationKey ? translate(archiveError.translationKey) : archiveError?.message;
-
-    const archiveErrorPrompt =
-        !!archiveErrorMessage && CONST.HTML_TAG_REGEX.test(archiveErrorMessage) ? (
-            <View style={[styles.renderHTML, styles.flexRow]}>
-                <RenderHTML
-                    html={archiveErrorMessage}
-                    onConciergeLinkPress={closeArchiveErrorModal}
-                />
-            </View>
-        ) : (
-            archiveErrorMessage
-        );
+            showConfirmModal({
+                title: translate('workspace.common.archive'),
+                prompt,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: false,
+            }).then(() => {
+                dismissArchiveFlow();
+            });
+        },
+        [closeModal, dismissArchiveFlow, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate],
+    );
 
     const getArchiveConfirmationPrompt = () => {
         if (hasExpensifyCardsEnabledOnWorkspace) {
@@ -244,32 +263,37 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
             return;
         }
 
-        closeModal();
-
-        if (policyLatestErrorMessage) {
-            if (!isFocused) {
-                dismissArchiveFlow();
-            }
+        if (!policyLatestErrorMessage) {
+            closeModal();
+            onArchiveComplete?.();
+            onDismiss();
             return;
         }
 
-        onArchiveComplete?.();
-        onDismiss();
-    }, [isOffline, isPendingArchive, prevIsPendingArchive, policyLatestErrorMessage, isFocused, closeModal, dismissArchiveFlow, onArchiveComplete, onDismiss]);
+        closeVisibleModal(() => {
+            if (isBlockedByExpensifyCards || isBlockedByTravelBilling) {
+                showArchiveErrorModal();
+                return;
+            }
 
-    return (
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Local modal avoids stacking issues with the global confirmation modal on mobile.
-        <ConfirmModal
-            title={translate('workspace.common.archive')}
-            isVisible={!!archiveErrorMessage && isFocused}
-            onConfirm={closeArchiveErrorModal}
-            onCancel={closeArchiveErrorModal}
-            prompt={archiveErrorPrompt}
-            confirmText={translate('common.buttonConfirm')}
-            shouldShowCancelButton={false}
-            shouldHandleNavigationBack={false}
-        />
-    );
+            showGenericArchiveErrorModal(policyLatestErrorMessage);
+        }, false);
+    }, [
+        isOffline,
+        isPendingArchive,
+        prevIsPendingArchive,
+        policyLatestErrorMessage,
+        isBlockedByExpensifyCards,
+        isBlockedByTravelBilling,
+        closeModal,
+        onArchiveComplete,
+        onDismiss,
+        showArchiveErrorModal,
+        showGenericArchiveErrorModal,
+    ]);
+
+    // Every modal this flow shows is owned by the global modal stack, so the flow itself renders nothing.
+    return null;
 }
 
 export default ArchiveWorkspaceFlow;
