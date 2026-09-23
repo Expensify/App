@@ -1,7 +1,7 @@
 ---
 title: Managing Workspace Members in New Expensify
 description: Learn how to add, remove, filter, and manage user roles in a New Expensify workspace.
-keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter, remove approver, approver warning, change approver, outstanding reports, replace approver with workspace owner]
+keywords: [New Expensify, workspace members, add user, remove user, user roles, workspace admin, card admin, people admin, payments admin, invite users, filter members, role filter, select all members, remove multiple members, find member search]
 ---
 
 
@@ -24,7 +24,7 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 To invite someone to your workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Click **Invite member**.
+2. Click **Invite Member**.
 3. Search for the user by name, email, or phone number.
 4. (Optional) Click **Role** to change the default role (Member).
 5. (Optional) Add a message to the invitation.
@@ -52,7 +52,7 @@ You can filter the member list by role to quickly find specific groups of member
    - **Editors** – Members with the Editor role (Submit workspaces only).
    - **Members** – Members with the Member role.
 
-Each selected role appears in the filter bar, and the member list updates immediately to show only members matching the selected roles. To remove a filter, click the **X**. You can also combine role filters with the search bar to narrow results further.
+Each selected role appears in the filter bar, and the member list updates immediately to show only members matching the selected roles. To remove a filter, click the **X**. You can also combine role filters with the **Find member** search box to narrow results further.
 
 The roles available depend on your workspace type, so the options change if you switch your workspace plan.
 
@@ -72,27 +72,20 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Click the member’s name.
-3. In the right-hand panel, click **Remove from workspace**.
+3. In the right-hand panel, click **Remove from Workspace**.
 4. Confirm by clicking **Remove**.
 
 ## Remove Multiple Members
 
-1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Select the checkboxes next to the members you want to remove.
-3. Click the **[number] selected** dropdown in the top-right.
-4. Choose **Remove member**.
+1. Go to **Workspaces > Members**.
+2. Select the checkboxes next to the members you want to remove. To select every member currently listed, use the **Select all** checkbox in the table header.
+3. Click the selected count button in the top-right — for example, **2 selected**.
+4. Select **Remove members**. If you selected a single member, this reads **Remove member**.
 5. Confirm by clicking **Remove**.
 
-## What the Approver Warning Means When You Remove a Member
+**Note:** You can’t select yourself, so **Select all** only selects the other members in the list.
 
-If any member you selected is an approver, the **Remove member** confirmation names them and tells you that the workspace owner will replace them in the approval workflow. The warning appears in both removal flows above, and it covers two kinds of approver:
-
-- **Workflow approvers** — members set as an approver under **Workspaces > [Workspace Name] > Workflows**.
-- **Report approvers** — members who are the current approver on an Outstanding report awaiting their approval, including approvers assigned through **Change approver** on an individual report.
-
-Reports that are already archived don’t trigger the warning. If no selected member is an approver, you’ll see the standard confirmation asking whether you’re sure you want to remove them.
-
-Learn more about [assigning an approver to a single report](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
+**Note:** Changing what the member list shows clears your selection. If you type in **Find member**, clear that search, or change a role filter, every checkbox is unchecked and the top-right button returns to **Invite member**. Narrow the list first, then select the members you want to remove.
 
 ---
 
