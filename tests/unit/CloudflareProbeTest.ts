@@ -7,6 +7,7 @@ import {CF_REAUTH_REQUIRED} from '@libs/CloudflareAccess/fetchWithQAAuth';
 import {runCloudflareAuthProbe} from '@userActions/CloudflareProbe';
 import {redirectToCloudflareSignIn, getCloudflareSession, getPendingCloudflareCodeExchange, isSessionNearExpiry, refreshCloudflareSession} from '@userActions/CloudflareSession';
 
+import CONST from '@src/CONST';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -15,6 +16,18 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 type ProbeResponse = {ok: boolean; status: number; json: () => Promise<unknown>};
 
 const mockFetchWithQAAuth = jest.fn<Promise<ProbeResponse>, [string, {method?: string}]>();
+
+const mockQAAuth = {API_ROOT: 'https://qa.example.com/', CHECK_PATH: 'api/authCheck'};
+
+// A getter, because the factory runs during the hoisted import chain, before mockQAAuth is initialized
+jest.mock('@src/CONFIG', () => ({
+    __esModule: true,
+    default: {
+        get QA_AUTH() {
+            return mockQAAuth;
+        },
+    },
+}));
 
 function jsonResponse(body: unknown): ProbeResponse {
     return {ok: true, status: 200, json: () => Promise.resolve(body)};
@@ -48,9 +61,23 @@ beforeEach(() => {
     jest.mocked(isSessionNearExpiry).mockReturnValue(false);
     jest.mocked(getPendingCloudflareCodeExchange).mockReturnValue(null);
     mockFetchWithQAAuth.mockResolvedValue(jsonResponse({jsonCode: 200, authenticatedVia: 'oauth-bearer'}));
+    mockQAAuth.CHECK_PATH = 'api/authCheck';
 });
 
 describe('runCloudflareAuthProbe', () => {
+    it('reports an error and fires nothing when the check path is not configured', async () => {
+        // Given a build with the QA auth feature on but no check path, and no session, so that without the
+        // guard the probe would start a redirect
+        mockQAAuth.CHECK_PATH = '';
+        jest.mocked(getCloudflareSession).mockReturnValue(null);
+
+        // When the probe runs
+        // Then it names the missing value before any auth flow can start
+        await expect(runCloudflareAuthProbe()).resolves.toEqual({status: 'error', detail: 'QA_AUTH_CHECK_PATH is not set'});
+        expect(mockFetchWithQAAuth).not.toHaveBeenCalled();
+        expect(redirectToCloudflareSignIn).not.toHaveBeenCalled();
+    });
+
     it('with no session: starts the redirect and never fires the request — the page is leaving', async () => {
         // Given no stored session, so the only path to working auth is a fresh authorize round trip
         jest.mocked(getCloudflareSession).mockReturnValue(null);
@@ -111,6 +138,7 @@ describe('runCloudflareAuthProbe', () => {
         // Then it should succeed and echo how the Worker authenticated the request. Exercising that
         // end-to-end path is the probe's whole purpose
         await expect(runCloudflareAuthProbe()).resolves.toEqual({status: 'success', detail: 'authenticatedVia: oauth-bearer'});
+        expect(mockFetchWithQAAuth).toHaveBeenCalledWith('https://qa.example.com/api/authCheck', {method: CONST.NETWORK.METHOD.POST});
 
         // Then neither redirect nor refresh should run: a healthy session needs no auth flow, so the happy
         // path must cost nothing beyond the request itself

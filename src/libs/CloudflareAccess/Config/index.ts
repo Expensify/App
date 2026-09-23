@@ -39,7 +39,10 @@ const isQAAuthConfigured: IsQAAuthConfigured = () => {
     return parseHTTPSOrigin(API_ROOT) !== null;
 };
 
-/** One token covers every allowlisted host only if they all belong to the same (multi-domain) Access application */
+/**
+ * RFC 8707 resource indicator: Cloudflare binds the issued token to exactly this one string, so one token
+ * covers every allowlisted host only if they all belong to the same (multi-domain) Access application.
+ */
 const getQAResource: GetQAResource = () => {
     // The `??` is unreachable behind the isQAAuthConfigured() gate that every caller sits under
     return parseHTTPSOrigin(CONFIG.QA_AUTH.API_ROOT) ?? '';

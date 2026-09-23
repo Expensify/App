@@ -147,7 +147,7 @@ export default {
     SKIP_ONBOARDING: get(Config, 'SKIP_ONBOARDING', 'false') === 'true',
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
-    // Auth for the Cloudflare Access-protected QA server. Empty values disable the feature entirely
+    // Auth for the Cloudflare Access-protected QA server
     QA_AUTH: {
         API_ROOT: qaExpensifyURL,
         SECURE_API_ROOT: qaSecureExpensifyURL,

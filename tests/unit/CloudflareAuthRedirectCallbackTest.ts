@@ -133,7 +133,7 @@ describe('the boot-time QA auth callback handling', () => {
         await Promise.resolve();
 
         // Then the reason must reach the log: nothing else can ever observe the rejection
-        expect(mockLogWarn).toHaveBeenCalledWith('Cloudflare code exchange failed', {errorMessage: 'invalid_grant'});
+        expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Code exchange failed', {errorMessage: 'invalid_grant'});
     });
 
     it('validates state first: a foreign callback is discarded wholesale, even with error and code present', () => {
@@ -145,7 +145,7 @@ describe('the boot-time QA auth callback handling', () => {
         // Then state must be validated before anything else: a callback failing provenance is discarded wholesale with its other params untrusted, so the reported error is our mismatch rather than the attacker's
         expect(runBoot()).toBe('invalid-callback');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Cloudflare sign-in callback did not complete', {outcome: 'invalid-callback', errorMessage: 'OAuth callback state mismatch'});
+        expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Sign-in callback did not complete', {outcome: 'invalid-callback', errorMessage: 'OAuth callback state mismatch'});
         // Then the boot is still rescued off the redirect path
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/settings/troubleshoot');
     });
@@ -159,7 +159,7 @@ describe('the boot-time QA auth callback handling', () => {
         // Then the provider's own description is surfaced. The user said no, so there is nothing legitimate to redeem
         expect(runBoot()).toBe('provider-error');
         expect(sessionActions.exchangeCodeForCloudflareSession).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Cloudflare sign-in callback did not complete', {outcome: 'provider-error', errorMessage: 'User refused'});
+        expect(mockLogWarn).toHaveBeenCalledWith('[CloudflareSession] Sign-in callback did not complete', {outcome: 'provider-error', errorMessage: 'User refused'});
     });
 
     it('rejects a callback with no authorization code', () => {

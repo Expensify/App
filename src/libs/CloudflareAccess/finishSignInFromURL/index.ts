@@ -12,14 +12,14 @@ import type {FinishCloudflareSignInFromURL} from './types';
 const finishCloudflareSignInFromURL: FinishCloudflareSignInFromURL = () => {
     const captured = getCapturedCloudflareAuthCallback();
     if (captured.errorMessage) {
-        Log.warn('Cloudflare sign-in callback did not complete', {outcome: captured.outcome, errorMessage: captured.errorMessage});
+        Log.warn('[CloudflareSession] Sign-in callback did not complete', {outcome: captured.outcome, errorMessage: captured.errorMessage});
     }
 
     if (captured.exchange) {
         // Fire and forget: boot cannot wait on the round trip. The catch is not optional
         // because an unhandled rejection is reported as a crash
         exchangeCodeForCloudflareSession(captured.exchange).catch((error: unknown) => {
-            Log.warn('Cloudflare code exchange failed', {errorMessage: error instanceof Error ? error.message : String(error)});
+            Log.warn('[CloudflareSession] Code exchange failed', {errorMessage: error instanceof Error ? error.message : String(error)});
         });
     }
 

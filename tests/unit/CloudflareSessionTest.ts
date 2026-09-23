@@ -6,7 +6,6 @@ import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type WebCryptoProvider from '@libs/CloudflareAccess/getWebCrypto/types';
 import type * as OAuthClientModule from '@libs/CloudflareAccess/OAuthClient';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
-import type * as SessionCleanupModule from '@libs/SessionCleanup';
 
 import type * as SessionActionsModule from '@userActions/CloudflareSession';
 
@@ -64,7 +63,6 @@ let SessionActions: typeof SessionActionsModule;
 let oAuthClient: typeof OAuthClientModule;
 let pkce: typeof PKCEModule;
 let pendingAuthFlowStorage: typeof PendingAuthFlowStorageModule;
-let sessionCleanup: typeof SessionCleanupModule;
 let assignSpy: jest.Mock;
 let realLocation: Location;
 
@@ -90,7 +88,6 @@ beforeEach(() => {
     pkce = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
     pendingAuthFlowStorage = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
     SessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
-    sessionCleanup = require<typeof SessionCleanupModule>('@libs/SessionCleanup');
 });
 
 afterEach(() => {
@@ -275,9 +272,12 @@ describe('refreshCloudflareSession', () => {
         const refreshDeferred = Promise.withResolvers<CloudflareSession>();
         jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
 
-        // When sign-out runs its cleanup before the rotation resolves
+        // When the sign-out clear drops the key from Onyx before the rotation resolves. No sign-out list
+        // preserves it, which KeysToPreserveTest proves
         const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
-        sessionCleanup.runSessionCleanupCallbacks();
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        expect(SessionActions.getCloudflareSession()).toBeNull();
         refreshDeferred.resolve(SESSION_B);
         await refresh;
 
@@ -445,7 +445,7 @@ describe('exchangeCodeForCloudflareSession', () => {
 
         // When the completion runs, Then it still resolves
         await expect(SessionActions.exchangeCodeForCloudflareSession({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier})).resolves.toBeUndefined();
-        // Then a failed persist is not a failed sign-in. The cache keeps the usable session and a reload self-heals
+        // Then the cache keeps the usable session
         expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
         setSpy.mockRestore();
     });
