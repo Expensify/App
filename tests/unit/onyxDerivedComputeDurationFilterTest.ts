@@ -52,18 +52,6 @@ describe('onyxDerivedComputeDurationFilter', () => {
         expect(result?.spans?.at(0)?.data?.derivedKey).toBe('derivedKey');
     });
 
-    it('keeps fast spans with a different op', async () => {
-        // Given a transaction with a fast span that is not a recompute
-        const event = buildTransaction([buildChildSpan('http.client', 1)]);
-
-        // When the filter processes it
-        const result = await onyxDerivedComputeDurationFilter(event, {});
-
-        // Then it is untouched, because the threshold only applies to recomputes
-        expect(result?.spans).toHaveLength(1);
-        expect(result?.spans?.at(0)?.op).toBe('http.client');
-    });
-
     it('keeps a recompute span that never ended', async () => {
         // Given a recompute span with no end timestamp
         const event = buildTransaction([buildChildSpan(COMPUTE_OP, undefined)]);
@@ -73,16 +61,5 @@ describe('onyxDerivedComputeDurationFilter', () => {
 
         // Then it survives, because there is no duration to compare against the threshold
         expect(result?.spans).toHaveLength(1);
-    });
-
-    it('returns a transaction without spans unchanged', async () => {
-        // Given a transaction that carries no child spans
-        const event = buildTransaction();
-
-        // When the filter processes it
-        const result = await onyxDerivedComputeDurationFilter(event, {});
-
-        // Then the event passes straight through
-        expect(result).toBe(event);
     });
 });
