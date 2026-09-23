@@ -79,6 +79,10 @@ You can also mix both types of selection. If you select some groups and also exp
 - Every expense from the fully selected groups.
 - Only the specific expenses you selected from an expanded group (other expenses in that group are not exported).
 
+When your expenses are grouped by **Card**, the **Export** menu also offers the **Reconciliation - All Expenses** template alongside **Current view**. This template is available to Workspace Admins and card admins of a workspace that has a card product enabled. It covers every expense on each selected card group, including expenses further down the list that you haven't scrolled to yet, plus any individual expenses you selected alongside the groups.
+
+For every other grouping — such as **Category**, **Merchant**, **Tag**, or **From** — **Current view** is the only export option available when you select a group.
+
 # Export as PDF
 
 You can download a single report or multiple reports as PDFs. Each PDF includes all expenses, attached receipts, and report notes.
@@ -129,6 +133,12 @@ Yes, use the **All Data – Report Level Export** template. All other templates 
 ## Can I keep my groups when I export?
 
 Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Export** > **Current view**. The exported file keeps each group as its own section with the expenses listed below their group header, using the columns currently shown on the page.
+
+## Why don't I see export templates when I select a group?
+
+A group isn't a fixed list of expenses, so most export templates can't be applied to one. When you select a group, **Current view** is normally the only export option.
+
+The exception is a search grouped by **Card**, including the **Card statements** and **Card accruals** shortcuts. There, Workspace Admins and card admins of a workspace with a card product enabled can also choose **Reconciliation - All Expenses**, because a card group can be matched to the card it belongs to. To use any other template, expand the group and select the individual expenses instead.
 
 ## Can I export in PDF or XLS format?
 
