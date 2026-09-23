@@ -30,14 +30,14 @@ Onyx.connectWithoutView({
 });
 
 /** Parked by openReportFromDeepLink() while onboarding owns the screen. In memory rather than Onyx so a stale destination cannot replay after a reload or for the next account on the device. */
-let openDeepLinkAfterOnboarding: (() => boolean) | undefined;
+let openDeepLinkAfterOnboarding: ((conciergeReportID?: string) => boolean) | undefined;
 
 /** The callback returns whether it opened the route. Returning false lets the caller pick the default destination. */
-function setDeepLinkToOpenAfterOnboarding(callback: () => boolean) {
+function setDeepLinkToOpenAfterOnboarding(callback: (conciergeReportID?: string) => boolean) {
     openDeepLinkAfterOnboarding = callback;
 }
 
-function consumeDeepLinkToOpenAfterOnboarding(): boolean {
+function consumeDeepLinkToOpenAfterOnboarding(conciergeReportID?: string): boolean {
     if (!openDeepLinkAfterOnboarding) {
         return false;
     }
@@ -45,7 +45,7 @@ function consumeDeepLinkToOpenAfterOnboarding(): boolean {
     const openDeepLink = openDeepLinkAfterOnboarding;
     openDeepLinkAfterOnboarding = undefined;
     try {
-        return openDeepLink();
+        return openDeepLink(conciergeReportID);
     } catch (error) {
         // The onboarding modal is already dismissed, so a failing replay must not take the default destination with it.
         Log.alert('[navigateAfterOnboarding] Parked deep link failed to open', {error});
@@ -112,7 +112,7 @@ function navigateAfterOnboarding(
     setDisableDismissOnEscape(false);
 
     // A route the user asked for before signing up outranks every default below, including the Side Panel variant.
-    if (consumeDeepLinkToOpenAfterOnboarding()) {
+    if (consumeDeepLinkToOpenAfterOnboarding(conciergeReportID)) {
         return;
     }
 

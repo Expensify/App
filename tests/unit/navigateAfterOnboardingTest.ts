@@ -199,17 +199,21 @@ describe('navigateAfterOnboarding', () => {
     });
 
     it('should open a deep link parked before onboarding instead of the default destination', () => {
+        // Given a deep link that was captured before the account finished onboarding
         const navigate = jest.spyOn(Navigation, 'navigate');
         const openDeepLink = jest.fn(() => true);
         setDeepLinkToOpenAfterOnboarding(openDeepLink);
 
+        // When onboarding finishes
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
 
+        // Then the parked link wins and no default destination is used
         expect(openDeepLink).toHaveBeenCalledTimes(1);
         expect(navigate).not.toHaveBeenCalled();
     });
 
     it('should open a parked deep link even when the trackExpensesWithConcierge variant would send the user to Concierge', () => {
+        // Given an account assigned the variant whose branch returns before the default destination is chosen
         const navigate = jest.spyOn(Navigation, 'navigate');
         const openDeepLink = jest.fn(() => true);
         setDeepLinkToOpenAfterOnboarding(openDeepLink);
@@ -223,6 +227,7 @@ describe('navigateAfterOnboarding', () => {
     });
 
     it('should still use the default destination when the parked deep link throws', () => {
+        // Given a parked link that fails to open, after the onboarding modal is already dismissed
         const navigate = jest.spyOn(Navigation, 'navigate');
         const openDeepLink = jest.fn(() => {
             throw new Error('boom');
@@ -236,6 +241,7 @@ describe('navigateAfterOnboarding', () => {
     });
 
     it('should fall back to the default destination when the parked deep link cannot be opened', () => {
+        // Given a parked link that reports it did not navigate
         const navigate = jest.spyOn(Navigation, 'navigate');
         const openDeepLink = jest.fn(() => false);
         setDeepLinkToOpenAfterOnboarding(openDeepLink);
@@ -246,7 +252,20 @@ describe('navigateAfterOnboarding', () => {
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 
+    it('should hand the concierge report ID to the parked deep link', () => {
+        // Given a parked link and an account whose Concierge chat is already known
+        const openDeepLink = jest.fn(() => true);
+        setDeepLinkToOpenAfterOnboarding(openDeepLink);
+
+        // When onboarding finishes
+        navigateAfterOnboarding(false, true, REPORT_ID, {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        // Then the ID is passed through, so the link can skip the Concierge utility page and its skeleton
+        expect(openDeepLink).toHaveBeenCalledWith(REPORT_ID);
+    });
+
     it('should only replay a parked deep link once', () => {
+        // Given a link parked once and two onboarding exits
         const navigate = jest.spyOn(Navigation, 'navigate');
         const openDeepLink = jest.fn(() => true);
         setDeepLinkToOpenAfterOnboarding(openDeepLink);

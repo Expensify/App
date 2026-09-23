@@ -628,7 +628,16 @@ function openReportFromDeepLink(
                                 return false;
                             }
 
-                            setDeepLinkToOpenAfterOnboarding(openDeepLink);
+                            setDeepLinkToOpenAfterOnboarding((conciergeChatReportID) => {
+                                // ConciergePage resolves the chat itself, but straight after onboarding the report data is
+                                // still settling, so it holds a full page skeleton. Go to the chat directly when it is known.
+                                if (conciergeChatReportID && route === ROUTES.CONCIERGE) {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), {waitForTransition: true});
+                                    return true;
+                                }
+
+                                return openDeepLink();
+                            });
                             return true;
                         };
 
