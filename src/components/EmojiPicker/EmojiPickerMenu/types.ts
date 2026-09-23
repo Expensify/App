@@ -9,8 +9,6 @@ type EmojiPickerMenuProps = {
     onEmojiSelected: (emoji: string, emojiObject: Emoji, preferredSkinTone: number) => void;
 
     activeEmoji?: string;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 

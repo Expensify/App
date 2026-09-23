@@ -106,6 +106,27 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(isGovernmentRateUnmodified(buildRate({rate: Number('0.29') * 100}, governmentRate))).toBe(true);
         });
 
+        it('should return true when a kilometer-based government snapshot matches a mile-based stored rate', () => {
+            const governmentRate = {sourceRateID: 'CA_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.48}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+        });
+
+        it('should return true when a mile-based government snapshot matches a kilometer-based stored rate', () => {
+            const governmentRate = {sourceRateID: 'US_2026-01-01', rate: 76, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 47.22}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)).toBe(true);
+        });
+
+        it('should return false when a converted government rate has been edited', () => {
+            const governmentRate = {sourceRateID: 'CA_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.49}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(false);
+        });
+
+        it('should fall back to the same-unit comparison when the source country is unknown', () => {
+            const governmentRate = {sourceRateID: 'NZ_2026-01-01', rate: 73, startDate: '2026-01-01', endDate: '2026-12-31'};
+            expect(isGovernmentRateUnmodified(buildRate({rate: 73}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+            expect(isGovernmentRateUnmodified(buildRate({rate: 117.48}, governmentRate), CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(false);
+        });
+
         it('should return false when the snapshot is malformed and has no rate amount', () => {
             // A snapshot missing its rate amount alongside an unset rate must not be reported as unmodified.
             expect(isGovernmentRateUnmodified(buildRate({rate: undefined}, {sourceRateID: 'US_2026-01-01', startDate: '2026-01-01', endDate: '2026-12-31'}))).toBe(false);

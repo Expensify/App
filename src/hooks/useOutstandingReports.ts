@@ -1,8 +1,5 @@
-import {useSearchResultsContext} from '@components/Search/SearchContext';
-
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
-import {getOutstandingReportsByPolicyIDFromSearchData} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,20 +20,10 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const shouldUseAllPolicies = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const {currentSearchResults} = useSearchResultsContext();
-
-    // The report picker renders outside SearchScopeProvider, so useOnyx does not fall back to the search snapshot and
-    // the derived value above only holds reports the user has already opened.
-    const outstandingReportsFromSearch = getOutstandingReportsByPolicyIDFromSearchData(currentSearchResults?.data);
-
-    // Onyx wins on conflict, since it holds the newer copy of a report the user has open.
-    const getReportsForPolicy = (policyID: string | number) => ({
-        ...outstandingReportsFromSearch[policyID],
-        ...outstandingReportsByPolicyID?.[policyID],
-    });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Early return if no reports are available to prevent useless loop
-    if ((!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) && isEmptyObject(outstandingReportsFromSearch)) {
+    if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
         return [];
     }
 
@@ -48,7 +35,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
                 continue;
             }
 
-            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, getReportsForPolicy(policyID), isEditing);
+            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
             result.push(...reports);
         }
         return result;
@@ -58,5 +45,12 @@ export default function useOutstandingReports(selectedReportID: string | undefin
         return [];
     }
 
-    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, reportNameValuePairs, getReportsForPolicy(selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID), isEditing);
+    return getOutstandingReportsForUser(
+        selectedPolicyID,
+        ownerAccountID,
+        rules,
+        reportNameValuePairs,
+        outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+        isEditing,
+    );
 }
