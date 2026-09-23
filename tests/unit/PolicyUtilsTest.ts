@@ -4768,8 +4768,12 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Rillet is connected because Rillet is still pre-GA', () => {
-                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(false);
+            it('returns true when beta is disabled and Rillet is connected because Rillet is generally available', () => {
+                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
+                expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
