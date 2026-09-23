@@ -1,6 +1,6 @@
 import ROUTES from '@src/ROUTES';
 
-import type {SearchKey} from './SearchUIUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {setSearchContext} from './actions/Search';
 import Navigation from './Navigation/Navigation';
