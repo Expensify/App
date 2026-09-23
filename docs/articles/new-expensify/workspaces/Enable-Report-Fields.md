@@ -8,6 +8,8 @@ Report Fields let workspace admins collect additional header-level information o
 
 Report Fields apply to expense reports. They don't appear on invoices. To collect extra details on invoices, [learn how to enable Invoice fields](/articles/new-expensify/workspaces/Enable-Invoice-Fields).
 
+**Note:** Field names must be unique across the whole workspace. If you name a report field the same as an existing invoice field, you'll see the error *An invoice field with this name already exists*.
+
 **Note:** If your workspace is connected to an accounting system like QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite, Report Fields must be created in that system directly. [Learn more about connecting integrations.](#)
 
 ---
