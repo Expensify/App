@@ -96,15 +96,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             : false) ||
         (!quickAction?.action &&
             !isEmptyObject(policyChatForActivePolicy) &&
-            canCreateRequest(
-                policyChatForActivePolicy,
-                policyChatForActivePolicyPolicy,
-                CONST.IOU.TYPE.SUBMIT,
-                isPolicyChatForActivePolicyArchived,
-                allBetas,
-                rules,
-                isRestrictedToPreferredPolicy,
-            ));
+            canCreateRequest(policyChatForActivePolicy, policyChatForActivePolicyPolicy, CONST.IOU.TYPE.SUBMIT, isPolicyChatForActivePolicyArchived, rules, isRestrictedToPreferredPolicy));
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
