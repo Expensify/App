@@ -44,8 +44,8 @@ type WorkspaceRowThreeDotsMenuProps = {
     /** Called when the user picks Archive, so the page can mount the archive flow */
     onArchiveWorkspace: (policyID: string) => void;
 
-    /** ID of the workspace with a deletion in progress, if any */
-    pendingDeletePolicyID?: string;
+    /** ID of the workspace with a deletion or archive in progress, if any */
+    pendingPolicyID?: string;
 };
 
 /**
@@ -53,7 +53,7 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingPolicyID}: WorkspaceRowThreeDotsMenuProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -145,37 +145,26 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
         }
 
         if (isOwner) {
-            if (canArchivePolicies) {
-                menuItems.push({
-                    icon: icons.Inbox,
-                    text: translate('workspace.common.archive'),
-                    shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
-                    onSelected: () => {
-                        if (isLoadingBill) {
-                            return;
-                        }
+            menuItems.push({
+                icon: canArchivePolicies ? icons.Inbox : icons.Trashcan,
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'workspace.common.delete'),
+                shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingPolicyID === item.policyID,
+                onSelected: () => {
+                    if (isLoadingBill) {
+                        return;
+                    }
 
+                    // All the pre-checks and the confirmation modal are handled by the archive/delete flow, mounted by the page.
+                    if (canArchivePolicies) {
                         onArchiveWorkspace(item.policyID);
-                    },
-                    shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
-                    shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
-                });
-            } else {
-                menuItems.push({
-                    icon: icons.Trashcan,
-                    text: translate('workspace.common.delete'),
-                    shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingDeletePolicyID === item.policyID,
-                    onSelected: () => {
-                        if (isLoadingBill) {
-                            return;
-                        }
+                        return;
+                    }
 
-                        onDeleteWorkspace(item.policyID);
-                    },
-                    shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
-                    shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
-                });
-            }
+                    onDeleteWorkspace(item.policyID);
+                },
+                shouldKeepModalOpen: shouldCalculateBillNewDot && !wouldBlockDeletion,
+                shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
+            });
         }
     }
 

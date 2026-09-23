@@ -39,11 +39,11 @@ type WorkspaceRowProps = {
     /** Called when the user picks Archive in the row menu, so the page can mount the archive flow */
     onArchiveWorkspace: (policyID: string) => void;
 
-    /** ID of the workspace with a deletion in progress, if any */
-    pendingDeletePolicyID?: string;
+    /** ID of the workspace with a deletion or archive in progress, if any */
+    pendingPolicyID?: string;
 };
 
-export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowProps) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, onArchiveWorkspace, pendingPolicyID}: WorkspaceRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -102,7 +102,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                 item={item}
                 onDeleteWorkspace={onDeleteWorkspace}
                 onArchiveWorkspace={onArchiveWorkspace}
-                pendingDeletePolicyID={pendingDeletePolicyID}
+                pendingPolicyID={pendingPolicyID}
             />
         </View>
     );

@@ -379,39 +379,27 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.SHARE,
         });
         if (isOwner) {
-            if (canArchivePolicies) {
-                secondaryActions.push({
-                    value: 'archive',
-                    text: translate('workspace.common.archive'),
-                    icon: expensifyIcons.Inbox,
-                    onSelected: () => {
-                        if (isLoadingBill) {
-                            return;
-                        }
+            secondaryActions.push({
+                value: canArchivePolicies ? 'archive' : 'delete',
+                text: translate(canArchivePolicies ? 'workspace.common.archive' : 'common.delete'),
+                icon: canArchivePolicies ? expensifyIcons.Inbox : expensifyIcons.Trashcan,
+                onSelected: () => {
+                    if (isLoadingBill) {
+                        return;
+                    }
 
+                    // All the pre-checks and the confirmation modal are handled by the archive/delete flow, which mounts when this is set.
+                    if (canArchivePolicies) {
                         setIsArchiveWorkspaceFlowVisible(true);
-                    },
-                    disabled: isLoadingBill,
-                    shouldShowLoadingSpinnerIcon: isLoadingBill,
-                    shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
-                });
-            } else {
-                secondaryActions.push({
-                    value: 'delete',
-                    text: translate('common.delete'),
-                    icon: expensifyIcons.Trashcan,
-                    onSelected: () => {
-                        if (isLoadingBill) {
-                            return;
-                        }
+                        return;
+                    }
 
-                        setIsDeleteWorkspaceFlowVisible(true);
-                    },
-                    disabled: isLoadingBill,
-                    shouldShowLoadingSpinnerIcon: isLoadingBill,
-                    shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
-                });
-            }
+                    setIsDeleteWorkspaceFlowVisible(true);
+                },
+                disabled: isLoadingBill,
+                shouldShowLoadingSpinnerIcon: isLoadingBill,
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot || wouldBlockDeletion,
+            });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
         const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
