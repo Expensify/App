@@ -132,9 +132,6 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
             'visibility',
             'writeCapability',
             'invoiceReceiver',
-            // `nextStep` leaves. These are enum values and IDs that the app branches on and translates, so scrambling them breaks rendering.
-            // They are allow-listed individually rather than allow-listing `nextStep` itself, because an allow-listed object is copied
-            // without recursion and the `maskList` would stop applying to the free-text fields inside it.
             'messageKey',
             'icon',
             'actorAccountID',
