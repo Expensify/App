@@ -2,6 +2,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -509,6 +510,7 @@ function MoneyRequestView({
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
     const policyTagLists = getTagLists(policyTagList);
+    const policyHasEnabledTags = hasEnabledTags(policyTagLists);
 
     const category = transactionCategory ?? '';
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;
@@ -521,12 +523,12 @@ function MoneyRequestView({
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
     // transactionTag can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && hasEnabledTags(policyTagLists)));
+    const shouldShowTag = (isPolicyExpenseChat || isExpenseUnreported) && (transactionTag || (canEdit && policyHasEnabledTags));
     // Surface a delete confirmation (like tax) when the value is stale and there's nothing valid to select, instead of
     // navigating to edit. Categories need at least one, so they only hit this when disabled; tags can be fully emptied,
     // so also cover "no enabled tags remain". Applies to multi-level tags too - deleting clears the whole tag value.
     const shouldShowCategoryDisabledAlert = !policy?.areCategoriesEnabled && !!category;
-    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !hasEnabledTags(policyTagLists)) && !!transactionTag;
+    const shouldShowTagDisabledAlert = (!policy?.areTagsEnabled || !policyHasEnabledTags) && !!transactionTag;
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!transactionBillable || isBillableEnabledOnPolicy(policy) || !!updatedTransaction?.billable);
     const isCurrentTransactionReimbursableDifferentFromPolicyDefault =
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
@@ -567,7 +569,7 @@ function MoneyRequestView({
     } else if (transactionVendor?.externalID) {
         transactionVendorName = transactionVendor.externalID;
     }
-    const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
+    const shouldShowVendor = hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
     const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
     const transactionTripID = transaction?.comment?.tripID;
@@ -1660,17 +1662,13 @@ function MoneyRequestView({
                 )}
                 {shouldShowTripRoomLink && (
                     <>
-                        <MenuItemWithTopDescription
-                            title={tripRoomName}
-                            description={translate('travel.trip')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            numberOfLinesTitle={2}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            value={tripRoomName}
+                            name={translate('travel.trip')}
+                            numberOfLinesValue={2}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID, undefined, undefined, Navigation.getActiveRoute()));
                             }}
-                            interactive
                         />
                         <View style={styles.reportHorizontalRule} />
                     </>
