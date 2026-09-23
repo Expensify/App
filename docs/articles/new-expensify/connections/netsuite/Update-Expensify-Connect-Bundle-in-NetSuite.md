@@ -9,19 +9,19 @@ internalScope: Audience is NetSuite administrators and Expensify Workspace Admin
 
 # Update the Expensify Connect bundle in NetSuite
 
-Update the Expensify Connect bundle to receive changes to Expensify’s NetSuite scripts, custom fields, and integration role. This guide explains how to update the bundle, check customized permissions, and confirm access to the legacy tax RESTlet.
+Update the Expensify Connect bundle to receive changes to Expensify's NetSuite scripts, custom fields, and integration role. This guide explains how to update the bundle, check customized permissions, and confirm access to the legacy tax RESTlet.
 
 **Updating the bundle does not switch your connection from SOAP/token-based authentication to REST/OAuth 2.0. You do not need to disconnect your working connection just to update the bundle.**
 
 ## Who can update the Expensify Connect bundle
 
-Ask your NetSuite administrator to perform the update in a web browser. You’ll also need an Expensify Workspace Admin to check the connection afterward. The NetSuite integration requires the **Control** plan in Expensify.
+Ask your NetSuite administrator to perform the update in a web browser. You'll also need an Expensify Workspace Admin to check the connection afterward. The NetSuite integration requires the **Control** plan in Expensify.
 
 ## What to record before updating the Expensify Connect bundle
 
 If your organization customized the **Expensify Integration** role:
 
-- Record the role’s name and internal ID. Similar names can refer to different roles.
+- Record the role's name and internal ID. Similar names can refer to different roles.
 - Save screenshots or a written record of its permission levels and restrictions. Include permissions your organization deliberately added, reduced, or removed.
 - Check each permission section: Transactions, Reports, Lists, Setup, and Custom Record.
 
@@ -48,8 +48,8 @@ If an Expensify legacy tax RESTlet is already installed, also record its deploym
 
 1. In NetSuite, go to **Setup > Users/Roles > Manage Roles**.
 2. Open the bundled Expensify Integration role and compare its permissions and restrictions with your saved record.
-3. Review the role’s **History** for permission changes.
-4. Have your administrator correct unintended differences, preserving your organization’s approved access and the permissions required by your connection.
+3. Review the role's **History** for permission changes.
+4. Have your administrator correct unintended differences, preserving your organization's approved access and the permissions required by your connection.
 
 For a SOAP/token-based connection, retain the required **SOAP Web Services** and **Log in using Access Tokens** permissions. Do not remove them just because the bundle also includes REST-related permissions.
 
@@ -67,10 +67,10 @@ The legacy tax RESTlet is a NetSuite script that reads legacy tax information fo
 4. On **Audience**, confirm **Internal roles** includes the exact role used to authorize your Expensify connection:
    - **Administrator**, if you connected as Administrator.
    - **Expensify Integration**, if you connected with that role.
-   - Your organization’s custom role, if you connected with a copied or customized role.
+   - Your organization's custom role, if you connected with a copied or customized role.
 5. If needed, have your administrator edit the audience and add the connection role. Check any existing audience restrictions without removing them indiscriminately. Save only the intended changes.
 
-Use the connection’s role, not simply the role you used to install the bundle. Do not select **All Internal Roles**, **All Employees**, or **All Partners** as a shortcut.
+Use the connection's role, not simply the role you used to install the bundle. Do not select **All Internal Roles**, **All Employees**, or **All Partners** as a shortcut.
 
 **Existing deployment audiences are preserved during bundle updates.** Updating the bundle alone may not add a missing role. This applies even when **Update Deployments** is selected.
 
@@ -80,9 +80,9 @@ The legacy tax RESTlet does not provide SuiteTax support. Do not disable SuiteTa
 
 In New Expensify:
 
-1. From the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Select your Workspace and open **Accounting**.
-3. Open the three-dot menu beside NetSuite and select **Sync Now**.
+3. Next to NetSuite, select the three dots **(⋮)**, then select **Sync Now**.
 4. Wait for the sync to finish and check for errors.
 5. Check the imported coding data. If applicable, confirm your expected tax rates and default tax are still selected.
 6. Check your next normal export. Do not re-export an already exported report just to test the update.
