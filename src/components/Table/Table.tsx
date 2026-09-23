@@ -347,6 +347,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isSelectionModeEnabled: isMobileSelectionEnabled,
         setSelectionModeEnabled: setMobileSelectionModeEnabled,
         shouldPreserveSelectionOnSearchAndFilter,
+        shouldAlwaysEnableSelection,
     });
     const selectionData = selectionMiddleware(sortedData);
 
