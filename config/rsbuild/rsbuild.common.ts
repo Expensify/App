@@ -1,19 +1,16 @@
 import type {RsbuildConfig} from '@rsbuild/core';
 import type {DefinePluginOptions, RspackPluginInstance, SwcJsMinimizerRspackPluginOptions} from '@rspack/core';
-import type {BrotliOptions} from 'zlib';
 
 import {GenerateSW} from '@aaroon/workbox-rspack-plugin';
 import {pluginSvgr} from '@rsbuild/plugin-svgr';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
 import {rspack} from '@rspack/core';
 import {execSync} from 'child_process';
-import CompressionPlugin from 'compression-webpack-plugin';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import {createRequire} from 'module';
 import path from 'path';
 import {fileURLToPath} from 'url';
-import zlib from 'zlib';
 
 import type Environment from './types.ts';
 
@@ -23,6 +20,8 @@ import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKe
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
 import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import BrotliCompressionPlugin from './BrotliCompressionPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -422,7 +421,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
         },
         performance: {
-            // Rsbuild's default exclusion, plus the `.br` twins CompressionPlugin emits below: listing them would
+            // Rsbuild's default exclusion, plus the `.br` twins BrotliCompressionPlugin emits below: listing them would
             // double the report with a meaningless "gzipped size" of already-Brotli-compressed bytes.
             printFileSize: {exclude: (asset) => /\.(?:map|LICENSE\.txt|d\.(?:ts|mts|cts)|br)$/.test(asset.name)},
             // We have to load the whole lottie player to get the player to work in offline mode
@@ -508,7 +507,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   // all critical for offline boot, so we precache the lot. Everything in the
                                   // App build is content-hashed, so growth here only costs first-install bytes.
                                   maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-                                  // Workbox's defaults, plus the `.br` twins CompressionPlugin emits: the service
+                                  // Workbox's defaults, plus the `.br` twins BrotliCompressionPlugin emits: the service
                                   // worker requests the original URLs and the CDN transparently serves the Brotli copy,
                                   // so adding the twins to the precache as well would download every chunk twice.
                                   exclude: [/\.map$/, /^manifest.*\.js$/, /\.br$/],
@@ -603,21 +602,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
                     // Writes a Brotli 11 twin (`foo.js` -> `foo.js.br`) beside every deployable text/bytecode asset, so the CDN
                     // can serve it instead of compressing with gzip on the fly: 25-30% fewer bytes over the wire.
-                    ...(isDevelopment
-                        ? []
-                        : [
-                              new CompressionPlugin<BrotliOptions>({
-                                  algorithm: 'brotliCompress',
-                                  test: /\.(?:js|css|html|svg|wasm|ttf)$/,
-                                  compressionOptions: {params: {[zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY}},
-                                  // Every matching file must get a twin: the CDN rewrite appends `.br` blindly, so a skipped file is a 404.
-                                  // `threshold` skips files smaller than N bytes (0 = none). `minRatio` skips a twin when
-                                  // `compressed / original` is greater than it (default 0.8 = keep only twins at least 20% smaller);
-                                  // nothing is greater than Infinity, so even files Brotli cannot shrink keep theirs.
-                                  threshold: 0,
-                                  minRatio: Infinity,
-                              }),
-                          ]),
+                    ...(isDevelopment ? [] : [new BrotliCompressionPlugin({test: /\.(?:js|css|html|svg|wasm|ttf)$/})]),
                 );
 
                 return afterShared;
