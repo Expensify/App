@@ -1,5 +1,5 @@
 import {write} from '@libs/API';
-import type {ConnectPolicyToMergeParams} from '@libs/API/parameters';
+import type {ConnectPolicyToMergeParams, UpdateMergeApprovalModeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import DateUtils from '@libs/DateUtils';
@@ -13,6 +13,7 @@ import type {MergeATSProviderSlug} from '@src/CONST/MERGE_ATS_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Policy from '@src/types/onyx/Policy';
+import type {MergeApprovalMode, MergeATSApproverField} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -93,16 +94,50 @@ function syncMerge(policy: OnyxEntry<Policy>, connectionName: MergeConnectionNam
     write(WRITE_COMMANDS.SYNC_POLICY_TO_MERGE, {policyID, connectionName}, {optimisticData, failureData});
 }
 
+type MergeApprovalConfigUpdate = {
+    approvalMode?: MergeApprovalMode | null;
+    approverField?: MergeATSApproverField | null;
+    finalApprover?: string | null;
+};
+
+type UpdateMergeApprovalModeOptions = {
+    policyID: string;
+    connectionName: MergeConnectionName;
+    approvalMode: MergeApprovalMode;
+    currentApprovalMode: MergeApprovalMode | undefined;
+
+    /**
+     * Merge ATS only
+     */
+    approverField?: MergeATSApproverField;
+    currentApproverField?: MergeATSApproverField;
+    finalApprover?: string;
+    currentFinalApprover?: string;
+};
+
 /**
  * Updates the approval mode for the given Merge connection (Merge HR or Merge ATS).
+ * Merge ATS saves its whole approval setup in one request, so `approverField` and `finalApprover` can ride along.
  */
-function updateMergeApprovalMode(
-    policyID: string,
-    connectionName: MergeConnectionName,
-    approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE>,
-    currentApprovalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null,
-) {
-    const previousApprovalMode = currentApprovalMode ?? null;
+function updateMergeApprovalMode({
+    policyID,
+    connectionName,
+    approvalMode,
+    currentApprovalMode,
+    approverField,
+    currentApproverField,
+    finalApprover,
+    currentFinalApprover,
+}: UpdateMergeApprovalModeOptions) {
+    const updatedConfig: MergeApprovalConfigUpdate = {approvalMode};
+    const rolledBackConfig: MergeApprovalConfigUpdate = {approvalMode: currentApprovalMode ?? null};
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS) {
+        updatedConfig.approverField = approverField ?? null;
+        rolledBackConfig.approverField = currentApproverField ?? null;
+        updatedConfig.finalApprover = finalApprover ?? null;
+        rolledBackConfig.finalApprover = currentFinalApprover ?? null;
+    }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -112,7 +147,7 @@ function updateMergeApprovalMode(
                 connections: {
                     [connectionName]: {
                         config: {
-                            approvalMode,
+                            ...updatedConfig,
                             pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                             errorFields: {approvalMode: null},
                         },
@@ -147,7 +182,7 @@ function updateMergeApprovalMode(
                 connections: {
                     [connectionName]: {
                         config: {
-                            approvalMode: previousApprovalMode,
+                            ...rolledBackConfig,
                             pendingFields: {approvalMode: null},
                             errorFields: {approvalMode: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
@@ -157,15 +192,18 @@ function updateMergeApprovalMode(
         },
     ];
 
-    write(
-        WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE,
-        {
-            policyID,
-            connectionName,
-            approvalMode,
-        },
-        {optimisticData, successData, failureData},
-    );
+    const parameters: UpdateMergeApprovalModeParams = {
+        policyID,
+        connectionName,
+        approvalMode,
+    };
+
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS) {
+        parameters.approverField = approverField;
+        parameters.finalApprover = finalApprover;
+    }
+
+    write(WRITE_COMMANDS.UPDATE_MERGE_APPROVAL_MODE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
