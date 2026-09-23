@@ -22,6 +22,7 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getConnectedIntegration,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -4767,8 +4768,12 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Rillet is connected because Rillet is still pre-GA', () => {
-                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(false);
+            it('returns true when beta is disabled and Rillet is connected because Rillet is generally available', () => {
+                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
+                expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
@@ -5883,6 +5888,23 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('getConnectedIntegration', () => {
+    it('returns the connected accounting integration when present on the policy', () => {
+        const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+        expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('returns undefined when there is no connected integration', () => {
+        expect(getConnectedIntegration(undefined)).toBeUndefined();
+        expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
+    });
+
+    it('ignores non-accounting connections (e.g. HR integrations)', () => {
+        const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
+        expect(getConnectedIntegration(policy)).toBeUndefined();
     });
 });
 
