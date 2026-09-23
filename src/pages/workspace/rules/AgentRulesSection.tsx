@@ -57,7 +57,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                     menuItemWrapperStyle={styles.pv2}
                 />
             )}
-            {/* The row stays pressable when the user cannot write rules — pressing it explains why — so it only looks disabled */}
+            {/* The row stays pressable when the user cannot write rules. Pressing it explains why, so it only looks disabled. */}
             <View style={[!hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}>
                 <MenuItemSectionRow
                     onPress={() => {
