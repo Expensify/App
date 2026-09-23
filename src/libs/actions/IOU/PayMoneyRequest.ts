@@ -33,7 +33,8 @@ import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
-import {completeOnboarding, notifyNewAction} from '@userActions/Report';
+import {completeOnboarding} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 
@@ -73,6 +74,7 @@ type PayInvoiceArgs = {
     activePolicy?: OnyxTypes.Policy;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
@@ -111,6 +113,7 @@ type PayMoneyRequestFunctionParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     chatReportPolicy: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     amountOwed: OnyxEntry<number>;
@@ -145,6 +148,7 @@ function getPayMoneyRequestParams({
     activePolicy,
     conciergeChat,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
     currentUserLocalCurrency,
@@ -172,6 +176,7 @@ function getPayMoneyRequestParams({
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
@@ -492,7 +497,7 @@ function getPayMoneyRequestParams({
             iouReport,
             recipient,
             policy: reportPolicy,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
             shouldMoveHeldTransactions: !full,
@@ -689,6 +694,7 @@ function cancelPayment(
             value: {
                 ...expenseReport,
                 isWaitingOnBankAccount: false,
+                canCancelReimbursement: false,
                 lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: getReportActionText(optimisticReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
@@ -740,6 +746,7 @@ function cancelPayment(
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
+                canCancelReimbursement: expenseReport.canCancelReimbursement,
                 isCancelledIOU: false,
                 nextStep:
                     buildOptimisticNextStep({
@@ -879,6 +886,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         policy,
         chatReportPolicy,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         conciergeChat,
         amountOwed,
@@ -923,6 +931,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         currentUserLocalCurrency: undefined,
         conciergeChat: undefined,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
         delegateAccountID,
@@ -1130,6 +1139,7 @@ function payInvoice({
     activePolicy,
     conciergeChat,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
     chatReportActions,
@@ -1171,6 +1181,7 @@ function payInvoice({
         currentUserLocalCurrency,
         introSelected,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         defaultWorkspaceName,
         chatReportActions,

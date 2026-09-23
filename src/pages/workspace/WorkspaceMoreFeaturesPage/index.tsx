@@ -95,10 +95,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    // Undefined until the betas load. The action calls below need that distinction, the UI gating just treats it as off
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
-    const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
@@ -164,7 +165,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
+    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct / DualEntry) being connected,
     // not on the export config actually scoping vendors. That way members on a supported workspace
     // still see the row so they can discover the feature even when the row is locked OFF (export
     // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
@@ -173,7 +174,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1) and Sage Intacct (R2) are GA. Xero, Rillet, and DualEntry require the vendorMatching beta.
+    // QBO (R1), Sage Intacct (R2), Rillet, and DualEntry are GA. Xero and Business Central require the vendorMatching beta.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -182,9 +183,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.XERO,
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+            CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
-    const isGenerallyAvailableVendorConnection = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
-    const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (isVendorMatchingEnabled && !!vendorMatchingConnection);
+    const isGenerallyAvailableVendorConnection =
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
+    const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -514,7 +520,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                enablePolicyCategories(policyData, isEnabled, true);
+                                enablePolicyCategories(policyData, isEnabled, isVendorMatchingBetaEnabled, true);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -532,7 +538,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             disabled={!canWriteMoreFeatures || hasAccountingConnection}
                             disabledAction={withReadOnlyFallback(warnAccountingManagesOrganizeFeature)}
                             onToggle={(isEnabled) => {
-                                enablePolicyTags(policyData, isEnabled);
+                                enablePolicyTags(policyData, isEnabled, isVendorMatchingBetaEnabled);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -554,10 +560,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, policy?.taxRates, policyData);
+                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, policy?.taxRates, policyData);
                                     return;
                                 }
-                                enablePolicyTaxes(policyID, false, undefined, policyData);
+                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, undefined, policyData);
                             }}
                             onPress={() => {
                                 if (!policyID) {
@@ -571,7 +577,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 icon={illustrations.Briefcase}
                                 title={translate('workspace.moreFeatures.vendors.title')}
                                 subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
-                                isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
+                                isActive={hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false)}
                                 // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
                                 // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
                                 // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
@@ -633,7 +639,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     );
                                     return;
                                 }
-                                enablePolicyRules(policy, isEnabled, undefined, policyData);
+                                enablePolicyRules(policy, isEnabled, isVendorMatchingBetaEnabled, undefined, policyData);
                             }}
                             onPress={() => {
                                 if (!policyID) {
