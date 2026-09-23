@@ -318,7 +318,7 @@ const CONTROL_ONLY_COPY_PARTS = new Set<Part>(['rules', 'codingRules']);
 /**
  * The selected parts that the Collect (Team) targets can't receive on their current plan. Most parts
  * defer to `canPolicyAccessFeature` (the single source of truth for which features require a Control
- * plan); `CONTROL_ONLY_COPY_PARTS` covers the parts that need Control to be copied even when the
+ * plan). `CONTROL_ONLY_COPY_PARTS` covers the parts that need Control to be copied even when the
  * target could enable the feature itself. Returns empty when there are no Collect targets.
  */
 function getControlOnlySelectedParts(targetPolicies: ReadonlyArray<Policy | undefined>, selectedParts: readonly Part[], sourcePolicy?: Policy | null): Part[] {
