@@ -432,7 +432,6 @@
 "../../src/hooks/useAutoCreateTrackWorkspace.ts"	"no-restricted-imports"	1
 "../../src/hooks/useAutoUpdateTimezone.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useBulkDuplicateAction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useBulkDuplicateReportAction.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useBulkPayOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useCachedImageSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useCachedImageSource.ts"	"react-hooks/set-state-in-effect"	1
@@ -447,13 +446,9 @@
 "../../src/hooks/useDebouncedValue.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDebounceNonReactive.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useDelegateAccountID.ts"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/hooks/useDeleteTransactions.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useDragAndDrop/types.ts"	"@typescript-eslint/no-deprecated/React.MutableRefObject"	1
 "../../src/hooks/useDynamicBackPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useExpenseActions.ts"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/hooks/useExpensifyCardRulesList.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useExportedToFilterOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useFilteredOptions.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useFilterFormValues.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useGeographicalStateAndCountryFromRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useHtmlPaste/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -502,7 +497,6 @@
 "../../src/hooks/useTackInputFocus/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useTextWithMiddleEllipsis.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useTodoSearchResults.ts"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/hooks/useTransactionInlineEdit.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useTransactionViolationOfWorkspace.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useViolations.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useWindowDimensions/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
