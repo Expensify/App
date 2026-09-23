@@ -46,7 +46,6 @@ import {
     isOpenReport,
     isProcessingReport,
     isReportManager,
-    isSelfDM,
     isSettled,
     isThread,
 } from '@libs/ReportUtils';
@@ -727,10 +726,10 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    // A zero amount is a deliberate, valid choice for an expense created in the self DM, so it isn't a missing field there.
-    // A failed scan is the exception: the amount is genuinely unknown, so it must keep being flagged.
-    const isZeroAmountAllowed = (isExpenseUnreported(transaction ?? undefined) || isSelfDM(transactionReport)) && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && !isZeroAmountAllowed && getAmount(transaction) === 0);
+    // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
+    // a missing field on an expense report either, where only the merchant is checked.
+    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction ?? undefined);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {

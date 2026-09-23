@@ -203,7 +203,7 @@ describe('TransactionPreviewUtils', () => {
             // When we build the preview text for it
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
-            // Then no missing amount error is shown, because $0 is a valid amount in the self DM
+            // Then no missing amount error is shown, because $0 is a valid amount for an unreported expense
             expect(result.RBRMessage.translationPath).not.toEqual('iou.missingAmount');
         });
 
