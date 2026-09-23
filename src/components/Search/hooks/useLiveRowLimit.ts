@@ -1,7 +1,5 @@
 import CONST from '@src/CONST';
 
-import type {Dispatch, SetStateAction} from 'react';
-
 import {useState} from 'react';
 
 type LiveRowLimit = {
@@ -10,7 +8,8 @@ type LiveRowLimit = {
     /** Offset of the last page the server answered. Unlike the snapshot offset, which every search() caller rewrites, it only moves forward. */
     answeredOffset: number;
 
-    setRevealedLiveRows: Dispatch<SetStateAction<number>>;
+    /** Shows one more page of live rows without the server, for when it has no pages left. */
+    revealNextPage: () => void;
 };
 
 /** Row cap for a live (to-do) search. Reset rides on `<Search key={queryJSON.hash}>` remounting, so there is no reset here. */
@@ -31,7 +30,9 @@ function useLiveRowLimit(offset = 0, hasUnconfirmedPage = false): LiveRowLimit {
         setRevealedRows(answeredRows);
     }
 
-    return {liveRowLimit: Math.max(revealedRows, answeredRows), answeredOffset: currentAnsweredOffset, setRevealedLiveRows: setRevealedRows};
+    const revealNextPage = () => setRevealedRows((rows) => rows + CONST.SEARCH.RESULTS_PAGE_SIZE);
+
+    return {liveRowLimit: Math.max(revealedRows, answeredRows), answeredOffset: currentAnsweredOffset, revealNextPage};
 }
 
 export default useLiveRowLimit;

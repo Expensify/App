@@ -208,7 +208,7 @@ function Search({
     // live results drop `errors`, so the response code is the only failure signal left
     const didLastLivePageFail = shouldUseLiveData && typeof searchResults?.search?.responseJsonCode === 'number';
 
-    const {liveRowLimit, answeredOffset: answeredLiveOffset, setRevealedLiveRows} = useLiveRowLimit(searchResults?.search?.offset, isSnapshotPending || didLastLivePageFail);
+    const {liveRowLimit, answeredOffset: answeredLiveOffset, revealNextPage: revealNextLivePage} = useLiveRowLimit(searchResults?.search?.offset, isSnapshotPending || didLastLivePageFail);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -870,7 +870,7 @@ function Search({
             }
             // the server has nothing left, but the live scan can still hold rows past the cap: page those in locally
             if (shouldUseLiveData && allDataLength > liveRowLimit) {
-                setRevealedLiveRows((rows) => rows + CONST.SEARCH.RESULTS_PAGE_SIZE);
+                revealNextLivePage();
             }
             wantedOffsetRef.current = undefined;
             return;
@@ -923,7 +923,7 @@ function Search({
         answeredLiveOffset,
         isSnapshotPending,
         liveRowLimit,
-        setRevealedLiveRows,
+        revealNextLivePage,
         didLastLivePageFail,
         isLivePageAdopted,
         searchResults?.search?.hasMoreResults,

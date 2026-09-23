@@ -57,7 +57,7 @@ describe('useLiveRowLimit', () => {
         const {result, rerender} = renderHook(({offset, hasUnconfirmedPage}) => useLiveRowLimit(offset, hasUnconfirmedPage), {initialProps: {offset: 0, hasUnconfirmedPage: false}});
 
         act(() => {
-            result.current.setRevealedLiveRows((rows) => rows + PAGE);
+            result.current.revealNextPage();
         });
 
         rerender({offset: 0, hasUnconfirmedPage: false});
@@ -69,7 +69,7 @@ describe('useLiveRowLimit', () => {
         const {result, rerender} = renderHook(({offset, hasUnconfirmedPage}) => useLiveRowLimit(offset, hasUnconfirmedPage), {initialProps: {offset: 0, hasUnconfirmedPage: false}});
 
         act(() => {
-            result.current.setRevealedLiveRows((rows) => rows + PAGE);
+            result.current.revealNextPage();
         });
 
         // a page the server answered anyway moves the cursor past the reveal
