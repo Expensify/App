@@ -50,10 +50,6 @@ type UseMoneyRequestReportGroupedTransactionsResult = {
  *
  * Lives in its own hook so React Compiler can memoize the chain — inline in the component the array building
  * interleaves with other hook calls and the whole chain becomes ineligible for a reactive scope.
- *
- * Note: unlike the previous manual `useMemo`, grouping recomputes whenever the report projection changes, not
- * only on reportID/currency changes. `report` is the StableReport projection, so read-state churn (e.g.
- * lastReadTime) never reaches this hook and the extra recomputes are rare.
  */
 function useMoneyRequestReportGroupedTransactions({
     report,
@@ -64,13 +60,14 @@ function useMoneyRequestReportGroupedTransactions({
     isOffline,
 }: UseMoneyRequestReportGroupedTransactionsParams): UseMoneyRequestReportGroupedTransactionsResult {
     const {localeCompare} = useLocalize();
+    const reportCurrency = report.currency ?? '';
 
     let groupedTransactions: OnyxTypes.GroupedTransactions[] = [];
     if (shouldGroupTransactions) {
         groupedTransactions =
             currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG
-                ? groupTransactionsByTag(resolvedTransactions, report, localeCompare)
-                : groupTransactionsByCategory(resolvedTransactions, report, localeCompare);
+                ? groupTransactionsByTag(resolvedTransactions, reportCurrency, localeCompare)
+                : groupTransactionsByCategory(resolvedTransactions, reportCurrency, localeCompare);
     }
 
     const visualOrderTransactionIDs =

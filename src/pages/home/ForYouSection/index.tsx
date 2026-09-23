@@ -27,6 +27,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import ConciergePromptBox from './ConciergePromptBox';
 import ForYouBody from './ForYouBody';
 import shouldHideForYouSection from './shouldHideForYouSection';
+import useReviewDomainAdminRequests from './useReviewDomainAdminRequests';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 type ForYouSectionProps = {
@@ -50,16 +51,15 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
+    const {count: domainAdminRequestsCount, reviewDomainAdminRequests} = useReviewDomainAdminRequests();
     const timeSensitiveItems = useTimeSensitiveItems();
 
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export', 'UserShield']);
 
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
     const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
     const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
     const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
-
-    const hasAnyTodos = flaggedExpensesCount > 0 || submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
 
     const navigateToReport = useCallback(
         (reportID: string) => {
@@ -152,11 +152,20 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
                         singleReportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT],
                     ),
                 },
+                {
+                    key: 'reviewDomainAdminRequests',
+                    count: domainAdminRequestsCount,
+                    icon: icons.UserShield,
+                    translationKey: 'homePage.forYouSection.reviewDomainAdminRequests' as const,
+                    handler: reviewDomainAdminRequests,
+                },
             ].filter((item) => item.count > 0),
         [
             accountID,
             approveCount,
             createNavigationHandler,
+            domainAdminRequestsCount,
+            reviewDomainAdminRequests,
             reviewExpenses,
             exportCount,
             flaggedExpensesCount,
@@ -165,11 +174,14 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             icons.ReceiptSearch,
             icons.Send,
             icons.ThumbsUp,
+            icons.UserShield,
             payCount,
             singleReportIDs,
             submitCount,
         ],
     );
+
+    const hasAnyTodos = todoItems.length > 0;
 
     const forYouRows: React.ReactNode[] = todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
         <BaseWidgetItem
