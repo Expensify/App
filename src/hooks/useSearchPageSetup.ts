@@ -95,8 +95,11 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
 
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         requestedHashesRef.current.add(hash);
-        // Claim ownership of this query's first page so Search does not request it again when it mounts.
-        markPageRequestedSearch(hash, shouldCalculateTotals);
+        // Claim this query's first page so Search does not request it again when it mounts behind the skeleton.
+        // With data loaded Search is already mounted, so a token set here would never be read and would skip the next revisit.
+        if (!isSnapshotDataLoaded) {
+            markPageRequestedSearch(hash, shouldCalculateTotals);
+        }
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 

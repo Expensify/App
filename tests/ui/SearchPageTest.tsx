@@ -458,6 +458,38 @@ describe('SearchPageNarrow', () => {
         // Then the mount does not ask for the same first page again
         expect(firstPageCallCount()).toBe(1);
     });
+    it('refreshes the first page on every return to a cached query', async () => {
+        // Given a query whose results are already cached, so Search mounts right away with no skeleton
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        const firstPageCallCount = () => mockSearch.mock.calls.filter(([params]) => params?.offset === 0).length;
+
+        // When the user visits it and the mount refresh goes out, which makes the page send its own flagged request too
+        const firstVisit = renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}});
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED}});
+        });
+        const callsAfterFirstVisit = firstPageCallCount();
+        expect(callsAfterFirstVisit).toBeGreaterThan(0);
+
+        // When the user leaves and comes back to the same query
+        firstVisit.unmount();
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then the return refreshes it again, because the page's request on the first visit must not leave a claim that silences this mount
+        expect(firstPageCallCount()).toBeGreaterThan(callsAfterFirstVisit);
+    });
     it('loads the next page after a request that was in flight when the list hit its end resolves', async () => {
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
         await act(async () => {
