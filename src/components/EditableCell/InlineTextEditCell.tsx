@@ -27,12 +27,12 @@ type InlineTextEditCellProps = {
     /** Style applied to the display text and to the TextInput while editing, so font size and color stay in sync */
     displayTextStyle?: StyleProp<TextStyle>;
 
-    /** Normalizes the value before saving and for change detection (defaults to trimming) */
+    /**
+     * Normalizes the value before saving and for change detection.
+     * Defaults to sanitizeName so a pasted non-breaking space is treated as unchanged when the action would no-op.
+     */
     sanitize?: (value: string) => string;
 } & EditableProps<string>;
-
-/** Default normalization: trim surrounding whitespace. Hoisted so it is a stable reference for React Compiler. */
-const trimValue = (input: string) => input.trim();
 
 /**
  * Generic inline text editing cell for tables. Composes EditableCell with an inline TextInput
@@ -43,7 +43,7 @@ const trimValue = (input: string) => input.trim();
  * original value. On narrow layouts EditableCell renders the display text only, so tables keep
  * their existing tap-to-navigate behavior there.
  */
-function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = trimValue}: InlineTextEditCellProps) {
+function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = StringUtils.sanitizeName}: InlineTextEditCellProps) {
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
