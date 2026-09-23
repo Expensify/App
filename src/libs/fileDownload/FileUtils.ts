@@ -439,10 +439,10 @@ function readFileHeaderBase64IOS(path: string): Promise<string> {
 
 /**
  * Android counterpart of `readFileHeaderBase64IOS`, streaming the file and stopping at the first chunk.
- * Resolves to an empty string when the file can't be read.
+ * Read errors reject, as on iOS, so a file whose format can't be verified is never uploaded unconverted.
  */
 function readFileHeaderBase64Android(path: string): Promise<string> {
-    return new Promise<string>((resolve) => {
+    return new Promise<string>((resolve, reject) => {
         let base64Data = '';
         let isDone = false;
 
@@ -452,6 +452,14 @@ function readFileHeaderBase64Android(path: string): Promise<string> {
             }
             isDone = true;
             resolve(data);
+        };
+
+        const fail = (error: unknown) => {
+            if (isDone) {
+                return;
+            }
+            isDone = true;
+            reject(error instanceof Error ? error : new Error(String(error)));
         };
 
         ReactNativeBlobUtil.fs
@@ -470,16 +478,16 @@ function readFileHeaderBase64Android(path: string): Promise<string> {
                             finish(base64Data);
                         }
                     } catch (e) {
-                        finish('');
+                        fail(e);
                     }
                 });
 
-                stream.onError(() => finish(''));
+                stream.onError(fail);
                 stream.onEnd(() => finish(base64Data));
 
                 stream.open();
             })
-            .catch(() => finish(''));
+            .catch(fail);
     });
 }
 
@@ -487,7 +495,7 @@ function readFileHeaderBase64Android(path: string): Promise<string> {
  * Reads the first `MAGIC_BYTES_NEEDED` bytes of a file as a lowercase hex string, so a caller checking several
  * formats reads the file once and matches each signature with `matchesFileSignature`.
  *
- * Resolves to an empty string when there is nothing to read. On iOS a failed read rejects (see `readFileHeaderBase64IOS`).
+ * Resolves to an empty string when there is nothing to read (empty file or no URI). A failed read rejects on both platforms.
  */
 function readFileHeaderHex(fileUri: string): Promise<string> {
     if (!fileUri) {

@@ -7,6 +7,7 @@ import {Platform} from 'react-native';
 const mockReadFile = jest.fn<Promise<string>, [string, string]>();
 const mockSlice = jest.fn<Promise<string>, [string, string, number, number]>();
 const mockUnlink = jest.fn<Promise<void>, [string]>();
+const mockReadStream = jest.fn<Promise<unknown>, [string, string, number, number]>();
 
 jest.mock('react-native-blob-util', () => ({
     __esModule: true,
@@ -16,9 +17,39 @@ jest.mock('react-native-blob-util', () => ({
             readFile: (...args: [string, string]) => mockReadFile(...args),
             slice: (...args: [string, string, number, number]) => mockSlice(...args),
             unlink: (...args: [string]) => mockUnlink(...args),
+            readStream: (...args: [string, string, number, number]) => mockReadStream(...args),
         },
     },
 }));
+
+type StreamEvent = {type: 'data'; chunk: string} | {type: 'error'; error: Error} | {type: 'end'};
+
+/** A react-native-blob-util read stream that emits `events` in order once opened. */
+const createMockStream = (events: StreamEvent[]) => {
+    const handlers: {data?: (chunk: string) => void; error?: (error: Error) => void; end?: () => void} = {};
+    return {
+        onData: (handler: (chunk: string) => void) => {
+            handlers.data = handler;
+        },
+        onError: (handler: (error: Error) => void) => {
+            handlers.error = handler;
+        },
+        onEnd: (handler: () => void) => {
+            handlers.end = handler;
+        },
+        open: () => {
+            for (const event of events) {
+                if (event.type === 'data') {
+                    handlers.data?.(event.chunk);
+                } else if (event.type === 'error') {
+                    handlers.error?.(event.error);
+                } else {
+                    handlers.end?.();
+                }
+            }
+        },
+    };
+};
 
 /** First 16 bytes of a file as a base64 string, the way the header read returns them. */
 const headerBase64 = (bytes: number[]) => Buffer.from(bytes).toString('base64');
@@ -103,6 +134,39 @@ describe('verifyFileFormat', () => {
             // When the format is verified
             // Then cleanup failure doesn't affect the result
             await expect(verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).resolves.toBe(true);
+        });
+    });
+
+    describe('reading the header on Android', () => {
+        beforeEach(() => {
+            platformReplaceProperty.replaceValue('android');
+        });
+
+        it('matches the signature from the first streamed chunk', async () => {
+            // Given a DNG streamed from disk
+            mockReadStream.mockResolvedValue(createMockStream([{type: 'data', chunk: headerBase64(DNG_HEADER)}, {type: 'end'}]));
+
+            // When the format is verified
+            // Then the header is read from the stream and matched
+            await expect(verifyFileFormat({fileUri: 'file:///photo.jpg', formatSignatures: CONST.TIFF_SIGNATURES, signatureOffset: CONST.TIFF_SIGNATURE_OFFSET})).resolves.toBe(true);
+        });
+
+        it('rejects when the stream reports an error', async () => {
+            // Given a file whose stream fails mid-read
+            mockReadStream.mockResolvedValue(createMockStream([{type: 'error', error: new Error('EACCES')}]));
+
+            // When the format is verified
+            // Then the error propagates, as on iOS, so a file of unknown format is dropped instead of uploaded unconverted (the backend rejects a raw DNG)
+            await expect(verifyFileFormat({fileUri: 'file:///photo.jpg', formatSignatures: CONST.TIFF_SIGNATURES, signatureOffset: CONST.TIFF_SIGNATURE_OFFSET})).rejects.toThrow('EACCES');
+        });
+
+        it('rejects when the stream cannot be opened', async () => {
+            // Given a file that can't be opened for reading
+            mockReadStream.mockRejectedValue(new Error('ENOENT'));
+
+            // When the format is verified
+            // Then the error propagates instead of being treated as "not this format"
+            await expect(verifyFileFormat({fileUri: 'file:///photo.jpg', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).rejects.toThrow('ENOENT');
         });
     });
 

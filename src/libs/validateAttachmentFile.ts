@@ -3,6 +3,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
+import canConvertDngToJpeg from './fileDownload/canConvertDngToJpeg';
 import {cleanFileName, hasHeicOrHeifExtension, isLabelledDng, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 import snapshotPickedFile from './snapshotPickedFile';
 
@@ -28,14 +29,15 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED};
     }
 
-    if (isValidatingReceipts && !isValidReceiptExtension(file)) {
-        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
+    // The backend rejects DNG (iPhone ProRAW / Android RAW), so it must never be uploaded as-is. On native it is flagged
+    // for conversion to JPEG (like HEIC below), which covers paths that don't go through the pickers' own conversion,
+    // e.g. sharing into the app. Web can't decode DNG, so it gets the invalid-file-type error there. This runs before
+    // the receipt extension check, which would otherwise reject the DNG before it gets a chance to be converted.
+    if (isLabelledDng(file)) {
+        return {isValid: false, error: canConvertDngToJpeg ? CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
 
-    // Browsers can't decode DNG (iPhone ProRAW), so on web/desktop it would upload but never render. Chat attachments
-    // get no other extension check, hence the explicit rejection. Native pickers transcode DNGs to JPEG before they
-    // reach this point (see processPickedAssets), so a `.dng` only arrives here from a platform that can't convert it.
-    if (isLabelledDng(file)) {
+    if (isValidatingReceipts && !isValidReceiptExtension(file)) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
 
