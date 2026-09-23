@@ -84,7 +84,7 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], chart.view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8]}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={chart.view}
