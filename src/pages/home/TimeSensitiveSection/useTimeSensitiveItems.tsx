@@ -1,13 +1,11 @@
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-
-import {getExpensifyCardPendingWalletApproval} from '@libs/actions/Card';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useFocusEffect} from '@react-navigation/native';
 import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 
@@ -57,7 +55,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
         shouldShowConfirmDigitalWalletAddition,
-        hasActiveExpensifyCard,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
@@ -65,13 +62,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         cardsPendingDigitalWalletApproval,
     } = useTimeSensitiveCards();
 
-    // Only cardholders can have a pending wallet addition. Refresh on Home focus so new ones still show up.
-    useFocusEffect(() => {
-        if (!hasActiveExpensifyCard) {
-            return;
-        }
-        getExpensifyCardPendingWalletApproval();
-    });
+    useRefreshPendingDigitalWalletApproval();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
     const {shouldShowOverdueInvoiceReminder, isOverdue: isInvoiceOverdue, invoiceGracePeriodEndUnixSeconds} = useTimeSensitiveOverdueInvoice();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();

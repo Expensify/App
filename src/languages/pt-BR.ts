@@ -622,10 +622,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `O tamanho máximo do comentário é de ${formattedMaxLength} caracteres.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `O tamanho máximo do título da tarefa é de ${formattedMaxLength} caracteres.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Atualizar app',
-        updatePrompt: 'Uma nova versão deste app está disponível.  \nAtualize agora ou reinicie o app mais tarde para baixar as alterações mais recentes.',
-    },
     deeplinkWrapper: {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
@@ -976,12 +972,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Adicione uma conta bancária para ser reembolsado'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `A adição do cartão ${walletName} precisa da sua aprovação`,
                 subtitle: 'Cartão Expensify',
-                cta: 'Revisar',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Carteira digital',
             },
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
@@ -1074,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `Revisar ${count} despesa`,
                 other: `Revisar ${count} despesas`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: `Revisar ${count} solicitação de administrador de domínio`,
+                other: `Revisar ${count} solicitações de administrador de domínio`,
+            }),
         },
         upcomingTravel: 'Próximas viagens',
         upcomingTravelSection: {
@@ -1157,6 +1152,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Peça ao Concierge para analisar suas despesas ou obter suporte',
             inputPlaceholderMobile: 'Pergunte qualquer coisa ao Concierge',
         },
+    },
+    insightsPage: {
+        viewOnSpend: 'Ver em Gastos',
+        emptyState: {title: 'Nada para mostrar', subtitle: 'Tente ajustar seus critérios acima'},
+        noExpensesState: {title: 'Veja para onde vai o seu dinheiro', subtitle: 'Quando você tiver despesas, vai encontrar tendências de gastos, principais estabelecimentos e muito mais.'},
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1814,11 +1814,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Escolha uma opção para alterar o aprovador deste relatório. (Atualize as <a href="${workflowSettingLink}">configurações do espaço de trabalho</a> para alterar isso permanentemente para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reatribuiu o aprovador para <mention-user accountID="${managerID}"/> por meio de uma atualização do fluxo de trabalho`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `alterou o aprovador para <mention-user accountID="${newApproverID}"/>, ignorou <mention-user accountID="${previousApproverID}"/>`
+                    : `alterou o aprovador para <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Adicionar aprovador',
                 addApproverSubtitle: 'Adicione um aprovador adicional ao fluxo de aprovação existente.',
                 bypassApprovers: 'Ignorar aprovadores',
                 bypassApproversSubtitle: 'Atribua a si mesmo como aprovador final e ignore quaisquer aprovadores restantes.',
+                reassignApprover: 'Reatribuir aprovador',
+                reassignApproverSubtitle: 'Ignore o aprovador atual e atribua um novo aprovador.',
+                reassignApproverPageHeader: 'Escolha um aprovador substituto e depois siga o restante do fluxo de aprovação.',
             },
             addApprover: {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de seguirmos pelo restante do fluxo de aprovação.',
@@ -2168,7 +2175,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar do perfil',
         customInstructions: 'Instruções personalizadas',
         copilotIntoAccount: 'Copilot na conta',
-        viewUserHistory: 'Ver histórico do usuário',
+        viewMemberHistory: 'Ver histórico do membro',
         viewAgentHistory: 'Ver histórico do agente',
         publicSection: {
             title: 'Público',
@@ -2753,6 +2760,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'carteira digital',
+        digitalWalletCapitalized: 'Carteira digital',
+        approvalNeeded: ({walletName}: {walletName: string}) => `A adição do cartão ${walletName} precisa da sua aprovação`,
+        review: 'Revisar',
         confirmHeading: 'Confirme sua solicitação',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Você quer adicionar seu Cartão Expensify (com final ${lastFourDigits}) à sua ${walletName}?`,
@@ -3313,7 +3323,7 @@ ${amount} para ${merchant} - ${date}`,
             invalidFormatEmailLogin: 'O e-mail inserido é inválido. Corrija o formato e tente novamente.',
             agentSignInBlocked: 'Contas de agente não podem ser acessadas diretamente. Para usar um agente, entre com a sua própria conta e acesse-o via Copilot.',
         },
-        cannotGetAccountDetails: 'Não foi possível recuperar os detalhes da conta. Tente entrar novamente.',
+        cannotGetAccountDetails: 'Não foi possível obter os detalhes da conta. Aguarde alguns minutos e tente novamente.',
         loginForm: 'Formulário de login',
         notYou: (user: string) => `Não é ${user}?`,
     },
@@ -3900,6 +3910,7 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'O SWIFT/BIC deve ter 8 ou 11 caracteres, com 6 letras seguidas de 2 ou 5 letras ou números.',
         countrySelectionStepHeader: 'Onde fica localizada a sua conta bancária?',
         accountDetailsStepHeader: 'Quais são os detalhes da sua conta?',
         accountTypeStepHeader: 'Que tipo de conta é esta?',
@@ -6844,6 +6855,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 other: (count: number) => `${count} Tags`,
             }),
             showTagGLCodes: 'Mostrar códigos GL ao selecionar uma tag',
+            showTagGLCodesSubtitle: 'Se um código GL não for exibido, ele não está disponível para essa tag no seu sistema contábil.',
         },
         taxes: {
             subtitle: 'Adicione nomes de impostos, taxas e defina padrões.',
@@ -8706,6 +8718,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             subsidiarySelectDescription: 'Escolha a subsidiária no Campfire da qual você gostaria de importar dados.',
             noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
             noSubsidiariesFoundDescription: 'Adicione uma entidade no Campfire e sincronize a conexão novamente',
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Adicione fornecedores no Campfire e sincronize a conexão novamente',
             importDescription: 'Escolha quais configurações de codificação importar do Campfire.',
             accountTypesDescription: 'Suas contas do Campfire serão importadas como categorias.',
             enableNewAccountsTitle: 'Ativar contas recém-importadas',
@@ -9547,6 +9561,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         bulkActions: {
             editMultiple: 'Editar múltiplos',
             editMultipleTitle: 'Editar múltiplas despesas',
+            editFinalizedExpensesTitle: 'Editar despesas finalizadas?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 das ${total} despesas que você selecionou está em um relatório aprovado ou pago. Você está prestes a editar uma despesa finalizada. Tem certeza?`,
+                other: `${count} das ${total} despesas que você selecionou estão em relatórios aprovados ou pagos. Você está prestes a editar despesas finalizadas. Tem certeza?`,
+            }),
             editMultipleDescription: 'As alterações serão aplicadas a todas as despesas selecionadas e substituirão quaisquer valores definidos anteriormente.',
             approve: 'Aprovar',
             pay: 'Pagar',
