@@ -1,7 +1,7 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report, submit multiple reports, bulk submit reports, reports couldn't be submitted, submit reports window]
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report, submit multiple reports, bulk submit reports, reports couldn't be submitted, submit reports window, Submit workspace, submit one at a time, no submit option]
 internalScope: Audience is members and Workspace Admins. Covers creating, submitting, editing, and retracting expense reports, including submitting several reports at once from the Reports tab and admin-created reports. Does not cover approvals, reimbursements, or exports.
 ---
 
@@ -52,6 +52,8 @@ You can select several reports on the **Reports** tab and submit them in one act
 4. Tap the **X selected** button (for example, **2 selected**), then tap **Submit**.
 
 **Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**.
+
+**Note:** Reports on a free [Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace) must be submitted one at a time. If any report in your selection belongs to a Submit workspace, the **Submit** option does not appear. Submit those reports individually instead.
 
 ---
 
@@ -241,6 +243,10 @@ If every expense on the report is on hold, you’ll see the message **Unable to 
 ## Why weren’t all of the reports I selected submitted?
 
 When you submit several reports at once, any report where every expense is on hold or every transaction is a pending card transaction is skipped. The rest of your selection is still submitted, and a **Submit reports** window lists the reports that were skipped. Take the expenses off hold, or wait for the pending transactions to post, then submit those reports again.
+
+## Why don’t I see “Submit” when I select multiple reports?
+
+If any report in your selection belongs to a free [Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace), the **Submit** option is hidden, because reports on a Submit workspace are submitted one at a time. Select one report and submit it, then repeat for each report. The **Submit** option is also hidden while you are offline.
 
 ## Can I remove an expense after submitting?
 
