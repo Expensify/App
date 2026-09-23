@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense, change distance rate, edit distance rate, move distance expense, move expense to another workspace, rate not valid for this workspace, distance rate violation]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -187,7 +187,17 @@ The GPS receipt shows a map of your actual route driven, along with the total di
 
 ## Can I edit a GPS trip after I stop tracking?
 
-Yes. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end address. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
+Yes, as long as the trip is long enough to trim. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end location. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
+
+The pencil **Edit** icon does not appear on a very short trip, such as one you stop without driving anywhere, because there is nothing to trim.
+
+## What happens if I start a GPS trip and tap **Stop** without moving?
+
+The trip stays on screen with a distance of 0.00, your current location shown under both **Start** and **Stop**, and the **Resume** and **Save** buttons available. Tap **Resume** to keep recording from where you are, or tap the trash icon next to the distance counter and confirm to discard the trip.
+
+A trip with a distance of 0.00 can't be turned into an expense. Tapping **Save** shows a **Can't create expense** message. Tap **Got it** to go back to the trip, then resume or discard it.
+
+If you tap **Stop** right after **Start**, before Expensify finds your location, no trip is kept and the **Start** button shows again.
 
 ## Can I use GPS tracking on web or desktop?
 
