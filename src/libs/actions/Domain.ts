@@ -1491,6 +1491,9 @@ function closeUserAccount(
                 memberErrors: {
                     [targetEmail]: null,
                 },
+                adminshipRequesterErrors: {
+                    [targetAccountID]: null,
+                },
             },
         },
     ];
@@ -1510,7 +1513,7 @@ function closeUserAccount(
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {[targetEmail]: null},
-                adminshipRequester: {[targetAccountID]: {pendingAction: null}},
+                adminshipRequester: {[targetAccountID]: null},
             },
         },
         {

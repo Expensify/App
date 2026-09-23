@@ -633,7 +633,7 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {memberErrors: {[targetEmail]: null}},
+                            value: {memberErrors: {[targetEmail]: null}, adminshipRequesterErrors: {[accountID]: null}},
                         }),
                     ]),
                     failureData: expect.arrayContaining([
@@ -649,7 +649,7 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: {pendingAction: null}}},
+                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: null}},
                         }),
                     ]),
                 },
@@ -709,7 +709,7 @@ describe('actions/Domain', () => {
                     failureData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: expect.objectContaining({adminshipRequester: {[accountID]: {pendingAction: null}}}),
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: null}}),
                         }),
                     ]),
                 }),
