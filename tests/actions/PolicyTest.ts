@@ -1283,7 +1283,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with enabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
@@ -1309,13 +1309,13 @@ describe('actions/Policy', () => {
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (policy) => {
-                    // Then workflows is enabled
-                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                    // Then workflows is disabled.
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
                 },
             });
         });
 
-        it('create a new workspace with disabled workflows if the onboarding choice is newDotEmployer', async () => {
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotEmployer', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to EMPLOYER
             Policy.createWorkspace({
@@ -1341,8 +1341,8 @@ describe('actions/Policy', () => {
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (policy) => {
-                    // Then workflows are not enabled
-                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                    // Then workflows are enabled.
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
                 },
             });
         });
@@ -2866,8 +2866,6 @@ describe('actions/Policy', () => {
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
             expect(draft?.areWorkflowsEnabled).toBe(false);
-            expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-            expect(draft?.harvesting?.enabled).toBe(true);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.EUR);
         });
 
@@ -3014,9 +3012,61 @@ describe('actions/Policy', () => {
 
             expect(draft?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             expect(draft?.areWorkflowsEnabled).toBe(false);
-            expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-            expect(draft?.harvesting?.enabled).toBe(true);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('enables delayed submission for the MANAGE_TEAM onboarding choice', async () => {
+            // Given an onboarding choice that enables the Workflows feature
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // When a draft workspace is created
+            Policy.createDraftWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyOwnerEmail: ESH_EMAIL,
+                policyID,
+                currency: CONST.CURRENCY.EUR,
+            });
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Then delayed submission is on alongside the Workflows feature
+            expect(draft?.areWorkflowsEnabled).toBe(true);
+            expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+            expect(draft?.harvesting?.enabled).toBe(false);
+        });
+
+        it('enables delayed submission for the TRACK_PERSONAL onboarding choice', async () => {
+            // Given an onboarding choice that disables the Workflows feature
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // When a draft workspace is created
+            Policy.createDraftWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyOwnerEmail: ESH_EMAIL,
+                policyID,
+                currency: CONST.CURRENCY.EUR,
+            });
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Then delayed submission is still on, because a draft carries no engagement choice
+            expect(draft?.areWorkflowsEnabled).toBe(false);
+            expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+            expect(draft?.harvesting?.enabled).toBe(false);
         });
 
         it('should set owner, ownerAccountID, approver, and employeeList from explicit parameters instead of Onyx session', async () => {
@@ -7389,8 +7439,6 @@ describe('actions/Policy', () => {
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
             expect(policyDraft?.areWorkflowsEnabled).toBe(true);
-            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
-            expect(policyDraft?.harvesting?.enabled).toBe(false);
         });
 
         it('disables workflows for non-MANAGE_TEAM choices', async () => {
@@ -7412,8 +7460,58 @@ describe('actions/Policy', () => {
             const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
             expect(policyDraft?.areWorkflowsEnabled).toBe(false);
-            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-            expect(policyDraft?.harvesting?.enabled).toBe(true);
+        });
+
+        it('enables delayed submission for the MANAGE_TEAM onboarding choice', async () => {
+            // Given an onboarding choice that enables the Workflows feature
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // When a policy draft is created
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+            });
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Then delayed submission is on alongside the Workflows feature
+            expect(policyDraft?.areWorkflowsEnabled).toBe(true);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+            expect(policyDraft?.harvesting?.enabled).toBe(false);
+        });
+
+        it('enables delayed submission for the TRACK_PERSONAL onboarding choice', async () => {
+            // Given an onboarding choice that disables the Workflows feature
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+
+            // When a policy draft is created
+            Policy.createDraftInitialWorkspace({
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_PERSONAL},
+                workspaceName: WORKSPACE_NAME,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                currency: 'USD',
+                policyID,
+            });
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Then delayed submission is still on, because a draft carries no engagement choice
+            expect(policyDraft?.areWorkflowsEnabled).toBe(false);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+            expect(policyDraft?.harvesting?.enabled).toBe(false);
         });
 
         it('uses makeMeAdmin when specified', async () => {
