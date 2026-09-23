@@ -185,7 +185,7 @@ describe('CertiniaFxExpenseAccountSelectPage', () => {
         // Given: search matched nothing, including None.
         jest.mocked(useSelectionListSearch).mockImplementationOnce(() => ({
             filteredData: [],
-            textInputOptions: {value: 'zzzz'},
+            textInputOptions: {label: undefined, value: 'zzzz', onChangeText: jest.fn()},
         }));
 
         // When: the picker is opened with a chart of accounts.
