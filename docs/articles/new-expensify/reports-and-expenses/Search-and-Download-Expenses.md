@@ -31,7 +31,7 @@ Expensify offers flexible options to search and export expenses and reports in v
    - **Current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses those same columns.
    - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
-After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, click **Download file**. You can also click **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
+**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or use **Select all** to match every report, then the export is prepared in the background. You can wait for the file to download automatically, or select **Send me the file when it's ready** to have Concierge deliver it instead. Selecting this option allows the export window to be closed while the file is generated. Once the export is ready, Expensify sends it through Concierge and by email. If the export cannot be generated, Expensify displays an error in the export window or sends the error through Concierge if **Send me the file when it’s ready** was selected.
 
 **Note:** Report-level templates only appear if you select full reports.
 
@@ -44,7 +44,7 @@ After you choose a template, a status window appears while your file is prepared
 5. Tap **Selected**, then choose **Export**.
 6. Choose a default or custom export template as described above.
 
-After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, tap **Download file**. You can also tap **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
+**Basic Export** and **Current view** download immediately when exporting individual selected reports or when using **Select all on this page**. If you choose one of the **All Data** exports, a custom export template, or when using **Select all** to match every report, then a status window appears while the file is being prepared. When it's ready, the file downloads automatically. If it doesn't, tap **Download file**. You can also tap **Send me the file when it's ready** to have Concierge send the file through chat and by email instead.
 
 **Note:** Report-level templates only appear when full reports are selected.
 
@@ -63,8 +63,8 @@ When you group expenses on the **Spend** page, you can export the grouped result
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Spend** > **Expenses**.
 2. Click **Display**, then select **Group by** and choose how to group your expenses (for example, **Category**, **Merchant**, **Tag**, or **Card**).
 3. Click **Apply**.
-4. Check the box next to the groups you want to export, or use the top checkbox to select all. If there is more than one page of results, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
-5. Click the selection button at the top (for example, **1 selected**, or **All matching items selected** if you chose **Select all**).
+4. Check the box next to the groups you want to export, or use the top checkbox to select all.
+5. Click the selection button at the top (for example, **1 selected**).
 6. Select **Current view**.
 
 In the exported file:
@@ -125,7 +125,11 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 ## How do I receive my export?
 
-A status window appears while your file is prepared, and the file downloads automatically when it’s ready (if it doesn’t, use the **Download file** button). If you’d rather not wait, click/tap **Send me the file when it’s ready** and **Concierge** will send it to you in a chat message.
+**Basic Export** and **Current view** download directly to the device when exporting selected reports or using **Select all on this page**. Choosing **All Data**, a custom export template, or using **Select all** to match every report instead prepares the export in the background. Once ready, the file downloads automatically, or, if you selected **Send me the file when it's ready**, it's delivered through Concierge and by email instead.
+
+## Why is my export limited to 50,000 reports?
+
+A single export includes at most the first 50,000 reports that match your search. When you reach the limit, the status window shows **Heads up! This export was too large and has been limited to the first 50,000 reports that matched your search.** The file still downloads and contains those reports. To export the rest of your data, narrow your search — for example, by date range, workspace, or member — and run a separate export for each set of results.
 
 ## What happens if I refresh the page while my file is preparing?
 
