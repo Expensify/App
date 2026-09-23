@@ -207,7 +207,6 @@ function replaceReceipt({
     logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
     const oldReceipt = transaction?.receipt ?? {};
-    ReceiptStorage.retain(source);
     const receiptOptimistic = {
         source,
         localSource: null,
