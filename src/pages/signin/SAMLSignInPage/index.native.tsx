@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -161,7 +161,7 @@ function SAMLSignInPage() {
             testID="SAMLSignInPage"
         >
             {showNavigation && (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title=""
                     onBackButtonPress={handleExitSAMLFlow}
                 />

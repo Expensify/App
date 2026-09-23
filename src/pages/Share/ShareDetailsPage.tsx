@@ -1,5 +1,5 @@
 import AttachmentPreview from '@components/AttachmentPreview';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -239,10 +239,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 accessible={false}
                 sentryLabel={CONST.SENTRY_LABEL.SHARE_DETAIL.DISMISS_KEYBOARD_BUTTON}
             >
-                <HeaderWithBackButton
-                    title={translate('share.shareToExpensify')}
-                    shouldShowBackButton
-                />
+                <HeaderWithBackButtonAndTitle title={translate('share.shareToExpensify')} />
             </PressableWithoutFeedback>
 
             <ScrollView

@@ -3,7 +3,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
@@ -172,7 +172,7 @@ function ScheduleCallPage() {
             shouldEnableKeyboardAvoidingView={false}
             testID="ScheduleCallPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('scheduledCall.book.title')}
                 onBackButtonPress={() => Navigation.goBack()}
             />

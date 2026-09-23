@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
@@ -100,7 +100,7 @@ function ScheduleCallConfirmationPage() {
             shouldEnableKeyboardAvoidingView={false}
             testID="ScheduleCallConfirmationPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('scheduledCall.confirmation.title')}
                 onBackButtonPress={() => {
                     if (!route?.params?.reportID) {

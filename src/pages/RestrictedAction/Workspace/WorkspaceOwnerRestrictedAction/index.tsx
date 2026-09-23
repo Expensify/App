@@ -1,6 +1,6 @@
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -37,7 +37,7 @@ function WorkspaceOwnerRestrictedAction() {
             includeSafeAreaPaddingBottom
             testID="WorkspaceOwnerRestrictedAction"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.restrictedAction.restricted')}
                 onBackButtonPress={Navigation.goBack}
             />

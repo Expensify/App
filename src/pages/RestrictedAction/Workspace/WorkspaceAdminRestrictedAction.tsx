@@ -1,5 +1,5 @@
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -41,7 +41,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
             includeSafeAreaPaddingBottom
             testID="WorkspaceAdminRestrictedAction"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.restrictedAction.restricted')}
                 onBackButtonPress={Navigation.goBack}
             />

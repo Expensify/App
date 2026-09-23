@@ -7,7 +7,7 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -30,6 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import viewRef from '@src/types/utils/viewRef';
 
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
@@ -62,11 +63,7 @@ function AttachmentModalBaseContent({
     shouldShowNotFoundPage = false,
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
-    shouldDisplayHelpButton = false,
     shouldMinimizeMenuButton = true,
-    shouldShowRotateButton = false,
-    onRotateButtonPress,
-    isRotating = false,
     submitRef,
     onDownloadAttachment,
     shouldAllowDownloadOutsideReportContext = false,
@@ -338,30 +335,37 @@ function AttachmentModalBaseContent({
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
-            <HeaderWithBackButton
-                shouldMinimizeMenuButton={shouldMinimizeMenuButton}
-                title={headerTitle ?? translate('common.attachment')}
-                shouldShowBorderBottom
-                shouldShowDownloadButton={shouldShowDownloadButton}
-                shouldShowRotateButton={shouldShowRotateButton}
-                onRotateButtonPress={onRotateButtonPress}
-                isRotating={isRotating}
-                shouldDisplayHelpButton={shouldDisplayHelpButton}
-                onDownloadButtonPress={() => onDownloadAttachment?.({file: fileToDisplay, source})}
-                shouldShowCloseButton={!shouldUseNarrowLayout}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={onClose}
-                onCloseButtonPress={onClose}
-                shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
-                threeDotsMenuItems={threeDotsMenuItems}
-                threeDotsAnchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-                shouldSetModalVisibility={false}
-                shouldOverlayDots
-                subTitleLink={currentAttachmentLink ?? ''}
-            />
+            <Header style={styles.borderBottom}>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={onClose} />}
+                <Header.Title
+                    title={headerTitle ?? translate('common.attachment')}
+                    subTitleLink={currentAttachmentLink ?? ''}
+                />
+                <Header.Right>
+                    {shouldShowDownloadButton && <Header.DownloadButton onPress={() => onDownloadAttachment?.({file: fileToDisplay, source})} />}
+                    {!!threeDotsMenuItems.length &&
+                        (threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
+                            <Header.IconButton
+                                tooltipText={threeDotsMenuItems.at(0)?.text ?? ''}
+                                onPress={threeDotsMenuItems.at(0)?.onSelected}
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- callers of this minimize path always pass a real icon component, never a string/avatar source
+                                iconSrc={threeDotsMenuItems.at(0)?.icon as IconAsset}
+                                sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
+                            />
+                        ) : (
+                            <Header.ThreeDotsMenu
+                                items={threeDotsMenuItems}
+                                shouldOverlay
+                                shouldSetModalVisibility={false}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                            />
+                        ))}
+                    {!shouldUseNarrowLayout && <Header.CloseButton onPress={onClose} />}
+                </Header.Right>
+            </Header>
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
                 {isLoading && (
                     <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>

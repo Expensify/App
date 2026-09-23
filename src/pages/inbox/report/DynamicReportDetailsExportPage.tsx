@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
@@ -125,7 +125,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     if (!canBeExported) {
         return (
             <ScreenWrapper testID="DynamicReportDetailsExportPage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.export')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromExportPath)}
                 />

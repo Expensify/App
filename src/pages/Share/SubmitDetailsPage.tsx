@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -642,7 +642,7 @@ function SubmitDetailsPage({
                     senderPolicyID={senderPolicyID}
                     isOffline={isOffline}
                 />
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.confirmDetails')}
                     onBackButtonPress={() => {
                         cleanupPreMount();

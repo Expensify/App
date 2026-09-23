@@ -1,12 +1,14 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -143,14 +145,17 @@ function SaveTheWorldPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('sidebarScreen.saveTheWorld')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-                shouldUseHeadlineHeader
-            />
+            <Header>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={Navigation.goBack} />}
+                <Header.Title
+                    title={translate('sidebarScreen.saveTheWorld')}
+                    shouldUseHeadlineHeader
+                />
+                <Header.Right>
+                    <SearchButton />
+                    <SidePanelButton />
+                </Header.Right>
+            </Header>
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <Section

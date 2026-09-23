@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
 import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
@@ -64,7 +64,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
     const allowNavigatingAwayRef = useRef(false);
 
     const showConfirmModal = useCallback(() => {
-        // FullPageOfflineBlockingView doesn't wrap HeaderWithBackButton, so we handle navigation manually when offline.
+        // FullPageOfflineBlockingView doesn't wrap HeaderWithBackButtonAndTitle, so we handle navigation manually when offline.
         // Offline mode isn't supported in MFA; navigate users away immediately without showing the confirmation modal.
         if (isOffline) {
             addBreadcrumb('Offline back-navigation (no deny sent)', {transactionID}, 'warning');
@@ -150,12 +150,11 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         }
         return (
             <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('multifactorAuthentication.reviewTransaction.reviewTransaction')}
                     onBackButtonPress={() => {
                         Navigation.closeRHPFlow();
                     }}
-                    shouldShowBackButton
                 />
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
@@ -166,10 +165,9 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('multifactorAuthentication.reviewTransaction.reviewTransaction')}
                 onBackButtonPress={showConfirmModal}
-                shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
