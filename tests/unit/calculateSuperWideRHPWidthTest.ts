@@ -72,7 +72,7 @@ describe('calculateSuperWideRHPWidth', () => {
             // When the Side Panel asks how much of the sheet it may take
             const shrink = calculateMaxSidePanelRHPShrink(windowWidth);
 
-            // Then nothing is left to give, and the capped shrink at 1440 lands on the wide RHP width, so the panel can never underfit the card.
+            // Then nothing is left to give, and the capped shrink at 1440 lands on the wide RHP width, so the panel can never make the card too narrow for its panes.
             expect(shrink).toBe(0);
             expect(calculateSuperWideRHPWidth(1440) - calculateMaxSidePanelRHPShrink(1440)).toBe(calculateWideRHPWidth(1440));
         });

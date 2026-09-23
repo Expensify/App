@@ -61,7 +61,7 @@ describe('getRHPFrameStyle', () => {
         // When the frame style is built for it
         const style = getRHPFrameStyleWeb(params);
 
-        // Then the frame stays invisible, unclipped and at the animated width untouched, since each card draws its own border and shadow and the frame has none to absorb.
+        // Then the frame stays invisible and clips nothing, at the animated width untouched, since each card draws its own border and shadow and the frame has none to absorb.
         expect(style).toContain(styles.RHPCenteredFrame);
         expect(style).not.toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.overflowHidden);
