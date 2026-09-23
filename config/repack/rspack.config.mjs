@@ -56,6 +56,7 @@ const BABEL_PACKAGES = [
     'lottie-react-native',
     'react-native-advanced-input-mask',
     'react-native-keyboard-controller',
+    'react-native-pager-view',
     'react-native-plaid-link-sdk',
     'react-native-reanimated',
     'react-native-safe-area-context',

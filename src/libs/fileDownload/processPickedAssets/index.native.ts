@@ -1,9 +1,10 @@
-import {getFileName, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {getFileName, isLabelledTiff, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 
 import type {Asset} from 'react-native-image-picker';
+import type {TupleToUnion} from 'type-fest';
 
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 
@@ -38,17 +39,59 @@ function releaseQuietly(releasable: {release: () => void}) {
 }
 
 /**
- * Transcodes a single HEIC image to JPEG, returning `undefined` if the conversion fails.
+ * Image formats that the picker hands over under a misleading `.jpg` name and that we transcode to a real
+ * JPEG before upload. Ordered so the more specific check runs first.
+ */
+const TRANSCODED_FORMATS = [
+    {name: 'HEIC', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET},
+    // A DNG (iPhone ProRAW) is a TIFF container, so plain TIFFs are caught by the same signature. Neither is
+    // supported by the backend or renderable on web, and react-native-image-picker labels both as JPEG.
+    {name: 'TIFF/DNG', formatSignatures: CONST.TIFF_SIGNATURES, signatureOffset: CONST.TIFF_SIGNATURE_OFFSET},
+] as const;
+
+type TranscodedFormat = TupleToUnion<typeof TRANSCODED_FORMATS>;
+
+const TIFF_FORMAT = TRANSCODED_FORMATS[1];
+
+/**
+ * Returns the entry of `TRANSCODED_FORMATS` the asset should be transcoded from, or `undefined` for anything
+ * else (e.g. a real JPEG or PNG), which is passed through untouched.
+ *
+ * A TIFF/DNG label (what Android's picker and the document picker provide) is trusted without reading the
+ * file, so those picks don't depend on the header read succeeding. Everything else, including the `.jpg`
+ * that iOS relabels a ProRAW to, is sniffed from its magic bytes.
+ */
+async function detectFormatToTranscode(asset: Asset & {uri: string}): Promise<TranscodedFormat | undefined> {
+    if (isLabelledTiff({name: asset.fileName ?? getFileName(asset.uri), type: asset.type})) {
+        return TIFF_FORMAT;
+    }
+
+    const uri = asset.uri;
+    for (const format of TRANSCODED_FORMATS) {
+        // eslint-disable-next-line no-await-in-loop -- each check reads a handful of bytes and the second one only runs if the first fails to match
+        const isMatch = await verifyFileFormat({fileUri: uri, formatSignatures: format.formatSignatures, signatureOffset: format.signatureOffset});
+        if (isMatch) {
+            return format;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Transcodes a single HEIC or TIFF/DNG image to JPEG, returning `undefined` if the conversion fails.
  *
  * The native context and the rendered bitmap are released as soon as they are no longer needed rather
  * than waiting for the garbage collector, which has no visibility into the native memory they retain.
  *
  * This repeats the manipulate/render/save sequence from `heicConverter` rather than calling it, because
  * that helper decides what to convert from the `.heic`/`.heif` extension. react-native-image-picker
- * relabels the extension without transcoding, so this path has to detect HEIC from the file signature
- * instead and cannot go through `convertHeicImage`.
+ * relabels the extension without transcoding, so this path has to detect the format from the file
+ * signature instead and cannot go through `convertHeicImage`.
+ *
+ * Decoding is left to the OS image loader (ImageIO on iOS, BitmapFactory/ImageDecoder on Android), which
+ * handles DNG on current OS versions; where it doesn't, the render fails and the asset is skipped.
  */
-async function convertHeicToJpeg(uri: string): Promise<Asset | undefined> {
+async function convertToJpeg(uri: string, formatName: TranscodedFormat['name']): Promise<Asset | undefined> {
     const imageManipulatorContext = ImageManipulator.manipulate(uri);
     try {
         const manipulatedImage = await imageManipulatorContext.renderAsync();
@@ -65,7 +108,7 @@ async function convertHeicToJpeg(uri: string): Promise<Asset | undefined> {
             releaseQuietly(manipulatedImage);
         }
     } catch (error) {
-        Log.warn('Failed to convert HEIC image, skipping asset', {error: getErrorMessage(error, 'An unknown error occurred')});
+        Log.warn(`Failed to convert ${formatName} image, skipping asset`, {error: getErrorMessage(error, 'An unknown error occurred')});
         return undefined;
     } finally {
         releaseQuietly(imageManipulatorContext);
@@ -73,7 +116,7 @@ async function convertHeicToJpeg(uri: string): Promise<Asset | undefined> {
 }
 
 /**
- * Convert the picked assets one at a time, transcoding any HEIC images to JPEG.
+ * Convert the picked assets one at a time, transcoding any HEIC or TIFF/DNG images to JPEG.
  *
  * The conversion is deliberately sequential: `ImageManipulator` decodes each image into a full-size
  * bitmap in native memory, so converting a whole selection at once (the picker allows up to
@@ -92,7 +135,10 @@ const processPickedAssetsSequentially: ProcessPickedAssetsFunction = async (asse
             continue;
         }
 
-        if (!asset.type?.startsWith('image')) {
+        // Android's MIME map doesn't know DNG on every device, in which case the picker reports `type: null` for a
+        // file that is still named `.dng`, so the extension is consulted before treating the asset as a non-image.
+        const isImage = !!asset.type?.startsWith('image') || isLabelledTiff({name: asset.fileName ?? getFileName(asset.uri), type: asset.type});
+        if (!isImage) {
             // Ensure the asset has proper fileName and type
             processedAssets.push(processAssetWithFallbacks(asset));
             continue;
@@ -100,17 +146,18 @@ const processPickedAssetsSequentially: ProcessPickedAssetsFunction = async (asse
 
         try {
             // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
-            const isHEIC = await verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES});
+            const formatToTranscode = await detectFormatToTranscode({...asset, uri: asset.uri});
 
-            if (!isHEIC) {
-                // Ensure the asset has proper fileName and type for non-HEIC images
+            if (!formatToTranscode) {
+                // Ensure the asset has proper fileName and type for images that need no transcoding
                 processedAssets.push(processAssetWithFallbacks(asset));
                 continue;
             }
 
-            // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+            // react-native-image-picker sniffs only the first byte and labels anything it doesn't recognize as JPEG without
+            // transcoding it. HEIC and TIFF/DNG both end up as a broken `<uuid>.jpg`, so we transcode them for real here.
             // eslint-disable-next-line no-await-in-loop -- converting one image at a time is the point, see the doc comment above
-            const convertedAsset = await convertHeicToJpeg(asset.uri);
+            const convertedAsset = await convertToJpeg(asset.uri, formatToTranscode.name);
 
             if (convertedAsset) {
                 processedAssets.push(convertedAsset);

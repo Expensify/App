@@ -11,7 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {cleanFileName, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, isLabelledTiff, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 import fileURIToPath from '@libs/fileURIToPath';
 import ReceiptStorage from '@libs/ReceiptStorage';
@@ -237,6 +237,62 @@ function AttachmentPicker({
         [fileLimit, showGeneralAlert, translate, type],
     );
     /**
+     * Transcodes document-picked TIFF/DNG files (e.g. an iPhone ProRAW browsed to via "Choose file") to JPEG,
+     * the same way gallery picks are, so both entry points accept the same photos. Anything else is returned
+     * untouched, which keeps the existing HEIC-through-validation flow for `.heic` documents.
+     *
+     * Files are converted one at a time (see `processPickedAssetsSequentially`) and failures are collected so a
+     * multi-selection produces at most one alert; a file that can't be decoded is dropped from the result.
+     */
+    const transcodeLabelledTiffs = useCallback(
+        async (files: LocalCopy[]): Promise<LocalCopy[]> => {
+            if (!files.some((file) => isLabelledTiff(file))) {
+                return files;
+            }
+
+            const failureMessages = new Set<string>();
+            const collectFailure = (message = translate('attachmentPicker.errorWhileSelectingAttachment')) => {
+                failureMessages.add(message);
+            };
+
+            const results = await files.reduce<Promise<LocalCopy[]>>(async (previousFiles, file) => {
+                const processedFiles = await previousFiles;
+                if (!isLabelledTiff(file)) {
+                    return [...processedFiles, file];
+                }
+
+                const convertedAssets = await processPickedAssetsSequentially(
+                    [{uri: file.uri, fileName: file.name ?? undefined, type: file.type ?? undefined, fileSize: file.size ?? undefined}],
+                    collectFailure,
+                    translate,
+                );
+                const convertedAsset = convertedAssets?.at(0);
+                if (!convertedAsset?.uri) {
+                    return processedFiles;
+                }
+
+                return [
+                    ...processedFiles,
+                    {
+                        name: convertedAsset.fileName ?? file.name,
+                        uri: convertedAsset.uri,
+                        // The JPEG's size differs from the DNG's and isn't reported by the transcode; `getDataForUpload` reads it from disk.
+                        size: null,
+                        type: convertedAsset.type ?? file.type,
+                    },
+                ];
+            }, Promise.resolve([]));
+
+            if (failureMessages.size > 0) {
+                showGeneralAlert([...failureMessages].join('\n'));
+            }
+
+            return results;
+        },
+        [showGeneralAlert, translate],
+    );
+
+    /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
@@ -272,7 +328,7 @@ function AttachmentPicker({
             destination: 'cachesDirectory',
         });
 
-        return pickedFiles.map((file) => {
+        const localFiles: LocalCopy[] = pickedFiles.map((file) => {
             const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
 
             if (localCopy?.status !== 'success') {
@@ -286,7 +342,9 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    }, [acceptedFileTypes, fileLimit, type]);
+
+        return transcodeLabelledTiffs(localFiles);
+    }, [acceptedFileTypes, fileLimit, transcodeLabelledTiffs, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [

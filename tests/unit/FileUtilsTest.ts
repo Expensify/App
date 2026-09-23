@@ -10,6 +10,7 @@ import {
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     isHighResolutionImage,
+    isLabelledTiff,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
 
@@ -571,6 +572,35 @@ describe('FileUtils', () => {
 
             expect(result.title).toBe('');
             expect(result.reason).toBe('');
+        });
+    });
+
+    describe('isLabelledTiff', () => {
+        it.each([
+            ['an Android gallery DNG', {name: 'PXL_20260101.dng', type: 'image/x-adobe-dng'}],
+            ['a document-picked DNG with an upper-case extension', {name: 'IMG_0001.DNG', type: 'image/x-adobe-dng'}],
+            ['a DNG the platform gave no MIME type', {name: 'PXL_20260101.dng', type: null}],
+            ['a TIFF by MIME type only', {name: 'scan', type: 'image/tiff'}],
+            ['a .tif by extension only', {name: 'scan.tif', type: null}],
+            ['a .tiff by extension only', {name: 'scan.tiff', type: undefined}],
+        ])('recognizes %s', (description, file) => {
+            // Given a file labelled as TIFF/DNG by at least one of its name or MIME type
+            // When checked
+            // Then it is treated as a TIFF/DNG so the picker transcodes it
+            expect(isLabelledTiff(file)).toBe(true);
+        });
+
+        it.each([
+            ['an iOS gallery pick relabelled as JPEG', {name: '1A2B.jpg', type: 'image/jpg'}],
+            ['a HEIC', {name: 'photo.heic', type: 'image/heic'}],
+            ['a PDF', {name: 'receipt.pdf', type: 'application/pdf'}],
+            ['a file with no name or type', {name: null, type: null}],
+            ['a file whose name merely contains the extension', {name: 'dng-notes.txt', type: 'text/plain'}],
+        ])('does not match %s', (description, file) => {
+            // Given a file that isn't labelled as TIFF/DNG (an iOS gallery pick has to be sniffed by magic bytes instead)
+            // When checked
+            // Then it is left alone
+            expect(isLabelledTiff(file)).toBe(false);
         });
     });
 });

@@ -1,19 +1,39 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type * as FileUtilsModule from '@libs/fileDownload/FileUtils';
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
+
+import CONST from '@src/CONST';
 
 import type {Asset} from 'react-native-image-picker';
 
-const mockVerifyFileFormat = jest.fn();
+type VerifyFileFormatArgs = {fileUri: string; formatSignatures: readonly string[]; signatureOffset?: number};
+
+const mockVerifyFileFormat = jest.fn<Promise<boolean>, [VerifyFileFormatArgs]>();
 const mockRenderAsync = jest.fn();
 const mockSaveAsync = jest.fn();
 const mockRelease = jest.fn();
 const mockImageRelease = jest.fn();
 
 jest.mock('@libs/fileDownload/FileUtils', () => ({
+    ...jest.requireActual<typeof FileUtilsModule>('@libs/fileDownload/FileUtils'),
     getFileName: (url: string) => url.split('/').pop()?.split('?').at(0) ?? '',
-    verifyFileFormat: () => mockVerifyFileFormat() as unknown,
+    verifyFileFormat: (args: VerifyFileFormatArgs) => mockVerifyFileFormat(args),
 }));
+
+/**
+ * Makes the format check answer from the file's real extension, the way the magic-byte sniffing would, so a
+ * test can describe a selection by file names alone. The picker itself would have relabelled these `.jpg`.
+ */
+const detectFormatFromExtension = ({fileUri, formatSignatures}: VerifyFileFormatArgs): Promise<boolean> => {
+    if (formatSignatures === CONST.HEIC_SIGNATURES) {
+        return Promise.resolve(fileUri.endsWith('.heic'));
+    }
+    if (formatSignatures === CONST.TIFF_SIGNATURES) {
+        return Promise.resolve(fileUri.endsWith('.dng') || fileUri.endsWith('.tif'));
+    }
+    return Promise.resolve(false);
+};
 
 jest.mock('expo-image-manipulator', () => ({
     ImageManipulator: {
@@ -46,7 +66,7 @@ const translate: LocaleContextProps['translate'] = (path, ...parameters): string
 describe('processPickedAssetsSequentially', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockVerifyFileFormat.mockResolvedValue(true);
+        mockVerifyFileFormat.mockImplementation(detectFormatFromExtension);
         mockSaveAsync.mockResolvedValue({uri: 'file:///photo.jpg', width: 100, height: 200});
         mockRenderAsync.mockImplementation(() =>
             Promise.resolve({
@@ -117,29 +137,121 @@ describe('processPickedAssetsSequentially', () => {
         expect(showGeneralAlert).toHaveBeenCalledTimes(1);
     });
 
-    it('passes non-HEIC images through without decoding them', async () => {
-        mockVerifyFileFormat.mockResolvedValue(false);
-
+    it('passes real JPEGs through without decoding them', async () => {
+        // Given a picked asset whose bytes match neither the HEIC nor the TIFF/DNG signature
+        // When the selection is processed
         const result = await processPickedAssetsSequentially([{uri: 'file:///photo.jpg', fileName: 'photo.jpg', type: 'image/jpeg'}], showGeneralAlert, translate);
 
+        // Then both signatures are checked and the asset is kept as-is without a transcode
+        expect(mockVerifyFileFormat).toHaveBeenCalledTimes(2);
         expect(mockRenderAsync).not.toHaveBeenCalled();
         expect(result).toHaveLength(1);
     });
-    it('preserves selection order across mixed HEIC and non-HEIC assets', async () => {
-        mockVerifyFileFormat.mockResolvedValueOnce(true).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
-        mockSaveAsync.mockResolvedValueOnce({uri: 'file:///a-converted.jpg', width: 1, height: 1}).mockResolvedValueOnce({uri: 'file:///c-converted.jpg', width: 1, height: 1});
 
+    it('transcodes a gallery-picked DNG (ProRAW) that the picker labelled as JPEG', async () => {
+        // Given a ProRAW photo: react-native-image-picker sniffs one byte, doesn't recognize the TIFF header and names it `<uuid>.jpg`
+        const pickedAsset: Asset = {uri: 'file:///D1F3.dng', fileName: 'D1F3.jpg', type: 'image/jpg'};
+        mockSaveAsync.mockResolvedValueOnce({uri: 'file:///D1F3-converted.jpg', width: 4032, height: 3024});
+
+        // When the selection is processed
+        const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+        // Then the TIFF signature is checked at offset 0 and the asset is replaced by a real JPEG instead of a mislabelled DNG that would fail `ImageSize.getSize`
+        expect(mockVerifyFileFormat).toHaveBeenCalledWith({fileUri: pickedAsset.uri, formatSignatures: CONST.TIFF_SIGNATURES, signatureOffset: CONST.TIFF_SIGNATURE_OFFSET});
+        expect(mockRenderAsync).toHaveBeenCalledTimes(1);
+        expect(result).toEqual([{uri: 'file:///D1F3-converted.jpg', fileName: 'D1F3-converted.jpg', type: 'image/jpeg', width: 4032, height: 3024}]);
+        expect(showGeneralAlert).not.toHaveBeenCalled();
+    });
+
+    it('transcodes an Android gallery pick that keeps its DNG name and MIME type without reading the file', async () => {
+        // Given a DNG as Android's picker reports it: real file name, MIME type resolved from the extension
+        const pickedAsset: Asset = {uri: 'file:///data/user/0/app/cache/1a2b.dng', fileName: 'PXL_20260101.dng', type: 'image/x-adobe-dng'};
+        mockSaveAsync.mockResolvedValueOnce({uri: 'file:///data/user/0/app/cache/1a2b-converted.jpg', width: 4000, height: 3000});
+
+        // When the selection is processed
+        const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+        // Then the label is trusted, so no header read happens (Android streams the file for that) and the asset comes out as a JPEG
+        expect(mockVerifyFileFormat).not.toHaveBeenCalled();
+        expect(mockRenderAsync).toHaveBeenCalledTimes(1);
+        expect(result?.at(0)).toMatchObject({fileName: '1a2b-converted.jpg', type: 'image/jpeg'});
+    });
+
+    it('still transcodes a DNG when Android reports no MIME type for it', async () => {
+        // Given a device whose MIME map doesn't know DNG, so the picker sends `type: null` for a file still named `.dng`
+        const pickedAsset: Asset = {uri: 'file:///data/user/0/app/cache/1a2b.dng', fileName: 'PXL_20260101.dng', type: undefined};
+
+        // When the selection is processed
+        const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+        // Then the extension keeps it on the image path instead of passing it through as a generic file the backend would reject
+        expect(mockRenderAsync).toHaveBeenCalledTimes(1);
+        expect(result?.at(0)?.type).toBe('image/jpeg');
+    });
+
+    it('transcodes a labelled TIFF the same way as a DNG', async () => {
+        // Given a scanned receipt saved as TIFF, which shares the DNG container and can't be rendered on web either
+        const pickedAsset: Asset = {uri: 'file:///scan.tif', fileName: 'scan.tif', type: 'image/tiff'};
+
+        // When the selection is processed
+        const result = await processPickedAssetsSequentially([pickedAsset], showGeneralAlert, translate);
+
+        // Then it is transcoded to JPEG
+        expect(mockRenderAsync).toHaveBeenCalledTimes(1);
+        expect(result?.at(0)?.type).toBe('image/jpeg');
+    });
+
+    it('checks the HEIC signature at the ftyp box offset', async () => {
+        // Given a HEIC asset
+        // When the selection is processed
+        await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+        // Then the HEIC check reads past the 4-byte box size where the `ftyp` signature lives
+        expect(mockVerifyFileFormat).toHaveBeenCalledWith({fileUri: 'file:///photo-0.heic', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET});
+    });
+
+    it('skips the TIFF/DNG check once an asset is recognized as HEIC', async () => {
+        // Given a HEIC asset
+        // When the selection is processed
+        await processPickedAssetsSequentially(buildHeicAssets(1), showGeneralAlert, translate);
+
+        // Then only one signature read happens, since a match short-circuits the remaining formats
+        expect(mockVerifyFileFormat).toHaveBeenCalledTimes(1);
+    });
+
+    it('alerts with the generic processing message when a DNG cannot be decoded', async () => {
+        // Given a DNG on a device whose image loader can't decode it
+        mockRenderAsync.mockRejectedValue(new Error('decode failed'));
+
+        // When the selection is processed
+        const result = await processPickedAssetsSequentially([{uri: 'file:///raw.dng', fileName: 'raw.jpg', type: 'image/jpg'}], showGeneralAlert, translate);
+
+        // Then the asset is dropped and the user sees the in-app processing message rather than a native corruption error further down the line
+        expect(result).toBeUndefined();
+        expect(showGeneralAlert).toHaveBeenCalledWith('attachmentPicker.errorWhileConvertingHeic');
+    });
+
+    it('preserves selection order across mixed HEIC, DNG and JPEG assets', async () => {
+        // Given a selection whose formats interleave, with each transcode producing a distinct output name
+        mockSaveAsync
+            .mockResolvedValueOnce({uri: 'file:///a-converted.jpg', width: 1, height: 1})
+            .mockResolvedValueOnce({uri: 'file:///c-converted.jpg', width: 1, height: 1})
+            .mockResolvedValueOnce({uri: 'file:///d-converted.jpg', width: 1, height: 1});
+
+        // When the selection is processed
         const result = await processPickedAssetsSequentially(
             [
                 {uri: 'file:///a.heic', fileName: 'a.heic', type: 'image/heic'},
                 {uri: 'file:///b.jpg', fileName: 'b.jpg', type: 'image/jpeg'},
                 {uri: 'file:///c.heic', fileName: 'c.heic', type: 'image/heic'},
+                {uri: 'file:///d.dng', fileName: 'd.jpg', type: 'image/jpg'},
             ],
             showGeneralAlert,
             translate,
         );
 
-        expect(result?.map((asset) => asset.fileName)).toEqual(['a-converted.jpg', 'b.jpg', 'c-converted.jpg']);
+        // Then the output keeps the order the user picked in, regardless of which assets were transcoded
+        expect(result?.map((asset) => asset.fileName)).toEqual(['a-converted.jpg', 'b.jpg', 'c-converted.jpg', 'd-converted.jpg']);
     });
 
     it('skips assets that have no uri', async () => {

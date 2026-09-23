@@ -1180,7 +1180,10 @@
         "knip",
         "lottiefiles",
         "jsitooling",
-        "Refetched"
+        "Refetched",
+        "ftyp",
+        "ftypheic",
+        "JFIF"
     ],
     "ignorePaths": [
         ".github/actions/javascript/**/index.js",

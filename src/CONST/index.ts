@@ -259,6 +259,18 @@ const CONST = {
         '6674797068657631', // 'ftyphevc' - Typically for HEVC encoded media (common in HEIF)
         '667479706d696631', // 'ftypmif1' - Multi-Image Format part of HEIF, broader usage
     ],
+    // HEIC signatures sit inside the 'ftyp' box, which starts after the 4-byte box size.
+    HEIC_SIGNATURE_OFFSET: 4,
+    // TIFF header, which is also what a DNG (Adobe Digital Negative, e.g. iPhone ProRAW) starts with.
+    TIFF_SIGNATURES: [
+        '49492a00', // 'II*\0' - little-endian TIFF/DNG
+        '4d4d002a', // 'MM\0*' - big-endian TIFF/DNG
+    ],
+    TIFF_SIGNATURE_OFFSET: 0,
+    // How a TIFF/DNG is labelled when the picker does know what it is (Android's gallery and the document picker on both
+    // platforms). iOS gallery picks don't carry these and are recognized from TIFF_SIGNATURES instead.
+    TIFF_EXTENSIONS: ['dng', 'tif', 'tiff'],
+    TIFF_MIME_TYPES: ['image/x-adobe-dng', 'image/tiff', 'image/tif'],
     RECENT_WAYPOINTS_NUMBER: 20,
     // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
     // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.
