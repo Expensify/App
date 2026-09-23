@@ -7,7 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getWaypointIndex, hasDistanceRouteErrors, hasPendingDistanceReceiptRegeneration, hasReceipt} from '@libs/TransactionUtils';
+import {getWaypointIndex, hasPendingDistanceReceiptRegeneration, hasReceipt} from '@libs/TransactionUtils';
+import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -30,9 +31,16 @@ type DistanceEReceiptProps = {
 
     /** Whether the distanceEReceipt is shown as hover preview */
     hoverPreview?: boolean;
+
+    /**
+     * Whether to render the card at its natural height instead of filling its parent. Needed when the caller measures the
+     * card to scale it: the default layout stretches to the parent, so inside a parent with no height of its own it
+     * resolves to zero height on native.
+     */
+    shouldUseNaturalHeight?: boolean;
 };
 
-function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptProps) {
+function DistanceEReceipt({transaction, hoverPreview = false, shouldUseNaturalHeight = false}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -54,69 +62,77 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                 .reduce((result, obj) => (obj ? Object.assign(result, obj) : result), {}),
         [waypoints],
     );
+    const receiptPanel = (
+        <View style={styles.eReceiptPanel}>
+            <ImageSVG
+                src={EReceiptBackground}
+                style={styles.eReceiptBackground}
+                pointerEvents="none"
+            />
+
+            <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
+                {!canShowStoredRouteMap || !thumbnailSource ? (
+                    <PendingMapView />
+                ) : (
+                    <ReceiptImage
+                        source={thumbnailSource}
+                        shouldUseThumbnailImage
+                        shouldUseInitialObjectPosition
+                        isAuthTokenRequired
+                    />
+                )}
+            </View>
+            <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
+                {transactionAmount !== null && transactionAmount !== undefined && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
+                <Text style={styles.eReceiptMerchant}>{transactionMerchant !== translate('iou.fieldPending') ? transactionMerchant : transaction.merchant}</Text>
+            </View>
+            <View style={[styles.mb10, styles.gap5, styles.ph2]}>
+                {Object.entries(sortedWaypoints).map(([key, waypoint]) => {
+                    const index = getWaypointIndex(key);
+                    let descriptionKey: TranslationPaths = 'distance.waypointDescription.stop';
+                    if (index === 0) {
+                        descriptionKey = 'distance.waypointDescription.start';
+                    }
+
+                    return (
+                        <View
+                            style={styles.gap1}
+                            key={key}
+                        >
+                            <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
+                            {!!waypoint?.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
+                            {!!waypoint?.address && <Text style={styles.eReceiptGuaranteed}>{waypoint.address}</Text>}
+                        </View>
+                    );
+                })}
+                <View style={styles.gap1}>
+                    <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
+                    <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
+                </View>
+            </View>
+            <View style={[styles.ph2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                <Icon
+                    width={86}
+                    height={19.25}
+                    src={icons.ExpensifyWordmark}
+                />
+
+                <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
+            </View>
+        </View>
+    );
+
+    if (shouldUseNaturalHeight) {
+        return receiptPanel;
+    }
+
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, hoverPreview && styles.mhv5]}>
             <ScrollView
                 style={styles.w100}
                 contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
             >
-                <View style={styles.eReceiptPanel}>
-                    <ImageSVG
-                        src={EReceiptBackground}
-                        style={styles.eReceiptBackground}
-                        pointerEvents="none"
-                    />
-
-                    <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {!canShowStoredRouteMap || !thumbnailSource ? (
-                            <PendingMapView />
-                        ) : (
-                            <ReceiptImage
-                                source={thumbnailSource}
-                                shouldUseThumbnailImage
-                                shouldUseInitialObjectPosition
-                                isAuthTokenRequired
-                            />
-                        )}
-                    </View>
-                    <View style={[styles.mb10, styles.gap5, styles.ph2, styles.flexColumn, styles.alignItemsCenter]}>
-                        {transactionAmount !== null && transactionAmount !== undefined && <Text style={styles.eReceiptAmount}>{formattedTransactionAmount}</Text>}
-                        <Text style={styles.eReceiptMerchant}>{transactionMerchant !== translate('iou.fieldPending') ? transactionMerchant : transaction.merchant}</Text>
-                    </View>
-                    <View style={[styles.mb10, styles.gap5, styles.ph2]}>
-                        {Object.entries(sortedWaypoints).map(([key, waypoint]) => {
-                            const index = getWaypointIndex(key);
-                            let descriptionKey: TranslationPaths = 'distance.waypointDescription.stop';
-                            if (index === 0) {
-                                descriptionKey = 'distance.waypointDescription.start';
-                            }
-
-                            return (
-                                <View
-                                    style={styles.gap1}
-                                    key={key}
-                                >
-                                    <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                                    {!!waypoint?.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
-                                    {!!waypoint?.address && <Text style={styles.eReceiptGuaranteed}>{waypoint.address}</Text>}
-                                </View>
-                            );
-                        })}
-                        <View style={styles.gap1}>
-                            <Text style={styles.eReceiptWaypointTitle}>{translate('common.date')}</Text>
-                            <Text style={styles.eReceiptWaypointAddress}>{transactionDate}</Text>
-                        </View>
-                    </View>
-                    <View style={[styles.ph2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Icon
-                            width={86}
-                            height={19.25}
-                            src={icons.ExpensifyWordmark}
-                        />
-
-                        <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
-                    </View>
-                </View>
+                {receiptPanel}
             </ScrollView>
         </View>
     );

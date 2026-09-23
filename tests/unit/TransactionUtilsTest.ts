@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import {translate as translateWithLocale} from '@libs/Localize';
 import {doesMoneyRequestDraftHaveUserInput, shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -1885,17 +1886,17 @@ describe('TransactionUtils', () => {
 
     describe('hasDistanceRouteErrors', () => {
         it('returns false when the route is clean', () => {
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction())).toBe(false);
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
+            expect(hasDistanceRouteErrors(generateTransaction())).toBe(false);
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
         });
 
         it('returns true for a route or waypoint error', () => {
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
+            expect(hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
         });
 
         it('ignores errors that say nothing about the route, such as a failed payment', () => {
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
+            expect(hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
         });
     });
 

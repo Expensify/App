@@ -48,12 +48,17 @@ function ScaledDistanceEReceipt({transaction}: ScaledDistanceEReceiptProps) {
         <View
             style={[styles.flex1, styles.w100, styles.justifyContentCenter, styles.alignItemsCenter, styles.overflowHidden]}
             onLayout={onBoxLayout}
+            testID="scaled-distance-e-receipt"
         >
             <View
                 style={[{width: variables.eReceiptHoverCardWidth}, {transform: [{scale}]}]}
                 onLayout={onCardLayout}
+                testID="scaled-distance-e-receipt-card"
             >
-                <DistanceEReceipt transaction={transaction} />
+                <DistanceEReceipt
+                    transaction={transaction}
+                    shouldUseNaturalHeight
+                />
             </View>
         </View>
     );
