@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -248,7 +248,7 @@ function DynamicReviewPage() {
     if (!shouldShowNotFound && transactionID && duplicateTransactionIDs.length === 0) {
         return (
             <ScreenWrapper testID="DynamicReviewPage">
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
@@ -270,7 +270,7 @@ function DynamicReviewPage() {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={shouldShowNotFound}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />

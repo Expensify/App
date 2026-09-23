@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DisplayNames from '@components/DisplayNames';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import {useMenuItemConfig, useMenuItemInteraction} from '@components/MenuItem/MenuItemContext';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -182,9 +182,8 @@ function DynamicNewTaskPage() {
                 onBackButtonPress={() => dismissModalAndClearOutTaskInfo()}
                 shouldShowLink={false}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('newTaskPage.confirmTask')}
-                    shouldShowBackButton
                     onBackButtonPress={() => {
                         Navigation.goBack(detailsBackPath);
                     }}

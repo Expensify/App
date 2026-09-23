@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -181,7 +181,7 @@ function DynamicConfirmationPage() {
         >
             <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
                 <View style={[styles.flex1]}>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('iou.reviewDuplicates')}
                         onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                     />
