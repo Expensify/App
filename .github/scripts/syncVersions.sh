@@ -240,8 +240,15 @@ function verify_sync {
     recorded=$(git rev-parse HEAD:Mobile-Expensify)
     remote_sha=$(git -C Mobile-Expensify rev-parse origin/main)
     if [[ "$recorded" != "$remote_sha" ]]; then
-        echo "::error::Submodule on App main ($recorded) still differs from Mobile-Expensify origin/main ($remote_sha)"
-        exit 1
+        # Mobile-Expensify main can advance while this runs, which is likely since a deployer triggers this
+        # mid-deploy. Recording what `check` pinned us to is still a successful sync, so say what happened
+        # and let the next run pick the newer commit up, rather than reporting a failure.
+        if [[ "$recorded" == "$EXPECTED_SUBMODULE_SHA" ]]; then
+            echo "::warning::Mobile-Expensify main advanced to $remote_sha while syncing. App main records $recorded, which is what this run set out to record. Re-run to pick up the newer commit."
+        else
+            echo "::error::Submodule on App main ($recorded) still differs from Mobile-Expensify origin/main ($remote_sha)"
+            exit 1
+        fi
     fi
 
     set_output POST_SYNC_APP_VERSION "$app_version"

@@ -259,6 +259,21 @@ describe('syncVersions.sh sync (submodule only)', () => {
         expect(git(appDir, 'log', '-1', '--format=%s', 'origin/main')).toBe(`Bump Mobile-Expensify submodule to latest main (${newSubmoduleSha})`);
     });
 
+    it('warns instead of failing when Mobile-Expensify main advances mid-sync', () => {
+        setUpFixture('9.3.11-48', '9.3.11-48');
+        const shaAtCheck = advanceMobileExpensify();
+        runScript('check');
+        // Mobile-Expensify main moves again while Node is being set up and the sync runs
+        const laterSha = advanceMobileExpensify();
+
+        const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'false', EXPECTED_SUBMODULE_SHA: shaAtCheck}});
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain(`::warning::Mobile-Expensify main advanced to ${laterSha} while syncing`);
+        expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
+        expect(git(appDir, 'ls-tree', 'origin/main', 'Mobile-Expensify')).toContain(shaAtCheck);
+    }, 120000);
+
     it('fails when the submodule checkout moved since the check step', () => {
         setUpFixture('9.3.11-48', '9.3.11-48');
         advanceMobileExpensify();
