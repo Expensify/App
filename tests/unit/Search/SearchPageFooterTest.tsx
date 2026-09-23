@@ -5,7 +5,7 @@ import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/type
 
 import CONST from '@src/CONST';
 
-import type * as ReactNative from 'react-native';
+import type ReactNative from 'react-native';
 
 import React from 'react';
 
