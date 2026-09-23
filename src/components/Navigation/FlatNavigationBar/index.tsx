@@ -1,7 +1,14 @@
+import SidebarLeftIcon from '@assets/images/sidebar-left.svg';
+import SidebarRightIcon from '@assets/images/sidebar-right.svg';
+
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
+import {useFlatNavigationBarLayoutWidthStyle, useFlatNavigationBarVisualWidthStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
@@ -45,6 +52,7 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
@@ -64,11 +72,11 @@ const FAB_ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 } as const;
 
-// Puts the create menu 8px below the plus button and flush with its left edge. The button is the last item in a
-// space-between header row and is vertically centered there, so both edges follow from the header's own metrics.
+// Puts the create menu 8px below the Create button and flush with its left edge. The button is the first row under
+// the header, so both edges follow from the header's height and the margin the row sits at.
 const FAB_ANCHOR_POSITION = {
-    horizontal: variables.flatNavigationBarWidth - variables.flatNavigationBarHeaderPaddingRight - variables.componentSizeSmall,
-    vertical: (variables.contentHeaderHeight + variables.componentSizeSmall) / 2 + 8,
+    horizontal: 12,
+    vertical: variables.flatNavigationBarHeaderHeight + variables.flatNavigationBarCreateButtonHeight + 8,
 };
 
 type FlatNavigationBarProps = {
@@ -104,6 +112,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {status: accountTabIndicatorStatus} = useAccountTabIndicatorStatus();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const {isCollapsed, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const layoutWidthStyle = useFlatNavigationBarLayoutWidthStyle();
+    const visualWidthStyle = useFlatNavigationBarVisualWidthStyle();
 
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
@@ -143,6 +155,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const renderSearchItem = (item: SearchTypeMenuItem, isSubItem: boolean) => (
         <FlatNavItem
             key={item.key}
+            isCollapsed={isVisuallyCollapsed}
             label={getSearchItemLabel(item, isSubItem)}
             icon={isSubItem ? undefined : searchIcons[item.icon]}
             isSelected={isSpendTabSelected && currentSearchKey === item.key}
@@ -205,153 +218,184 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     return (
         <>
             {!!isDebugModeEnabled && <DebugTabView selectedTab={selectedTab} />}
-            <View
-                style={styles.flatNavigationBarContainer}
-                testID="FlatNavigationBar"
-            >
-                <View style={styles.flatNavigationBarHeader}>
-                    <FlatNavLogo />
-                    <NavigationTabBarFloatingActionButton
-                        containerStyle={styles.flexGrow0}
-                        shouldShowReceiptButton={false}
-                        shouldUseSmallSuccessButton
-                        anchorPosition={FAB_ANCHOR_POSITION}
-                        anchorAlignment={FAB_ANCHOR_ALIGNMENT}
-                    />
-                </View>
+            <Animated.View style={layoutWidthStyle}>
+                <Hoverable onHoverOut={endPeek}>
+                    <Animated.View
+                        style={[styles.flatNavigationBarContainer, styles.stickToLeft, styles.zIndex1, visualWidthStyle]}
+                        testID="FlatNavigationBar"
+                    >
+                        <View style={[styles.flatNavigationBarHeader, isVisuallyCollapsed && styles.flatNavigationBarHeaderCollapsed]}>
+                            {!isVisuallyCollapsed && <FlatNavLogo />}
+                            <PressableWithFeedback
+                                onPress={toggleSidebar}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate(isCollapsed ? 'reportActionCompose.expand' : 'reportActionCompose.collapse')}
+                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.COLLAPSE}
+                                style={styles.flatNavigationBarCollapseButton}
+                            >
+                                <Icon
+                                    src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeLarge}
+                                    height={variables.iconSizeLarge}
+                                />
+                            </PressableWithFeedback>
+                        </View>
 
-                <ScrollView
-                    style={styles.flex1}
-                    showsVerticalScrollIndicator={false}
-                >
-                    <FlatNavItem
-                        label={translate('common.home')}
-                        icon={navIcons.Home}
-                        isSelected={selectedTab === NAVIGATION_TABS.HOME}
-                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
-                        onPress={navigateToHome}
-                    />
-                    <FlatNavItem
-                        label={translate('common.inbox')}
-                        icon={navIcons.Inbox}
-                        isSelected={selectedTab === NAVIGATION_TABS.INBOX}
-                        statusIndicatorColor={inboxStatusIndicatorColor}
-                        accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
-                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-                        onPress={navigateToInbox}
-                    />
+                        <Hoverable onHoverIn={startPeek}>
+                            <ScrollView
+                                style={styles.flex1}
+                                showsVerticalScrollIndicator={false}
+                            >
+                                <NavigationTabBarFloatingActionButton
+                                    containerStyle={[styles.flexGrow0, styles.pv0, styles.flatNavigationBarCreateRow]}
+                                    shouldShowReceiptButton={false}
+                                    shouldUseSmallSuccessButton
+                                    label={isVisuallyCollapsed ? undefined : translate('common.create')}
+                                    anchorPosition={FAB_ANCHOR_POSITION}
+                                    anchorAlignment={FAB_ANCHOR_ALIGNMENT}
+                                />
 
-                    <FlatNavDivider />
+                                <FlatNavItem
+                                    isCollapsed={isVisuallyCollapsed}
+                                    label={translate('common.home')}
+                                    icon={navIcons.Home}
+                                    isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                                    onPress={navigateToHome}
+                                />
+                                <FlatNavItem
+                                    isCollapsed={isVisuallyCollapsed}
+                                    label={translate('common.inbox')}
+                                    icon={navIcons.Inbox}
+                                    isSelected={selectedTab === NAVIGATION_TABS.INBOX}
+                                    statusIndicatorColor={inboxStatusIndicatorColor}
+                                    accessibilityLabel={chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox')}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
+                                    onPress={navigateToInbox}
+                                />
 
-                    {!!expenses && renderSearchItem(expenses, false)}
+                                <FlatNavDivider />
 
-                    {reports.length > 0 && (
-                        <>
-                            <FlatNavItem
-                                label={translate('common.reports')}
-                                icon={navIcons.Document}
-                                isSelected={isReportsGroupSelected}
-                                badgeText={getGroupBadgeText(reports, isReportsGroupSelected)}
-                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                                onPress={() => {
-                                    const firstReport = reports.at(0);
-                                    if (!firstReport) {
-                                        navigateToSpendRoot();
-                                        return;
-                                    }
-                                    navigateToSearchItem(firstReport);
-                                }}
-                            />
-                            {isReportsGroupSelected && reports.map((item) => renderSearchItem(item, true))}
-                        </>
-                    )}
+                                {!!expenses && renderSearchItem(expenses, false)}
 
-                    {accounting.length > 0 && (
-                        <>
-                            <FlatNavItem
-                                label={translate('search.tabs.accounting')}
-                                icon={navIcons.Connect}
-                                isSelected={isAccountingGroupSelected}
-                                badgeText={getGroupBadgeText(accounting, isAccountingGroupSelected)}
-                                onPress={() => {
-                                    const firstAccounting = accounting.at(0);
-                                    if (!firstAccounting) {
-                                        navigateToSpendRoot();
-                                        return;
-                                    }
-                                    navigateToSearchItem(firstAccounting);
-                                }}
-                            />
-                            {isAccountingGroupSelected && accounting.map((item) => renderSearchItem(item, true))}
-                        </>
-                    )}
+                                {reports.length > 0 && (
+                                    <>
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('common.reports')}
+                                            icon={navIcons.Document}
+                                            isSelected={isReportsGroupSelected}
+                                            badgeText={getGroupBadgeText(reports, isReportsGroupSelected)}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                                            onPress={() => {
+                                                const firstReport = reports.at(0);
+                                                if (!firstReport) {
+                                                    navigateToSpendRoot();
+                                                    return;
+                                                }
+                                                navigateToSearchItem(firstReport);
+                                            }}
+                                        />
+                                        {isReportsGroupSelected && !isVisuallyCollapsed && reports.map((item) => renderSearchItem(item, true))}
+                                    </>
+                                )}
 
-                    {/* TODO: placeholders for design review - these rows have no destination yet. */}
-                    {PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
-                        <FlatNavItem
-                            key={label}
-                            label={label}
-                            icon={navIcons[iconName]}
-                            isSelected={false}
-                            onPress={() => {}}
-                        />
-                    ))}
+                                {accounting.length > 0 && (
+                                    <>
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('search.tabs.accounting')}
+                                            icon={navIcons.Connect}
+                                            isSelected={isAccountingGroupSelected}
+                                            badgeText={getGroupBadgeText(accounting, isAccountingGroupSelected)}
+                                            onPress={() => {
+                                                const firstAccounting = accounting.at(0);
+                                                if (!firstAccounting) {
+                                                    navigateToSpendRoot();
+                                                    return;
+                                                }
+                                                navigateToSearchItem(firstAccounting);
+                                            }}
+                                        />
+                                        {isAccountingGroupSelected && !isVisuallyCollapsed && accounting.map((item) => renderSearchItem(item, true))}
+                                    </>
+                                )}
 
-                    {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
-                        <FlatNavItem
-                            label={translate('common.insights')}
-                            icon={navIcons.PieChart}
-                            isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
-                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
-                            onPress={navigateToInsights}
-                        />
-                    )}
+                                {/* TODO: placeholders for design review - these rows have no destination yet. */}
+                                {PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
+                                    <FlatNavItem
+                                        key={label}
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={label}
+                                        icon={navIcons[iconName]}
+                                        isSelected={false}
+                                        onPress={() => {}}
+                                    />
+                                ))}
 
-                    <FlatNavDivider />
+                                {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={translate('common.insights')}
+                                        icon={navIcons.PieChart}
+                                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
+                                        onPress={navigateToInsights}
+                                    />
+                                )}
 
-                    {hasSavedSearches && (
-                        <>
-                            <FlatNavItem
-                                label={translate('search.savedSearchesMenuItemTitle')}
-                                icon={navIcons.Bookmark}
-                                isSelected={isSavedGroupSelected}
-                                onPress={navigateToFirstSavedSearch}
-                            />
-                            {isSavedGroupSelected && <FlatNavSavedSearches />}
+                                <FlatNavDivider />
+
+                                {hasSavedSearches && (
+                                    <>
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('search.savedSearchesMenuItemTitle')}
+                                            icon={navIcons.Bookmark}
+                                            isSelected={isSavedGroupSelected}
+                                            onPress={navigateToFirstSavedSearch}
+                                        />
+                                        {isSavedGroupSelected && !isVisuallyCollapsed && <FlatNavSavedSearches />}
+                                        <FlatNavDivider />
+                                    </>
+                                )}
+
+                                <FlatNavItem
+                                    isCollapsed={isVisuallyCollapsed}
+                                    label={translate('common.workspacesTabTitle')}
+                                    icon={navIcons.Buildings}
+                                    isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
+                                    statusIndicatorColor={workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined}
+                                    accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
+                                    onPress={navigateToWorkspaces}
+                                />
+                            </ScrollView>
+                        </Hoverable>
+
+                        <View style={styles.flatNavigationBarFooter}>
                             <FlatNavDivider />
-                        </>
-                    )}
-
-                    <FlatNavItem
-                        label={translate('common.workspacesTabTitle')}
-                        icon={navIcons.Buildings}
-                        isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
-                        statusIndicatorColor={workspacesTabIndicatorStatus ? workspacesTabIndicatorColor : undefined}
-                        accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
-                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
-                        onPress={navigateToWorkspaces}
-                    />
-                </ScrollView>
-
-                <View style={styles.flatNavigationBarFooter}>
-                    <FlatNavDivider />
-                    <FlatNavItem
-                        label={currentUserPersonalDetails.displayName ?? translate('initialSettingsPage.account')}
-                        leftElement={
-                            <View style={styles.flatNavigationBarAccountAvatar}>
-                                <ProfileAvatarWithIndicator isSelected={isAccountSelected} />
-                            </View>
-                        }
-                        isSelected={isAccountSelected}
-                        accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${
-                            accountTabIndicatorStatus ? `${translate('common.yourReviewIsRequired')}.` : ''
-                        }`}
-                        additionalStyle={styles.flatNavigationBarAccountItem}
-                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
-                        onPress={navigateToSettings}
-                    />
-                </View>
-            </View>
+                            <FlatNavItem
+                                isCollapsed={isVisuallyCollapsed}
+                                label={currentUserPersonalDetails.displayName ?? translate('initialSettingsPage.account')}
+                                leftElement={
+                                    <View style={styles.flatNavigationBarAccountAvatar}>
+                                        <ProfileAvatarWithIndicator isSelected={isAccountSelected} />
+                                    </View>
+                                }
+                                isSelected={isAccountSelected}
+                                accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${
+                                    accountTabIndicatorStatus ? `${translate('common.yourReviewIsRequired')}.` : ''
+                                }`}
+                                additionalStyle={styles.flatNavigationBarAccountItem}
+                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
+                                onPress={navigateToSettings}
+                            />
+                        </View>
+                    </Animated.View>
+                </Hoverable>
+            </Animated.View>
         </>
     );
 }

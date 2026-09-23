@@ -46,6 +46,9 @@ type FlatNavItemProps = {
     /** Control shown in the row's leading indent, such as a saved search's overflow menu. Only visible on hover. */
     hoverActionComponent?: React.ReactNode;
 
+    /** Collapsed rows keep only their icon, so the bar can narrow to an icon rail */
+    isCollapsed?: boolean;
+
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
@@ -81,6 +84,7 @@ function FlatNavItem({
     sentryLabel,
     additionalStyle,
     hoverActionComponent,
+    isCollapsed = false,
     onPress,
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
@@ -95,7 +99,7 @@ function FlatNavItem({
             sentryLabel={sentryLabel}
             style={({hovered}) => [
                 styles.flatNavigationBarItem,
-                isSubItem && styles.flatNavigationBarSubItem,
+                isSubItem && !isCollapsed && styles.flatNavigationBarSubItem,
                 isSelected && !isSubItem && styles.navigationRowSelected,
                 hovered && !isSelected && !isSubItem && styles.navigationRowHovered,
                 additionalStyle,
@@ -125,13 +129,15 @@ function FlatNavItem({
                         </View>
                     )}
                     {leftElement}
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flatNavigationBarLabel, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
-                    >
-                        {label}
-                    </Text>
-                    {!!badgeText && (
+                    {!isCollapsed && (
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flatNavigationBarLabel, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
+                        >
+                            {label}
+                        </Text>
+                    )}
+                    {!isCollapsed && !!badgeText && (
                         <Badge
                             text={badgeText}
                             // todoBadge is left off deliberately: it fixes a 28x24 box that would override condensed sizing.
@@ -141,7 +147,7 @@ function FlatNavItem({
                         />
                     )}
                     {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
-                    {!!hoverActionComponent && <View style={[styles.flatNavigationBarRowAction, !hovered && styles.opacity0]}>{hoverActionComponent}</View>}
+                    {!isCollapsed && !!hoverActionComponent && <View style={[styles.flatNavigationBarRowAction, !hovered && styles.opacity0]}>{hoverActionComponent}</View>}
                 </>
             )}
         </PressableWithFeedback>

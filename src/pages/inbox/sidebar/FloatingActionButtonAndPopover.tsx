@@ -40,6 +40,9 @@ type FloatingActionButtonAndPopoverProps = {
 
     /** How the menu lines up with `anchorPosition` */
     anchorAlignment?: AnchorAlignment;
+
+    /** Labels the small success button, for the flat navigation bar's Create row */
+    label?: string;
 };
 
 /**
@@ -52,6 +55,7 @@ function FloatingActionButtonAndPopover({
     shouldUseSmallSuccessButton = false,
     anchorPosition,
     anchorAlignment,
+    label,
 }: FloatingActionButtonAndPopoverProps = {}) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -116,6 +120,7 @@ function FloatingActionButtonAndPopover({
                 onPress={toggleCreateMenu}
                 shouldShowReceiptButton={shouldShowReceiptButton}
                 shouldUseSmallSuccessButton={shouldUseSmallSuccessButton}
+                label={label}
             />
         </View>
     );

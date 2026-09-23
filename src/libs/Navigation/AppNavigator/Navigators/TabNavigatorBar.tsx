@@ -3,6 +3,7 @@ import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
+import {useFlatNavigationBarLayoutWidthStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,6 +38,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    // The bar's own width drives how far the central pane sits from the left edge, so the container follows it.
+    const flatNavigationBarLayoutWidthStyle = useFlatNavigationBarLayoutWidthStyle();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
@@ -89,7 +92,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
+            style={[styles.tabNavigatorBarContainer, StyleUtils.getTabNavigatorBarWidthStyle(flatNavigationBarLayoutWidthStyle.width), !isBlockingViewVisible && {zIndex: 1}]}
             pointerEvents="box-none"
         >
             <FlatNavigationBar selectedTab={selectedTab} />

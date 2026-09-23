@@ -1,5 +1,4 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
@@ -151,11 +150,6 @@ function HomePage() {
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
-                        {!shouldUseNarrowLayout && (
-                            <View style={styles.centeredContentWidthLimiter}>
-                                <QuickCreationActionsBar />
-                            </View>
-                        )}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
                     </ScrollView>
                     <PortalHost name="suggestions" />

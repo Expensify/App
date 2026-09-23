@@ -45,6 +45,14 @@ function getSearchSidebarWidth(progress: number) {
     return variables.searchSidebarExpandedWidth + (variables.searchSidebarCollapsedWidth - variables.searchSidebarExpandedWidth) * progress;
 }
 
+/**
+ * The flat navigation bar shares this collapsed state, because it replaced the Spend sidebar that owned it.
+ * Keeping one store means one peek state and one persisted flag, rather than two that can disagree.
+ */
+function getFlatNavigationBarWidth(progress: number) {
+    return variables.flatNavigationBarWidth + (variables.flatNavigationBarCollapsedWidth - variables.flatNavigationBarWidth) * progress;
+}
+
 function setSearchSidebarCollapsed(collapsed: boolean) {
     isPeeking = false;
     notify();
@@ -129,8 +137,25 @@ function useSearchSidebarToggleButtonStyle() {
     );
 }
 
+/** Layout space the bar reserves. Peeking overlays the content rather than pushing it, so this ignores the peek. */
+function useFlatNavigationBarLayoutWidthStyle() {
+    const {isCollapsed: collapsed} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, height: '100%', width: getFlatNavigationBarWidth(collapsed ? 1 : 0)}), [collapsed]);
+}
+
+/** What the bar actually draws, which widens back out while the pointer peeks at it. */
+function useFlatNavigationBarVisualWidthStyle() {
+    const {isCollapsed: collapsed, isPeeking: peeking} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...layoutTransitionStyle, width: getFlatNavigationBarWidth(collapsed && !peeking ? 1 : 0)}), [collapsed, peeking]);
+}
+
 export {
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
+    getFlatNavigationBarWidth,
+    useFlatNavigationBarLayoutWidthStyle,
+    useFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,
     useSearchSidebarLayoutWidthStyle,
     useSearchSidebarVisualWidthStyle,

@@ -42,6 +42,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
+import {getFlatNavigationBarWidth, useSearchSidebarCollapse} from './SearchSidebarCollapseStore';
 
 const FULL_WIDTH_TAB_ROOT_SCREENS = new Set<string>([SCREENS.WORKSPACES_LIST, SCREENS.DOMAINS_LIST]);
 
@@ -154,6 +155,7 @@ function DebugTabView({selectedTab}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
+    const {isCollapsed} = useSearchSidebarCollapse();
     const {shouldHideSidePanel} = useSidePanelDisplayStatus();
     const {windowWidth} = useWindowDimensions();
     const sidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0;
@@ -234,15 +236,16 @@ function DebugTabView({selectedTab}: Props) {
         return null;
     }
 
+    const flatNavigationBarWidth = getFlatNavigationBarWidth(isCollapsed ? 1 : 0);
     let positionStyle: {bottom?: number; top?: number; left: number; right?: number; width?: number};
     const verticalAnchor = selectedTab === NAVIGATION_TABS.SETTINGS && !shouldUseNarrowLayout ? {top: 0} : {bottom: 0};
     if (shouldUseNarrowLayout) {
         positionStyle = {bottom: 0, left: 0, right: 0};
     } else if (isOnFullWidthTabRoot) {
-        positionStyle = {...verticalAnchor, left: variables.flatNavigationBarWidth, width: windowWidth - variables.flatNavigationBarWidth - sidePanelOffset};
+        positionStyle = {...verticalAnchor, left: flatNavigationBarWidth, width: windowWidth - flatNavigationBarWidth - sidePanelOffset};
     } else {
         const lhnWidth = selectedTab === NAVIGATION_TABS.INBOX ? variables.inboxSideBarWidth : variables.sideBarWithLHBWidth;
-        positionStyle = {...verticalAnchor, left: variables.flatNavigationBarWidth, width: lhnWidth - variables.cropBorderWidth};
+        positionStyle = {...verticalAnchor, left: flatNavigationBarWidth, width: lhnWidth - variables.cropBorderWidth};
     }
 
     // pAbsolute is only applied on wide layouts. On narrow layout the bar is placed by its parent

@@ -759,7 +759,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.flatNavigationBarWidth + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -828,7 +827,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarContainer: {
             height: '100%',
-            width: variables.flatNavigationBarWidth,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderRightColor: theme.border,
@@ -836,17 +834,46 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         // The wordmark's glyphs sit high in its viewBox, so a couple of pixels down optically centers it against the create button.
+        // Nudges the wordmark down to sit optically centred against the collapse icon, without the offset
+        // adding to the header's height.
         flatNavigationBarLogo: {
-            paddingTop: 2,
+            marginTop: 2,
+            marginBottom: -2,
         },
 
         flatNavigationBarHeader: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            height: variables.contentHeaderHeight,
+            height: variables.flatNavigationBarHeaderHeight,
             paddingLeft: 20,
             paddingRight: variables.flatNavigationBarHeaderPaddingRight,
+        },
+
+        // Collapsed, the toggle is the header's only child: 16 + the 24px icon + 16 fills the 56px rail exactly.
+        flatNavigationBarHeaderCollapsed: {
+            paddingLeft: 16,
+            paddingRight: 16,
+        },
+
+        flatNavigationBarCollapseButton: {
+            width: variables.iconSizeLarge,
+            height: variables.iconSizeLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // The create button sits in the list as its own row, lined up with the rows below it.
+        // Overrides the medium button's own 40px minimums, so the button is 32 tall and 32 square when icon-only.
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
+            minWidth: variables.flatNavigationBarCreateButtonHeight,
+        },
+
+        flatNavigationBarCreateRow: {
+            marginHorizontal: 12,
+            marginBottom: 16,
         },
 
         flatNavigationBarItem: {
@@ -854,7 +881,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             height: variables.flatNavigationBarItemHeight,
             paddingHorizontal: navigationRowPaddingHorizontal,
-            marginHorizontal: 8,
+            marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
@@ -5767,7 +5794,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchActionsBarContainer: {
-            marginTop: 12,
+            marginTop: 4,
             marginBottom: 16,
             paddingHorizontal: 20,
             gap: 8,

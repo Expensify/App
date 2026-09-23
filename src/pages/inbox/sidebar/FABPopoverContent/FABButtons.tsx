@@ -25,9 +25,12 @@ type FABButtonsProps = {
 
     /** Renders the standard small success button instead of the floating action button */
     shouldUseSmallSuccessButton?: boolean;
+
+    /** Labels the small success button and stretches it to fill its row, rather than leaving it icon-only */
+    label?: string;
 };
 
-function FABButtons({isActive, fabRef, onPress, shouldShowReceiptButton = true, shouldUseSmallSuccessButton = false}: FABButtonsProps) {
+function FABButtons({isActive, fabRef, onPress, shouldShowReceiptButton = true, shouldUseSmallSuccessButton = false, label}: FABButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -43,12 +46,15 @@ function FABButtons({isActive, fabRef, onPress, shouldShowReceiptButton = true, 
                 ref={fabRef as RefObject<never>}
                 onPress={onPress}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={CONST.BUTTON_SIZE.SMALL}
-                // The button is icon-only, so dropping the horizontal padding keeps it square at the small size.
-                innerStyles={styles.ph0}
+                size={CONST.BUTTON_SIZE.MEDIUM}
+                // An icon-only button drops its horizontal padding so it stays square at 40x40. A labelled one keeps
+                // the padding and fills its row instead.
+                innerStyles={[styles.flatNavigationBarCreateButton, !label && styles.ph0]}
+                style={label ? styles.w100 : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             >
                 <Button.Icon src={icons.Plus} />
+                {!!label && <Button.Text>{label}</Button.Text>}
             </Button>
         );
     }

@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 import React from 'react';
-import {View} from 'react-native';
 
 /** Horizontal Expensify wordmark shown at the top of the flat navigation bar, tinted to match body text. */
 function FlatNavLogo() {
@@ -16,14 +15,13 @@ function FlatNavLogo() {
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
 
     return (
-        <View style={styles.flatNavigationBarLogo}>
-            <Icon
-                src={icons.ExpensifyWordmark}
-                fill={theme.text}
-                width={variables.flatNavigationBarLogoWidth}
-                height={variables.flatNavigationBarLogoHeight}
-            />
-        </View>
+        <Icon
+            additionalStyles={styles.flatNavigationBarLogo}
+            src={icons.ExpensifyWordmark}
+            fill={theme.text}
+            width={variables.flatNavigationBarLogoWidth}
+            height={variables.flatNavigationBarLogoHeight}
+        />
     );
 }
 
