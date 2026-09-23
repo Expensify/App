@@ -57,7 +57,7 @@ describe('libs/NextStepUtils', () => {
             payeeAccountID: 1,
             total: -500,
             currency: CONST.CURRENCY.USD,
-            betas: [CONST.BETAS.ALL],
+            isASAPSubmitBetaEnabled: true,
         }) as Report;
 
         beforeAll(() => {
@@ -103,7 +103,7 @@ describe('libs/NextStepUtils', () => {
                     'fake-parent-report-action-id-4',
                     policy,
                     '2025-03-31 13:23:11',
-                    [CONST.BETAS.ALL],
+                    true,
                     getCurrencyDecimalsLocal,
                     undefined,
                 );
@@ -487,7 +487,7 @@ describe('libs/NextStepUtils', () => {
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: -1,
+                    actorAccountID: ownerAccountID,
                 };
                 const result = buildOptimisticNextStep({
                     rules: undefined,
@@ -516,7 +516,7 @@ describe('libs/NextStepUtils', () => {
                     const expectedResult: ReportNextStep = {
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        actorAccountID: -1,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
@@ -705,7 +705,7 @@ describe('libs/NextStepUtils', () => {
                     const result = buildOptimisticNextStep({
                         rules: undefined,
                         report,
-                        policy,
+                        policy: {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO},
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
                         hasViolations: false,
@@ -721,14 +721,15 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
-            test('non-payer', () => {
+            test('non-payer still waits for an admin to pay', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
                     const expectedResult: ReportNextStep = {
-                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
@@ -757,7 +758,7 @@ describe('libs/NextStepUtils', () => {
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: -1,
+                    actorAccountID: ownerAccountID,
                 };
                 const result = buildOptimisticNextStep({
                     rules: undefined,
@@ -790,7 +791,7 @@ describe('libs/NextStepUtils', () => {
                     const expectedResult: ReportNextStep = {
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        actorAccountID: -1,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
                         rules: undefined,
@@ -905,7 +906,7 @@ describe('libs/NextStepUtils', () => {
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -937,7 +938,7 @@ describe('libs/NextStepUtils', () => {
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -1010,7 +1011,7 @@ describe('libs/NextStepUtils', () => {
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 policyID,
@@ -1065,7 +1066,7 @@ describe('libs/NextStepUtils', () => {
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 policyID,
@@ -1305,7 +1306,7 @@ describe('libs/NextStepUtils', () => {
                     payeeAccountID: currentUserAccountID,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,

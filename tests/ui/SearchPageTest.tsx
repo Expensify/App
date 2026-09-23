@@ -393,6 +393,39 @@ describe('SearchPageNarrow', () => {
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
+    it('shows the error page with a retry button when the server rejected the query with a code other than invalid query', async () => {
+        // Given the page already requested the query, so an error that lands afterwards is its own and is kept
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // When the server answers with a failure code that is not INVALID_SEARCH_QUERY
+        await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
+
+        // Then the request really failed, so the error copy shows rather than the stale-results copy
+        expect(screen.getByText('Oops... Something went wrong')).toBeTruthy();
+        expect(screen.getByText('Try again')).toBeTruthy();
+        expect(screen.queryByText('Refresh needed')).toBeNull();
+    });
+
+    it('shows the refresh copy when the request failed without a server response code', async () => {
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // When the request failed before the server could answer, which failureData records as NO_RESPONSE
+        await setFailedSnapshot(CONST.JSON_CODE.NO_RESPONSE);
+
+        // Then the results are only out of date, so the refresh copy shows
+        expect(screen.getByText('Refresh needed')).toBeTruthy();
+        expect(screen.getByText('Refresh')).toBeTruthy();
+        expect(screen.queryByText('Oops... Something went wrong')).toBeNull();
+    });
+
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {

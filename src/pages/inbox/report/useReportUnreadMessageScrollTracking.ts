@@ -1,7 +1,8 @@
 import CONST from '@src/CONST';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {RefObject} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
@@ -89,7 +90,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // display floating button if we're scrolled more than the offset
         if (
-            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             !isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !shouldBeAlignedToTop
@@ -99,7 +100,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // hide floating button if we're scrolled closer than the offset
         if (
-            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !hasNewerActions
