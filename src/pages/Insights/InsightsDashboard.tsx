@@ -84,12 +84,15 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
         );
     }
 
-    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES) {
-        return <InsightsNoExpensesState />;
-    }
-
-    if (state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
-        return <InsightsEmptyState />;
+    if (state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY) {
+        return (
+            <ScrollView
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+                addBottomSafeAreaPadding
+            >
+                {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+            </ScrollView>
+        );
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
