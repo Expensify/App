@@ -15,39 +15,42 @@ import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
-import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
-
 import FixedFooter from './FixedFooter';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 
-type HeaderPageLayoutProps = ChildrenProps &
-    HeaderWithBackButtonProps & {
-        /** The background color to apply in the upper half of the screen. */
-        backgroundColor?: string;
+type HeaderPageLayoutProps = ChildrenProps & {
+    /** The title to display in the header. */
+    title?: string;
 
-        /** TestID to apply to the whole section container */
-        testID: string;
+    /** Method to trigger when pressing back button of the header */
+    onBackButtonPress?: () => void;
 
-        /** A fixed footer to display at the bottom of the page. */
-        footer?: ReactNode;
+    /** The background color to apply in the upper half of the screen. */
+    backgroundColor?: string;
 
-        /** The image to display in the upper half of the screen. */
-        headerContent?: ReactNode;
+    /** TestID to apply to the whole section container */
+    testID: string;
 
-        /** Style to apply to the header image container */
-        headerContainerStyles?: StyleProp<ViewStyle>;
+    /** A fixed footer to display at the bottom of the page. */
+    footer?: ReactNode;
 
-        scrollViewContainerStyles?: StyleProp<ViewStyle>;
-        childrenContainerStyles?: StyleProp<ViewStyle>;
+    /** The image to display in the upper half of the screen. */
+    headerContent?: ReactNode;
 
-        /** Style to apply to the whole section container */
-        style?: StyleProp<ViewStyle>;
+    /** Style to apply to the header image container */
+    headerContainerStyles?: StyleProp<ViewStyle>;
 
-        shouldShowOfflineIndicatorInWideScreen?: boolean;
-        keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
-    };
+    scrollViewContainerStyles?: StyleProp<ViewStyle>;
+    childrenContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Style to apply to the whole section container */
+    style?: StyleProp<ViewStyle>;
+
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
+    keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
+};
 function HeaderPageLayout({
     backgroundColor,
     children,
@@ -60,7 +63,8 @@ function HeaderPageLayout({
     shouldShowOfflineIndicatorInWideScreen = false,
     testID,
     keyboardShouldPersistTaps,
-    ...rest
+    title,
+    onBackButtonPress,
 }: HeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -89,8 +93,9 @@ function HeaderPageLayout({
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton
-                        {...rest}
+                    <HeaderWithBackButtonAndTitle
+                        title={title}
+                        onBackButtonPress={onBackButtonPress}
                         titleColor={titleColor}
                         iconFill={iconFill}
                     />

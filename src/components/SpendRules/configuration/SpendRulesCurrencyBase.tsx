@@ -1,5 +1,5 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -174,7 +174,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('workspace.rules.spendRules.permittedCurrencies')}
                 onBackButtonPress={goBack}
             />

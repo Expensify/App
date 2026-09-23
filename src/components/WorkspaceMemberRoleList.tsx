@@ -17,7 +17,7 @@ import {View} from 'react-native';
 
 import type {ListItem} from './SelectionList/types';
 
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
@@ -95,7 +95,7 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
 
     return (
         <>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />

@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -93,7 +93,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                 includeSafeAreaPaddingBottom={false}
                 testID="PushRowModal"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={headerTitle}
                     onBackButtonPress={onClose}
                 />

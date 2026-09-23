@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -338,7 +338,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
             shouldEnableKeyboardAvoidingView={false}
             testID="AvatarCropView"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('avatarCropModal.title')}
                 onBackButtonPress={onClose}
             />

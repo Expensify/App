@@ -14,7 +14,7 @@ import type {CurrencyListItem} from './CurrencySelectionList/types';
 
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Modal from './Modal';
 import ScreenWrapper from './ScreenWrapper';
@@ -86,9 +86,8 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                     shouldEnableMaxHeight
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={label}
-                        shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />
                     <BlockingComponent>

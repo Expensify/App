@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -76,7 +76,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="YearPickerModal"
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('yearPickerPage.year')}
                     onBackButtonPress={onClose}
                 />

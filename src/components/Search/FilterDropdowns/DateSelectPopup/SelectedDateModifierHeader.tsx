@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -45,8 +45,7 @@ function SelectedDateModifierHeader({isCompact, title, onBackPress}: SelectedDat
     }
 
     return (
-        <HeaderWithBackButton
-            shouldDisplayHelpButton={false}
+        <HeaderWithBackButtonAndTitle
             style={[styles.h10, styles.pb3]}
             subtitle={title}
             onBackButtonPress={onBackPress}

@@ -1,6 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationActionsContext';
@@ -97,10 +97,9 @@ function OutcomeScreenBaseContent({
 
     return (
         <ScreenWrapper testID={OutcomeScreenBase.displayName}>
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={headerTitle}
                 onBackButtonPress={onClose}
-                shouldShowBackButton
             />
             <View style={[styles.flex1, styles.gap2]}>
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}>

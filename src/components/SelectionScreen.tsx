@@ -20,7 +20,7 @@ import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/Single
 import type {ListItem} from './SelectionList/types';
 
 import ErrorMessageRow from './ErrorMessageRow';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
@@ -147,7 +147,7 @@ function SelectionScreen<T = string>({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID={displayName}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={headerTitleAlreadyTranslated ?? (title ? translate(title) : '')}
                     onBackButtonPress={onBackButtonPress}
                 />

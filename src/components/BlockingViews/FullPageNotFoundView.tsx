@@ -1,4 +1,5 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -90,11 +91,14 @@ function FullPageNotFoundView({
         StatsCounter('FullPageNotFoundView');
         return (
             <ForceFullScreenView shouldForceFullScreen={shouldForceFullScreen}>
-                <HeaderWithBackButton
-                    onBackButtonPress={onBackButtonPress}
-                    shouldShowBackButton={shouldShowBackButton}
-                    shouldDisplaySearchRouter={shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth)}
-                />
+                <Header>
+                    {shouldShowBackButton && <Header.BackButton onPress={onBackButtonPress} />}
+                    {!!shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth) && (
+                        <Header.Right>
+                            <SearchButton />
+                        </Header.Right>
+                    )}
+                </Header>
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}
                     testID={testID}

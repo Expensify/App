@@ -29,7 +29,7 @@ import Button from './Button';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import ImageSVG from './ImageSVG';
 import RenderHTML from './RenderHTML';
 import ScreenWrapper from './ScreenWrapper';
@@ -275,7 +275,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             {({safeAreaPaddingBottomStyle}) => (
                 <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={translate('spreadsheet.importSpreadsheet')}
                             onBackButtonPress={() => {
                                 if (isImportingMultiLevelTags) {

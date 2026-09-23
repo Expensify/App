@@ -43,12 +43,14 @@ import {View} from 'react-native';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 
 import BrokenConnectionDescription from './BrokenConnectionDescription';
+import Header from './Header';
 import HeaderLoadingBar from './HeaderLoadingBar';
-import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import MoneyRequestHeaderActions from './MoneyRequestHeaderActions';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+import SearchButton from './Search/SearchRouter/SearchButton';
+import SidePanelButton from './SidePanel/SidePanelButton';
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderProps = {
@@ -158,39 +160,40 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
 
     return (
         <View style={[styles.pl0, styles.borderBottom]}>
-            <HeaderWithBackButton
-                shouldShowBorderBottom={false}
-                shouldShowReportAvatarWithDisplay
-                shouldShowPinButton={false}
-                report={
-                    reportID
-                        ? {
-                              ...report,
-                              reportID,
-                              ownerAccountID: parentReport?.ownerAccountID,
-                          }
-                        : undefined
-                }
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter={!isReportInRHP}
-                shouldDisplayHelpButton={!isReportInRHP}
-                onBackButtonPress={() => onBackButtonPress(isFromReviewDuplicates)}
-                shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
-            >
-                {!shouldDisplayButtonsInSeparateLine && (
-                    <MoneyRequestHeaderActions
-                        reportID={reportID}
-                        onBackButtonPress={onBackButtonPress}
-                    />
-                )}
-                {shouldDisplayTransactionNavigation && !!transaction && (
-                    <MoneyRequestReportTransactionsNavigation
-                        currentTransactionID={transaction.transactionID}
-                        isFromReviewDuplicates={isFromReviewDuplicates}
-                    />
-                )}
-            </HeaderWithBackButton>
+            <Header>
+                {shouldUseNarrowLayout && <Header.BackButton onPress={() => onBackButtonPress(isFromReviewDuplicates)} />}
+                <Header.AvatarWithDisplayName
+                    report={
+                        reportID
+                            ? {
+                                  ...report,
+                                  reportID,
+                                  ownerAccountID: parentReport?.ownerAccountID,
+                              }
+                            : undefined
+                    }
+                    shouldEnableDetailPageNavigation
+                    openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
+                />
+                <Header.Right>
+                    <Header.Actions>
+                        {!shouldDisplayButtonsInSeparateLine && (
+                            <MoneyRequestHeaderActions
+                                reportID={reportID}
+                                onBackButtonPress={onBackButtonPress}
+                            />
+                        )}
+                        {shouldDisplayTransactionNavigation && !!transaction && (
+                            <MoneyRequestReportTransactionsNavigation
+                                currentTransactionID={transaction.transactionID}
+                                isFromReviewDuplicates={isFromReviewDuplicates}
+                            />
+                        )}
+                    </Header.Actions>
+                    {!isReportInRHP && <SearchButton />}
+                    {!isReportInRHP && <SidePanelButton />}
+                </Header.Right>
+            </Header>
             {shouldDisplayButtonsInSeparateLine && (
                 <MoneyRequestHeaderActions
                     reportID={reportID}

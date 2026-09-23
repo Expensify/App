@@ -1,7 +1,7 @@
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScrollView from '@components/ScrollView';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
@@ -60,7 +60,7 @@ type DateFilterBaseProps = {
     shouldShowActionButtons?: boolean;
     /** If true, the Reset/Save buttons are only shown when a date modifier is selected. */
     shouldShowButtonsOnlyWithDateModifier?: boolean;
-    /** Whether to render the built-in HeaderWithBackButton. Defaults to true. */
+    /** Whether to render the built-in HeaderWithBackButtonAndTitle. Defaults to true. */
     shouldShowHeader?: boolean;
     ref?: React.Ref<DateFilterBaseHandle>;
     style?: StyleProp<ViewStyle>;
@@ -228,7 +228,7 @@ function DateFilterBase({
     return (
         <View style={style}>
             {shouldShowHeader && (
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={computedTitle}
                     onBackButtonPress={goBack}
                 />

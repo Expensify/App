@@ -28,7 +28,7 @@ type IllustratedHeaderPageLayoutProps = HeaderPageLayoutProps & {
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, testID, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const shouldLimitHeight = !rest.shouldShowBackButton;
+    const shouldLimitHeight = true;
 
     return (
         <HeaderPageLayout

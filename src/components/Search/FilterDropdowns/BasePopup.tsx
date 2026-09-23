@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Text from '@components/Text';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -33,8 +33,7 @@ function BasePopup({children, label, applySentryLabel, resetSentryLabel, showLab
     return (
         <View style={[styles.pv4, style]}>
             {onBackButtonPress ? (
-                <HeaderWithBackButton
-                    shouldDisplayHelpButton={false}
+                <HeaderWithBackButtonAndTitle
                     style={[styles.h10, styles.pv1, styles.mb2]}
                     subtitle={label}
                     onBackButtonPress={onBackButtonPress}

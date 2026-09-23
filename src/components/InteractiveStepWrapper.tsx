@@ -11,7 +11,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from './Header/composed/HeaderWithBackButtonAndTitle';
 import InteractiveStepSubHeader from './InteractiveStepSubHeader';
 import ScreenWrapper from './ScreenWrapper';
 
@@ -86,7 +86,7 @@ function InteractiveStepWrapper({
             onEntryTransitionEnd={onEntryTransitionEnd}
         >
             <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={INPUT_HEADER_HEIGHT}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={headerTitle}
                     subtitle={headerSubtitle}
                     onBackButtonPress={handleBackButtonPress}
