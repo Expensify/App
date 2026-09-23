@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, cash expense default, always reimbursable, always non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, cash expense default, always reimbursable, always non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL, require company cards for all purchases, company card purchases required, cash spend violation]
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
@@ -36,7 +36,7 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
 - **Cash expense default** - Choose how cash expenses are created. A cash expense is any expense that isn't an imported company card transaction, including manually created expenses, receipts, per diem, distance, and time expenses. Select **Reimbursable** or **Non-reimbursable** to set a starting value that members can change on each expense, or select **Always reimbursable** or **Always non-reimbursable** to fix the value for every cash expense. When you select an **Always** option, the **Reimbursable** toggle is hidden on the expense and on every split created from it. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
 - **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
-- **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
+- **Require company cards for all purchases** - Flag all cash spend, including mileage and per diem expenses, that should have been made with a company card. The toggle is locked until **Company cards** or **Expensify Card** is enabled under **More features**.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
 - **Public receipt visibility** – Control who can view receipt images. When enabled, receipts are viewable by anyone with the URL, even people who don't have access to the report. When disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
@@ -201,9 +201,11 @@ This violation is triggered when an expense meets **any** of the following condi
 - It’s imported from a personal card feed  
 - It’s manually changed from a card expense to a cash expense
 
-## Why don’t I see the toggle for the company card rule?
+## Why is the Require company cards for all purchases toggle locked?
 
-The **Require Company Card for All Purchases** rule only appears after at least one company card feed is connected to the workspace. If all company card feeds are removed, the rule will automatically disable. 
+The **Require company cards for all purchases** toggle always appears in **Rules**, but it stays locked until the workspace has a card product turned on. Enable **Company cards** or **Expensify Card** under **Workspaces > [Workspace Name] > More features**, then return to **Rules**. You don't need to connect a card feed first — enabling the feature is enough to unlock the toggle.
+
+The toggle is also locked, and shows its current value only, for anyone who can't edit rules. Only Workspace Admins on the **Control** plan can change it.
 
 ## Why don't I see the Spend section in Rules?
 
