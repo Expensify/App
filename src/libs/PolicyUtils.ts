@@ -321,7 +321,7 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Check if the policy has any errors within the rules.
  */
-function hasPolicyRulesError(policy: OnyxEntry<Policy>, hasMerchantRuleErrors = false): boolean {
+function hasPolicyRulesError(policy: OnyxEntry<Policy>, hasMerchantRuleErrors: boolean): boolean {
     const agentRules = Object.values(policy?.rules?.agentRules ?? {});
 
     return hasMerchantRuleErrors || agentRules.some((rule) => rule && Object.keys(rule.errors ?? {}).length > 0);
@@ -1255,7 +1255,7 @@ function isMaxExpenseAmountSet(value: number | undefined): value is number {
 /**
  * Checks if a policy has any rules configured (structured rules, individual expense limits, or prohibited expenses).
  */
-function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, hasExpenseDefaultRules = false): boolean {
+function hasConfiguredRules(policy: OnyxEntry<Policy>, policyCategories: PolicyCategories | null | undefined, hasExpenseDefaultRules: boolean): boolean {
     if (!policy) {
         return false;
     }

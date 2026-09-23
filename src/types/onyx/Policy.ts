@@ -3267,11 +3267,11 @@ type CodingRuleTax = {
         /** The external ID of the tax rate */
         externalID: string;
 
-        /** The tax rate value (e.g., "8.5%") */
-        value: string;
+        /** The tax rate value (e.g., "8.5%"). Absent when the rule was saved before the policy's rates loaded. */
+        value?: string;
 
-        /** The name of the tax rate */
-        name: string;
+        /** The name of the tax rate. Absent when the rule was saved before the policy's rates loaded. */
+        name?: string;
     };
 };
 
@@ -3811,7 +3811,6 @@ export type {
     ExpenseRule,
     CodingRule,
     CodingRuleFilter,
-    CodingRuleTax,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

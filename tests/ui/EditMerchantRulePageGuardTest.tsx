@@ -5,6 +5,8 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -61,13 +63,15 @@ function buildEditableRule(): Rule {
     };
 }
 
-async function seedOnyx(rule: Rule) {
+async function seedOnyx(rule?: Rule) {
     await act(async () => {
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildRulesEnabledControlPolicy());
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ADMIN_ACCOUNT_ID]: buildPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID, 'admin')});
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${RULE_ID}`, rule);
+        if (rule) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${RULE_ID}`, rule);
+        }
         await waitForBatchedUpdatesWithAct();
     });
 }
@@ -129,6 +133,20 @@ describe('EditMerchantRulePage route guard', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('EditMerchantRulePage')).toBeNull();
+    });
+
+    it('fetches the rules collection when it is reached without one loaded', async () => {
+        // Given this route is deep linkable, so nothing on the way in has populated the rules collection
+        const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+        await seedOnyx();
+
+        // When the editor mounts against an empty collection
+        renderEditMerchantRulePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it requests the rules rather than settling on not-found for a rule that does exist server side
+        expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_RULES, expect.anything(), expect.anything());
+        readSpy.mockRestore();
     });
 
     it('refuses a nested filter tree the form cannot represent', async () => {

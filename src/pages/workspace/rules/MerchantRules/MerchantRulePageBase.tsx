@@ -21,6 +21,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {deletePolicyCategoryTax, movePolicyCategoryTax, openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
@@ -53,6 +54,7 @@ import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -179,7 +181,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
     // the workspace has no accounting connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    // This route is deep linkable, so it can be the first screen mounted. Nothing else on the way in fetches the
+    // rules collection, which would leave the not-found guard below reading an empty collection for a valid rule.
+    useRulesPrefetch();
+
+    const [rules, rulesResult] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const areRulesLoading = isLoadingOnyxValue(rulesResult);
     // Get the existing rule from the rules collection (for edit mode)
     const existingRule = ruleID ? rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`] : undefined;
     const existingCategoryTaxID = editCategoryTaxRuleFor ? getCategoryTaxRuleTaxID(policy?.rules?.expenseRules, editCategoryTaxRuleFor) : undefined;
@@ -607,7 +614,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID)));
     };
 
-    if (ruleID && !existingRule && !isClosing) {
+    // `areRulesLoading` keeps a deep link from rendering not-found against a collection Onyx has not hydrated yet.
+    if (ruleID && !existingRule && !isClosing && !areRulesLoading) {
         return <NotFoundPage />;
     }
 

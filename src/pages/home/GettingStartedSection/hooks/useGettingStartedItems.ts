@@ -350,7 +350,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
             key: 'setupRules',
             label: translate('homePage.gettingStartedSection.setupRules'),
             subText: translate('homePage.gettingStartedSection.setupRulesSubText'),
-            isComplete: hasConfiguredRules(policy, policyCategories, hasMerchantRules),
+            isComplete: hasConfiguredRules(policy, policyCategories, hasMerchantRules ?? false),
             route: ROUTES.WORKSPACE_RULES.getRoute(activePolicyID),
         });
     }

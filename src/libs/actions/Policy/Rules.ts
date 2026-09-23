@@ -11,17 +11,17 @@ import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRules
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import {buildMerchantRule, isExpenseDefaultTaxValue} from '@libs/ExpenseDefaultRuleUtils';
+import type {BuiltMerchantRule, MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
-import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ExpenseDefaultAction} from '@src/types/onyx/ExpenseDefaultRules';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
-import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
+import type {AgentRule, CodingRule, CodingRuleFilter} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Rule from '@src/types/onyx/Rule';
 
@@ -32,47 +32,63 @@ import Onyx from 'react-native-onyx';
 /** A coding rule parsed from an imported spreadsheet row, keyed by a client-generated ruleID */
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
-/** Builds the tax object `SetPolicyCodingRule` expects, in the legacy flat shape rather than the rules engine's action value. */
-function buildLegacyCodingRuleTax(taxKey: string | undefined, policy: Policy | undefined): CodingRuleTax | undefined {
-    const tax = taxKey ? policy?.taxRates?.taxes?.[taxKey] : undefined;
-    if (!taxKey || !tax) {
-        return undefined;
-    }
-
-    return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        field_id_TAX: {
-            externalID: taxKey,
-            value: tax.value,
-            name: tax.name,
-        },
-    };
-}
-
 /**
  * Builds the `codingRuleValue` sent to `SetPolicyCodingRule`. We still write through the legacy command rather than
  * `SetRule`, because `SetPolicyCodingRule` dual-writes into both `policy.rules.codingRules` and the `rules_`
  * collection, while `SetRule` only writes the new collection, so older clients reading `codingRules` would silently
  * stop seeing rules created or edited on a newer client.
+ *
+ * This reads the built rule rather than the form so the optimistic Onyx value and the saved rule share one
+ * definition of what an empty field is. Reading the form separately let a padded merchant, a whitespace-only
+ * description, or a tax selected before the rates loaded reach the server after the rule had already dropped it.
  */
-function buildLegacyCodingRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined, ruleID: string, created: string): Partial<CodingRule> {
-    const tax = buildLegacyCodingRuleTax(formValues.tax, policy);
+function buildLegacyCodingRule(ruleValue: BuiltMerchantRule, ruleID: string, created: string): Partial<CodingRule> {
+    const {ACTION, FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+
+    const valuesByField = new Map<string, ExpenseDefaultAction['value']>();
+    for (const action of Object.values(ruleValue.actions)) {
+        if (action.name !== ACTION.SET) {
+            continue;
+        }
+        valuesByField.set(action.field, action.value);
+    }
+
+    const getStringValue = (field: string): string | undefined => {
+        const value = valuesByField.get(field);
+        return typeof value === 'string' ? value : undefined;
+    };
+    const getBooleanValue = (field: string): boolean | undefined => {
+        const value = valuesByField.get(field);
+        return typeof value === 'boolean' ? value : undefined;
+    };
+
+    const taxValue = valuesByField.get(FIELD.TAX);
+    const tax = isExpenseDefaultTaxValue(taxValue) ? taxValue : undefined;
+    const merchant = getStringValue(FIELD.MERCHANT);
+    const category = getStringValue(FIELD.CATEGORY);
+    const tag = getStringValue(FIELD.TAG);
+    const vendorID = getStringValue(FIELD.VENDOR_ID);
+    const comment = getStringValue(FIELD.COMMENT);
+    const reimbursable = getBooleanValue(FIELD.REIMBURSABLE);
+    const billable = getBooleanValue(FIELD.BILLABLE);
+
+    const {left, operator, right} = ruleValue.filters;
 
     return {
         ruleID,
         filters: {
-            left: 'merchant',
-            operator: formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            right: formValues.merchantToMatch ?? '',
+            left,
+            operator,
+            right: typeof right === 'string' ? right : String(right),
         },
-        ...(formValues.merchant && {merchant: formValues.merchant}),
-        ...(formValues.category && {category: formValues.category}),
-        ...(formValues.tag && {tag: formValues.tag}),
+        ...(merchant && {merchant}),
+        ...(category && {category}),
+        ...(tag && {tag}),
         ...(tax && {tax}),
-        ...(formValues.vendorID && {vendorID: formValues.vendorID}),
-        ...(formValues.comment && {comment: Parser.replace(formValues.comment)}),
-        ...(formValues.reimbursable !== undefined && {reimbursable: formValues.reimbursable}),
-        ...(formValues.billable !== undefined && {billable: formValues.billable}),
+        ...(vendorID && {vendorID}),
+        ...(comment && {comment}),
+        ...(reimbursable !== undefined && {reimbursable}),
+        ...(billable !== undefined && {billable}),
         created,
     };
 }
@@ -152,14 +168,6 @@ function getAgentRuleSuggestions(policyID: string | undefined) {
 }
 
 /**
- * Creates or updates a coding rule for the given policy
- * @param policyID - The ID of the policy to create/update the rule for
- * @param form - The form data for the merchant rule
- * @param policy - The policy object (needed to build tax data)
- * @param ruleID - Optional existing rule ID for updates
- * @param shouldUpdateMatchingTransactions - Whether to update transactions that match the rule
- */
-/**
  * Creates or updates a merchant rule. Editing a rule reuses its `ruleID`, since the rules engine has no separate update command.
  * @param policyID - The ID of the policy the rule belongs to
  * @param formValues - The merchant rule editor's values
@@ -218,7 +226,7 @@ function setMerchantRule(
     const parameters: SetPolicyCodingRuleParams = {
         policyID,
         codingRuleID: targetRuleID,
-        codingRuleValue: JSON.stringify(buildLegacyCodingRule(formValues, policy, targetRuleID, created)),
+        codingRuleValue: JSON.stringify(buildLegacyCodingRule(ruleValue, targetRuleID, created)),
         shouldUpdateMatchingTransactions,
     };
 

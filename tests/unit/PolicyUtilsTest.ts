@@ -4200,35 +4200,35 @@ describe('PolicyUtils', () => {
 
     describe('hasConfiguredRules', () => {
         it('returns false when policy is undefined', () => {
-            expect(hasConfiguredRules(undefined)).toBe(false);
+            expect(hasConfiguredRules(undefined, undefined, false)).toBe(false);
         });
 
         it('returns false when policy has no rules configured', () => {
-            expect(hasConfiguredRules(createMock<Policy>({}))).toBe(false);
+            expect(hasConfiguredRules(createMock<Policy>({}), undefined, false)).toBe(false);
         });
 
         describe('customRules', () => {
             it('returns true when customRules is non-empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: 'some rule'}), undefined, false)).toBe(true);
             });
 
             it('returns false when customRules is an empty string', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: ''}), undefined, false)).toBe(false);
             });
 
             it('returns false when customRules is only whitespace', () => {
-                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({customRules: '   '}), undefined, false)).toBe(false);
             });
         });
 
         describe('rules.approvalRules', () => {
             it('returns true when approvalRules has items', () => {
                 const policy = createMock<Policy>({rules: {approvalRules: [{id: '1', applyWhen: [], approver: 'approver@test.com'}]}});
-                expect(hasConfiguredRules(policy)).toBe(true);
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
             });
 
             it('returns false when approvalRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({rules: {approvalRules: []}}), undefined, false)).toBe(false);
             });
         });
 
@@ -4245,11 +4245,11 @@ describe('PolicyUtils', () => {
                         ],
                     },
                 });
-                expect(hasConfiguredRules(policy)).toBe(true);
+                expect(hasConfiguredRules(policy, undefined, false)).toBe(true);
             });
 
             it('returns false when expenseRules is empty', () => {
-                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({rules: {expenseRules: []}}), undefined, false)).toBe(false);
             });
         });
 
@@ -4269,127 +4269,127 @@ describe('PolicyUtils', () => {
 
         describe('maxExpenseAmount', () => {
             it('returns true when maxExpenseAmount is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: 500000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmount is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmount is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAge', () => {
             it('returns true when maxExpenseAge is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: 30}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAge is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAge is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmountNoReceipt', () => {
             it('returns true when maxExpenseAmountNoReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: 5000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmountNoReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmountNoReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('maxExpenseAmountNoItemizedReceipt', () => {
             it('returns true when maxExpenseAmountNoItemizedReceipt is set to a non-default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: 10000}), undefined, false)).toBe(true);
             });
 
             it('returns false when maxExpenseAmountNoItemizedReceipt is the default value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT}), undefined, false)).toBe(false);
             });
 
             it('returns false when maxExpenseAmountNoItemizedReceipt is the disabled value', () => {
-                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}), undefined, false)).toBe(false);
             });
         });
 
         describe('defaultBillable', () => {
             it('returns true when defaultBillable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when defaultBillable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({defaultBillable: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('defaultReimbursable', () => {
             it('returns true when defaultReimbursable is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: false}), undefined, false)).toBe(true);
             });
 
             it('returns false when defaultReimbursable is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({defaultReimbursable: true}), undefined, false)).toBe(false);
             });
         });
 
         describe('eReceipts', () => {
             it('returns true when eReceipts is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({eReceipts: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when eReceipts is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({eReceipts: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('requireCompanyCardsEnabled', () => {
             it('returns true when requireCompanyCardsEnabled is true', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: true}), undefined, false)).toBe(true);
             });
 
             it('returns false when requireCompanyCardsEnabled is false', () => {
-                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({requireCompanyCardsEnabled: false}), undefined, false)).toBe(false);
             });
         });
 
         describe('prohibitedExpenses', () => {
             it('returns true when a prohibitedExpenses value differs from its default', () => {
                 // alcohol defaults to false — setting it to true triggers the rule
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {alcohol: true}}), undefined, false)).toBe(true);
             });
 
             it('returns true when gambling is disabled (differs from default true)', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}))).toBe(true);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {gambling: false}}), undefined, false)).toBe(true);
             });
 
             it('returns false when prohibitedExpenses matches all defaults', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {...CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES}}), undefined, false)).toBe(false);
             });
 
             it('returns false when prohibitedExpenses is an empty object', () => {
-                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}))).toBe(false);
+                expect(hasConfiguredRules(createMock<Policy>({prohibitedExpenses: {}}), undefined, false)).toBe(false);
             });
         });
 
         it('returns true when only Classic category rules exist', () => {
             const categories = {Travel: {name: 'Travel', enabled: true, maxAmountNoReceipt: 0}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(true);
+            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(true);
         });
 
         it('returns false when categories have no active rule fields', () => {
             const categories = {Advertising: {name: 'Advertising', enabled: true, 'GL Code': '1234'}};
-            expect(hasConfiguredRules(createMock<Policy>({}), categories)).toBe(false);
+            expect(hasConfiguredRules(createMock<Policy>({}), categories, false)).toBe(false);
         });
     });
 
@@ -5591,12 +5591,12 @@ describe('PolicyUtils', () => {
         const POLICY_ID = 'policy-with-rules';
 
         it('returns false for an undefined policy', () => {
-            expect(hasPolicyRulesError(undefined)).toBe(false);
+            expect(hasPolicyRulesError(undefined, false)).toBe(false);
         });
 
         it('returns false when no merchant or agent rules exist', () => {
             const policy: Policy = {...createRandomPolicy(0), id: POLICY_ID, rules: {}};
-            expect(hasPolicyRulesError(policy)).toBe(false);
+            expect(hasPolicyRulesError(policy, false)).toBe(false);
         });
 
         it('returns false when agent rules exist but none have errors', () => {
@@ -5605,7 +5605,7 @@ describe('PolicyUtils', () => {
                 id: POLICY_ID,
                 rules: {agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08'}}},
             };
-            expect(hasPolicyRulesError(policy)).toBe(false);
+            expect(hasPolicyRulesError(policy, false)).toBe(false);
         });
 
         it('returns true when a merchant rule has errors', () => {
@@ -5621,7 +5621,7 @@ describe('PolicyUtils', () => {
                     agentRules: {ai1: {ruleID: 'ai1', prompt: 'p', created: '2026-06-08', errors: {123: 'boom'}}},
                 },
             };
-            expect(hasPolicyRulesError(policy)).toBe(true);
+            expect(hasPolicyRulesError(policy, false)).toBe(true);
         });
     });
 

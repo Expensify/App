@@ -162,6 +162,15 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
     };
 }
 
+/**
+ * A merchant rule as this editor builds it. Stored rules may carry a whole filter tree, but the editor only ever
+ * produces one merchant comparison, so callers converting a freshly built rule can read the filter directly.
+ */
+type BuiltMerchantRule = Omit<ExpenseDefaultRule, 'filters'> & {
+    /** The single `merchant eq|contains <value>` comparison this editor matches on. */
+    filters: RuleFilterComparison;
+};
+
 /** Builds the filter tree for a merchant rule: a single `merchant eq|contains <value>` comparison. */
 function buildMerchantRuleFilters(formValues: Partial<MerchantRuleFormValues>): RuleFilterComparison | undefined {
     const merchantToMatch = formValues.merchantToMatch?.trim();
@@ -207,7 +216,7 @@ function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, p
  * Builds the rule body sent as the `value` param of `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
-function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): ExpenseDefaultRule | undefined {
+function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): BuiltMerchantRule | undefined {
     const filters = buildMerchantRuleFilters(formValues);
     const actions = buildMerchantRuleActions(formValues, policy);
 
@@ -458,7 +467,7 @@ function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefine
     return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
 }
 
-export type {MerchantRuleFormValues};
+export type {BuiltMerchantRule, MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
     canEditMerchantRule,
