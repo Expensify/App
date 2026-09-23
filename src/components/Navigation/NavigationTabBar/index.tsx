@@ -158,7 +158,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         <>
             {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
-                style={[styles.navigationTabBarContainer, styles.navigationTabBarSurface]}
+                style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback

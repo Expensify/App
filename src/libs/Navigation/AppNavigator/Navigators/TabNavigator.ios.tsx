@@ -143,9 +143,8 @@ function measureLabel(label: string, isSelected: boolean, scale: number) {
  * whichever tab is selected — measured to hold for `badgeBackgroundColor` and for `UITabBarItem.badgeColor` alike.
  * The image handed to an item is honored, though, so the glyph is recolored off-screen and the status dot is drawn
  * into it. Both selection states go through this, because RNScreens rejects a tab whose icon and selectedIcon
- * differ in type. The canvas is the glyph's own size, so Android's fixed icon slot draws the glyph at full size
- * instead of shrinking it to fit reserved room, and the dot overlaps the glyph's top right corner the way the
- * indicator on the mobile web bar does.
+ * differ in type. The canvas is only as big as what it holds, and the dot overlaps the glyph's top right corner
+ * the way the indicator on the JS bar does.
  */
 async function createTabIcon(
     source: ImageSourcePropType,
@@ -501,8 +500,8 @@ function TabNavigator() {
         tabBarInactiveTintColor: theme.icon,
         // Every tab shares one style, so the bar reads the current visibility in the same render that changed it.
         // Pushed through setOptions instead, each tab kept the value it was left with, and the bar spent the first
-        // frame after a tab switch in the previous tab's state. The background only lands on Android and iOS 18 and
-        // below; iOS 26 keeps its own glass material.
+        // frame after a tab switch in the previous tab's state. The background only lands on iOS 18 and below;
+        // iOS 26 keeps its own glass material.
         tabBarStyle: {display: shouldShowNativeTabBar ? ('flex' as const) : ('none' as const), backgroundColor: theme.appBG},
         tabBarControllerMode: 'tabBar' as const,
         // The bar stays put while the content scrolls, instead of collapsing the way iOS 26 does by default.

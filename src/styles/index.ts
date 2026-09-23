@@ -730,25 +730,20 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
-        // The narrow tab bar is a capsule floating above the screen content. Only mobile web renders it, since
-        // the native platforms hand the bottom bar over to UIKit and to Material.
+        // The narrow tab bar is a capsule floating above the screen content, drawn by Android and mobile web.
+        // iOS hands the bottom bar over to UIKit, which paints its own material, so nothing here reaches it.
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.floatingTabBarHeight,
             marginHorizontal: variables.floatingTabBarHorizontalInset,
             borderRadius: variables.componentBorderRadiusCircle,
+            backgroundColor: theme.floatingTabBarBG,
+            borderWidth: variables.hairlineBorderWidth,
+            borderColor: theme.border,
             // Insets the row so the selected item's capsule keeps a margin inside the bar's rounded edge.
             ...spacing.p1,
             // Clips each item's hover and press background to the capsule's rounded ends.
             overflow: 'hidden',
-        },
-
-        // Mobile web has no native tab bar to inherit a material from, so the capsule paints its own
-        // translucent surface over the content it floats above.
-        navigationTabBarSurface: {
-            backgroundColor: theme.floatingTabBarBG,
-            borderWidth: variables.hairlineBorderWidth,
-            borderColor: theme.border,
         },
 
         navigationTabBarItemSelected: {
@@ -766,8 +761,9 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: variables.floatingTabBarContentInset,
         },
 
-        // Also wraps a tab's icon and label, where it sizes to them rather than to the tab's share of the bar,
-        // so a long label pushes the selected pill past its tab instead of spilling out of it.
+        // Used both for a tab's pressable and for the wrapper around its icon and label. As the wrapper it sizes
+        // to those two rather than to the tab's share of the bar, so a long label pushes the selected pill past
+        // its tab instead of spilling out of it.
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',
