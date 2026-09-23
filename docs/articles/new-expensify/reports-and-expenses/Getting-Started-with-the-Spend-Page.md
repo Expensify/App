@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, open expense from report preview, expense card, carousel navigation, previous and next expense, View button, single expense report preview]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -27,25 +27,11 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 - **+X more** link if there are over 10 expenses  
 - Action button: Submit, Approve, Pay, etc., depending on the role
 
-## How to open a single expense from a report preview
-
-1. In the **Inbox**, open the workspace chat that shows the report preview.
-2. Click or tap the expense card you want to review.
-3. The expense opens in the right-hand panel, with its report open behind it.
-4. Use the back arrow in the top-left corner of the right-hand panel to return to the report, then use it again to return to the workspace chat.
-
-If the report preview lists only one expense, clicking or tapping its card opens the **report** instead of the expense. **View** always opens the report, no matter how many expenses it contains.
-
-## How to move between expenses on a report
-
-Once an expense is open in the right-hand panel, use the previous and next arrows in the expense header to step through the expenses on that report. The arrows follow the order the report shows, and they reach every expense on the report — including expenses beyond the cards shown in the carousel. The previous arrow is disabled on the first expense and the next arrow is disabled on the last.
-
 ## Preview Behavior and Updates
 
   - Updates in **real time** as expenses are added.
   - If a report is deleted, the preview is removed.
   - Comments on a report create a **Comments** section within the preview, and the layout will adjust to include room for the discussion.
-  - If you delete an expense while offline, its card stays in the carousel until you reconnect. Clicking or tapping that card opens the **report**, and the deleted expense is skipped by the previous and next arrows.
 
 ---
 
@@ -170,11 +156,33 @@ For more advanced filtering, you can enter search operators directly into the se
    - The list updates in real time  
    - The **Select all** option applies *only* to the filtered results—not everything
 
-On the **Expenses** page, the selection button reads **All matching items selected** after you choose **Select all**, which confirms that every expense matching your filters is included. If you clear the checkbox on any expense, the button switches to the exact number selected.
-
 You can also combine filters with a keyword search for even more precision. For example, searching **"Uber in March"** will show only Uber rides from March.
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
+
+## How filters are saved for each Spend view
+
+Every view in the **Spend** sidebar keeps its own filters. This includes the suggested searches, such as **Expenses** and **Reports**, and every saved search.
+
+- When you apply a filter, switch to another view, and come back, the filters you left in place are still applied.
+- Some views start with default filters that define what the view shows. Default filters appear first in the filters bar and have no **x** button, so you can't remove them.
+- Filters you add appear after the default filters, and each one has an **x** button to remove it.
+
+## How to reset filters on a Spend view
+
+The **Reset** button appears in the filters bar as soon as a view's filters differ from its default filters.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
+2. Select the view you want to reset.
+3. In the filters bar, click **Reset**.
+
+The view returns to its default filters, and **Reset** disappears until you change the filters again.
+
+<!-- SCREENSHOT:
+Suggestion: The Spend page filters bar on web with a default filter pill shown first without an x button, a user-added filter pill with an x button after it, and the Reset button visible at the end of the bar.
+Location: Immediately after the steps in "How to reset filters on a Spend view"
+Purpose: Members can't tell from text alone which pills are removable, and the Reset button only appears once filters differ from the defaults, so a capture confirms both what a default pill looks like and where Reset sits.
+-->
 
 ## How to export from the Spend page
 
@@ -211,14 +219,17 @@ If you create a draft report and have unreported expenses in your SelfDM, a prom
 ## Can I export reports from the Spend page?
 Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
 
+## Why are my filters still applied when I return to a view?
+Each view on the **Spend** page remembers the filters you last used, so you can pick up where you left off. Click **Reset** in the filters bar to return that view to its default filters.
+
+## Why can't I remove some filters?
+Filters that are part of a view's default filters define what that view shows, so they have no **x** button. Click **Reset** to return the view to its default filters.
+
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.
 
 ## When do report previews update?
 Previews update **in real time** as expenses are added or removed. Deleted reports are removed from the chat preview.
-
-## Why did clicking an expense card open the whole report?
-This happens in two cases: the report preview lists only one expense, or the expense you clicked was deleted while you were offline. In both cases the report opens instead of the expense.
 
 ## Can someone comment on a report?
 Yes. When someone comments, a Comments section appears in the preview, and the layout adjusts to accommodate the discussion.
