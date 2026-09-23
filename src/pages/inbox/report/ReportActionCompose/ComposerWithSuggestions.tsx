@@ -53,7 +53,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {Ref, RefObject} from 'react';
-import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeMethods, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
+import type {BlurEvent, HostInstance, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
@@ -66,6 +66,7 @@ import type {SuggestionsRef} from './ReportActionCompose';
 import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
+import shouldYieldFocusToSidePanelComposer from './shouldYieldFocusToSidePanelComposer';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
 import useComposerSuggestions from './useComposerSuggestions';
@@ -207,7 +208,7 @@ function ComposerWithSuggestions({
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
+    const {isSidePanelHiddenOrLargeScreen, shouldHideSidePanel} = useSidePanelState();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -292,6 +293,12 @@ function ComposerWithSuggestions({
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
+    // Synced in an effect rather than during render because this file is at its lint budget for render-time ref access.
+    const isInSidePanelRef = useRef(isInSidePanel);
+    useEffect(() => {
+        isInSidePanelRef.current = isInSidePanel;
+    }, [isInSidePanel]);
+
     /**
      * Focus the composer text input
      * @param [shouldDelay=false] Impose delay before focusing the composer
@@ -301,7 +308,9 @@ function ComposerWithSuggestions({
     const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused = false) => {
         // If we're stacked above another RHP, wait for the transition to complete before focusing.
         const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-        focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+        // Another composer taking focus releases the claim, so it has to be read when the focus lands rather than now.
+        const canFocusAfterDelay = isInSidePanelRef.current ? () => !!ReportActionComposeFocusManager.sidePanelComposerRef.current : undefined;
+        focusComposerWithDelay(composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
     const shouldIgnoreEditSelectionResetRef = useRef(false);
@@ -370,7 +379,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef<NativeMethods>();
+    const animatedRef = useAnimatedRef<HostInstance>();
     /**
      * Set the TextInput Ref
      */
@@ -763,6 +772,17 @@ function ComposerWithSuggestions({
         }
     }, [isInSidePanel]);
 
+    // handleSidePanelFocus only releases the claim when another composer receives focus, so a Side Panel that closes while holding it
+    // would keep it forever and the guard in the modal-close effect below would strand focus on the document body.
+    useEffect(() => {
+        if (!isInSidePanel) {
+            return;
+        }
+        return () => {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        };
+    }, [isInSidePanel]);
+
     /**
      * Set focus callback
      * @param shouldTakeOverFocus - Whether this composer should gain focus priority
@@ -876,6 +896,20 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // The Side Panel composer only wins this race because it renders outside <StackView> and its effect flushes last, so the fire-time
+        // re-check would otherwise turn https://github.com/Expensify/App/pull/86658 into a regression. Reads shouldHideSidePanel rather than
+        // isSidePanelHiddenOrLargeScreen because the latter is true on extra-large screens even while the panel is on screen.
+        if (
+            shouldYieldFocusToSidePanelComposer({
+                isInSidePanel,
+                shouldHideSidePanel,
+                didModalJustClose: !!prevIsModalVisible,
+                hasSidePanelFocusClaim: !!ReportActionComposeFocusManager.sidePanelComposerRef.current,
+            })
+        ) {
+            return;
+        }
+
         // Do not focus the composer if the Side Panel is visible
         if (!isSidePanelHiddenOrLargeScreen) {
             return;
@@ -893,7 +927,19 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen, isInSidePanel]);
+    }, [
+        focus,
+        prevIsFocused,
+        editFocused,
+        prevIsModalVisible,
+        isFocused,
+        modal?.isVisible,
+        isNextModalWillOpenRef,
+        shouldAutoFocus,
+        isSidePanelHiddenOrLargeScreen,
+        shouldHideSidePanel,
+        isInSidePanel,
+    ]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
