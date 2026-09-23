@@ -1,6 +1,7 @@
 import {NumericCurrencyButton} from '@components/NumericButtons';
 
 import NumericInputComponent from './NumericInput';
+import NumericBigNumberPad from './primitives/NumericBigNumberPad';
 import NumericError from './primitives/NumericError';
 import NumericFlipButton from './primitives/NumericFlipButton';
 import NumericInputContainer from './primitives/NumericInputContainer';
@@ -64,6 +65,9 @@ const NumericInput = Object.assign(NumericInputComponent, {
 
     /** Renders the centered, full-size amount layout with legacy empty-area refocus behavior. */
     Container: NumericInputContainer,
+
+    /** Renders the touch number pad wired to NumericInput actions and selection. */
+    BigNumberPad: NumericBigNumberPad,
 });
 
 export default NumericInput;
