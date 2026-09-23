@@ -96,6 +96,9 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
     const policiesInScope = Object.values(policies ?? {}).filter((policy) => !!policy && (filters.policyIDs.length === 0 || filters.policyIDs.includes(policy.id)));
     const visibleCharts = supportingCharts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => !!policy && isPolicyEligible(policy, login)));
 
+    // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
+    const columns = shouldUseNarrowLayout ? [visibleCharts] : [visibleCharts.filter((chart, index) => index % 2 === 0), visibleCharts.filter((chart, index) => index % 2 === 1)];
+
     return (
         <ScrollView
             contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
@@ -110,19 +113,22 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
                     onRetry={onRetry}
                 />
                 <View style={styles.insightsChartGrid}>
-                    {visibleCharts.map((chart) => (
+                    {columns.map((columnCharts, columnIndex) => (
                         <View
-                            key={chart.graphKey}
-                            style={styles.insightsChartGridCell(shouldUseNarrowLayout)}
+                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                            key={columnIndex}
+                            style={[styles.flex1, styles.insightsChartColumn]}
                         >
-                            <InsightsChartWidget
-                                dashboardID={dashboardID}
-                                hash={hash}
-                                chart={chart}
-                                filters={filters}
-                                onRetry={onRetry}
-                                containerStyles={styles.flex1}
-                            />
+                            {columnCharts.map((chart) => (
+                                <InsightsChartWidget
+                                    key={chart.graphKey}
+                                    dashboardID={dashboardID}
+                                    hash={hash}
+                                    chart={chart}
+                                    filters={filters}
+                                    onRetry={onRetry}
+                                />
+                            ))}
                         </View>
                     ))}
                 </View>

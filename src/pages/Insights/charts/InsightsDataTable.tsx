@@ -1,4 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from '@components/Search/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -12,9 +14,6 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
-
-import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from './SearchList/ListItem/types';
-import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 
