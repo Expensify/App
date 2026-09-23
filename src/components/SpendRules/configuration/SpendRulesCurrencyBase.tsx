@@ -51,15 +51,11 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
     const validCurrencyOptions = currencyOptions.filter((option) => option.value !== settlementCurrency);
 
-    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(() => {
-        if (currencies.length > 0) {
-            return currencies.filter((currency) => currency !== settlementCurrency);
-        }
+    const savedSelectedCurrencies = currencies.length > 0 ? currencies.filter((currency) => currency !== settlementCurrency) : validCurrencyOptions.map((option) => option.value);
 
-        return validCurrencyOptions.map((option) => option.value);
-    });
-    // Freeze the currencies selected when this page opened so they stay pinned to the top for the whole open/focus cycle, even as the live selection changes.
-    const initialSelectedCurrencies = useInitialSelection(selectedCurrencies, {resetOnFocus: true});
+    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(savedSelectedCurrencies);
+    // Freeze the saved selection (not the live, unsaved edits) so returning focus to the page doesn't treat
+    const initialSelectedCurrencies = useInitialSelection(savedSelectedCurrencies, {resetOnFocus: true});
 
     const currencyItems: CurrencyListItem[] = [];
     const selectedCurrenciesSet = new Set(selectedCurrencies);

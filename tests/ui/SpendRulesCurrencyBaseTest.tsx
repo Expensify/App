@@ -25,11 +25,15 @@ function buildCurrencyOptions(count: number) {
     return options;
 }
 
+// Capture the latest focus-effect callback so a test can simulate the page regaining focus (e.g. returning to the browser).
+const mockFocus: {callback?: () => void} = {};
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        useFocusEffect: jest.fn(),
+        useFocusEffect: jest.fn((callback: () => void) => {
+            mockFocus.callback = callback;
+        }),
     };
 });
 
@@ -68,12 +72,15 @@ jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: jest.fn(() => f
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/SearchUIUtils', () => ({getCurrencyOptions: () => mockCurrencyOptions}));
 
+type MockCurrencyItem = {value?: string; keyForList?: string; isSelected?: boolean};
+
 type MockSelectionListProps = {
-    data: Array<{value?: string; keyForList?: string; isSelected?: boolean}>;
+    data: MockCurrencyItem[];
     shouldScrollToFocusedIndexOnMount?: boolean;
     shouldUpdateFocusedIndex?: boolean;
     disableMaintainingScrollPosition?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
+    onSelectRow?: (item: MockCurrencyItem) => void;
 };
 
 function renderPage(currencies: string[]) {
@@ -88,6 +95,7 @@ function renderPage(currencies: string[]) {
 
 describe('SpendRulesCurrencyBase', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the props captured from the mocked SelectionList in this test
     const getSelectionListProps = () => mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
 
     beforeEach(() => {
@@ -119,6 +127,28 @@ describe('SpendRulesCurrencyBase', () => {
         });
 
         expect(getSelectionListProps()?.data.at(0)?.value).toBe('C12');
+    });
+
+    it('does not pin unsaved currencies to the top when the page regains focus', () => {
+        // Given a rule saved with only C07 selected
+        renderPage(['C07']);
+
+        // When the user selects another currency without saving...
+        act(() => {
+            getSelectionListProps()?.onSelectRow?.({value: 'C03'});
+        });
+
+        // ...and then leaves and returns to the browser (the focus effect fires)
+        act(() => {
+            mockFocus.callback?.();
+        });
+
+        const props = getSelectionListProps();
+        // Then only the saved currency stays pinned; the unsaved pick keeps its sorted position
+        expect(props?.data.at(0)?.value).toBe('C07');
+        expect(props?.data.at(0)?.value).not.toBe('C03');
+        // The unsaved currency is still checked (live selection), just not pinned to the top
+        expect(props?.data.find((item) => item.value === 'C03')?.isSelected).toBe(true);
     });
 
     it('does not reorder when the currency list is under the item-limit threshold', () => {
