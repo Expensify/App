@@ -7,6 +7,7 @@ import FilterList from '@components/Search/FilterComponents/AdvancedFilters/Filt
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useContext} from 'react';
+import {View} from 'react-native';
 
 function SearchAdvancedFiltersBase() {
     const styles = useThemeStyles();
@@ -33,6 +34,7 @@ function SearchAdvancedFiltersBase() {
     const {translate} = useLocalize();
     const {currentDraftFilters, shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters} = useContext(SearchAdvancedFiltersActionContext);
+    const isInLandscapeMode = useIsInLandscapeMode();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
 
     return (
@@ -81,26 +83,27 @@ function SearchAdvancedFiltersBase() {
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
-                policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, currentDraftFilters)}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
-            {shouldShowResetFilters && (
+            <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>
+                {shouldShowResetFilters && (
+                    <Button
+                        style={[isInLandscapeMode ? styles.flex1 : undefined]}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={resetFilters}
+                    >
+                        <Button.Text>{translate('common.reset')}</Button.Text>
+                    </Button>
+                )}
                 <Button
-                    style={[styles.ph5, styles.pb3]}
+                    style={[isInLandscapeMode ? styles.flex1 : undefined]}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={resetFilters}
+                    onPress={applyFilters}
                 >
-                    <Button.Text>{translate('common.reset')}</Button.Text>
+                    <Button.Text>{translate('search.applyFilters')}</Button.Text>
                 </Button>
-            )}
-            <Button
-                style={[styles.ph5, styles.pb5]}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={CONST.BUTTON_SIZE.LARGE}
-                onPress={applyFilters}
-            >
-                <Button.Text>{translate('search.applyFilters')}</Button.Text>
-            </Button>
+            </View>
         </ScreenWrapper>
     );
 }

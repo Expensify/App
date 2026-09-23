@@ -1,4 +1,4 @@
-import type HrSyncResult from '@libs/API/HrSyncResult';
+import type MergeSyncResult from '@libs/API/MergeSyncResult';
 
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -463,6 +463,13 @@ type TaxCode = {
  * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
 type QBOConnectionData = {
+    /** Custom dimensions available in the connected IES entity */
+    customDimensions?: Array<{
+        id: string;
+        label: string;
+        active: boolean;
+    }>;
+
     /** Country code */
     country: ValueOf<typeof CONST.COUNTRY>;
 
@@ -587,6 +594,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether Quickbooks Online classes should be imported */
     syncClasses: IntegrationEntityMap;
+
+    /** Import mappings keyed by the connected IES entity's custom dimension IDs */
+    syncCustomDimensions?: Record<string, typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG | typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE>;
 
     /** Whether Quickbooks Online customers should be imported */
     syncCustomers: IntegrationEntityMap;
@@ -1449,6 +1459,9 @@ type FinancialForceConnectionData = {
 
     /** PSA: assignments synced for mapping (Release 2) */
     assignments?: FinancialForceSyncedEntity[];
+
+    /** FFA General Ledger expense accounts, offered as the account to book absorbed currency conversion costs to */
+    expenseAccounts?: FinancialForceSyncedEntity[];
 };
 
 /** Certinia credentials (Salesforce / Certinia org); fields populate as OAuth / sync complete */
@@ -1545,6 +1558,9 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** FFA Accounting Company ID */
         company?: string;
+
+        /** FFA General Ledger Account the currency conversion costs the company absorbs are booked to */
+        fxExpenseAccount?: string;
 
         /** Certinia import / coding settings */
         coding: FinancialForceCodingConfig;
@@ -2745,6 +2761,9 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** Approval mode controlling how reports are routed for approval in the Merge-backed integrations (Merge HR, Merge ATS) */
+type MergeApprovalMode = ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+
 /** Shared config for the Merge-backed integrations (Merge HR, Merge ATS), parameterized by the union of provider slugs that integration supports */
 type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
     OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -2752,7 +2771,7 @@ type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
         integration: Integration;
 
         /** Approval mode controlling how reports are routed for approval */
-        approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+        approvalMode: MergeApprovalMode | null;
     }>;
 
 /** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
@@ -2834,6 +2853,9 @@ type MergeATSFilters = {
     offices?: string[];
 };
 
+/** The ATS field a candidate's default approver is read from in the Merge ATS connection */
+type MergeATSApproverField = ValueOf<typeof CONST.MERGE.ATS_APPROVER_FIELD>;
+
 /** Merge ATS (recruiting) connection config */
 type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> &
     OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -2846,7 +2868,7 @@ type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> 
             filters: MergeATSFilters | null;
 
             /** The ATS field whose value identifies the default approver for a candidate (e.g. the recruiter or hiring manager field), or `null` when not set */
-            approverField: string | null;
+            approverField: MergeATSApproverField | null;
         },
         'filters' | 'approverField'
     >;
@@ -3391,7 +3413,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoReportingOffset?: AutoReportingOffset;
 
         employeeList?: OnyxTypes.PolicyEmployeeList;
-        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+        /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
+        reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES> | ValueOf<typeof CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES>;
 
         /** The set reimburser for the policy */
         reimburser?: string;
@@ -3719,7 +3743,7 @@ type PolicyConnectionSyncProgress = {
     timestamp: string;
 
     /** Optional result payload shown after a completed sync */
-    result?: HrSyncResult;
+    result?: MergeSyncResult;
 };
 
 /** Workspace types a user can create directly (Team/Corporate/Submit), e.g. when creating a draft workspace on the fly. */
@@ -3794,10 +3818,12 @@ export type {
     ProhibitedExpenses,
     CommuterExclusions,
     NetSuiteConnectionData,
+    MergeApprovalMode,
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
     MergeATSFilters,
+    MergeATSApproverField,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
@@ -3824,5 +3850,9 @@ export type {
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
+    CampfireExportDate,
+    CampfireVendor,
+    CampfireAccount,
+    CampfireExport,
     BusinessCentralCompany,
 };

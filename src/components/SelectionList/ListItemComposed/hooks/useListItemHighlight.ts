@@ -1,5 +1,4 @@
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useTheme from '@hooks/useTheme';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type UseListItemHighlightParams = {
@@ -11,22 +10,13 @@ type UseListItemHighlightParams = {
 };
 
 /**
- * Bundles the highlight animation with the pressable styles a row needs so the highlight rests on
- * the right background. Search-table rows use `useSearchTableItemHighlight` instead; rows owning
- * their own pressable layout (grouped and wide/narrow search rows) take `animatedHighlightStyle`
- * alone and ignore the pressable bundle.
+ * Highlight animation plus the pressable styles that let it show through.
+ * `isSelected` is not forwarded to the animation: selection is painted on the pressable, not the animated wrapper.
  */
 function useListItemHighlight({shouldHighlight = false, isSelected = false}: UseListItemHighlightParams = {}) {
     const styles = useThemeStyles();
-    const theme = useTheme();
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
-        shouldHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-        shouldApplyOtherStyles: true,
-    });
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight, borderRadius: styles.selectionListPressableItemWrapper.borderRadius});
 
     return {
         animatedHighlightStyle,
