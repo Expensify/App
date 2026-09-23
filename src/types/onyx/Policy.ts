@@ -1849,6 +1849,9 @@ type RilletSync = {
     /** Account code used for bill payment transactions. */
     billPaymentAccountCode: string;
 
+    /** Expense account code the company-paid currency conversion cost is booked to. Unset means the cost is not exported. */
+    fxExpenseAccountCode?: string;
+
     /** Whether Expensify Card settlement transactions should be synchronized. */
     syncExpensifyCardSettlements: boolean;
 

@@ -547,6 +547,7 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_ACCOUNTING_METHOD: 'UpdateRilletAccountingMethod',
     UPDATE_RILLET_SYNC_REIMBURSED_REPORTS: 'UpdateRilletSyncReimbursedReports',
     UPDATE_RILLET_BILL_PAYMENT_ACCOUNT: 'UpdateRilletBillPaymentAccount',
+    UPDATE_RILLET_FX_EXPENSE_ACCOUNT: 'UpdateRilletFxExpenseAccount',
     UPDATE_RILLET_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateRilletSyncExpensifyCardSettlements',
     UPDATE_RILLET_SETTLEMENTS_ACCOUNT: 'UpdateRilletSettlementsAccount',
     UPDATE_RILLET_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateRilletSyncTravelBillingSettlements',
@@ -1236,6 +1237,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_ACCOUNTING_METHOD]: Parameters.UpdateRilletAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateRilletSyncReimbursedReportsParams;
     [WRITE_COMMANDS.UPDATE_RILLET_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateRilletBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_FX_EXPENSE_ACCOUNT]: Parameters.UpdateRilletFxExpenseAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateRilletSyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SETTLEMENTS_ACCOUNT]: Parameters.UpdateRilletSettlementsAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateRilletSyncTravelBillingSettlementsParams;
