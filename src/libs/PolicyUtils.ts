@@ -66,6 +66,7 @@ import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {isApprovalWorkflowRule} from './RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -2091,17 +2092,6 @@ function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: Appro
 }
 
 /**
- * The `rules_` collection holds both approval workflow rules and expense default (merchant) rules under one
- * shape, distinguished only by which triggers they carry. Narrows to the approval-workflow variant so its
- * `filters`/`actions` can be read with the right shape instead of the expense-default one.
- */
-function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule {
-    const approvalWorkflowTriggers: string[] = Object.values(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER);
-    const triggers = Object.values(rule.triggers ?? {});
-    return triggers.length > 0 && triggers.every((trigger) => approvalWorkflowTriggers.includes(trigger));
-}
-
-/**
  * Check the policy's approval workflow rules to determine where the report goes next.
  */
 function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext, rules: OnyxCollection<Rule>): ApprovalWorkflowRuleMatch | undefined {
@@ -2109,7 +2099,7 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
         return undefined;
     }
 
-    const trigger = context.currentApproverEmail ? CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE : CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT;
+    const trigger = context.currentApproverEmail ? CONST.RULES.TRIGGERS.REPORT_APPROVE : CONST.RULES.TRIGGERS.REPORT_SUBMIT;
 
     // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
     const ruleKeys = Object.keys(rules ?? {}).sort();
@@ -2125,7 +2115,7 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
             continue;
         }
 
-        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver};
+        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
     }
 
     return undefined;

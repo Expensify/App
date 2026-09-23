@@ -8675,23 +8675,23 @@ const CONST = {
             POLICY: 'policy',
             ACCOUNT: 'account',
         },
+        /** Every event that can fire a rule, across all rule kinds. */
+        TRIGGERS: {
+            REPORT_SUBMIT: 'ReportSubmit',
+            REPORT_APPROVE: 'ReportApprove',
+            CREATE_TRANSACTION: 'CreateTransaction',
+        },
+        /** Every action a rule can perform, across all rule kinds. */
+        ACTIONS: {
+            FORWARD_TO: 'ForwardTo',
+            APPROVE_REPORT: 'ApproveReport',
+            SET: 'Set',
+        },
         APPROVAL_WORKFLOW: {
-            TRIGGER: {
-                REPORT_SUBMIT: 'ReportSubmit',
-                REPORT_APPROVE: 'ReportApprove',
-            },
-            ACTION: {
-                FORWARD_TO: 'ForwardTo',
-                APPROVE_REPORT: 'ApproveReport',
-            },
+            /** A rule firing only on these is an approval workflow rather than an expense default. */
+            TRIGGERS: ['ReportSubmit', 'ReportApprove'],
         },
         EXPENSE_DEFAULT: {
-            TRIGGER: {
-                CREATE_TRANSACTION: 'CreateTransaction',
-            },
-            ACTION: {
-                SET: 'Set',
-            },
             /** Expense fields a `Set` action can write to */
             FIELD: {
                 BILLABLE: 'billable',

@@ -33,7 +33,8 @@ const RULE_ID = 'merchantRule1';
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_ACCOUNT_ID = 1;
 
-const {FIELD, TRIGGER, ACTION} = CONST.RULES.EXPENSE_DEFAULT;
+const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
@@ -126,8 +127,8 @@ describe('EditMerchantRulePage route guard', () => {
     it('refuses an approval workflow rule that shares the ruleID', async () => {
         await seedOnyx({
             ...buildEditableRule(),
-            triggers: toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT]),
-            actions: toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'approver@example.com'}]),
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]),
+            actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'approver@example.com'}]),
         });
         renderEditMerchantRulePage();
         await waitForBatchedUpdatesWithAct();

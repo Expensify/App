@@ -106,9 +106,9 @@ import {
     navigateToExpensifyCardPage,
 } from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {isApprovalWorkflowRule} from '@libs/RuleUtils';
 import {getNegatedAmountTransaction} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {isApprovalWorkflowRule} from '@libs/WorkflowUtils';
 
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 

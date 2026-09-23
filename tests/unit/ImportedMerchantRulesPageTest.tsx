@@ -362,9 +362,9 @@ describe('ImportedMerchantRulesPage', () => {
             const existingRule: Rule = {
                 scope: CONST.RULES.SCOPE.POLICY,
                 scopeID: policy.id,
-                triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
+                actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
             };
 
             const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}existing`]: existingRule}, true);
@@ -378,9 +378,9 @@ describe('ImportedMerchantRulesPage', () => {
             const otherPolicyRule: Rule = {
                 scope: CONST.RULES.SCOPE.POLICY,
                 scopeID: 'another-policy',
-                triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
+                actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
             };
 
             const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}other`]: otherPolicyRule}, true);

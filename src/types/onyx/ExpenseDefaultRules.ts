@@ -7,7 +7,7 @@ import type {RuleFilterNode} from './RuleFilters';
 /**
  * A transaction lifecycle event that can fire an expense-default rule (currently only `CreateTransaction`).
  */
-type ExpenseDefaultTrigger = ValueOf<typeof CONST.RULES.EXPENSE_DEFAULT.TRIGGER>;
+type ExpenseDefaultTrigger = typeof CONST.RULES.TRIGGERS.CREATE_TRANSACTION;
 
 /**
  * The triggers of a rule, keyed by a string index starting at 1 (e.g. `{"1": "CreateTransaction"}`). A rule fires when
@@ -18,7 +18,7 @@ type ExpenseDefaultTriggers = Record<string, ExpenseDefaultTrigger>;
 /**
  * The name of the action a rule performs when it matches (currently only `Set`).
  */
-type ExpenseDefaultActionName = ValueOf<typeof CONST.RULES.EXPENSE_DEFAULT.ACTION>;
+type ExpenseDefaultActionName = typeof CONST.RULES.ACTIONS.SET;
 
 /**
  * The expense field a `Set` action writes to.

@@ -14,7 +14,8 @@ import {
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
 } from '@src/libs/actions/Workflow';
-import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule} from '@src/libs/WorkflowUtils';
+import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
+import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
@@ -99,21 +100,21 @@ async function createForwardApproveRules(policyID: string, submitters: string[],
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}1`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_SUBMIT),
         filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.FORWARD_TO, approver}),
         ...defaultMarker,
     });
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}2`, {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
-        triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE),
+        triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_APPROVE),
         filters: {
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters},
             right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
         },
-        actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}),
+        actions: indexMap({name: CONST.RULES.ACTIONS.APPROVE_REPORT}),
         ...defaultMarker,
     });
 }
@@ -951,14 +952,14 @@ describe('actions/Workflow', () => {
             const rules = await getActivePolicyRules(policyID);
             expect(rules).toHaveLength(2);
 
-            const submitRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT));
+            const submitRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.TRIGGERS.REPORT_SUBMIT));
             expect(submitRule?.scope).toBe(CONST.RULES.SCOPE.POLICY);
             expect(submitRule?.scopeID).toBe(policyID);
             expect(submitRule?.filters).toEqual({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]});
-            expect(submitRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
+            expect(submitRule?.actions[1]).toEqual({name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ownerEmail});
 
-            const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE));
-            expect(approveRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
+            const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.TRIGGERS.REPORT_APPROVE));
+            expect(approveRule?.actions[1]).toEqual({name: CONST.RULES.ACTIONS.APPROVE_REPORT});
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
@@ -1203,7 +1204,7 @@ describe('actions/Workflow', () => {
             expect(rules.length).toBeGreaterThan(0);
             const forwardApprovers = rules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toEqual([ownerEmail]);
             for (const rule of rules) {
@@ -1256,7 +1257,7 @@ describe('actions/Workflow', () => {
             const rules = await getActivePolicyRules(policyID);
             const forwardApprovers = rules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toContain(employee2Email);
             expect(forwardApprovers).not.toContain(ownerEmail);
@@ -1515,7 +1516,7 @@ describe('actions/Workflow', () => {
             }
             const forwardApprovers = defaultRules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toEqual([employee3Email]);
             expect(forwardApprovers).not.toContain(ownerEmail);
@@ -1816,7 +1817,7 @@ describe('actions/Workflow', () => {
             expect(rules.length).toBeGreaterThan(0);
             const forwardApprovers = rules
                 .flatMap((rule) => Object.values(rule.actions))
-                .filter((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)
+                .filter((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)
                 .map((action) => action.approver);
             expect(forwardApprovers).toEqual([employee3Email]);
             expect(forwardApprovers).not.toContain(ownerEmail);

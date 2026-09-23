@@ -43,7 +43,8 @@ type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'error
  * description, or a tax selected before the rates loaded reach the server after the rule had already dropped it.
  */
 function buildLegacyCodingRule(ruleValue: BuiltMerchantRule, ruleID: string, created: string): Partial<CodingRule> {
-    const {ACTION, FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+    const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+    const {ACTIONS: ACTION} = CONST.RULES;
 
     const valuesByField = new Map<string, ExpenseDefaultAction['value']>();
     for (const action of Object.values(ruleValue.actions)) {

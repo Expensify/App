@@ -2,6 +2,7 @@
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
@@ -16,7 +17,6 @@ import {
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
-    isApprovalWorkflowRule,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -1680,10 +1680,10 @@ describe('WorkflowUtils', () => {
     });
 
     describe('rule-based approval workflows', () => {
-        const submitTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT};
-        const approveTriggers = {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE};
-        const forwardActions = (approver: string) => ({'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}});
-        const approveActions = {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}};
+        const submitTriggers = {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT};
+        const approveTriggers = {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE};
+        const forwardActions = (approver: string) => ({'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver}});
+        const approveActions = {'1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT}};
         const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
         const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
         const and = (left: RuleFilter | RuleFilterComparison, right: RuleFilter | RuleFilterComparison): RuleFilter => ({
@@ -2144,9 +2144,9 @@ describe('WorkflowUtils', () => {
         const ruleForPolicy = (scopeID: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID,
-            triggers: {'1': CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT},
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
             filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-            actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
             ...extra,
         });
 
@@ -2179,7 +2179,7 @@ describe('WorkflowUtils', () => {
                 scopeID: 'policy1',
                 triggers: Object.fromEntries(triggers.map((trigger, index) => [String(index + 1), trigger])),
                 filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-                actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+                actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
             };
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -2187,16 +2187,16 @@ describe('WorkflowUtils', () => {
         };
 
         it('is true for a rule that only fires on report events', () => {
-            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT))).toBe(true);
-            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT, CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE))).toBe(true);
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT))).toBe(true);
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT, CONST.RULES.TRIGGERS.REPORT_APPROVE))).toBe(true);
         });
 
         it('is false for an expense default rule', () => {
-            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION))).toBe(false);
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.CREATE_TRANSACTION))).toBe(false);
         });
 
         it('is false for a rule that also fires on transaction creation, so disabling approvals cannot delete it', () => {
-            const mixed = ruleWithTriggers(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT, CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION);
+            const mixed = ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT, CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
 
             expect(isApprovalWorkflowRule(mixed)).toBe(false);
         });

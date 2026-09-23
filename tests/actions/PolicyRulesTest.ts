@@ -67,9 +67,9 @@ function buildMerchantRuleForPolicy(policyID: string): Rule {
         scope: CONST.RULES.SCOPE.POLICY,
         scopeID: policyID,
         priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
-        triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+        triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
         filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-        actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
+        actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
     };
 }
 
@@ -483,9 +483,9 @@ describe('actions/PolicyRules', () => {
                 scopeID: fakePolicy.id,
                 priority: CONST.RULES.EXPENSE_DEFAULT.PRIORITY,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+                triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
-                actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
+                actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}]),
             });
 
             await mockFetch?.resume?.();

@@ -10,7 +10,8 @@ import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const {FIELD, TRIGGER, ACTION} = CONST.RULES.EXPENSE_DEFAULT;
+const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const TAX_KEY = 'id_TAX_RATE_1';
 
 /** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */

@@ -649,9 +649,9 @@ describe('actions/Policy', () => {
             const sourceRule: Rule = {
                 scope: CONST.RULES.SCOPE.POLICY,
                 scopeID: fakePolicy.id,
-                triggers: indexMap(CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION),
+                triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
-                actions: indexMap({name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
+                actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
             };
             // The copies are optimistic only - they are dropped once the server responds with its own rule IDs,
             // so the request stays paused while they are asserted.
@@ -3503,16 +3503,16 @@ describe('actions/Policy', () => {
                 [approvalRuleKey]: {
                     scope: CONST.RULES.SCOPE.POLICY,
                     scopeID: policyID,
-                    triggers: indexMap(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT),
+                    triggers: indexMap(CONST.RULES.TRIGGERS.REPORT_SUBMIT),
                     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [EMPLOYEE_EMAIL]},
-                    actions: indexMap({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ESH_EMAIL}),
+                    actions: indexMap({name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ESH_EMAIL}),
                 },
                 [expenseDefaultRuleKey]: {
                     scope: CONST.RULES.SCOPE.POLICY,
                     scopeID: policyID,
-                    triggers: indexMap(CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION),
+                    triggers: indexMap(CONST.RULES.TRIGGERS.CREATE_TRANSACTION),
                     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, right: 'Starbucks'},
-                    actions: indexMap({name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}),
+                    actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Coffee'}),
                 },
             };
 

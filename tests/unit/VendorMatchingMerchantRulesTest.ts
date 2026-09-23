@@ -114,9 +114,9 @@ const buildVendorRule = (policy: Policy, vendorID: string): Rule => ({
     ...buildMerchantRule({merchantToMatch: 'Coffee Shop', matchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, vendorID}, policy),
     scope: CONST.RULES.SCOPE.POLICY,
     scopeID: policy.id,
-    triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
     filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Coffee Shop'},
-    actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: vendorID}]),
+    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: vendorID}]),
 });
 
 const withVendorRule = (policy: Policy, vendorID: string) => ({[`${ONYXKEYS.COLLECTION.RULE}rule1`]: buildVendorRule(policy, vendorID)});
@@ -125,7 +125,7 @@ describe('Vendor matching on merchant rules', () => {
     describe('buildMerchantRule vendor action', () => {
         it('writes a Set action for a vendorID', () => {
             const actions = Object.values(buildMerchantRule(buildForm({vendorID: 'v-1'}), undefined)?.actions ?? {});
-            expect(actions).toContainEqual({name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: 'v-1'});
+            expect(actions).toContainEqual({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.VENDOR_ID, value: 'v-1'});
         });
 
         it('writes no vendor action when the vendorID is unset, so the rule stops setting it', () => {

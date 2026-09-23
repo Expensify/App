@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTrigger, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -25,6 +25,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './merge/HRUtils';
 import {rand64} from './NumberUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
+import {isApprovalWorkflowRule} from './RuleUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -771,19 +772,19 @@ function toIndexMap<T>(values: T[]): Record<string, T> {
 }
 
 function buildSubmitTriggers(): ApprovalWorkflowTriggers {
-    return toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT]);
+    return toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]);
 }
 
 function buildApproveTriggers(): ApprovalWorkflowTriggers {
-    return toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE]);
+    return toIndexMap([CONST.RULES.TRIGGERS.REPORT_APPROVE]);
 }
 
 function buildForwardActions(approver: string): ApprovalWorkflowActions {
-    return toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver}]);
+    return toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver}]);
 }
 
 function buildApproveActions(): ApprovalWorkflowActions {
-    return toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT}]);
+    return toIndexMap([{name: CONST.RULES.ACTIONS.APPROVE_REPORT}]);
 }
 
 /**
@@ -1236,7 +1237,7 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
 }
 
 /** The triggers of a rule as a flat list. */
-function getRuleTriggers(rule: ApprovalWorkflowRule): Array<ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.TRIGGER>> {
+function getRuleTriggers(rule: ApprovalWorkflowRule): ApprovalWorkflowTrigger[] {
     return Object.values(rule.triggers ?? {});
 }
 
@@ -1247,17 +1248,17 @@ function getRuleActions(rule: ApprovalWorkflowRule): ApprovalWorkflowAction[] {
 
 /** True when the rule fires on report submission. */
 function isSubmitRule(rule: ApprovalWorkflowRule): boolean {
-    return getRuleTriggers(rule).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT);
+    return getRuleTriggers(rule).includes(CONST.RULES.TRIGGERS.REPORT_SUBMIT);
 }
 
 /** True when the rule approves (finalizes) the report. */
 function isApproveReportRule(rule: ApprovalWorkflowRule): boolean {
-    return getRuleActions(rule).some((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT);
+    return getRuleActions(rule).some((action) => action.name === CONST.RULES.ACTIONS.APPROVE_REPORT);
 }
 
 /** The approver a `ForwardTo` rule routes to, if any. */
 function getForwardApprover(rule: ApprovalWorkflowRule): string | undefined {
-    return getRuleActions(rule).find((action) => action.name === CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO)?.approver;
+    return getRuleActions(rule).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver;
 }
 
 /**
@@ -1460,20 +1461,6 @@ function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: s
     }
 
     return result;
-}
-
-/**
- * The `rules_` collection holds every kind of rule (approval workflows, expense defaults, ...), so anything
- * reading it has to narrow to the kind it handles. An approval workflow rule is one that fires on a report event.
- */
-function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule {
-    const approvalWorkflowTriggers: string[] = Object.values(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER);
-    const triggers = Object.values(rule.triggers ?? {});
-
-    // Every trigger has to be a report event, not just one of them. A rule that also fires on transaction
-    // creation is an expense default and is listed as one, so treating it as a workflow here would delete it
-    // along with the workflows when approvals are turned off.
-    return triggers.length > 0 && triggers.every((trigger) => approvalWorkflowTriggers.includes(trigger));
 }
 
 /**
@@ -1746,7 +1733,6 @@ export {
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
-    isApprovalWorkflowRule,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getOverLimitForwardsToDisplayName,

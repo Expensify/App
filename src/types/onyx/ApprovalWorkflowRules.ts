@@ -1,13 +1,11 @@
 import type CONST from '@src/CONST';
 
-import type {ValueOf} from 'type-fest';
-
 import type {RuleFilterNode} from './RuleFilters';
 
 /**
  * A report lifecycle event that can fire an approval-workflow rule (`ReportSubmit` or `ReportApprove`).
  */
-type ApprovalWorkflowTrigger = ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.TRIGGER>;
+type ApprovalWorkflowTrigger = typeof CONST.RULES.TRIGGERS.REPORT_SUBMIT | typeof CONST.RULES.TRIGGERS.REPORT_APPROVE;
 
 /**
  * The triggers of a rule, keyed by a string index starting at 1 (e.g. `{"1": "ReportSubmit"}`). A rule fires
@@ -18,7 +16,7 @@ type ApprovalWorkflowTriggers = Record<string, ApprovalWorkflowTrigger>;
 /**
  * The name of the action a rule performs when it matches (`ForwardTo` or `ApproveReport`).
  */
-type ApprovalWorkflowActionName = ValueOf<typeof CONST.RULES.APPROVAL_WORKFLOW.ACTION>;
+type ApprovalWorkflowActionName = typeof CONST.RULES.ACTIONS.FORWARD_TO | typeof CONST.RULES.ACTIONS.APPROVE_REPORT;
 
 /**
  * A single action a rule performs when it matches.
@@ -54,4 +52,4 @@ type ApprovalWorkflowRule = {
     isDefaultApprovalWorkflow?: boolean;
 };
 
-export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers};
+export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTrigger, ApprovalWorkflowTriggers};

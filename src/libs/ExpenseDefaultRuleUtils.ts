@@ -22,6 +22,7 @@ import type {ValueOf} from 'type-fest';
 
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
+import {getRuleFilterLeaves, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode} from './RuleUtils';
 import {toIndexMap} from './WorkflowUtils';
 
 /** The form shape the merchant rule editor round-trips a rule through. */
@@ -66,7 +67,8 @@ type RuleWithID = {
     rule: Rule & ExpenseDefaultRule;
 };
 
-const {FIELD, TRIGGER, ACTION} = CONST.RULES.EXPENSE_DEFAULT;
+const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const {EQUAL_TO, CONTAINS} = CONST.SEARCH.SYNTAX_OPERATORS;
 
 /** The order actions are written in, which fixes the numeric keys a built rule uses. */
@@ -95,30 +97,6 @@ function getRuleActionEntries(rule: Rule | ExpenseDefaultRule | undefined): Arra
 /** Lists a rule's actions. See `getRuleActionEntries`. */
 function getRuleActions(rule: Rule | ExpenseDefaultRule | undefined): Array<ExpenseDefaultAction | ApprovalWorkflowAction> {
     return getRuleActionEntries(rule).map(([, action]) => action);
-}
-
-function isRuleFilterNode(value: unknown): value is RuleFilterNode {
-    return !!value && typeof value === 'object' && 'left' in value && 'operator' in value && 'right' in value;
-}
-
-/** A leaf node compares a single field: its `left` is a field name rather than another node. */
-function isRuleFilterComparison(node: RuleFilterNode): node is RuleFilterComparison {
-    return typeof node.left === 'string';
-}
-
-/**
- * A rule is an expense default rule when it runs on transaction creation and changes at least one field.
- * This is what decides whether a rule shows up in the workspace's expense defaults list.
- */
-function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDefaultRule {
-    if (!rule) {
-        return false;
-    }
-
-    const hasCreateTransactionTrigger = Object.values(rule.triggers ?? {}).some((trigger) => trigger === TRIGGER.CREATE_TRANSACTION);
-    const hasSetAction = getRuleActions(rule).some((action) => action?.name === ACTION.SET);
-
-    return hasCreateTransactionTrigger && hasSetAction;
 }
 
 /** `GetRules` returns every rule the user can see, so callers have to narrow the collection to one policy themselves. */
@@ -347,22 +325,6 @@ function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined):
 }
 
 /**
- * Flattens a filter tree into its leaf comparisons, left to right. Used to summarize rules the editor
- * can't open, which still have to render a readable condition in the rules list.
- */
-function getRuleFilterLeaves(filters: RuleFilterNode | undefined): RuleFilterComparison[] {
-    if (!filters || !isRuleFilterNode(filters)) {
-        return [];
-    }
-
-    if (isRuleFilterComparison(filters)) {
-        return [filters];
-    }
-
-    return [...getRuleFilterLeaves(filters.left), ...getRuleFilterLeaves(filters.right)];
-}
-
-/**
  * Summarizes the merchants a rule matches on, for the condition text and the search index.
  *
  * Derived from the filter tree rather than from `getMerchantRuleFormValues`, so a rule the editor can't
@@ -476,10 +438,8 @@ export {
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
-    getRuleFilterLeaves,
     getRuleMerchantMatchSummary,
     hasExpenseDefaultRuleErrors,
     isEditableMerchantRule,
-    isExpenseDefaultRule,
     isExpenseDefaultTaxValue,
 };

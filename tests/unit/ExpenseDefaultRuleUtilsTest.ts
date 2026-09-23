@@ -5,13 +5,12 @@ import {
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
-    getRuleFilterLeaves,
     getRuleMerchantMatchSummary,
     hasExpenseDefaultRuleErrors,
-    isExpenseDefaultRule,
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Parser from '@libs/Parser';
+import {getRuleFilterLeaves, isExpenseDefaultRule} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,7 +20,8 @@ import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFil
 
 import createRandomPolicy from '../utils/collections/policies';
 
-const {FIELD, TRIGGER, ACTION} = CONST.RULES.EXPENSE_DEFAULT;
+const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
+const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const {EQUAL_TO, CONTAINS, AND, OR, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 
 const POLICY_ID = 'ABC123';
@@ -189,10 +189,10 @@ describe('ExpenseDefaultRuleUtils', () => {
             ['a filter on a field the form has no input for', {filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],
-            ['a trigger the form does not set', {triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT])}],
+            ['a trigger the form does not set', {triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.REPORT_SUBMIT])}],
             ['no triggers at all', {triggers: {}}],
             ['no actions at all', {actions: {}}],
-            ['an action the form cannot produce', {actions: toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'a@b.com'}])}],
+            ['an action the form cannot produce', {actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'a@b.com'}])}],
             ['an unknown field', {actions: toIndexMap([{name: ACTION.SET, field: 'attendees', value: 'someone'}])}],
             [
                 'two actions writing the same field',
@@ -217,13 +217,13 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
 
         it('is false for a rule with no Set action', () => {
-            const rule = asStoredRule(buildRuleWithOverrides({actions: toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'a@b.com'}])}));
+            const rule = asStoredRule(buildRuleWithOverrides({actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'a@b.com'}])}));
 
             expect(isExpenseDefaultRule(rule)).toBe(false);
         });
 
         it('is false for a rule that does not run on transaction creation', () => {
-            const rule = asStoredRule(buildRuleWithOverrides({triggers: toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT])}));
+            const rule = asStoredRule(buildRuleWithOverrides({triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT])}));
 
             expect(isExpenseDefaultRule(rule)).toBe(false);
         });
@@ -235,7 +235,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 [`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(merchantRuleBody),
                 [`${ONYXKEYS.COLLECTION.RULE}2`]: asStoredRule(merchantRuleBody, OTHER_POLICY_ID),
                 [`${ONYXKEYS.COLLECTION.RULE}3`]: asStoredRule(merchantRuleBody, '5555', CONST.RULES.SCOPE.ACCOUNT),
-                [`${ONYXKEYS.COLLECTION.RULE}4`]: asStoredRule(buildRuleWithOverrides({triggers: toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT])})),
+                [`${ONYXKEYS.COLLECTION.RULE}4`]: asStoredRule(buildRuleWithOverrides({triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT])})),
             };
 
             expect(getPolicyExpenseDefaultRules(collection, POLICY_ID)).toEqual([{ruleID: '1', rule: collection[`${ONYXKEYS.COLLECTION.RULE}1`]}]);
@@ -301,8 +301,8 @@ describe('ExpenseDefaultRuleUtils', () => {
         it('refuses an approval workflow rule that happens to share the ruleID', () => {
             const approvalWorkflowRule = asStoredRule(
                 buildRuleWithOverrides({
-                    triggers: toIndexMap([CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_SUBMIT]),
-                    actions: toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'a@b.com'}]),
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]),
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'a@b.com'}]),
                 }),
             );
 
@@ -414,7 +414,7 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
 
         it('skips actions that do not set a field', () => {
-            const rule = buildRuleWithOverrides({actions: toIndexMap([{name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'a@b.com'}])});
+            const rule = buildRuleWithOverrides({actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'a@b.com'}])});
 
             expect(getExpenseDefaultRuleSummaryFields(rule)).toEqual([]);
         });
