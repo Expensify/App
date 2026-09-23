@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, mark all as read, clear unread chats, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, how to filter and clear the Inbox using the Inbox tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -14,12 +14,12 @@ This guide explains where to find each tab and what it’s used for.
 If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
 
 **For workspace admins:**
-- [interactive web tour for Workspace Admins](https://expensify.storylane.io/share/qlgnexxbsdtp)
+- [interactive web tour for Workspace Admins](https://expensify.storylane.io/share/rbncowjn0nav)
 - [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 **For submitters and approvers:**
-- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/qlgnexxbsdtp)
-- [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/qbbob6zvapqo)
+- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/rbncowjn0nav)
+- [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/em54uaq7wbgk)
 
 
 You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
@@ -86,25 +86,33 @@ Purpose: Show users where the filter tabs appear and what the count badge looks 
 
 ---
 
-## How to mark all Inbox chats as read
+## How to mark all chats as read from the Inbox tabs
 
-You can clear your unread chats in bulk from any of the three Inbox tabs.
+You can clear your unread messages in one step from any of the **Inbox** tabs.
 
-1. Open the **Inbox** tab from the navigation tabs (on the left on web, on the bottom on mobile).
-2. Right-click the **All**, **Unread**, or **To-dos** tab on web, or long-press the tab on mobile.
-3. Select **Mark all as read**.
-4. Select **Mark all as read** again to confirm, or select **Cancel** to keep your chats unread.
+**Web:**
 
-Which chats are marked as read depends on the tab you use:
+1. Right-click **All**, **Unread**, or **To-dos** at the top of the **Inbox**.
+2. Select **Mark all as read**.
+3. Select **Mark all as read** again to confirm, or select **Cancel** to keep your messages unread.
 
-- **All** — Marks every unread chat as read.
-- **Unread** — Marks every unread chat as read.
-- **To-dos** — Marks only the chats listed under **To-dos** as read. Unread chats outside **To-dos** stay unread.
+**Mobile:**
+
+1. Long-press **All**, **Unread**, or **To-dos** at the top of the **Inbox**.
+2. Tap **Mark all as read**.
+3. Tap **Mark all as read** again to confirm, or tap **Cancel** to keep your messages unread.
+
+Which chats are marked as read depends on the tab you used:
+
+- **All** and **Unread** — Marks every unread chat as read.
+- **To-dos** — Marks only the chats listed in **To-dos** as read.
+
+If you have unread messages that are more than three months old, a tip appears next to the **Unread** count badge pointing you to this shortcut. You can dismiss the tip, and it reappears at most once a week.
 
 <!-- SCREENSHOT:
-Suggestion: The Inbox tab row with the "Mark all as read" menu open above one of the tabs
-Location: After the "How to mark all Inbox chats as read" section
-Purpose: Show users how to open the Mark all as read menu from an Inbox tab
+Suggestion: The Inbox tab row with the Mark all as read menu open after right-clicking the Unread tab
+Location: After the "How to mark all chats as read from the Inbox tabs" section
+Purpose: Show that Mark all as read is only reachable by right-clicking or long-pressing a tab, which members cannot discover from the tab row alone
 -->
 
 ---
@@ -221,12 +229,8 @@ If you’re not sure where to go:
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
 1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, **Domains**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
-
-**Insights** only appears in the results if Insights is available to your account.
-
-[Learn more about Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
 
@@ -243,15 +247,19 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 ## Can I use Search to move between sections of Expensify?
 
-Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, **Domains**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
-## Why don't I see Go to Insights in Search?
+## How do I clear all my unread messages at once?
 
-**Go to Insights** only appears if Insights is available to your account. If it isn't, open **Spend** in the navigation tabs and scroll to **Insights** instead.
+Right-click (web) or long-press (mobile) **All**, **Unread**, or **To-dos** at the top of the **Inbox**, select **Mark all as read**, then confirm.
 
-## Does Mark all as read from the To-dos tab clear my other unread chats?
+## Does Mark all as read clear my to-do chats too?
 
-No. **Mark all as read** from the **To-dos** tab only marks the chats listed under **To-dos** as read. Use the **All** or **Unread** tab to mark every unread chat as read.
+It depends on the tab you use. From **All** or **Unread**, every unread chat is marked as read. From **To-dos**, only the chats listed in **To-dos** are marked as read.
+
+## Why do I see a tip about Mark all as read next to the Unread tab?
+
+The tip appears when you have unread messages that are more than three months old. Dismiss it to hide it; it reappears at most once a week.
 
 ## Where do I manage workspace settings?
 
