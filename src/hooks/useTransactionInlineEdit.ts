@@ -11,6 +11,7 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
@@ -147,7 +148,6 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -217,7 +217,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow ?? false,
             conciergeChat,
             distanceOriginalPolicy,
-            personalDetailsList,
+            // Read when an edit happens rather than subscribed: every Search row runs this hook, and the personal details
+            // list changes with most report opens, which re-rendered every row for data only an edit action consumes.
+            personalDetailsList: getAllPersonalDetails(),
             delegateAccountID,
             isTrackIntentUser,
             getCurrencyDecimals,

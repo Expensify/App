@@ -7,7 +7,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, getSuggestedSearchesVisibility, isTodoSearch} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +65,9 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
+    // A to-do search shows live Onyx data instead of the snapshot, so its rows stay fresh as the user acts on reports.
+    const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentSearchQueryJSON?.recentSearchHash ?? -1, suggestedSearches);
+
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
         currentSimilarSearchHash,
@@ -74,6 +77,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         currentDefaultSearchQueryFilterKeys,
         suggestedSearches,
         shouldResetSearchQuery,
+        shouldUseLiveData,
     };
 
     const queryActionsValue: SearchQueryActionsValue = {

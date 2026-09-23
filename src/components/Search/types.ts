@@ -202,6 +202,11 @@ type SearchQueryContextValue = {
     currentDefaultSearchQueryFilterKeys: Set<QueryFilterKey>;
     suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;
+    /**
+     * Whether the current query is a to-do search, whose results come from live Onyx data instead of the snapshot. It is a
+     * property of the query, and it lives here so `useOnyx` can read it without subscribing to the results context.
+     */
+    shouldUseLiveData: boolean;
 };
 
 type SearchQueryActionsValue = {
@@ -224,6 +229,8 @@ type SearchResultsActionsValue = {
     setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
+    /** The latest results for code that needs them at call time (event handlers) without subscribing to every write. */
+    getCurrentSearchResults: () => SearchResults | undefined;
 };
 
 type SearchSelectionContextValue = {

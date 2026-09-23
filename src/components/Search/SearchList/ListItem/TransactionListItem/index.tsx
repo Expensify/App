@@ -5,7 +5,7 @@ import {
     useOpenReportSubmitToPopover,
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
-import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLiveRowCapabilities';
 import type {ListItem} from '@components/SelectionList/types';
@@ -41,6 +41,7 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -56,6 +57,10 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import TransactionListItemNarrow from './TransactionListItemNarrow';
 import TransactionListItemWide from './TransactionListItemWide';
+
+// Stable fallbacks: a fresh `{}` per render would hand the row's subtree a new object on every render.
+const EMPTY_REPORT = getEmptyObject<Report>();
+const EMPTY_POLICY = getEmptyObject<Policy>();
 
 function TransactionListItem<TItem extends ListItem>(props: TransactionListItemProps<TItem>) {
     const reportID = 'reportID' in props.item && typeof props.item.reportID === 'string' ? props.item.reportID : undefined;
@@ -96,9 +101,14 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
+    // The whole results map is only needed where an action has to look up arbitrary entries (row capabilities, opening
+    // the thread). Everything the row itself displays is read per key below, so a snapshot write that leaves this row's
+    // report, policy and actions unchanged keeps their identity and the row's subtree bails out.
     const {currentSearchResults} = useSearchResultsContext();
     const snapshotData = currentSearchResults?.data;
-    const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
+    const {getCurrentSearchResults} = useSearchResultsActions();
+    const [snapshotReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const snapshotReport = snapshotReportEntry ?? EMPTY_REPORT;
 
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`, {selector: isActionLoadingSelector});
     const [activePolicyIDFromOnyx] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -119,9 +129,10 @@ function TransactionListItemInner<TItem extends ListItem>({
         policyID = policyForMovingExpensesID;
     }
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
-    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
+    const [snapshotPolicyEntry] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(transactionItem.policyID)}`);
+    const snapshotPolicy = snapshotPolicyEntry ?? EMPTY_POLICY;
 
-    const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
+    const [actionsData] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const reportActions = actionsData ? Object.values(actionsData) : [];
 
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
@@ -145,7 +156,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [parentChatReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(chatReportID)}`);
     // Fall back to the search snapshot when the chat report isn't in live Onyx yet (e.g. offline or not fetched),
     // matching the grouped-report path in ReportListItemHeader so the Pay flow can still resolve the chat report.
-    const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+    const [snapshotChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(chatReportID)}`);
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
     const {
@@ -259,7 +270,9 @@ function TransactionListItemInner<TItem extends ListItem>({
             activePolicy,
             chatReport,
             chatReportPolicy,
-            searchData: currentSearchResults?.data,
+            // Read at click time: closing over the results would give this handler, and every cell below it, a new
+            // identity on each snapshot write.
+            searchData: getCurrentSearchResults()?.data,
             chatReportActions,
             delegateEmail,
             delegateAccountID,

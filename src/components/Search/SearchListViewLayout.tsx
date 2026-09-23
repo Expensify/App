@@ -1,3 +1,4 @@
+import useStableValueReference from '@hooks/useStableValueReference';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -88,7 +89,7 @@ function SearchListViewLayout({
 
     const {tableWidthRef, tableWidth, onTableLayout} = useSearchTableWidth();
 
-    const columnWidths = useSearchColumnWidths({
+    const measuredColumnWidths = useSearchColumnWidths({
         columns,
         data: data ?? [],
         tableWidth,
@@ -97,6 +98,9 @@ function SearchListViewLayout({
         columnSizeOptions,
         measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
     });
+    // The measurement rebuilds its result whenever the rows change. Equal widths keep the previous object, so the
+    // column-width context below does not re-render every row for a data change that moved no column.
+    const columnWidths = useStableValueReference(measuredColumnWidths);
 
     // The scroller decides whether to scroll by summing what each column refuses to shrink below, which it otherwise has
     // to estimate. Every minimum it can be told exactly is resolved here instead: a dynamic column measured its own, and

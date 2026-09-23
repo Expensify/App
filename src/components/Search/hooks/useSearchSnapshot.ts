@@ -28,8 +28,10 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {useMemo} from 'react';
 
+import areSearchRowsEqual from './areSearchRowsEqual';
 import useLiveFilteredReportActions from './useLiveFilteredReportActions';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
+import useStableItemIdentity from './useStableItemIdentity';
 import useStableOptimisticSortedData from './useStableOptimisticSortedData';
 
 type OptimisticTrackingReturn = ReturnType<typeof useOptimisticSearchTracking>;
@@ -382,6 +384,10 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     // OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
     const {stableSortedData, hasCachedOptimisticItem} = useStableOptimisticSortedData(chartData, searchResults, trackingState);
 
+    // A snapshot write rebuilds every row object above. Rows whose data did not change get their previous object back,
+    // so FlashList re-renders only the rows that actually changed.
+    const data = useStableItemIdentity(stableSortedData, areSearchRowsEqual);
+
     // Not memoized: unlike the data chain above, `columns` is not part of the render loop, and its
     // reference is already stabilized downstream by `columnsToShow` in <Search> (which preserves the
     // previous array when contents are equal). The compiler leaves this fresh per render, which is fine.
@@ -414,7 +420,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
           });
 
     return {
-        data: stableSortedData,
+        data,
         chartData,
         filteredData,
         filteredDataLength,

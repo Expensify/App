@@ -57,6 +57,7 @@ const defaultSearchContext: SearchQueryContextValue = {
     currentDefaultSearchQueryFilterKeys: new Set(),
     suggestedSearches: getSuggestedSearches(),
     shouldResetSearchQuery: false,
+    shouldUseLiveData: false,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {

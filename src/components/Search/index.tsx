@@ -1078,6 +1078,37 @@ function Search({
         [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
     );
 
+    const isActionColumnWide = isTask || hasDeletedTransaction;
+
+    // The same flags the column header is built from, so a row and its heading can't disagree about how wide a column
+    // is. Memoized (this file is not compiled by React Compiler) because the column-width provider under the list
+    // derives its context value from this object, and a fresh object on every Search render would re-render every row
+    // through that context. Declared before the early returns below so the hook order is stable.
+    const columnSizeOptions = useMemo<GetReportTableColumnStylesParams>(
+        () => ({
+            isActionColumnWide,
+            isDateColumnWide: yearIndicators.shouldShowYearCreated,
+            isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
+            isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
+            isPostedColumnWide: yearIndicators.shouldShowYearPosted,
+            isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
+            isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
+        }),
+        [
+            isActionColumnWide,
+            yearIndicators.shouldShowYearCreated,
+            yearIndicators.shouldShowYearSubmitted,
+            yearIndicators.shouldShowYearApproved,
+            yearIndicators.shouldShowYearPosted,
+            yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearWithdrawn,
+            amountIndicators.shouldShowAmountInWideColumn,
+            amountIndicators.shouldShowTaxAmountInWideColumn,
+        ],
+    );
+
     // When heavy work is deferred (e.g. during the RHP dismiss animation after
     // submitting an expense), skip the expensive render below. The ancestor
     // SearchPage (via SearchPageNarrow / SearchPageWide) renders a SearchStaticList
@@ -1275,7 +1306,7 @@ function Search({
                 shouldShowSorting
                 groupBy={validGroupBy}
                 isExpenseReportView={isExpenseReportType}
-                isActionColumnWide={isTask || hasDeletedTransaction}
+                isActionColumnWide={isActionColumnWide}
             />
         </View>
     );
@@ -1290,20 +1321,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
-    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide: isTask || hasDeletedTransaction,
-        isDateColumnWide: shouldShowYearCreated,
-        isSubmittedColumnWide: shouldShowYearSubmitted,
-        isApprovedColumnWide: shouldShowYearApproved,
-        isPostedColumnWide: shouldShowYearPosted,
-        isExportedColumnWide: shouldShowYearExported,
-        isWithdrawnColumnWide: shouldShowYearWithdrawn,
-        isAmountColumnWide: shouldShowAmountInWideColumn,
-        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-    };
 
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
@@ -1323,7 +1340,7 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
-        isActionColumnWide: isTask || hasDeletedTransaction,
+        isActionColumnWide,
         columnSizeOptions,
     };
 

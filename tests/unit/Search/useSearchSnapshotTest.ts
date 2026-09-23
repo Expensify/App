@@ -430,4 +430,69 @@ describe('useSearchSnapshot', () => {
         expect(result.current.chartData).toBe(firstChartData);
         expect(result.current.data).toBe(firstData);
     });
+
+    describe('row identity across snapshot rebuilds', () => {
+        const makeProps = (searchResults: SearchResults) => ({
+            queryJSON: makeQueryJSON(),
+            searchResults,
+            newSearchResultKeys: undefined,
+            transactions: undefined,
+            reportActions: undefined,
+        });
+
+        // getSections rebuilds every row object from a new snapshot, so a second render hands the hook fresh objects
+        // even for rows whose data is the same. The hook must give those rows their previous object back.
+        function renderWithRows(firstRows: unknown[], secondRows: unknown[]) {
+            const firstResults = makeSearchResults();
+            mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(firstResults.data));
+            mockGetSections.mockReturnValue([firstRows, firstRows.length, false]);
+            mockGetSortedSections.mockReturnValue(firstRows);
+
+            const {result, rerender} = renderHook((props: ReturnType<typeof makeProps>) => useSearchSnapshot(props), {initialProps: makeProps(firstResults)});
+            const firstData = result.current.data;
+
+            const secondResults = makeSearchResults();
+            mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(secondResults.data));
+            mockGetSections.mockReturnValue([secondRows, secondRows.length, false]);
+            mockGetSortedSections.mockReturnValue(secondRows);
+            rerender(makeProps(secondResults));
+
+            return {firstData, secondData: result.current.data};
+        }
+
+        it('keeps the object identity of rows whose data did not change when another row changes', () => {
+            const unchangedRow = {transactionID: '1', keyForList: '1', amount: 100};
+            const changedRow = {transactionID: '2', keyForList: '2', amount: 200};
+            const rebuiltUnchangedRow = {...unchangedRow};
+            const rebuiltChangedRow = {...changedRow, amount: 250};
+
+            const {firstData, secondData} = renderWithRows([unchangedRow, changedRow], [rebuiltUnchangedRow, rebuiltChangedRow]);
+
+            // The projection stages copy every row (they stamp the hash and the highlight flag), so identity is compared
+            // between the two renders' outputs rather than against the raw mock rows.
+            expect(secondData).not.toBe(firstData);
+            expect(secondData.at(0)).toBe(firstData.at(0));
+            expect(secondData.at(1)).not.toBe(firstData.at(1));
+            expect(secondData.at(1)).toMatchObject({keyForList: '2', amount: 250});
+        });
+
+        it('keeps the array itself when no row changed', () => {
+            const rowA = {transactionID: '1', keyForList: '1', amount: 100};
+            const rowB = {transactionID: '2', keyForList: '2', amount: 200};
+
+            const {firstData, secondData} = renderWithRows([rowA, rowB], [{...rowA}, {...rowB}]);
+
+            expect(secondData).toBe(firstData);
+        });
+
+        it('hands out the new object when a row changes its data', () => {
+            const rowA = {transactionID: '1', keyForList: '1', amount: 100};
+            const rebuiltRowA = {...rowA, amount: 150};
+
+            const {firstData, secondData} = renderWithRows([rowA], [rebuiltRowA]);
+
+            expect(secondData.at(0)).not.toBe(firstData.at(0));
+            expect(secondData.at(0)).toMatchObject({keyForList: '1', amount: 150});
+        });
+    });
 });
