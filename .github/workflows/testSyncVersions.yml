@@ -27,4 +27,4 @@ jobs:
       # The single-file form documented in tests/tooling/README.md. Both --preload flags come from the
       # `test:bun` script, which can't be reused here because it hardcodes the whole tests/tooling root.
       - name: Bun tests
-        run: TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/SyncVersions.test.ts
+        run: TZ=utc npx bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/SyncVersions.test.ts
