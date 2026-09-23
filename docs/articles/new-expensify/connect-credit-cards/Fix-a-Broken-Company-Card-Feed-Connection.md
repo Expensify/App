@@ -14,13 +14,12 @@ When a company card connection breaks, transactions stop importing. Workspace Ad
 
 Workspace Admins see indicators in Expensify when a company card feed is broken: 
 
-- A notification appears in the **Time Sensitive** section on **Home**.
+- A notification appears in the **Time sensitive** section on **Home**.
 - Concierge sends a message to the #admins room
 - A red dot appears on the card feed with the message “Card feed connection is broken”
+- An expense with an imported card receipt shows a pending message that the bank connection is broken or needs re-authentication
 
-Members who are assigned a card from the broken feed see an **Inactive** badge on that card in **Account > Wallet**. Admins see the message **Please fix this connection in company cards**, which links to **Company cards** for that workspace. Members who are not admins see **Please ask an admin to fix this connection**.
-
-These reminders appear while the connection has recently broken. If a company card feed has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on the workspace row stop showing. The “Card feed connection is broken” banner remains on the **Company cards** page for direct (bank-connected) feeds, so a Workspace Admin can still reconnect the feed at any time.
+These reminders appear while the connection has recently broken. If a company card feed has gone 90 days or more without a successful sync, the **Time sensitive** notification on **Home** and the red dot on the workspace row stop showing. The “Card feed connection is broken” banner remains on the **Company cards** page for direct (bank-connected) feeds, so a Workspace Admin can still reconnect the feed at any time.
 
 ---
 
@@ -63,6 +62,10 @@ If you see an error while reconnecting, use the guidance below:
  - **What it means:** Temporary downtime or maintenance from your bank or connection provider
  - **What to do:** Wait and try again later
 
+**Error: Bank connection needs re-authentication**
+ - **What it means:** Your bank requires you to re-authenticate the connection before transactions can resume importing. Until you reconnect, affected expenses show a pending message that the bank connection needs re-authentication.
+ - **What to do:** Go to **Company cards**, select the affected card feed, and follow the prompts to reconnect and restore the connection.
+
 ---
 
 ## What happens after you fix a company card connection
@@ -100,5 +103,5 @@ Double-check your bank credentials by logging into your bank, and complete any r
 
 ## Why did the Home notification and workspace red dot disappear while the feed is still broken?
 
-If a company card feed has gone 90 days or more without a successful sync, Expensify stops showing the proactive reminders — the **Time Sensitive** notification on **Home** and the red dot on the workspace row. For direct (bank-connected) feeds, the “Card feed connection is broken” banner stays on the **Company cards** page, so a Workspace Admin can still reconnect the feed and clear the error whenever they're ready.
+If a company card feed has gone 90 days or more without a successful sync, Expensify stops showing the proactive reminders — the **Time sensitive** notification on **Home** and the red dot on the workspace row. For direct (bank-connected) feeds, the “Card feed connection is broken” banner stays on the **Company cards** page, so a Workspace Admin can still reconnect the feed and clear the error whenever they're ready.
 
