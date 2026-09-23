@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
-index 66436ac..bca8b6e 100644
+index b82bdab..2a63b6b 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
 +++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
-@@ -581,8 +581,13 @@
+@@ -580,8 +580,13 @@
    auto surfaceId = transaction.getSurfaceId();
    auto& mutations = transaction.getMutations();
  
