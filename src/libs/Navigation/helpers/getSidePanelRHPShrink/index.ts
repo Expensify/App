@@ -1,0 +1,17 @@
+import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink';
+
+// eslint-disable-next-line no-restricted-imports
+import type {Animated} from 'react-native';
+
+/** Room the super wide RHP gives the Side Panel, capped at the spare above the wide RHP width so the card never clips its own panes. */
+function getSidePanelRHPShrink(sidePanelOffset: Animated.Value, windowWidth: number) {
+    const paneSpare = calculateMaxSidePanelRHPShrink(windowWidth);
+    const cap = Math.max(paneSpare, 1);
+
+    return sidePanelOffset.interpolate({
+        inputRange: [0, cap, cap + 1],
+        outputRange: [0, paneSpare, paneSpare],
+    });
+}
+
+export default getSidePanelRHPShrink;

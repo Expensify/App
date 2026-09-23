@@ -40,32 +40,42 @@ function readAnimatedValue(width: unknown) {
 
 describe('getRHPFrameStyle', () => {
     it('gives a standalone web RHP a floating card whose width absorbs the border', () => {
-        const style = getRHPFrameStyleWeb({styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: false, shouldUseCenteredFrame: false});
+        // Given one RHP card on web with nothing stacked on or under it, the only case where the frame itself has to look like a card
+        const params = {styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: false, shouldUseCenteredFrame: false};
 
+        // When the frame style is built for it
+        const style = getRHPFrameStyleWeb(params);
+
+        // Then it gets the floating card with the width absorbing the border, because the card is border-box and its fixed-width panes clip without the compensation.
         expect(style).toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.RHPCenteredFrame);
         expect(style).not.toContain(styles.r0);
-
-        // Border-box card: the frame is wider than the RHP by its border on both sides, or the wide RHP's fixed-width panes clip.
         expect(readAnimatedValue(getWidth(style))).toBe(RHP_WIDTH + 2 * variables.rhpFloatingCardBorderWidth);
     });
 
     it('gives the stacked report flow an invisible frame that neither clips nor compensates for a border', () => {
+        // Given a report with an expense stacked on top, where every card draws its own border and shadow and the frame only has to position them
         const animatedWidth = buildAnimatedWidth();
+        const params = {styles, animatedWidth, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true};
 
-        const style = getRHPFrameStyleWeb({styles, animatedWidth, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true});
+        // When the frame style is built for it
+        const style = getRHPFrameStyleWeb(params);
 
+        // Then the frame stays invisible, unclipped and at the animated width untouched, since each card draws its own border and shadow and the frame has none to absorb.
         expect(style).toContain(styles.RHPCenteredFrame);
         expect(style).not.toContain(styles.RHPFloatingCard);
-        // The cards draw their own border and shadow, so the frame must not clip.
         expect(style).not.toContain(styles.overflowHidden);
-        // The frame has no border of its own, so the width is the RHP width untouched.
         expect(getWidth(style)).toBe(animatedWidth);
     });
 
     it('keeps the web narrow layout full-bleed', () => {
-        const style = getRHPFrameStyleWeb({styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: true, shouldUseCenteredFrame: true});
+        // Given a phone-width window, where the RHP is the whole viewport and there is nothing to float or dim beside it
+        const params = {styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: true, shouldUseCenteredFrame: true};
 
+        // When the frame style is built on web
+        const style = getRHPFrameStyleWeb(params);
+
+        // Then it covers the viewport edge to edge, because a floating card here would leave the dimmed margins of the desktop layout hanging around a full screen sheet.
         expect(style).toContain(styles.r0);
         expect(style).toContain(styles.h100);
         expect(style).not.toContain(styles.RHPFloatingCard);
@@ -74,15 +84,18 @@ describe('getRHPFrameStyle', () => {
     });
 
     it('keeps native full-bleed and leaves the width untouched', () => {
+        // Given the same wide window on native, where the floating card treatment does not exist at all
         const animatedWidth = buildAnimatedWidth();
+        const params = {styles, animatedWidth, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true};
 
-        const style = getRHPFrameStyleNative({styles, animatedWidth, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true});
+        // When the native frame style is built for it
+        const style = getRHPFrameStyleNative(params);
 
+        // Then it stays full-bleed with the animated width passed through untouched, because native draws no card border that would need absorbing into the width.
         expect(style).toContain(styles.r0);
         expect(style).toContain(styles.h100);
         expect(style).not.toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.RHPCenteredFrame);
-        // Native gets no border, so the width must be the animated RHP width itself and not a compensated copy of it.
         expect(getWidth(style)).toBe(animatedWidth);
     });
 });
@@ -93,8 +106,13 @@ describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
     const mfaParams = {styles, shouldUseNarrowLayout: false, shouldUseCenteredFrame: false} as const;
 
     it('floats the panel as a card on wide web', () => {
-        const style = getRHPFrameStyleWeb({...mfaParams, animatedWidth: buildMfaPanelWidth()});
+        // Given the two-factor security-code panel on web, which measured 65px narrower than the RHP cards beside it because it sized off the sidebar width instead of variables.rhpWidth
+        const params = {...mfaParams, animatedWidth: buildMfaPanelWidth()};
 
+        // When the frame style is built for it
+        const style = getRHPFrameStyleWeb(params);
+
+        // Then it floats like any other RHP card, border included, so it lines up with the skinny cards behind it instead of standing out as a narrower panel.
         expect(style).toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.r0);
         expect(style).not.toContain(styles.h100);
@@ -103,10 +121,14 @@ describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
     });
 
     it('keeps the panel full-bleed on native', () => {
+        // Given the same panel on native, where the RHP slides in over the whole screen
         const animatedWidth = buildMfaPanelWidth();
+        const params = {...mfaParams, animatedWidth};
 
-        const style = getRHPFrameStyleNative({...mfaParams, animatedWidth});
+        // When the native frame style is built for it
+        const style = getRHPFrameStyleNative(params);
 
+        // Then it keeps the full-bleed panel the apps shipped with, at the width it was given, so the web floating card treatment cannot leak into native layouts.
         expect(style).toContain(styles.r0);
         expect(style).toContain(styles.h100);
         expect(style).not.toContain(styles.RHPFloatingCard);
@@ -114,8 +136,13 @@ describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
     });
 
     it('keeps the panel full width on a narrow layout', () => {
-        const style = getRHPFrameStyleWeb({...mfaParams, shouldUseNarrowLayout: true, animatedWidth: buildMfaPanelWidth()});
+        // Given the panel opened on a phone-width window, where it is the only thing on screen
+        const params = {...mfaParams, shouldUseNarrowLayout: true, animatedWidth: buildMfaPanelWidth()};
 
+        // When the web frame style is built for it
+        const style = getRHPFrameStyleWeb(params);
+
+        // Then it fills the viewport, because at that width there is no card behind it to float above.
         expect(style).toContain(styles.r0);
         expect(style).toContain(styles.h100);
         expect(style).not.toContain(styles.RHPFloatingCard);

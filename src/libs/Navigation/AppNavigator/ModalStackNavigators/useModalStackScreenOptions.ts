@@ -10,7 +10,7 @@ import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceC
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
-import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink';
+import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import CONST from '@src/CONST';
@@ -51,12 +51,7 @@ function useWideModalStackScreenOptions() {
                 // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
                 // left edge stays put instead of being pushed off-screen, capped at what its panes can spare
                 // so the card never clips its own content. See https://github.com/Expensify/App/issues/99035
-                const paneSpare = calculateMaxSidePanelRHPShrink(windowWidth);
-                const shrinkCap = Math.max(paneSpare, 1);
-                const sidePanelShrink = sidePanelOffset.current.interpolate({
-                    inputRange: [0, shrinkCap, shrinkCap + 1],
-                    outputRange: [0, paneSpare, paneSpare],
-                });
+                const sidePanelShrink = getSidePanelRHPShrink(sidePanelOffset.current, windowWidth);
 
                 // Cards draw their own frame, so the container must not clip them.
                 if (superWideRHPRouteKeys.includes(route.key)) {
