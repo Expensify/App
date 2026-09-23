@@ -227,7 +227,7 @@ describe('QuickCreationActionsBar - button identifiers', () => {
     });
 
     beforeEach(async () => {
-        // Given a travel-enabled default workspace, so that all four buttons — including Travel — are rendered
+        // Given a travel-enabled default workspace, so that all four buttons including Travel are rendered
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin: CURRENT_USER_EMAIL});
@@ -287,7 +287,7 @@ describe('QuickCreationActionsBar - button identifiers', () => {
         fireEvent.press(screen.getByTestId(CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.BOOK_TRAVEL));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the existing behavior is unchanged — adding identifiers did not rewire the handlers
+        // Then the existing behavior is unchanged because adding identifiers did not rewire the handlers
         expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
     });
 });
