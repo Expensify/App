@@ -426,7 +426,8 @@ function getFreeTrialText(
         return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return translate('subscription.billingBanner.trialStarted.title', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
+        // Badges have less room than the billing banner, so they drop the "Trial:" prefix and show only the remaining days.
+        return translate('subscription.billingBanner.trialStarted.badgeTitle', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
     }
 
     return undefined;
