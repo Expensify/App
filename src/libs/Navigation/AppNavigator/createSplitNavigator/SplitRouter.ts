@@ -79,12 +79,12 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const routes = [...stateWithoutMarker.routes];
     let modified = stateWithoutMarker !== state;
 
+    // A side modal (RHP) is drawn on top of the full screen route instead of replacing it, so it must not be counted as a root route here.
+    const hasSingleFullScreenRootRoute = rootState?.routes.filter((route) => !isSideModalNavigator(route.name)).length === 1;
+
     // Despite the name, this is true for any navigation while TAB_NAVIGATOR is the only full screen root route, not only during app startup.
-    // Side modals (RHP) are displayed on top of the full screen route instead of replacing it, so they must not be counted here.
-    // Otherwise a deep link that opens an RHP over a freshly created split navigator (e.g. /r/<reportID>/details) suppresses the
-    // sidebar on a narrow layout, which leaves the screen underneath with nothing to go back to.
     // `shouldSkipInitialSidebar` lets a direct narrow-layout navigation opt out while wide layouts continue to keep the sidebar.
-    const isInitialRoute = !rootState || rootState.routes.filter((route) => !isSideModalNavigator(route.name)).length === 1;
+    const isInitialRoute = !rootState || hasSingleFullScreenRootRoute;
     const shouldSplitHaveSidebar = (isInitialRoute && !shouldSkipInitialSidebar) || !isNarrowLayout;
 
     // If the screen is wide, there should be at least two screens inside:
