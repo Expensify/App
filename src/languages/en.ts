@@ -2293,7 +2293,7 @@ const translations = {
         profileAvatar: 'Profile avatar',
         customInstructions: 'Custom instructions',
         copilotIntoAccount: 'Copilot into account',
-        viewUserHistory: 'View user history',
+        viewMemberHistory: 'View member history',
         viewAgentHistory: 'View agent history',
         publicSection: {
             title: 'Public',

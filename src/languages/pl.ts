@@ -2215,7 +2215,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Awatar profilu',
         customInstructions: 'Niestandardowe instrukcje',
         copilotIntoAccount: 'Copilot do konta',
-        viewUserHistory: 'Zobacz historię użytkownika',
+        viewMemberHistory: 'Zobacz historię członka',
         viewAgentHistory: 'Zobacz historię agenta',
         publicSection: {
             title: 'Public',
