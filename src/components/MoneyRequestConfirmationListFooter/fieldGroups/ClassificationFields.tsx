@@ -140,7 +140,6 @@ function ClassificationFields({
                     action={action}
                     iouType={iouType}
                     reportID={reportID}
-                    reportActionID={reportActionID}
                 />
             )}
 

@@ -1,6 +1,6 @@
 import Badge from '@components/Badge';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -38,27 +40,45 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
     const subRates = getSubratesFields(perDiemCustomUnit, transaction);
     const shouldDisplaySubrateError = (shouldDisplayFieldError || formError === 'iou.error.invalidSubrateLength') && (subRates.length === 0 || (subRates.length === 1 && !subRates.at(0)));
 
-    const subRateFields = subRates.map((field, index) => (
-        <MenuItemWithTopDescription
-            key={`${translate('common.subrate')}${field?.key ?? index}`}
-            shouldShowRightIcon={!isReadOnly}
-            title={getSubratesForDisplay(field, translate('iou.qty'))}
-            description={translate('common.subrate')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
+    const subRateFields = subRates.map((field, index) => {
+        const shouldShowError = index === 0 && shouldDisplaySubrateError;
+
+        return (
+            <MenuItem.Root
+                key={`${translate('common.subrate')}${field?.key ?? index}`}
+                onPress={
+                    !isReadOnly
+                        ? callFunctionIfActionIsAllowed(() => {
+                              if (!transactionID) {
+                                  return;
+                              }
+                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(index)));
+                          })
+                        : undefined
                 }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(index)));
-            }}
-            disabled={didConfirm}
-            interactive={!isReadOnly}
-            brickRoadIndicator={index === 0 && shouldDisplaySubrateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={index === 0 && shouldDisplaySubrateError ? translate('common.error.fieldRequired') : ''}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SUBRATE_FIELD}
-        />
-    ));
+                isDisabled={didConfirm}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SUBRATE_FIELD}
+            >
+                <MenuItemField.Row
+                    name={translate('common.subrate')}
+                    value={getSubratesForDisplay(field, translate('iou.qty'))}
+                >
+                    {(shouldShowError || !isReadOnly) && (
+                        <>
+                            {shouldShowError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            {!isReadOnly && <MenuItem.Chevron />}
+                        </>
+                    )}
+                </MenuItemField.Row>
+                {shouldShowError && (
+                    <MenuItem.HelpText
+                        isError
+                        message={translate('common.error.fieldRequired')}
+                    />
+                )}
+            </MenuItem.Root>
+        );
+    });
 
     const {firstDay, tripDays, lastDay} = getTimeDifferenceIntervals(transaction);
 
