@@ -17,7 +17,6 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -95,7 +94,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {showConfirmModal} = useConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const defaultFundID = useDefaultFundID(policyID);
     const [personalDetails] = useAllPersonalDetails();
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
@@ -261,22 +259,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     onRenameName: (newName: string) => renameExpensifyCardInline(fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? ''),
                     onChangeLimitType: (newLimitType: CardLimitType) => changeCardLimitType(card, newLimitType),
                     onChangeLimit: (newLimit: string) => changeCardLimit(card, newLimit),
-                    onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
+                    onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
                 };
             }),
-        [
-            allCards,
-            canWriteExpensifyCard,
-            changeCardLimit,
-            changeCardLimitType,
-            defaultFundID,
-            fundID,
-            isSelectionModeActive,
-            personalDetails,
-            settlementCurrency,
-            translate,
-            formatPhoneNumber,
-        ],
+        [allCards, canWriteExpensifyCard, changeCardLimit, changeCardLimitType, fundID, isSelectionModeActive, personalDetails, settlementCurrency, translate, formatPhoneNumber],
     );
 
     const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [
