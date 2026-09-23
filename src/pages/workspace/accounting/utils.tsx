@@ -37,6 +37,7 @@ import React from 'react';
 
 import type {AccountingIntegration} from './types';
 
+import {isCertiniaFFAConnection} from './certinia/utils';
 import {
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
@@ -435,9 +436,12 @@ function getAccountingIntegrationData(
                       CONST.CERTINIA_CONFIG.CODING_DIMENSION4,
                       CONST.CERTINIA_CONFIG.SYNC_TAX,
                   ];
-            const certiniaSubscribedAdvancedSettings = certiniaConfig?.hasPSA
-                ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
-                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS];
+            const certiniaSubscribedAdvancedSettings = [
+                ...(certiniaConfig?.hasPSA
+                    ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
+                    : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS]),
+                ...(isCertiniaFFAConnection(certiniaConfig) ? [CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT] : []),
+            ];
             let certiniaTitle = translate('workspace.certinia.title');
             if (certiniaConnection && certiniaConfig?.hasPSA) {
                 certiniaTitle = translate('workspace.certinia.titlePSA');
@@ -597,7 +601,7 @@ function getAccountingIntegrationData(
                     CONST.CAMPFIRE_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.campfire?.data?.fields?.map((field) => `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.CAMPFIRE_CONFIG.EXPORTER,
                     CONST.CAMPFIRE_CONFIG.EXPORT_DATE,

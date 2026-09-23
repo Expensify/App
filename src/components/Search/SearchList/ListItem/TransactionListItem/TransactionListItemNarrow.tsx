@@ -6,7 +6,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -16,6 +16,7 @@ import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlight
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -50,7 +51,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
@@ -82,11 +83,10 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     // The animated style is applied inline, so the `borderRadius: 0` it carries wins over the static
     // `tableTopRadius`/`tableBottomRadius` on the wrapper below. Skip it for the first and last rows only,
     // so every other row keeps its existing (already square) behavior.
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected,
+        borderRadius: 0,
         shouldApplyOtherStyles: !isFirstItem && !isLastItem,
     });
 
