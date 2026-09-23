@@ -41,6 +41,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
@@ -618,6 +619,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -2913,8 +2915,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         // stays hidden as before, so there is no entry into a screen that could only offer one submitter's reports to
         // everybody else's expenses. Requirements:
         //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
-        //   - every expense on a managed card, because the backend resolves each destination through the card; one
-        //     expense without a card fails the whole request with "404 Card not found"
+        //   - every expense on a card the mover can resolve, since the backend resolves each destination through the
+        //     card; no card, or a feed they do not administer, fails the whole request
         //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
         //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
         // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
@@ -2923,7 +2925,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             !hasUnknownOwner &&
             selectedTransactionsKeys.every((id) => {
                 const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!transaction || !isManagedCardTransaction(transaction)) {
+                if (!canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards)) {
                     return false;
                 }
                 return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
@@ -3044,6 +3046,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectedTransactions,
         excludedTransactions,
+        nonPersonalAndWorkspaceCards,
         queryJSON,
         expensifyIcons,
         translate,

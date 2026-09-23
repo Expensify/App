@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    canResolveTransactionCard,
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
@@ -98,6 +99,7 @@ import type {
     ExpensifyCardSettings,
     PersonalDetailsList,
     Policy,
+    Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
@@ -5124,5 +5126,70 @@ describe('getWalletProviderNameKey', () => {
 
     it('falls back to the generic key when the provider is missing, which happens when the card provider reports UNKNOWN', () => {
         expect(getWalletProviderNameKey(undefined)).toBe('digitalWallet');
+    });
+});
+
+describe('canResolveTransactionCard', () => {
+    const cardID = 4242;
+    const visibleCards: CardList = {[cardID]: createMock<Card>({cardID})};
+
+    function buildCardTransaction(values: Partial<Transaction>): Transaction {
+        return createMock<Transaction>({managedCard: true, cardID, ...values});
+    }
+
+    it('accepts a managed card expense whose card the mover can see', () => {
+        // Given a card the mover can see, so it is their own or on a feed they administer
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards);
+
+        // Then it can
+        expect(canResolve).toBe(true);
+    });
+
+    it('rejects a managed card expense on a feed the mover does not administer', () => {
+        // Given a card absent from the mover's list — the regression in #101767, where the card sat on the
+        // submitter's own workspace feed and only the draft report was shared
+        const transaction = buildCardTransaction({cardID: 9999});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards);
+
+        // Then it cannot, so "Auto report" stays hidden rather than failing the whole batch
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects an expense that is not on a managed card', () => {
+        // Given an expense with no managed card, such as a manually created one
+        const transaction = buildCardTransaction({managedCard: false});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards);
+
+        // Then it cannot, having no card to resolve through
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects a managed card expense that carries no card ID', () => {
+        // Given a cardID that never reached the search snapshot, leaving nothing to look up
+        const transaction = buildCardTransaction({cardID: undefined});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards);
+
+        // Then it cannot: an unverifiable card fails closed
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects every expense while the mover has no cards loaded', () => {
+        // Given no card list at all, which is how Onyx looks before any feed is fetched
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, undefined);
+
+        // Then it cannot, keeping the option hidden rather than offering a move that would fail
+        expect(canResolve).toBe(false);
     });
 });
