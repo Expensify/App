@@ -8,6 +8,7 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,7 +19,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReactNode} from 'react';
 
-import React, {useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ListFilterView from './ListFilterViewWrapper';
@@ -49,6 +50,21 @@ type MultiSelectProps<T> = SearchFilterCommonProps<Array<MultiSelectItem<T>>> & 
     loading?: boolean;
 
     shouldShowLoadingPlaceholder?: boolean;
+
+    /** Called when the scroll position gets near the end of the list */
+    onEndReached?: () => void;
+
+    /** How far from the end the bottom edge of the list must be to trigger onEndReached */
+    onEndReachedThreshold?: number;
+
+    /** Called when the debounced search term changes */
+    onSearchChange?: (searchTerm: string) => void;
+
+    /** Whether more items are being loaded (shows spinner at bottom of list) */
+    isLoadingMore?: boolean;
+
+    /** Whether a server search is in progress (shows a centered spinner in the list area) */
+    isSearching?: boolean;
 };
 
 function MultiSelect<T extends string>({
@@ -65,13 +81,32 @@ function MultiSelect<T extends string>({
     autoFocus,
     footer,
     onChange,
+    onEndReached,
+    onEndReachedThreshold,
+    onSearchChange,
+    isLoadingMore,
+    isSearching,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+
+    const notifySearchChange = useEffectEvent((term: string) => {
+        onSearchChange?.(term);
+    });
+
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        notifySearchChange(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
     // first render without repinning rows that are toggled afterwards.
@@ -81,9 +116,11 @@ function MultiSelect<T extends string>({
     const orderedItems = moveInitialSelectionToTop(items, initialSelectedValues);
 
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const filteredItems = isSearchable
-        ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
-        : orderedItems;
+    // When onSearchChange is provided, the parent handles filtering (server-side search)
+    const filteredItems =
+        isSearchable && !onSearchChange
+            ? orderedItems.filter((item) => item.text.toLowerCase().includes(searchLower) || item.searchableText?.toLowerCase().includes(searchLower))
+            : orderedItems;
     const listData: ListItem[] = filteredItems.map((item) => ({
         text: item.text,
         alternateText: item.alternateText,
@@ -93,7 +130,8 @@ function MultiSelect<T extends string>({
         leftElement: item.leftElement,
     }));
 
-    const headerMessage = isSearchable && listData.length === 0 ? translate('common.noResultsFound') : undefined;
+    const shouldShowSearchSpinner = isSearching && listData.length === 0;
+    const headerMessage = isSearchable && listData.length === 0 && !isSearching ? translate('common.noResultsFound') : undefined;
 
     const updateSelectedItems = (item: ListItem) => {
         if (item.isSelected) {
@@ -123,6 +161,29 @@ function MultiSelect<T extends string>({
         disableAutoFocus: !autoFocus,
     };
 
+    const renderCenteredSpinner = () => (
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.pv4]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                color={theme.spinner}
+            />
+        </View>
+    );
+
+    const footerContent = (
+        <>
+            {!!isLoadingMore && (
+                <View style={[styles.alignItemsCenter, styles.pv4]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
+                        color={theme.spinner}
+                    />
+                </View>
+            )}
+            {footer}
+        </>
+    );
+
     return (
         <ListFilterView
             itemCount={listData.length}
@@ -131,12 +192,7 @@ function MultiSelect<T extends string>({
             isNegatable={isNegatable}
         >
             {loading ? (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                        color={theme.spinner}
-                    />
-                </View>
+                renderCenteredSpinner()
             ) : (
                 <SelectionList
                     shouldSingleExecuteRowSelect
@@ -147,7 +203,12 @@ function MultiSelect<T extends string>({
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
-                    footerContent={footer}
+                    footerContent={footerContent}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
+                    onEndReached={onEndReached}
+                    onEndReachedThreshold={onEndReachedThreshold}
+                    listEmptyContent={shouldShowSearchSpinner ? renderCenteredSpinner() : undefined}
+                    shouldShowListEmptyContent={shouldShowSearchSpinner}
                 />
             )}
         </ListFilterView>

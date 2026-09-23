@@ -148,11 +148,10 @@ function useSearchColumnWidths({
     // It does not have to be exact. The resolved widths are applied as a flex basis that still grows and shrinks, so an
     // inset a few px out shows as the columns sharing a little more or less room rather than as dead space at the end
     // of the row. What it does decide is which of the four states the table is in, and "close" is enough for that.
+    // A table showing enough fixed columns to overrun its own width leaves this at zero or less. That is the scrolling
+    // case rather than a reason to stop: the columns are still measured, and each one is sized to its content so an
+    // empty column stays narrow instead of claiming an equal share of a budget that does not exist.
     const availableWidth = tableWidth - getSearchTableRowInsetWidth(columns.length) - fixedColumnsWidth;
-
-    if (availableWidth <= 0) {
-        return noColumnSizing;
-    }
 
     const constraints: DynamicColumnConstraints[] = [];
     const contentWidths: number[] = [];
