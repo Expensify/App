@@ -1,7 +1,7 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, Upcoming travel, upcoming trips on Home, flight to, hotel in, car rental in, train to, traveler, canceled reservation, canceled booking, canceled trip missing from Home]
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, Upcoming travel, upcoming trips on Home, flight to, hotel in, car rental in, train to, traveler, canceled reservation, canceled booking, canceled trip missing from Home, review domain admin request, domain admin request on Home, domain admin to-do]
 internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Upcoming travel, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses, and does not cover booking or managing travel.
 
 ---
@@ -67,10 +67,13 @@ The **For you** section highlights items that may need your attention like:
 - “1 report to submit”
 - “2 reports to approve”
 - “Pay 3 reports”
+- “Review 1 domain admin request”
 
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
-If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. 
+If you are a Domain Admin and someone has asked for admin access to a domain you administer, a **Review 1 domain admin request** item appears here. Click **Begin** to open that domain’s **Domain admins** page, or the **Domains** tab when more than one of your domains has requests. Learn how to [review pending Domain Admin access requests](/articles/new-expensify/domains/Domain-Admins).
+
+If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, pay, review a flagged expense, or review a domain admin request. 
 
 After the section has appeared, if there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
@@ -190,7 +193,7 @@ If there are no current financial to-dos, the **For you** section may appear emp
 
 ## Why don’t I see the For you section at all?
 
-If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. After your first to-do appears, the section stays on Home—even when you’re caught up and it’s empty.
+If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, pay, review a flagged expense, or review a domain admin request. After your first to-do appears, the section stays on Home—even when you’re caught up and it’s empty.
 
 ## How does the Recently added section decide what to show?
 
