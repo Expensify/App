@@ -4,7 +4,7 @@ description: Learn how to set up a New Expensify workspace and start tracking yo
 keywords: [New Expensify, workspace setup, personal expenses, New Expensify, SmartScan, categories, free trial]
 ---
 
-If you're a freelancer, sole proprietor, or just want to track personal expenses, this guide walks you through setting up your workspace and starting your free 30-day trial. The trial begins once you start using your workspace.
+If you're a freelancer, sole proprietor, or just want to track personal expenses, this guide walks you through your workspace and how to start tracking expenses. Your workspace starts on a free trial, which begins once you start using it.
 
 **Note:** After creating your workspace, check your email or Expensify notifications to book a free onboarding session with an Account Executive.
 
@@ -21,12 +21,17 @@ To chat with Concierge, open your **chat inbox** anytime for help and guidance.
 
 ---
 
-# Create a Workspace
+# How your workspace is created
 
-Each workspace has its own rules and settings, even for personal expense tracking.
+When you select **Track expenses for my business** or **Organize my personal spending** during signup, Expensify creates a workspace for you as you finish onboarding. It's named **[Your Name]'s Workspace** and starts on the Collect plan, with categories and reports ready to use — there's no setup step before your first expense.
+
+To rename it:
 
 1. Use the **navigation tabs (on the left on web, and at the bottom on mobile)** to go to **Workspaces**.
-2. Click **New workspace > Name** to rename the workspace.
+2. Click **[Workspace Name] > Overview > Workspace name**.
+3. Enter a new name and click **Save**.
+
+**Note:** If you already own a paid workspace, or your domain restricts who can create workspaces, no new workspace is created and you'll keep using the one you have.
 
 ---
 
@@ -137,5 +142,5 @@ To enable a feature:
 
 # Free Trial
 
-You can track the status of your 30-day free trial on your **Subscription** page. We’ll send reminders near the end of your trial. To continue using all features, add a billing card when prompted.
+You can track the status of your free trial, including how many days are left, on your **Subscription** page. We’ll send reminders near the end of your trial. To continue using all features, add a billing card when prompted.
 
