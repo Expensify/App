@@ -1,7 +1,7 @@
 ---
 title: Act as a Copilot
 description: Learn how to switch into another member's account as a Copilot, act on their behalf, and remove your access when it's no longer needed.
-keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions]
+keywords: [act as a copilot, copilot access, switch to a copilot account, switch accounts, delegated access, delegated account access, copilot account, access another account, account switching, proxy access, manage someone else's account, executive assistant, accountant, bookkeeper, shared account access, remove copilot access, remove my copilot access, forward receipts, submit expenses on behalf of someone, act on behalf of another user, copilot permissions, search copilot accounts, find member, search account switcher, filter copilot list, too many copilot accounts]
 internalScope: Audience is members who have been granted Copilot access. Covers accessing another account, forwarding receipts, and removing your own access. Does not cover granting or managing Copilot access for others.
 ---
 
@@ -35,13 +35,25 @@ Some actions may be restricted if you've been granted Limited Access. A few acti
 ## How to switch to a Copilot account
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to access.
+2. In the **Copilot: Delegated access** section, choose the account you want to access.
 3. Select **Switch**.
+
+## How to search for a Copilot account
+
+When the **Copilot: Delegated access** section lists 12 or more accounts in total, a **Find member** field appears above the list.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
+2. In the **Find member** field, enter part of the member's name or email address.
+3. Select the account you want from the filtered list.
+
+The **Find member** field filters both the accounts you can access and the members who can access your account. Section headings for lists with no matches are hidden, and the message **No results found matching "[your search term]"** appears when nothing matches. Clear the field to see the full list again. **Add a copilot** stays available while you search.
+
+The account switcher has the same **Find member** field. When 12 or more accounts are available to you, the field appears above the account list after you select **Switch**. Your search term is cleared each time you close the account switcher.
 
 ## How to remove yourself as a Copilot
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated Access** section, choose the account you want to remove yourself from. 
+2. In the **Copilot: Delegated access** section, choose the account you want to remove yourself from. 
 3. Select **Remove my copilot access**.
 4. Select **Remove access**.
 
