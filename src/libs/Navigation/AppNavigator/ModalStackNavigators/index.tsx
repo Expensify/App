@@ -531,7 +531,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/VacationDelegateMissingWorkspacesPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSize').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/ExpensifyCodePage').default,
-    [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/EarlyRenewalOfferPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/SubscriptionSettings').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/DisableAutoRenewSurveyPage').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.CANCEL_SUBSCRIPTION]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/CancelSubscriptionPage').default,

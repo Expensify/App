@@ -5507,9 +5507,8 @@ const CONST = {
                     HOME_TITLE: 'Renew your Expensify subscription',
                     HOME_SUBTITLE: 'One less thing to do before the new year.',
                     HEADER_TITLE: 'Confirm renewal',
-                    TITLE: 'Renew your Expensify subscription',
-                    DESCRIPTION: 'Renew now to keep your current pricing for another year. Your future renewal date will move to this month.',
-                    CTA: 'Claim',
+                    CONFIRMATION_DESCRIPTION: 'Renewing your subscription will extend your subscription for another year starting on October 1, 2026 to Sep 1, 2027.',
+                    CTA: 'Renew',
                 },
                 WORKSPACE_ADMIN: {
                     HOME_TITLE: 'Ask your billing owner to renew',
