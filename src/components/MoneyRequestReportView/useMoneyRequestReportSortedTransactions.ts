@@ -182,13 +182,12 @@ function useMoneyRequestReportSortedTransactions({
             }
         }
     }
-    const rbrIDs = rbrTransactionIDs;
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = [...transactions].sort((a, b) => {
         // When on default sort (Date/ASC), prioritize RBR-flagged transactions
-        if (rbrIDs) {
-            const aHasRBR = rbrIDs.has(a.transactionID);
-            const bHasRBR = rbrIDs.has(b.transactionID);
+        if (rbrTransactionIDs) {
+            const aHasRBR = rbrTransactionIDs.has(a.transactionID);
+            const bHasRBR = rbrTransactionIDs.has(b.transactionID);
             if (aHasRBR !== bHasRBR) {
                 return aHasRBR ? -1 : 1;
             }
