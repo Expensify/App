@@ -8858,6 +8858,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
             noVendorsFound: 'Keine Anbieter gefunden',
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Dynamics 365 Business Central importiert werden sollen.',
+            items: 'Artikel',
+            enableNewCategories: 'Neu importierte Kategorien aktivieren',
         },
     },
     getAssistancePage: {

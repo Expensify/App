@@ -6313,6 +6313,9 @@ const translations = {
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Dynamics 365 Business Central.',
+            items: 'Items',
+            enableNewCategories: 'Enable newly imported categories',
         },
         type: {
             free: 'Free',
