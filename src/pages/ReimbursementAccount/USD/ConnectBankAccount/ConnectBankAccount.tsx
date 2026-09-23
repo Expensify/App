@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -86,7 +86,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
         if (topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
             return (
                 <ScreenWrapper testID="ReimbursementAccountPage">
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
                     />
@@ -124,7 +124,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={isBankAccountPending ? translate('connectBankAccountStep.validateYourBankAccount') : translate('bankAccount.addBankAccount')}
                 onBackButtonPress={onBackButtonPress}
             />

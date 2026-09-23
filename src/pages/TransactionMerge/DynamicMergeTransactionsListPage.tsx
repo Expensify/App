@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -37,7 +37,7 @@ function DynamicMergeTransactionsListPage({route}: DynamicMergeTransactionsListP
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!mergeTransaction}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('transactionMerge.listPage.header')}
                     onBackButtonPress={() => {
                         Navigation.goBack();

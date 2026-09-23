@@ -2,7 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -92,7 +92,7 @@ function DynamicReceiptReviewPage({route}: DynamicReceiptReviewPageProps) {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!mergeTransaction}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('transactionMerge.receiptPage.header')}
                     onBackButtonPress={() => {
                         Navigation.goBack();

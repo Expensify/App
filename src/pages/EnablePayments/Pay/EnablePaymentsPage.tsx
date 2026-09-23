@@ -1,5 +1,5 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -77,7 +77,7 @@ function EnablePaymentsPage() {
                 if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
                     return (
                         <>
-                            <HeaderWithBackButton
+                            <HeaderWithBackButtonAndTitle
                                 title={translate('additionalDetailsStep.headerTitle')}
                                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                             />

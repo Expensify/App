@@ -1,6 +1,6 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 
@@ -66,7 +66,7 @@ function TermsStep(props: TermsStepProps) {
 
     return (
         <>
-            <HeaderWithBackButton title={translate('termsStep.headerTitle')} />
+            <HeaderWithBackButtonAndTitle title={translate('termsStep.headerTitle')} />
 
             <ScrollView
                 style={styles.flex1}

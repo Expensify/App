@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -221,7 +221,7 @@ function DynamicDetailsReviewPage({route}: DynamicDetailsReviewPageProps) {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={!mergeTransaction}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('transactionMerge.detailsPage.header')}
                     onBackButtonPress={() => {
                         Navigation.goBack();
