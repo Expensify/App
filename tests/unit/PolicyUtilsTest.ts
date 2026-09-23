@@ -1887,6 +1887,16 @@ describe('PolicyUtils', () => {
             expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
         });
 
+        it('unescapes an escaped line terminator like RegExp does', () => {
+            // Given a literal filter with a backslash before a newline, which RegExp reads as a literal newline
+            const filter = '^Line\\\nBreak$';
+
+            // When matching it against a parent tag path containing that newline
+            // Then the literal fast path agrees with RegExp
+            expect(new RegExp(filter).test('Line\nBreak')).toBe(true);
+            expect(matchesParentTagsFilter(filter, 'Line\nBreak')).toBe(true);
+        });
+
         it('evaluates filters with regex operators as regular expressions', () => {
             // Given filters that are not plain anchored literals
             // When matching them against parent tag paths

@@ -294,7 +294,7 @@ function hasEnabledTagUnderParentTag(tags: PolicyTags | undefined, parentTag: st
 
         const tag = tags[tagName];
 
-        if (!tag.enabled) {
+        if (!isOptionEnabled(tag)) {
             continue;
         }
 

@@ -1259,6 +1259,43 @@ describe('TagsOptionsListUtils', () => {
             expect(getDependentTagVisibility(unfilteredTagLists, 'Unknown Co').at(1)).toBe(true);
         });
 
+        it('falls back to the top-level parent filter when a tag has no rules', () => {
+            // Given a deeper tag list whose tags carry only the top-level parentTagsFilter, which the tag picker also honors
+            const topLevelFilterTagLists = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {admin: {name: 'Acme Corp:Admin', enabled: true, parentTagsFilter: '^Acme Corp$'}},
+                },
+            });
+
+            // When resolving visibility under a matching and a non-matching parent tag
+            // Then the row only shows where the picker would have a tag to offer
+            expect(getDependentTagVisibility(topLevelFilterTagLists, 'Acme Corp').at(1)).toBe(true);
+            expect(getDependentTagVisibility(topLevelFilterTagLists, 'Other Co').at(1)).toBe(false);
+        });
+
+        it('hides a deeper tag list when its only matching tag is pending deletion', () => {
+            // Given a deeper tag list whose only enabled tag below the parent is being deleted offline
+            const pendingDeleteTagLists = getTagLists({
+                company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},
+                department: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 1,
+                    tags: {
+                        admin: {name: 'Acme Corp:Admin', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, rules: {parentTagsFilter: '^Acme Corp$'}},
+                    },
+                },
+            });
+
+            // When resolving visibility under that parent tag
+            // Then the row hides, matching how independent tag lists treat pending deletions
+            expect(getDependentTagVisibility(pendingDeleteTagLists, 'Acme Corp').at(1)).toBe(false);
+        });
+
         it('hides a deeper tag list that has no tags', () => {
             const emptySecondList = getTagLists({
                 company: {name: 'Company', required: true, orderWeight: 0, tags: companyTags},

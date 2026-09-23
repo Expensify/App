@@ -1157,7 +1157,7 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
 
 // An anchored filter with no regex operators. Letter and digit escapes (\d, \w, ...) are classes, not literals.
 const LITERAL_PARENT_TAGS_FILTER = /^\^((?:\\[^A-Za-z0-9]|[^\\.*+?()[\]{}|^$])*)\$$/;
-const ESCAPED_CHARACTER = /\\(.)/g;
+const ESCAPED_CHARACTER = /\\([\s\S])/g;
 
 /**
  * Whether a parentTagsFilter matches a parent tag path.
