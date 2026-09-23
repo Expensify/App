@@ -68,7 +68,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
         // because the old authToken stored in Onyx may be invalid.
-        signInWithShortLivedAuthToken(shortLivedAuthToken);
+        signInWithShortLivedAuthToken(shortLivedAuthToken, false, undefined, undefined);
 
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-hooks/exhaustive-deps
