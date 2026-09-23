@@ -11,7 +11,7 @@ import Linter from '../Linter';
 import {LINT_SEVERITY} from '../types';
 
 const OXLINT_FILE_COUNT_KEY = 'number_of_files' as const;
-const OXLINT_CONFIG_FILE = '.oxlintrc.json';
+const OXLINT_CONFIG_FILE = 'oxlint.config.mts';
 // Not `npx`: it passes the command to `sh -c` as one string, and Linux caps a single argv element at
 // 128 KB, so a shard's file list fails to exec with E2BIG (exit 249). macOS has no per-element cap.
 const OXLINT_BIN = path.join('node_modules', '.bin', 'oxlint');
@@ -277,6 +277,16 @@ function isOxlintConfig(value: unknown): value is OxlintConfig {
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** The config is a TypeScript module, so it is imported rather than parsed; bun runs `.mts` natively. */
+async function loadOxlintConfig(projectRoot: string): Promise<OxlintConfig> {
+    const loaded: unknown = await import(path.join(projectRoot, OXLINT_CONFIG_FILE));
+    const config = typeof loaded === 'object' && loaded !== null && 'default' in loaded ? loaded.default : undefined;
+    if (!isOxlintConfig(config)) {
+        throw new Error(`${OXLINT_CONFIG_FILE} does not default-export a config object`);
+    }
+    return config;
+}
+
 function isOxlintReport(value: unknown): value is OxlintJSONReport {
     return typeof value === 'object' && value !== null && 'diagnostics' in value && Array.isArray(value.diagnostics);
 }
@@ -320,7 +330,7 @@ function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, pro
 }
 
 /**
- * `--type-aware` is not passed: `.oxlintrc.json` already sets `options.typeAware`.
+ * `--type-aware` is not passed: `oxlint.config.mts` already sets `options.typeAware`.
  * `--no-error-on-unmatched-pattern` is not passed either, because it turns a mistyped path into a
  * silent clean pass; the empty-file-list case is detected explicitly instead.
  * Oxlint has no `--cache`, so the pipeline's `--no-cache` flag has no effect here.
@@ -357,20 +367,12 @@ class OxlintLinter extends Linter {
             .quiet();
     }
 
-    private readConfig(): OxlintConfig {
-        const parsed: unknown = Bun.JSONC.parse(fs.readFileSync(path.join(this.options.projectRoot, OXLINT_CONFIG_FILE), 'utf8'));
-        if (!isOxlintConfig(parsed)) {
-            throw new Error(`${OXLINT_CONFIG_FILE} is not a JSON object`);
-        }
-        return parsed;
-    }
-
-    private writeLegConfigs(): {
+    private async writeLegConfigs(): Promise<{
         jsPluginsConfig: string;
         typeAwareConfig: string;
         remove: () => void;
-    } {
-        const {jsPlugins, typeAware} = deriveLegConfigs(this.readConfig());
+    }> {
+        const {jsPlugins, typeAware} = deriveLegConfigs(await loadOxlintConfig(this.options.projectRoot));
         const jsPluginsConfig = `.oxlintrc.js-plugins.${process.pid}.json`;
         const typeAwareConfig = `.oxlintrc.type-aware.${process.pid}.json`;
         fs.writeFileSync(path.join(this.options.projectRoot, jsPluginsConfig), JSON.stringify(jsPlugins));
@@ -445,7 +447,7 @@ class OxlintLinter extends Linter {
             } else {
                 const buckets = shardFiles(lintedFiles, shardCount);
                 plan = `Oxlint plan: ${buckets.length} JS-plugin shards plus 1 type-aware process (cores ${os.availableParallelism()}, available memory ${(availableMemoryBytes() / GIB).toFixed(1)} GB).`;
-                const configs = this.writeLegConfigs();
+                const configs = await this.writeLegConfigs();
                 try {
                     const legs: OxlintLeg[] = buckets.map((bucket, index) => ({
                         label: `JS-plugin shard ${index + 1} of ${buckets.length}`,
@@ -485,6 +487,7 @@ export {
     isTransientFailure,
     joinDiagnosticText,
     jsPluginName,
+    loadOxlintConfig,
     mergeShardResults,
     normalizeOxlintDiagnostics,
     parseOxlintStdout,
