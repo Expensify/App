@@ -2753,9 +2753,16 @@ function isBusinessCentralVendorMatchingActive(policy: OnyxEntry<Policy>): boole
 }
 
 /**
+ * True when Campfire is connected AND configured.
+ */
+function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config?.isConfigured;
+}
+
+/**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central → Campfire) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2778,6 +2785,7 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  *   - Rillet (R4) configured connection. Beta required
  *   - DualEntry configured connection. GA, so no beta required
  *   - Business Central configured connection. Beta required
+ *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2786,7 +2794,10 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy));
+    return (
+        isVendorMatchingBetaEnabled &&
+        (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy))
+    );
 }
 
 /**
@@ -2798,7 +2809,7 @@ function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorM
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Business Central) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2841,6 +2852,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isBusinessCentralVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
     }
     return undefined;
 }
@@ -2904,12 +2918,15 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
                 email: vendor.email,
             }));
     }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors === undefined ? undefined : getCampfireVendors(policy);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Business Central). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -3008,6 +3025,10 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: businessCentralVendor.email ?? '',
         };
     }
+    const campfireVendor = getCampfireVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (campfireVendor) {
+        return campfireVendor;
+    }
     return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
@@ -3075,6 +3096,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.businessCentral.noVendorsFound'),
                 subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            return {
+                title: translate('workspace.campfire.noVendorsFound'),
+                subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -3099,6 +3125,14 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
         return [];
     }
     return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/** Campfire vendor matching uses only active vendor-type records, never customers or inactive vendors */
+function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors;
+    return (vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
 /** DualEntry export settings and expense matching must use vendors available to the selected company */

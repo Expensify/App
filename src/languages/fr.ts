@@ -625,11 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du commentaire est de ${formattedMaxLength} caractères.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du titre de la tâche est de ${formattedMaxLength} caractères.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Mettre à jour l’application',
-        updatePrompt:
-            'Une nouvelle version de cette application est disponible.\nMettez-la à jour maintenant ou redémarrez l’application plus tard pour télécharger les dernières modifications.',
-    },
     deeplinkWrapper: {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
@@ -1086,6 +1081,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `Examiner ${count} dépense`,
                 other: `Examiner ${count} dépenses`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: `Examiner ${count} demande d'administrateur de domaine`,
+                other: `Examiner ${count} demandes d'administrateur de domaine`,
+            }),
         },
         upcomingTravel: 'Voyages à venir',
         upcomingTravelSection: {
@@ -1168,6 +1167,14 @@ const translations: TranslationDeepObject<typeof en> = {
             goodEvening: ({name}: {name?: string}) => (name ? `Bonsoir, ${name}.` : 'Bonsoir.'),
             inputPlaceholder: 'Demander à Concierge d’analyser vos dépenses ou d’obtenir de l’aide',
             inputPlaceholderMobile: 'Demander n’importe quoi à Concierge',
+        },
+    },
+    insightsPage: {
+        viewOnSpend: 'Voir dans Dépenses',
+        emptyState: {title: 'Rien à afficher', subtitle: 'Essayez de modifier vos critères ci-dessus'},
+        noExpensesState: {
+            title: 'Voyez où va votre argent',
+            subtitle: 'Une fois que vous aurez des dépenses, vous verrez des tendances de dépenses, les principaux marchands et plus encore.',
         },
     },
     allSettingsScreen: {
@@ -2202,7 +2209,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
-        viewUserHistory: 'Voir l’historique de l’utilisateur',
+        viewMemberHistory: 'Voir l’historique du membre',
         viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
@@ -3355,7 +3362,7 @@ ${amount} pour ${merchant} - ${date}`,
                 'Les comptes d’agent ne permettent pas de se connecter directement. Pour utiliser un agent, connectez-vous avec votre propre compte et accédez-y via Copilot.',
             invalidFormatEmailLogin: 'L’adresse e-mail saisie est invalide. Veuillez corriger le format et réessayer.',
         },
-        cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez essayer de vous reconnecter.',
+        cannotGetAccountDetails: 'Impossible de récupérer les détails du compte. Veuillez patienter quelques minutes, puis réessayer.',
         loginForm: 'Formulaire de connexion',
         notYou: (user: string) => `Pas ${user} ?`,
     },
@@ -6667,6 +6674,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 expensifyCardBannerLearnMoreButton: 'En savoir plus',
                 statementCloseDateTitle: 'Date de clôture du relevé',
                 statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte, et nous créerons un relevé correspondant dans Expensify.',
+                exportAccount: 'Exporter le compte',
             },
             workflows: {
                 title: 'Workflows',
@@ -6926,6 +6934,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: (count: number) => `${count} tags`,
             }),
             showTagGLCodes: 'Afficher les codes GL lors de la sélection d’un tag',
+            showTagGLCodesSubtitle: 'Si un code GL n’est pas affiché, il n’est pas disponible pour ce tag dans votre système comptable.',
         },
         taxes: {
             subtitle: 'Ajoutez des noms de taxes, des taux et définissez des valeurs par défaut.',
@@ -8807,6 +8816,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subsidiarySelectDescription: 'Choisissez la filiale dans Campfire à partir de laquelle vous souhaitez importer des données.',
             noSubsidiariesFound: 'Aucune filiale trouvée',
             noSubsidiariesFoundDescription: 'Veuillez ajouter une entité dans Campfire et synchroniser à nouveau la connexion',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Campfire et synchroniser de nouveau la connexion',
             importDescription: 'Choisissez les configurations de codage à importer depuis Campfire.',
             accountTypesDescription: 'Vos comptes Campfire seront importés en tant que catégories.',
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',

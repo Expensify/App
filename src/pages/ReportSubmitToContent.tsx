@@ -222,6 +222,7 @@ function ReportSubmitToContent({
             personalDetails,
             loginList,
             currentUserEmail: currentUserDetails.email ?? '',
+            currentUserAccountID: currentUserDetails.accountID,
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -239,7 +240,19 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale, convertToDisplayString, rules]);
+    }, [
+        countryCode,
+        currentUserDetails.email,
+        searchTerm,
+        filteredWorkspaceMembers.length,
+        loginList,
+        managerEmail,
+        personalDetails,
+        dateFnsLocale,
+        convertToDisplayString,
+        rules,
+        currentUserDetails.accountID,
+    ]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {
