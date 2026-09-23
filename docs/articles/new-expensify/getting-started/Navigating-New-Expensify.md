@@ -221,8 +221,12 @@ If you’re not sure where to go:
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
 1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, **Domains**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
+
+**Insights** only appears in the results if Insights is available to your account.
+
+[Learn more about Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify)
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
 
@@ -239,7 +243,11 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 ## Can I use Search to move between sections of Expensify?
 
-Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Insights**, **Workspaces**, **Domains**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Why don't I see Go to Insights in Search?
+
+**Go to Insights** only appears if Insights is available to your account. If it isn't, open **Spend** in the navigation tabs and scroll to **Insights** instead.
 
 ## Does Mark all as read from the To-dos tab clear my other unread chats?
 
