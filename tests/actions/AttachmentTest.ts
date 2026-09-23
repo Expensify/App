@@ -1,6 +1,6 @@
 import {rand64} from '@libs/NumberUtils';
 
-import {clearCachedAttachments, getCachedAttachment} from '@userActions/Attachment';
+import {cacheAttachment, clearCachedAttachments, getCachedAttachment} from '@userActions/Attachment';
 import {addAttachmentWithComment, addComment, deleteReportComment} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -23,7 +23,7 @@ jest.mock('react-native-fs', () => ({
     mkdir: jest.fn(() => Promise.resolve()),
 }));
 
-const mockRNFS: {exists: jest.Mock} = jest.requireMock('react-native-fs');
+const mockRNFS: {copyFile: jest.Mock; exists: jest.Mock} = jest.requireMock('react-native-fs');
 
 jest.mock('react-native-blob-util', () => ({
     config: jest.fn((data: {path?: string} | undefined) => {
@@ -110,6 +110,30 @@ describe('AttachmentStorage', () => {
             attachmentID,
             source: `/mock/caches/attachments/${attachmentID}.jpg`,
         });
+    });
+    it('should decode an encoded file URI before copying a shared attachment', async () => {
+        const attachmentID = 'encoded-attachment';
+        mockRNFS.exists.mockResolvedValue(true);
+
+        await cacheAttachment({
+            attachmentID,
+            uri: 'file:///mock/sharedFiles/test%20image%20%231.jpg',
+            mimeType: 'image/jpeg',
+        });
+
+        expect(mockRNFS.copyFile).toHaveBeenCalledWith('/mock/sharedFiles/test image #1.jpg', `/mock/caches/attachments/${attachmentID}.jpg`);
+    });
+    it('should fall back to the raw file URI path for legacy filenames', async () => {
+        const attachmentID = 'legacy-attachment';
+        mockRNFS.exists.mockResolvedValue(false);
+
+        await cacheAttachment({
+            attachmentID,
+            uri: 'file:///mock/sharedFiles/report%2523.jpg',
+            mimeType: 'image/jpeg',
+        });
+
+        expect(mockRNFS.copyFile).toHaveBeenCalledWith('/mock/sharedFiles/report%2523.jpg', `/mock/caches/attachments/${attachmentID}.jpg`);
     });
     it('should fall back to the current source when the cached file was purged from disk', async () => {
         // Given a cached attachment whose file no longer exists (the OS can purge Caches)
