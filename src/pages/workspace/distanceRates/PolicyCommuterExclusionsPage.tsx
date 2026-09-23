@@ -59,6 +59,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
+    const isWorkArrangementEnabled = isCommuterExclusionsEnabled && isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
     const [policyData] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => ({
@@ -115,7 +116,11 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
 
-        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
+        if (
+            isWorkArrangementEnabled &&
+            item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+            existingMethod !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE
+        ) {
             confirmModal.showModal({
                 component: StartingWorkArrangementModal,
                 props: {
@@ -236,7 +241,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             alternateText: translate('workspace.distanceRates.commuterExclusions.optionHomeAndOfficeHelp'),
             keyForList: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
             isSelected: isHomeAndOfficeSelected,
-            footerContent: isHomeAndOfficeSelected ? workArrangementFooter : null,
+            footerContent: isHomeAndOfficeSelected && isWorkArrangementEnabled ? workArrangementFooter : null,
         },
         {
             text: translate('workspace.distanceRates.commuterExclusions.optionFixedDistanceTitle'),

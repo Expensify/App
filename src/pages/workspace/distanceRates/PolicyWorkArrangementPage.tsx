@@ -33,7 +33,7 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
+    const isWorkArrangementEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS) && isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
     const [policyData] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => ({
@@ -56,7 +56,7 @@ function PolicyWorkArrangementPage({route}: PolicyWorkArrangementPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
-            shouldBeBlocked={!isCommuterExclusionsEnabled || !policyData?.isHomeAndOfficeMethod}
+            shouldBeBlocked={!isWorkArrangementEnabled || !policyData?.isHomeAndOfficeMethod}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
