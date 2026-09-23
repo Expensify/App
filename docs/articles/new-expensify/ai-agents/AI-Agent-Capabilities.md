@@ -175,7 +175,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that delete expense reports
 
-**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only OPEN or draft reports can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an expense rather than a whole report is handled by EditExpense.
+**Goal:** Deletes an unsubmitted expense report the requester owns, after they confirm the deletion. Only reports that are still open or in draft can be deleted — a report that has been submitted, approved, reimbursed, or closed cannot be. Deleting an individual expense rather than a whole report is covered by the edit-expenses capability.
 
 To accomplish this, include phrases like:
 - Delete this report
@@ -234,7 +234,7 @@ To accomplish this, include phrases like:
 To accomplish this, include phrases like:
 - Send each employee a reminder to submit their expenses at the end of the month
 - Message the submitter directly when their report is rejected
-- Notify individual workspace members of a policy change
+- Notify individual workspace members of a workspace change
 - DM each person with outstanding reports a personalized nudge
 - Send a private message to the submitter when a receipt is missing
 - Reach out to each team member individually with their spending summary
