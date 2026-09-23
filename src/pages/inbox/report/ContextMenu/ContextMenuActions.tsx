@@ -1692,9 +1692,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             currentUserAccountID,
             rules,
         }) => {
-            // On a report holding a single expense, moneyRequestAction is that expense's IOU action even when the
-            // report preview was the thing clicked. Deleting the expense is reserved for whoever created it, so
-            // everyone else acts on the preview, which deletes the report instead.
+            // A single-expense report preview also exposes its embedded money request action.
+            // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
+            // can delete a member's report and leave its expenses unreported.
             const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
 
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
@@ -1728,9 +1728,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction, currentUserAccountID}) => {
             // Must resolve to the same action shouldShow authorised, so the delete matches what was permitted.
             const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
-            const iouReportID = isMoneyRequestAction(actionToDelete) ? actionToDelete?.reportID : undefined;
+            const actionReportID = isMoneyRequestAction(actionToDelete) ? actionToDelete?.reportID : undefined;
 
-            const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
+            const reportID = actionReportID && Number(actionReportID) !== 0 ? actionReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(false, () => showDeleteModal(reportID, actionToDelete));
