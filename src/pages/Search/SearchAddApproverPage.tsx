@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -46,6 +47,15 @@ function SearchAddApproverPage() {
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
+    const intersectedEmployees = (() => {
+        const uniquePolicyIds = Array.from(new Set(selectedReports.map((selectedReport) => selectedReport.policyID)));
+        const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
+        const firstWorkspaceEmployees = employeeLists.at(0);
+        return firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
+    })();
+
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(intersectedEmployees));
+
     // Get all possible approvers from all selected reports' policies
     // An approver must be able to approve ALL selected reports
     const getAllApprovers = () => {
@@ -53,11 +63,7 @@ function SearchAddApproverPage() {
             return [];
         }
 
-        const uniquePolicyIds = Array.from(new Set(selectedReports.map((selectedReport) => selectedReport.policyID)));
-        const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
-        const firstWorkspaceEmployees = employeeLists.at(0);
-        const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, undefined, true, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, employeePersonalDetails, true, false);
         // We get the intersection here as we only want to show members who belong to all workspaces when adding an additional approver
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
