@@ -16,6 +16,7 @@ on:
         'config/.editorconfig',
         'config/eslint/**',
         'scripts/lint.ts',
+        'scripts/lint/**',
         'scripts/lintChanged.sh',
         '.watchmanconfig',
         '.imgbotconfig',
@@ -35,7 +36,7 @@ jobs:
     runs-on: blacksmith-16vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           # Only use the elevated OSBotify token on the post-merge `workflow_call` run
           # (so the auto-commit step below can push to the protected `main` branch).

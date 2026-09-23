@@ -39,7 +39,6 @@ type ScannerControlsBarProps = {
     /** Whether the camera device supports flash */
     hasFlash: boolean;
 
-    /** Updater function to toggle flash state */
     setFlash: (updater: (prev: boolean) => boolean) => void;
 
     /** Sets whether the attachment picker modal is open */

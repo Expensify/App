@@ -18,7 +18,6 @@ import {defaultSecurityGroupIDSelector, selectGroupByID} from '@selectors/Domain
 import React from 'react';
 
 type DeleteGroupRowProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */

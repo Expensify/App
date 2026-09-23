@@ -19,16 +19,28 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-/** Config fields shared by the Merge-backed connections (Merge HR and Merge ATS) that can hold an update error. */
-type MergeConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups' | 'filters' | 'approverField';
+type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups';
+type RecruitingConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'filters' | 'approverField';
+type MergeConnectionErrorFieldName = HRConnectionErrorFieldName | RecruitingConnectionErrorFieldName;
 
-function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | MergeATSProviderSlug) {
-    const params: ConnectPolicyToMergeParams = {policyID, integration};
+/** Client-side "initial sync modal shown" flag for each Merge connection, cleared when the connection is removed. */
+const MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS = {
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
+} as const;
+
+function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | MergeATSProviderSlug, category: ValueOf<typeof CONST.MERGE.CATEGORY>) {
+    const params: ConnectPolicyToMergeParams = {policyID, integration, category};
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_MERGE,
         shouldSkipWebProxy: true,
     });
     return commandURL + new URLSearchParams(params).toString();
+}
+
+/** Remembers that the initial sync modal has been shown for the given Merge connection, so it is only shown once. */
+function setMergeInitialSyncModalShown(policyID: string, connectionName: MergeConnectionName) {
+    Onyx.set(`${MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS[connectionName]}${policyID}`, true);
 }
 
 /**
@@ -242,5 +254,5 @@ function clearMergeConnectionErrorField(policyID: string | undefined, connection
     });
 }
 
-export {clearMergeConnectionErrorField, getMergeSetupLink, syncMerge, updateMergeApprovalMode, updateMergeFinalApprover};
+export {MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS, clearMergeConnectionErrorField, getMergeSetupLink, setMergeInitialSyncModalShown, syncMerge, updateMergeApprovalMode, updateMergeFinalApprover};
 export type {MergeConnectionErrorFieldName};

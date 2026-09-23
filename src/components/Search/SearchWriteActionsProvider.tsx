@@ -26,7 +26,14 @@ import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchRowSelectionActionsContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
-import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry, prepareTransactionsList} from './selectionBuilders';
+import {
+    getSearchGroupCount,
+    getSearchGroupCountByKey,
+    mapEmptyReportToSelectedEntry,
+    mapTransactionItemToSelectedEntry,
+    prepareTransactionsList,
+    stampGroupCoverageFlags,
+} from './selectionBuilders';
 
 type SearchWriteActionsProviderProps = {
     /** The currently displayed (filtered, grouped) rows. Screen-derived; the provider cannot recompute it. */
@@ -41,10 +48,7 @@ type SearchWriteActionsProviderProps = {
     /** The live TRANSACTION collection, subscribed by `<Search>` and passed down. */
     transactions: OnyxCollection<Transaction>;
 
-    /** Whether mobile selection mode is on. */
     isMobileSelectionModeEnabled: boolean;
-
-    /** The search data type. */
     type: SearchDataTypes;
 
     /** Grouped meaning either a group-by view or the expense-report view. */
@@ -85,7 +89,6 @@ type ReconcileSelectionParams = {
     /** Login (email or phone) of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
@@ -125,6 +128,7 @@ function useReconcileSelectionWithData({
 }: ReconcileSelectionParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         if (!isFocused) {
@@ -204,6 +208,7 @@ function useReconcileSelectionWithData({
                         selfDMReport,
                         allowNegativeAmount: true,
                         parentReport: itemParentReport,
+                        rules,
                     });
 
                     const liveSelectionEntry: SelectedTransactionInfo = {
@@ -218,6 +223,42 @@ function useReconcileSelectionWithData({
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
                     if (shouldInclude) {
                         newTransactionList[listKey] = liveSelectionEntry;
+                    }
+                }
+
+                // Copying `isEntireGroupSelected` would leave delete thinking the group is still fully covered
+                // after a new child lands in it (the create path bumps `count` without touching the selection).
+                if (reportKey) {
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const selectedEntry = newTransactionList[listKey];
+                        if (!selectedEntry) {
+                            continue;
+                        }
+                        newTransactionList[listKey] = {...selectedEntry, groupKey: selectedEntry.groupKey ?? reportKey};
+                    }
+
+                    const stampedSelection = stampGroupCoverageFlags({
+                        selectedTransactions: newTransactionList,
+                        groupKey: reportKey,
+                        groupCount: getSearchGroupCount(transactionGroup) ?? getSearchGroupCountByKey(searchResultsData, reportKey),
+                        loadedChildrenCount: transactionGroup.transactions.length,
+                        loadedSelectableCount: transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                    });
+                    for (const [key, entry] of Object.entries(stampedSelection)) {
+                        newTransactionList[key] = entry;
+                    }
+
+                    const isEntireGroupSelected = Object.values(stampedSelection).some((entry) => entry.groupKey === reportKey && entry.isEntireGroupSelected);
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const liveEntry = liveSelectionEntries.get(listKey) ?? liveSelectionEntries.get(transactionItem.transactionID);
+                        if (!liveEntry) {
+                            continue;
+                        }
+                        const nextEntry = stampedSelection[listKey] ?? {...liveEntry, groupKey: liveEntry.groupKey ?? reportKey, isEntireGroupSelected};
+                        liveSelectionEntries.set(listKey, nextEntry);
+                        liveSelectionEntries.set(transactionItem.transactionID, nextEntry);
                     }
                 }
             }
@@ -248,6 +289,7 @@ function useReconcileSelectionWithData({
                     selfDMReport,
                     allowNegativeAmount: true,
                     parentReport: itemParentReport,
+                    rules,
                 });
 
                 const liveSelectionEntry: SelectedTransactionInfo = {
@@ -275,6 +317,7 @@ function useReconcileSelectionWithData({
                         ...liveEntry,
                         groupKey: excludedTransaction.groupKey,
                         isSelectedViaGroup: excludedTransaction.isSelectedViaGroup,
+                        isEntireGroupSelected: liveEntry.isEntireGroupSelected,
                     };
                     continue;
                 }
@@ -394,6 +437,7 @@ function SearchWriteActionsProvider({
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {applySelection} = useSearchSelectionActions();
 
     const searchResultsData = searchResults?.data;
@@ -425,23 +469,43 @@ function SearchWriteActionsProvider({
                         outstandingReportsByPolicyID,
                         selfDMReport,
                         parentReport: itemParentReport,
+                        rules,
                     });
 
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
-                        const parentGroup = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
-                        const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? parentGroup?.keyForList;
-                        // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
+                        const parentGroupFromChildren = filteredData.find((group) => group.transactions.some((transaction) => transaction.keyForList === item.keyForList));
+                        const groupKey = selectedTransactions[item.keyForList]?.groupKey ?? item.selectionGroupKey ?? parentGroupFromChildren?.keyForList;
+                        const parentGroup = (groupKey ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ?? parentGroupFromChildren;
+                        const loadedChildren = itemTransactions ?? parentGroup?.transactions ?? [];
+
                         if (groupKey) {
+                            // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
                             for (const [key, transaction] of Object.entries(updatedTransactions)) {
                                 if (transaction.groupKey === groupKey && transaction.isSelectedViaGroup) {
                                     updatedTransactions[key] = {...transaction, isSelectedViaGroup: false};
                                 }
                             }
+
+                            // Selecting every child individually is still a whole-group selection for delete, so stamp
+                            // the parent key on siblings that were picked one by one and had no group key yet.
+                            for (const child of loadedChildren) {
+                                if (!child.keyForList || !updatedTransactions[child.keyForList]) {
+                                    continue;
+                                }
+                                updatedTransactions[child.keyForList] = {...updatedTransactions[child.keyForList], groupKey};
+                            }
+                            if (updatedTransactions[item.keyForList]) {
+                                updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
+                            }
                         }
-                        // If the clicked expense is still selected, keep its parent group key.
-                        if (groupKey && updatedTransactions[item.keyForList]) {
-                            updatedTransactions[item.keyForList] = {...updatedTransactions[item.keyForList], groupKey};
-                        }
+
+                        return stampGroupCoverageFlags({
+                            selectedTransactions: updatedTransactions,
+                            groupKey,
+                            groupCount: getSearchGroupCount(parentGroup) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                            loadedChildrenCount: loadedChildren.length,
+                            loadedSelectableCount: loadedChildren.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                        });
                     }
 
                     return updatedTransactions;
@@ -492,34 +556,42 @@ function SearchWriteActionsProvider({
                     return reducedSelectedTransactions;
                 }
 
-                return {
+                const selectableTransactions = currentTransactions.filter((transaction) => !isTransactionPendingDelete(transaction));
+                const selectedViaGroup = {
                     ...selectedTransactions,
                     ...Object.fromEntries(
-                        currentTransactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => {
-                                const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
-                                const originalItemTransaction =
-                                    searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                                const [key, entry] = mapTransactionItemToSelectedEntry({
-                                    item: transactionItem,
-                                    itemTransaction,
-                                    originalItemTransaction,
-                                    currentUserLogin: currentUserEmail,
-                                    currentUserAccountID: accountID,
-                                    reportNameValuePairs,
-                                    outstandingReportsByPolicyID,
-                                    selfDMReport,
-                                    allowNegativeAmount: true,
-                                    parentReport: itemParentReport,
-                                });
-                                return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
-                            }),
+                        selectableTransactions.map((transactionItem) => {
+                            const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                            const originalItemTransaction =
+                                searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                            const [key, entry] = mapTransactionItemToSelectedEntry({
+                                item: transactionItem,
+                                itemTransaction,
+                                originalItemTransaction,
+                                currentUserLogin: currentUserEmail,
+                                currentUserAccountID: accountID,
+                                reportNameValuePairs,
+                                outstandingReportsByPolicyID,
+                                selfDMReport,
+                                allowNegativeAmount: true,
+                                parentReport: itemParentReport,
+                                rules,
+                            });
+                            return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
+                        }),
                     ),
                 };
+
+                return stampGroupCoverageFlags({
+                    selectedTransactions: selectedViaGroup,
+                    groupKey: item.keyForList,
+                    groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
+                    loadedChildrenCount: currentTransactions.length,
+                    loadedSelectableCount: selectableTransactions.length,
+                });
             },
             {
                 totalSelectableItemsCount,
@@ -545,10 +617,8 @@ function SearchWriteActionsProvider({
                             return [mapEmptyReportToSelectedEntry(item)];
                         }
                         const entries: Array<[string, SelectedTransactionInfo]> = [];
-                        for (const transactionItem of item.transactions) {
-                            if (isTransactionPendingDelete(transactionItem)) {
-                                continue;
-                            }
+                        const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
+                        for (const transactionItem of selectableTransactions) {
                             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                             const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
@@ -563,10 +633,19 @@ function SearchWriteActionsProvider({
                                 selfDMReport,
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
+                                rules,
                             });
                             entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
-                        return entries;
+                        return Object.entries(
+                            stampGroupCoverageFlags({
+                                selectedTransactions: Object.fromEntries(entries),
+                                groupKey: item.keyForList,
+                                groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
+                                loadedChildrenCount: item.transactions.length,
+                                loadedSelectableCount: selectableTransactions.length,
+                            }),
+                        );
                     });
                     return Object.fromEntries(allSelections);
                 }
@@ -595,6 +674,7 @@ function SearchWriteActionsProvider({
                             selfDMReport,
                             allowNegativeAmount: true,
                             parentReport: itemParentReport,
+                            rules,
                         }),
                     );
                 }

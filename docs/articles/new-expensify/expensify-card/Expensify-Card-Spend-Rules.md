@@ -33,7 +33,7 @@ These protections:
 
 When you create Spend rules, they are applied in addition to these protections rather than replacing them.
 
-You can view the default protections under **Workspaces > [Workspace Name] > Rules**.
+You can view the default protections under **Default** on the **Card restrictions** tab of **Workspaces > [Workspace Name] > Rules**.
 
 ---
 
@@ -85,7 +85,7 @@ When **Allow** is selected, you configure **Allowed merchants** and **Allowed me
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
 2. Click **Rules**.
-3. Under **Spend**, click **Add spend rule**.
+3. Open the **Card restrictions** tab, then click **Add spend rule**.
 4. Under **Cards**, click **Choose cards** and select one or more cards to apply the rule to.
 5. Under **Spend rules**, configure one or more of the following:
    - **Permitted currencies:** Keep **All currencies** or select specific currencies.
@@ -107,8 +107,8 @@ Purpose: Shows admins the rule configuration fields.
 
 After a rule is created, you can review, change, or remove it.
 
-1. Go to **Workspaces > [Workspace Name] > Rules**.
-2. Locate the card's Spend rule.
+1. Go to **Workspaces > [Workspace Name] > Rules** and open the **Card restrictions** tab.
+2. Locate the card's Spend rule under **Custom rules**.
 3. Select the rule to update its permitted currencies, max amount, merchants, or merchant types or mode.
 4. Click **Save rule**.
 
@@ -140,8 +140,8 @@ The Spend rule is applied when the card is issued and is enforced from the card'
 
 Use search to quickly locate a card or Spend rule. 
 
-1. Go to **Workspaces > [Workspace Name] > Rules**.
-2. Use the search field to filter the list by card or rule.
+1. Go to **Workspaces > [Workspace Name] > Rules** and open the **Card restrictions** tab.
+2. Use the **Find rule** field to filter the list by card or rule.
 
 ---
 

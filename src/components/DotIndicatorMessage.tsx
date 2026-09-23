@@ -20,7 +20,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -41,10 +41,7 @@ type DotIndicatorMessageProps = {
     /** Additional styles to apply to the container */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
-
-    /** A function to dismiss error */
     dismissError?: () => void;
 };
 

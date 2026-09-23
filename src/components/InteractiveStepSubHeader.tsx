@@ -13,27 +13,18 @@ type InteractiveStepSubHeaderProps = {
     /** List of the Route Name to navigate when the step is selected */
     stepNames: readonly string[];
 
-    /** Function to call when a step is selected */
     onStepSelected?: (stepName: string) => void;
-
-    /** The index of the step to start with */
     startStepIndex?: number;
 
     /** Description of the current step, appended to its accessibility label */
     currentStepAccessibilityDescription: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<InteractiveStepSubHeaderHandle>;
 };
 
 type InteractiveStepSubHeaderHandle = {
-    /** Move to the next step */
     moveNext: () => void;
-
-    /** Move to the previous step */
     movePrevious: () => void;
-
-    /** Move to a specific step */
     moveTo: (step: number) => void;
 };
 

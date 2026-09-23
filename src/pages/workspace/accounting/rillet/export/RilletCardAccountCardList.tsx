@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
@@ -90,23 +91,19 @@ function RilletCardAccountCardList({
                                 cardID,
                             )}
                         >
-                            <MenuItemWithTopDescription
-                                title={cardAccountDisplayName}
-                                description={getCardDescription(card, translate)}
+                            <MenuItemField
+                                name={getCardDescription(card, translate)}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(feedWithDomainID, String(cardID))))}
-                                shouldShowRightIcon
-                                brickRoadIndicator={
-                                    areCardsCustomExportInErrorFields(
-                                        cardFeeds ?? {},
-                                        {[feedWithDomainID]: cardList},
-                                        CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
-                                        feedKey,
-                                        cardID,
-                                    )
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                            />
+                                value={cardAccountDisplayName}
+                            >
+                                {areCardsCustomExportInErrorFields(
+                                    cardFeeds ?? {},
+                                    {[feedWithDomainID]: cardList},
+                                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
+                                    feedKey,
+                                    cardID,
+                                ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                     );
                 })}

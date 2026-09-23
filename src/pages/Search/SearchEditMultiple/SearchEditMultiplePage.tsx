@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -57,6 +58,8 @@ import {
 
 function SearchEditMultiplePage() {
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
@@ -85,6 +88,7 @@ function SearchEditMultiplePage() {
     });
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -103,12 +107,21 @@ function SearchEditMultiplePage() {
     const hasSplitTransaction = hasSplitExpenseInSelection(selectedTransactionContexts.map(({transaction}) => transaction));
 
     const isFieldDisabledForAnyTransaction = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
-        selectedTransactionContexts.some(({transaction, report, reportAction, transactionPolicy}) => {
+        selectedTransactionContexts.some(({transaction, report, reportAction, reportActions, transactionPolicy}) => {
             // Unreported expenses have no report actions yet but are always editable
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
             }
-            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs});
+            return !canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions,
+                rules,
+            });
         });
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -119,6 +132,8 @@ function SearchEditMultiplePage() {
         isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
 
     const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
+
+    const hasPartiallyEditableReimbursableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE);
 
     const areSelectedTransactionsBillable = selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
         // Unreported expenses have no policy yet but billable is always applicable
@@ -206,8 +221,10 @@ function SearchEditMultiplePage() {
         // before the synchronous Onyx writes block the JS thread.
         requestAnimationFrame(() => {
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled,
                 transactionIDs: selectedTransactionIDs,
                 changes,
+                bulkEditTagChanges: draftTransaction.bulkEditTagChanges,
                 policy,
                 reports: mergedReports,
                 transactions: mergedTransactions,
@@ -224,6 +241,7 @@ function SearchEditMultiplePage() {
                 personalDetailsList,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
             // Bulk edit can start from report (ID-based selection) or search (map-based selection),
             // so clear both stores to keep deselection behavior consistent.
@@ -332,6 +350,7 @@ function SearchEditMultiplePage() {
                       description: translate('common.reimbursable'),
                       title: getBooleanTitle(draftTransaction?.reimbursable),
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP,
+                      disabled: hasPartiallyEditableReimbursableTransaction,
                   },
               ]
             : []),

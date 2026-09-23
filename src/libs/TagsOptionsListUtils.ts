@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Option} from './OptionsListUtils';
 
 import {insertTagIntoTransactionTagsString} from './IOUUtils';
-import {hasEnabledOptions} from './OptionsListUtils';
+import {hasEnabledOptions, isOptionEnabled} from './OptionsListUtils';
 import {
     getCleanedTagName,
     getGLCodeFromPolicyTag,
@@ -38,7 +38,6 @@ type TagOption = Option & {
 };
 
 type TagVisibility = {
-    /** Flag indicating if the tag is required */
     isTagRequired: boolean;
 
     /** Flag indicating if the tag should be shown */
@@ -209,12 +208,27 @@ function getTagListSections({
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList
-        .filter((tag) => tag?.tags)
-        .map(({tags}) => Object.values(tags))
-        .flat();
+    for (const tagList of policyTagList) {
+        const tags = tagList?.tags;
 
-    return hasEnabledOptions(policyTagValueList);
+        if (!tags) {
+            continue;
+        }
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (isOptionEnabled(tag)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /**

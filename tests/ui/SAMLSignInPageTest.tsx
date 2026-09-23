@@ -14,7 +14,7 @@ import type {PublicScreensParamList} from '@libs/Navigation/types';
 
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage/index.native';
 
-import {setIsAuthenticatingWithShortLivedToken} from '@userActions/Session';
+import {clearSignInData, setIsAuthenticatingWithShortLivedToken, signInWithShortLivedAuthToken} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +53,8 @@ const mockedOpenAuthSessionAsync = jest.mocked(openAuthSessionAsync);
 const mockedPostSAMLLogin = jest.mocked(postSAMLLogin);
 const mockedGetPlatform = jest.mocked(getPlatform);
 
+const callbackURL = `${CONST.SAML_REDIRECT_URL}?json=${encodeURIComponent(JSON.stringify({shortLivedAuthToken: 'token'}))}`;
+
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 const renderPage = () => {
@@ -85,13 +87,16 @@ describe('SAMLSignInPage', () => {
         // postSAMLLogin resolves with the parsed JSON body, and the page only reads its url.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         mockedPostSAMLLogin.mockResolvedValue({url: 'https://idp.example.com/sso'} as Response);
+        mockedOpenAuthSessionAsync.mockResolvedValue({type: 'success', url: callbackURL});
         jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         jest.spyOn(Navigation, 'isNavigationReady').mockResolvedValue(undefined);
         await act(async () => {
             await Onyx.clear();
             await Onyx.multiSet({
                 [ONYXKEYS.CREDENTIALS]: {login: 'user@saml.example.com'},
                 [ONYXKEYS.ACCOUNT]: {isLoading: false},
+                [ONYXKEYS.LAST_VISITED_PATH]: '/search?q=status:outstanding',
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -145,5 +150,28 @@ describe('SAMLSignInPage', () => {
 
         expect(dismissAuthSession).not.toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('signs in with the token while the account is still marked loading by a forced re-auth', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isLoading: true});
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
+        expect(clearSignInData).not.toHaveBeenCalled();
+    });
+
+    it('signs in with the token after a sign-in the user started', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {isLoading: false});
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding');
     });
 });

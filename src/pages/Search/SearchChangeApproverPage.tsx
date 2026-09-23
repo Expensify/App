@@ -101,6 +101,7 @@ function SearchChangeApproverPage() {
     };
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const hasAutoAppliedRef = useRef(false);
     // Set when navigating to WORKSPACE_UPGRADE; prevents the auto-close in useLayoutEffect from
@@ -173,7 +174,17 @@ function SearchChangeApproverPage() {
 
             if (report.managerID !== currentUserDetails.accountID) {
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
+                assignReportToMe(
+                    report,
+                    currentUserDetails.accountID,
+                    currentUserDetails.email ?? '',
+                    policy,
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    isTrackIntentUser,
+                    formatPhoneNumber,
+                    rules,
+                );
             }
         }
 
