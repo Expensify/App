@@ -801,6 +801,57 @@ describe('Go back on the narrow layout', () => {
             expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
         });
 
+        it('Should stop at a pop a beforeRemove listener prevented', () => {
+            // Given a modal over two workspace splits, whose closing a discard-changes guard prevents
+            const guard = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
+            render(
+                <TestNavigationContainer
+                    initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))}
+                    onBeforeRemove={(event, route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && guard(event)}
+                />,
+            );
+            const rootStateBefore = navigationRef.current?.getRootState();
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            // When going back to a screen that needs the modal closed and the splits under it popped too
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            // Then only the prevented pop goes out and the guard sees it once - issue #102010: re-dispatching it reached
+            // the guard over its own open prompt, which closed that prompt, and popping the splits would change the
+            // screens under the form
+            expect(dispatchSpy).toHaveBeenCalledTimes(1);
+            expect(guard).toHaveBeenCalledTimes(1);
+            expect(navigationRef.current?.getRootState()).toEqual(rootStateBefore);
+        });
+
+        it('Should stop at a prevented pop after an earlier pop went through', () => {
+            // Given a modal over two workspace splits, where closing the modal goes through but a guard on the covering
+            // split prevents popping it
+            const guard = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
+            render(
+                <TestNavigationContainer
+                    initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))}
+                    onBeforeRemove={(event, route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR && guard(event)}
+                />,
+            );
+            const dispatchSpy = jest.spyOn(requireNavigationContainer(), 'dispatch');
+
+            // When going back to a screen in the covered split
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            // Then nothing is dispatched past the prevented pop, and the splits it would have popped stay as they were
+            expect(dispatchSpy).toHaveBeenCalledTimes(2);
+            expect(guard).toHaveBeenCalledTimes(1);
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
+            const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            expect(workspaceState?.routes).toHaveLength(2);
+        });
+
         it('Should restore the tab the fallback route belongs to when the tab navigator is focused elsewhere', () => {
             // Issue #89006: the root stack's state slicing leaves the tab navigator's index on Home, so popping the
             // modal alone lands there instead of the tab holding the back target. The walk down plus jumpTo fixes it.

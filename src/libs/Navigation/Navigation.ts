@@ -529,17 +529,32 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    const dispatch = (actionToDispatch: NavigationAction) => {
+    // Returns false when a `beforeRemove` listener (e.g. the discard-changes prompt) prevented the action. React Navigation
+    // reports that synchronously, as a `noop` `__unsafe_action__` for the action it dropped.
+    const dispatch = (actionToDispatch: NavigationAction): boolean => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
         }
-        navigationRef.current?.dispatch(actionToDispatch);
+        let wasApplied = true;
+        const unsubscribe = navigationContainer.addListener('__unsafe_action__', (event) => {
+            if (event.data.action !== actionToDispatch) {
+                return;
+            }
+            wasApplied = !event.data.noop;
+        });
+        navigationContainer.dispatch(actionToDispatch);
+        unsubscribe();
+        return wasApplied;
     };
 
     // Once these pops are out, going back has happened, so nothing below may report a failure to go up.
     const popsToNavigator = getPopsToNavigatorWithBackToRoute(navigationContainer.getRootState(), action, compareParams);
     for (const popToNavigator of popsToNavigator) {
-        dispatch(popToNavigator);
+        // The guard that prevented this pop owns the navigation from here. Going on would change the screens under its
+        // prompt, or send it this pop again, which it takes as Back over the open prompt and closes the prompt.
+        if (!dispatch(popToNavigator)) {
+            return true;
+        }
     }
     const didPopToNavigator = popsToNavigator.length > 0;
 
@@ -563,7 +578,10 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         );
         const jumpParams = 'params' in payload ? payload.params : undefined;
         if (underlyingTabNavIndex !== -1) {
-            dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
+            // A prevented pop leaves the tab navigator covered, so jumping in it would change the tab under the prompt.
+            if (!dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex))) {
+                return true;
+            }
             // The uncovered tab navigator has the right tab active, but not necessarily the requested screen inside
             // it, so the jump still has to be applied there rather than to the tab navigator that was popped.
             const underlyingTabStateKey = rootState.routes.at(underlyingTabNavIndex)?.state?.key;
