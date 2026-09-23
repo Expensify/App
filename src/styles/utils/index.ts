@@ -61,6 +61,7 @@ import splitPercentageInputStyles from './splitPercentageInputStyles';
 
 type GetReportTableColumnStylesParams = {
     isDateColumnWide?: boolean;
+    isDateColumnCreated?: boolean;
     isAmountColumnWide?: boolean;
     isTaxAmountColumnWide?: boolean;
     isSubmittedColumnWide?: boolean;
@@ -1107,13 +1108,24 @@ function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
 }
 
 /**
+ * Scales a view about its top-left corner, e.g. to display high-resolution content
+ * at a smaller size inside a clipping box without re-rendering it.
+ */
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle & {transformOrigin?: string} {
+    return {
+        transform: [{scale: scaleValue}],
+        transformOrigin: 'top left',
+    };
+}
+
+/**
  * Returns a style object with a rotation transformation applied based on the provided direction prop.
  *
  * @param direction - The direction of the rotation (CONST.DIRECTION.LEFT or CONST.DIRECTION.RIGHT).
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: 'rotate(180deg)'};
+        return {transform: [{rotate: '180deg'}]};
     }
 
     return {};
@@ -1488,6 +1500,7 @@ const staticStyleUtils = {
     getEmojiPickerStyle,
     getEmojiReactionBubbleTextStyle,
     getTransformScaleStyle,
+    getTopLeftTransformScaleStyle,
     getCodeFontSize,
     getFontSizeStyle,
     getLineHeightStyle,
@@ -1971,6 +1984,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isPostedColumnWide,
             isExportedColumnWide,
             isDateColumnWide,
+            isDateColumnCreated,
             isTaxAmountColumnWide,
             isAmountColumnWide,
             shouldRemoveTotalColumnFlex,
@@ -2029,11 +2043,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
                 columnWidth = {...getWidthStyle(isExportedColumnWide ? variables.w102 : variables.w62)};
                 break;
-            case CONST.SEARCH.TABLE_COLUMNS.DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.DATE: {
+                const normalDateWidth = isDateColumnCreated ? variables.w80 : variables.w62;
                 columnWidth = {
-                    ...getWidthStyle(isDateColumnWide ? variables.w102 : variables.w62),
+                    ...getWidthStyle(isDateColumnWide ? variables.w102 : normalDateWidth),
                 };
                 break;
+            }
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
@@ -2042,6 +2058,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR:
@@ -2136,6 +2153,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
