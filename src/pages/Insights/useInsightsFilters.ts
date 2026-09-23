@@ -26,7 +26,6 @@ type UseInsightsFilters = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-/** Returns the page-level filters every chart on the dashboard is narrowed by: the stored selections where the user has made one, the page defaults everywhere else. */
 function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFilters {
     const {searchKey} = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);

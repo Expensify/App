@@ -10,7 +10,7 @@ type SearchFilter = {
     query: string;
 };
 
-/** Collection of search filters keyed by search key, or by Insights dashboard for the Insights page's page-level controls. */
+/** Collection of search filters keyed by search key or by Insights dashboard for the Insights page's page-level controls. */
 type SearchFilters = Partial<Record<SearchKey | InsightsSearchKey, string | SearchFilter>>;
 
 export default SearchFilters;

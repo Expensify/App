@@ -34,7 +34,6 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
     read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData});
 }
 
-/** Stores a dashboard's page-level selections. */
 function setInsightsFilters(searchKey: InsightsSearchKey, query: string) {
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
