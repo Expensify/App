@@ -17,8 +17,8 @@
 #     with push access to App main.
 #   - GITHUB_OUTPUT: written by `check` and `sync` (defaults to /dev/null outside GitHub Actions).
 #   - TARGET_VERSION (sync, optional): version to sync to. Must equal the Mobile-Expensify version,
-#     since only the App side is rewritten and the final verification compares the two. Empty means
-#     "use the Mobile-Expensify version".
+#     since only the App side is rewritten and the final verification compares the two. Anything else
+#     is rejected before the sync writes or pushes. Empty means "use the Mobile-Expensify version".
 #   - NEED_FULL_VERSION_SYNC (sync): 'true' to rewrite versions, anything else to only bump the
 #     submodule pointer. Threaded from `check` so exactly one decision exists across both steps.
 #   - EXPECTED_SUBMODULE_SHA (sync): Mobile-Expensify SHA `check` updated to. The submodule-only
@@ -98,17 +98,25 @@ function update_ios_versions {
 }
 
 function resolve_target_version {
-    if [[ -n "$TARGET_VERSION" ]]; then
-        echo "Using provided target version: $TARGET_VERSION" >&2
-        echo "$TARGET_VERSION"
-        return
-    fi
-
     # Use Mobile-Expensify version as source of truth since it was pushed first
     local me_version
     me_version="$(get_mobile_expensify_version)"
-    echo "Using Mobile-Expensify version as target: $me_version" >&2
-    echo "$me_version"
+
+    if [[ -z "$TARGET_VERSION" ]]; then
+        echo "Using Mobile-Expensify version as target: $me_version" >&2
+        echo "$me_version"
+        return
+    fi
+
+    # Only the App side is rewritten, so a target that isn't the Mobile-Expensify version can never pass
+    # verification. Reject it here, before the sync commits and pushes that version to App main.
+    if [[ "$TARGET_VERSION" != "$me_version" ]]; then
+        echo "::error::TARGET_VERSION ($TARGET_VERSION) must match the Mobile-Expensify version ($me_version)" >&2
+        exit 1
+    fi
+
+    echo "Using provided target version: $TARGET_VERSION" >&2
+    echo "$TARGET_VERSION"
 }
 
 function cmd_check {
