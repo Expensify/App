@@ -48,15 +48,15 @@ describe('activeSpans', () => {
             jest.spyOn(console, 'debug').mockImplementation(() => {});
         });
 
-        it('pins a span with no declared parent to the root', () => {
+        it('forces a span with no declared parent into its own transaction', () => {
             // Given options from a caller that names no parent, which is how almost every span in the app is started
             const options = {name: 'RootedSpan'};
 
             // When the span is started
             startSpan('RootedSpan', options);
 
-            // Then `parentSpan` is null, because anything else lets the SDK adopt the span sitting on the scope and cancel ours along with it
-            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'RootedSpan', parentSpan: null}));
+            // Then it is forced into its own transaction, because a child can be ended by whatever span sits on the scope
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'RootedSpan', forceTransaction: true}));
 
             endSpan('RootedSpan');
         });
@@ -69,11 +69,24 @@ describe('activeSpans', () => {
             // When the span is started
             startSpan('NestedSpan', {name: 'NestedSpan', parentSpan});
 
-            // Then that parent survives, so pinning spans to the root does not break deliberate nesting
-            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'NestedSpan', parentSpan}));
+            // Then it stays a child of that parent, so deliberate nesting is not broken
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith(expect.objectContaining({name: 'NestedSpan', parentSpan, forceTransaction: false}));
 
             endSpan('NestedSpan');
             endSpan('ParentSpan');
+        });
+
+        it('lets a caller opt back into the span on the scope', () => {
+            // Given a caller that asks to inherit, as the Onyx derived recomputes do because they are short and want whatever transaction is open
+            const options = {name: 'InheritingSpan', inheritScope: true};
+
+            // When the span is started
+            startSpan('InheritingSpan', options);
+
+            // Then it is left as a child, and `inheritScope` is dropped because the SDK has no such option
+            expect(mockStartInactiveSpan).toHaveBeenCalledWith({name: 'InheritingSpan', forceTransaction: false});
+
+            endSpan('InheritingSpan');
         });
     });
     describe('getSpanByPrefix', () => {
