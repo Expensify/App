@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
@@ -270,7 +270,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         >
             {({didScreenTransitionEnd}) => (
                 <>
-                    <HeaderWithBackButton
+                    <HeaderWithBackButtonAndTitle
                         title={translate('report.newReport.createReport')}
                         onBackButtonPress={() => Navigation.goBack(backPath)}
                     />

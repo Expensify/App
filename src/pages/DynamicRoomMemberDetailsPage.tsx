@@ -1,6 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -87,7 +87,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
 
     return (
         <ScreenWrapper testID="DynamicRoomMemberDetailsPage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />

@@ -1,7 +1,7 @@
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 
 import ContextMenuItem from '@components/ContextMenuItem';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
@@ -183,7 +183,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     return (
         <ScreenWrapper testID="ShareCodePage">
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('common.shareCode')}
                 onBackButtonPress={() => {
                     if (!isReport) {
@@ -193,7 +193,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
                     Navigation.goBack(backTo ?? ROUTES.HOME);
                 }}
-                shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                 <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>

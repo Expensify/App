@@ -1,6 +1,6 @@
 import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -314,7 +314,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
@@ -332,7 +332,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                 testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('iou.addExistingExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
@@ -380,7 +380,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             testID="NewChatSelectorPage"
             focusTrapSettings={{active: false}}
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('iou.addExistingExpense')}
                 onBackButtonPress={Navigation.goBack}
             />

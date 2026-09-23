@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -226,7 +226,7 @@ function ProfilePage({route}: ProfilePageProps) {
     return (
         <ScreenWrapper testID="ProfilePage">
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.profile')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />

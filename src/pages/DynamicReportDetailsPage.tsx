@@ -1,7 +1,7 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -1231,7 +1231,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     return (
         <ScreenWrapper testID="DynamicReportDetailsPage">
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromReportDetailsPath)}
                 />

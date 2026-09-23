@@ -3,7 +3,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import PercentageForm from '@components/PercentageForm';
@@ -228,7 +228,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
             includeSafeAreaPaddingBottom
             testID="ChronosScheduleOOOPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('chronos.scheduleOOOTitle')}
                 onBackButtonPress={Navigation.goBack}
             />

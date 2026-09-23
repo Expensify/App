@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
@@ -272,7 +272,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             {({didScreenTransitionEnd}) => (
                 <>
                     <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={translate('iou.changeWorkspace')}
                             onBackButtonPress={() => {
                                 Navigation.goBack(navigateBackFromChangeWorkspacePath);

@@ -3,7 +3,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -352,7 +352,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 subtitleKey={subtitleKey}
                 onBackButtonPress={navigateBackToReportDetails}
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(subtitleReportName) : subtitleReportName)}
                     onBackButtonPress={() => {

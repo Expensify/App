@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -115,7 +115,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
             {({didScreenTransitionEnd}) => (
                 <>
                     <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={translate('workspace.common.setAsDefault')}
                             onBackButtonPress={Navigation.goBack}
                         />

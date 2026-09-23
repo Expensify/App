@@ -1,7 +1,7 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AddressForm from '@components/AddressForm';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -101,9 +101,8 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
             testID="AddressPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={title}
-                    shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 {isLoadingApp ? (
