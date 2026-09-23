@@ -19,7 +19,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
@@ -72,7 +72,7 @@ function DynamicNewTaskPage() {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${task?.shareDestination}`);
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${task?.shareDestination}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const policy = usePolicy(parentReport?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);

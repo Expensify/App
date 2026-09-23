@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
@@ -50,7 +51,7 @@ const ConciergeDraftActionsContext = createContext<ConciergeDraftActions>(defaul
 function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
-    const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
+    const [agentParticipantAccountID] = useAllPersonalDetails(getCustomAgentParticipantAccountID(participantAccountIDs));
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [parentReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParentReportID});
 

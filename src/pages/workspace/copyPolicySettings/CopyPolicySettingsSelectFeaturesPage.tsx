@@ -12,6 +12,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setCopyPolicySettingsData} from '@libs/actions/Policy/CopyPolicySettings';
@@ -96,9 +97,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const sourceHasAddress = !isEmptyObject(sourcePolicy?.address);
     const hasTargetWithoutAddress = targetPolicies.some((policy) => isEmptyObject(policy?.address));
 
-    const [memberCount = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login),
-    });
+    const [memberCount = 0] = useAllPersonalDetails(createFilteredMemberCountSelector(sourcePolicy?.employeeList, sourcePolicy?.owner, currentUserPersonalDetails.login));
     const invoiceCompany = [sourcePolicy?.invoice?.companyName, sourcePolicy?.invoice?.companyWebsite].filter(Boolean).join(', ');
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
         selector: createInvoiceConfigurationTextSelector(translate, invoiceCompany),
