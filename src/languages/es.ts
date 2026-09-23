@@ -7407,7 +7407,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
             filters: {
                 description: (providerName: string) => `Selecciona qué miembros se importan desde ${providerName}. Puedes elegir entre fases del proceso, etiquetas y oficinas.`,
-                chooseAtLeastOneItem: 'Elige al menos un elemento para importar',
                 stages: {
                     title: 'Etapa del trabajo',
                     description: 'Elige la fase del puesto de los candidatos que te gustaría sincronizar con este espacio de trabajo',

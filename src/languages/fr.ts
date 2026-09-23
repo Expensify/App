@@ -8705,7 +8705,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             filters: {
                 description: (providerName: string) =>
                     `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir selon les étapes de poste, les tags et les bureaux.`,
-                chooseAtLeastOneItem: 'Choisissez au moins un élément à importer',
                 stages: {
                     title: 'Étape du poste',
                     description: 'Choisissez l’étape de recrutement des candidats que vous souhaitez synchroniser avec cet espace de travail',

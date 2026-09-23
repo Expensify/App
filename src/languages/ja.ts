@@ -8526,7 +8526,6 @@ ${reportName}`,
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
             filters: {
                 description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選ぶことができます。`,
-                chooseAtLeastOneItem: 'インポートする項目を少なくとも1つ選択してください',
                 stages: {
                     title: 'ジョブステージ',
                     description: 'このワークスペースと同期したい候補者の求人ステージを選択してください',

@@ -8617,7 +8617,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
             filters: {
                 description: (providerName: string) => `Selecione quais membros serão importados de ${providerName}. Você pode escolher por etapas do trabalho, tags e escritórios.`,
-                chooseAtLeastOneItem: 'Escolha pelo menos um item para importar',
                 stages: {
                     title: 'Etapa do trabalho',
                     description: 'Escolha a etapa do processo seletivo dos candidatos que você gostaria de sincronizar com este workspace',

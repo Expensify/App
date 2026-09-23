@@ -133,7 +133,7 @@ function MergeATSFiltersPage({
                     {!hasRequiredFilter && hasAttemptedSave && (
                         <FormHelpMessage
                             isError
-                            message={translate('workspace.recruiting.filters.chooseAtLeastOneItem')}
+                            message={translate('workspace.recruiting.filters.enableJobStagesOrTags')}
                             style={styles.mb3}
                         />
                     )}

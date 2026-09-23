@@ -8305,7 +8305,6 @@ ${reportName}`,
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
             filters: {
                 description: (providerName: string) => `选择要从 ${providerName} 导入的成员。你可以根据职位阶段、标签和办公室进行选择。`,
-                chooseAtLeastOneItem: '请选择至少一项导入',
                 stages: {
                     title: '职位阶段',
                     description: '选择你希望与此工作区同步的候选人职位阶段',

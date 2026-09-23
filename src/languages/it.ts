@@ -8635,7 +8635,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
             filters: {
                 description: (providerName: string) => `Seleziona quali membri importare da ${providerName}. Puoi scegliere in base a fasi lavorative, tag e sedi.`,
-                chooseAtLeastOneItem: 'Scegli almeno un elemento da importare',
                 stages: {
                     title: 'Fase del lavoro',
                     description: 'Scegli la fase del lavoro dei candidati che vuoi sincronizzare con questo workspace',

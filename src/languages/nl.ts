@@ -8614,7 +8614,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
             filters: {
                 description: (providerName: string) => `Selecteer welke leden worden geïmporteerd uit ${providerName}. Je kunt kiezen op basis van functiestadia, tags en kantoren.`,
-                chooseAtLeastOneItem: 'Kies minstens één item om te importeren',
                 stages: {
                     title: 'Functiefase',
                     description: 'Kies de sollicitatiefase van de kandidaten die je met deze workspace wilt synchroniseren',

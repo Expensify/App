@@ -8632,7 +8632,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
             filters: {
                 description: (providerName: string) => `Wybierz, których członków zaimportować z ${providerName}. Możesz wybierać według etapów rekrutacji, tagów i biur.`,
-                chooseAtLeastOneItem: 'Wybierz co najmniej jeden element do zaimportowania',
                 stages: {
                     title: 'Etap zadania',
                     description: 'Wybierz etap rekrutacji kandydatek i kandydatów, których chcesz zsynchronizować z tym obszarem roboczym',
