@@ -137,6 +137,16 @@ function useSearchSidebarToggleButtonStyle() {
     );
 }
 
+// The account avatar's box is wider than a row's icon, so collapsed it would sit right of the rail's centre.
+// Sliding it by half that difference lines it up, and the transform animates where a padding change would jump.
+const ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X = -(variables.avatarSizeSmall - variables.iconSizeNormal) / 2;
+
+function useFlatNavigationBarAccountAvatarStyle() {
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
+
+    return useMemo<ViewStyle>(() => ({...fadeTransitionStyle, transform: [{translateX: isVisuallyCollapsed ? ACCOUNT_AVATAR_COLLAPSED_TRANSLATE_X : 0}]}), [isVisuallyCollapsed]);
+}
+
 /** Layout space the bar reserves. Peeking overlays the content rather than pushing it, so this ignores the peek. */
 function useFlatNavigationBarLayoutWidthStyle() {
     const {isCollapsed: collapsed} = useSearchSidebarCollapse();
@@ -154,6 +164,7 @@ function useFlatNavigationBarVisualWidthStyle() {
 export {
     SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS,
     getFlatNavigationBarWidth,
+    useFlatNavigationBarAccountAvatarStyle,
     useFlatNavigationBarLayoutWidthStyle,
     useFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,

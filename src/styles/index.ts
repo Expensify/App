@@ -846,19 +846,20 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'space-between',
             height: variables.flatNavigationBarHeaderHeight,
+            marginBottom: variables.flatNavigationBarHeaderMarginBottom,
             paddingLeft: 20,
             paddingRight: variables.flatNavigationBarHeaderPaddingRight,
         },
 
-        // Collapsed, the toggle is the header's only child: 16 + the 24px icon + 16 fills the 56px rail exactly.
+        // Collapsed, the toggle is the header's only child: 20 + the 20px icon + 20 fills the 60px rail exactly.
         flatNavigationBarHeaderCollapsed: {
-            paddingLeft: 16,
-            paddingRight: 16,
+            paddingLeft: 20,
+            paddingRight: 20,
         },
 
         flatNavigationBarCollapseButton: {
-            width: variables.iconSizeLarge,
-            height: variables.iconSizeLarge,
+            width: variables.iconSizeNormal,
+            height: variables.iconSizeNormal,
             alignItems: 'center',
             justifyContent: 'center',
         },
@@ -906,7 +907,7 @@ const staticStyles = (theme: ThemeColors) =>
         // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
         // at the same x as the labels of the rows above them.
         flatNavigationBarSubItem: {
-            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeSmall,
+            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal,
         },
 
         // A sub-row's indent is otherwise empty, so its hover control sits there and leaves the label its full width.
@@ -917,7 +918,7 @@ const staticStyles = (theme: ThemeColors) =>
             top: 0,
             bottom: 0,
             // Same left edge and width as a parent row's icon, so the two line up down the column.
-            width: variables.iconSizeSmall,
+            width: variables.iconSizeNormal,
             alignItems: 'center',
             justifyContent: 'center',
         },

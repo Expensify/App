@@ -157,17 +157,18 @@ export default {
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 220,
-    // Collapsed, a row shows only its icon: the row's own margin and padding on each side, around a 16px icon.
-    flatNavigationBarCollapsedWidth: 56,
+    // Collapsed, a row shows only its icon: the row's own margin and padding on each side, around a 20px icon.
+    flatNavigationBarCollapsedWidth: 60,
     flatNavigationBarItemHeight: 40,
     // Horizontal inset every row's background sits at, inside the bar's own width.
     flatNavigationBarRowInset: 8,
     // Fixed so the header keeps its height whether or not the wordmark is showing.
-    flatNavigationBarHeaderHeight: 76,
+    flatNavigationBarHeaderHeight: 72,
+    flatNavigationBarHeaderMarginBottom: 4,
     // Shorter than a standard medium button; collapsed, the same value makes it a square.
     flatNavigationBarCreateButtonHeight: 32,
     flatNavigationBarAccountItemHeight: 56,
-    flatNavigationBarHeaderPaddingRight: 12,
+    flatNavigationBarHeaderPaddingRight: 20,
     flatNavigationBarLogoWidth,
     flatNavigationBarLogoHeight,
     popoverMargin: 18,

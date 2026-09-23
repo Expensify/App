@@ -7,7 +7,12 @@ import DebugTabView from '@components/Navigation/DebugTabView';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
-import {useFlatNavigationBarLayoutWidthStyle, useFlatNavigationBarVisualWidthStyle, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {
+    useFlatNavigationBarAccountAvatarStyle,
+    useFlatNavigationBarLayoutWidthStyle,
+    useFlatNavigationBarVisualWidthStyle,
+    useSearchSidebarCollapse,
+} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -76,7 +81,7 @@ const FAB_ANCHOR_ALIGNMENT = {
 // the header, so both edges follow from the header's height and the margin the row sits at.
 const FAB_ANCHOR_POSITION = {
     horizontal: 12,
-    vertical: variables.flatNavigationBarHeaderHeight + variables.flatNavigationBarCreateButtonHeight + 8,
+    vertical: variables.flatNavigationBarHeaderHeight + variables.flatNavigationBarHeaderMarginBottom + variables.flatNavigationBarCreateButtonHeight + 8,
 };
 
 type FlatNavigationBarProps = {
@@ -116,6 +121,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {isCollapsed, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
     const layoutWidthStyle = useFlatNavigationBarLayoutWidthStyle();
     const visualWidthStyle = useFlatNavigationBarVisualWidthStyle();
+    const accountAvatarStyle = useFlatNavigationBarAccountAvatarStyle();
 
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
@@ -236,8 +242,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 <Icon
                                     src={isCollapsed ? SidebarRightIcon : SidebarLeftIcon}
                                     fill={theme.icon}
-                                    width={variables.iconSizeLarge}
-                                    height={variables.iconSizeLarge}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             </PressableWithFeedback>
                         </View>
@@ -345,8 +351,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     />
                                 )}
 
-                                <FlatNavDivider />
-
                                 {hasSavedSearches && (
                                     <>
                                         <FlatNavItem
@@ -380,9 +384,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 isCollapsed={isVisuallyCollapsed}
                                 label={currentUserPersonalDetails.displayName ?? translate('initialSettingsPage.account')}
                                 leftElement={
-                                    <View style={styles.flatNavigationBarAccountAvatar}>
+                                    <Animated.View style={[styles.flatNavigationBarAccountAvatar, accountAvatarStyle]}>
                                         <ProfileAvatarWithIndicator isSelected={isAccountSelected} />
-                                    </View>
+                                    </Animated.View>
                                 }
                                 isSelected={isAccountSelected}
                                 accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${

@@ -109,8 +109,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     // Must match the same condition in AccountSwitcher, or the skeleton and the loaded header lay out differently.
     const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
 
+    // Wide layouts sit under the global navigation bar rather than a header, so the row needs far less clearance.
     const headerContent = (
-        <View style={[styles.ph5, styles.pv4]}>
+        <View style={[styles.ph5, shouldUseNarrowLayout ? styles.pt4 : styles.pt1, styles.pb4]}>
             {isPersonalDetailsEmpty ? (
                 <AccountSwitcherSkeletonView
                     avatarSize={shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT}

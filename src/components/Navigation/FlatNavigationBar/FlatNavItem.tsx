@@ -112,8 +112,8 @@ function FlatNavItem({
                             <Icon
                                 src={icon}
                                 fill={getIconFill(isSelected, hovered, theme)}
-                                width={variables.iconSizeSmall}
-                                height={variables.iconSizeSmall}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                             {!!statusIndicatorColor && (
                                 <View
