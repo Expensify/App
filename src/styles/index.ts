@@ -746,6 +746,15 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        // Sits behind the row and inside the container's rounded clip, so the blur stops at the capsule's edge.
+        navigationTabBarBlur: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+        },
+
         navigationTabBarItemSelected: {
             backgroundColor: theme.floatingTabBarSelectedBG,
             borderRadius: variables.componentBorderRadiusCircle,

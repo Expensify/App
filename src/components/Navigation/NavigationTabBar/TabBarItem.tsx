@@ -35,6 +35,7 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
         <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
@@ -42,8 +43,8 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                 <Icon
                     src={icon}
                     fill={getIconFill(isSelected, isHovered, theme)}
-                    width={variables.iconBottomBar}
-                    height={variables.iconBottomBar}
+                    width={iconSize}
+                    height={iconSize}
                 />
                 {!!statusIndicatorColor && (
                     <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
@@ -51,7 +52,13 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
             </View>
             <Text
                 numberOfLines={numberOfLines}
-                style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, isSelected ? styles.textBold : styles.textSupporting, styles.navigationTabBarLabel]}
+                style={[
+                    styles.textSmall,
+                    styles.textAlignCenter,
+                    shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half,
+                    isSelected ? styles.textBold : styles.textSupporting,
+                    styles.navigationTabBarLabel,
+                ]}
             >
                 {label}
             </Text>

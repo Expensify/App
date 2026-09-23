@@ -35,6 +35,7 @@ import InboxTabButton from './InboxTabButton';
 import InsightsTabButton from './InsightsTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
+import TabBarBlur from './TabBarBlur';
 import TabBarItem from './TabBarItem';
 import WorkspacesTabButton from './WorkspacesTabButton';
 
@@ -161,6 +162,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
+                <TabBarBlur />
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
