@@ -1,7 +1,7 @@
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
@@ -78,7 +78,7 @@ type TextPickerProps = {
     /** Whether to use strict HTML tag validation regex */
     shouldUseStrictHtmlTagValidation?: boolean;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
     TextProps;
 
