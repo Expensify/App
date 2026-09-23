@@ -7,7 +7,6 @@ import type {BaseVacationDelegate} from './VacationDelegate';
 
 /** Model of domain data */
 type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Whether the domain is validated */
     validated: boolean;
 
     /** Account ID associated with the domain */
@@ -19,10 +18,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Validation code for the domain */
     validateCode?: string;
 
-    /** Whether domain validation is pending */
     isValidationPending?: boolean;
-
-    /** Whether domain validation has succeeded */
     hasValidationSucceeded?: boolean;
 
     /** Errors that occurred when validating the domain */
@@ -129,9 +125,6 @@ type UserSecurityGroupData =
            */
           key: SecurityGroupKey;
 
-          /**
-           * The security group data.
-           */
           securityGroup: Partial<DomainSecurityGroup>;
       }
     | undefined;

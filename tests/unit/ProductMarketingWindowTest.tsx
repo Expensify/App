@@ -47,6 +47,8 @@ const POLICY_ID = 'product-marketing-policy';
 const SECOND_POLICY_ID = 'second-product-marketing-policy';
 const USER_EMAIL = 'user@example.com';
 const USER_ACCOUNT_ID = 7;
+const SECOND_USER_EMAIL = 'second-user@example.com';
+const SECOND_USER_ACCOUNT_ID = 8;
 const OLDER_UPDATE_KEY = 'productUpdateJuly2026';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
@@ -142,9 +144,12 @@ const renderManager = (topmostRouteName?: string, theme: ThemePreferenceWithoutS
         </NavigationContainer>,
     );
 
-async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID, initializeBetas = true}: {isAdmin: boolean; activePolicyID?: string; initializeBetas?: boolean}) {
+async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID, initializeOnboarding = true}: {isAdmin: boolean; activePolicyID?: string; initializeOnboarding?: boolean}) {
     await Onyx.clear();
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+    if (initializeOnboarding) {
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+    }
     await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
     });
@@ -152,9 +157,7 @@ async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID, initializ
         email: USER_EMAIL,
         accountID: USER_ACCOUNT_ID,
     });
-    if (initializeBetas) {
-        await Onyx.set(ONYXKEYS.BETAS, []);
-    }
+    await Onyx.set(ONYXKEYS.BETAS, []);
     if (isAdmin) {
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicyID);
@@ -188,10 +191,300 @@ describe('ProductMarketingWindowManager', () => {
         });
     });
 
+    it('renders nothing while the onboarding NVP is hydrating', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true, initializeOnboarding: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        const onboardingHydration = Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        renderManager();
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await onboardingHydration;
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
+    it.each([
+        ['admin', true, adminHeading],
+        ['member', false, memberHeading],
+    ] as const)('suppresses the %s variant when onboarding is incomplete', async (_audience, isAdmin, heading) => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(heading)).toBeNull();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it('keeps the window hidden after onboarding completes, then allows it after an authenticated-root remount', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        const {unmount} = renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+
+        unmount();
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
+    it('does not leak the onboarding-session latch into a different account without a remount', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [SECOND_USER_ACCOUNT_ID]: buildPersonalDetails(SECOND_USER_EMAIL, SECOND_USER_ACCOUNT_ID, 'Second User'),
+            });
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                email: SECOND_USER_EMAIL,
+                accountID: SECOND_USER_ACCOUNT_ID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(memberHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(memberHeading)).toBeTruthy();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                email: USER_EMAIL,
+                accountID: USER_ACCOUNT_ID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
+            await Onyx.set(ONYXKEYS.BETAS, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it.each([false, true])('hides marketing before delegate/loading updates during Copilot entry (first session: %s)', async (isFirstSession) => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: !isFirstSession});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: USER_ACCOUNT_ID, email: USER_EMAIL});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(!!screen.queryByText(adminHeading)).toBe(!isFirstSession);
+
+        // ConnectAsDelegate changes the session before loading and delegatedAccess are updated.
+        // Preserve the still-eligible owner policy/login to exercise that intermediate render.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: USER_EMAIL}});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: USER_ACCOUNT_ID});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, {});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(!!screen.queryByText(adminHeading)).toBe(!isFirstSession);
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it('keeps the original session eligible when a failed Copilot connection leaves a stashed session', async () => {
+        const errorTimestamp = '1';
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: USER_ACCOUNT_ID, email: USER_EMAIL});
+            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {errorFields: {connect: {[SECOND_USER_EMAIL]: {[errorTimestamp]: 'Connection failed'}}}}});
+            await waitForBatchedUpdatesWithAct();
+        });
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
+    it.each([{authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT}, {isSupportAuthTokenUsed: true}])(
+        'preserves marketing eligibility and first-session suppression in Supportal (%j)',
+        async (supportSession) => {
+            await act(async () => {
+                await setupOnyxBaseline({isAdmin: true});
+                await Onyx.merge(ONYXKEYS.SESSION, supportSession);
+                await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderManager();
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(adminHeading)).toBeTruthy();
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+            expect(screen.queryByText(adminHeading)).toBeNull();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            expect(screen.queryByText(adminHeading)).toBeNull();
+            expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+        },
+    );
+
+    it('does not latch onboarding from the destination during the pre-delegate transition gap', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
+    it('does not latch incomplete onboarding observed while acting as a copilot', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                delegatedAccess: {delegate: 'copilot@example.com'},
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, {});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['empty', {}],
+        ['migrated', {signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB}],
+    ] as const)('keeps %s completed-onboarding NVPs eligible', async (_accountType, onboarding) => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, onboarding);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
     it('shows the member variant for a user without an admin role on any workspace', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: false});
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -201,25 +494,6 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(memberHeading)).toBeTruthy();
         expect(screen.getByText(memberBody)).toBeTruthy();
         expect(screen.UNSAFE_getByType(Image).props.source).toBe(August2026PromoEmployeesImage);
-    });
-
-    it('does not show the member variant until the Custom Agent beta is available', async () => {
-        await act(async () => {
-            await setupOnyxBaseline({isAdmin: false, initializeBetas: false});
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderManager();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByText(memberHeading)).toBeNull();
-
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        expect(screen.getByText(memberHeading)).toBeTruthy();
     });
 
     it('shows the admin variant when the user administers at least one active workspace', async () => {
@@ -685,7 +959,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_VENDORS.getRoute(POLICY_ID));
     });
 
-    it('uses More Features without fetching fallback workspace connections when Vendor Matching beta is disabled', async () => {
+    it('waits for fallback workspace connections, then uses the hydrated DualEntry Vendors route when Vendor Matching beta is disabled', async () => {
         await act(async () => {
             await setupOnyxBaseline({
                 isAdmin: true,
@@ -701,12 +975,30 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockOpenPolicyAccountingPage).not.toHaveBeenCalled();
+        expect(mockOpenPolicyAccountingPage).toHaveBeenCalledWith(POLICY_ID);
+        expect(screen.getByText(adminCtaLabel)).toBeDisabled();
+        fireEvent.press(screen.getByText(adminCtaLabel));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                ...buildAdminPolicy(),
+                areConnectionsEnabled: true,
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {config: {isConfigured: true}},
+                }),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${POLICY_ID}`, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
         expect(screen.getByText(adminCtaLabel)).not.toBeDisabled();
         fireEvent.press(screen.getByText(adminCtaLabel));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(POLICY_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_VENDORS.getRoute(POLICY_ID));
     });
 
     it.each([
@@ -740,7 +1032,6 @@ describe('ProductMarketingWindowManager', () => {
     it('routes the member CTA to the new Agents page', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: false});
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
             await waitForBatchedUpdatesWithAct();
         });
 

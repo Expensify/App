@@ -16,7 +16,6 @@ type ShareBankAccount = {
     /** Whether the form is loading */
     isLoading?: boolean;
 
-    /** The list of admins */
     admins?: MemberForList[] | null;
 };
 

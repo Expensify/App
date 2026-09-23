@@ -25,7 +25,7 @@ function TransactionHistoryLinkRenderer({tnode, style}: TransactionHistoryLinkRe
     const styles = useThemeStyles();
 
     const navigateToTransactionHistory = () => {
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     const handleKeyDown = useEnterKeyHandler(navigateToTransactionHistory);

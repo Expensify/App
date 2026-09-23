@@ -27,10 +27,7 @@ type UnitWithFallback = {value: string; fallback: string};
 type UnitPosition = 'left' | 'right';
 
 type ChartProps = {
-    /** Data points to display */
     data: ChartDataPoint[];
-
-    /** Whether data is loading */
     isLoading?: boolean;
 };
 
@@ -75,4 +72,7 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+/** Where a chart tooltip sits relative to the data point it describes. */
+type ChartTooltipPlacement = 'above' | 'right';
+
+export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartTooltipPlacement, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

@@ -8,7 +8,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -76,20 +75,20 @@ const getSaveLabel = () => TestHelper.translateLocal('workspace.rules.requireRec
 
 /** The error shown on the receipt amount, naming the itemized amount it may not exceed. */
 const getReceiptTooHighError = (itemizedAmountInCents: number) =>
-    TestHelper.translateLocal('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {amount: convertToDisplayString(itemizedAmountInCents, 'USD')});
+    TestHelper.translateLocal('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {amount: TestHelper.convertToDisplayString(itemizedAmountInCents, 'USD')});
 
 /** The error shown on the itemized amount, naming the receipt amount it may not fall below. */
 const getItemizedTooLowError = (receiptAmountInCents: number) =>
-    TestHelper.translateLocal('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {amount: convertToDisplayString(receiptAmountInCents, 'USD')});
+    TestHelper.translateLocal('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmountError', {amount: TestHelper.convertToDisplayString(receiptAmountInCents, 'USD')});
 
 /** The single message shown below both amounts when they break their shared constraint. */
 const getSharedAmountError = () => TestHelper.translateLocal('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError');
 
-/** The page is gated behind the rulesRevamp beta, and its wrapper needs an admin on a Control workspace with Rules on. */
+/** The page wrapper needs an admin on a Control workspace with Rules on. */
 const setupPolicy = async (policyOverrides: Partial<Policy>) => {
     await TestHelper.signInWithTestUser();
     await act(async () => {
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.RULES_REVAMP]);
+        await Onyx.set(ONYXKEYS.BETAS, []);
     });
     const policy = {
         ...LHNTestUtils.getFakePolicy(),

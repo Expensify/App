@@ -2,9 +2,6 @@
  * Schedule a call flow draft
  */
 type ScheduleCallDraft = {
-    /**
-     * Date for the call
-     */
     date?: string;
     /**
      * Time of the day of the guide that is being booked for the call
