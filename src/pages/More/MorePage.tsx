@@ -48,14 +48,21 @@ import {View} from 'react-native';
  * history is plain module state, so a value read during render would be memoized on the first render and never see
  * later visits.
  */
+// TODO: placeholder destinations shown for design review only. They render as rows but go nowhere.
+const PLACEHOLDER_DESTINATIONS = [
+    {key: 'bills', title: 'Bills', description: 'Pay and track your bills.', iconName: 'Coins', illustrationName: 'Coins'},
+    {key: 'invoices', title: 'Invoices', description: 'Send invoices and get paid.', iconName: 'InvoiceGeneric', illustrationName: 'InvoiceBlue'},
+    {key: 'travel', title: 'Travel', description: 'Book and manage your trips.', iconName: 'LuggageWithLines', illustrationName: 'Luggage'},
+] as const;
+
 function MorePage() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Connect', 'Bookmark', 'PieChart', 'Buildings']);
-    const illustrations = useMemoizedLazyIllustrations(['Accounting', 'MagnifyingGlassMoney', 'Chart', 'Building']);
+    const icons = useMemoizedLazyExpensifyIcons(['Connect', 'Bookmark', 'PieChart', 'Buildings', 'Coins', 'InvoiceGeneric', 'LuggageWithLines']);
+    const illustrations = useMemoizedLazyIllustrations(['Accounting', 'MagnifyingGlassReceipt', 'Chart', 'Building', 'Coins', 'InvoiceBlue', 'Luggage']);
 
     // On narrow layouts these read as a set of choices rather than a sidebar, so they take the card treatment the
     // workspace "New rule" flow uses: a filled card, a full-color illustration, and a chevron.
@@ -86,6 +93,20 @@ function MorePage() {
     const savedSearchEntries = Object.entries(savedSearches ?? {});
     const menuItems: MenuItemWithLink[] = [];
 
+    menuItems.push({
+        key: 'workspaces',
+        ...cardProps,
+        title: translate('common.workspacesTabTitle'),
+        description: shouldUseNarrowLayout ? translate('morePage.workspacesDescription') : undefined,
+        icon: shouldUseNarrowLayout ? illustrations.Building : icons.Buildings,
+        brickRoadIndicator: workspacesBrickRoadIndicator,
+        onPress: () => {
+            setLastVisitedMoreDestination(MORE_DESTINATIONS.WORKSPACES);
+            // This hook already restores the last workspace or domain the user had open.
+            navigateToWorkspaces();
+        },
+    });
+
     if (accounting.length > 0) {
         menuItems.push({
             key: 'accounting',
@@ -108,13 +129,25 @@ function MorePage() {
         });
     }
 
+    // TODO: placeholders for design review - these rows have no destination yet.
+    for (const placeholder of PLACEHOLDER_DESTINATIONS) {
+        menuItems.push({
+            key: placeholder.key,
+            ...cardProps,
+            title: placeholder.title,
+            description: shouldUseNarrowLayout ? placeholder.description : undefined,
+            icon: shouldUseNarrowLayout ? illustrations[placeholder.illustrationName] : icons[placeholder.iconName],
+            onPress: () => {},
+        });
+    }
+
     if (savedSearchEntries.length > 0) {
         menuItems.push({
             key: 'savedSearches',
             ...cardProps,
             title: translate('search.savedSearchesMenuItemTitle'),
             description: shouldUseNarrowLayout ? translate('morePage.savedSearchesDescription') : undefined,
-            icon: shouldUseNarrowLayout ? illustrations.MagnifyingGlassMoney : icons.Bookmark,
+            icon: shouldUseNarrowLayout ? illustrations.MagnifyingGlassReceipt : icons.Bookmark,
             onPress: () => {
                 const lastKey = getLastVisitedSearchKey(SAVED_SEARCHES_GROUP_ID);
                 const entry = savedSearchEntries.find(([id]) => savedSearchIDToSearchKey(id) === lastKey) ?? savedSearchEntries.at(0);
@@ -150,20 +183,6 @@ function MorePage() {
             },
         });
     }
-
-    menuItems.push({
-        key: 'workspaces',
-        ...cardProps,
-        title: translate('common.workspacesTabTitle'),
-        description: shouldUseNarrowLayout ? translate('morePage.workspacesDescription') : undefined,
-        icon: shouldUseNarrowLayout ? illustrations.Building : icons.Buildings,
-        brickRoadIndicator: workspacesBrickRoadIndicator,
-        onPress: () => {
-            setLastVisitedMoreDestination(MORE_DESTINATIONS.WORKSPACES);
-            // This hook already restores the last workspace or domain the user had open.
-            navigateToWorkspaces();
-        },
-    });
 
     return (
         <ScreenWrapper

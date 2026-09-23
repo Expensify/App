@@ -66,6 +66,9 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
     }
 }
 
+// Past this many characters a workspace name no longer fits the header on one line at the headline size.
+const LONG_POLICY_NAME_LENGTH = 12;
+
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -117,6 +120,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     ]);
 
     const policyName = policy?.name ?? '';
+    const isPolicyNameLong = policyName.length > LONG_POLICY_NAME_LENGTH;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
 
@@ -239,10 +243,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 <HeaderWithBackButton
                     title={policyName}
                     shouldUseHeadlineHeader
-                    titleStyles={styles.noWrap}
+                    titleStyles={isPolicyNameLong ? styles.headerTitleWrapped : styles.noWrap}
+                    numberOfTitleLines={isPolicyNameLong ? 2 : 1}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
-                    policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
+                    policyAvatarSize={CONST.AVATAR_SIZE.XX_SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                     shouldDisplayAccountButton
                 />

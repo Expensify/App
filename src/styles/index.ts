@@ -656,6 +656,14 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
+        // A header title too long to sit on one line drops to the page-header size and wraps, rather than truncating.
+        headerTitleWrapped: {
+            ...textVariants.h2,
+            fontSize: fontScale.text,
+            lineHeight: lineHeightScale.text,
+            color: theme.heading,
+        },
+
         textHeadlineH1: {
             ...textVariants.h1,
             color: theme.heading,

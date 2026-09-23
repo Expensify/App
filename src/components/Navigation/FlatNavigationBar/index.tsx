@@ -52,6 +52,13 @@ import FlatNavLogo from './FlatNavLogo';
 import FlatNavSavedSearches from './FlatNavSavedSearches';
 import useFlatNavSpendItems from './useFlatNavSpendItems';
 
+// TODO: placeholder destinations shown for design review only. They render as rows but go nowhere.
+const PLACEHOLDER_DESTINATIONS = [
+    {label: 'Bills', iconName: 'Coins'},
+    {label: 'Invoices', iconName: 'InvoiceGeneric'},
+    {label: 'Travel', iconName: 'LuggageWithLines'},
+] as const;
+
 const FAB_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -80,7 +87,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {isBetaEnabled} = usePermissions();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
 
-    const navIcons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'Receipt', 'Document', 'Connect', 'Bookmark', 'PieChart', 'Buildings']);
+    const navIcons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'Receipt', 'Document', 'Connect', 'Bookmark', 'PieChart', 'Buildings', 'Coins', 'InvoiceGeneric', 'LuggageWithLines']);
     const searchIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const {currentSearchKey} = useSearchQueryContext();
@@ -279,17 +286,16 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                         </>
                     )}
 
-                    {hasSavedSearches && (
-                        <>
-                            <FlatNavItem
-                                label={translate('search.savedSearchesMenuItemTitle')}
-                                icon={navIcons.Bookmark}
-                                isSelected={isSavedGroupSelected}
-                                onPress={navigateToFirstSavedSearch}
-                            />
-                            {isSavedGroupSelected && <FlatNavSavedSearches />}
-                        </>
-                    )}
+                    {/* TODO: placeholders for design review - these rows have no destination yet. */}
+                    {PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
+                        <FlatNavItem
+                            key={label}
+                            label={label}
+                            icon={navIcons[iconName]}
+                            isSelected={false}
+                            onPress={() => {}}
+                        />
+                    ))}
 
                     {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
                         <FlatNavItem
@@ -302,6 +308,19 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     )}
 
                     <FlatNavDivider />
+
+                    {hasSavedSearches && (
+                        <>
+                            <FlatNavItem
+                                label={translate('search.savedSearchesMenuItemTitle')}
+                                icon={navIcons.Bookmark}
+                                isSelected={isSavedGroupSelected}
+                                onPress={navigateToFirstSavedSearch}
+                            />
+                            {isSavedGroupSelected && <FlatNavSavedSearches />}
+                            <FlatNavDivider />
+                        </>
+                    )}
 
                     <FlatNavItem
                         label={translate('common.workspacesTabTitle')}
