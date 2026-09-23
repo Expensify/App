@@ -1699,8 +1699,6 @@ function getExpensifyCardFromReportAction({
 }
 
 export {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    deprecatedCachedOneTransactionThreadReportIDs,
     getExpensifyCardFromReportAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,

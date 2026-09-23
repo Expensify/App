@@ -6,6 +6,8 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import getCollator from '@libs/CollatorUtils';
+import {convertToDisplayStringWithoutCurrencyForLocale, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
@@ -28,7 +30,8 @@ import {
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType} from '@libs/ReportActionsUtils';
-import {deprecatedCachedOneTransactionThreadReportIDs, getLastMessageTextForReport} from '@libs/ReportAlternateTextUtils';
+import type {LastActionContext} from '@libs/ReportAlternateTextUtils';
+import {getLastMessageTextForReport, getReportAlternateText, resolveLastActionContext} from '@libs/ReportAlternateTextUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
@@ -42,7 +45,6 @@ import {
     getPolicyName,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportSubtitlePrefix,
     getViolatingReportIDForRBRInLHN,
     hasExpensifyGuidesEmails,
     hasIOUWaitingOnCurrentUserBankAccount,
@@ -126,7 +128,6 @@ import type {
     SectionForSearchTerm,
 } from './types';
 
-import getChatPreviewParts from './getChatPreviewParts';
 import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from './searchMatchUtils';
 
 /**
@@ -234,7 +235,7 @@ type GetAlternateTextConfig = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
     policy?: OnyxEntry<Policy>;
-    lastActorDetails?: Partial<PersonalDetails> | null;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
@@ -252,8 +253,25 @@ type GetAlternateTextConfig = {
     currentUserLogin?: string;
     localeCompare?: LocaleContextProps['localeCompare'];
     formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    /** Resolved by the caller when it already did the lookup, so the last-action scan is not repeated here. */
+    lastActionContext?: LastActionContext;
     rules: OnyxCollection<Rule>;
 };
+
+/**
+ * Fallback for non-React callers that cannot provide the hook-bound localeCompare.
+ */
+function fallbackLocaleCompare(a: string, b: string): number {
+    return getCollator(IntlStore.getCurrentLocale()).compare(a, b);
+}
+
+/**
+ * Fallback for the non-React option builders that cannot provide the hook-bound convertToDisplayStringWithoutCurrency. Those builders never
+ * render a chat preview. Every preview caller threads the context implementation from useCurrencyListActions().
+ */
+function fallbackConvertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
+    return convertToDisplayStringWithoutCurrencyForLocale(IntlStore.getCurrentLocale(), amountInCents, currencyCode, getCurrencyDecimals);
+}
 
 /**
  * Update alternate text for the option when applicable
@@ -265,17 +283,24 @@ function getAlternateText(
         isReportArchived,
         personalDetails,
         policy,
-        lastActorDetails = {},
+        invoiceReceiverPolicy,
         visibleReportActionsData = {},
         translate,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         dateFnsLocale,
         reportAttributesDerived,
         policyTags,
         conciergeReportID,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         isTrackIntentUser,
         currentUserAccountID,
+        currentUserLogin,
+        localeCompare,
+        formatPhoneNumber,
+        lastActionContext,
         rules,
     }: GetAlternateTextConfig,
 ) {
@@ -285,75 +310,76 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
-    // Keep Plain comments as they're typed (example: `<b>test</b>` stays `<b>test</b>`).
-    // Parser.htmlToText would strip it to `test`. Ref: https://github.com/Expensify/App/issues/82036
-    const isLastActionAddComment = report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-    const formattedLastMessageText =
-        formatReportLastMessageText(isLastActionAddComment ? (option.lastMessageText ?? '') : Parser.htmlToText(option.lastMessageText ?? '')) ||
-        getLastMessageTextForReport({
-            translate: translateFn,
-            convertToDisplayString,
-            dateFnsLocale,
-            report,
-            personalDetails,
-            lastActorDetails,
-            policy,
-            isReportArchived,
-            visibleReportActionsDataParam: visibleReportActionsData,
-            reportAttributesDerived,
-            policyTags,
-            conciergeReportID,
-            sortedActions,
-            isTrackIntentUser,
-            currentUserAccountID,
-            rules,
-        });
-    const reportPrefix = getReportSubtitlePrefix(report);
 
-    const {actorPrefix, customAlternateText} =
-        showChatPreviewLine && formattedLastMessageText
-            ? getChatPreviewParts({
-                  report,
-                  personalDetails,
-                  isReportArchived,
-                  translate: translateFn,
-                  visibleReportActionsData,
-                  currentUserAccountID,
-                  sortedActions,
-                  reportAttributesDerived,
-                  // eslint-disable-next-line @typescript-eslint/no-deprecated
-                  oneTransactionThreadReportID: report?.reportID ? deprecatedCachedOneTransactionThreadReportIDs[report.reportID] : undefined,
-              })
-            : {actorPrefix: '', customAlternateText: undefined};
-    const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + (customAlternateText ?? formattedLastMessageText);
+    const forcePolicyName = forcePolicyNamePreview && ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom);
+    if (showChatPreviewLine && !forcePolicyName) {
+        if (report) {
+            const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            const oneTransactionThreadReportID = transactionThreadIDs?.[report.reportID];
+            const {lastAction, lastActionReport, movedFromReport, movedToReport} =
+                lastActionContext ?? resolveLastActionContext(report, isReportArchived, visibleReportActionsData, oneTransactionThreadReportID);
+            return getReportAlternateText({
+                report,
+                lastAction,
+                lastActionReport,
+                movedFromReport,
+                movedToReport,
+                personalDetails,
+                policy,
+                invoiceReceiverPolicy,
+                policyTags,
+                isReportArchived,
+                // The Search path has no separate report NVP source here. The archived flag and private_isArchived
+                // both derive from the same NVP, so the option's archived flag is the equivalent input.
+                privateIsArchived: !!isReportArchived,
+                conciergeReportID,
+                reportAttributesDerived,
+                visibleReportActionsData,
+                sortedActions,
+                oneTransactionThreadReportID,
+                lastOriginalAction: lastActions?.[report.reportID],
+                currentUserAccountID: resolvedCurrentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
+                isTrackIntentUser,
+                translate: translateFn,
+                localeCompare: localeCompare ?? fallbackLocaleCompare,
+                formatPhoneNumber: formatPhoneNumber ?? formatPhoneNumberPhoneUtils,
+                dateFnsLocale,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency: convertToDisplayStringWithoutCurrency ?? fallbackConvertToDisplayStringWithoutCurrency,
+                rules,
+            });
+        }
+        if (option.lastMessageText) {
+            return formatReportLastMessageText(Parser.htmlToText(option.lastMessageText));
+        }
+    }
 
     if (isExpenseThread || option.isMoneyRequestReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('iou.expense');
+        return translateFn('iou.expense');
     }
 
     if (option.isThread) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('threads.thread');
+        return translateFn('threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
+        return option.subtitle;
     }
 
     if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
-        return showChatPreviewLine && !forcePolicyNamePreview && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
+        return option.subtitle;
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('task.task');
+        return translateFn('task.task');
     }
 
     if (isGroupChat) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('common.group');
+        return translateFn('common.group');
     }
 
-    return showChatPreviewLine && formattedLastMessageText
-        ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
+    return formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -522,6 +548,8 @@ function createOption({
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
+        const lastActionContext = resolveLastActionContext(report, result.private_isArchived, visibleReportActionsData, transactionThreadIDs?.[report.reportID]);
+        const {lastAction, movedFromReport, movedToReport} = lastActionContext;
         result.lastMessageText = getLastMessageTextForReport({
             translate: translateFn,
             convertToDisplayString,
@@ -529,6 +557,9 @@ function createOption({
             report,
             personalDetails,
             lastActorDetails,
+            lastAction,
+            movedFromReport,
+            movedToReport,
             policy,
             isReportArchived: result.private_isArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
@@ -538,6 +569,9 @@ function createOption({
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            currentUserLogin,
+            oneTransactionThreadReportID: transactionThreadIDs?.[report.reportID],
+            lastOriginalAction: lastActions?.[report.reportID],
             rules,
         });
         result.alternateText =
@@ -551,7 +585,6 @@ function createOption({
                           isReportArchived: !!result.private_isArchived,
                           personalDetails,
                           policy,
-                          lastActorDetails,
                           visibleReportActionsData,
                           translate: translateFn,
                           convertToDisplayString,
@@ -562,8 +595,10 @@ function createOption({
                           sortedActions,
                           transactionThreadIDs,
                           lastActions,
+                          isTrackIntentUser,
                           currentUserAccountID,
                           currentUserLogin,
+                          lastActionContext,
                           rules,
                       },
                   );
@@ -2113,12 +2148,19 @@ function prepareReportOptionsForDisplay(
         const report = option.item;
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+        const parentReport = report.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
+        let invoiceReceiverPolicyID: string | undefined;
+        if (report.invoiceReceiver && 'policyID' in report.invoiceReceiver) {
+            invoiceReceiverPolicyID = report.invoiceReceiver.policyID;
+        }
+        if (parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver) {
+            invoiceReceiverPolicyID = parentReport.invoiceReceiver.policyID;
+        }
+        const invoiceReceiverPolicy = invoiceReceiverPolicyID ? policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const lastActorDetails = personalDetails?.[report.lastActorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? null;
-
         const alternateText = getAlternateText(
             option,
             {showChatPreviewLine, forcePolicyNamePreview},
@@ -2127,7 +2169,7 @@ function prepareReportOptionsForDisplay(
                 isReportArchived: !!option.private_isArchived,
                 personalDetails,
                 policy,
-                lastActorDetails,
+                invoiceReceiverPolicy,
                 visibleReportActionsData,
                 translate,
                 convertToDisplayString,

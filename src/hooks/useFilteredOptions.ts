@@ -103,6 +103,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -134,8 +136,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           pendingDeleteMemberAccountIDsByReportID,
                       },
                       rules,
-                      undefined,
-                      undefined,
+                      allPolicyTags,
+                      visibleReportActionsData,
                       isTrackIntentUser,
                       sortedActions,
                   )
@@ -156,6 +158,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             preferredLocale,
             isTrackIntentUser,
             currentUserLogin,
+            allPolicyTags,
+            visibleReportActionsData,
             sortedActions,
             transactionThreadIDs,
             lastActions,

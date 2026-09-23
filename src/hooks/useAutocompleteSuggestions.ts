@@ -25,7 +25,7 @@ import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -63,6 +63,7 @@ type UseAutocompleteSuggestionsParams = {
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -114,6 +115,7 @@ function useAutocompleteSuggestions({
     loginList,
     policies,
     visibleReportActionsData,
+    reportAttributesDerived,
     currentUserAccountID,
     currentUserEmail,
     personalDetails,
@@ -274,6 +276,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
                 currentUserLogin: currentUserEmail,
                 sortedActions,
                 transactionThreadIDs,
@@ -323,6 +326,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
                 currentUserLogin: currentUserEmail,
                 sortedActions,
                 transactionThreadIDs,
