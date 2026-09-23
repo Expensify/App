@@ -95,6 +95,11 @@ type DomainPendingAction = {
      */
     admin?: Record<number, GeneralDomainMemberPendingAction>;
 
+    /**
+     * Pending actions for approving/denying a pending domain adminship request, keyed by the requester's accountID
+     */
+    adminshipRequester?: Record<number, GeneralDomainMemberPendingAction>;
+
     technicalContactEmail?: OnyxCommon.PendingAction;
 
     /**

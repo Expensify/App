@@ -349,6 +349,7 @@ function setWorkspaceCompanyCardTransactionLiability(domainOrWorkspaceAccountID:
 
     const parameters = {
         policyID,
+        domainAccountID: domainOrWorkspaceAccountID,
         bankName,
         liabilityType,
     };
@@ -1387,6 +1388,8 @@ function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainI
         Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry}});
     }
 
+    // An abandoned assign flow can leave errors or cardToAssign behind, which BankConnection would read as a failed import or as a Plaid token.
+    clearAssignCardStepAndData();
     setAssignCardStepAndData({
         currentStep,
         isRefreshing: true,
