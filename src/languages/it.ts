@@ -623,10 +623,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `La lunghezza massima del commento è di ${formattedMaxLength} caratteri.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La lunghezza massima del titolo dell'attività è di ${formattedMaxLength} caratteri.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Aggiorna app',
-        updatePrompt: 'È disponibile una nuova versione di questa app.\nAggiorna ora o riavvia l’app più tardi per scaricare le modifiche più recenti.',
-    },
     deeplinkWrapper: {
         launching: 'Avvio di Expensify',
         expired: 'La tua sessione è scaduta.',
@@ -2193,7 +2189,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar profilo',
         customInstructions: 'Istruzioni personalizzate',
         copilotIntoAccount: "Copilot nell'account",
-        viewUserHistory: 'Visualizza cronologia utente',
+        viewMemberHistory: 'Visualizza cronologia membro',
         viewAgentHistory: 'Visualizza cronologia agente',
         publicSection: {
             title: 'Pubblico',
@@ -6873,6 +6869,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 other: (count: number) => `${count} tag`,
             }),
             showTagGLCodes: 'Mostra i codici GL quando selezioni un tag',
+            showTagGLCodesSubtitle: 'Se un codice GL non viene visualizzato, non è disponibile per quel tag nel tuo sistema contabile.',
         },
         taxes: {
             subtitle: 'Aggiungi nomi e aliquote delle imposte e imposta i valori predefiniti.',
@@ -9599,6 +9596,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         bulkActions: {
             editMultiple: 'Modifica multipli',
             editMultipleTitle: 'Modifica più spese',
+            editFinalizedExpensesTitle: 'Modificare le spese finalizzate?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 delle ${total} spese che hai selezionato si trova in un report approvato o pagato. Stai per modificare una spesa finalizzata. Sei sicuro?`,
+                other: `${count} delle ${total} spese che hai selezionato si trovano in report approvati o pagati. Stai per modificare spese finalizzate. Sei sicuro?`,
+            }),
             editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sovrascriveranno qualsiasi valore impostato in precedenza.',
             approve: 'Approva',
             pay: 'Paga',

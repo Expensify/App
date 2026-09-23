@@ -614,10 +614,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
         taskTitleExceededMaxLength: (formattedMaxLength) => `La longitud máxima del título de una tarea es de ${formattedMaxLength} caracteres.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Actualizar app',
-        updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
-    },
     deeplinkWrapper: {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
@@ -2120,7 +2116,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Perfil avatar',
         customInstructions: 'Instrucciones personalizadas',
         copilotIntoAccount: 'Copilot a la cuenta',
-        viewUserHistory: 'Ver historial del usuario',
+        viewMemberHistory: 'Ver historial del miembro',
         viewAgentHistory: 'Ver historial del agente',
         publicSection: {
             title: 'Público',
@@ -6785,6 +6781,7 @@ ${amount} para ${merchant} - ${date}`,
                 other: (count: number) => `${count} etiquetas`,
             }),
             showTagGLCodes: 'Mostrar códigos del libro mayor al seleccionar una etiqueta',
+            showTagGLCodesSubtitle: 'Si no se muestra un código del libro mayor, no está disponible para esa etiqueta en tu sistema contable.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -9507,6 +9504,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: 'Editar múltiples',
             editMultipleTitle: 'Editar múltiples gastos',
+            editFinalizedExpensesTitle: '¿Editar gastos finalizados?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 de los ${total} gastos que has seleccionado está en un informe aprobado o pagado. Estás a punto de editar un gasto finalizado. ¿Estás seguro?`,
+                other: `${count} de los ${total} gastos que has seleccionado están en informes aprobados o pagados. Estás a punto de editar gastos finalizados. ¿Estás seguro?`,
+            }),
             editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y sustituirán cualquier valor establecido previamente.',
             approve: 'Aprobar',
             pay: 'Pagar',

@@ -624,11 +624,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du commentaire est de ${formattedMaxLength} caractères.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du titre de la tâche est de ${formattedMaxLength} caractères.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Mettre à jour l’application',
-        updatePrompt:
-            'Une nouvelle version de cette application est disponible.\nMettez-la à jour maintenant ou redémarrez l’application plus tard pour télécharger les dernières modifications.',
-    },
     deeplinkWrapper: {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
@@ -2206,7 +2201,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
-        viewUserHistory: 'Voir l’historique de l’utilisateur',
+        viewMemberHistory: 'Voir l’historique du membre',
         viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
@@ -6931,6 +6926,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: (count: number) => `${count} tags`,
             }),
             showTagGLCodes: 'Afficher les codes GL lors de la sélection d’un tag',
+            showTagGLCodesSubtitle: 'Si un code GL n’est pas affiché, il n’est pas disponible pour ce tag dans votre système comptable.',
         },
         taxes: {
             subtitle: 'Ajoutez des noms de taxes, des taux et définissez des valeurs par défaut.',
@@ -9665,6 +9661,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
             editMultipleTitle: 'Modifier plusieurs dépenses',
+            editFinalizedExpensesTitle: 'Modifier des dépenses finalisées ?',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `1 des ${total} dépenses que vous avez sélectionnées figure sur une note de frais approuvée ou payée. Vous êtes sur le point de modifier une dépense finalisée. Êtes-vous sûr ?`,
+                other: `${count} des ${total} dépenses que vous avez sélectionnées figurent sur des notes de frais approuvées ou payées. Vous êtes sur le point de modifier des dépenses finalisées. Êtes-vous sûr ?`,
+            }),
             editMultipleDescription: 'Les modifications seront définies pour toutes les dépenses sélectionnées et remplaceront toutes les valeurs définies précédemment.',
             approve: 'Approuver',
             pay: 'Payer',
