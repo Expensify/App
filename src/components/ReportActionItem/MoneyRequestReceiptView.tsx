@@ -82,6 +82,7 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -208,8 +209,8 @@ function MoneyRequestReceiptView({
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
     const {isOffline} = useNetwork();
-    const receiptContainerRef = useRef<View | null>(null);
-    const addButtonRef = useRef<View | null>(null);
+    const receiptContainerRef = useRef<ComponentRef<typeof View> | null>(null);
+    const addButtonRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
