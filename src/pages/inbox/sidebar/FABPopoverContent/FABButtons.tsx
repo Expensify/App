@@ -50,7 +50,7 @@ function FABButtons({isActive, fabRef, onPress, shouldShowReceiptButton = true, 
                 // An icon-only button drops its horizontal padding so it stays square at 40x40. A labelled one keeps
                 // the padding and fills its row instead.
                 innerStyles={[styles.flatNavigationBarCreateButton, !label && styles.ph0]}
-                style={label ? styles.w100 : undefined}
+                style={styles.w100}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             >
                 <Button.Icon src={icons.Plus} />

@@ -264,7 +264,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 showsVerticalScrollIndicator={false}
                             >
                                 <NavigationTabBarFloatingActionButton
-                                    containerStyle={[styles.flexGrow0, styles.pv0, styles.flatNavigationBarCreateRow, isVisuallyCollapsed && styles.flatNavigationBarCreateRowCollapsed]}
+                                    containerStyle={[styles.flexGrow0, styles.pv0, styles.flatNavigationBarCreateRow]}
                                     shouldShowReceiptButton={false}
                                     shouldUseSmallSuccessButton
                                     label={isVisuallyCollapsed ? undefined : translate('common.create')}

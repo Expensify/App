@@ -898,12 +898,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
-        // The row stretches its children by default, which would widen the icon-only button past its 32px square.
-        // Starting it instead lets it size to its own content, which the row's margin already centres in the rail.
-        flatNavigationBarCreateRowCollapsed: {
-            alignItems: 'flex-start',
-        },
-
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
