@@ -1,4 +1,5 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import * as API from '@libs/API';
 import type {SetVacationDelegateParams} from '@libs/API/parameters';
@@ -188,6 +189,7 @@ type InviteVacationDelegateToWorkspacesOptions = {
     /** The current user, on whose behalf the invitations are sent */
     inviter: CurrentUser;
 
+    personalDetailsByLogins: PersonalDetailsByLogin;
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
@@ -196,7 +198,7 @@ type InviteVacationDelegateToWorkspacesOptions = {
  * Adds a vacation delegate as a member of every given workspace, one invitation per workspace. Workspaces the
  * current user does not administer are untouched here and are left for the backend to email their admins about.
  */
-function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
+function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, personalDetailsByLogins, translate, formatPhoneNumber}: InviteVacationDelegateToWorkspacesOptions) {
     // The delegate may have been picked from the selector without existing in personal details yet, so fall back to an optimistic accountID.
     const knownDelegateAccountID = getKnownAccountIDByLogin(delegate);
     const delegateAccountID = knownDelegateAccountID ?? generateAccountID(delegate);
@@ -225,7 +227,7 @@ function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, transl
             isLastInvite ? personalDetailsOnyxData : {optimisticData: personalDetailsOnyxData.optimisticData},
             `${translate('workspace.common.invitedYouToWorkspace', inviter.displayName ?? '', policy.name)}\n\n${translate('workspace.common.welcomeNote')}`,
             policy,
-            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, undefined, false, false)),
+            Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, personalDetailsByLogins, false, false)),
             CONST.POLICY.ROLE.USER,
             inviter,
             policyExpenseChatReportActions,

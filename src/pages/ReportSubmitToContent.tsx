@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -108,6 +109,8 @@ function ReportSubmitToContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+
     const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
@@ -124,7 +127,7 @@ function ReportSubmitToContent({
             return [];
         }
         const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
-        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
+        const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails, true, false);
         return Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
             if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -151,7 +154,7 @@ function ReportSubmitToContent({
                 },
             ];
         });
-    }, [policy?.employeeList, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
+    }, [policy?.employeeList, employeePersonalDetails, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
 
     const prepopulatedSubmitToRecipient = useMemo((): WorkspaceMemberItem | null => {
         const email = prepopulatedEmail?.trim();
@@ -293,7 +296,7 @@ function ReportSubmitToContent({
 
         setHasError(false);
 
-        const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList);
+        const resolvedManagerAccountID = selectedSubmitToMember?.accountID ?? getAccountIDForSubmitManagerEmail(trimmed, policy?.employeeList, employeePersonalDetails);
 
         if (onSubmitWithManagerEmail) {
             onSubmitWithManagerEmail(trimmed, resolvedManagerAccountID);
@@ -352,6 +355,7 @@ function ReportSubmitToContent({
     }, [
         hasSelectedSubmitToMember,
         selectedSubmitToMember?.accountID,
+        employeePersonalDetails,
         managerEmail,
         report,
         policy,

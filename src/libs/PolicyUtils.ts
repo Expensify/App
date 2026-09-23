@@ -64,7 +64,7 @@ import {getHRAdvancedModeFinalApprover, isAnyHRConnected, isMergeHRCompleteSetup
 import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
-import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getKnownAccountIDByLogin} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -882,7 +882,7 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  */
 function getMemberAccountIDsForWorkspace(
     employeeList: PolicyEmployeeList | undefined,
-    personalDetailsByLogins?: PersonalDetailsByLogin,
+    personalDetailsByLogins: PersonalDetailsByLogin,
     includeMemberWithErrors = false,
     includeMemberWithPendingDelete = true,
 ): MemberEmailsToAccountIDs {
@@ -901,7 +901,7 @@ function getMemberAccountIDsForWorkspace(
                 continue;
             }
         }
-        const personalDetail = personalDetailsByLogins?.[email] ?? getPersonalDetailByEmail(email);
+        const personalDetail = personalDetailsByLogins?.[email];
         if (!personalDetail?.login) {
             continue;
         }
@@ -915,7 +915,11 @@ function getMemberAccountIDsForWorkspace(
  * Uses personal details first, then the workspace employee list (same source as ReportSubmitToContent).
  * When the member is in employeeList but not yet in personal details, returns a stable optimistic accountID.
  */
-function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, employeeList: PolicyEmployeeList | undefined): number | undefined {
+function getAccountIDForSubmitManagerEmail(
+    managerEmail: string | undefined,
+    employeeList: PolicyEmployeeList | undefined,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+): number | undefined {
     const trimmed = managerEmail?.trim();
     if (!trimmed) {
         return undefined;
@@ -931,7 +935,7 @@ function getAccountIDForSubmitManagerEmail(managerEmail: string | undefined, emp
     }
 
     const normalizedEmail = trimmed.toLowerCase();
-    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, true, false);
+    const memberAccountIDs = getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins, true, false);
 
     for (const [email, accountID] of Object.entries(memberAccountIDs)) {
         if (email.toLowerCase() === normalizedEmail) {
