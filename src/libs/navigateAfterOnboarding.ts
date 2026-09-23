@@ -10,7 +10,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {setDisableDismissOnEscape} from './actions/Modal';
-import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
 import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
@@ -146,10 +145,11 @@ function navigateAfterOnboardingWithMicrotaskQueue(
 }
 
 /**
- * After creating or joining a Submit workspace during onboarding, navigate to Spend > Expenses
- * with the side panel open so the #admins room is visible in Concierge Anywhere.
+ * After creating or joining a Submit workspace during onboarding, navigate to Spend > Expenses.
+ * The side panel stays closed so onboarding happens in one place; the Home Concierge prompt and the
+ * help button still open it on demand.
  */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string) {
     setDisableDismissOnEscape(false);
 
     if (!policyID) {
@@ -159,13 +159,12 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 
     setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
-    SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string) {
     dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+        navigateToSubmitWorkspaceAfterOnboarding(policyID);
     });
 }
 

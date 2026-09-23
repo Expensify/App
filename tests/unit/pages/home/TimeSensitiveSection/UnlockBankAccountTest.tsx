@@ -24,7 +24,6 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: s
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
-        EnvelopeOpenStar: () => null,
         BankLock: () => null,
     })),
 }));
