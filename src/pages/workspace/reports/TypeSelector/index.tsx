@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {Str} from 'expensify-common';
@@ -22,7 +22,7 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'error
     /** Route to the type picker */
     route: Route;
 
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
 function TypeSelector({value, label = '', rightLabel, errorText = '', route, ref}: TypeSelectorProps) {

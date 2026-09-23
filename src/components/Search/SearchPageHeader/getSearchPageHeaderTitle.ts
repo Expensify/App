@@ -20,8 +20,8 @@ type SearchPageHeaderTitleDeps = {
 };
 
 /**
- * Resolves the Search page header title using a single priority chain shared by the wide and narrow headers so the two
- * can't diverge:
+ * Resolves the title for the wide Search page content header, which names the current view. The narrow header is the
+ * top-level page title and stays a static "Spend", so it deliberately doesn't use this helper. The priority chain is:
  *   a. the active saved search's display name,
  *   b. the matched suggested-search label, then the data-type fallbacks (task / trip / invoice / chat),
  *   c. the generic "Spend" fallback.
