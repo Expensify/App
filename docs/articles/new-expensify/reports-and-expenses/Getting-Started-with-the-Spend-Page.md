@@ -192,7 +192,7 @@ You can also combine filters with a keyword search for even more precision. For 
 
 ## How to find a tag using the Tag filter on the Spend page
 
-The **Tag** filter lists every tag you have access to, not only the tags used by the expenses currently loaded on the **Spend** page.
+The **Tag** filter lists every tag you have access to.
 
 1. Open **Filters** on the **Spend** page.
 2. Click or tap **Tag**.
