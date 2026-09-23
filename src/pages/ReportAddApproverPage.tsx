@@ -85,7 +85,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: hiddenText});
                 return {
                     text: displayName,
                     alternateText: email,
