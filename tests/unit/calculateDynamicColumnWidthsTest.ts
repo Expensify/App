@@ -72,11 +72,31 @@ describe('calculateDynamicColumnWidths', () => {
             expect(result.widths).toEqual([500, 200, 200]);
         });
 
-        it('leaves space unclaimed when every column has reached its maximum', () => {
-            // A maximum outranks filling the row, so the columns stop at 200px each rather than absorbing the leftover.
+        it('leaves space unclaimed when every column is capped below an equal share', () => {
+            // Given two columns whose content is 100px and whose cap is 200px, in a row with far more room than either
+            // can use
+            // When the widths are resolved
             const result = calculateDynamicColumnWidths([buildConstraints(100, 100, 200), buildConstraints(100, 100, 200)], 900);
 
-            expect(result.widths).toEqual([200, 200]);
+            // Then each takes its content width and the rest of the row is left unclaimed, because a cap is a ceiling
+            // rather than a width to grow into
+            expect(result.widths).toEqual([100, 100]);
+            expect(result.shouldScrollHorizontally).toBe(false);
+        });
+
+        it('keeps the columns inside the row when a capped column needs less than its cap', () => {
+            // Given the Company cards table at 1163px: a member column at 359px, a card column whose content overflows
+            // its 180px cap, a card name column at 353px, an export account column whose 154px of content stops short
+            // of the same cap, and an actions column that must fit its 112px Assign button
+            const constraints = [buildConstraints(359, 160), buildConstraints(331, 331, 180), buildConstraints(353, 120), buildConstraints(154, 120, 180), buildFitContentConstraints(112)];
+
+            // When the widths are resolved
+            const result = calculateDynamicColumnWidths(constraints, 1163);
+
+            // Then the export account column takes the 154px it needs rather than its 180px cap, so the columns still
+            // add up to the row and the actions cell is not pushed outside the table
+            expect(result.widths).toEqual([359, 180, 353, 154, 117]);
+            expect(sumOf(result.widths)).toBe(1163);
             expect(result.shouldScrollHorizontally).toBe(false);
         });
     });

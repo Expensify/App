@@ -67,8 +67,9 @@ function roundWidths(widths: number[], availableWidth: number, maxWidths: number
 /**
  * Splits the available width between the columns, keeping them equal wherever it can.
  *
- * A column whose content doesn't fit an equal share takes exactly the width its content needs, and a column capped
- * below an equal share takes exactly its maximum. Whatever is left is then split equally between the remaining columns.
+ * A column whose content doesn't fit an equal share takes exactly the width its content needs, and so does a column
+ * capped below an equal share, which can never grow into one. Whatever is left is then split equally between the
+ * remaining columns.
  * Settling one column shrinks the share for the rest, which can leave another column unable to fit, so this repeats
  * until every column fits its share. Each pass settles at least one column, so the column count bounds the passes.
  *
@@ -97,7 +98,9 @@ function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], 
             if (desiredWidth > equalShare) {
                 widths[index] = desiredWidth;
             } else if (maxWidth < equalShare) {
-                widths[index] = maxWidth;
+                // Its own desired width, not its cap. A column whose content stops short of its cap would otherwise be
+                // handed room it never asked for, and the columns would add up to more than the table has.
+                widths[index] = desiredWidth;
             } else {
                 continue;
             }
