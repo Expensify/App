@@ -6,7 +6,7 @@ import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfCompose
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
-import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
+import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -528,18 +528,36 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return false;
     }
 
-    // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    const dispatch = (actionToDispatch: NavigationAction) => {
+    // Arms the focus-restore skip before dispatch (PUSH_PARAMS consumes it inside the router) and disarms it if the
+    // action was dropped, so a cancelled prompt can't leak it. Returns false when the action was dropped: prevented by a
+    // `beforeRemove` guard or a no-op, both reported as a `noop` `__unsafe_action__`. Pinned by the tests in `GoBackTests.tsx`.
+    const dispatch = (actionToDispatch: NavigationAction): boolean => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
         }
-        navigationRef.current?.dispatch(actionToDispatch);
+        let wasApplied = true;
+        const unsubscribe = navigationContainer.addListener('__unsafe_action__', (event) => {
+            if (event.data.action !== actionToDispatch) {
+                return;
+            }
+            wasApplied = !event.data.noop;
+        });
+        navigationContainer.dispatch(actionToDispatch);
+        unsubscribe();
+        if (!wasApplied && options?.shouldSkipFocusRestore) {
+            cancelSkipNextFocusRestore();
+        }
+        return wasApplied;
     };
 
     // Once these pops are out, going back has happened, so nothing below may report a failure to go up.
     const popsToNavigator = getPopsToNavigatorWithBackToRoute(navigationContainer.getRootState(), action, compareParams);
     for (const popToNavigator of popsToNavigator) {
-        dispatch(popToNavigator);
+        // A prevented pop hands control to its guard: going on would change screens under its prompt or re-send the pop,
+        // which closes the prompt. On confirm the guard replays only this pop, which usually is the whole way back.
+        if (!dispatch(popToNavigator)) {
+            return true;
+        }
     }
     const didPopToNavigator = popsToNavigator.length > 0;
 
@@ -563,7 +581,10 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         );
         const jumpParams = 'params' in payload ? payload.params : undefined;
         if (underlyingTabNavIndex !== -1) {
-            dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex));
+            // A prevented pop leaves the tab navigator covered, so jumping in it would change the tab under the prompt.
+            if (!dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex))) {
+                return true;
+            }
             // The uncovered tab navigator has the right tab active, but not necessarily the requested screen inside
             // it, so the jump still has to be applied there rather than to the tab navigator that was popped.
             const underlyingTabStateKey = rootState.routes.at(underlyingTabNavIndex)?.state?.key;
