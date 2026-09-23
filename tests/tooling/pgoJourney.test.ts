@@ -2,7 +2,7 @@ import {describe, expect, it} from 'bun:test';
 
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
-import {findReportResult, scrollDistance} from '@scripts/pgo/journeyWorkload';
+import {findReportResult, findTabLabel, scrollDistance} from '@scripts/pgo/journeyWorkload';
 
 const fixture = {
     accountEmail: 'heavy@example.com',
@@ -131,5 +131,22 @@ describe('PGO journey safeguards', () => {
         }
         // Then missing viewport information must fail instead of falling back to a screen-edge gesture.
         expect(() => scrollDistance([])).toThrow('scroll bounds');
+    });
+
+    it('selects iOS status-bearing bottom tabs without confusing them with page headings', () => {
+        const nodes = parseJourneySnapshot(
+            {
+                appBundleId: 'test.app',
+                nodes: [
+                    {type: 'Application', rect: {width: 390, height: 844, y: 0}},
+                    {label: 'Inbox', rect: {width: 390, height: 50, y: 80}},
+                    {label: 'Inbox. Your review is required', rect: {width: 78, height: 71, y: 749}},
+                    {label: 'Account, My settings. Your review is required.', rect: {width: 78, height: 71, y: 749}},
+                ],
+            },
+            'test.app',
+        );
+        expect(findTabLabel(nodes, 'Inbox')).toBe('Inbox. Your review is required');
+        expect(findTabLabel(nodes, 'Account')).toBe('Account, My settings. Your review is required.');
     });
 });

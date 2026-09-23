@@ -129,14 +129,29 @@ async function openReport(device: JourneyDevice, report: JourneyReport, isPerson
 async function showTab(device: JourneyDevice, tab: string): Promise<void> {
     // Use app back navigation instead of Android's hardware Back, which can dismiss the keyboard or leave the app.
     for (let attempt = 0; attempt < 5; attempt += 1) {
-        if (device.hasLabel(tab)) {
-            device.pressLabel(tab);
+        const tabLabel = findTabLabel(device.snapshot(), tab);
+        if (tabLabel) {
+            device.pressLabel(tabLabel);
             return;
         }
         device.back();
         await sleep(300);
     }
     throw new Error(`Cannot return to the ${tab} tab.`);
+}
+
+/** iOS appends unread/review status to tab accessibility labels. */
+function findTabLabel(nodes: JourneyNode[], tab: string): string | undefined {
+    const screenHeight = nodes.find((node) => node.type === 'Application')?.height;
+    const candidates = nodes.filter((node) => {
+        const label = normalizeLabel(node.label);
+        const matches = label === tab || label.startsWith(`${tab}.`) || label.startsWith(`${tab},`);
+        return matches && (!screenHeight || node.y >= screenHeight * 0.7);
+    });
+    if (candidates.length > 1) {
+        throw new Error(`Ambiguous ${tab} tab in the accessibility tree.`);
+    }
+    return candidates.at(0)?.label;
 }
 
 async function scrollBothWays(device: JourneyDevice, count: number, requireMovement: boolean, firstDirection: 'up' | 'down' = 'down'): Promise<void> {
@@ -212,4 +227,4 @@ function findReportResult(nodes: JourneyNode[], prefix: string, personalChatTitl
     return matches.at(0)?.label;
 }
 
-export {findReportResult, prepareJourney, runJourneyWorkload, scrollDistance, verifyJourneyAccount};
+export {findReportResult, findTabLabel, prepareJourney, runJourneyWorkload, scrollDistance, verifyJourneyAccount};

@@ -12,6 +12,7 @@ type JourneyNode = {
     enabled: boolean;
     width: number;
     height: number;
+    y: number;
 };
 
 type JourneyDevice = ReturnType<typeof createJourneyDevice>;
@@ -114,6 +115,7 @@ function parseJourneySnapshot(data: unknown, appID: string): JourneyNode[] {
             enabled: node.enabled !== false,
             width: isRecord(node.rect) && typeof node.rect.width === 'number' ? node.rect.width : 0,
             height: isRecord(node.rect) && typeof node.rect.height === 'number' ? node.rect.height : 0,
+            y: isRecord(node.rect) && typeof node.rect.y === 'number' ? node.rect.y : 0,
         }));
 }
 
