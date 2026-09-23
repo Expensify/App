@@ -628,10 +628,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `Το μέγιστο μήκος σχολίου είναι ${formattedMaxLength} χαρακτήρες.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `Το μέγιστο μήκος τίτλου εργασίας είναι ${formattedMaxLength} χαρακτήρες.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Ενημέρωση εφαρμογής',
-        updatePrompt: 'Μια νέα έκδοση αυτής της εφαρμογής είναι διαθέσιμη.  \nΕνημερώστε τώρα ή επανεκκινήστε την εφαρμογή αργότερα για να γίνει λήψη των πιο πρόσφατων αλλαγών.',
-    },
     deeplinkWrapper: {
         launching: 'Εκκίνηση του Expensify',
         expired: 'Η συνεδρία σας έχει λήξει.',
@@ -2248,7 +2244,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
-        viewUserHistory: 'Προβολή ιστορικού χρήστη',
+        viewMemberHistory: 'Προβολή ιστορικού μέλους',
         viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',
@@ -7037,6 +7033,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 other: (count: number) => `${count} ετικέτες`,
             }),
             showTagGLCodes: 'Εμφάνιση κωδικών Γ.Λ. κατά την επιλογή ετικέτας',
+            showTagGLCodesSubtitle: 'Αν δεν εμφανίζεται ένας κωδικός ΓΚ, τότε δεν είναι διαθέσιμος για αυτήν την ετικέτα στο λογιστικό σας σύστημα.',
         },
         taxes: {
             subtitle: 'Προσθέστε ονόματα φόρων, συντελεστές και ορίστε προεπιλογές.',
@@ -8959,6 +8956,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο Campfire από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noSubsidiariesFound: 'Δεν βρέθηκαν θυγατρικές',
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια οντότητα στο Campfire και συγχρονίστε ξανά τη σύνδεση',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Campfire και συγχρονίστε ξανά τη σύνδεση',
             importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Campfire.',
             accountTypesDescription: 'Οι λογαριασμοί Campfire σας θα εισαχθούν ως κατηγορίες.',
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',

@@ -623,10 +623,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van een opmerking is ${formattedMaxLength} tekens.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van een taaknaam is ${formattedMaxLength} tekens.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'App bijwerken',
-        updatePrompt: 'Er is een nieuwe versie van deze app beschikbaar.\nWerk nu bij of start de app later opnieuw om de nieuwste wijzigingen te downloaden.',
-    },
     deeplinkWrapper: {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
@@ -2190,7 +2186,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profielavatar',
         customInstructions: 'Aangepaste instructies',
         copilotIntoAccount: 'Copilot naar account',
-        viewUserHistory: 'Gebruikersgeschiedenis bekijken',
+        viewMemberHistory: 'Ledengeschiedenis bekijken',
         viewAgentHistory: 'Agentgeschiedenis bekijken',
         publicSection: {
             title: 'Openbaar',
@@ -6857,6 +6853,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 other: (count: number) => `${count} tags`,
             }),
             showTagGLCodes: 'GL-codes tonen bij het selecteren van een tag',
+            showTagGLCodesSubtitle: 'Als een GL-code niet wordt weergegeven, is deze niet beschikbaar voor die tag in je boekhoudsysteem.',
         },
         taxes: {
             subtitle: 'Belastingnamen en -tarieven toevoegen en standaarden instellen.',
@@ -8716,6 +8713,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subsidiarySelectDescription: 'Kies de dochteronderneming in Campfire waarvan je gegevens wilt importeren.',
             noSubsidiariesFound: 'Geen dochterondernemingen gevonden',
             noSubsidiariesFoundDescription: 'Voeg alsjeblieft een entiteit toe in Campfire en synchroniseer de verbinding opnieuw',
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Campfire en synchroniseer de verbinding opnieuw',
             importDescription: 'Kies welke boekhoudconfiguraties je wilt importeren uit Campfire.',
             accountTypesDescription: 'Je Campfire-accounts worden geïmporteerd als categorieën.',
             enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',

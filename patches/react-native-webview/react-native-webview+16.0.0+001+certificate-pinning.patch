@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/apple/RNCWebViewImpl.m b/node_modules/react-native-webview/apple/RNCWebViewImpl.m
-index 7f5c24d..416cfde 100644
+index bb6f828..bb616d4 100644
 --- a/node_modules/react-native-webview/apple/RNCWebViewImpl.m
 +++ b/node_modules/react-native-webview/apple/RNCWebViewImpl.m
 @@ -17,6 +17,15 @@
@@ -18,7 +18,7 @@ index 7f5c24d..416cfde 100644
  static NSTimer *keyboardTimer;
  static NSString *const HistoryShimName = @"ReactNativeHistoryShim";
  static NSString *const MessageHandlerName = @"ReactNativeWebView";
-@@ -1161,6 +1170,17 @@ RCTAutoInsetsProtocol>
+@@ -1131,6 +1140,17 @@ - (void)                    webView:(WKWebView *)webView
      completionHandler(NSURLSessionAuthChallengeUseCredential, clientAuthenticationCredential);
      return;
    }

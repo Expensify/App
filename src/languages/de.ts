@@ -624,10 +624,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `Die maximale Kommentarlänge beträgt ${formattedMaxLength} Zeichen.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `Die maximale Aufgaben-Titellänge beträgt ${formattedMaxLength} Zeichen.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'App aktualisieren',
-        updatePrompt: 'Eine neue Version dieser App ist verfügbar.\nAktualisiere jetzt oder starte die App später neu, um die neuesten Änderungen herunterzuladen.',
-    },
     deeplinkWrapper: {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
@@ -2199,7 +2195,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Profil-Avatar',
         customInstructions: 'Benutzerdefinierte Anweisungen',
         copilotIntoAccount: 'Copilot in Konto',
-        viewUserHistory: 'Nutzerverlauf anzeigen',
+        viewMemberHistory: 'Mitgliedsverlauf anzeigen',
         viewAgentHistory: 'Agentenverlauf anzeigen',
         publicSection: {
             title: 'Öffentlich',
@@ -6910,6 +6906,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 other: (count: number) => `${count} Tags`,
             }),
             showTagGLCodes: 'Kontenplan-Codes beim Auswählen eines Tags anzeigen',
+            showTagGLCodesSubtitle: 'Wenn ein Kontenplan-Code nicht angezeigt wird, ist er für dieses Tag in Ihrem Buchhaltungssystem nicht verfügbar.',
         },
         taxes: {
             subtitle: 'Steuernamen und -sätze hinzufügen und Standardwerte festlegen.',
@@ -8793,6 +8790,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Campfire aus, von der Sie Daten importieren möchten.',
             noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
             noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
             importDescription: 'Wählen Sie aus, welche Kodierungskonfigurationen aus Campfire importiert werden sollen.',
             accountTypesDescription: 'Ihre Campfire-Konten werden als Kategorien importiert.',
             enableNewAccountsTitle: 'Neu importierte Konten aktivieren',

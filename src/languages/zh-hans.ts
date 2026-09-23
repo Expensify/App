@@ -620,10 +620,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `评论的最大长度为 ${formattedMaxLength} 个字符。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `任务标题最长为 ${formattedMaxLength} 个字符。`,
     },
-    baseUpdateAppModal: {
-        updateApp: '更新应用',
-        updatePrompt: '此应用有新版本可用。\n现在更新，或稍后重启应用以下载最新更改。',
-    },
     deeplinkWrapper: {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
@@ -2115,7 +2111,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewUserHistory: '查看用户历史记录',
+        viewMemberHistory: '查看成员历史记录',
         viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
@@ -6617,6 +6613,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 other: (count: number) => `${count} 个标签`,
             }),
             showTagGLCodes: '在选择标签时显示总账科目代码',
+            showTagGLCodesSubtitle: '如果某个总账科目代码未显示，则说明此标签在您的会计系统中不可用。',
         },
         taxes: {
             subtitle: '添加税种名称、税率，并设置默认值。',
@@ -8405,6 +8402,8 @@ ${reportName}`,
             subsidiarySelectDescription: '选择要从中导入数据的 Campfire 子公司。',
             noSubsidiariesFound: '未找到子公司',
             noSubsidiariesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 Campfire 中添加供应商，然后再次同步连接',
             importDescription: '选择要从 Campfire 导入的编码配置。',
             accountTypesDescription: '您的 Campfire 账户将会作为类别导入。',
             enableNewAccountsTitle: '启用新导入的账户',

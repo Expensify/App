@@ -669,10 +669,6 @@ const translations = {
         commentExceededMaxLength: (formattedMaxLength: string) => `The maximum comment length is ${formattedMaxLength} characters.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `The maximum task title length is ${formattedMaxLength} characters.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Update app',
-        updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app later to download the latest changes.',
-    },
     deeplinkWrapper: {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
@@ -2308,7 +2304,7 @@ const translations = {
         profileAvatar: 'Profile avatar',
         customInstructions: 'Custom instructions',
         copilotIntoAccount: 'Copilot into account',
-        viewUserHistory: 'View user history',
+        viewMemberHistory: 'View member history',
         viewAgentHistory: 'View agent history',
         publicSection: {
             title: 'Public',
@@ -6234,6 +6230,8 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
             importDescription: 'Choose which coding configurations to import from Campfire.',
             accountTypesDescription: 'Your Campfire accounts will import as categories.',
             enableNewAccountsTitle: 'Enable newly imported accounts',
@@ -6962,6 +6960,7 @@ const translations = {
             tagName: 'Tag name',
             requiresTag: 'Members must tag all expenses',
             showTagGLCodes: 'Show GL codes when selecting a tag',
+            showTagGLCodesSubtitle: "If a GL code isn't displayed, it isn't available for that tag in your accounting system.",
             trackBillable: 'Track billable expenses',
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',

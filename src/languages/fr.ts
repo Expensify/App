@@ -624,11 +624,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du commentaire est de ${formattedMaxLength} caractères.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `La longueur maximale du titre de la tâche est de ${formattedMaxLength} caractères.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Mettre à jour l’application',
-        updatePrompt:
-            'Une nouvelle version de cette application est disponible.\nMettez-la à jour maintenant ou redémarrez l’application plus tard pour télécharger les dernières modifications.',
-    },
     deeplinkWrapper: {
         launching: 'Lancement d’Expensify',
         expired: 'Votre session a expiré.',
@@ -2206,7 +2201,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
-        viewUserHistory: 'Voir l’historique de l’utilisateur',
+        viewMemberHistory: 'Voir l’historique du membre',
         viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
@@ -6931,6 +6926,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 other: (count: number) => `${count} tags`,
             }),
             showTagGLCodes: 'Afficher les codes GL lors de la sélection d’un tag',
+            showTagGLCodesSubtitle: 'Si un code GL n’est pas affiché, il n’est pas disponible pour ce tag dans votre système comptable.',
         },
         taxes: {
             subtitle: 'Ajoutez des noms de taxes, des taux et définissez des valeurs par défaut.',
@@ -8812,6 +8808,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subsidiarySelectDescription: 'Choisissez la filiale dans Campfire à partir de laquelle vous souhaitez importer des données.',
             noSubsidiariesFound: 'Aucune filiale trouvée',
             noSubsidiariesFoundDescription: 'Veuillez ajouter une entité dans Campfire et synchroniser à nouveau la connexion',
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Campfire et synchroniser de nouveau la connexion',
             importDescription: 'Choisissez les configurations de codage à importer depuis Campfire.',
             accountTypesDescription: 'Vos comptes Campfire seront importés en tant que catégories.',
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',

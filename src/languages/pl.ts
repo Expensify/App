@@ -626,10 +626,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `Maksymalna długość komentarza to ${formattedMaxLength} znaków.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `Maksymalna długość tytułu zadania to ${formattedMaxLength} znaków.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Zaktualizuj aplikację',
-        updatePrompt: 'Nowa wersja tej aplikacji jest dostępna.\nZaktualizuj ją teraz lub uruchom ponownie później, aby pobrać najnowsze zmiany.',
-    },
     deeplinkWrapper: {
         launching: 'Uruchamianie Expensify',
         expired: 'Twoja sesja wygasła.',
@@ -2226,7 +2222,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Awatar profilu',
         customInstructions: 'Niestandardowe instrukcje',
         copilotIntoAccount: 'Copilot do konta',
-        viewUserHistory: 'Zobacz historię użytkownika',
+        viewMemberHistory: 'Zobacz historię członka',
         viewAgentHistory: 'Zobacz historię agenta',
         publicSection: {
             title: 'Public',
@@ -6883,6 +6879,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 other: (count: number) => `${count} tagi`,
             }),
             showTagGLCodes: 'Pokaż kody GL przy wybieraniu tagu',
+            showTagGLCodesSubtitle: 'Jeśli kod GL nie jest wyświetlany, nie jest dostępny dla tego taga w twoim systemie księgowym.',
         },
         taxes: {
             subtitle: 'Dodaj nazwy podatków, stawki i ustaw domyślne.',
@@ -8739,6 +8736,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             subsidiarySelectDescription: 'Wybierz spółkę zależną w Campfire, z której chcesz zaimportować dane.',
             noSubsidiariesFound: 'Nie znaleziono żadnych spółek zależnych',
             noSubsidiariesFoundDescription: 'Dodaj proszę jednostkę w Campfire i zsynchronizuj połączenie ponownie',
+            noVendorsFound: 'Nie znaleziono dostawców',
+            noVendorsFoundDescription: 'Dodaj proszę dostawców w Campfire i zsynchronizuj połączenie ponownie',
             importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z Campfire.',
             accountTypesDescription: 'Twoje konta Campfire zostaną zaimportowane jako kategorie.',
             enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',

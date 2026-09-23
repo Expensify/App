@@ -625,10 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大文字数は${formattedMaxLength}文字です。`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'アプリを更新',
-        updatePrompt: 'このアプリの新しいバージョンが利用可能です。\n今すぐアップデートするか、後でアプリを再起動して最新の変更をダウンロードしてください。',
-    },
     deeplinkWrapper: {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
@@ -2174,7 +2170,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
-        viewUserHistory: 'ユーザー履歴を表示',
+        viewMemberHistory: 'メンバー履歴を表示',
         viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
@@ -6787,6 +6783,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 other: (count: number) => `${count} 件のタグ`,
             }),
             showTagGLCodes: 'タグ選択時にGLコードを表示する',
+            showTagGLCodesSubtitle: '総勘定元帳コードが表示されていない場合、お使いの会計システムではそのタグに利用できません。',
         },
         taxes: {
             subtitle: '税名と税率を追加し、デフォルトを設定します。',
@@ -8630,6 +8627,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'データを取り込みたい Campfire 内の子会社を選択してください。',
             noSubsidiariesFound: '子会社が見つかりません',
             noSubsidiariesFoundDescription: 'Campfire でエンティティを追加して、接続をもう一度同期してください',
+            noVendorsFound: '取引先が見つかりません',
+            noVendorsFoundDescription: 'Campfire にベンダーを追加して、もう一度接続を同期してください',
             importDescription: 'Campfire からインポートするコーディング設定を選択してください。',
             accountTypesDescription: 'Campfire のアカウントはカテゴリとしてインポートされます。',
             enableNewAccountsTitle: '新しくインポートされた口座を有効にする',

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index dd2d3bc..d7a3d84 100644
+index 4324707..3deea98 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 @@ -2,8 +2,8 @@
@@ -13,7 +13,7 @@ index dd2d3bc..d7a3d84 100644
  import { ErrorMessages } from "../errors/ErrorMessages";
  import { WarningMessages } from "../errors/WarningMessages";
  import { areDimensionsNotEqual, measureFirstChildLayout, measureItemLayout, measureParentSize, } from "./utils/measureLayout";
-@@ -66,6 +66,66 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -67,6 +67,66 @@ const RecyclerViewComponent = (props, ref) => {
      // Hook to detect when scrolling reaches list bounds
      const { checkBounds } = useBoundDetection(recyclerViewManager, scrollViewRef);
      const isHorizontalRTL = I18nManager.isRTL && horizontal;
@@ -81,7 +81,7 @@ index dd2d3bc..d7a3d84 100644
       * Initialize the RecyclerView by measuring and setting up the window size
       * This effect runs when the component mounts or when layout changes
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-index 34722d4..ea801d2 100644
+index 3c25e7e..42a901f 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 @@ -5,6 +5,7 @@
@@ -100,7 +100,7 @@ index 34722d4..ea801d2 100644
  } from "react-native";
  
  import { FlashListRef } from "../FlashListRef";
-@@ -158,6 +160,88 @@ const RecyclerViewComponent = <T,>(
+@@ -159,6 +161,88 @@ const RecyclerViewComponent = <T,>(
  
    const isHorizontalRTL = I18nManager.isRTL && horizontal;
  

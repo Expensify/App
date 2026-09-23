@@ -622,10 +622,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `O tamanho máximo do comentário é de ${formattedMaxLength} caracteres.`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `O tamanho máximo do título da tarefa é de ${formattedMaxLength} caracteres.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Atualizar app',
-        updatePrompt: 'Uma nova versão deste app está disponível.  \nAtualize agora ou reinicie o app mais tarde para baixar as alterações mais recentes.',
-    },
     deeplinkWrapper: {
         launching: 'Iniciando Expensify',
         expired: 'Sua sessão expirou.',
@@ -2184,7 +2180,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar do perfil',
         customInstructions: 'Instruções personalizadas',
         copilotIntoAccount: 'Copilot na conta',
-        viewUserHistory: 'Ver histórico do usuário',
+        viewMemberHistory: 'Ver histórico do membro',
         viewAgentHistory: 'Ver histórico do agente',
         publicSection: {
             title: 'Público',
@@ -6860,6 +6856,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 other: (count: number) => `${count} Tags`,
             }),
             showTagGLCodes: 'Mostrar códigos GL ao selecionar uma tag',
+            showTagGLCodesSubtitle: 'Se um código GL não for exibido, ele não está disponível para essa tag no seu sistema contábil.',
         },
         taxes: {
             subtitle: 'Adicione nomes de impostos, taxas e defina padrões.',
@@ -8722,6 +8719,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             subsidiarySelectDescription: 'Escolha a subsidiária no Campfire da qual você gostaria de importar dados.',
             noSubsidiariesFound: 'Nenhuma subsidiária encontrada',
             noSubsidiariesFoundDescription: 'Adicione uma entidade no Campfire e sincronize a conexão novamente',
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Adicione fornecedores no Campfire e sincronize a conexão novamente',
             importDescription: 'Escolha quais configurações de codificação importar do Campfire.',
             accountTypesDescription: 'Suas contas do Campfire serão importadas como categorias.',
             enableNewAccountsTitle: 'Ativar contas recém-importadas',
