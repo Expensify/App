@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, Account, and workspace settings pages on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination, go to Members, go to Categories, go to Workflows, workspace settings page search]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions, including workspace settings pages. Does not explain the detailed behavior of the Home tab sections.
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, mark all as read, clear unread chats, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -82,6 +82,29 @@ Your selected tab is remembered, so the Inbox reopens to the same tab the next t
 Suggestion: Inbox with the All, Unread, and To-dos tabs visible at the top, with a count badge on Unread or To-dos
 Location: After the "How to filter your Inbox using tabs" section
 Purpose: Show users where the filter tabs appear and what the count badge looks like
+-->
+
+---
+
+## How to mark all Inbox chats as read
+
+You can clear your unread chats in bulk from any of the three Inbox tabs.
+
+1. Open the **Inbox** tab from the navigation tabs (on the left on web, on the bottom on mobile).
+2. Right-click the **All**, **Unread**, or **To-dos** tab on web, or long-press the tab on mobile.
+3. Select **Mark all as read**.
+4. Select **Mark all as read** again to confirm, or select **Cancel** to keep your chats unread.
+
+Which chats are marked as read depends on the tab you use:
+
+- **All** — Marks every unread chat as read.
+- **Unread** — Marks every unread chat as read.
+- **To-dos** — Marks only the chats listed under **To-dos** as read. Unread chats outside **To-dos** stay unread.
+
+<!-- SCREENSHOT:
+Suggestion: The Inbox tab row with the "Mark all as read" menu open above one of the tabs
+Location: After the "How to mark all Inbox chats as read" section
+Purpose: Show users how to open the Mark all as read menu from an Inbox tab
 -->
 
 ---
@@ -199,48 +222,7 @@ You can move to a top-level destination without using the navigation tabs by typ
 
 1. Select **Search** (the magnifying glass icon).
 2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
-3. Select the **Go to [destination]** result to open it.
-
-Typing **go** or **go to** on its own lists the available destinations.
-
----
-
-## How to open a workspace settings page using Search
-
-**Search** also suggests the settings pages of the workspaces you have access to, so you can open a page such as **Members** or **Workflows** without opening the **Workspaces** tab first.
-
-1. Select **Search** (the magnifying glass icon).
-2. Type the name of the workspace settings page you want to open, such as **Members**, **Categories**, **Workflows**, or **Company cards**.
-3. Find the **Go to [page name]** result for the workspace you want. Each result shows the avatar and name of the workspace the page belongs to.
-4. Select the result to open that page in that workspace.
-
-Results are sorted by page name and then by workspace name, so all the workspaces that share a page name appear together.
-
-To open a specific workspace, type the workspace name instead. A workspace name matches that workspace's **Overview** page only, so typing a workspace name does not list that workspace's other settings pages.
-
-<!-- SCREENSHOT:
-Suggestion: Search with "members" typed, showing two Go to Members results, each with a different workspace avatar and workspace name shown on the row
-Location: After step 4 in the "How to open a workspace settings page using Search" section
-Purpose: Show members that the workspace avatar and name on each row are how they tell identically named pages in different workspaces apart
--->
-
----
-
-## What determines which workspace settings pages appear in Search
-
-A workspace settings page is only suggested when you can open it:
-
-- You must be a member of the workspace, and your workspace role must have access to that page.
-- The related feature must be enabled under **More features**. For example, **Workflows** is not suggested when the **Workflows** feature is turned off.
-- Workspaces you cannot access, workspaces that have been deleted, and workspaces with a pending join request are not suggested.
-
-Page names shorter than three characters are only suggested when you type them exactly. For example, type **HR** to see the **HR** pages.
-
-**Search** shows up to eight **Go to** results at a time, so refine your search or type the workspace name if you do not see the page you want.
-
----
-
-## How to use keyboard shortcuts to jump to reports and workspaces
+3. Select the destination to open it.
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
 
@@ -259,17 +241,9 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
-## Can I open a workspace settings page from Search?
+## Does Mark all as read from the To-dos tab clear my other unread chats?
 
-Yes. Type the name of the page, such as **Members**, **Categories**, or **Workflows**, then select the **Go to [page name]** result. Each result shows the workspace avatar and name, so you can tell which workspace the page belongs to.
-
-## Why does typing a workspace name only show its Overview page?
-
-A workspace name is matched to that workspace's **Overview** page only, so your other workspaces and the workspace's other settings pages are not listed. To open a different page, type that page name instead.
-
-## Why isn't a workspace settings page suggested in Search?
-
-A page is only suggested when you can open it. Check that you are a member of the workspace, that your workspace role has access to the page, and that the related feature is enabled under **More features**. Page names shorter than three characters, such as **HR**, are only suggested when you type them exactly.
+No. **Mark all as read** from the **To-dos** tab only marks the chats listed under **To-dos** as read. Use the **All** or **Unread** tab to mark every unread chat as read.
 
 ## Where do I manage workspace settings?
 
