@@ -9095,6 +9095,9 @@ const CONST = {
 
             /** The width a free-text column is laid out at once the table scrolls, when horizontal room is no longer scarce. */
             SCROLLED_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
+            MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 
