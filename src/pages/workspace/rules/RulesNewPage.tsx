@@ -270,6 +270,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
                         onSubmit={describeRule}
                         onBuildManually={() => setShouldShowRuleTypes(true)}
                         onCreateAgentRule={canOfferAgentRule && submittedPrompt ? () => createAgentRuleFromPrompt(submittedPrompt) : undefined}
+                        onPromptChange={() => setSubmittedPrompt(undefined)}
                         isLoading={!!generationID && !generatedRuleForCurrentPrompt}
                     />
                 ) : (

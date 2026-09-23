@@ -34,9 +34,12 @@ type RulesNewPromptFormProps = {
 
     /** Called when the admin creates an agent rule instead */
     onCreateAgentRule?: () => void;
+
+    /** Called when the admin edits the prompt */
+    onPromptChange: () => void;
 };
 
-function RulesNewPromptForm({onSubmit, onBuildManually, isLoading, onCreateAgentRule}: RulesNewPromptFormProps) {
+function RulesNewPromptForm({onSubmit, onBuildManually, isLoading, onCreateAgentRule, onPromptChange}: RulesNewPromptFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const shouldUseScrollableLayout = useIsInLandscapeMode();
@@ -115,7 +118,10 @@ function RulesNewPromptForm({onSubmit, onBuildManually, isLoading, onCreateAgent
                         type="markdown"
                         excludedMarkdownStyles={['mentionReport']}
                         onKeyPress={submitFormOnModEnter}
-                        onValueChange={clearNewRulePromptError}
+                        onValueChange={() => {
+                            clearNewRulePromptError();
+                            onPromptChange();
+                        }}
                         maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
                         multiline
                         shouldSaveDraft
