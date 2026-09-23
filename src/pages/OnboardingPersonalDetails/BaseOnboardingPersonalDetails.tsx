@@ -64,6 +64,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const joinWorkspaceMessagesValidateEmail = joinWorkspaceMessages.validateEmail;
     const joinWorkspaceMessagesEmpty = joinWorkspaceMessages.empty;
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
@@ -81,7 +82,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {isBetaEnabled} = usePermissions();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
-    const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const isValidated = isCurrentUserValidated(loginList, currentUserPersonalDetails.email);
     const workEmail = session?.email ?? '';
     const isFromPublicDomain = PUBLIC_DOMAINS_SET.has(getEmailDomain(workEmail));
 
@@ -120,6 +121,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     conciergeChat,
                     companyDomain: getEmailDomain(workEmail),
                     workEmail,
+                    currentUserAccountID,
                     delegateAccountID,
                 });
 
@@ -161,6 +163,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             introSelected,
             isSelfTourViewed,
             conciergeChat,
+            currentUserAccountID,
             delegateAccountID,
         ],
     );

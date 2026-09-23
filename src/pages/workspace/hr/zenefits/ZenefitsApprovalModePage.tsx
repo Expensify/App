@@ -28,7 +28,7 @@ function ZenefitsApprovalModePage({
         testID: 'ZenefitsApprovalModePage',
         isConnected: isZenefitsConnected,
         approvalModes: CONST.ZENEFITS.APPROVAL_MODE,
-        getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? null,
+        getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? undefined,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
         getHeaderTitle: () => translate('workspace.merge.approvalMode'),
         handleSave: ({draftApprovalMode, currentApprovalMode}) => updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode),

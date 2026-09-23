@@ -4,9 +4,9 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {ListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -26,14 +27,9 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`);
     const policy = usePolicy(report?.policyID);
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-    });
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, borderRadius: 0});
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 

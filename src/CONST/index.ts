@@ -706,7 +706,10 @@ const CONST = {
         // 12-hour clock and its own `μ.μ.` marker. `p` is a date-fns extension, and still needs `{locale}`.
         LOCAL_TIME_FORMAT: 'p',
         YEAR_MONTH_FORMAT: 'yyyyMM',
-        MONTH_FORMAT: 'MMMM',
+        // `LLLL` is the standalone month, not `MMMM`. Greek and Polish inflect the month name when it accompanies
+        // a day, so `stycznia` means "of January". A month shown on its own, like a picker list or a statement
+        // heading, needs the nominative `styczeń` instead. Both uses of this constant are a month standing alone.
+        MONTH_FORMAT: 'LLLL',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
@@ -1118,6 +1121,7 @@ const CONST = {
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
+        INSIGHTS_COMPARE: 'insightsCompare',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3274,6 +3278,7 @@ const CONST = {
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     // These are the native values stored in the connection's export.exportStatus config, shared with
@@ -3378,7 +3383,7 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
-            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+            RECRUITING_COORDINATOR: 'coordinator',
         },
         CATEGORY: {
             HRIS: 'hris',
@@ -3937,6 +3942,16 @@ const CONST = {
     BUSINESS_CENTRAL_MAPPING_VALUE: {
         NONE: 'NONE',
         TAG: 'TAG',
+    },
+
+    /**
+     * How far a Business Central vendor is blocked. `_x0020_` is the unblocked value Business Central
+     * sends, `PAYMENT` still allows purchase invoices, and `ALL` forbids every transaction.
+     */
+    BUSINESS_CENTRAL_VENDOR_BLOCKED: {
+        NONE: '_x0020_',
+        PAYMENT: 'Payment',
+        ALL: 'All',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -5354,6 +5369,15 @@ const CONST = {
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
+
+        /**
+         * How a card's export account is resolved. Most integrations point a card's NVP at one entry in a flat account
+         * list, while Rillet and DualEntry resolve it through a program account that each card feed can override.
+         */
+        EXPORT_RESOLVER: {
+            SINGLE_ACCOUNT: 'singleAccount',
+            PROGRAM_ACCOUNT: 'programAccount',
+        },
         EXPORT_CARD_TYPES: {
             /**
              * Name of Card NVP for QBO custom export accounts
@@ -7106,12 +7130,6 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
-    /** How many report fields are shown side by side in the report view on a wide layout */
-    REPORT_FIELDS_PER_ROW: 3,
-
-    /** Below this many options, a report field list is short enough to scan without a search input */
-    REPORT_FIELD_LIST_SEARCH_THRESHOLD: 8,
-
     MOBILE_PAGINATION_SIZE: 15,
     WEB_PAGINATION_SIZE: 30,
 
@@ -7267,6 +7285,7 @@ const CONST = {
 
     SEARCH: {
         RESULTS_PAGE_SIZE: 50,
+        TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
@@ -8179,7 +8198,11 @@ const CONST = {
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
-            FADE_DURATION: 200,
+            FADE_DURATION: 150,
+
+            // How long the results area may keep showing the previous query's results while a new query loads. Past
+            // this, a slow query gives up the stale results and swaps to the skeleton so the wait is visible.
+            MAX_STALE_HOLD_DURATION: 500,
         },
         TODO_BADGE_MAX_COUNT: 50,
         TOP_SEARCH_LIMIT: 10,
@@ -8833,6 +8856,7 @@ const CONST = {
     },
 
     CORPAY_FIELDS: {
+        STRICT_SWIFT_BIC_REGEX: '^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$',
         EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP', 'RU'] as string[],
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
         ACCOUNT_TYPE_KEY: 'BeneficiaryAccountType',
@@ -10003,6 +10027,19 @@ const CONST = {
         AI_FEATURES_PROMO_MODAL: {
             CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
             HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
+        },
+    },
+
+    /**
+     * Stable test IDs rendered as `data-testid` on web, used both by tests and by analytics tooling
+     * (e.g. Fullstory) that needs a selector which survives react-native-web's generated class names.
+     */
+    TEST_ID: {
+        QUICK_CREATION_ACTIONS_BAR: {
+            EXPENSE: 'QuickCreationActionsBar-Expense',
+            REPORT: 'QuickCreationActionsBar-Report',
+            DISTANCE: 'QuickCreationActionsBar-Distance',
+            BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
     },
 
