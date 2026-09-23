@@ -23,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -36,9 +37,12 @@ type SearchNLFilterContentProps = {
 
     /** Optional style override for the submit button container */
     buttonContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Size of the submit button */
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
 };
 
-function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}: SearchNLFilterContentProps) {
+function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle, size = CONST.BUTTON_SIZE.MEDIUM}: SearchNLFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [nlQuery, setNlQuery] = useState('');
@@ -103,7 +107,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
                 />
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    size={size}
                     isLoading={isLoading}
                     isDisabled={isLoading}
                     onPress={handleSubmit}

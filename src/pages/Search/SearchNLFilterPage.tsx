@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
@@ -35,7 +36,10 @@ function SearchNLFilterPage() {
                 title={translate('search.filters.describeSearch.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS)}
             />
-            <SearchNLFilterContent onSuccess={handleSuccess} />
+            <SearchNLFilterContent
+                onSuccess={handleSuccess}
+                size={CONST.BUTTON_SIZE.LARGE}
+            />
         </ScreenWrapper>
     );
 }
