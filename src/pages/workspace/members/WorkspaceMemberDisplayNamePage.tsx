@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,8 +34,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params.memberAccountID);
     const policyID = route.params.policyID;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const memberPersonalDetails = personalDetails?.[accountID];
+    const [memberPersonalDetails] = usePersonalDetail(accountID);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_MEMBER_DISPLAY_NAME_FORM>) => getDisplayNameErrors(values.firstName, values.lastName, translate);
 

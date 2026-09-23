@@ -1474,40 +1474,28 @@ function updatePolicyMemberDisplayName(
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBER_DISPLAY_NAME, parameters, {
         optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [memberPersonalDetails.accountID]: {
-                        ...optimisticDetails,
-                        pendingFields: {displayName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    },
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {
+                    ...optimisticDetails,
+                    pendingFields: {displayName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                 },
-            },
+            }),
         ],
         successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [memberPersonalDetails.accountID]: {pendingFields: {displayName: null}},
-                },
-            },
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {pendingFields: {displayName: null}},
+            }),
         ],
         failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [memberPersonalDetails.accountID]: {
-                        firstName: memberPersonalDetails.firstName ?? null,
-                        lastName: memberPersonalDetails.lastName ?? null,
-                        displayName: memberPersonalDetails.displayName ?? null,
-                        ...(optimisticDetails.avatar && {avatar: memberPersonalDetails.avatar}),
-                        pendingFields: {displayName: null},
-                    },
+            buildPersonalDetailsUpdate({
+                [memberPersonalDetails.accountID]: {
+                    firstName: memberPersonalDetails.firstName ?? null,
+                    lastName: memberPersonalDetails.lastName ?? null,
+                    displayName: memberPersonalDetails.displayName ?? null,
+                    ...(optimisticDetails.avatar && {avatar: memberPersonalDetails.avatar}),
+                    pendingFields: {displayName: null},
                 },
-            },
+            }),
         ],
     });
 }
