@@ -268,9 +268,12 @@ const CONST = {
     ],
     TIFF_SIGNATURE_OFFSET: 0,
     // How a TIFF/DNG is labelled when the picker does know what it is (Android's gallery and the document picker on both
-    // platforms). iOS gallery picks don't carry these and are recognized from TIFF_SIGNATURES instead.
+    // platforms). iOS gallery picks don't carry these and are recognized from TIFF_SIGNATURES instead. Only DNGs
+    // (DNG_EXTENSION / DNG_MIME_TYPE) are transcoded; plain TIFFs are an accepted receipt format and are uploaded as-is.
     TIFF_EXTENSIONS: ['dng', 'tif', 'tiff'],
     TIFF_MIME_TYPES: ['image/x-adobe-dng', 'image/tiff', 'image/tif'],
+    DNG_EXTENSION: 'dng',
+    DNG_MIME_TYPE: 'image/x-adobe-dng',
     RECENT_WAYPOINTS_NUMBER: 20,
     // Validate-code action errorFields key the missing-personal-details ship-card flow writes its incorrect-magic-code
     // error under, and the ValidateCodeForm reads it back from, so the action and the page stay in sync.

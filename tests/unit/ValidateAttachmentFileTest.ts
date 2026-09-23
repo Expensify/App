@@ -95,6 +95,32 @@ describe('validateAttachmentFile', () => {
 
             expect(error.isValid).toBe(true);
         });
+
+        it.each([
+            ['by extension', {name: 'IMG_0001.DNG', size: 1000}],
+            ['by MIME type', {name: 'photo', size: 1000, type: 'image/x-adobe-dng'}],
+        ])('rejects a DNG chat attachment %s even though attachments get no receipt extension check', async (description, file: FileObject) => {
+            // Given a ProRAW picked as a chat attachment on web, where nothing transcodes it and the browser can't render it
+            // When validated outside the receipt flow
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then it is refused with the invalid-file-type modal rather than uploaded as an attachment nobody can preview
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
+        });
+
+        it('still accepts a plain TIFF chat attachment', async () => {
+            // Given a TIFF, which shares the DNG container but is an accepted format
+            const file = createMockFile('scan.tiff', 1000);
+
+            // When validated outside the receipt flow
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then the DNG rejection does not catch it
+            expect(error.isValid).toBe(true);
+        });
     });
 
     describe('HEIC_OR_HEIF_IMAGE', () => {

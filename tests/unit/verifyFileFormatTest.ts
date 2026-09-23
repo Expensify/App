@@ -1,4 +1,4 @@
-import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {matchesFileSignature, readFileHeaderHex, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 
 import CONST from '@src/CONST';
 
@@ -48,7 +48,7 @@ describe('verifyFileFormat', () => {
         it('slices the decoded POSIX path for an encoded file:// URI', async () => {
             // Given a percent-encoded file:// URI
             // When the format is verified
-            await verifyFileFormat({fileUri: 'file:///var/mobile/Containers/Receipt%20%2342.mov', formatSignatures: CONST.HEIC_SIGNATURES});
+            await verifyFileFormat({fileUri: 'file:///var/mobile/Containers/Receipt%20%2342.mov', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET});
 
             // Then the filesystem call gets the decoded path, since react-native-blob-util does not understand URIs
             expect(mockSlice).toHaveBeenCalledWith('/var/mobile/Containers/Receipt #42.mov', expect.stringContaining('/cache/file-header-'), 0, 16);
@@ -57,7 +57,7 @@ describe('verifyFileFormat', () => {
         it('slices a raw path with only the scheme stripped when the URI is not percent-encoded', async () => {
             // Given a plain file:// URI
             // When the format is verified
-            await verifyFileFormat({fileUri: 'file:///var/mobile/Containers/video.mov', formatSignatures: CONST.HEIC_SIGNATURES});
+            await verifyFileFormat({fileUri: 'file:///var/mobile/Containers/video.mov', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET});
 
             // Then only the scheme is stripped
             expect(mockSlice).toHaveBeenCalledWith('/var/mobile/Containers/video.mov', expect.any(String), 0, 16);
@@ -78,7 +78,7 @@ describe('verifyFileFormat', () => {
         it('removes the temp header file after reading it', async () => {
             // Given a successful header read
             // When the format is verified
-            await verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES});
+            await verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET});
 
             // Then the temp file is cleaned up so header reads don't accumulate in the cache directory
             const headerPath = mockSlice.mock.calls.at(0)?.at(1);
@@ -91,7 +91,7 @@ describe('verifyFileFormat', () => {
 
             // When the format is verified
             // Then the error propagates so the caller can alert the user, and the temp file is still removed
-            await expect(verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES})).rejects.toThrow('EACCES');
+            await expect(verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).rejects.toThrow('EACCES');
             expect(mockUnlink).toHaveBeenCalledTimes(1);
         });
 
@@ -102,7 +102,7 @@ describe('verifyFileFormat', () => {
 
             // When the format is verified
             // Then cleanup failure doesn't affect the result
-            await expect(verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES})).resolves.toBe(true);
+            await expect(verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).resolves.toBe(true);
         });
     });
 
@@ -113,7 +113,7 @@ describe('verifyFileFormat', () => {
 
             // When checked against the HEIC signatures without an explicit offset
             // Then it matches, preserving the behaviour existing callers rely on
-            await expect(verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES})).resolves.toBe(true);
+            await expect(verifyFileFormat({fileUri: 'file:///photo.heic', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).resolves.toBe(true);
         });
 
         it('recognizes a DNG from the TIFF header at offset 0', async () => {
@@ -131,7 +131,7 @@ describe('verifyFileFormat', () => {
 
             // When each is verified against the other format
             // Then neither matches, so each format takes its own transcoding path
-            await expect(verifyFileFormat({fileUri: 'file:///a.jpg', formatSignatures: CONST.HEIC_SIGNATURES})).resolves.toBe(false);
+            await expect(verifyFileFormat({fileUri: 'file:///a.jpg', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).resolves.toBe(false);
             await expect(verifyFileFormat({fileUri: 'file:///b.jpg', formatSignatures: CONST.TIFF_SIGNATURES, signatureOffset: CONST.TIFF_SIGNATURE_OFFSET})).resolves.toBe(false);
         });
 
@@ -139,7 +139,7 @@ describe('verifyFileFormat', () => {
             // Given a JFIF header
             // When verified against either signature set
             // Then it matches nothing and is passed through untouched by callers
-            await expect(verifyFileFormat({fileUri: 'file:///a.jpg', formatSignatures: CONST.HEIC_SIGNATURES})).resolves.toBe(false);
+            await expect(verifyFileFormat({fileUri: 'file:///a.jpg', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).resolves.toBe(false);
             await expect(verifyFileFormat({fileUri: 'file:///a.jpg', formatSignatures: CONST.TIFF_SIGNATURES, signatureOffset: CONST.TIFF_SIGNATURE_OFFSET})).resolves.toBe(false);
         });
 
@@ -158,18 +158,45 @@ describe('verifyFileFormat', () => {
 
             // When verified
             // Then it doesn't match
-            await expect(verifyFileFormat({fileUri: 'file:///broken', formatSignatures: CONST.HEIC_SIGNATURES})).resolves.toBe(false);
+            await expect(verifyFileFormat({fileUri: 'file:///broken', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET})).resolves.toBe(false);
         });
 
         it.each([
-            ['an empty uri', {fileUri: '', formatSignatures: CONST.HEIC_SIGNATURES}],
-            ['no signatures', {fileUri: 'file:///photo.heic', formatSignatures: []}],
+            ['an empty uri', {fileUri: '', formatSignatures: CONST.HEIC_SIGNATURES, signatureOffset: CONST.HEIC_SIGNATURE_OFFSET}],
+            ['no signatures', {fileUri: 'file:///photo.heic', formatSignatures: [], signatureOffset: CONST.HEIC_SIGNATURE_OFFSET}],
         ])('resolves false without touching the filesystem for %s', async (name, args) => {
             // Given nothing to check
             // When verified
             // Then no read is attempted
             await expect(verifyFileFormat(args)).resolves.toBe(false);
             expect(mockSlice).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('reading the header once for several formats', () => {
+        it('returns the header as hex so each format can be matched without another read', async () => {
+            // Given a DNG on disk
+            mockReadFile.mockResolvedValue(headerBase64(DNG_HEADER));
+
+            // When the header is read and matched against both HEIC and TIFF
+            const headerHex = await readFileHeaderHex('file:///IMG_0001.DNG');
+            const isHeic = matchesFileSignature(headerHex, CONST.HEIC_SIGNATURES, CONST.HEIC_SIGNATURE_OFFSET);
+            const isTiff = matchesFileSignature(headerHex, CONST.TIFF_SIGNATURES, CONST.TIFF_SIGNATURE_OFFSET);
+
+            // Then only one slice/read happens for both checks, and only the TIFF signature matches
+            expect(mockSlice).toHaveBeenCalledTimes(1);
+            expect(mockReadFile).toHaveBeenCalledTimes(1);
+            expect(isHeic).toBe(false);
+            expect(isTiff).toBe(true);
+        });
+
+        it('resolves an empty header without touching the filesystem for an empty uri', async () => {
+            // Given no uri
+            // When the header is read
+            // Then nothing is read and the empty header matches no format
+            await expect(readFileHeaderHex('')).resolves.toBe('');
+            expect(mockSlice).not.toHaveBeenCalled();
+            expect(matchesFileSignature('', CONST.TIFF_SIGNATURES, CONST.TIFF_SIGNATURE_OFFSET)).toBe(false);
         });
     });
 });

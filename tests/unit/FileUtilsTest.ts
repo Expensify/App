@@ -10,6 +10,7 @@ import {
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     isHighResolutionImage,
+    isLabelledDng,
     isLabelledTiff,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
@@ -601,6 +602,21 @@ describe('FileUtils', () => {
             // When checked
             // Then it is left alone
             expect(isLabelledTiff(file)).toBe(false);
+        });
+    });
+
+    describe('isLabelledDng', () => {
+        it.each([
+            ['a DNG by extension', {name: 'IMG_0001.DNG', type: null}, true],
+            ['a DNG by MIME type', {name: 'photo', type: 'image/x-adobe-dng'}, true],
+            ['a plain TIFF', {name: 'scan.tiff', type: 'image/tiff'}, false],
+            ['a JPEG', {name: 'photo.jpg', type: 'image/jpeg'}, false],
+            ['nothing', {name: null, type: null}, false],
+        ])('returns %s for %s', (description, file, expected) => {
+            // Given a file label
+            // When checked for DNG specifically
+            // Then only DNGs match, since TIFFs are an accepted receipt format and must not be swept up with them
+            expect(isLabelledDng(file)).toBe(expected);
         });
     });
 });

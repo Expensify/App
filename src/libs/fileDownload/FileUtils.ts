@@ -484,22 +484,14 @@ function readFileHeaderBase64Android(path: string): Promise<string> {
 }
 
 /**
- * Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures.
+ * Reads the first `MAGIC_BYTES_NEEDED` bytes of a file as a lowercase hex string, so a caller checking several
+ * formats reads the file once and matches each signature with `matchesFileSignature`.
  *
- * `signatureOffset` is the byte offset the signatures are expected at. It defaults to the HEIC 'ftyp' box
- * offset, which is what this function was originally written for; formats such as TIFF/DNG are signed at offset 0.
+ * Resolves to an empty string when there is nothing to read. On iOS a failed read rejects (see `readFileHeaderBase64IOS`).
  */
-function verifyFileFormat({
-    fileUri,
-    formatSignatures,
-    signatureOffset = CONST.HEIC_SIGNATURE_OFFSET,
-}: {
-    fileUri: string;
-    formatSignatures: readonly string[];
-    signatureOffset?: number;
-}): Promise<boolean> {
-    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
-        return Promise.resolve(false);
+function readFileHeaderHex(fileUri: string): Promise<string> {
+    if (!fileUri) {
+        return Promise.resolve('');
     }
 
     const cleanUri = fileURIToPath(fileUri);
@@ -507,20 +499,38 @@ function verifyFileFormat({
 
     return headerPromise.then((base64Data) => {
         if (!base64Data) {
-            return false;
+            return '';
         }
 
         try {
-            const binaryString = atob(base64Data);
-            const hex = Array.from(binaryString, (char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
-                .join('')
-                .slice(signatureOffset * 2);
-
-            return formatSignatures.some((signature) => hex.startsWith(signature));
+            return Array.from(atob(base64Data), (char) => char.charCodeAt(0).toString(16).padStart(2, '0')).join('');
         } catch (e) {
-            return false;
+            return '';
         }
     });
+}
+
+/** Whether a file header read by `readFileHeaderHex` carries one of `formatSignatures` at byte `signatureOffset`. */
+function matchesFileSignature(headerHex: string, formatSignatures: readonly string[], signatureOffset: number): boolean {
+    if (!headerHex) {
+        return false;
+    }
+    const hexAtOffset = headerHex.slice(signatureOffset * 2);
+    return formatSignatures.some((signature) => hexAtOffset.startsWith(signature));
+}
+
+/**
+ * Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures.
+ *
+ * `signatureOffset` is the byte offset the signatures are expected at (`CONST.HEIC_SIGNATURE_OFFSET`, `CONST.TIFF_SIGNATURE_OFFSET`).
+ * To check one file against several formats, use `readFileHeaderHex` once and `matchesFileSignature` per format instead.
+ */
+function verifyFileFormat({fileUri, formatSignatures, signatureOffset}: {fileUri: string; formatSignatures: readonly string[]; signatureOffset: number}): Promise<boolean> {
+    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
+        return Promise.resolve(false);
+    }
+
+    return readFileHeaderHex(fileUri).then((headerHex) => matchesFileSignature(headerHex, formatSignatures, signatureOffset));
 }
 
 function isLocalFile(receiptUri?: string | number): boolean {
@@ -709,11 +719,13 @@ const hasHeicOrHeifExtension = (file: FileObject) => {
 };
 
 /**
- * Whether a picked file is labelled as a TIFF/DNG (iPhone ProRAW, Android RAW) by MIME type or extension.
+ * Whether a picked file is labelled as a TIFF or DNG (iPhone ProRAW, Android RAW) by MIME type or extension.
  *
  * Android's gallery picker keeps the real file name and resolves the MIME type from it, and the document picker does
  * the same on both platforms, so for those the label is enough. iOS gallery picks arrive as `<uuid>.jpg` / `image/jpg`
  * and never match here; they have to be recognized from `CONST.TIFF_SIGNATURES` instead.
+ *
+ * Use `isLabelledDng` to decide what to transcode: plain TIFFs are an accepted receipt format and are uploaded as-is.
  */
 function isLabelledTiff({name, type}: {name?: string | null; type?: string | null}): boolean {
     const mimeType = type?.toLowerCase();
@@ -722,6 +734,17 @@ function isLabelledTiff({name, type}: {name?: string | null; type?: string | nul
     }
     const extension = splitExtensionFromFileName(name ?? '').fileExtension.toLowerCase();
     return CONST.TIFF_EXTENSIONS.some((tiffExtension) => tiffExtension === extension);
+}
+
+/**
+ * Whether a file is a DNG (iPhone ProRAW / Android RAW) by MIME type or extension. Narrower than `isLabelledTiff`:
+ * plain TIFFs are an accepted receipt format, DNGs are not.
+ */
+function isLabelledDng({name, type}: {name?: string | null; type?: string | null}): boolean {
+    if (type?.toLowerCase() === CONST.DNG_MIME_TYPE) {
+        return true;
+    }
+    return splitExtensionFromFileName(name ?? '').fileExtension.toLowerCase() === CONST.DNG_EXTENSION;
 }
 
 /**
@@ -833,7 +856,7 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.HEIC_CONVERSION_FAILED:
             return {
                 title: translate('attachmentPicker.attachmentError'),
-                reason: translate('attachmentPicker.errorWhileConvertingHeic'),
+                reason: translate('attachmentPicker.errorWhileConvertingImage'),
             };
         case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
             return {
@@ -965,6 +988,8 @@ export {
     getFileResolution,
     isHighResolutionImage,
     verifyFileFormat,
+    readFileHeaderHex,
+    matchesFileSignature,
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
     createFile,
@@ -975,6 +1000,7 @@ export {
     getFileValidationErrorText,
     hasHeicOrHeifExtension,
     isLabelledTiff,
+    isLabelledDng,
     canvasFallback,
     getFilesFromClipboardEvent,
     cleanFileObject,

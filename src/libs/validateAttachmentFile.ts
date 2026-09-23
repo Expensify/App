@@ -3,7 +3,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
-import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
+import {cleanFileName, hasHeicOrHeifExtension, isLabelledDng, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
 import snapshotPickedFile from './snapshotPickedFile';
 
 type ValidateAttachmentValidResult = {
@@ -29,6 +29,13 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
     }
 
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
+    }
+
+    // Browsers can't decode DNG (iPhone ProRAW), so on web/desktop it would upload but never render. Chat attachments
+    // get no other extension check, hence the explicit rejection. Native pickers transcode DNGs to JPEG before they
+    // reach this point (see processPickedAssets), so a `.dng` only arrives here from a platform that can't convert it.
+    if (isLabelledDng(file)) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
 

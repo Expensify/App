@@ -11,7 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {cleanFileName, isLabelledTiff, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, isLabelledDng, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 import fileURIToPath from '@libs/fileURIToPath';
 import ReceiptStorage from '@libs/ReceiptStorage';
@@ -237,16 +237,16 @@ function AttachmentPicker({
         [fileLimit, showGeneralAlert, translate, type],
     );
     /**
-     * Transcodes document-picked TIFF/DNG files (e.g. an iPhone ProRAW browsed to via "Choose file") to JPEG,
-     * the same way gallery picks are, so both entry points accept the same photos. Anything else is returned
-     * untouched, which keeps the existing HEIC-through-validation flow for `.heic` documents.
+     * Transcodes document-picked DNG files (e.g. an iPhone ProRAW browsed to via "Choose file") to JPEG, the same
+     * way gallery picks are, so both entry points accept the same photos. Anything else is returned untouched: plain
+     * TIFFs are an accepted receipt format, and `.heic` documents keep the existing HEIC-through-validation flow.
      *
      * Files are converted one at a time (see `processPickedAssetsSequentially`) and failures are collected so a
      * multi-selection produces at most one alert; a file that can't be decoded is dropped from the result.
      */
-    const transcodeLabelledTiffs = useCallback(
+    const transcodeDngFiles = useCallback(
         async (files: LocalCopy[]): Promise<LocalCopy[]> => {
-            if (!files.some((file) => isLabelledTiff(file))) {
+            if (!files.some((file) => isLabelledDng(file))) {
                 return files;
             }
 
@@ -255,12 +255,14 @@ function AttachmentPicker({
                 failureMessages.add(message);
             };
 
-            const results = await files.reduce<Promise<LocalCopy[]>>(async (previousFiles, file) => {
-                const processedFiles = await previousFiles;
-                if (!isLabelledTiff(file)) {
-                    return [...processedFiles, file];
+            const results: LocalCopy[] = [];
+            for (const file of files) {
+                if (!isLabelledDng(file)) {
+                    results.push(file);
+                    continue;
                 }
 
+                // eslint-disable-next-line no-await-in-loop -- converting one image at a time keeps a single decoded bitmap in memory, see processPickedAssetsSequentially
                 const convertedAssets = await processPickedAssetsSequentially(
                     [{uri: file.uri, fileName: file.name ?? undefined, type: file.type ?? undefined, fileSize: file.size ?? undefined}],
                     collectFailure,
@@ -268,20 +270,17 @@ function AttachmentPicker({
                 );
                 const convertedAsset = convertedAssets?.at(0);
                 if (!convertedAsset?.uri) {
-                    return processedFiles;
+                    continue;
                 }
 
-                return [
-                    ...processedFiles,
-                    {
-                        name: convertedAsset.fileName ?? file.name,
-                        uri: convertedAsset.uri,
-                        // The JPEG's size differs from the DNG's and isn't reported by the transcode; `getDataForUpload` reads it from disk.
-                        size: null,
-                        type: convertedAsset.type ?? file.type,
-                    },
-                ];
-            }, Promise.resolve([]));
+                results.push({
+                    name: convertedAsset.fileName ?? file.name,
+                    uri: convertedAsset.uri,
+                    // The JPEG's size differs from the DNG's and isn't reported by the transcode; `getDataForUpload` reads it from disk.
+                    size: null,
+                    type: convertedAsset.type ?? file.type,
+                });
+            }
 
             if (failureMessages.size > 0) {
                 showGeneralAlert([...failureMessages].join('\n'));
@@ -343,8 +342,8 @@ function AttachmentPicker({
             };
         });
 
-        return transcodeLabelledTiffs(localFiles);
-    }, [acceptedFileTypes, fileLimit, transcodeLabelledTiffs, type]);
+        return transcodeDngFiles(localFiles);
+    }, [acceptedFileTypes, fileLimit, transcodeDngFiles, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [

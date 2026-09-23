@@ -342,7 +342,7 @@ describe('useFilesValidation', () => {
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
             expect(getShowConfirmModalOption('title')).toBe('attachmentPicker.attachmentError');
-            expect(getShowConfirmModalOption('prompt')).toBe('attachmentPicker.errorWhileConvertingHeic');
+            expect(getShowConfirmModalOption('prompt')).toBe('attachmentPicker.errorWhileConvertingImage');
         });
 
         it('routes an oversized converted receipt image to resizing, then includes the resized result', async () => {
