@@ -137,6 +137,7 @@ describe('TroubleshootPage Onyx export', () => {
             resolveModal: jest.fn(),
             showConfirmModal: mockShowConfirmModal,
             closeModal: jest.fn(),
+            closeModalByID: jest.fn(),
         });
         mockShowConfirmModal.mockResolvedValue({action: 'CLOSE'});
         jest.mocked(readOnyxState).mockResolvedValue(exportedState);
@@ -161,7 +162,7 @@ describe('TroubleshootPage Onyx export', () => {
                 shouldShowCancelButton: false,
             });
         });
-        expect(mockLogAlert).toHaveBeenCalledWith('[Troubleshoot] Unable to export Onyx state', {error});
+        expect(mockLogAlert).toHaveBeenCalledWith('[Troubleshoot] Unable to export Onyx state', {error: error.message});
     }
 
     it('shares the masked Onyx state', async () => {

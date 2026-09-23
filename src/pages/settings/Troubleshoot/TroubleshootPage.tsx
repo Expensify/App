@@ -27,6 +27,7 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import {maskOnyxState, readOnyxState, shareAsFile} from '@libs/ExportOnyxState';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -95,7 +96,7 @@ function TroubleshootPage() {
             const dataToShare = maskOnyxState(value, shouldMaskOnyxState);
             await shareAsFile(JSON.stringify(dataToShare));
         } catch (error) {
-            Log.alert('[Troubleshoot] Unable to export Onyx state', {error});
+            Log.alert('[Troubleshoot] Unable to export Onyx state', {error: getErrorMessage(error)});
             await showConfirmModal({
                 title: translate('genericErrorPage.title'),
                 prompt: translate('common.genericErrorMessage'),
