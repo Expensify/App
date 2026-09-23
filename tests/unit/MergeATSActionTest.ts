@@ -1,4 +1,5 @@
-import {setMergeATSInitialSyncModalShown, updateMergeATSApproverField, updateMergeATSFilters} from '@libs/actions/connections/merge/ATS';
+import {setMergeInitialSyncModalShown} from '@libs/actions/connections/merge';
+import {updateMergeATSApproverField, updateMergeATSFilters} from '@libs/actions/connections/merge/ATS';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -261,13 +262,13 @@ describe('MergeATSActions', () => {
         });
     });
 
-    describe('setMergeATSInitialSyncModalShown', () => {
+    describe('setMergeInitialSyncModalShown', () => {
         it('flags the initial sync modal as shown for the policy', () => {
             // Given the initial sync modal has just been shown to the admin
             const setSpy = jest.spyOn(Onyx, 'set').mockResolvedValue(undefined);
 
-            // When the flag is set
-            setMergeATSInitialSyncModalShown(policyID);
+            // When the flag is set for the Merge ATS connection
+            setMergeInitialSyncModalShown(policyID, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS);
 
             // Then it is stored locally for that policy, without calling the API
             expect(setSpy).toHaveBeenCalledWith(`${ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);

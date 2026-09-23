@@ -1,5 +1,5 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -73,14 +73,13 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
             />
             {!!autoSync?.enabled && (
                 <OfflineWithFeedback pendingAction={pendingAction}>
-                    <MenuItemWithTopDescription
-                        title={
+                    <MenuItemField
+                        value={
                             accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                 ? translate(`workspace.sageIntacct.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
                                 : translate(`workspace.sageIntacct.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                         }
-                        description={translate('workspace.sageIntacct.accountingMethods.label')}
-                        shouldShowRightIcon
+                        name={translate('workspace.sageIntacct.accountingMethods.label')}
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.path))}
                     />
                 </OfflineWithFeedback>

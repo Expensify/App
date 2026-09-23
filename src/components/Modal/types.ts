@@ -3,7 +3,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
 
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -48,7 +48,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Callback method fired when the modal is shown */
         onModalShow?: () => void;
 
-        /** Style of modal to display */
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 
         /** The anchor position of a popover modal. Has no effect on other modal types. */
@@ -63,7 +62,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Whether the modal should go under the system navigation bar */
         navigationBarTranslucent?: boolean;
 
-        /** Whether the modal should avoid the keyboard */
         avoidKeyboard?: boolean;
 
         /** Modal container styles  */
@@ -75,7 +73,6 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         shouldUseCustomBackdrop?: boolean;
 
-        /** Unique id for the modal */
         modalId?: number;
 
         /**
@@ -93,10 +90,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** After swipe more than threshold modal will close */
         swipeThreshold?: number;
 
-        /** In which direction modal will swipe */
         swipeDirection?: SwipeDirection;
-
-        /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
@@ -120,10 +114,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          */
         shouldDisableBottomSafeAreaPadding?: boolean;
 
-        /**
-         * Reference to the outer element.
-         */
-        ref?: ForwardedRef<View>;
+        ref?: ForwardedRef<ComponentRef<typeof View>>;
 
         /**
          * Whether the modal should display under the side panel.
@@ -137,6 +128,13 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * See https://github.com/Expensify/App/issues/88645 for more details.
          */
         shouldKeepRightDockedBackdropInNarrowPane?: boolean;
+
+        /**
+         * Whether a modal type that hides its backdrop by default should show one anyway.
+         * POPOVER modals hide the backdrop so menus and tooltips do not dim the screen.
+         * Set this to true for a popover that reads as a dialog and should dim what sits behind it.
+         */
+        shouldShowBackdrop?: boolean;
 
         /**
          * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.

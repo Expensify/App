@@ -16,6 +16,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -111,19 +112,18 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
 }
 
 function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Plus']);
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
 
     const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? false;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const accountManagerReportID = account?.accountManagerReportID;
@@ -156,21 +156,12 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
 
     const confirmDisableApprovals = useCallback(() => {
-        setWorkspaceApprovalMode(
-            policy,
-            policy?.owner ?? '',
-            CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-            currentUserAccountID,
-            currentUserEmail,
-            isTrackIntentUser,
-            {
-                transactionViolations,
-                betas,
-                personalDetailsList: personalDetails,
-            },
-            rulesCollection,
-        );
-    }, [betas, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
+        setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, rulesCollection, {
+            transactionViolations,
+            isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
+            personalDetailsList: personalDetails,
+        });
+    }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
 
     const navigateToHRSettings = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
@@ -243,22 +234,26 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     const filterWorkflow = (workflow: ApprovalWorkflow, searchInput: string) => {
         const searchableTexts: string[] = [];
 
+        const pushSearchableName = (value: string) => {
+            searchableTexts.push(value);
+            if (Str.isSMSLogin(value)) {
+                searchableTexts.push(Str.removeSMSDomain(value));
+                searchableTexts.push(formatPhoneNumber(value));
+            }
+        };
+
         if (workflow.isDefault) {
             searchableTexts.push(everyoneText);
         } else {
             for (const member of workflow.members) {
-                searchableTexts.push(member.displayName);
-                searchableTexts.push(Str.removeSMSDomain(member.displayName));
-                searchableTexts.push(member.email);
-                searchableTexts.push(Str.removeSMSDomain(member.email));
+                pushSearchableName(member.displayName);
+                pushSearchableName(member.email);
             }
         }
 
         for (const approver of workflow.approvers) {
-            searchableTexts.push(approver.displayName);
-            searchableTexts.push(Str.removeSMSDomain(approver.displayName));
-            searchableTexts.push(approver.email);
-            searchableTexts.push(Str.removeSMSDomain(approver.email));
+            pushSearchableName(approver.displayName);
+            pushSearchableName(approver.email);
         }
 
         return tokenizedSearch([workflow], searchInput, () => searchableTexts).length > 0;
@@ -362,12 +357,12 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     currentUserAccountID,
                     currentUserEmail,
                     isTrackIntentUser,
+                    rulesCollection,
                     {
                         transactionViolations,
-                        betas,
+                        isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
                         personalDetailsList: personalDetails,
                     },
-                    rulesCollection,
                 );
             }}
             subMenuItems={

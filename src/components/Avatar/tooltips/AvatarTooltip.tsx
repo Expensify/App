@@ -18,7 +18,6 @@ type AvatarTooltipProps = PropsWithChildren<{
     /** Display name shown when the account has no personal details yet. Falls back to `avatar.name` */
     fallbackDisplayName?: string;
 
-    /** Style for the wrapper View */
     style?: StyleProp<ViewStyle>;
 }>;
 

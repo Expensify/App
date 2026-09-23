@@ -13,6 +13,7 @@ import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,6 +31,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/SpendRulesUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -113,6 +115,9 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
+    // Freeze the cards selected when this page opened so they stay pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialSelectedCardIDs = useInitialSelection(spendRuleForm?.cardIDs ?? [], {resetOnFocus: true});
+
     const goBack = () => Navigation.goBack();
 
     const saveAndGoBack = () => Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
@@ -126,10 +131,13 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
     const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings, ruleID === ROUTES.NEW ? undefined : ruleID) : [];
 
-    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
     const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare, translate, formatPhoneNumber);
 
-    const [inputValue, setInputValue, filteredCards] = useSearchResults(eligibleCards, filterCard, sortCards);
+    const sortedCards = sortCards(eligibleCards).map((card) => ({...card, value: String(card.cardID)}));
+    const orderedCards = moveInitialSelectionToTop(sortedCards, initialSelectedCardIDs);
+
+    const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
+    const [inputValue, setInputValue, filteredCards] = useSearchResults(orderedCards, filterCard);
 
     const listData: ExpensifyCardListItem[] = filteredCards.map((card) => {
         const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -255,6 +263,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                         onSelectRow={toggleCard}
                         selectedItems={selectedCardIDs}
                         ListItem={CardListItem}
+                        shouldScrollToFocusedIndexOnMount={false}
                         shouldUpdateFocusedIndex
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listEmptyContent={

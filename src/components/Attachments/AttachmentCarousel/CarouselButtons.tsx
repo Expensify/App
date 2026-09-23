@@ -1,5 +1,5 @@
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,7 +20,6 @@ type CarouselButtonsProps = {
     /** The current page index */
     page: number;
 
-    /** The attachments from the carousel */
     attachments: Attachment[];
 
     /** Callback to go one page back */

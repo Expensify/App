@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -23,10 +23,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type HangTightProps = {
-    /** ID of policy */
     policyID: string | undefined;
-
-    /** ID of bank account */
     bankAccountID: number;
 };
 

@@ -2,7 +2,6 @@ type ScrollToIndexOptions = {
     /** Is user editing message */
     isEditing?: boolean;
 
-    /** Should scroll be animated */
     animated?: boolean;
 
     /** Position of the target item relative to the viewport (0 = top, 0.5 = center, 1 = bottom) */

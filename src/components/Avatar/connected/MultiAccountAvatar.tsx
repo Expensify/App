@@ -30,7 +30,6 @@ type MultiAccountAvatarProps = {
     /** Account IDs to display avatars for. Entries equal to `CONST.DEFAULT_NUMBER_ID` are dropped; when none remain, a single placeholder avatar renders so the slot keeps its size. */
     accountIDs: number[];
 
-    /** Options for the horizontal stack */
     horizontalOptions?: HorizontalStackingOptions;
 
     /** How to order the avatars before rendering them. Every avatar sits in an equivalent slot, so any order is renderable. Omit to leave them in the order `accountIDs` was passed */
@@ -39,7 +38,6 @@ type MultiAccountAvatarProps = {
     /** Emails of invited, not-yet-registered accounts. Also seeds a deterministic fallback avatar for each invited account */
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
 
-    /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Display name used as a fallback for the avatar tooltip */

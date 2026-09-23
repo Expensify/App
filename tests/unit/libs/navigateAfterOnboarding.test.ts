@@ -52,7 +52,9 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
 
         expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
+        expect(navigationMock.navigate).toHaveBeenCalledWith(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+        );
         // The variant still decides what the side panel shows once the user opens it themselves.
         expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
         expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
