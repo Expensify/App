@@ -2,7 +2,6 @@ import type {HorizontalStackingOptions} from '@components/Avatar/layouts/Horizon
 import ReportActionAvatars from '@components/ReportActionAvatars';
 
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
@@ -32,8 +31,7 @@ type ReportAvatarProps = {
     /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
     backdropColor?: ColorValue;
 
-    /** Whether to show the subscript avatar without margin */
-    noRightMarginOnSubscriptContainer?: boolean;
+    subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether (and how) to stack the avatars horizontally */
     horizontalStacking?: HorizontalStackingOptions | boolean;
@@ -51,12 +49,11 @@ function ReportAvatar({
     size = CONST.AVATAR_SIZE.DEFAULT,
     singleAvatarContainerStyle,
     backdropColor,
-    noRightMarginOnSubscriptContainer = false,
+    subscriptAvatarContainerStyle,
     horizontalStacking,
     sort,
     fallbackDisplayName,
 }: ReportAvatarProps) {
-    const styles = useThemeStyles();
     const [kindFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarKindSelector});
     const kind = kindFromOnyx ?? CONST.REPORT_AVATAR_KIND.DEFAULT;
 
@@ -87,7 +84,7 @@ function ReportAvatar({
                     reportID={reportID}
                     size={size}
                     backdropColor={backdropColor}
-                    containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : undefined}
+                    containerStyle={subscriptAvatarContainerStyle}
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
@@ -119,7 +116,7 @@ function ReportAvatar({
                     size={size}
                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                     backdropColor={backdropColor}
-                    noRightMarginOnSubscriptContainer={noRightMarginOnSubscriptContainer}
+                    subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
                     horizontalStacking={horizontalStacking}
                     sort={sort}
                     fallbackDisplayName={fallbackDisplayName}
