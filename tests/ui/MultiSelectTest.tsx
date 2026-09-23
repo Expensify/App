@@ -143,7 +143,11 @@ describe('MultiSelect', () => {
         const props = mockedSelectionList.mock.lastCall?.[0];
         expect(props?.footerContent).toBeDefined();
 
-        render(props?.footerContent);
+        if (!props?.footerContent || !React.isValidElement(props.footerContent)) {
+            throw new Error('footerContent is not a valid ReactElement');
+        }
+
+        render(props.footerContent);
         expect(screen.getByTestId('custom-footer')).toBeOnTheScreen();
     });
 
