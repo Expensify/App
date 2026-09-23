@@ -16,6 +16,8 @@ import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
 
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
+
 import {
     completeSplitBill,
     createDistanceRequest,
@@ -35,7 +37,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
-import {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/SplitTransactionUpdate';
+import {updateSplitTransactions} from '@userActions/IOU/SplitTransactionUpdate';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';

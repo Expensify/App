@@ -1,12 +1,14 @@
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
-import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
+import '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
+import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -865,6 +867,10 @@ describe('actions/IOU', () => {
                     ['new-tx-2', true],
                 ]),
             );
+
+            // Then the user stays on Search: the super-wide RHP is popped instead of dismissing to the expense report
+            expect(jest.mocked(Navigation.navigateBackToLastSuperWideRHPScreen)).toHaveBeenCalled();
+            expect(jest.mocked(Navigation.dismissModalWithReport)).not.toHaveBeenCalled();
 
             spyOnMergeTransactionIdsHighlightOnSearchRoute.mockRestore();
         });
