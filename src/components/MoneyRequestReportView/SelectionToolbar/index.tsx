@@ -25,7 +25,7 @@ import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -63,7 +63,14 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     const {isOffline} = useNetworkWithOfflineStatus();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
     const shouldShowBulkActionBar = useShouldShowReportBulkActionBar();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<
+        | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
+    >();
+    // Deleting from a report opened out of a search has to update the search results behind it, which needs the hash of
+    // the search that is showing.
+    const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -159,6 +166,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
         onDeleteSelected,
+        isOnSearch: isReportInSearch,
     });
 
     const {
