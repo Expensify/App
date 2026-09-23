@@ -1055,6 +1055,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Πληρώστε το τιμολόγιό σας έως ${date} για να αποφύγετε τη διακοπή της υπηρεσίας`,
                 overdueTitle: 'Η πληρωμή σας έχει λήξει, παρακαλούμε εξοφλήστε το τιμολόγιό σας',
             },
+            renewSubscription: {
+                title: 'Ενεργοποιήστε την αυτόματη ανανέωση για να διατηρήσετε την τρέχουσα τιμή σας',
+                subtitle: ({date}: {date: string}) => `Η συνδρομή λήγει στις ${date}`,
+                cta: 'Διαχείριση',
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -11041,6 +11046,11 @@ ${reportName}`,
             trialEnded: {
                 title: 'Η δωρεάν δοκιμή σας έληξε',
                 subtitle: 'Προσθέστε μια κάρτα πληρωμής για να συνεχίσετε να χρησιμοποιείτε όλες τις αγαπημένες σας δυνατότητες.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Η συνδρομή σας λήγει στις ${date}`,
+                subtitle: 'Ενεργοποιήστε την αυτόματη ανανέωση για να διατηρήσετε την τρέχουσα τιμή σας.',
+                manage: 'Διαχείριση',
             },
             earlyDiscount: {
                 claimOffer: 'Αποκτήστε την προσφορά',

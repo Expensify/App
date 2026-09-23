@@ -1008,6 +1008,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Paga tu factura antes del ${date} para evitar la interrupción del servicio`,
                 overdueTitle: 'Tu pago está vencido, por favor paga tu factura',
             },
+            renewSubscription: {
+                title: 'Activa la renovación automática para mantener tu precio actual',
+                subtitle: ({date}: {date: string}) => `La suscripción termina el ${date}`,
+                cta: 'Gestionar',
+            },
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
@@ -11029,6 +11034,11 @@ ${reportName}`,
             trialEnded: {
                 title: 'Tu prueba gratuita ha terminado',
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Tu suscripción termina el ${date}`,
+                subtitle: 'Activa la renovación automática para mantener tu precio actual.',
+                manage: 'Gestionar',
             },
             earlyDiscount: {
                 claimOffer: 'Solicitar oferta',

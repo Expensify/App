@@ -1011,6 +1011,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Pague sua fatura até ${date} para evitar interrupção do serviço`,
                 overdueTitle: 'Seu pagamento está atrasado, por favor pague sua fatura',
             },
+            renewSubscription: {
+                title: 'Ative a renovação automática para manter seu preço atual',
+                subtitle: ({date}: {date: string}) => `A assinatura termina em ${date}`,
+                cta: 'Gerenciar',
+            },
         },
         discoverSection: {
             title: 'Descobrir',
@@ -10737,6 +10742,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             trialEnded: {
                 title: 'Sua avaliação gratuita terminou',
                 subtitle: 'Adicione um cartão de pagamento para continuar usando todos os seus recursos favoritos.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Sua assinatura termina em ${date}`,
+                subtitle: 'Ative a renovação automática para manter seu preço atual.',
+                manage: 'Gerenciar',
             },
             earlyDiscount: {
                 claimOffer: 'Resgatar oferta',

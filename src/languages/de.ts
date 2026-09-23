@@ -1012,6 +1012,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Bezahlen Sie Ihre Rechnung bis zum ${date}, um eine Unterbrechung des Dienstes zu vermeiden`,
                 overdueTitle: 'Ihre Zahlung ist überfällig, bitte begleichen Sie Ihre Rechnung',
             },
+            renewSubscription: {
+                title: 'Aktivieren Sie die automatische Verlängerung, um Ihren aktuellen Preis zu behalten',
+                subtitle: ({date}: {date: string}) => `Abonnement endet am ${date}`,
+                cta: 'Verwalten',
+            },
         },
         discoverSection: {
             title: 'Entdecken',
@@ -10824,6 +10829,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             trialEnded: {
                 title: 'Ihre kostenlose Testversion ist abgelaufen',
                 subtitle: 'Füge eine Zahlungskarte hinzu, um alle deine Lieblingsfunktionen weiterhin nutzen zu können.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Ihr Abonnement endet am ${date}`,
+                subtitle: 'Aktivieren Sie die automatische Verlängerung, um Ihren aktuellen Preis zu behalten.',
+                manage: 'Verwalten',
             },
             earlyDiscount: {
                 claimOffer: 'Angebot einlösen',

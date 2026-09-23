@@ -1012,6 +1012,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Paga la tua fattura entro il ${date} per evitare l’interruzione del servizio`,
                 overdueTitle: 'Il tuo pagamento è in ritardo, ti preghiamo di saldare la fattura',
             },
+            renewSubscription: {
+                title: 'Attiva il rinnovo automatico per mantenere il tuo prezzo attuale',
+                subtitle: ({date}: {date: string}) => `L’abbonamento termina il ${date}`,
+                cta: 'Gestisci',
+            },
         },
         discoverSection: {
             title: 'Scopri',
@@ -10776,6 +10781,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             trialEnded: {
                 title: 'La tua prova gratuita è terminata',
                 subtitle: 'Aggiungi una carta di pagamento per continuare a usare tutte le tue funzionalità preferite.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Il tuo abbonamento termina il ${date}`,
+                subtitle: 'Attiva il rinnovo automatico per mantenere il tuo prezzo attuale.',
+                manage: 'Gestisci',
             },
             earlyDiscount: {
                 claimOffer: 'Richiedi offerta',
