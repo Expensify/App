@@ -48,7 +48,7 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('personalInfoStep.enterTheLast4')}
+            formTitle={translate('beneficialOwnerInfoStep.enterTheSSN')}
             formDisclaimer={translate('beneficialOwnerInfoStep.dontWorry')}
             validate={validate}
             onSubmit={handleSubmit}
