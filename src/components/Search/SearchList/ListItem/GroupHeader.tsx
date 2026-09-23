@@ -171,7 +171,11 @@ function GroupHeader({
     // The rows this header labels are a sibling list row, and they own the scroller. These labels only follow it.
     const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
-    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
+    const {
+        isRendered: isSubHeaderRendered,
+        animatedStyle: subHeaderAnimatedStyle,
+        onLayout: onSubHeaderLayout,
+    } = useExpandCollapseAnimation(isExpanded, isExpanded, item.groupKeyForList);
 
     // A group with a query of its own is not empty, it just has not been fetched yet.
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;

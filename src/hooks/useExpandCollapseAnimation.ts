@@ -3,46 +3,65 @@ import {easing} from '@components/Modal/ReanimatedModal/utils';
 import type {LayoutChangeEvent} from 'react-native';
 
 import {useLayoutEffect, useRef, useState} from 'react';
-import {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 const EXPAND_COLLAPSE_DURATION = 300;
 
 function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: boolean, resetKey?: string) {
     const contentHeight = useSharedValue(0);
-    const hasExpanded = useSharedValue(isExpanded);
+    const animatedHeight = useSharedValue(0);
     const [isRendered, setIsRendered] = useState(isExpanded);
     const prevResetKeyRef = useRef<string | undefined>(undefined);
+    const prevIsExpandedRef = useRef(isExpanded);
+
+    // Only an expand/collapse the user asked for animates. A measurement nobody asked for — a fresh or
+    // recycled list cell scrolling back into view — lands on its final height instead, so scrolling the
+    // list does not replay the expand animation.
+    const shouldAnimateNextMeasurementRef = useRef(false);
+
+    const animateHeightTo = (target: number) => {
+        animatedHeight.set(
+            withTiming(target, {duration: EXPAND_COLLAPSE_DURATION, easing}, (finished) => {
+                if (!finished || target) {
+                    return;
+                }
+                scheduleOnRN(setIsRendered, false);
+            }),
+        );
+    };
 
     // FlashList may recycle this cell for a different group — reset measured height when the row identity changes.
     useLayoutEffect(() => {
         if (prevResetKeyRef.current !== undefined && prevResetKeyRef.current !== resetKey) {
             contentHeight.set(0);
+            animatedHeight.set(0);
+            shouldAnimateNextMeasurementRef.current = false;
+            prevIsExpandedRef.current = isExpanded;
             setIsRendered(isExpanded);
         }
         prevResetKeyRef.current = resetKey;
-    }, [resetKey, isExpanded, contentHeight]);
-
-    // Keep Reanimated shared value in sync with prop (matches AnimatedCollapsible).
-    hasExpanded.set(isExpanded);
+    }, [resetKey, isExpanded, contentHeight, animatedHeight]);
 
     // Mount content for collapse animation once expanded; unmount after animation via scheduleOnRN callback.
     if (isExpanded && !isRendered) {
         setIsRendered(true);
     }
 
-    const animatedHeight = useDerivedValue(() => {
-        if (!contentHeight.get()) {
-            return 0;
+    useLayoutEffect(() => {
+        if (prevIsExpandedRef.current === isExpanded) {
+            return;
         }
-        const target = hasExpanded.get() ? contentHeight.get() : 0;
-        return withTiming(target, {duration: EXPAND_COLLAPSE_DURATION, easing}, (finished) => {
-            if (!finished || target) {
-                return;
-            }
-            scheduleOnRN(setIsRendered, false);
-        });
-    }, []);
+        prevIsExpandedRef.current = isExpanded;
+
+        if (isExpanded && !contentHeight.get()) {
+            // The content has never been measured, so its height is still unknown: onLayout owns this animation.
+            shouldAnimateNextMeasurementRef.current = true;
+            return;
+        }
+        animateHeightTo(isExpanded ? contentHeight.get() : 0);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isExpanded]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         height: animatedHeight.get() + (shouldAddBorderHeight ? 1 : 0),
@@ -51,9 +70,18 @@ function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: 
 
     const onLayout = (e: LayoutChangeEvent) => {
         const height = e.nativeEvent.layout.height;
-        if (height) {
-            contentHeight.set(height);
+        if (!height || height === contentHeight.get()) {
+            return;
         }
+        contentHeight.set(height);
+        const target = isExpanded ? height : 0;
+
+        if (shouldAnimateNextMeasurementRef.current) {
+            shouldAnimateNextMeasurementRef.current = false;
+            animateHeightTo(target);
+            return;
+        }
+        animatedHeight.set(target);
     };
 
     return {isRendered, animatedStyle, onLayout};
