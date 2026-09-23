@@ -30,11 +30,6 @@ type UseMoneyRequestReportDataResult = {
 /**
  * Derives the money-request report view's action/transaction working set from the paginated actions
  * and the report's transaction collection.
- *
- * This chain lives in its own hook (rather than inline in the component) so React Compiler can
- * memoize it: in the component body the derivations interleave with other hook calls, which puts the
- * intermediate arrays' mutable ranges across hook boundaries and makes the whole chain ineligible
- * for a reactive scope — every consumer downstream then cache-misses on identity every render.
  */
 function useMoneyRequestReportData(reportIDFromRoute: string | undefined, unfilteredReportActions: OnyxTypes.ReportAction[]): UseMoneyRequestReportDataResult {
     const {isOffline} = useNetwork();
