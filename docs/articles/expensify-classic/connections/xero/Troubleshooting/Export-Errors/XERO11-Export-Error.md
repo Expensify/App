@@ -1,11 +1,11 @@
 ---
-title: XERO11 Export Error in Xero Integration
+title: How to resolve the XERO11 export error in Xero
 description: Learn what the XERO11 export error means and how to reconnect Xero so you can export your report.
 keywords: XERO11, XERO11 export error, Xero connection expired, Xero export failed, reconnect Xero, Expensify Xero export error, Workspace Admin
 internalScope: Audience is Workspace Admins using the Xero integration. Covers resolving the XERO11 export error that appears when the Xero connection has expired during a report export. Does not cover Xero export mapping configuration, and does not cover the XERO11 sync error that appears during a sync.
 ---
 
-# XERO11 Export Error in Xero Integration
+# How to resolve the XERO11 export error in Xero
 
 If you see the error:
 
