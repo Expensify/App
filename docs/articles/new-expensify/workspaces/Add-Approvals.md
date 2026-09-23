@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, remove limit, remove approval limit, reassign approver, automatic approver reassignment, change approver workflow, approval workflow change message, admins room system message, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, remove limit, remove approval limit, reassign approver, automatic approver reassignment, change approver workflow, approval workflow change message, admins room system message, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -19,7 +19,7 @@ To enable approvals on a workspace you manage:
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your workspace name to access the settings for that workspace.
 3. In the left menu, click **Workflows**.
-4. Toggle on **Approvals**.
+4. Open the **Approvals** tab and toggle on **Approvals**.
 
 Enabling **Approvals** will reveal an option to set a default approval workflow for the workspace.
 
@@ -36,7 +36,7 @@ Set up default or custom approval workflows to route expenses through one or mor
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your workspace name to access the settings for that workspace.
 3. In the left menu, click **Workflows**.
-4. Under **Expenses from Everyone**, click **Approver**.
+4. Open the **Approvals** tab. On the workflow where **Expenses from** is **Everyone**, click **Approver**.
 5. Choose the first approver from the list of workspace members.
 6. (Optional) Set an additional approval when a report exceeds a specific amount:
  - Enter a dollar amount in the **Report amount** field.
@@ -51,7 +51,7 @@ Once the limit is set, the approver's row shows a hint such as `Reports above $1
 ## Set a Custom Workflow for Specific Members
 
 1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
-2. Under **Approvals**, click **Add approval workflow**.
+2. On the **Approvals** tab, click **Add approval workflow**.
 3. On the **Expenses from** page, choose the member whose expenses should have a custom workflow. To route expenses from someone who isn't a workspace member yet, type their email address and select them from the list.
 4. Click **Next**. If you selected someone who isn't a workspace member, the **Invite new member** screen appears. Click **Invite** to add them to the workspace and continue.
 5. Select the first approver for their expenses.
@@ -66,13 +66,29 @@ Once the limit is set, the approver's row shows a hint such as `Reports above $1
 
 ---
 
+## How to import approval workflows from a spreadsheet
+
+Instead of adding workflows one member at a time, you can set up multiple members' approval workflows at once by importing a spreadsheet directly from the **Workflows** page.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Workflows**.
+4. Select **More**, then choose **Import workflows**.
+5. Drag and drop your file or click **Upload File** to browse.
+6. Map each column in your file to a member field, then complete the import.
+
+To route each member's expenses through the right approvers, map the **Submit to**, **Forward to**,**Approval limit** and **Over limit forward to** columns. These fields set up each member's approval workflow, which you can review under **Workflows** after the import completes.
+
+**Note:** The **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
+
+---
+
 ## Edit or Delete Approval Workflows
 
 You can update or remove approval workflows at any time as your team or process changes.
 
 ## Edit a Workflow
 
-1. On the **Workflows** page, click the workflow you want to update.
+1. On the **Approvals** tab of the **Workflows** page, click the workflow you want to update.
 2. Click the **Approver** field you want to change.
 3. Select a new member or deselect one to remove them.
 4. Click **Save**.
@@ -81,7 +97,7 @@ You can update or remove approval workflows at any time as your team or process 
 
 ## Delete a Workflow
 
-1. On the **Workflows** page, click the workflow you want to delete.
+1. On the **Approvals** tab of the **Workflows** page, click the workflow you want to delete.
 2. Click **Delete**.
 3. In the confirmation window, click **Delete** again.
 
@@ -105,7 +121,7 @@ Concierge can automatically approve reports that don't exceed a specific thresho
 
 ## Set the auto-approve threshold
 
-1. On the **Workflows** page, click the **Auto-approve compliant reports** toggle.
+1. On the **Advanced** tab of the **Workflows** page, click the **Auto-approve compliant reports** toggle.
 2. Click **Auto-approve reports with all expenses under**
 3. Enter the maximum amount a report can have before requiring manual approval.
 4. Click **Save**.
@@ -114,7 +130,7 @@ Concierge can automatically approve reports that don't exceed a specific thresho
 
 Even with auto-approvals enabled, you can route a percentage of compliant reports for manual approval.
 
-1. On the **Workflows** page, click **Random report audit**.
+1. On the **Advanced** tab of the **Workflows** page, click **Random report audit**.
 2. Enter your desired percentage amount.
 3. Click **Save**.
 

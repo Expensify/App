@@ -14,6 +14,8 @@ import convertAngleToArcLength from '@components/HTMLEngineProvider/HTMLRenderer
 import {parseAttributeAsNumber, parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseComponent from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseComponent';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import scalePixels from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scalePixels';
+import {scaleLabelItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/scaleVictoryChartContextValue';
 
 import useTheme from '@hooks/useTheme';
 
@@ -44,17 +46,23 @@ const LEFT_COLUMN_TOP_PADDING = 24;
 const EDGE_PADDING = 32;
 
 function VictoryChartPie({tnode}: VictoryChartPieProps) {
-    const {data, chartContainerStyles, chartContentStyles} = useVictoryChartContext();
+    const {data, chartContainerStyles, chartContentStyles, pixelScale} = useVictoryChartContext();
     const theme = useTheme();
     const typefaces = useChartTypefaces();
     const renderEngine = useAmbientTRenderEngine();
     const labelComponentNode = parseComponent(tnode.attributes.labelcomponent, renderEngine, 'victorylabel', HTMLContentModel.textual);
-    const baseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
+    const rawBaseLabelItem = labelComponentNode ? parseVictoryLabelNode(labelComponentNode).labelItems?.at(0) : undefined;
+    // All pie geometry is parsed from raw pixel attributes, so it must follow the context's pixel
+    // scale for the expanded chart to render proportionally at its larger native size.
+    const baseLabelItem = rawBaseLabelItem && pixelScale !== 1 ? scaleLabelItem(rawBaseLabelItem, pixelScale) : rawBaseLabelItem;
     const pieLabels = parseAttributeAsStringArray(tnode.attributes.labels);
-    const labelRadius = parseAttributeAsNumber(tnode.attributes.labelradius);
-    const innerRadius = parseAttributeAsNumber(tnode.attributes.innerradius);
+    const rawLabelRadius = parseAttributeAsNumber(tnode.attributes.labelradius);
+    const labelRadius = scalePixels(rawLabelRadius, pixelScale);
+    const rawInnerRadius = parseAttributeAsNumber(tnode.attributes.innerradius);
+    const innerRadius = scalePixels(rawInnerRadius, pixelScale);
     const padAngle = parseAttributeAsNumber(tnode.attributes.padangle);
-    const radius = parseAttributeAsNumber(tnode.attributes.radius);
+    const rawRadius = parseAttributeAsNumber(tnode.attributes.radius);
+    const radius = scalePixels(rawRadius, pixelScale);
     const effectiveLabelRadius = labelRadius ?? radius;
     const size = radius ? radius * 2 : undefined;
     const angularStrokeWidth = padAngle && radius ? 2 * convertAngleToArcLength(padAngle, radius) : 0;
@@ -62,10 +70,15 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
     const angularStrokeColor = resolvedBgColor ?? theme.cardBG;
     const labelIndicatorNode = parseComponent(tnode.attributes.labelindicator, renderEngine, 'shiftedlinesegment', HTMLContentModel.block);
     const labelIndicatorStyles = labelIndicatorNode ? parseShiftedLineSegmentNode(labelIndicatorNode) : undefined;
-    const {xShift: labelIndicatorXShift, yShift: labelIndicatorYShift, strokeWidth: labelIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
+    const {xShift: rawIndicatorXShift, yShift: rawIndicatorYShift, strokeWidth: rawIndicatorStrokeWidth} = labelIndicatorStyles ?? {};
+    const labelIndicatorXShift = scalePixels(rawIndicatorXShift, pixelScale);
+    const labelIndicatorYShift = scalePixels(rawIndicatorYShift, pixelScale);
+    const labelIndicatorStrokeWidth = scalePixels(rawIndicatorStrokeWidth, pixelScale);
     const labelIndicatorStroke = resolveChartThemeColor(labelIndicatorStyles?.stroke, theme);
-    const labelIndicatorInnerOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorinneroffset);
-    const labelIndicatorOuterOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorouteroffset);
+    const rawIndicatorInnerOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorinneroffset);
+    const labelIndicatorInnerOffset = scalePixels(rawIndicatorInnerOffset, pixelScale);
+    const rawIndicatorOuterOffset = parseAttributeAsNumber(tnode.attributes.labelindicatorouteroffset);
+    const labelIndicatorOuterOffset = scalePixels(rawIndicatorOuterOffset, pixelScale);
 
     const customLabelByDataLabel: Record<string, string | undefined> = {};
     const sliceValues: PieSliceValue[] = [];
@@ -86,12 +99,16 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
         const rowHeight = computeLabelBlockHeight(baseLabelItem, typefaces);
         const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
         const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
-        const bottom = designHeight ? Math.min(designHeight * (POLAR_CONTAINER_HEIGHT_RATIO - 0.5) - rowHeight / 2 - EDGE_PADDING, effectiveLabelRadius) : effectiveLabelRadius;
-        const topFor = (titleSafeTop: number) =>
-            designHeight ? Math.max(-Math.min(designHeight / 2, effectiveLabelRadius), titleSafeTop + rowHeight / 2 - designHeight / 2) : -effectiveLabelRadius;
+        // Layout constants are design-space pixels, so they scale with the chart's pixel scale.
+        const edgePadding = EDGE_PADDING * pixelScale;
+        const scaledTitleSafeTop = TITLE_SAFE_TOP * pixelScale;
+        const scaledLeftColumnTopPadding = LEFT_COLUMN_TOP_PADDING * pixelScale;
+        const bottom = designHeight ? Math.min(designHeight * (POLAR_CONTAINER_HEIGHT_RATIO - 0.5) - rowHeight / 2 - edgePadding, effectiveLabelRadius) : effectiveLabelRadius;
+        const topFor = (columnTitleSafeTop: number) =>
+            designHeight ? Math.max(-Math.min(designHeight / 2, effectiveLabelRadius), columnTitleSafeTop + rowHeight / 2 - designHeight / 2) : -effectiveLabelRadius;
         const plotBounds = {
-            left: {top: topFor(TITLE_SAFE_TOP + LEFT_COLUMN_TOP_PADDING), bottom},
-            right: {top: topFor(TITLE_SAFE_TOP), bottom},
+            left: {top: topFor(scaledTitleSafeTop + scaledLeftColumnTopPadding), bottom},
+            right: {top: topFor(scaledTitleSafeTop), bottom},
         };
         const textRadius = computeTextRadiusBySide({
             slices,
@@ -100,11 +117,11 @@ function VictoryChartPie({tnode}: VictoryChartPieProps) {
             typefaces,
             labelRadius: effectiveLabelRadius,
             designWidth,
-            edgePadding: EDGE_PADDING,
+            edgePadding,
         });
 
         return computePieLabelLayout({slices, rowHeight, labelRadius: effectiveLabelRadius, textRadius, plotBounds});
-    }, [sliceValues, baseLabelItem, effectiveLabelRadius, typefaces, chartContentStyles.height, chartContentStyles.width, customLabelByDataLabel]);
+    }, [sliceValues, baseLabelItem, effectiveLabelRadius, typefaces, chartContentStyles.height, chartContentStyles.width, customLabelByDataLabel, pixelScale]);
 
     return (
         <Pie.Chart

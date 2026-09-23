@@ -1520,6 +1520,23 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
 }
 
 /**
+ * Turn the Expensify Card monthly settlement day of the month into a date, so it can be formatted for display.
+ *
+ * @param dayOfMonth the day of the month the workspace settles on
+ * @returns a date on that day of the month, or undefined when the value is not a day of the month
+ */
+function toMonthlySettlementDate(dayOfMonth: ExpensifyCardSettingsBase['monthlySettlementDate']): Date | undefined {
+    if (!dayOfMonth) {
+        return undefined;
+    }
+
+    if (!Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
+        return undefined;
+    }
+    return new Date(new Date().getFullYear(), 0, dayOfMonth);
+}
+
+/**
  * Check whether a broken card connection has been unresolved long enough that we should stop
  * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
  * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
@@ -1712,15 +1729,33 @@ function isCardPendingDigitalWalletApproval(card?: Card) {
     return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
 }
 
-/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. */
-function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
+/** An Expensify Card in a state the Wallet and Home surfaces display. */
+function isActiveExpensifyCard(card: Card) {
+    return isCard(card) && isExpensifyCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
+/** True when the user holds an Expensify Card. */
+function hasActiveExpensifyCard(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, isActiveExpensifyCard);
+}
+
+/** True when one of the user's Expensify Cards has a wallet addition waiting to be confirmed or denied. */
+function hasCardPendingDigitalWalletApproval(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, (card) => isActiveExpensifyCard(card) && isCardPendingDigitalWalletApproval(card));
+}
+
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. Only the generic name needs a capitalized variant. */
+function getWalletProviderNameKey(
+    walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>,
+    shouldStartSentence = false,
+): 'appleWallet' | 'googleWallet' | 'digitalWallet' | 'digitalWalletCapitalized' {
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
         return 'appleWallet';
     }
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
         return 'googleWallet';
     }
-    return 'digitalWallet';
+    return shouldStartSentence ? 'digitalWalletCapitalized' : 'digitalWallet';
 }
 
 function isCardWithCustomZeroLimit(card: Card): boolean {
@@ -1749,7 +1784,11 @@ function isCardPendingReplace(card?: Card) {
  * @param card personal card to check
  */
 function isPersonalCardBrokenConnection(card?: Card) {
-    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
+    if (card?.pendingFields?.lastScrape) {
+        return false;
+    }
+
+    return !!card?.lastScrapeResult && (isCardConnectionBroken(card) || card.lastScrapeResult === CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS);
 }
 
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
@@ -2256,6 +2295,7 @@ export {
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isLastScrapePastDismissThreshold,
+    toMonthlySettlementDate,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
@@ -2279,6 +2319,9 @@ export {
     isCardPendingIssue,
     isCardPendingActivate,
     isCardPendingDigitalWalletApproval,
+    isActiveExpensifyCard,
+    hasActiveExpensifyCard,
+    hasCardPendingDigitalWalletApproval,
     getWalletProviderNameKey,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
