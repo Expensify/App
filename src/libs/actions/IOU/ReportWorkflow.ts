@@ -213,9 +213,9 @@ function canIOUBePaid(
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    transactions?: OnyxTypes.Transaction[],
-    onlyShowPayElsewhere = false,
-    chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
+    transactions: OnyxTypes.Transaction[] | undefined,
+    onlyShowPayElsewhere: boolean,
+    chatReportRNVP: OnyxTypes.ReportNameValuePairs | undefined,
     invoiceReceiverPolicy?: OnyxTypes.Policy,
 ) {
     const isChatReportArchived = isArchivedReport(chatReportRNVP);
@@ -350,7 +350,7 @@ function getBadgeFromIOUReport(
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, chatReportRNVP, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, false, chatReportRNVP, invoiceReceiverPolicy);
     if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
