@@ -229,7 +229,7 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     // The card always renders so the Concierge input stays on the home page.
     return (
         <WidgetContainer
-            backgroundContent={shouldUseNarrowLayout ? <ConciergeCloudsBackdrop /> : undefined}
+            backgroundContent={<ConciergeCloudsBackdrop />}
             containerStyles={hasBodyContent ? undefined : [styles.pb3]}
             titleContent={
                 <ConciergePromptBox

@@ -9,6 +9,7 @@ import Accessibility from '@libs/Accessibility';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming} from 'react-native-reanimated';
+import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 
 // The artwork's own 655x173 ratio, scaled to the height the card gives it.
 const CLOUDS_HEIGHT = 160;
@@ -19,7 +20,11 @@ const CLOUDS_WIDTH = Math.round((CLOUDS_HEIGHT * 655) / 173);
 const CLOUDS_DURATION = 60000;
 
 // Pull the band above the card's top edge so the clouds are cropped rather than starting flush against it.
-const CLOUDS_TOP_OFFSET = -20;
+const CLOUDS_TOP_OFFSET = -50;
+
+// The band fades into the card over its bottom stretch, so the clouds do not end on a hard edge.
+const CLOUDS_FADE_HEIGHT = 110;
+const CLOUDS_FADE_GRADIENT_ID = 'conciergeCloudsFade';
 
 /** A slow, looping band of clouds drifting behind the Concierge card's content. */
 function ConciergeCloudsBackdrop() {
@@ -62,6 +67,38 @@ function ConciergeCloudsBackdrop() {
                     height={CLOUDS_HEIGHT}
                 />
             </Animated.View>
+            <View style={[styles.pAbsolute, styles.l0, styles.r0, styles.b0, styles.opacitySemiTransparent, {height: CLOUDS_FADE_HEIGHT}]}>
+                <Svg
+                    width="100%"
+                    height="100%"
+                >
+                    <Defs>
+                        <LinearGradient
+                            id={CLOUDS_FADE_GRADIENT_ID}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                        >
+                            <Stop
+                                offset="0"
+                                stopColor={theme.cardBG}
+                                stopOpacity={0}
+                            />
+                            <Stop
+                                offset="1"
+                                stopColor={theme.cardBG}
+                                stopOpacity={1}
+                            />
+                        </LinearGradient>
+                    </Defs>
+                    <Rect
+                        width="100%"
+                        height="100%"
+                        fill={`url(#${CLOUDS_FADE_GRADIENT_ID})`}
+                    />
+                </Svg>
+            </View>
         </View>
     );
 }

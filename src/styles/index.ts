@@ -4407,6 +4407,13 @@ const staticStyles = (theme: ThemeColors) =>
             marginHorizontal: variables.sectionMargin,
         },
 
+        // Tucked into the card's top right corner, where the composer below overlaps its lower edge.
+        conciergePromptBoxWideIllustration: {
+            position: 'absolute',
+            top: -12,
+            right: 20,
+        },
+
         widgetContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusCard,

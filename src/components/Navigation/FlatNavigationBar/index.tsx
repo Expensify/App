@@ -371,9 +371,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             onPress={navigateToFirstSavedSearch}
                                         />
                                         {isSavedGroupSelected && !isVisuallyCollapsed && <FlatNavSavedSearches />}
-                                        <FlatNavDivider />
                                     </>
                                 )}
+
+                                <FlatNavDivider />
 
                                 <FlatNavItem
                                     isCollapsed={isVisuallyCollapsed}
