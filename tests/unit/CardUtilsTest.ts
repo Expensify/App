@@ -45,6 +45,7 @@ import {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     getDomainByFundID,
+    getDomainOrWorkspaceAccountID,
     getEligibleBankAccountsForCard,
     getEligibleBankAccountsForUkEuCard,
     getFeedNameForDisplay,
@@ -75,12 +76,14 @@ import {
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
+    isPersonalCardBrokenConnection,
     isTravelCardTransaction,
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
+    toMonthlySettlementDate,
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1407,6 +1410,23 @@ describe('CardUtils', () => {
             const cardFeeds = undefined;
             const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
             expect(selectedFeed).toBe(undefined);
+        });
+    });
+
+    describe('getDomainOrWorkspaceAccountID', () => {
+        it('Should return the domain account that owns a domain feed', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {domainID: 1234567});
+            expect(accountID).toBe(1234567);
+        });
+
+        it('Should return the workspace account when the feed has no domain', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, {});
+            expect(accountID).toBe(7654321);
+        });
+
+        it('Should return the workspace account when there is no feed data', () => {
+            const accountID = getDomainOrWorkspaceAccountID(7654321, undefined);
+            expect(accountID).toBe(7654321);
         });
     });
 
@@ -4437,6 +4457,24 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('isPersonalCardBrokenConnection', () => {
+        it('returns true for account-not-found, which is actionable for personal cards but ignored for company feed health', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS};
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(true);
+        });
+
+        it('returns false while a personal-card sync is pending', () => {
+            const card: Card = {
+                ...createRandomCard(1),
+                lastScrapeResult: CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS,
+                pendingFields: {lastScrape: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+
+            expect(isPersonalCardBrokenConnection(card)).toBe(false);
+        });
+    });
+
     describe('isLastScrapePastDismissThreshold', () => {
         afterEach(() => {
             jest.restoreAllMocks();
@@ -5049,6 +5087,29 @@ describe('getDomainByFundID', () => {
             [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: domain,
         };
         expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
+    });
+});
+
+describe('toMonthlySettlementDate', () => {
+    it('reads the value as the day of the month, not as milliseconds since the epoch', () => {
+        expect(toMonthlySettlementDate(10)?.getDate()).toBe(10);
+    });
+
+    it('resolves every day of the month to its own day', () => {
+        const days = Array.from({length: 31}, (value, index) => index + 1);
+        expect(days.map((day) => toMonthlySettlementDate(day)?.getDate())).toEqual(days);
+    });
+
+    it('returns undefined when the workspace has no settlement date', () => {
+        expect(toMonthlySettlementDate(undefined)).toBeUndefined();
+    });
+
+    it('returns undefined for a value that cannot be a day of the month', () => {
+        expect(toMonthlySettlementDate(0)).toBeUndefined();
+        expect(toMonthlySettlementDate(32)).toBeUndefined();
+        expect(toMonthlySettlementDate(10.5)).toBeUndefined();
+        expect(toMonthlySettlementDate(1706353253)).toBeUndefined();
+        expect(toMonthlySettlementDate(NaN)).toBeUndefined();
     });
 });
 

@@ -1520,6 +1520,23 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
 }
 
 /**
+ * Turn the Expensify Card monthly settlement day of the month into a date, so it can be formatted for display.
+ *
+ * @param dayOfMonth the day of the month the workspace settles on
+ * @returns a date on that day of the month, or undefined when the value is not a day of the month
+ */
+function toMonthlySettlementDate(dayOfMonth: ExpensifyCardSettingsBase['monthlySettlementDate']): Date | undefined {
+    if (!dayOfMonth) {
+        return undefined;
+    }
+
+    if (!Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
+        return undefined;
+    }
+    return new Date(new Date().getFullYear(), 0, dayOfMonth);
+}
+
+/**
  * Check whether a broken card connection has been unresolved long enough that we should stop
  * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
  * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
@@ -1749,7 +1766,11 @@ function isCardPendingReplace(card?: Card) {
  * @param card personal card to check
  */
 function isPersonalCardBrokenConnection(card?: Card) {
-    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
+    if (card?.pendingFields?.lastScrape) {
+        return false;
+    }
+
+    return !!card?.lastScrapeResult && (isCardConnectionBroken(card) || card.lastScrapeResult === CONST.PERSONAL_CARDS.ACCOUNT_NOT_FOUND_SCRAPE_STATUS);
 }
 
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
@@ -2256,6 +2277,7 @@ export {
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isLastScrapePastDismissThreshold,
+    toMonthlySettlementDate,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,
