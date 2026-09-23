@@ -71,26 +71,10 @@ To reimburse employees or pay invoices directly from Expensify, connect your bus
 
 1. Go to **Workflows**.
 2. Toggle on **Payments**.
-3. Click **Add bank account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
+3. Click **Connect Bank Account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 4. Choose an **authorized expense payer**—a Workspace Admin who has access to the bank account and will be the default reimburser.
 
 Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Pay-Expenses#how-to-pay-expenses-submitted-to-a-workspace).
-
----
-
-## What the payment account status badge shows in Workflows
-
-Once a bank account is connected, the payment account row under **Payments** shows a status badge so you can tell whether the account is ready to pay expenses:
-
-- **Active** — the account is verified and ready to use.
-- **Incomplete** — setup was never finished. The message **Finish adding bank account** appears below the row with a **Finish** button that reopens setup.
-- **Pending** — Expensify is waiting for you to confirm test transactions. The message **Please confirm test transactions** appears with a **Confirm** button.
-- **Verifying** — Expensify is reviewing your documentation.
-- **Locked** — the account was locked. The message **This account requires attention** appears with an **Unlock** button.
-
-You must be a Workspace Admin or a Payments Admin to open the payment account row and act on these messages.
-
-[Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 
 ---
 
@@ -115,11 +99,7 @@ When **Payments** is enabled, you can set an **Authorized payer** even if no ban
 
 ## What happens after you set an authorized payer
 
-Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts.
-
-Other admins who can manage the **Payments** section can still open an approved report and pay it, whether or not a bank account is connected to the workspace. They pay from a bank account they have access to, or they can select **Mark as paid**. Paying from a different bank account does not change the workspace's connected bank account.
-
-Learn how to [pay expenses submitted on a workspace](/articles/new-expensify/wallet-and-payments/Pay-Expenses#how-to-pay-expenses-submitted-to-a-workspace).
+Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
 
 ---
 
@@ -134,6 +114,8 @@ You can export your workspace's workflow configuration to a CSV file—for examp
 A CSV file containing your workspace's member and approval workflow details downloads to your device.
 
 **Note:** Downloading requires an internet connection. If you're offline, you'll be prompted to reconnect before the download can start.
+
+**Note:** If your workspace's approval workflow is set up and maintained by Expensify, the **Workflows** page shows the message "A custom approval workflow is enabled on this workspace" and the **More** menu is hidden, so neither **Download workflows** nor **Import workflows** is available. Reach out to your Account Manager or Concierge for the workflow details. [Learn why the approval workflows are hidden](/articles/new-expensify/workspaces/Add-Approvals#why-cant-i-see-the-approval-workflows-on-my-workspace).
 
 ---
 

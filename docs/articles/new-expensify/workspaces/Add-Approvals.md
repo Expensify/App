@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, default approval workflow, default approver, edit default workflow, delete approval workflow, duplicate approval workflow, same first approver]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, approval workflow hidden, cannot see approval workflow, custom approval workflow enabled on this workspace, add approval workflow missing]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -46,8 +46,6 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 **Note:** When approvals are enabled, a default workflow is required for the workspace.
 
-**Note:** Editing the default workflow updates that workflow — it does not create a second one. When you change the first **Approver** on the default workflow, that member becomes the workspace's default approver, and everyone who follows the default workflow is routed to them.
-
 ## Set a Custom Workflow for Specific Members
 
 1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
@@ -63,8 +61,6 @@ Set up default or custom approval workflows to route expenses through one or mor
 9. Click **Add workflow** to save.
 
 **Note:** Custom workflows are only available on the Control plan. To enable custom workflows, upgrade to the Control plan in Settings > Billing & Subscriptions.
-
-**Note:** A custom workflow can start with the same first **Approver** as the default workflow, as long as the rest of the chain is different — for example, by adding a second approver or an over-limit **Additional approver**. If every approver matches the default workflow exactly, no separate workflow is created and those members stay on the default workflow.
 
 ---
 
@@ -86,8 +82,6 @@ You can update or remove approval workflows at any time as your team or process 
 1. On the **Workflows** page, click the workflow you want to delete.
 2. Click **Delete**.
 3. In the confirmation window, click **Delete** again.
-
-**Note:** Deleting a workflow does not remove its members from approvals. They follow the default workflow from that point on, and their expenses route to the default workflow's approvers on the next submission.
 
 ---
 
@@ -137,22 +131,6 @@ Category and Tag approvers are added to the approval chain — they don't replac
 
 No. Each employee can only be assigned one approval workflow per workspace.
 
-## Why wasn't a new workflow created when I added one?
-
-Because the approvers you chose match the default workflow exactly. Those members already route through the default workflow, so Expensify doesn't create a duplicate of it. Add or change an approver so the chain differs from the default workflow, and the new workflow is created.
-
-## Can a custom workflow use the same first approver as the default workflow?
-
-Yes, as long as the workflow differs from the default workflow somewhere else in the chain — for example, a second approver or an over-limit **Additional approver**. Expensify tracks it as its own workflow, so later edits to the default workflow don't change it.
-
-## What happens to members when I delete an approval workflow?
-
-They follow the default workflow. Their expenses route to the default workflow's approvers on the next submission, and no other workflow is affected.
-
-## Why did editing the default approver change who approves for everyone?
-
-The first **Approver** on the default workflow is the workspace's default approver. Changing it re-routes every member who follows the default workflow. Members who have their own custom workflow are not affected.
-
 ## Why did adding an approver to one workflow change other members' workflows?
 
 Approval routing is built from per-approver relationships, not separate paths for each submitter. When you place someone *after* an approver in a workflow, you're defining who that approver forwards their approvals to — and that applies to **every** report they approve, not just one submitter's.
@@ -166,6 +144,16 @@ This is why you may see the following warning when editing a workflow:
 Deleting and recreating the workflow won't change this, because the limitation is tied to the shared approver's forwarding rather than to any one submitter's workflow.
 
 To keep a second-level approver limited to a single submitter, that submitter's first approver must be unique to their chain — that is, not shared as an approver for any other member. If your goal is instead to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
+
+## Why can't I see the approval workflows on my workspace?
+
+Some workspaces route approvals through a workflow that Expensify sets up and maintains for you, rather than one you build on the **Workflows** page. On those workspaces, the **Approvals** section shows this message in place of the approval workflow list:
+
+> A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your Account Manager or Concierge.
+
+The **Approvals** toggle is still there, but the approval workflow list, the search field, and the **Add approval workflow** row are hidden — and the **More** menu is hidden too, so **Import workflows** and **Download workflows** aren't available. This applies to every member of the workspace, including Workspace Admins, People Admins, and the workspace owner. Opening an approvals settings page from a direct link shows a not-found page instead.
+
+To review or change the workflow, reach out to your Account Manager or Concierge. Some workspaces don't have an Account Manager, so the message asks you to reach out to Concierge only.
 
 ## How can I assign custom approval workflows to specific members?
 
