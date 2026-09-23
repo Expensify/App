@@ -1,4 +1,3 @@
-import useNetwork from '@hooks/useNetwork';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -31,14 +30,13 @@ type UseMoneyRequestReportDataResult = {
  * Derives the money-request report view's action/transaction working set from the paginated actions
  * and the report's transaction collection.
  */
-function useMoneyRequestReportData(reportIDFromRoute: string | undefined, unfilteredReportActions: OnyxTypes.ReportAction[]): UseMoneyRequestReportDataResult {
-    const {isOffline} = useNetwork();
+function useMoneyRequestReportData(reportIDFromRoute: string | undefined, unfilteredReportActions: OnyxTypes.ReportAction[], isOffline: boolean): UseMoneyRequestReportDataResult {
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
 
-    // The spread copy is load-bearing: getFilteredReportActionsForReportView may return an alias of its
-    // (frozen) argument, and the compiler must assume getAllNonDeletedTransactions can mutate `reportActions`.
-    // Without the copy that reads as a mutation of frozen hook data and the compiler bails out of
-    // memoizing the entire chain.
+    // The spread copy is load-bearing: the compiler cannot see into getFilteredReportActionsForReportView, so it
+    // must assume the result aliases the frozen argument, and it must assume getAllNonDeletedTransactions can
+    // mutate `reportActions`. Without the copy that reads as a mutation of frozen hook data and the compiler
+    // bails out of memoizing the entire chain.
     const reportActions = [...getFilteredReportActionsForReportView(unfilteredReportActions)];
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const transactions = reportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);

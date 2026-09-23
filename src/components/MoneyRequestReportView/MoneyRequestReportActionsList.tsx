@@ -104,6 +104,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {reportActions, reportTransactions, transactions, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
         reportIDFromRoute,
         unfilteredReportActions,
+        isOffline,
     );
     const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: pendingNewTransactionIDsSelector,
@@ -120,7 +121,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const parentReportAction = useParentReportAction(report);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, false, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
     const isReportArchived = useReportIsArchived(reportID);

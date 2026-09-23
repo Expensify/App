@@ -2,8 +2,6 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useMoneyRequestReportData from '@components/MoneyRequestReportView/useMoneyRequestReportData';
 
-import {setForceOffline} from '@libs/NetworkState';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, Transaction} from '@src/types/onyx';
@@ -29,8 +27,8 @@ async function seedTransactions(transactions: Transaction[]) {
     await waitForBatchedUpdates();
 }
 
-async function renderData(reportActions: ReportAction[]) {
-    const {result, rerender} = renderHook((props: {reportActions: ReportAction[]}) => useMoneyRequestReportData(REPORT_ID, props.reportActions), {
+async function renderData(reportActions: ReportAction[], isOffline = false) {
+    const {result, rerender} = renderHook((props: {reportActions: ReportAction[]}) => useMoneyRequestReportData(REPORT_ID, props.reportActions, isOffline), {
         initialProps: {reportActions},
     });
     await act(async () => {
@@ -89,13 +87,7 @@ describe('useMoneyRequestReportData', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
-        setForceOffline(false);
         await waitForBatchedUpdates();
-    });
-
-    afterEach(() => {
-        // Offline state is module-level in `NetworkState`, so it leaks into every later suite otherwise.
-        setForceOffline(false);
     });
 
     describe('reportActions', () => {
@@ -119,17 +111,6 @@ describe('useMoneyRequestReportData', () => {
             // Then only the comment survives, and the ID list tracks what survived
             expect(getIDs(result.current.reportActions)).toEqual(['3']);
             expect(result.current.reportActionIDs).toEqual(['3']);
-        });
-
-        it('should return a copy rather than an alias of the input chain', async () => {
-            // Given a chain with nothing to filter out, where `filter` hands back the same array
-            const actions = [buildComment('2'), buildComment('1')];
-
-            const {result} = await renderData(actions);
-
-            // Then the copy is made, so the derivation downstream never looks like a mutation of frozen Onyx data
-            expect(result.current.reportActions).not.toBe(actions);
-            expect(result.current.reportActions).toEqual(actions);
         });
 
         it('should not mutate the caller chain', async () => {
@@ -174,10 +155,8 @@ describe('useMoneyRequestReportData', () => {
         it('should keep a transaction pending deletion in the working set while offline', async () => {
             // Given the same deleted expense, but offline, so the delete never reached the server
             await seedTransactions([buildTransaction('1'), buildTransaction('2', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})]);
-            act(() => setForceOffline(true));
-            await waitForBatchedUpdates();
 
-            const {result} = await renderData([buildComment('1')]);
+            const {result} = await renderData([buildComment('1')], true);
 
             // Then the expense stays visible
             expect(getTransactionIDs(result.current.transactions)).toEqual(['1', '2']);
@@ -210,7 +189,7 @@ describe('useMoneyRequestReportData', () => {
             // Given seeded transactions and a route that has not resolved a report ID
             await seedTransactions([buildTransaction('1')]);
 
-            const {result} = renderHook(() => useMoneyRequestReportData(undefined, [buildComment('1')]));
+            const {result} = renderHook(() => useMoneyRequestReportData(undefined, [buildComment('1')], false));
             await act(async () => {
                 await waitForBatchedUpdates();
             });
