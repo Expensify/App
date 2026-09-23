@@ -33,7 +33,8 @@ import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
-import {completeOnboarding, notifyNewAction} from '@userActions/Report';
+import {completeOnboarding} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 
@@ -693,6 +694,7 @@ function cancelPayment(
             value: {
                 ...expenseReport,
                 isWaitingOnBankAccount: false,
+                canCancelReimbursement: false,
                 lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: getReportActionText(optimisticReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
@@ -744,6 +746,7 @@ function cancelPayment(
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
+                canCancelReimbursement: expenseReport.canCancelReimbursement,
                 isCancelledIOU: false,
                 nextStep:
                     buildOptimisticNextStep({

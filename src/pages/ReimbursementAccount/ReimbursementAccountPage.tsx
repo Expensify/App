@@ -64,6 +64,7 @@ import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/t
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 import type {TupleToUnion} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -115,7 +116,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const requestorStepRef = useRef<View>(null);
+    const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const hasRequestedNewBankAccountRef = useRef(false);
     const hasClearedStalePlaidErrorsRef = useRef(false);
     const isChangingBankAccountRef = useRef(isChangingBankAccount);
