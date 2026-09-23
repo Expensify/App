@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/types';
@@ -38,14 +38,17 @@ jest.mock('@hooks/useLocalize', () => ({
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({convertToDisplayString: (amount: number | undefined, currency: string | undefined) => `${currency ?? ''}${amount ?? 0}`}),
 }));
-// The total amount lives inside this button. The tests assert on the count label and the menu's props, so the whole
-// button renders as nothing. Its compound parts still have to exist, since the footer references them.
+// The whole footer content is the button, so the tests reach the count and the total through it. Only the icon, which
+// has nothing to assert on, renders as nothing.
 jest.mock('@components/Button', () => {
-    function MockButton() {
-        return null;
+    const ReactModule = require<typeof React>('react');
+    const {View: MockView, Text: MockText} = require<typeof import('react-native')>('react-native');
+
+    function MockButton({children}: {children?: React.ReactNode}) {
+        return ReactModule.createElement(MockView, {testID: 'searchPageFooterTrigger'}, children);
     }
-    function MockButtonText() {
-        return null;
+    function MockButtonText({children}: {children?: React.ReactNode}) {
+        return ReactModule.createElement(MockText, null, children);
     }
     function MockButtonIcon() {
         return null;
@@ -170,7 +173,18 @@ describe('SearchPageFooter', () => {
         expect(screen.getByText('common.expenses:')).toBeOnTheScreen();
         expect(screen.getByText('1204')).toBeOnTheScreen();
         expect(screen.getByText('common.totalSpend:')).toBeOnTheScreen();
-        expect(mockCapturedPopupProps.current).toBeUndefined();
+        // The menu stays reachable while the total reloads: it is the total's own row that goes inert, not the trigger.
+        expect(mockCapturedPopupProps.current?.isTotalLoading).toBe(true);
+    });
+
+    it('makes the whole footer content the trigger, so the count opens the menu too', () => {
+        render(<SearchPageFooter {...defaultProps} />);
+
+        const trigger = within(screen.getByTestId('searchPageFooterTrigger'));
+        expect(trigger.getByText('common.expenses:')).toBeOnTheScreen();
+        expect(trigger.getByText('1204')).toBeOnTheScreen();
+        expect(trigger.getByText('common.totalSpend:')).toBeOnTheScreen();
+        expect(trigger.getByText('USD-192000')).toBeOnTheScreen();
     });
 
     it('stands the skeleton in at the height the real total was measured at, so the row does not grow', () => {

@@ -1353,7 +1353,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
             expect(result).toMatchObject({
                 footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
