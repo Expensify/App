@@ -2115,7 +2115,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBe(CONST.SEARCH.DATE_PRESETS.LAST_MONTH);
             expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
             expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBeUndefined();
@@ -2137,7 +2137,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBe('2026-04-01');
             expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
             expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBeUndefined();
@@ -2159,7 +2159,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result[FILTER_KEYS.ANY_APPROVAL_BEFORE]).toBe('2026-04-30');
             expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
             expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
@@ -2181,7 +2181,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result[FILTER_KEYS.ANY_APPROVAL_RANGE]).toBe('2026-04-01,2026-04-30');
             expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
             expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
@@ -2203,7 +2203,7 @@ describe('SearchQueryUtils', () => {
                 throw new Error('Failed to parse query string');
             }
 
-            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
             expect(result[FILTER_KEYS.ANY_APPROVAL_NOT]).toBe(CONST.SEARCH.DATE_PRESETS.LAST_MONTH);
             expect(result[FILTER_KEYS.ANY_APPROVAL_ON]).toBeUndefined();
             expect(result[FILTER_KEYS.ANY_APPROVAL_AFTER]).toBeUndefined();
