@@ -461,7 +461,6 @@
 "../../src/hooks/useImportSpreadsheetConfirmModal.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useInitial.ts"	"react-hooks/refs"	4
 "../../src/hooks/useInitialSelection.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useIsAgentAccount.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useIsBlockedToAddFeed.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useIsOwnWorkspaceChatRef.ts"	"react-hooks/refs"	2
 "../../src/hooks/useIsPaidPolicyAdmin.ts"	"no-restricted-imports"	1
@@ -483,7 +482,6 @@
 "../../src/hooks/usePolicyData/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePreferredCurrency.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
-"../../src/hooks/useReportOwnerAsAttendee.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useReportRecipientLocalTime.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
