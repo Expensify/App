@@ -33,7 +33,7 @@ jest.mock('@libs/Accessibility', () => ({
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
 jest.mock('@hooks/useStyleUtils', () => () => new Proxy({}, {get: () => () => ({})}));
 jest.mock('@hooks/useKeyboardShortcut', () => ({__esModule: true, default: () => {}}));
-jest.mock('@libs/HapticFeedback', () => ({__esModule: true, default: {press: jest.fn(), longPress: jest.fn()}}));
+jest.mock('@libs/HapticFeedback', () => ({__esModule: true, default: {press: jest.fn(), longPress: jest.fn(), selection: jest.fn()}}));
 jest.mock('@hooks/useSingleExecution', () => ({
     __esModule: true,
     default: () => ({isExecuting: false, singleExecution: (fn: (...args: unknown[]) => unknown) => fn}),

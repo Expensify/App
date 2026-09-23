@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import HapticFeedback from '@libs/HapticFeedback';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -108,7 +109,9 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
-                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
+                                    onFocus={() => {
+                                        scrollFocusedInputIntoView?.(fieldContainerRef.current);
+                                    }}
                                     submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
                                     onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}

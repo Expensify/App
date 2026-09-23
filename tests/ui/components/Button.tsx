@@ -22,6 +22,7 @@ jest.mock('@libs/HapticFeedback', () => ({
     longPress: jest.fn(),
     success: jest.fn(),
     error: jest.fn(),
+    selection: jest.fn(),
 }));
 
 const LABEL = 'test-button';
@@ -521,18 +522,20 @@ describe('Button', () => {
             // When the button is pressed
             fireEvent.press(getButton());
 
-            // Then the haptic press pulse fires
+            // Then the haptic press pulse fires, and not the default selection pulse
             expect(HapticFeedback.press).toHaveBeenCalledTimes(1);
+            expect(HapticFeedback.selection).not.toHaveBeenCalled();
         });
 
-        it('does not trigger haptic feedback on press by default', () => {
-            // Given a Button without haptic feedback
+        it('triggers the selection haptic on press by default', () => {
+            // Given a Button without the stronger haptic feedback opted in
             renderButton();
 
             // When pressed
             fireEvent.press(getButton());
 
-            // Then no haptic feedback fires
+            // Then only the default selection pulse fires
+            expect(HapticFeedback.selection).toHaveBeenCalledTimes(1);
             expect(HapticFeedback.press).not.toHaveBeenCalled();
         });
 

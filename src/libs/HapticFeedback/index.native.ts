@@ -1,4 +1,5 @@
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import {Presets} from 'react-native-pulsar';
 
 import type HapticFeedback from './types';
 
@@ -22,6 +23,21 @@ const hapticFeedback: HapticFeedback = {
         ReactNativeHapticFeedback.trigger('notificationError', {
             enableVibrateFallback: true,
         });
+    },
+    selection: () => {
+        Presets.System.selection();
+    },
+    expenseSuccess: () => {
+        Presets.herald();
+    },
+    expenseCreateError: () => {
+        Presets.batter();
+    },
+    loading: () => {
+        Presets.wave();
+    },
+    expenseSubmitSuccess: () => {
+        Presets.chime();
     },
 };
 
