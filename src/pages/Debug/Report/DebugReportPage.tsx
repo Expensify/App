@@ -104,7 +104,7 @@ function DebugReportPage({
         const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
         const hasViolations = !!shouldDisplayViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} =
-            DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, isReportArchived) ?? {};
+            DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, isReportArchived, transactionViolations) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                 report,
@@ -134,6 +134,7 @@ function DebugReportPage({
             conciergeReportID,
             hasGuidesEmails,
             derivedIsEmptyReport,
+            transactionViolations,
         });
 
         return [
