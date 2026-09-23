@@ -1,13 +1,13 @@
 name: Test syncVersions script
 
 # The syncVersions workflow runs on macOS, and its full version sync path depends on PlistBuddy and
-# BSD `sed -i ''`. Those tests skip themselves on the Ubuntu runners the main Jest job uses, so this
+# BSD `sed -i ''`. Those tests skip themselves on the Ubuntu runner the Bun tests job uses, so this
 # runs the same suite on macOS whenever the script or its tests change.
 on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['.github/scripts/syncVersions.sh', 'tests/unit/SyncVersionsTest.ts', '.github/workflows/testSyncVersions.yml']
+    paths: ['.github/scripts/syncVersions.sh', 'tests/tooling/SyncVersions.test.ts', '.github/workflows/testSyncVersions.yml']
 
 concurrency:
   group: ${{ github.ref }}-testSyncVersions
@@ -24,5 +24,7 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Jest tests
-        run: npm test -- --silent tests/unit/SyncVersionsTest.ts
+      # The single-file form documented in tests/tooling/README.md. Both --preload flags come from the
+      # `test:bun` script, which can't be reused here because it hardcodes the whole tests/tooling root.
+      - name: Bun tests
+        run: TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./tests/tooling/SyncVersions.test.ts

@@ -1,12 +1,15 @@
-/**
- * @jest-environment node
- */
+import {afterEach, beforeEach, describe, expect, it, setDefaultTimeout} from 'bun:test';
+
 import type {SpawnSyncReturns} from 'child_process';
 
 import {execFileSync, spawnSync} from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+
+// Every case builds throw-away git repos and shells out to git, and the full sync path also runs npm,
+// which is far past bun:test's 5 second default.
+setDefaultTimeout(120000);
 
 const SCRIPT_PATH = path.resolve(__dirname, '../../.github/scripts/syncVersions.sh');
 
@@ -22,7 +25,7 @@ const GIT_ALLOW_FILE_TRANSPORT = {
 };
 
 // PlistBuddy and BSD `sed -i ''` only exist on macOS, which is what the workflow runs on.
-const describeMacOS = process.platform === 'darwin' ? describe : describe.skip;
+const describeMacOS = describe.skipIf(process.platform !== 'darwin');
 
 type ScriptResult = SpawnSyncReturns<string> & {outputs: Record<string, string>};
 
@@ -301,7 +304,7 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
             'Update Mobile-Expensify submodule version to 9.3.11-48 (sync recovery)',
             'Update version to 9.3.11-48 (sync recovery)',
         ]);
-    }, 120000);
+    });
 
     it('uses TARGET_VERSION when it is provided', () => {
         setUpFixture('9.3.10-1', '9.3.11-48', true);
@@ -314,7 +317,7 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
         expect(result.status).toBe(0);
         expect(result.stderr).toContain('Using provided target version: 9.3.11-48');
         expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
-    }, 120000);
+    });
 
     it('fails verification when the target version does not match Mobile-Expensify', () => {
         setUpFixture('9.3.10-1', '9.3.11-48', true);
@@ -326,5 +329,5 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
 
         expect(result.status).toBe(1);
         expect(result.stdout).toContain("::error::Sync failed! Versions still don't match");
-    }, 120000);
+    });
 });
