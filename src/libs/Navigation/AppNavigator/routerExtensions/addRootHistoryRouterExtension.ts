@@ -80,6 +80,11 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
                 return result.state;
             }
 
+            // Pre-mount under the current fullscreen: keep browser history still, the route is hidden from history anyway.
+            if (action.type === CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN) {
+                return getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, newState, configOptions, rehydrate);
+            }
+
             // REMOVE: cancel path; clear snapshot + freeze history (same rationale as REPLACE).
             if (isRemoveFullscreenUnderRHPAction(action)) {
                 const result = getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, newState, configOptions, rehydrate);

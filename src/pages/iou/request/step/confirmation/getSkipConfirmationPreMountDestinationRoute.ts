@@ -1,15 +1,16 @@
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 /**
- * Returns the report route to pre-mount behind skip-confirmation RHP steps on narrow layout,
- * or undefined when pre-insert is not eligible.
+ * Returns the report route to pre-mount behind skip-confirmation RHP steps, or undefined when pre-insert is not eligible.
  *
- * Unlike getSubmitExpensePreMountDestinationRoute, this deliberately does not gate on getIsNarrowLayout():
- * usePreMountDestination owns the narrow-only gate (it skips the actual pre-insert on wide layout), and
- * skip-confirmation callers never invoke reveal(), so returning a route on wide layout is a harmless no-op.
+ * Applies to both layouts. Skip-confirmation callers never invoke reveal(); submitWithDismissFirst shows the pre-mount instead,
+ * by dismissing over it on narrow and revealing the destination report on wide. On wide the pre-mount copies the whole tab
+ * navigator, so it is skipped when the destination is already the report on screen; an existing pre-mount keeps the result stable.
  *
  * Callers pass the result straight to usePreMountDestination without manual memoization (the React Compiler compiles those
  * screens). The impure isSearchTopmostFullScreenRoute() read is safe to run per render: the topmost fullscreen route can't
@@ -26,6 +27,10 @@ function getSkipConfirmationPreMountDestinationRoute(
     isSelfDMDestination = false,
 ): Route | undefined {
     if (!shouldSkipConfirmation || isSearchTopmostFullScreenRoute() || !reportID || (isLookingAroundUser && isSelfDMDestination)) {
+        return undefined;
+    }
+
+    if (!getIsNarrowLayout() && !Navigation.getIsFullscreenPreInsertedUnderRHP() && Navigation.getTopmostReportId() === reportID) {
         return undefined;
     }
 

@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import usePreMountDestination from '@hooks/usePreMountDestination';
-import type {NarrowDestinationStrategy} from '@hooks/usePreMountDestination/types';
+import type {DestinationStrategy} from '@hooks/usePreMountDestination/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -20,8 +20,8 @@ type PendingPreInsert = {
     cancelled: boolean;
 };
 
-type NarrowDestinationStrategyProps = {
-    narrowDestinationStrategy: NarrowDestinationStrategy;
+type DestinationStrategyProps = {
+    destinationStrategy: DestinationStrategy;
 };
 
 const pendingIdlePreInserts: PendingPreInsert[] = [];
@@ -35,6 +35,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     removePreInsertedFullscreenIfNeeded: jest.fn(),
     getIsFullscreenPreInsertedUnderRHP: jest.fn(),
     clearFullscreenPreInsertedFlag: jest.fn(),
+    getPreMountedFullscreenRouteKey: jest.fn(),
     dismissModal: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn(),
 }));
@@ -108,6 +109,7 @@ describe('usePreMountDestination', () => {
         pendingIdlePreInserts.length = 0;
         mockGetIsNarrowLayout.mockReturnValue(true);
         jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(false);
+        jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue(undefined);
     });
 
     afterEach(() => {
@@ -141,17 +143,26 @@ describe('usePreMountDestination', () => {
             expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route);
         });
 
-        it('does not pre-insert on wide layout', () => {
+        it('schedules the pre-insert on wide layout as well, leaving how to pre-mount to Navigation', () => {
+            // Given a wide layout, where Navigation pre-mounts the destination under the current fullscreen
             mockGetIsNarrowLayout.mockReturnValue(false);
+            const {finishOpenTransition} = mockOpenTransitionWait();
+
+            // When the hook mounts and the RHP open transition ends
             renderHook(() => usePreMountDestination(route));
-            expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
-            expect(Scheduler.scheduleWhenIdle).not.toHaveBeenCalled();
+            act(() => {
+                finishOpenTransition();
+                flushPendingIdlePreInserts();
+            });
+
+            // Then the same pre-insert entry point runs, so wide gets the pre-mount too
+            expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(route);
         });
 
         it('uses reveal-time navigation on narrow layout when configured', () => {
             const {result} = renderHook(() =>
                 usePreMountDestination(route, {
-                    narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.REVEAL,
+                    destinationStrategy: CONST.DESTINATION_STRATEGY.REVEAL,
                 }),
             );
 
@@ -165,16 +176,17 @@ describe('usePreMountDestination', () => {
             expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(route, {afterTransition});
         });
 
-        it('does not start pre-insert after starting on wide layout and resizing to narrow', () => {
+        it('schedules the pre-insert only once when starting on wide layout and resizing to narrow', () => {
+            // Given a hook that mounted on wide layout
             mockGetIsNarrowLayout.mockReturnValue(false);
             const {rerender} = renderHook(() => usePreMountDestination(route));
 
+            // When the layout switches to narrow without the route changing
             mockGetIsNarrowLayout.mockReturnValue(true);
             rerender(undefined);
 
-            expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
-            expect(Scheduler.scheduleWhenIdle).not.toHaveBeenCalled();
-            expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalled();
+            // Then the scheduling from mount is kept rather than restarted
+            expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledTimes(1);
         });
 
         it('runs the scheduled pre-insert attempt after resizing from narrow to wide', () => {
@@ -311,6 +323,24 @@ describe('usePreMountDestination', () => {
             expect(Navigation.revealRouteBeforeDismissingModal).not.toHaveBeenCalled();
         });
 
+        it('reveal reveals over an owned wide pre-mounted route instead of plain dismissing', () => {
+            // Given the hook pre-mounted this route under the current fullscreen on wide layout
+            mockGetIsNarrowLayout.mockReturnValue(false);
+            mockSuccessfulPreInsert();
+            jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockImplementation((requestedRoute) => (requestedRoute === route ? 'TabNavigator-pre-mounted' : undefined));
+            const {result} = preMountRoute(route);
+
+            // When the destination is revealed
+            act(() => {
+                result.current.reveal(afterTransition);
+            });
+
+            // Then reveal goes through REPLACE so the pre-mounted instance is revealed, and the flag is consumed there
+            expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(route, {afterTransition});
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
+            expect(Navigation.clearFullscreenPreInsertedFlag).not.toHaveBeenCalled();
+        });
+
         it('reveal dismisses over an owned pre-inserted route after resizing to wide', () => {
             mockSuccessfulPreInsert();
 
@@ -331,12 +361,12 @@ describe('usePreMountDestination', () => {
             const {finishOpenTransition} = mockOpenTransitionWait();
             mockSuccessfulPreInsert();
             const {result, rerender} = renderHook(
-                ({narrowDestinationStrategy}: NarrowDestinationStrategyProps) =>
+                ({destinationStrategy}: DestinationStrategyProps) =>
                     usePreMountDestination(route, {
-                        narrowDestinationStrategy,
+                        destinationStrategy,
                     }),
                 {
-                    initialProps: {narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT} as NarrowDestinationStrategyProps,
+                    initialProps: {destinationStrategy: CONST.DESTINATION_STRATEGY.PRE_INSERT} as DestinationStrategyProps,
                 },
             );
 
@@ -345,7 +375,7 @@ describe('usePreMountDestination', () => {
                 flushPendingIdlePreInserts();
             });
 
-            rerender({narrowDestinationStrategy: CONST.NARROW_DESTINATION_STRATEGY.REVEAL});
+            rerender({destinationStrategy: CONST.DESTINATION_STRATEGY.REVEAL});
 
             expect(Navigation.removePreInsertedFullscreenIfNeeded).not.toHaveBeenCalled();
 
