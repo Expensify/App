@@ -58,8 +58,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
@@ -77,7 +76,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {isBetaEnabled} = usePermissions();
 
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
-    const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const isValidated = isCurrentUserValidated(loginList, currentUserPersonalDetails.email);
 
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
