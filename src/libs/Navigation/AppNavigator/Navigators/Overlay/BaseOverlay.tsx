@@ -39,11 +39,13 @@ type BaseOverlayProps = {
     transparent?: boolean;
 };
 
+const defaultPositionLeftValue = -2 * variables.sideBarWidth;
+
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
 function BaseOverlay({
     onPress,
     progress,
-    positionLeftValue = -2 * variables.sideBarWidth,
+    positionLeftValue = defaultPositionLeftValue,
     positionRightValue = 0,
     positionTopValue = 0,
     positionBottomValue = 0,
