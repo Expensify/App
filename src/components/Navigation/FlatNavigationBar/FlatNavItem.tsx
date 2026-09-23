@@ -1,5 +1,6 @@
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
+import {useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
@@ -15,6 +16,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -89,6 +91,8 @@ function FlatNavItem({
 }: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    // The label and badge stay mounted and fade, rather than disappearing the moment the bar starts narrowing.
+    const collapseFadeStyle = useSearchSidebarCollapseFadeStyle();
 
     // Collapsed rows have nowhere to put a badge, so a row that has one shows the same green dot the Inbox uses.
     const resolvedStatusIndicatorColor = statusIndicatorColor ?? (isCollapsed && !!badgeText ? theme.iconSuccessFill : undefined);
@@ -132,22 +136,24 @@ function FlatNavItem({
                         </View>
                     )}
                     {leftElement}
-                    {!isCollapsed && (
+                    <Animated.View style={[styles.flex1, collapseFadeStyle]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.flatNavigationBarLabel, !isSelected && styles.flatNavigationBarLabelRegular, {color: isSelected || hovered ? theme.text : theme.textSupporting}]}
                         >
                             {label}
                         </Text>
-                    )}
-                    {!isCollapsed && !!badgeText && (
-                        <Badge
-                            text={badgeText}
-                            // todoBadge is left off deliberately: it fixes a 28x24 box that would override condensed sizing.
-                            badgeStyles={styles.ml0}
-                            success
-                            isCondensed
-                        />
+                    </Animated.View>
+                    {!!badgeText && (
+                        <Animated.View style={collapseFadeStyle}>
+                            <Badge
+                                text={badgeText}
+                                // todoBadge is left off deliberately: it fixes a 28x24 box that would override condensed sizing.
+                                badgeStyles={styles.ml0}
+                                success
+                                isCondensed
+                            />
+                        </Animated.View>
                     )}
                     {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
                     {!isCollapsed && !!hoverActionComponent && <View style={[styles.flatNavigationBarRowAction, !hovered && styles.opacity0]}>{hoverActionComponent}</View>}

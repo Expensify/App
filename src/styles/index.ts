@@ -911,6 +911,8 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: navigationRowPaddingHorizontal,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
+            // Labels stay mounted while they fade, so a collapsed row has to clip what no longer fits.
+            overflow: 'hidden',
         },
 
         /**
