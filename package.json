@@ -50,7 +50,6 @@
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "bun scripts/typecheck.ts",
     "lint": "bun scripts/lint/index.ts",
-    "lint-oxlint": "oxlint .",
     "lint-changed": "./scripts/lintChanged.sh",
     "lint-watch": "onchange '**/*.{js,jsx,ts,tsx,mjs,cjs}' -- bun scripts/lint/index.ts {{changed}}",
     "eslint-report": "bun scripts/eslint-report.ts",
