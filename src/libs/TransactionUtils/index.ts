@@ -721,7 +721,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transaction
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
     // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
     // a missing field on an expense report either, where only the merchant is checked.
-    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction ?? undefined);
+    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction);
     return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
