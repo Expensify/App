@@ -2,8 +2,6 @@ import CONST from '@src/CONST';
 
 import type {TelemetryBeforeSend} from './index';
 
-// Most derived recomputes finish well inside a frame, so they only tell us that a recompute happened, not that it cost
-// anything. Keep the ones that take at least a frame (16ms at 60fps), which are the only ones that can drop one.
 const MIN_ONYX_DERIVED_COMPUTE_DURATION_MS = 16;
 
 /**
@@ -21,7 +19,6 @@ const onyxDerivedComputeDurationFilter: TelemetryBeforeSend = (event) => {
             return true;
         }
 
-        // A span without an end timestamp never finished, so there is no duration to compare against the threshold.
         if (span.timestamp === undefined) {
             return true;
         }
