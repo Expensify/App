@@ -45,11 +45,10 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
     // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
+    const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
     // During a query change the snapshot can still be the previous query's, like isSearchDataLoaded guards against.
     const isSnapshotForCurrentQuery = currentSearchResults?.search?.hash === hash;
-
-    const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
     // The server already judged the query itself malformed, so re-sending it cannot succeed.
     const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
@@ -77,12 +76,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Fire search() when the query changes (hash). This runs at the page level so the
     // API request starts in parallel with the skeleton, before Search mounts its 14+ useOnyx hooks.
     useEffect(() => {
-        if (!queryJSON || hash === undefined || isOffline) {
-            return;
-        }
-
-        // live rows come from Onyx, so this page-level fetch is never needed for them
-        if (shouldUseLiveData) {
+        if (!queryJSON || hash === undefined || shouldUseLiveData || isOffline) {
             return;
         }
 
