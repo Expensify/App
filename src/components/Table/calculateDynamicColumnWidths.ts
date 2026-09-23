@@ -5,7 +5,10 @@ type DynamicColumnConstraints = {
     /** Width the column needs to render its widest content and its header label in full, including non-text extras. */
     contentWidth: number;
 
-    /** Smallest width the column may be squeezed to. A column that must never truncate sets this to its content width. */
+    /**
+     * Smallest width the column may be squeezed to. A column that must never truncate sets this to its content width.
+     * Never honored above `contentWidth`, since a column cannot be held wider than the width it asks for.
+     */
     minWidth: number;
 
     /** Largest width the column may claim. Content past it truncates instead of widening the column any further. */
