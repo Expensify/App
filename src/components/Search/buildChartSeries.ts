@@ -2,6 +2,7 @@ import type {ChartDataPoint} from '@components/Charts';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
+import {isShareWorthDrawing} from '@libs/PercentageUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -28,11 +29,14 @@ type BuildChartSeriesParams = {
     color?: string;
 };
 
-/** Pie colors follow the slice ranking rather than the array order */
-function getSliceColorsByDataIndex(data: ChartDataPoint[]): string[] {
-    const colors: string[] = Array.from({length: data.length});
+/** Pie colors follow the slice ranking rather than the array order. Groups the donut leaves out get no color. */
+function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undefined> {
+    const colors: Array<string | undefined> = Array.from({length: data.length});
 
-    const ranked = data.map((point, index) => ({absTotal: Math.abs(point.total), index})).sort((a, b) => b.absTotal - a.absTotal);
+    const ranked = data
+        .map((point, index) => ({absTotal: Math.abs(point.total), percentOfTotal: point.percentOfTotal, index}))
+        .filter((entry) => isShareWorthDrawing(entry.percentOfTotal))
+        .sort((a, b) => b.absTotal - a.absTotal);
 
     for (const [rank, entry] of ranked.entries()) {
         colors[entry.index] = VictoryTheme.colors.getColor(rank);
@@ -49,6 +53,7 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
             label: StringUtils.normalize(getLabel(item)),
             shortLabel: getShortLabel?.(item),
             total: convertToFrontendAmountAsInteger(item.total ?? 0, decimals),
+            percentOfTotal: item.percentOfTotal,
         };
 
         return {point, item};

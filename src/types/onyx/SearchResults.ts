@@ -235,18 +235,9 @@ type SearchTagGroup = SearchGroupBase & {
 };
 
 /** Model of day grouped search result */
-type SearchDayGroup = {
+type SearchDayGroup = SearchGroupBase & {
     /** Date in YYYY-MM-DD format */
     day: string;
-
-    /** Number of transactions */
-    count: number;
-
-    /** Total value of transactions */
-    total: number;
-
-    /** Currency of total value */
-    currency: string;
 };
 
 /** Model of month grouped search result */

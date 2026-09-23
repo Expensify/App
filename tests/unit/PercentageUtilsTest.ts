@@ -1,4 +1,4 @@
-import {formatPercentOfTotal} from '@components/Search/InsightsDataTable';
+import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
 import CONST from '@src/CONST';
 
@@ -10,7 +10,7 @@ describe('formatPercentOfTotal', () => {
         // Given a group whose share of the spend is not a round number
         const groupTotal = 10000;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then one decimal survives, because whole percents are too coarse to tell adjacent rows apart
@@ -24,7 +24,7 @@ describe('formatPercentOfTotal', () => {
         // Given a group whose share of the spend lands on a whole percent
         const groupTotal = 10000;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then no trailing zero is shown, because "30.0%" reads as precision the number does not carry
@@ -36,7 +36,7 @@ describe('formatPercentOfTotal', () => {
         const percentOfTotal = 0.03;
         const groupTotal = 10000;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then it reads as approximately zero, because 0% next to a non-zero amount looks like a bug
@@ -49,7 +49,7 @@ describe('formatPercentOfTotal', () => {
         const percentOfTotal = 0;
         const groupTotal = 47392;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then it reads as approximately zero rather than zero, because the group's own amount is visible in the
@@ -62,7 +62,7 @@ describe('formatPercentOfTotal', () => {
         const percentOfTotal = 0;
         const groupTotal = 0;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then a plain zero is shown, because "~0%" would claim spend the group does not have
@@ -74,7 +74,7 @@ describe('formatPercentOfTotal', () => {
         const percentOfTotal = -12.5;
         const groupTotal = -5000;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then the negative share is shown as it is, because a credit reduces the total spend and hiding that
@@ -87,7 +87,7 @@ describe('formatPercentOfTotal', () => {
         const percentOfTotal = -0.06;
         const groupTotal = -500;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then it is shown rather than approximated, because the approximation is only for shares that round
@@ -102,7 +102,7 @@ describe('formatPercentOfTotal', () => {
         // Given a credit whose share rounds away to zero, either because it is tiny or because the backend
         // already rounded it to 0
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then the same sign-neutral approximation is used as for a tiny positive share, because "-0%" reads as
@@ -116,7 +116,7 @@ describe('formatPercentOfTotal', () => {
     ])('carries the float precision the search reports ($percentOfTotal)', ({percentOfTotal, groupTotal, expected}) => {
         // Given a share the search sent as a float, carrying the digits a 32-bit value cannot represent exactly
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.EN);
 
         // Then the noise is rounded away, because the raw float would otherwise print a dozen meaningless digits
@@ -128,7 +128,7 @@ describe('formatPercentOfTotal', () => {
         const percentOfTotal = 40.14;
         const groupTotal = 10000;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.PL);
 
         // Then the separator follows the locale, because formatting the number by hand would hard-code a dot
@@ -141,7 +141,7 @@ describe('formatPercentOfTotal', () => {
         const percentOfTotal = -40.14;
         const groupTotal = -10000;
 
-        // When the share is formatted for the inline table
+        // When the share is formatted for display
         const formatted = formatPercentOfTotal(percentOfTotal, groupTotal, CONST.LOCALES.PL);
 
         // Then both the sign and the locale separator survive, because the negative branch goes through the same
