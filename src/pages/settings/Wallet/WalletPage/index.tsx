@@ -597,7 +597,7 @@ function WalletPage() {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
     };
 
-    const onEnableWalletPress = () => {
+    const enableWallet = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -898,7 +898,7 @@ function WalletPage() {
                                             return (
                                                 <MenuItemSectionRow
                                                     ref={buttonRef}
-                                                    onPress={onEnableWalletPress}
+                                                    onPress={enableWallet}
                                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
                                                 >
                                                     <MenuItem.Row>

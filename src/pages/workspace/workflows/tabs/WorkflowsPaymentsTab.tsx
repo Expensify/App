@@ -174,7 +174,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         </View>
     );
 
-    const handleAddBankAccountPress = () => {
+    const addBankAccount = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -327,7 +327,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                 <MenuItemSectionRow
                                     isDisabled={isAddBankAccountInert && !policy?.pendingFields?.reimbursementChoice}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_BANK_ACCOUNT}
-                                    onPress={isAddBankAccountInert ? undefined : handleAddBankAccountPress}
+                                    onPress={isAddBankAccountInert ? undefined : addBankAccount}
                                 >
                                     <MenuItem.Row>
                                         <MenuItem.Leading>
