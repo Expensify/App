@@ -33,10 +33,11 @@ import Onyx from 'react-native-onyx';
 type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'errors'>;
 
 /**
- * Builds the `codingRuleValue` sent to `SetPolicyCodingRule`. We still write through the legacy command rather than
- * `SetRule`, because `SetPolicyCodingRule` dual-writes into both `policy.rules.codingRules` and the `rules_`
- * collection, while `SetRule` only writes the new collection, so older clients reading `codingRules` would silently
- * stop seeing rules created or edited on a newer client.
+ * Builds the `codingRuleValue` sent to `SetPolicyCodingRule`. Writes go through the legacy command rather than
+ * `SetRule` because it dual-writes into both `policy.rules.codingRules` and the `rules_` collection, while
+ * `SetRule` only writes the new collection. Older clients read `codingRules`, so writing only the new collection
+ * would silently stop them seeing rules created or edited on a newer client. This whole path goes away once the
+ * minimum supported version reads the `rules_` collection.
  *
  * This reads the built rule rather than the form so the optimistic Onyx value and the saved rule share one
  * definition of what an empty field is. Reading the form separately let a padded merchant, a whitespace-only
