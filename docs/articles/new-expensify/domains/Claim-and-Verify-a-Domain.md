@@ -7,22 +7,14 @@ keywords: [New Expensify, claim domain, verify domain, private domain, domain se
 
 # Claim and Verify a Domain
 
-If you have a private domain (e.g., yourcompany.com), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
+Claim your company's private domain, such as yourcompany.com, to manage company-wide domain settings in Expensify. After claiming the domain, verify ownership through DNS to access additional security features such as SAML SSO.
 
-## What you can do with a claimed and verified domain
+## Who can claim and verify a domain 
 
-Once you've claimed and verified a domain, you can:
-- Add or remove domain members
-- Add or remove domain admins
-- Configure domain groups and group permissions 
-- Set up SAML login
-- Enforce SAML login for domain members
+ - Your Expensify login email must use the domain you're claiming.
+ - Your login must be verified with a security code.
 
 ## How to claim a domain in Expensify
-
-To claim a private domain, you must:
-- Be logged in with an email address from that domain
-- Have verified your contact method with a security code
 
 1. From the left-hand menu, select **Workspaces**, then select the **Domains** tab.
 2. Click **New domain**.
@@ -74,8 +66,6 @@ To leave without sending a request, click **Never mind** instead. Both buttons r
 ## How to verify a domain
 
 To unlock advanced security settings and enable SAML, the domain must be verified through a DNS record.
-
-## Steps to verify your domain
 
 **Note**: This process may be managed by your IT department or web consultant.
 1. Log in to your DNS service provider (e.g., Namecheap, GoDaddy, Amazon Route 53).
