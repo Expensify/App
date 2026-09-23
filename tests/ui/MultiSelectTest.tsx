@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
@@ -135,7 +136,7 @@ describe('MultiSelect', () => {
                 value={[]}
                 items={items}
                 onChange={jest.fn()}
-                footer={<></>}
+                footer={<View />}
             />,
         );
 
