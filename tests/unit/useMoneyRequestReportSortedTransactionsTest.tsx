@@ -237,6 +237,49 @@ describe('useMoneyRequestReportSortedTransactions', () => {
         expect(result.current.violationsByTransactionID.get('1')).toBe(EMPTY_VIOLATIONS);
     });
 
+    it('should not re-render when a violation of a transaction outside the report changes', async () => {
+        // Given a report whose only transaction has no violations
+        const params = buildParams({transactions: [buildTransaction('1')]});
+        let renderCount = 0;
+        const {result} = renderHook(
+            () => {
+                renderCount++;
+                return useMoneyRequestReportSortedTransactions(params);
+            },
+            {wrapper},
+        );
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+        const renderCountBefore = renderCount;
+        const violationsMapBefore = result.current.violationsByTransactionID;
+
+        // When a transaction from another report gets a violation
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}999`, MISSING_CATEGORY_VIOLATIONS);
+            await waitForBatchedUpdates();
+        });
+
+        // Then the hook does not re-render, so the violations map and the rows' renderItem stay referentially stable
+        expect(renderCount).toBe(renderCountBefore);
+        expect(result.current.violationsByTransactionID).toBe(violationsMapBefore);
+    });
+
+    it('should pick up a new violation on a transaction of the report', async () => {
+        // Given a report whose only transaction has no violations yet
+        const {result} = await renderSortedTransactions(buildParams({transactions: [buildTransaction('1')]}));
+        expect(result.current.violationsByTransactionID.get('1')).toBe(EMPTY_VIOLATIONS);
+
+        // When that transaction gets a violation
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`, MISSING_CATEGORY_VIOLATIONS);
+            await waitForBatchedUpdates();
+        });
+
+        // Then the narrowed subscription still delivers it to the row
+        expect(result.current.violationsByTransactionID.get('1')).toEqual(MISSING_CATEGORY_VIOLATIONS);
+    });
+
     it('should resolve card names from the card list', async () => {
         // Given a card transaction whose card is in the card list and a cash transaction
         const card: Card = {

@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -130,7 +131,7 @@ function useMoneyRequestReportSortedTransactions({
     // The selector factory must be reference-stable across renders, otherwise useOnyx re-subscribes on every render.
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [ownerLogin] = useAllPersonalDetails(ownerLoginSelector);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportTransactionViolations] = useReportTransactionViolations(transactions);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [sortConfig, setSortConfig] = useState<SortConfig>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -180,7 +181,7 @@ function useMoneyRequestReportSortedTransactions({
     const email = currentUserDetails.email ?? '';
     const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
     for (const transaction of resolvedTransactions) {
-        violationsByTransactionID.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy));
+        violationsByTransactionID.set(transaction.transactionID, filterTransactionViolations(transaction, reportTransactionViolations, email, accountID, report, ownerLogin, policy));
     }
 
     return {
