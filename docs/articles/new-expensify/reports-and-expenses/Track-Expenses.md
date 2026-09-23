@@ -1,7 +1,7 @@
 ---
 title: Track Expenses
 description: Learn how to create and manage expenses in New Expensify without submitting them for reimbursement or approval.
-keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable, send to someone, submit tracked expense
+keywords: track expenses, create expense, scan receipt, enter mileage, expense chat, just track it, out-of-pocket, out of pocket, out-of-pocket expenses, reimbursable, send to someone, submit tracked expense, edit a tracked expense, who can edit a tracked expense
 ---
 
 
@@ -109,6 +109,10 @@ The **Send to someone** option appears only while the expense is still tracked. 
 ## Can I edit an expense after tracking it?
 
 Yes! Open the expense from **Spend > Expenses** or your expense chat, then click into it to edit any field.
+
+## Can someone else edit an expense I tracked?
+
+No. Only you can edit a tracked expense. If you invite another member to the chat where the expense lives, they can open the expense and see it, but every field is read-only for them. That applies even if they are an admin of their own Workspace. [Learn who can edit expenses](/articles/new-expensify/reports-and-expenses/Edit-Expenses).
 
 ## Why can’t I find my expense?
 
