@@ -39,6 +39,7 @@ type SubmitWithGpsPointParams = {
     write: (shouldHandleNavigation: boolean, gpsPoint?: GpsPoint) => void;
 };
 
+/** Hook that captures a GPS point (from cached user location or a live geolocation read) before running an expense write. */
 function useGpsCapture() {
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 

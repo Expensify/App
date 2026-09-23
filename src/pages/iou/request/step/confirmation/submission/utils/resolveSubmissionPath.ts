@@ -25,6 +25,7 @@ type SubmissionPathSnapshot = {
     isSubmittingExpenseToDraftWorkspace: boolean;
 };
 
+/** Pure resolver that maps a confirmation's render-time flags to the submission path it should run. */
 function resolveSubmissionPath(snapshot: SubmissionPathSnapshot): SubmissionPath {
     const isTrackExpense = snapshot.iouType === CONST.IOU.TYPE.TRACK;
 

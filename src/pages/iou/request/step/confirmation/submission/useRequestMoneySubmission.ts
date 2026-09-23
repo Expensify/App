@@ -88,6 +88,7 @@ type UseRequestMoneySubmissionParams = TransactionTaxValues & {
     delegateAccountID: number | undefined;
 };
 
+/** Hook implementing the request-money submission path for the expense confirmation screen. */
 function useRequestMoneySubmission({
     transaction,
     transactions,

@@ -65,6 +65,7 @@ type UseDistanceSubmissionParams = TransactionTaxValues & {
     participantsPolicyTags: ParticipantsPolicyTags;
 };
 
+/** Hook implementing the distance-request submission path (CreateDistanceRequest) for the expense confirmation screen. */
 function useDistanceSubmission({
     transaction,
     transactions,

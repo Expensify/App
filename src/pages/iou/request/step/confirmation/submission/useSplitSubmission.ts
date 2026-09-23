@@ -52,6 +52,7 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     participantsPolicyTags: ParticipantsPolicyTags;
 };
 
+/** Hook implementing the split submission path (splitBill / startSplitBill / splitBillAndOpenReport) for the expense confirmation screen. */
 function useSplitSubmission({
     transaction,
     transactions,

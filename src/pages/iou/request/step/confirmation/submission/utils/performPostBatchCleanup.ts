@@ -31,6 +31,7 @@ type PerformPostBatchCleanupParams = {
     preResolvedChatTarget?: {report: OnyxEntry<Report>; chatReportID: string};
 };
 
+/** Runs the shared post-batch cleanup/navigation after an expense batch is written (used by the request, track and distance paths). */
 function performPostBatchCleanup({
     transactions,
     report,

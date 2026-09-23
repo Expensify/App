@@ -57,6 +57,7 @@ type UsePerDiemSubmissionParams = {
     delegateAccountID: number | undefined;
 };
 
+/** Hook implementing the per-diem submission path (CreatePerDiemExpense / self-DM) for the expense confirmation screen. */
 function usePerDiemSubmission({
     transaction,
     report,

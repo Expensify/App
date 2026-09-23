@@ -80,6 +80,7 @@ type UseTrackExpenseSubmissionParams = TransactionTaxValues & {
     delegateAccountID: number | undefined;
 };
 
+/** Hook implementing the track-expense submission path (TrackExpense / Categorize / Share / draft-workspace submit) for the expense confirmation screen. */
 function useTrackExpenseSubmission({
     transaction,
     transactions,

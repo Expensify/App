@@ -33,6 +33,7 @@ type UseSendMoneySubmissionParams = {
     onExpenseWriteWillStart?: () => void;
 };
 
+/** Hook implementing the send-money (pay) submission path for the expense confirmation screen. */
 function useSendMoneySubmission({
     transaction,
     receiptFiles,

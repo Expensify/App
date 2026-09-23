@@ -43,6 +43,7 @@ type UseInvoiceSubmissionParams = {
     delegateAccountID: number | undefined;
 };
 
+/** Hook implementing the invoice submission path (SendInvoice) for the expense confirmation screen. */
 function useInvoiceSubmission({
     transaction,
     receiptFiles,
