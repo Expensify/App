@@ -122,3 +122,13 @@ Only bank accounts that match the report's currency appear as payment options. I
 ## How do I pay a report with only non-reimbursable expenses?
 
 Reports containing only non-reimbursable expenses (e.g., company card charges) cannot be paid via ACH through Expensify. Instead, select **Mark as paid** from the **Pay** button dropdown to close the report.
+
+---
+
+## Why don't I see Cancel payment on a report I paid with a business bank account?
+
+**Cancel payment** only appears while Expensify can still stop the transfer. When you open the report, Expensify checks whether the reimbursement is still cancelable, and shows **Cancel payment** under **More** only if it is. Once the money is on its way to the recipient's bank, the option no longer appears, and some payments send the money right away, so **Cancel payment** never appears for them.
+
+If you need to stop a transfer that already left, contact your bank directly.
+
+To cancel a payment you recorded with **Mark as paid**, open the report, select **More**, then select **Cancel payment**.
