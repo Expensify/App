@@ -58,7 +58,7 @@ async function getRules(): Promise<OnyxCollection<Rule>> {
 
 /** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
 function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 /** A minimal merchant rule as stored in the rules collection. */

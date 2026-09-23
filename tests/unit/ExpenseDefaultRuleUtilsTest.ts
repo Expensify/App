@@ -30,7 +30,7 @@ const TAX_KEY = 'id_TAX_RATE_1';
 
 /** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
 function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 const policy: Policy = {

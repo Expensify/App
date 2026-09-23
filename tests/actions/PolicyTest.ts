@@ -62,7 +62,7 @@ jest.mock('@libs/GoogleTagManager');
 OnyxUpdateManager();
 /** Build the index-keyed object shape the rules API uses for lists */
 function indexMap<T>(...values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 async function getRulesCollection(): Promise<OnyxCollection<Rule>> {

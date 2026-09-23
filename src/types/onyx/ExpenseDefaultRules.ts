@@ -10,7 +10,7 @@ import type {RuleFilterNode} from './RuleFilters';
 type ExpenseDefaultTrigger = ValueOf<typeof CONST.RULES.EXPENSE_DEFAULT.TRIGGER>;
 
 /**
- * The triggers of a rule, keyed by a string index (e.g. `{"0": "CreateTransaction"}`). A rule fires when
+ * The triggers of a rule, keyed by a string index starting at 1 (e.g. `{"1": "CreateTransaction"}`). A rule fires when
  * any of its triggers matches the transaction event.
  */
 type ExpenseDefaultTriggers = Record<string, ExpenseDefaultTrigger>;
@@ -64,7 +64,7 @@ type ExpenseDefaultAction = {
 };
 
 /**
- * The actions of a rule, keyed by a string index (e.g. `{"0": {"name": "Set", "field": "category", "value": "Travel"}}`).
+ * The actions of a rule, keyed by a string index starting at 1 (e.g. `{"1": {"name": "Set", "field": "category", "value": "Travel"}}`).
  */
 type ExpenseDefaultActions = Record<string, ExpenseDefaultAction>;
 

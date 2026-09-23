@@ -2177,9 +2177,9 @@ describe('WorkflowUtils', () => {
             const rule = {
                 scope: CONST.RULES.SCOPE.POLICY,
                 scopeID: 'policy1',
-                triggers: Object.fromEntries(triggers.map((trigger, index) => [String(index), trigger])),
+                triggers: Object.fromEntries(triggers.map((trigger, index) => [String(index + 1), trigger])),
                 filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
-                actions: {'0': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
+                actions: {'1': {name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: 'b@example.com'}},
             };
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
