@@ -115,10 +115,10 @@ After you submit your details:
 
 Once connected, your business bank account appears in **Account > Wallet**. If you have both personal and business bank accounts, Wallet separates them into **Personal bank accounts** and **Business bank accounts** sections.
 
-Partially set-up accounts display an **Action required** badge. Click the account row to resume setup from where you left off.
+Every bank account shows a status badge. A finished account shows **Active**, while an account you never finished setting up shows **Incomplete** along with the message **Finish adding bank account**. Click **Finish** to resume setup from where you left off. [Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 
 <!-- SCREENSHOT:
-Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Action required badge on a partially set-up account
+Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Incomplete badge and the Finish adding bank account message on a partially set-up account
 Location: After the paragraph
 Purpose: Shows the new Wallet layout with separated sections and status badges
 -->
