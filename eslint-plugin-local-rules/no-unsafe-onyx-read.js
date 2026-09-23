@@ -29,8 +29,10 @@ function findRepoRoot() {
     }
 }
 
+const REPO_ROOT = findRepoRoot();
+
 function resolveRestrictedKeyPaths() {
-    const repoRoot = findRepoRoot();
+    const repoRoot = REPO_ROOT;
 
     if (!repoRoot) {
         throw new Error(`no-unsafe-onyx-read could not locate ${SNAPSHOT_KEYS_SOURCE}. Without it the rule would silently stop refusing Search snapshot keys.`);
@@ -49,6 +51,16 @@ function resolveRestrictedKeyPaths() {
 const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
 
 const READ_METHOD = 'get';
+
+const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/', 'tests/'];
+
+const READ_ALLOWED_FILES = new Set([]);
+
+const EFFECT_HOOK_NAMES = new Set(['useEffect', 'useLayoutEffect', 'useInsertionEffect', 'useFocusEffect']);
+
+const CALLBACK_HOOK_NAMES = new Set(['useCallback']);
+
+const EFFECT_CONTINUATION_NAMES = new Set(['then', 'catch', 'finally', 'setTimeout', 'requestAnimationFrame', 'queueMicrotask', 'runAfterInteractions', 'runAfterTransitions']);
 
 const TYPE_ONLY_EXPRESSIONS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSInstantiationExpression', 'TSTypeAssertion']);
 
@@ -73,28 +85,34 @@ const SYNCHRONOUS = 'synchronous';
 
 const MODULE_SCOPE = 'moduleScope';
 const EVENT = 'event';
+const EFFECT = 'effect';
 
 const meta = {
     type: 'problem',
     docs: {
-        description:
-            'Disallow unsafe Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it can only be parked in a stale module variable; and on the Search snapshot keys, which useOnyx redirects in a way a one-shot read cannot see.',
+        description: 'Disallow unsafe Onyx reads: Onyx.get outside components, pages, hooks and tests, during render, inside effects, at module scope or on Search snapshot keys.',
         recommended: 'error',
     },
     schema: [],
     messages: {
         noOnyxGetInRender:
             'Do not read Onyx during render. Onyx.get() is a one-shot read that never subscribes, so a value obtained while rendering does not re-render the component when that key changes and the UI can show stale data indefinitely. A component cannot await it either, so reaching it from render means use() or .then(), both of which read without subscribing.\n\n' +
-            'Use useOnyx() for anything the component renders. Reserve Onyx.get() for code that runs on an event: event handlers, useCallback and useEffect bodies, and plain module functions.',
+            'Use useOnyx() for anything the component renders. Reserve Onyx.get() for code that runs on an event: event handlers and useCallback bodies.',
         noOnyxReadAtModuleScope:
             'Do not read Onyx at module scope. A module body runs at import time and cannot await, so the value can only be parked in a module variable through .then(), where it is a one-shot snapshot that never updates when the key changes.\n\n' +
             'Move the read inside the function that needs it, so it runs at event time and reads the current value. If the module genuinely needs to track a key, subscribe with Onyx.connectWithoutView() instead of caching one read.',
         noUnresolvableOnyxKey:
             'Do not read Onyx with a key this rule cannot resolve. The read surface is restricted to keys that are provably not Search snapshot keys, and a key built at runtime cannot be checked, so a caller can route a snapshot key here without anything failing.\n\n' +
-            'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. If the key genuinely cannot be static, disable this rule on the line and say in the comment why the key can never be a Search snapshot key.',
+            'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. If the key cannot be static, keep the useOnyx subscription or take the value as a parameter. An inline eslint-disable of this rule fails the lint run.',
         noRestrictedOnyxKey:
             'Do not read {{keyPath}} with a one-shot Onyx read. src/hooks/useOnyx.ts rewrites this key to snapshot_<hash> inside a SearchScopeProvider subtree, so a component subscribed to it may never have been reading the global key at all. A read here returns live data where the component saw the snapshot, and nothing at the call site can tell the two apart.\n\n' +
             'Take the value as a parameter from the component, which knows whether it is inside a Search scope, or keep the useOnyx subscription.',
+        noOnyxReadOutsideAllowedPath:
+            'Onyx.get() is only allowed in src/components, src/pages, src/hooks and tests.\n\n' +
+            'Elsewhere, take the value as a parameter or keep the Onyx.connectWithoutView() subscription. A file joins READ_ALLOWED_FILES only in a PR that removes an Onyx.connectWithoutView() from it.',
+        noOnyxReadInEffect:
+            'Do not read Onyx inside an effect, or in a function an effect calls. When the value was in the effect dependency array, the useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
+            'Keep the useOnyx subscription. Reads inside effects stay banned until a check can confirm the value was not in the dependency array.',
     },
 };
 
@@ -332,6 +350,139 @@ function isReferencedAtRenderTime(declaration, boundName, sourceCode, seen = new
     });
 }
 
+function isEffectCallback(functionNode, parent, grandparent) {
+    if (parent?.type !== 'CallExpression' || parent.arguments.at(0) !== functionNode) {
+        return false;
+    }
+
+    if (matchesCalleeName(parent.callee, EFFECT_HOOK_NAMES)) {
+        return true;
+    }
+
+    return (
+        matchesCalleeName(parent.callee, CALLBACK_HOOK_NAMES) &&
+        grandparent?.type === 'CallExpression' &&
+        grandparent.arguments.at(0) === parent &&
+        matchesCalleeName(grandparent.callee, EFFECT_HOOK_NAMES)
+    );
+}
+
+function getHandlerBinding(functionNode, parent, grandparent) {
+    const binding = getFunctionBinding(functionNode, parent);
+
+    if (binding) {
+        return binding;
+    }
+
+    if (
+        parent?.type === 'CallExpression' &&
+        parent.arguments.at(0) === functionNode &&
+        matchesCalleeName(parent.callee, CALLBACK_HOOK_NAMES) &&
+        grandparent?.type === 'VariableDeclarator' &&
+        grandparent.init === parent &&
+        grandparent.id.type === 'Identifier'
+    ) {
+        return {declaration: grandparent, name: grandparent.id.name};
+    }
+
+    return null;
+}
+
+function runsWithEnclosingCode(functionNode, parent) {
+    if (parent?.type === 'NewExpression' && matchesCalleeName(parent.callee, SYNCHRONOUS_EXECUTOR_NAMES)) {
+        return true;
+    }
+
+    if (parent?.type !== 'CallExpression') {
+        return false;
+    }
+
+    if (parent.callee === functionNode) {
+        return true;
+    }
+
+    return (
+        parent.arguments.includes(functionNode) &&
+        (matchesCalleeName(parent.callee, EFFECT_CONTINUATION_NAMES) || (parent.callee.type === 'MemberExpression' && matchesCalleeName(parent.callee, SYNCHRONOUS_CALLBACK_METHODS)))
+    );
+}
+
+function isReachedFromEffect(ancestors, fromIndex, sourceCode, seen) {
+    function isHandlerInvokedFromEffect(binding) {
+        const variable = sourceCode.getDeclaredVariables(binding.declaration).find((declaredVariable) => declaredVariable.name === binding.name);
+
+        if (!variable || seen.has(variable)) {
+            return false;
+        }
+
+        seen.add(variable);
+
+        return variable.references.some((reference) => {
+            if (!reference.isRead()) {
+                return false;
+            }
+
+            const identifier = reference.identifier;
+            const parent = identifier.parent;
+
+            if (parent?.type === 'CallExpression' && parent.arguments.at(0) === identifier && isEffectCallback(identifier, parent, parent.parent)) {
+                return true;
+            }
+
+            const isCalled = parent?.type === 'CallExpression' && parent.callee === identifier;
+
+            if (!isCalled && !runsWithEnclosingCode(identifier, parent)) {
+                return false;
+            }
+
+            const referenceAncestors = sourceCode.getAncestors(identifier);
+
+            return isReachedFromEffect(referenceAncestors, referenceAncestors.length - 1, sourceCode, seen);
+        });
+    }
+
+    for (let index = fromIndex; index >= 0; index--) {
+        const ancestor = ancestors[index];
+
+        if (!isFunctionNode(ancestor)) {
+            continue;
+        }
+
+        const parent = ancestors[index - 1] ?? null;
+        const grandparent = ancestors[index - 2] ?? null;
+
+        if (isEffectCallback(ancestor, parent, grandparent)) {
+            return true;
+        }
+
+        const binding = getHandlerBinding(ancestor, parent, grandparent);
+
+        if (binding) {
+            return isHandlerInvokedFromEffect(binding);
+        }
+
+        if (!runsWithEnclosingCode(ancestor, parent)) {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+function isReadAllowedInFile(filename) {
+    if (!REPO_ROOT || !filename || !path.isAbsolute(filename)) {
+        return true;
+    }
+
+    const relativePath = path.relative(REPO_ROOT, filename).split(path.sep).join('/');
+
+    if (relativePath.startsWith('..')) {
+        return true;
+    }
+
+    return READ_ALLOWED_DIRECTORIES.some((directory) => relativePath.startsWith(directory)) || READ_ALLOWED_FILES.has(relativePath);
+}
+
 function classifyFunctionBoundary(functionNode, parent, sourceCode) {
     if (parent?.type === 'Property' && parent.value === functionNode && RENDER_TIME_OPTION_NAMES.has(getStaticName(parent.key, parent.computed)) && isHookOption(parent)) {
         return RENDER;
@@ -400,7 +551,7 @@ function classifyPosition(ancestors, sourceCode) {
         const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null, sourceCode);
 
         if (disposition === DEFERRED) {
-            return EVENT;
+            return isReachedFromEffect(ancestors, index, sourceCode, new Set()) ? EFFECT : EVENT;
         }
 
         if (disposition === RENDER) {
@@ -423,6 +574,7 @@ function findRestrictedKey(keyArgument, scope) {
 
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const filename = context.filename ?? context.getFilename();
     const onyxImportBindings = new WeakSet();
     const readAliases = new WeakSet();
 
@@ -509,6 +661,11 @@ function create(context) {
                 return;
             }
 
+            if (!isReadAllowedInFile(filename)) {
+                context.report({node, messageId: 'noOnyxReadOutsideAllowedPath'});
+                return;
+            }
+
             const position = classifyPosition(sourceCode.getAncestors(node), sourceCode);
 
             if (position === MODULE_SCOPE) {
@@ -518,6 +675,11 @@ function create(context) {
 
             if (position === RENDER) {
                 context.report({node, messageId: 'noOnyxGetInRender'});
+                return;
+            }
+
+            if (position === EFFECT) {
+                context.report({node, messageId: 'noOnyxReadInEffect'});
                 return;
             }
 

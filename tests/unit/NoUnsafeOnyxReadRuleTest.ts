@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Rule} from 'eslint';
 
 import {Linter, RuleTester} from 'eslint';
+import path from 'path';
 import {parser as tsParser} from 'typescript-eslint';
 
 type LocalRuleModule = Rule.RuleModule & {
@@ -56,14 +57,19 @@ const ONYX_UTILS_IMPORT = "import OnyxUtils from 'react-native-onyx/dist/OnyxUti
 
 const RENDER_ERRORS = [{messageId: 'noOnyxGetInRender'}];
 const MODULE_SCOPE_ERRORS = [{messageId: 'noOnyxReadAtModuleScope'}];
+const EFFECT_ERRORS = [{messageId: 'noOnyxReadInEffect'}];
+const OUTSIDE_ALLOWED_PATH_ERRORS = [{messageId: 'noOnyxReadOutsideAllowedPath'}];
+
+const REPO_ROOT = path.resolve(__dirname, '../..');
+
+function inRepo(relativePath: string): string {
+    return path.join(REPO_ROOT, relativePath);
+}
 
 describe('no-unsafe-onyx-read', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
         valid: [
-            `${ONYX_UTILS_IMPORT} function buildPayload(reportID) { return OnyxUtils.get(ONYXKEYS.SESSION); }`,
             `${ONYX_IMPORT} export function submit() { const draft = Onyx.get(ONYXKEYS.SESSION); return draft; }`,
-            `${ONYX_UTILS_IMPORT} export function submit() { const draft = OnyxUtils.get(ONYXKEYS.SESSION); return draft; }`,
-            `${ONYX_UTILS_IMPORT} const submit = () => OnyxUtils.get(ONYXKEYS.SESSION);`,
             `${ONYX_IMPORT} export default function handler() { return Onyx.get(ONYXKEYS.SESSION); }`,
             `${ONYX_IMPORT} const handlers = {onPress: () => Onyx.get(ONYXKEYS.SESSION)};`,
             `${ONYX_IMPORT} class Store { read() { return Onyx.get(ONYXKEYS.SESSION); } }`,
@@ -78,12 +84,8 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} client.configure({selector: () => Onyx.get(ONYXKEYS.SESSION)});`,
             `${ONYX_IMPORT} function setup() { client.configure({selector: () => Onyx.get(ONYXKEYS.SESSION)}); }`,
             `${ONYX_IMPORT} const selector = (data) => Onyx.get(ONYXKEYS.SESSION); client.configure({selector});`,
-            `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(ONYXKEYS.SESSION); useEffect(onPress, []); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} function Row() { const [v] = useReducer((state, action) => Onyx.get(ONYXKEYS.SESSION), 0); return <View v={v} />; }`,
             `${ONYX_IMPORT} function Row() { const v = useSyncExternalStore((notify) => { Onyx.get(ONYXKEYS.SESSION); return noop; }, snapshot); return <View v={v} />; }`,
-            `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(ONYXKEYS.SESSION)); }, []); return <View />; }`,
-            `${ONYX_IMPORT} function Row() { useLayoutEffect(() => { use(Onyx.get(ONYXKEYS.SESSION)); }, []); return <View />; }`,
-            `${ONYX_UTILS_IMPORT} function useThing() { return () => OnyxUtils.get(ONYXKEYS.SESSION); }`,
             `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(ONYXKEYS.SESSION).then(setValue); return <View onPress={onPress} />; }`,
             `${ONYX_IMPORT} class Row extends React.Component { componentDidMount() { Onyx.get(ONYXKEYS.SESSION).then(this.setValue); } }`,
 
@@ -92,10 +94,7 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} new Promise((resolve) => { ready.then(() => resolve(Onyx.get(ONYXKEYS.SESSION))); });`,
             `${ONYX_IMPORT} Onyx.init(config).then(() => Onyx.get(ONYXKEYS.SESSION));`,
 
-            `${ONYX_UTILS_IMPORT} async function f(key) { const {...copy} = await OnyxUtils.get(ONYXKEYS.SESSION); copy.name = 'x'; return copy; }`,
             `${ONYX_UTILS_IMPORT} async function f(key) { const {details} = await somethingElse(key); details.name = 'x'; return details; }`,
-            `${ONYX_UTILS_IMPORT} async function f(key) { ({...(await OnyxUtils.get(ONYXKEYS.SESSION))}).name = 'x'; }`,
-            `${ONYX_UTILS_IMPORT} function f(key) { OnyxUtils.get(ONYXKEYS.SESSION).name = 'x'; }`,
 
             `${ONYX_IMPORT} const api = window.somethingElse; function Row() { const value = api.get(ONYXKEYS.SESSION); return <View value={value} />; }`,
             `${ONYX_IMPORT} function f(key) { const pending = Onyx.get(ONYXKEYS.SESSION); pending.name = 'x'; return pending; }`,
@@ -109,14 +108,6 @@ describe('no-unsafe-onyx-read', () => {
             `${ONYX_IMPORT} Onyx.init({keys: ONYXKEYS});`,
             `${ONYX_IMPORT} function Row() { Onyx.merge(key, value); return <View />; }`,
             `${ONYX_IMPORT} function submit() { return Onyx.get(ONYXKEYS.SESSION); }`,
-
-            `${ONYX_UTILS_IMPORT} async function f(key) { const report = await OnyxUtils.get(ONYXKEYS.SESSION); const copy = {...report}; copy.name = 'x'; return copy; }`,
-            `${ONYX_UTILS_IMPORT} async function f(key) { const report = {...(await OnyxUtils.get(ONYXKEYS.SESSION))}; report.name = 'x'; return report; }`,
-            `${ONYX_UTILS_IMPORT} async function f(key) { const report = await OnyxUtils.get(ONYXKEYS.SESSION); return {...report, name: 'x'}; }`,
-            `${ONYX_UTILS_IMPORT} async function f(key) { const report = await OnyxUtils.get(ONYXKEYS.SESSION); return report.name; }`,
-            `${ONYX_UTILS_IMPORT} async function f(key) { const report = await OnyxUtils.get(ONYXKEYS.SESSION); if (report.name) { return 1; } return 2; }`,
-
-            `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; function Row() { const onPress = () => get(ONYXKEYS.SESSION); return <View onPress={onPress} />; }`,
 
             `${ONYX_IMPORT} function submit(policyID) { Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, values); return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_TAGS}\${policyID}\`); }`,
 
@@ -264,11 +255,6 @@ describe('no-unsafe-onyx-read restricted keys', () => {
         valid: [
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.SESSION); }`},
 
-            {code: `${ONYX_UTILS_IMPORT} export function submit(reportID) { return OnyxUtils.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`},
-            {code: `${ONYX_UTILS_IMPORT} export function submit() { return OnyxUtils.get(ONYXKEYS.PERSONAL_DETAILS_LIST); }`},
-            {code: `${ONYX_UTILS_IMPORT} const {get} = OnyxUtils; export function submit() { return get(ONYXKEYS.COLLECTION.REPORT); }`},
-            {code: `${ONYX_UTILS_IMPORT} function Row() { const v = OnyxUtils.get(ONYXKEYS.COLLECTION.REPORT); return <View v={v} />; }`},
-            {code: `${ONYX_UTILS_IMPORT} const cached = OnyxUtils.get(ONYXKEYS.SESSION);`},
             {code: `${ONYX_IMPORT} export function submit(id) { return Onyx.get(\`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\`); }`},
             {code: `${ONYX_IMPORT} export function submit() { const key = ONYXKEYS.SESSION; return Onyx.get(ONYXKEYS.SESSION); }`},
         ],
@@ -378,5 +364,83 @@ describe('no-unsafe-onyx-read restricted keys', () => {
         for (const prefix of CONST.SEARCH.SNAPSHOT_ONYX_KEYS) {
             expect(rejectedValues.some((value) => value.startsWith(prefix))).toBe(true);
         }
+    });
+});
+
+describe('no-unsafe-onyx-read effects', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            `${ONYX_IMPORT} function Row() { useEffect(() => { const subscription = emitter.addListener('change', () => Onyx.get(ONYXKEYS.SESSION)); return () => subscription.remove(); }, []); return <View />; }`,
+            `${ONYX_IMPORT} function Row() { const onChange = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { window.addEventListener('focus', onChange); return () => window.removeEventListener('focus', onChange); }, [onChange]); return <View />; }`,
+            `${ONYX_IMPORT} function useThing() { const onShortcut = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => registerShortcut(onShortcut), [onShortcut]); }`,
+            `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => {}, [load]); return <View onPress={load} />; }`,
+            `${ONYX_IMPORT} function Row() { const load = useCallback(() => Onyx.get(ONYXKEYS.SESSION), []); const run = () => load(); return <View onPress={run} />; }`,
+            `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { track(); }, []); return <View onPress={onPress} />; }`,
+        ],
+        invalid: [
+            {
+                code: `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { const id = setTimeout(load, 0); return () => clearTimeout(id); }, []); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {code: `${ONYX_IMPORT} function Row() { useEffect(() => { items.forEach(() => Onyx.get(ONYXKEYS.SESSION)); }, []); return <View />; }`, errors: EFFECT_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { const onPress = () => Onyx.get(ONYXKEYS.SESSION); useEffect(onPress, []); return <View onPress={onPress} />; }`, errors: EFFECT_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { useEffect(() => { use(Onyx.get(ONYXKEYS.SESSION)); }, []); return <View />; }`, errors: EFFECT_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { useLayoutEffect(() => { use(Onyx.get(ONYXKEYS.SESSION)); }, []); return <View />; }`, errors: EFFECT_ERRORS},
+            {code: `${ONYX_IMPORT} function Row() { useFocusEffect(useCallback(() => { Onyx.get(ONYXKEYS.SESSION); }, [])); return <View />; }`, errors: EFFECT_ERRORS},
+            {
+                code: `${ONYX_IMPORT} function Row() { const onFocus = useCallback(() => { Onyx.get(ONYXKEYS.SESSION); }, []); useFocusEffect(onFocus); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {code: `${ONYX_IMPORT} function Row() { useEffect(() => { ready.then(() => Onyx.get(ONYXKEYS.SESSION)); }, []); return <View />; }`, errors: EFFECT_ERRORS},
+            {
+                code: `${ONYX_IMPORT} function Row() { const load = async () => { await Onyx.get(ONYXKEYS.SESSION); }; useEffect(() => { load(); }, []); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { function load() { return Onyx.get(ONYXKEYS.SESSION); } useLayoutEffect(() => { load(); }, []); return <View />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { const load = useCallback(async () => { await Onyx.get(ONYXKEYS.SESSION); }, []); useEffect(() => { load(); }, [load]); return <View onPress={load} />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} function Row() { const load = () => Onyx.get(ONYXKEYS.SESSION); const run = () => { load(); }; useEffect(() => { run(); }, []); return <View onPress={run} />; }`,
+                errors: EFFECT_ERRORS,
+            },
+            {code: `${ONYX_IMPORT} function useThing() { const load = () => Onyx.get(ONYXKEYS.SESSION); useEffect(() => { ready.then(load); }, []); }`, errors: EFFECT_ERRORS},
+        ],
+    });
+});
+
+describe('no-unsafe-onyx-read allowed paths', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/components/Foo.tsx')},
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/pages/Foo.tsx')},
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/hooks/useFoo.ts')},
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('tests/unit/FooTest.ts')},
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: 'file.ts'},
+        ],
+        invalid: [
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/libs/actions/Foo.ts'), errors: OUTSIDE_ALLOWED_PATH_ERRORS},
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/libs/ReportUtils.ts'), errors: OUTSIDE_ALLOWED_PATH_ERRORS},
+            {
+                code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`,
+                filename: inRepo('src/setup/addUtilsToWindow.ts'),
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, filename: inRepo('src/CONST/index.ts'), errors: OUTSIDE_ALLOWED_PATH_ERRORS},
+            {
+                code: `${ONYX_IMPORT} const {get} = Onyx; export async function submit() { return get(ONYXKEYS.SESSION); }`,
+                filename: inRepo('src/libs/Foo.ts'),
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+            {
+                code: `${ONYX_IMPORT} export async function submit() { return Onyx.get(ONYXKEYS.COLLECTION.REPORT); }`,
+                filename: inRepo('src/libs/Foo.ts'),
+                errors: OUTSIDE_ALLOWED_PATH_ERRORS,
+            },
+        ],
     });
 });
