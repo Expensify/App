@@ -137,6 +137,7 @@ describe('TroubleshootPage Onyx export', () => {
             resolveModal: jest.fn(),
             showConfirmModal: mockShowConfirmModal,
             closeModal: jest.fn(),
+            closeModalByID: jest.fn(),
         });
         mockShowConfirmModal.mockResolvedValue({action: 'CLOSE'});
         jest.mocked(readOnyxState).mockResolvedValue(exportedState);
