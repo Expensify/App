@@ -19,11 +19,23 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
+import type {RefObject} from 'react';
 
 import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import handleSAMLLoginError from './handleSAMLLoginError';
+
+// An in-app browser left open blocks the next sign-in attempt from opening one, and only iOS can close it.
+function dismissOpenAuthSession(isAuthSessionOpen: RefObject<boolean>): boolean {
+    if (!isAuthSessionOpen.current || getPlatform() !== CONST.PLATFORM.IOS) {
+        return false;
+    }
+    // eslint-disable-next-line no-param-reassign
+    isAuthSessionOpen.current = false;
+    dismissAuthSession();
+    return true;
+}
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
@@ -41,12 +53,7 @@ function SAMLSignInPage() {
             return;
         }
         hasExitedSAMLFlow.current = true;
-
-        // An in-app browser left open blocks the next sign-in attempt from opening one, and only iOS can close it.
-        if (isAuthSessionOpen.current && getPlatform() === CONST.PLATFORM.IOS) {
-            isAuthSessionOpen.current = false;
-            dismissAuthSession();
-        }
+        dismissOpenAuthSession(isAuthSessionOpen);
 
         // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
         setIsAuthenticatingWithShortLivedToken(false);
@@ -59,12 +66,10 @@ function SAMLSignInPage() {
     useEffect(
         () => () => {
             // Leaving the page must not leave the in-app browser open, or the next sign-in attempt cannot open one.
-            if (!isAuthSessionOpen.current || getPlatform() !== CONST.PLATFORM.IOS) {
+            if (!dismissOpenAuthSession(isAuthSessionOpen)) {
                 return;
             }
             hasExitedSAMLFlow.current = true;
-            isAuthSessionOpen.current = false;
-            dismissAuthSession();
 
             // The exit that normally clears this guard is skipped above, and a stuck guard blocks the next SAML attempt.
             setIsAuthenticatingWithShortLivedToken(false);
