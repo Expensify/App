@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, paid by filter, paid-by]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -39,8 +39,7 @@ Use these core rules to create your searches:
 - Use commas for **OR** conditions: `status:drafts,outstanding`.
 - Combine fields for **AND** conditions: `amount>50 status:approved`.
 - Use `-` to exclude results: `-has:receipt`.
-- Use quotes for exact phrases and for any value that contains a space or a comma: `description:"team lunch"`, `merchant:"Globex, Ltd"`. A comma inside quotes is treated as part of the value, so `merchant:"Globex, Ltd"` is one merchant, not two.
-- To include a literal quote inside a quoted value, put a backslash before it: `workspace:"Acme \"US\", Inc"`.
+- Use quotes for exact phrases: `description:"team lunch"`.
 - Relative dates are supported: `date:this-week`.
 - Start typing after `:` to see autocomplete suggestions.
 
@@ -100,6 +99,7 @@ You can use the following operators to filter reports:
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
+- `paid-by:` – the member who paid the report (email, phone, display name, or `me`). Combine multiple members with commas, e.g. `paid-by:me,alice@acme.com`. Reports that have not been paid never match. This operator also works on expense, invoice, and trip searches
 - `action:` – blocking report action, e.g. `action:approve`
 - `submitter-user-id:` – Custom field 1 value set for the report submitter
 - `submitter-payroll-id:` – Custom field 2 value set for the report submitter
@@ -233,8 +233,11 @@ If the search operator isn’t recognized, the system will ignore it and return 
 
 ## Do I need to use quotes for everything?
 
-Only use quotes for values that include spaces, a comma, or an exact phrase, like `description:"client lunch"` or `in:"#general"`. Wrapping a value in quotes keeps a comma as part of that single value instead of splitting it into an **OR** list.
+Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
 
-## How do I search for a value that contains a quote?
+## How do I find all messages from a specific person?
 
-Wrap the value in quotes and put a backslash before each literal quote inside it. For example, to search for a workspace named `Acme "US", Inc`, enter `workspace:"Acme \"US\", Inc"`.
+You have two options:
+
+- Enter `type:chat from:` followed by the person's email, phone, or display name in the search bar (for example, `type:chat from:alice@acme.com`).
+- Open the person's profile and select **View user history** (or **View agent history** for an agent). This opens the **Search** page filtered to that person's messages.
