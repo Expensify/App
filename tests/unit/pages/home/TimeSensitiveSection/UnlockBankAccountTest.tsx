@@ -6,13 +6,14 @@ import {navigateToConciergeChat} from '@libs/actions/Report';
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
+import HomeTaskGroup from '@src/pages/home/HomeTaskGroup';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
 import Onyx from 'react-native-onyx';
 
+import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal} from '../../../../utils/mockUseConfirmModal';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@react-navigation/native', () => ({
@@ -65,15 +66,24 @@ jest.mock('@libs/actions/Report', () => ({
     navigateToConciergeChat: jest.fn(),
 }));
 
+jest.mock('@hooks/useConfirmModal', () => ({
+    __esModule: true,
+    default: () => ({showConfirmModal: mockShowConfirmModal, closeModal: jest.fn()}),
+}));
+
 const ADMIN_ACCOUNT_ID = 12345;
 const LOCKED_BANK_ACCOUNT_ID = 99;
 const POLICY_ID = 'policy_1';
 const POLICY_NAME = 'My Workspace';
 const CONCIERGE_REPORT_ID = 'concierge_report_1';
 
-// Renders the "Time sensitive" group the way the Home "For you" card now does (hook + presentational group).
 function TimeSensitiveSection() {
-    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
+    return (
+        <HomeTaskGroup
+            title="homePage.timeSensitiveSection.title"
+            rows={useTimeSensitiveItems()}
+        />
+    );
 }
 
 const renderTimeSensitiveSection = () =>
@@ -89,6 +99,7 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
     });
 
     beforeEach(async () => {
+        resetMockConfirmModal();
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.ACCOUNT, {primaryLogin: 'admin@example.com'});
         await waitForBatchedUpdates();
@@ -101,7 +112,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -186,7 +196,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.USER,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -214,7 +223,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: 'Workspace One',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -230,7 +238,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: 'Workspace Two',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: SECOND_LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX5678',
@@ -261,7 +268,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
                 name: 'Workspace One',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 achAccount: {
                     bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                     accountNumber: 'XXXXXXXX1234',
@@ -277,7 +283,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
                 name: 'Workspace Two',
                 role: CONST.POLICY.ROLE.ADMIN,
                 type: CONST.POLICY.TYPE.TEAM,
-                isPolicyExpenseChatEnabled: true,
                 achAccount: {
                     bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                     accountNumber: 'XXXXXXXX5678',
@@ -302,6 +307,36 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
         }
     });
 
+    it('shows the already-requested modal and skips pressLockedBankAccount when the NVP is set', async () => {
+        await Onyx.set(ONYXKEYS.SESSION, {email: 'admin@example.com', accountID: ADMIN_ACCOUNT_ID});
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            name: POLICY_NAME,
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            achAccount: {
+                bankAccountID: LOCKED_BANK_ACCOUNT_ID,
+                accountNumber: 'XXXXXXXX1234',
+                routingNumber: '123456789',
+                addressName: 'Test Bank',
+                bankName: 'Test Bank',
+                reimburser: 'admin@example.com',
+                state: CONST.BANK_ACCOUNT.STATE.LOCKED,
+            },
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${LOCKED_BANK_ACCOUNT_ID}`, '2024-01-01T00:00:00.000Z');
+        await waitForBatchedUpdates();
+
+        renderTimeSensitiveSection();
+
+        const cta = screen.getByText('homePage.timeSensitiveSection.ctaFix');
+        fireEvent.press(cta);
+
+        expect(getShowConfirmModalOption('title')).toBe('bankAccount.unlockAlreadyRequestedTitle');
+        expect(pressLockedBankAccount).not.toHaveBeenCalled();
+    });
+
     it('calls pressLockedBankAccount and navigates to Concierge when CTA is pressed', async () => {
         await Onyx.set(ONYXKEYS.SESSION, {email: 'admin@example.com', accountID: ADMIN_ACCOUNT_ID});
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
@@ -310,7 +345,6 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             name: POLICY_NAME,
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
-            isPolicyExpenseChatEnabled: true,
             achAccount: {
                 bankAccountID: LOCKED_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXXXX1234',
@@ -328,7 +362,13 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
         const cta = screen.getByText('homePage.timeSensitiveSection.ctaFix');
         fireEvent.press(cta);
 
-        expect(pressLockedBankAccount).toHaveBeenCalledWith(LOCKED_BANK_ACCOUNT_ID, expect.any(Function), CONCIERGE_REPORT_ID, undefined);
-        expect(navigateToConciergeChat).toHaveBeenCalledWith(CONCIERGE_REPORT_ID, undefined, ADMIN_ACCOUNT_ID, false, undefined);
+        expect(pressLockedBankAccount).toHaveBeenCalledWith(LOCKED_BANK_ACCOUNT_ID, expect.any(Function), CONCIERGE_REPORT_ID, undefined, undefined);
+        expect(navigateToConciergeChat).toHaveBeenCalledWith({
+            conciergeReportID: CONCIERGE_REPORT_ID,
+            introSelected: undefined,
+            currentUserAccountID: ADMIN_ACCOUNT_ID,
+            isSelfTourViewed: false,
+            betas: undefined,
+        });
     });
 });

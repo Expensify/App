@@ -3431,7 +3431,9 @@ var require_CONST = __commonJS({
         REGISTER_AUTHENTICATION_KEY: "register_authentication_key",
         REPLACE_CARD: "replace_card",
         SHIP_CARD: "ship_card",
-        REPORT_CARD_FRAUD: "report_card_fraud"
+        REPORT_CARD_FRAUD: "report_card_fraud",
+        ISSUE_CARD: "issue_card",
+        UPDATE_CARD: "update_card"
       },
       EXPENSIFY_CARD: {
         FEED_NAME: "Expensify Card",
@@ -23108,9 +23110,22 @@ var require_ExpensiMark = __commonJS({
     var Logger_1 = __importDefault(require_Logger());
     var Utils = __importStar(require_utils());
     var EXTRAS_DEFAULT = {};
+    var ASCII_DIGIT_START = "0".charCodeAt(0);
+    var ASCII_DIGIT_END = "9".charCodeAt(0);
+    var ASCII_UPPERCASE_START = "A".charCodeAt(0);
+    var ASCII_UPPERCASE_END = "Z".charCodeAt(0);
+    var ASCII_LOWERCASE_START = "a".charCodeAt(0);
+    var ASCII_LOWERCASE_END = "z".charCodeAt(0);
+    var ASCII_WHITESPACE_END = " ".charCodeAt(0);
+    var NON_BREAKING_SPACE_CODE = 160;
+    var URL_PROTOCOLS = ["https://", "http://", "ftps://", "ftp://"];
+    var URL_CANDIDATE_PREFIX_CHARACTERS = "@_*~";
+    var PROTECTED_TAG_NAMES = /* @__PURE__ */ new Set(["a", "code", "pre", "video"]);
     var MARKDOWN_LINK_REGEX = new RegExp(`\\[((?:[^\\[\\]\\r\\n]*(?:\\[[^\\[\\]\\r\\n]*][^\\[\\]\\r\\n]*)*))]\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, "gi");
     var MARKDOWN_IMAGE_REGEX = new RegExp(`\\!(?:\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)])?\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, "gi");
     var MARKDOWN_VIDEO_REGEX = new RegExp(`\\!(?:\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)])?\\(((${UrlPatterns.MARKDOWN_URL_REGEX})\\.(?:${Constants.CONST.VIDEO_EXTENSIONS.join("|")}))\\)(?![^<]*(<\\/pre>|<\\/code>))`, "gi");
+    var BOLD_MARKDOWN_REGEX = /(?<!<[^>]*)(\b_|\B)\*(?!(?:<\/em))(?![^<]*(?:<\/pre>|<\/code>|<\/a>|<\/video>))((?![\s*])[\s\S]*?[^\s*](?<!\s))\*\B(?![^<]*>)(?![^<]*(<\/pre>|<\/code>|<\/a>|<\/video>))/g;
+    var STRIKETHROUGH_MARKDOWN_REGEX = /(?<!<[^>]*)\B~((?![\s~])[\s\S]*?[^\s~](?<!\s))~\B(?![^<]*>)(?![^<]*(<\/pre>|<\/code>|<\/a>|<\/video>))/g;
     var SLACK_SPAN_NEW_LINE_TAG = '<span class="c-mrkdwn__br" data-stringify-type="paragraph-break" style="box-sizing: inherit; display: block; height: unset;"></span>';
     var VICTORY_CHART_REGEX = /<VictoryChart\b[^>]*\/>|<VictoryChart\b[^>]*>[\s\S]*?<\/VictoryChart>/gi;
     var VICTORY_CHART_PLACEHOLDER_DELIMITER = String.fromCharCode(0);
@@ -23149,6 +23164,218 @@ var require_ExpensiMark = __commonJS({
         return text.replace(regexp, (...args) => replacement(extras, ...args));
       }
       return text.replace(regexp, replacement);
+    }
+    function isAsciiAlphaNumeric(character) {
+      if (!character) {
+        return false;
+      }
+      const code = character.charCodeAt(0);
+      return code >= ASCII_DIGIT_START && code <= ASCII_DIGIT_END || code >= ASCII_UPPERCASE_START && code <= ASCII_UPPERCASE_END || code >= ASCII_LOWERCASE_START && code <= ASCII_LOWERCASE_END;
+    }
+    function isWordCharacter(character) {
+      return character === "_" || isAsciiAlphaNumeric(character);
+    }
+    function canOpenBoldMarkdown(text, position, isProtected) {
+      if (isProtected) {
+        return false;
+      }
+      const nextCharacter = text[position + 1];
+      if (!nextCharacter || /\s|\*/.test(nextCharacter) || text.startsWith("</em", position + 1)) {
+        return false;
+      }
+      const previousCharacter = text[position - 1];
+      if (!isWordCharacter(previousCharacter)) {
+        return true;
+      }
+      return previousCharacter === "_" && !isWordCharacter(text[position - 2]);
+    }
+    function canOpenStrikethroughMarkdown(text, position) {
+      if (isWordCharacter(text[position - 1])) {
+        return false;
+      }
+      const nextCharacter = text[position + 1];
+      return !!nextCharacter && !/\s|~/.test(nextCharacter);
+    }
+    function canCloseMarkdown(text, position, marker) {
+      const previousCharacter = text[position - 1];
+      return !!previousCharacter && !/\s/.test(previousCharacter) && previousCharacter !== marker && !isWordCharacter(text[position + 1]);
+    }
+    function updateProtectedTagStack(text, tagStart, protectedTags) {
+      var _a, _b;
+      const tagEnd = text.indexOf(">", tagStart + 1);
+      if (tagEnd === -1) {
+        return void 0;
+      }
+      const tag = text.slice(tagStart + 1, tagEnd).trim();
+      const isClosingTag = tag.startsWith("/");
+      const tagName = (_b = (_a = tag.match(/^\/?\s*([a-z][a-z0-9-]*)/i)) === null || _a === void 0 ? void 0 : _a[1]) === null || _b === void 0 ? void 0 : _b.toLowerCase();
+      if (tagName && PROTECTED_TAG_NAMES.has(tagName)) {
+        if (isClosingTag) {
+          const matchingTagIndex = protectedTags.lastIndexOf(tagName);
+          if (matchingTagIndex !== -1) {
+            protectedTags.splice(matchingTagIndex, 1);
+          }
+        } else if (!tag.endsWith("/")) {
+          protectedTags.push(tagName);
+        }
+      }
+      return tagEnd + 1;
+    }
+    function isHostnameCharacter(character) {
+      return !!character && (isAsciiAlphaNumeric(character) || character === "-" || character === ".");
+    }
+    function isUrlBoundarySpace(character) {
+      const code = character.charCodeAt(0);
+      return code <= ASCII_WHITESPACE_END || code === NON_BREAKING_SPACE_CODE;
+    }
+    function getProtocolAt(text, position) {
+      var _a;
+      const firstCharacter = (_a = text[position]) === null || _a === void 0 ? void 0 : _a.toLowerCase();
+      if (firstCharacter !== "h" && firstCharacter !== "f") {
+        return void 0;
+      }
+      return URL_PROTOCOLS.find((protocol) => text.slice(position, position + protocol.length).toLowerCase() === protocol);
+    }
+    function findHostnameEnd(text, hostnameStart, dotPosition) {
+      let hostnameEnd = dotPosition + 1;
+      while (hostnameEnd < text.length && (isAsciiAlphaNumeric(text[hostnameEnd]) || text[hostnameEnd] === "-")) {
+        hostnameEnd++;
+      }
+      if (hostnameStart === dotPosition || hostnameEnd === dotPosition + 1) {
+        return void 0;
+      }
+      return hostnameEnd;
+    }
+    function extendUrlCandidateBoundaries(text, start, end) {
+      let candidateStart = start;
+      while (candidateStart > 0 && URL_CANDIDATE_PREFIX_CHARACTERS.includes(text[candidateStart - 1])) {
+        candidateStart--;
+      }
+      let candidateEnd = end;
+      while (candidateEnd < text.length && !isUrlBoundarySpace(text[candidateEnd]) && text[candidateEnd] !== "<") {
+        candidateEnd++;
+      }
+      return { start: candidateStart, end: candidateEnd };
+    }
+    function findUrlCandidates(text) {
+      const candidates = [];
+      const protectedTags = [];
+      let index = 0;
+      let hostnameRunStart = 0;
+      while (index < text.length) {
+        if (text[index] === "<") {
+          const nextIndex = updateProtectedTagStack(text, index, protectedTags);
+          if (nextIndex === void 0) {
+            break;
+          }
+          index = nextIndex;
+          hostnameRunStart = index;
+          continue;
+        }
+        if (protectedTags.length > 0) {
+          index++;
+          hostnameRunStart = index;
+          continue;
+        }
+        const matchedProtocol = getProtocolAt(text, index);
+        if (matchedProtocol) {
+          const candidate2 = extendUrlCandidateBoundaries(text, index, index + matchedProtocol.length);
+          candidates.push(candidate2);
+          index = candidate2.end;
+          hostnameRunStart = candidate2.end;
+          continue;
+        }
+        if (!isHostnameCharacter(text[index])) {
+          hostnameRunStart = index + 1;
+          index++;
+          continue;
+        }
+        if (text[index] !== ".") {
+          index++;
+          continue;
+        }
+        const hostnameEnd = findHostnameEnd(text, hostnameRunStart, index);
+        if (hostnameEnd === void 0) {
+          index++;
+          continue;
+        }
+        const candidate = extendUrlCandidateBoundaries(text, hostnameRunStart, hostnameEnd);
+        candidates.push(candidate);
+        index = candidate.end;
+        hostnameRunStart = candidate.end;
+      }
+      return candidates;
+    }
+    function replaceMarkdownCandidates(text, regexp, replacement, marker, canOpen) {
+      if (!text.includes(marker)) {
+        return text;
+      }
+      const markers = [];
+      const protectedTags = [];
+      let index = 0;
+      while (index < text.length) {
+        if (text[index] === "<") {
+          const nextIndex = updateProtectedTagStack(text, index, protectedTags);
+          if (nextIndex === void 0) {
+            break;
+          }
+          index = nextIndex;
+          continue;
+        }
+        if (text[index] === marker) {
+          markers.push({ position: index, isProtected: protectedTags.length > 0 });
+        }
+        index++;
+      }
+      if (markers.length < 2) {
+        return text;
+      }
+      const output = [];
+      const candidateRegex = regexp;
+      let outputStart = 0;
+      let openingMarker;
+      for (const currentMarker of markers) {
+        const markerPosition = currentMarker.position;
+        if (openingMarker === void 0) {
+          openingMarker = canOpen(text, markerPosition, currentMarker.isProtected) ? currentMarker : void 0;
+          continue;
+        }
+        if (currentMarker.isProtected || !canCloseMarkdown(text, markerPosition, marker)) {
+          continue;
+        }
+        if (openingMarker.isProtected) {
+          openingMarker = void 0;
+          continue;
+        }
+        const openingPosition = openingMarker.position;
+        const prefixLength = openingPosition > 0 ? 1 : 0;
+        const suffixLength = markerPosition + 1 < text.length ? 1 : 0;
+        const candidateStart = openingPosition - prefixLength;
+        const candidateEnd = markerPosition + 1 + suffixLength;
+        const candidate = text.slice(candidateStart, candidateEnd);
+        candidateRegex.lastIndex = 0;
+        const candidateMatch = candidateRegex.exec(candidate);
+        if (!candidateMatch) {
+          openingMarker = canOpen(text, markerPosition, currentMarker.isProtected) ? currentMarker : void 0;
+          continue;
+        }
+        candidateRegex.lastIndex = 0;
+        const replacedCandidate = replaceTextWithExtras(candidate, candidateRegex, EXTRAS_DEFAULT, replacement);
+        if (replacedCandidate !== candidate) {
+          const replacedCoreEnd = suffixLength ? replacedCandidate.length - suffixLength : replacedCandidate.length;
+          output.push(text.slice(outputStart, openingPosition));
+          output.push(replacedCandidate.slice(prefixLength, replacedCoreEnd));
+          outputStart = markerPosition + 1;
+          openingMarker = void 0;
+          continue;
+        }
+        openingMarker = void 0;
+      }
+      if (output.length === 0) {
+        return text;
+      }
+      output.push(text.slice(outputStart));
+      return output.join("");
     }
     function replaceBlockElementWithNewLine(htmlString) {
       let splitText = htmlString.replaceAll(/<blockquote>> (<div.*?>|<\/div>|<comment.*?>|\n<\/comment>|<\/comment>|<h1>|<\/h1>|<h2>|<\/h2>|<h3>|<\/h3>|<h4>|<\/h4>|<h5>|<\/h5>|<h6>|<\/h6>|<p>|<\/p>|<li>|<\/li>)/gi, "<blockquote>> ").split(/<div.*?>|<\/div>|<comment.*?>|\n<\/comment>|<\/comment>|<h1>|<\/h1>|<h2>|<\/h2>|<h3>|<\/h3>|<h4>|<\/h4>|<h5>|<\/h5>|<h6>|<\/h6>|<p>|<\/p>|<li>|<\/li>|<blockquote>|<\/blockquote>/);
@@ -23570,7 +23797,7 @@ var require_ExpensiMark = __commonJS({
             name: "autolink",
             process: (textToProcess, replacement) => {
               const regex2 = new RegExp(`(?![^<]*>|[^<>]*<\\/(?!h1>))([_*~]*?)${UrlPatterns.MARKDOWN_URL_REGEX}\\1(?!((?:(?!<a).)+)?<\\/a>|[^<]*(<\\/pre>|<\\/code>))`, "gi");
-              return this.modifyTextForUrlLinks(regex2, textToProcess, replacement);
+              return this.modifyTextForUrlLinks(regex2, textToProcess, replacement, true);
             },
             replacement: (_extras, _match, g1, g2) => {
               const href = str_1.default.sanitizeURL(g2);
@@ -23675,7 +23902,7 @@ ${"<blockquote>".repeat(i)}`, "\n");
             // \B will match everything that \b doesn't, so it works
             // for * and ~: https://www.rexegg.com/regex-boundaries.html#notb
             name: "bold",
-            regex: /(?<!<[^>]*)(\b_|\B)\*(?!(?:<\/em))(?![^<]*(?:<\/pre>|<\/code>|<\/a>|<\/video>))((?![\s*])[\s\S]*?[^\s*](?<!\s))\*\B(?![^<]*>)(?![^<]*(<\/pre>|<\/code>|<\/a>|<\/video>))/g,
+            process: (textToProcess, replacement) => replaceMarkdownCandidates(textToProcess, BOLD_MARKDOWN_REGEX, replacement, "*", canOpenBoldMarkdown),
             replacement: (_extras, match, g1, g2) => {
               if (g1.includes("_")) {
                 return `${g1}<strong>${g2}</strong>`;
@@ -23685,7 +23912,7 @@ ${"<blockquote>".repeat(i)}`, "\n");
           },
           {
             name: "strikethrough",
-            regex: /(?<!<[^>]*)\B~((?![\s~])[\s\S]*?[^\s~](?<!\s))~\B(?![^<]*>)(?![^<]*(<\/pre>|<\/code>|<\/a>|<\/video>))/g,
+            process: (textToProcess, replacement) => replaceMarkdownCandidates(textToProcess, STRIKETHROUGH_MARKDOWN_REGEX, replacement, "~", canOpenStrikethroughMarkdown),
             replacement: (_extras, match, g1) => g1.includes("</pre>") || containsNonPairTag(g1) ? match : `<del>${g1}</del>`
           },
           {
@@ -24075,7 +24302,25 @@ ${g2}
       /**
        * Checks matched URLs for validity and replace valid links with html elements
        */
-      modifyTextForUrlLinks(regex2, textToCheck, replacement) {
+      modifyTextForUrlLinks(regex2, textToCheck, replacement, shouldScanForUrls = false) {
+        if (shouldScanForUrls) {
+          const candidates = findUrlCandidates(textToCheck);
+          if (candidates.length === 0) {
+            return textToCheck;
+          }
+          const output = [];
+          const candidateRegex = regex2;
+          let outputStart = 0;
+          for (const { start, end } of candidates) {
+            const candidate = textToCheck.slice(start, end);
+            candidateRegex.lastIndex = 0;
+            output.push(textToCheck.slice(outputStart, start));
+            output.push(this.modifyTextForUrlLinks(candidateRegex, candidate, replacement));
+            outputStart = end;
+          }
+          output.push(textToCheck.slice(outputStart));
+          return output.join("");
+        }
         let match = regex2.exec(textToCheck);
         let replacedText = "";
         let startIndex = 0;

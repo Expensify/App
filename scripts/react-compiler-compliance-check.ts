@@ -248,7 +248,7 @@ function getMainSource(ref: string, mainPath: string): string | undefined {
  */
 async function checkChangedFiles(remote: string, verbose: boolean, checkOxc: OxcChecker): Promise<boolean> {
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
-    const changedFiles = await Git.getChangedFilesWithStatus(mainBaseCommitHash);
+    const changedFiles = await Git.getChangedFilesWithStatus(mainBaseCommitHash, undefined, true, FILE_EXTENSIONS);
 
     const reactFiles = changedFiles.filter((f) => FILE_EXTENSIONS.some((ext) => f.filename.endsWith(ext)) && f.status !== 'removed');
 

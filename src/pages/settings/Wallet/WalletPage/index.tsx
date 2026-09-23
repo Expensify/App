@@ -28,12 +28,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
-import usePermissions from '@hooks/usePermissions';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -59,7 +59,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -99,10 +99,10 @@ function WalletPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [nvpLockedVbaUnlockRequested] = useOnyx(ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
-    const {isBetaEnabled} = usePermissions();
-    const shouldShowWalletConnectionStatus = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin, email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -131,6 +131,7 @@ function WalletPage() {
     const kycWallRef = useContext(KYCWallContext);
     const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
     const personalCardList = useBankLinkedPersonalCards();
+    useRefreshPendingDigitalWalletApproval();
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -158,8 +159,12 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
-            pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            if (nvpLockedVbaUnlockRequested?.[`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${accountData.bankAccountID}`]) {
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+                return;
+            }
+            pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
             return;
         }
 
@@ -380,7 +385,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action === ModalActions.CONFIRM) {
@@ -468,7 +473,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         resetSelectedPaymentMethodData();
         if (result.action !== ModalActions.CONFIRM) {
@@ -629,6 +634,7 @@ function WalletPage() {
                                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                                     cardID: String(paymentMethod.methodID),
                                 }),
+                                searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                             }),
                         );
                     });
@@ -709,7 +715,7 @@ function WalletPage() {
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
-                                shouldShowConnectionStatus={shouldShowWalletConnectionStatus}
+                                shouldShowConnectionStatus
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
@@ -729,7 +735,7 @@ function WalletPage() {
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                    shouldShowConnectionStatus={shouldShowWalletConnectionStatus}
+                                    shouldShowConnectionStatus
                                 />
                                 <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
                                     <MenuItem
@@ -818,7 +824,7 @@ function WalletPage() {
                                         source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                         shouldIncludeDebitCard={hasActivatedWallet}
                                     >
-                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
+                                        {(triggerKYCFlow, buttonRef: RefObject<ComponentRef<typeof View> | null>) => {
                                             if (shouldShowLoadingSpinner) {
                                                 return null;
                                             }
@@ -826,7 +832,7 @@ function WalletPage() {
                                             if (hasActivatedWallet) {
                                                 return (
                                                     <MenuItem
-                                                        ref={buttonRef as ForwardedRef<View>}
+                                                        ref={buttonRef as ForwardedRef<ComponentRef<typeof View>>}
                                                         title={translate('common.transferBalance')}
                                                         icon={icons.Transfer}
                                                         onPress={(event) => {
@@ -873,7 +879,7 @@ function WalletPage() {
                                                 <MenuItem
                                                     title={translate('walletPage.enableWallet')}
                                                     icon={icons.Wallet}
-                                                    ref={buttonRef as ForwardedRef<View>}
+                                                    ref={buttonRef as ForwardedRef<ComponentRef<typeof View>>}
                                                     onPress={() => {
                                                         if (isAccountLocked) {
                                                             showLockedAccountModal();

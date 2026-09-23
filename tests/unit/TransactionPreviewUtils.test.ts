@@ -54,7 +54,6 @@ const basicProps = {
     transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
-    shouldShowCanceledStatus: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
@@ -125,7 +124,13 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                            retryParams: {
+                                transactionID: basicProps.transaction.transactionID,
+                                source: 'source.com',
+                                transactionPolicy: undefined,
+                                transactionPolicyTagList: undefined,
+                                isVendorMatchingBetaEnabled: false,
+                            },
                         },
                     },
                 },
@@ -175,6 +180,31 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
+        });
+
+        it('does not return the missing amount message for a zero amount expense created in the self DM', () => {
+            // Given a $0 expense created in the self DM, which is stored as unreported so no iou report resolves for it
+            const functionArgs: Parameters<typeof getTransactionPreviewTextAndTranslationPaths>[0] = {
+                ...basicProps,
+                iouReport: undefined,
+                transaction: {
+                    ...basicProps.transaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 0,
+                    modifiedAmount: undefined,
+                    merchant: 'Valid Merchant',
+                    created: '2024-01-01',
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When we build the preview text for it
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then no missing amount error is shown, because $0 is a valid amount for an unreported expense
+            expect(result.RBRMessage.translationPath).not.toEqual('iou.missingAmount');
         });
 
         it('should display cash or card as the preview type', () => {
@@ -256,16 +286,10 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('does not show the canceled status inside a report preview, because the preview header already shows it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: false};
+        it('does not show the canceled status, because a cancelled payment is only recorded by its system message', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);
-        });
-
-        it('shows the canceled status in a standalone preview, because nothing else on that surface reports it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: true};
-            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
         });
 
         it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
@@ -457,7 +481,13 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, transactionPolicyTagList: undefined},
+                            retryParams: {
+                                transactionID: basicProps.transaction.transactionID,
+                                source: 'source.com',
+                                transactionPolicy: undefined,
+                                transactionPolicyTagList: undefined,
+                                isVendorMatchingBetaEnabled: false,
+                            },
                         },
                     },
                 },
@@ -538,12 +568,6 @@ describe('TransactionPreviewUtils', () => {
             expect(result.shouldShowDescription).toBeFalsy();
         });
 
-        it("should show tag if it's a policy expense chat and tag is present", () => {
-            const functionArgs = {...basicProps, isReportAPolicyExpenseChat: true, transactionDetails: {tag: 'Transport'}};
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldShowTag).toBeTruthy();
-        });
-
         it('should correctly show violation message if there are multiple violations', () => {
             const functionArgs = {
                 ...basicProps,
@@ -560,6 +584,30 @@ describe('TransactionPreviewUtils', () => {
         it('should ensure RBR is not shown when no violation and no hold', () => {
             const functionArgs = {...basicProps, isTransactionOnHold: false};
             const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowRBR).toBeFalsy();
+        });
+
+        it('should ensure RBR is not shown for a zero amount expense created in the self DM', () => {
+            // Given a $0 expense created in the self DM, which is stored as unreported so no iou report resolves for it
+            const functionArgs = {
+                ...basicProps,
+                iouReport: undefined,
+                transaction: {
+                    ...basicProps.transaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 0,
+                    modifiedAmount: undefined,
+                    merchant: 'Valid Merchant',
+                    created: '2024-01-01',
+                },
+                violations: [],
+                isTransactionOnHold: false,
+            };
+
+            // When we compute the preview conditionals
+            const result = createTransactionPreviewConditionals(functionArgs);
+
+            // Then no red brick road is shown, so the fix clears the dot and not just the message
             expect(result.shouldShowRBR).toBeFalsy();
         });
 
@@ -644,6 +692,48 @@ describe('TransactionPreviewUtils', () => {
                 };
                 const result = createTransactionPreviewConditionals(functionArgs);
                 expect(result.shouldShowRBR).toBeTruthy();
+            });
+
+            describe('with an over auto-approval limit notice', () => {
+                const overLimitPolicy = {
+                    ...createRandomPolicy(1),
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+                // The notice arrives from the backend without `showInReview`, which is what keeps it out of the notice-type check.
+                const overLimitViolations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}] as TransactionViolation[];
+                const submittedReport = {
+                    ...basicProps.iouReport,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: overLimitPolicy.id,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                it('should show RBR when the submitter is also the approver', () => {
+                    const functionArgs = {
+                        ...basicProps,
+                        policy: overLimitPolicy,
+                        iouReport: {...submittedReport, managerID: currentUserAccountID},
+                        violations: overLimitViolations,
+                        currentUserAccountID,
+                    };
+                    const result = createTransactionPreviewConditionals(functionArgs);
+                    expect(result.shouldShowRBR).toBeTruthy();
+                });
+
+                it('should not show RBR when the submitter is not the approver', () => {
+                    const functionArgs = {
+                        ...basicProps,
+                        policy: overLimitPolicy,
+                        iouReport: {...submittedReport, managerID: currentUserAccountID + 1},
+                        violations: overLimitViolations,
+                        currentUserAccountID,
+                    };
+                    const result = createTransactionPreviewConditionals(functionArgs);
+                    expect(result.shouldShowRBR).toBeFalsy();
+                });
             });
         });
     });
@@ -922,7 +1012,7 @@ describe('TransactionPreviewUtils', () => {
                         source: 'source.com',
                         filename: 'file_name.png',
                         action: 'replaceReceipt',
-                        retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
+                        retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined, isVendorMatchingBetaEnabled: false},
                     },
                 },
             };
@@ -988,6 +1078,45 @@ describe('TransactionPreviewUtils', () => {
             await waitForBatchedUpdates();
             const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true}];
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, undefined, paidGroupPolicy)).toBe(true);
+        });
+
+        it('should return true for an over auto-approval limit notice when the submitter is also the approver', () => {
+            const overLimitPolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const submittedReport = {
+                ...basicProps.iouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: overLimitPolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: rbrAccountID,
+                managerID: rbrAccountID,
+            };
+            // The notice arrives from the backend without `showInReview`, which is what keeps it out of the notice-type check.
+            const violations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, submittedReport, undefined, overLimitPolicy)).toBe(true);
+        });
+
+        it('should return false for an over auto-approval limit notice when the submitter is not the approver', () => {
+            const overLimitPolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const submittedReport = {
+                ...basicProps.iouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: overLimitPolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: rbrAccountID,
+                managerID: rbrAccountID + 1,
+            };
+            const violations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, submittedReport, undefined, overLimitPolicy)).toBe(false);
         });
 
         it('should return true for a distance request with MODIFIED_AMOUNT violation', () => {

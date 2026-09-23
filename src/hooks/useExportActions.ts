@@ -1,6 +1,6 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {exportReceiptsToZip} from '@libs/actions/Export';
@@ -12,6 +12,7 @@ import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/Polic
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {getReportAccountingExportActions} from '@libs/ReportSecondaryActionUtils';
 import {getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
+import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +63,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactionIDs = Object.values(reportTransactions).map((t) => t.transactionID);
+    // The download receipts label is singular or plural depending on how many receipts the report actually has.
+    const receiptCount = Object.values(reportTransactions).filter((transaction) => hasReceiptTransactionUtils(transaction)).length;
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
@@ -85,7 +88,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const {showDecisionModal} = useDecisionModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
-    const {trackExport} = useExportDownloadStatus();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
@@ -102,6 +105,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
         'ArrowRight',
     ]);
@@ -122,7 +127,23 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         });
     };
 
+    const showEmptyReportDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedEmptyReportDescription', {count: 1}),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    // A report without expenses has nothing to export, so the export is blocked the same way it is in the Search export flow.
+    const isEmptyReport = transactionIDs.length === 0 && (moneyRequestReport?.transactionCount ?? 0) === 0;
+
     const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string, policyID?: string) => {
+        if (isEmptyReport) {
+            showEmptyReportDownloadErrorModal();
+            return;
+        }
+
         if (isOffline) {
             showOfflineModal();
             return;
@@ -132,7 +153,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             return;
         }
 
-        const exportID = queueExportSearchWithTemplate(
+        queueExportSearchWithTemplate(
             {
                 templateName,
                 templateType,
@@ -144,7 +165,9 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
             true,
         );
-        trackExport(exportID);
+
+        // Clear the selection now that the export has started. The app-level ExportDownloadStatusManager shows the modal.
+        clearSelectedTransactions(true);
     };
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = {
@@ -155,6 +178,10 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.EXPORT_FILE,
             onSelected: () => {
                 if (!moneyRequestReport) {
+                    return;
+                }
+                if (isEmptyReport) {
+                    showEmptyReportDownloadErrorModal();
                     return;
                 }
                 if (isOffline) {
@@ -269,7 +296,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
-            text: translate('common.downloadAsPDF'),
+            text: translate('common.downloadReport', {count: 1}),
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_PDF,
             onSelected: () => {
@@ -286,7 +313,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS,
-            text: translate('common.downloadReceipts'),
+            text: translate('common.downloadReceipt', {count: receiptCount}),
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_RECEIPTS,
             onSelected: () => {
@@ -297,8 +324,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                const exportID = exportReceiptsToZip({reportIDs: [moneyRequestReport.reportID]});
-                trackExport(exportID);
+                exportReceiptsToZip({reportIDs: [moneyRequestReport.reportID]});
+                clearSelectedTransactions(true);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {

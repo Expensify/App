@@ -30,7 +30,6 @@ type AvatarLayoutResult = {
     /** Resolved layout primitive to render */
     layout: AvatarLayout;
 
-    /** The primary avatar icon */
     primaryIcon: Icon | undefined;
 
     /** The secondary avatar icon, when present */

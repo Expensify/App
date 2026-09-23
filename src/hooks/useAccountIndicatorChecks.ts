@@ -1,8 +1,10 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
-import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector, hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
+
+import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +44,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
     } = useCardFeedErrors();
     const {isPolicyAdmin} = usePoliciesWithCardFeedErrors();
+    const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
     const accountChecks: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS]: Object.keys(userWallet?.errors ?? {}).length > 0,
@@ -69,7 +72,8 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
-        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards, privatePersonalDetails),
+        [CONST.INDICATOR_STATUS.HAS_HOME_ADDRESS_INFO]: shouldShowAddHomeAddress,
+        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards, privatePersonalDetails) || hasCardPendingDigitalWalletApproval(allCards),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(
             stripeCustomerId,
             retryBillingSuccessful,

@@ -6,7 +6,7 @@ import type {ReportAction} from '@src/types/onyx';
 import {useCallback, useMemo} from 'react';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as originalUseOnyx} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 /**
  * Live submit/approve/export report actions for Search views. The wrapped useOnyx reads REPORT_ACTIONS from the
@@ -20,7 +20,9 @@ function useLiveFilteredReportActions(reportIDs?: string[]): Record<string, Repo
             reportIDs ? selectFilteredReportActionsForReports(reportActions, reportActionsKeys) : selectFilteredReportActions(reportActions),
         [reportIDs, reportActionsKeys],
     );
-    const [liveReportActions] = originalUseOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector});
+    const [liveReportActions] = useOnyxWithoutSnapshots<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+        selector,
+    });
     return liveReportActions;
 }
 

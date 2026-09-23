@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import TestToolRow from '@components/TestToolRow';
 
 import useLocalize from '@hooks/useLocalize';

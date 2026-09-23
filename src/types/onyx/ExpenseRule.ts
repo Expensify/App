@@ -50,7 +50,6 @@ type ExpenseRule = {
     /** The tag set by the rule */
     tag?: string;
 
-    /** The tax rate set by the rule */
     tax?: Record<string, PersonalRuleTaxRate>;
 
     /** The pending action for offline support */

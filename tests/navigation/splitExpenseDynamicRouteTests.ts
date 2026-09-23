@@ -32,7 +32,7 @@ describe('split expense dynamic routes', () => {
         expect(route?.name).toBe(screen);
         expect(route?.params).toMatchObject({
             splitReportID: SPLIT_REPORT_ID,
-            transactionID: TRANSACTION_ID,
+            originalTransactionID: TRANSACTION_ID,
             splitExpenseTransactionID: SPLIT_TRANSACTION_ID,
         });
     });
@@ -48,7 +48,7 @@ describe('split expense dynamic routes', () => {
         const route = getFocusedRoute(url);
 
         expect(route?.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE);
-        expect(route?.params).toMatchObject({reportID: CHAT_REPORT_ID, splitReportID: SPLIT_REPORT_ID, transactionID: TRANSACTION_ID});
+        expect(route?.params).toMatchObject({reportID: CHAT_REPORT_ID, splitReportID: SPLIT_REPORT_ID, originalTransactionID: TRANSACTION_ID});
     });
 
     it('restores the active tab from the URL', () => {
@@ -79,6 +79,29 @@ describe('split expense dynamic routes', () => {
         const route = getFocusedRoute(url);
 
         expect(route?.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE);
-        expect(route?.params).toMatchObject({splitReportID: SPLIT_REPORT_ID, transactionID: TRANSACTION_ID});
+        expect(route?.params).toMatchObject({splitReportID: SPLIT_REPORT_ID, originalTransactionID: TRANSACTION_ID});
+    });
+
+    it('resolves the tapped split, not the split inherited from the edit-splits overview query, when their transaction IDs differ', () => {
+        const OTHER_SPLIT_TRANSACTION_ID = '1112223334445556';
+        const overviewUrl = createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(SPLIT_REPORT_ID, TRANSACTION_ID, SPLIT_TRANSACTION_ID), `/r/${CHAT_REPORT_ID}`);
+        const editUrl = createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(SPLIT_REPORT_ID, OTHER_SPLIT_TRANSACTION_ID), overviewUrl);
+
+        const route = getFocusedRoute(editUrl);
+
+        expect(route?.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT);
+        expect(route?.params).toMatchObject({editSplitExpenseTransactionID: OTHER_SPLIT_TRANSACTION_ID});
+    });
+
+    it('does not collide with the transactionID query param used by expense step screens opened from the split edit page', () => {
+        const overviewUrl = createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(SPLIT_REPORT_ID, TRANSACTION_ID), `/r/${CHAT_REPORT_ID}`);
+        const editUrl = createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(SPLIT_REPORT_ID, SPLIT_TRANSACTION_ID), overviewUrl);
+
+        expect(() =>
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT_EXPENSE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, SPLIT_REPORT_ID),
+                editUrl,
+            ),
+        ).not.toThrow();
     });
 });

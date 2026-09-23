@@ -5,8 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
@@ -41,8 +39,6 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
     return (
         <BaseWidgetItem
             icon={icons.Connect}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
             title={translate('homePage.timeSensitiveSection.fixPolicyConnection.title', {integrationName})}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}

@@ -36,6 +36,10 @@ if [ -d "$APP_FRAMEWORKS_DIR" ]; then
     fi
     echo "Stripping framework: $framework_name"
     strip -rSx "$framework_binary"
+    if [ -d "$framework_dir/dSYMs" ]; then
+      echo "Removing embedded dSYMs from: $framework_name"
+      rm -rf "$framework_dir/dSYMs"
+    fi
     codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" --preserve-metadata=identifier,entitlements "$framework_dir"
   done
 else
