@@ -5482,6 +5482,11 @@ ${amount} pour ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Affectations',
                 },
             },
+            fxExpenseAccount: 'Compte de frais de conversion de devise',
+            fxExpenseAccountDescription:
+                'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous ajouterons ces frais à la facture à payer en tant que ligne imputée à ce compte.',
+            noExpenseAccountsFound: 'Aucun compte trouvé',
+            noExpenseAccountsFoundDescription: 'Veuillez synchroniser à nouveau la connexion après l’ajout des comptes du grand livre général dans Certinia.',
         },
         netsuite: {
             subsidiary: 'Filiale',

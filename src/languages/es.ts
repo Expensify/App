@@ -5406,6 +5406,11 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Asignaciones',
                 },
             },
+            fxExpenseAccount: 'Cuenta de comisiones por conversión de divisas',
+            fxExpenseAccountDescription:
+                'Cuando tu empresa cubra el coste de conversión de divisa en un pago realizado en el extranjero, añadiremos ese coste a la factura por pagar como una partida imputada a esta cuenta.',
+            noExpenseAccountsFound: 'No se encontraron cuentas',
+            noExpenseAccountsFoundDescription: 'Vuelve a sincronizar la conexión después de añadir las cuentas del libro mayor en Certinia.',
         },
         netsuite: {
             subsidiary: 'Subsidiaria',
