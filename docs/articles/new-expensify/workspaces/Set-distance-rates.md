@@ -1,8 +1,8 @@
 ---
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands, track tax, tax reclaimable on]
-internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, does not cover creating distance expenses.
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands, require GPS or map entry, disable manual distance, disable odometer, block manual mileage, GPS only mileage]
+internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates and requiring GPS or map entry, does not cover creating distance expenses.
 ---
 
 # Set Distance Rates
@@ -15,7 +15,7 @@ Distance rates determine how much members are reimbursed for distance-based trav
 
 Workspace admins can configure distance rates for a workspace.
 
-Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, or AUD.
+Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
 
 ---
 
@@ -53,9 +53,9 @@ To enable **Track tax** for distance rates:
 3. Select **Settings**.
 4. Enable **Track tax**
 
-Once **Track tax** is enabled, you can set a **Tax rate** and a **Tax reclaimable on** amount on an existing distance rate. The selected tax rate is automatically applied when the distance rate is used. 
+Once **Track tax** is enabled, you can assign a tax rate and tax reclaimable amount to an existing distance rate. The selected tax rate is automatically applied when the distance rate is used. 
 
-**Note:** You can't assign a tax rate when creating a distance rate. Create the distance rate first, then edit it to set **Tax rate** and **Tax reclaimable on**.
+**Note:** You can't assign a tax rate when creating a distance rate. Create the distance rate first, then edit it to configure the tax rate and tax reclaimable amount.
 
 ## How to change a distance rate, effective dates, or tax rate
 
@@ -68,7 +68,7 @@ Once **Track tax** is enabled, you can set a **Tax rate** and a **Tax reclaimabl
    - **Start date**
    - **End date**
    - **Tax rate** (if enabled)
-   - **Tax reclaimable on** (if enabled)
+   - **Tax reclaimable** (if enabled)
 5. Select **Save**.
 
 ---
@@ -88,13 +88,39 @@ To prevent members from using a distance rate, you can either disable it or dele
 
 ---
 
+## How to require GPS or map entry for distance expenses
+
+Enable **Require GPS or map entry** when every distance expense on the workspace must come from a mapped route or a GPS-tracked trip. Manual and odometer entry are disabled for the workspace, so members can't type in a distance or enter odometer readings.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **Settings**.
+4. Enable **Require GPS or map entry**.
+
+<!-- SCREENSHOT:
+Suggestion: The Distance rates Settings panel with the Require GPS or map entry toggle turned on, showing the subtitle "Manual and odometer entry will be disabled."
+Location: Immediately after the numbered steps in this section.
+Purpose: Admins look for this control under the rate list rather than behind Settings, so showing where the toggle sits prevents them from reporting the setting as missing.
+-->
+
+---
+
+## What happens after you enable Require GPS or map entry
+
+- When members create a distance expense on the workspace, only the **Map** and **GPS** tabs appear under **Track distance**. The **Manual** and **Odometer** tabs are hidden.
+- If a member starts a manual or odometer expense somewhere else and then selects this workspace, Expensify blocks the expense and shows **Require GPS or map entry — This workspace requires either map-based or GPS-tracked distance expenses.**
+- Members who belong to more than one workspace keep the **Manual** and **Odometer** tabs until every workspace they belong to requires GPS or map entry.
+- Distance expenses that members track for themselves in **Your space** are not affected.
+
+---
+
 ## How to automatically update distance rates when government rates change
 
 Expensify can automatically update distance rates in your workspace when the standard government reimbursement rate changes, such as the IRS standard mileage rate in the United States or equivalent rates in supported countries.
 
 When **Auto-update government rate** is enabled, Expensify adds a new effective-dated distance rate when a supported government publishes a new rate. This means admins don't need to manually update the standard rate each time it changes.
 
-Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, or AUD.
+Automatic updates are available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
 
 To enable automatic updates:
 
@@ -141,15 +167,11 @@ Yes. Disabled distance rates remain in the workspace but cannot be selected on n
 
 ## Can I apply taxes to distance rates?
 
-Yes. **Taxes** must be enabled on the workspace, and **Track tax** must be enabled for **Distance rates**. You can then edit an existing distance rate to set a **Tax rate** and a **Tax reclaimable on** amount. The selected tax rate is automatically applied when the distance rate is used.
+Yes. **Taxes** must be enabled on the workspace, and **Track tax** must be enabled for **Distance rates**. You can then edit an existing distance rate to assign a tax rate and tax reclaimable amount. The selected tax rate is automatically applied when the distance rate is used.
 
-## What does Tax reclaimable on mean for a distance rate?
+## What does Tax reclaimable mean for a distance rate?
 
-**Tax reclaimable on** is the portion of the distance rate that can be reclaimed as tax. You enter it as a monetary amount in the workspace currency, and Expensify stores it as a percentage of the distance rate. For example, entering 7.00 on a 10.00 rate stores 70%.
-
-## Where can I see when someone changed the Tax reclaimable on amount?
-
-Every change to a distance rate is recorded in the workspace **#admins** room. Because the amount is stored as a percentage of the rate, the message reports the new and previous values as percentages, such as changed the tax reclaimable portion on the distance rate "Standard mileage" to "70%" (previously "50%").
+**Tax reclaimable** represents the portion of the distance rate that can be reclaimed as tax. It is entered as a fixed monetary value for the distance rate.
 
 ## What happens if I delete a distance rate?
 
@@ -163,6 +185,14 @@ No. Updating a distance rate only affects future distance expenses. Existing exp
 
 Yes. When **Distance rates** is enabled, the workspace must always have at least one active distance rate.
 
+## Why can't I turn off Require GPS or map entry?
+
+If the workspace excludes commutes from distance expenses, **Require GPS or map entry** stays on and is locked, because commute exclusions are calculated from route data. Set **Exclude commutes** to **Do not exclude commutes** to unlock the setting.
+
+## Does Require GPS or map entry change distance expenses that already exist?
+
+No. It applies to new distance expenses only. Distance expenses created before you enabled the setting keep the distance that was already recorded.
+
 ## Why isn't Auto-update government rate turned on for my workspace?
 
-**Auto-update government rate** is turned on by default only for new Control workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for Control workspaces with a default currency of USD, CAD, GBP, or AUD.
+**Auto-update government rate** is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
