@@ -28,8 +28,8 @@ function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: 
     const prevResetKeyRef = useRef<string | undefined>(undefined);
     const prevIsExpandedRef = useRef(isExpanded);
 
-    // Only an expand/collapse the user asked for animates. A measurement nobody asked for — a fresh or
-    // recycled list cell scrolling back into view — lands on its final height instead, so scrolling the
+    // Only an expand/collapse the user asked for animates. A measurement nobody asked for, such as a fresh or
+    // recycled list cell scrolling back into view, lands on its final height instead, so scrolling the
     // list does not replay the expand animation.
     const shouldAnimateNextMeasurementRef = useRef(false);
 
@@ -75,14 +75,19 @@ function useExpandCollapseAnimation(isExpanded: boolean, shouldAddBorderHeight: 
             return;
         }
         contentHeight.set(height);
-        const target = isExpanded ? height : 0;
 
         if (shouldAnimateNextMeasurementRef.current) {
             shouldAnimateNextMeasurementRef.current = false;
-            animateHeightTo(animatedHeight, target, setIsRendered);
+            animateHeightTo(animatedHeight, isExpanded ? height : 0, setIsRendered);
             return;
         }
-        animatedHeight.set(target);
+
+        // While collapsed the height is already zero or animating towards it, so leave that animation alone.
+        // Overwriting it here would cancel it, and its completion callback is what unmounts the content.
+        if (!isExpanded) {
+            return;
+        }
+        animatedHeight.set(height);
     };
 
     return {isRendered, animatedStyle, onLayout};
