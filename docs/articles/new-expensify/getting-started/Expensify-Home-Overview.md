@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, Concierge prompt box, ask Concierge from Home, mention someone on Home, at mention, emoji suggestion, emoji shortcode, suggestion list, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the Concierge prompt box and its mention and emoji suggestions, plus the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses, and does not cover what Concierge itself can do.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, Time sensitive, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, unpaid invoice, invoice past due, service interruption, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -30,8 +30,7 @@ Home is the default view when you sign in.
 Home is made up of a small set of sections that summarize what’s happening in your account.
 
 Home includes:
-- The Concierge prompt box
-- **Time-sensitive alerts** (when applicable)
+- **Time sensitive** (when applicable)
 - **For you**
 - **Recently added**
 - **Spend over time** and other insights (when applicable)
@@ -44,61 +43,21 @@ Each section provides context so you know where to go next.
 
 ---
 
-## How to ask Concierge a question from the prompt box on Home
+## How the Time sensitive section works on Home
 
-At the top of Home, under the greeting, there’s a prompt box you can type into to start a conversation with Concierge without leaving Home.
-
-On a wide screen the prompt box reads **Ask Concierge to analyze your expenses or get support**. On a narrow screen and on mobile it reads **Ask Concierge anything**.
-
-1. Select the prompt box and type your question or request.
-2. To attach a file, select the **plus icon** to the left of the prompt box, then select **Add attachment**.
-3. Press **Enter** on web, or select the **Send** icon, to send the prompt.
-
-Your prompt opens in your Concierge chat, where Concierge replies. Anything you type but don’t send is saved as a draft and is still there when you come back to Home.
-
-To learn what you can ask for, see [Learn what Concierge can do](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do).
-
----
-
-## How to mention someone in the Concierge prompt box on Home
-
-Type `@` followed by part of a person’s name or email address to bring up a suggestion list of matching people. Select a suggestion to insert that person’s handle into your prompt.
-
-On web you can also use the keyboard:
-- Press the up and down arrow keys to move through the suggestions.
-- Press **Enter** or **Tab** to insert the highlighted suggestion. Your prompt is not sent while a suggestion list is open.
-- Press **Escape** to dismiss the suggestion list without inserting anything.
-
-The suggestion list also closes if you select somewhere outside the prompt box.
-
-<!-- SCREENSHOT:
-Suggestion: The Home prompt box with `@ma` typed and the mention suggestion list open directly above the box, showing a matching person's name and email.
-Location: Immediately after this section.
-Purpose: Confirms members are looking at the right box on Home and shows that the suggestion list appears above the prompt box rather than below it, which is where people tend to look for it first.
--->
-
----
-
-## How to add an emoji in the Concierge prompt box on Home
-
-Type `:` followed by part of the emoji name to bring up a suggestion list of matching emojis. For example, type `:smi` to see suggestions such as `:smile:` and `:smiley:`.
-
-Select a suggestion to insert the emoji, or on web press **Enter** or **Tab** to insert the highlighted one. Press **Escape** to dismiss the list.
-
----
-
-## How Time-sensitive section works on Home
-
-The **Time-sensitive alerts** section appears only when there is something that requires immediate attention.
+The **Time sensitive** section appears only when there is something that requires immediate attention.
 
 These alerts appear when:
 - A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
 - A bank account is locked, such as a business or personal bank account that has been locked due to a failed debit or bank-side restriction
 - A reimbursement is waiting for the payee to add a personal deposit account
 - There is potential risk, such as suspected Expensify Card fraud on an active card
+- A subscription invoice is unpaid, which the Workspace owner sees as **Pay your invoice by [date] to avoid service interruption** while the payment is still within the grace period, or as **Your payment is past due, please pay your invoice** once the grace period ends
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
-Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger time-sensitive alerts.
+Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger alerts in this section.
+
+Each alert includes a button that takes you where the issue is resolved. For an unpaid subscription invoice, select **Review** to open your invoices on the **Spend** page.
 
 If there are no urgent issues, this section will not appear.
 
@@ -205,19 +164,7 @@ No, they serve different purposes. Home provides an overview of what needs atten
 
 ## Can actions be completed from Home?
 
-Not directly, with one exception: you can start a conversation with Concierge from the prompt box at the top of Home. Everything else on Home links you to other parts of Expensify where actions are completed.
-
-## Why didn’t my prompt send when I pressed Enter?
-
-If a mention or emoji suggestion list is open, **Enter** inserts the highlighted suggestion instead of sending your prompt. Press **Escape** to close the list first, or press **Enter** again once the list has closed, and your prompt will send.
-
-## Can I use mention and emoji suggestions outside the Home prompt box?
-
-Yes. The same `@` and `:` suggestions work in the Concierge chat composer, including when you open Concierge in the panel on the right by selecting the **Help** icon in the top-right corner, and in any other chat composer in Expensify.
-
-## What happens to a prompt I type on Home but don’t send?
-
-It’s saved as a draft. The text is still in the prompt box when you return to Home, so you can finish and send it later.
+Not directly. Home links you to other parts of Expensify where actions are completed.
 
 ## Why does the For you section sometimes appear empty?
 
@@ -235,9 +182,21 @@ The **Recently added** section shows up to five of your most recently added expe
 
 The **Recently added** section always appears on Home. If you haven’t added any expenses yet, it shows an empty state. Create an expense or drag a receipt onto it, and your expense will appear here.
 
-## Why don’t I see the Time-sensitive section?
+## Why don’t I see the Time sensitive section?
 
-The **Time-sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
+The **Time sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
+
+## Why don’t I see the unpaid invoice alert on Home?
+
+The unpaid subscription invoice alert is only shown to the Workspace owner, because only the Workspace owner is billed for the subscription. Members and Workspace Admins who are not the Workspace owner never see it.
+
+To learn who is billed for a workspace, see [What is a Workspace owner?](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner).
+
+## What happens if I ignore the unpaid invoice alert on Home?
+
+While the payment is still within the grace period, the alert shows the date your invoice is due. Once that date passes, the alert changes to **Your payment is past due, please pay your invoice** and the workspace loses access to paid features until the invoice is paid.
+
+To learn how to resolve an unpaid invoice, see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Fix-a-Billing-Issue).
 
 ## Why don’t I see the Spend over time section?
 
