@@ -8,7 +8,9 @@ import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirm
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import type {ImportedMerchantRule} from '@libs/actions/Policy/Rules';
@@ -23,7 +25,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {escapeTagName} from '@libs/PolicyUtils';
+import {escapeTagName, getMatchingVendors, hasVendorFeature, isMatchingVendorListLoaded} from '@libs/PolicyUtils';
 import {trimTag} from '@libs/TagUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -52,6 +54,7 @@ const ACTION_COLUMNS: string[] = [
     CONST.CSV_IMPORT_COLUMNS.COMMENT,
     CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE,
     CONST.CSV_IMPORT_COLUMNS.BILLABLE,
+    CONST.CSV_IMPORT_COLUMNS.VENDOR,
 ];
 
 /**
@@ -69,6 +72,7 @@ function getRuleContentKey(formValues: Partial<MerchantRuleFormValues>): string 
         formValues.comment ?? '',
         formValues.reimbursable ?? null,
         formValues.billable ?? null,
+        formValues.vendorID ?? null,
     ]);
 }
 
@@ -112,6 +116,20 @@ function buildImportedCategoryLookup(policyCategories: OnyxEntry<PolicyCategorie
     return lookup;
 }
 
+/**
+ * A spreadsheet author knows vendors by name, but a rule stores the active integration's external vendorID, so
+ * imported cells are matched against a trimmed, case-insensitive name lookup. A name shared by more than one
+ * active vendor maps to `null` so the importer treats it as ambiguous instead of guessing which one was meant.
+ */
+function buildImportedVendorLookup(policy: OnyxEntry<Policy>): Map<string, string | null> {
+    const lookup = new Map<string, string | null>();
+    for (const vendor of getMatchingVendors(policy)) {
+        const normalizedName = vendor.name.trim().toLowerCase();
+        lookup.set(normalizedName, lookup.has(normalizedName) ? null : vendor.id);
+    }
+    return lookup;
+}
+
 /** Parses a CSV cell into a boolean, or undefined when the cell is empty or unrecognized so the field is left unset */
 function parseCsvBooleanValue(raw: string | undefined): boolean | undefined {
     const trimmed = raw?.trim().toLowerCase() ?? '';
@@ -134,13 +152,19 @@ type ParsedSpreadsheetRules = {
 
     /** The lower-cased category cells that didn't match any workspace category */
     invalidCategoryNames: Set<string>;
+
+    /** The lower-cased vendor/supplier cells that didn't match exactly one active vendor */
+    invalidVendorNames: Set<string>;
 };
 
 /**
  * Parses the mapped spreadsheet into the merchant rules to import. Rows that duplicate an existing/loaded rule are
- * counted in `skippedDuplicateCount`, and category cells that don't match a workspace category are collected in
- * `invalidCategoryNames`. Kept as a pure function so the offline button-enablement check and `importRules` derive
+ * counted in `skippedDuplicateCount`, category cells that don't match a workspace category are collected in
+ * `invalidCategoryNames`, and vendor/supplier cells that don't match exactly one active vendor are collected in
+ * `invalidVendorNames`. Kept as a pure function so the offline button-enablement check and `importRules` derive
  * from the exact same parse and can never disagree about whether the import needs the API.
+ *
+ * `isVendorListReady` must be false while the active integration's vendor list hasn't loaded yet.
  */
 function parseSpreadsheetRules(
     spreadsheet: OnyxEntry<ImportedSpreadsheet>,
@@ -148,6 +172,7 @@ function parseSpreadsheetRules(
     policy: OnyxEntry<Policy>,
     policyCategories: OnyxEntry<PolicyCategories>,
     existingRules: OnyxCollection<Rule>,
+    isVendorListReady: boolean,
 ): ParsedSpreadsheetRules {
     const columns = Object.values(spreadsheet?.columns ?? {});
     const merchantIsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.MERCHANT_IS);
@@ -158,6 +183,7 @@ function parseSpreadsheetRules(
     const commentColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.COMMENT);
     const reimbursableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE);
     const billableColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.BILLABLE);
+    const vendorColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.VENDOR);
 
     const rowCount = (spreadsheet?.data.at(0)?.length ?? 0) - (containsHeader ? 1 : 0);
     const getCellValue = (columnIndex: number, rowIndex: number): string => {
@@ -182,6 +208,8 @@ function parseSpreadsheetRules(
 
     const categoryLookup = buildImportedCategoryLookup(policyCategories);
     const invalidCategoryNames = new Set<string>();
+    const vendorLookup = buildImportedVendorLookup(policy);
+    const invalidVendorNames = new Set<string>();
 
     const rules: Record<string, ImportedMerchantRule> = {};
     for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
@@ -205,9 +233,14 @@ function parseSpreadsheetRules(
         const comment = getCellValue(commentColumn, rowIndex);
         const reimbursable = parseCsvBooleanValue(getCellValue(reimbursableColumn, rowIndex));
         const billable = parseCsvBooleanValue(getCellValue(billableColumn, rowIndex));
+        const vendorCell = getCellValue(vendorColumn, rowIndex);
+        const vendorID = isVendorListReady && vendorCell ? (vendorLookup.get(vendorCell.toLowerCase()) ?? '') : '';
+        if (isVendorListReady && vendorCell && !vendorID) {
+            invalidVendorNames.add(vendorCell.toLowerCase());
+        }
 
         // Skip rows where every action cell is empty since the resulting rule would never change anything
-        if (!updatedMerchant && !category && !tag && !comment && reimbursable === undefined && billable === undefined) {
+        if (!updatedMerchant && !category && !tag && !comment && reimbursable === undefined && billable === undefined && !vendorID) {
             continue;
         }
 
@@ -220,6 +253,7 @@ function parseSpreadsheetRules(
             ...(comment && {comment}),
             ...(reimbursable !== undefined && {reimbursable}),
             ...(billable !== undefined && {billable}),
+            ...(vendorID && {vendorID}),
         };
 
         const rule: ImportedMerchantRule = {
@@ -234,6 +268,7 @@ function parseSpreadsheetRules(
             ...(comment && {comment: Parser.replace(comment)}),
             ...(reimbursable !== undefined && {reimbursable}),
             ...(billable !== undefined && {billable}),
+            ...(vendorID && {vendorID}),
             created: new Date().toISOString(),
         };
 
@@ -247,16 +282,16 @@ function parseSpreadsheetRules(
         rules[rand64()] = rule;
     }
 
-    return {rules, skippedDuplicateCount, invalidCategoryNames};
+    return {rules, skippedDuplicateCount, invalidCategoryNames, invalidVendorNames};
 }
 
 /**
  * Whether the parsed import resolves entirely client-side: no net-new rule remains, but at least one row was
- * skipped as a duplicate or referenced an unknown category. In that case `importRules` builds the confirmation
+ * skipped as a duplicate or referenced an unknown category/vendor. In that case `importRules` builds the confirmation
  * modal locally with no API call, so it's the only case where the import can proceed offline.
  */
-function willImportShortCircuitLocally({rules, skippedDuplicateCount, invalidCategoryNames}: ParsedSpreadsheetRules): boolean {
-    return Object.keys(rules).length === 0 && (skippedDuplicateCount > 0 || invalidCategoryNames.size > 0);
+function willImportShortCircuitLocally({rules, skippedDuplicateCount, invalidCategoryNames, invalidVendorNames}: ParsedSpreadsheetRules): boolean {
+    return Object.keys(rules).length === 0 && (skippedDuplicateCount > 0 || invalidCategoryNames.size > 0 || invalidVendorNames.size > 0);
 }
 
 type ImportedMerchantRulesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_IMPORTED>;
@@ -271,6 +306,11 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const {isBetaEnabled} = usePermissions();
+    const isVendorFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+
+    const {isFetchNeeded: isVendorConnectionsFetchNeeded, isLoadingFetchedFlag: isVendorConnectionsFetchedFlagLoading} = usePolicyConnectionsPrefetch(policy, true);
+    const isVendorListLoading = isVendorConnectionsFetchNeeded || isVendorConnectionsFetchedFlagLoading;
 
     // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
     // validated against the policy's real category list instead of an empty one
@@ -304,6 +344,14 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         {text: translate('workspace.rules.merchantRules.importColumnUpdatedDescription'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
         {text: translate('common.reimbursable'), value: CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE},
         {text: translate('common.billable'), value: CONST.CSV_IMPORT_COLUMNS.BILLABLE},
+        ...(isVendorFeatureAvailable
+            ? [
+                  {
+                      text: translate('workspace.rules.merchantRules.importColumnUpdatedVendor'),
+                      value: CONST.CSV_IMPORT_COLUMNS.VENDOR,
+                  },
+              ]
+            : []),
     ];
 
     const validate = () => {
@@ -336,9 +384,14 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
+    const isVendorListReady = !isVendorFeatureAvailable || isMatchingVendorListLoaded(policy);
+
     // Parse once and reuse the result for both the offline button-enablement check and the import itself, so the
     // button can never be enabled offline for an import that actually needs the (non-retryable) API call
-    const parsedRules = useMemo(() => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules), [spreadsheet, containsHeader, policy, policyCategories, rules]);
+    const parsedRules = useMemo(
+        () => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady),
+        [spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady],
+    );
 
     // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
     // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only
@@ -346,7 +399,8 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const areCategoriesReady = !policy?.areCategoriesEnabled || !!policyCategories;
 
     // The import short-circuits locally (no API call) only when every row was skipped, so that's the only case
-    // where the button may stay active offline — and only when that short-circuit doesn't hinge on unvalidated categories.
+    // where the button may stay active offline — and only when that short-circuit doesn't hinge on unvalidated
+    // categories.
     const canImportOffline = willImportShortCircuitLocally(parsedRules) && (areCategoriesReady || parsedRules.invalidCategoryNames.size === 0);
 
     const importRules = async () => {
@@ -356,10 +410,10 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
             return;
         }
 
-        const {rules: parsedMerchantRules, skippedDuplicateCount, invalidCategoryNames} = parsedRules;
+        const {rules: parsedMerchantRules, skippedDuplicateCount, invalidCategoryNames, invalidVendorNames} = parsedRules;
 
         setIsImportingRules(true);
-        // When every row was skipped (duplicate rules and/or unknown categories), skip the API call and confirm that nothing was added
+        // When every row was skipped (duplicate rules and/or unknown categories/vendors), skip the API call and confirm that nothing was added
         const importFinalModal: ImportFinalModal = canImportOffline
             ? {
                   titleKey: 'spreadsheet.importSuccessfulTitle',
@@ -369,8 +423,12 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                       pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
                       pendingMessageKeyParams: {count: invalidCategoryNames.size},
                   }),
+                  ...(invalidVendorNames.size > 0 && {
+                      secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedVendors',
+                      secondaryPendingMessageKeyParams: {count: invalidVendorNames.size},
+                  }),
               }
-            : await importMerchantRulesSpreadsheet(policyID, parsedMerchantRules, invalidCategoryNames.size);
+            : await importMerchantRulesSpreadsheet(policyID, parsedMerchantRules, invalidCategoryNames.size, invalidVendorNames.size);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImportingRules(false);
@@ -412,7 +470,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                     importFunction={importRules}
                     errors={isValidationEnabled ? validate() : undefined}
                     columnRoles={columnRoles}
-                    isButtonLoading={isImportingRules}
+                    isButtonLoading={isImportingRules || isVendorListLoading}
                     customHeaderText={translate('workspace.rules.merchantRules.importRulesSupportingText')}
                     shouldDisableButtonWhenOffline={!canImportOffline}
                 />
@@ -422,4 +480,4 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 }
 
 export default ImportedMerchantRulesPage;
-export {buildImportedCategoryLookup, normalizeImportedTag, parseSpreadsheetRules, willImportShortCircuitLocally};
+export {buildImportedCategoryLookup, buildImportedVendorLookup, normalizeImportedTag, parseSpreadsheetRules, willImportShortCircuitLocally};

@@ -9,6 +9,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -56,6 +57,8 @@ function isTableSelectionTab(tab: RulesTab): tab is TableSelectionTab {
 function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, canWriteRules, clearTableSelection}: UseRulesTableBulkActionsParams) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
@@ -231,7 +234,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
         if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
             for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
-                deleteRequireFieldsRule(policyData, ruleKey);
+                deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled);
             }
             clearTableSelection();
             return;
@@ -271,6 +274,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         }
         clearTableSelection();
     }, [
+        isVendorMatchingBetaEnabled,
         activeTab,
         clearTableSelection,
         defaultFundID,

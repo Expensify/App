@@ -25,6 +25,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -81,6 +82,7 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -137,6 +139,8 @@ function MoneyRequestReceiptView({
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -205,8 +209,8 @@ function MoneyRequestReceiptView({
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
     const {isOffline} = useNetwork();
-    const receiptContainerRef = useRef<View | null>(null);
-    const addButtonRef = useRef<View | null>(null);
+    const receiptContainerRef = useRef<ComponentRef<typeof View> | null>(null);
+    const addButtonRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
@@ -248,6 +252,7 @@ function MoneyRequestReceiptView({
         isEditable &&
         canEditFieldOfMoneyRequest({
             reportAction: parentReportAction,
+            reportActions: parentReportActions,
             fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
             isChatReportArchived,
             reportNameValuePairs,
@@ -491,6 +496,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     getCurrencyDecimals,
+                    isOffline,
                     isSingleTransactionView: true,
                     policy,
                 });
@@ -503,7 +509,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -511,7 +517,7 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
@@ -574,6 +580,7 @@ function MoneyRequestReceiptView({
         }
         const source = URL.createObjectURL(file as Blob);
         replaceReceipt({
+            isVendorMatchingBetaEnabled,
             transaction,
             file: file as File,
             source,

@@ -6,7 +6,7 @@ import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './mid
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
-import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type {ActiveSorting, CompareItemsCallback, SortingMethods, SortOrder} from './middlewares/sorting';
 
 /**
  * Defines the required minimum shape for each row of data in the table
@@ -192,9 +192,6 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;
 
-        /** Whether selected row keys should remain selected while the search query changes. */
-        shouldPreserveSelectionOnSearch?: boolean;
-
         /**
          * Whether the selection UX (checkboxes / long-press selection mode) should be driven by the real screen size
          * (isSmallScreenWidth) instead of shouldUseNarrowLayout. Set this for tables rendered inside a narrow pane modal
@@ -202,6 +199,12 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
          * false so central-pane tables keep their existing behavior.
          */
         shouldEnableSelectionInNarrowPaneModal?: boolean;
+
+        /** Whether the selection survives a change to the search string or the filters, e.g. when rows are confirmed in one batch. */
+        shouldPreserveSelectionOnSearchAndFilter?: boolean;
+
+        /** Whether `ListFooterComponent` renders as a continuation of the rows, so it owns the rounded bottom corners instead of the last row. */
+        shouldFooterRenderAsLastRow?: boolean;
 
         /** Column configuration defining what columns to display and how. */
         columns: Array<TableColumn<ColumnKey, DataType>>;
@@ -221,6 +224,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Optional initial column to sort by on mount. */
         initialSortColumn?: ColumnKey;
+
+        /** Optional initial sort order to apply to `initialSortColumn` on mount. Defaults to ascending. */
+        initialSortOrder?: SortOrder;
 
         /** Optional column to force-sort by when the table switches to narrow layout. The wide-layout sorting is restored when leaving narrow layout. */
         narrowLayoutSortColumn?: ColumnKey;
@@ -257,6 +263,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Optional callback fired when the active search string changes. */
         onSearchStringChange?: (searchString: string) => void;
+
+        /** Optional callback fired when the active sorting configuration changes. */
+        onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
     }>;
 
 export type {
@@ -268,6 +277,7 @@ export type {
     TableHandle,
     TableProps,
     SharedListProps,
+    ActiveSorting,
     CompareItemsCallback,
     IsItemInFilterCallback,
     IsItemInSearchCallback,

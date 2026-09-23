@@ -87,7 +87,7 @@ async function getActivePolicyRules(policyID: string): Promise<Array<Rule & Appr
 
 /** Build the index-keyed object shape the rules API uses for lists */
 function indexMap<T>(...values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 /**
@@ -955,10 +955,10 @@ describe('actions/Workflow', () => {
             expect(submitRule?.scope).toBe(CONST.RULES.SCOPE.POLICY);
             expect(submitRule?.scopeID).toBe(policyID);
             expect(submitRule?.filters).toEqual({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [employee1Email]});
-            expect(submitRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
+            expect(submitRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.FORWARD_TO, approver: ownerEmail});
 
             const approveRule = rules.find((rule) => Object.values(rule.triggers).includes(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER.REPORT_APPROVE));
-            expect(approveRule?.actions[0]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
+            expect(approveRule?.actions[1]).toEqual({name: CONST.RULES.APPROVAL_WORKFLOW.ACTION.APPROVE_REPORT});
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
