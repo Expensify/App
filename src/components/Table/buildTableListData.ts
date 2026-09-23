@@ -63,14 +63,14 @@ function getColumnHeaderPlacement({
         return COLUMN_HEADER_PLACEMENT.NONE;
     }
 
+    if (!hasRows || isColumnHeaderHiddenInNarrowLayout) {
+        return COLUMN_HEADER_PLACEMENT.NONE;
+    }
+
     // A table without a page header keeps the column header as a plain child of the table container, so the list is
     // never the one placing it and the rest of the rules below don't apply.
     if (!hasPageHeader) {
         return COLUMN_HEADER_PLACEMENT.OUTSIDE_LIST;
-    }
-
-    if (!hasRows || isColumnHeaderHiddenInNarrowLayout) {
-        return COLUMN_HEADER_PLACEMENT.NONE;
     }
 
     return areColumnsScrollable ? COLUMN_HEADER_PLACEMENT.LIST_HEADER : COLUMN_HEADER_PLACEMENT.STICKY_ROW;
