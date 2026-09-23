@@ -19,23 +19,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
-import type {RefObject} from 'react';
 
 import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import handleSAMLLoginError from './handleSAMLLoginError';
-
-// An in-app browser left open blocks the next sign-in attempt from opening one, and only iOS can close it.
-function dismissOpenAuthSession(isAuthSessionOpen: RefObject<boolean>): boolean {
-    if (!isAuthSessionOpen.current || getPlatform() !== CONST.PLATFORM.IOS) {
-        return false;
-    }
-    // eslint-disable-next-line no-param-reassign
-    isAuthSessionOpen.current = false;
-    dismissAuthSession();
-    return true;
-}
 
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
@@ -47,13 +35,23 @@ function SAMLSignInPage() {
     const isAuthSessionOpen = useRef(false);
     const hasExitedSAMLFlow = useRef(false);
 
+    // An in-app browser left open blocks the next sign-in attempt from opening one, and only iOS can close it.
+    const dismissOpenAuthSession = () => {
+        if (!isAuthSessionOpen.current || getPlatform() !== CONST.PLATFORM.IOS) {
+            return false;
+        }
+        isAuthSessionOpen.current = false;
+        dismissAuthSession();
+        return true;
+    };
+
     const handleExitSAMLFlow = useCallback(() => {
         // Closing a stuck in-app browser settles its promise, which lands here a second time.
         if (hasExitedSAMLFlow.current) {
             return;
         }
         hasExitedSAMLFlow.current = true;
-        dismissOpenAuthSession(isAuthSessionOpen);
+        dismissOpenAuthSession();
 
         // Clear the guard we set before opening the in-app browser so we don't block future reauthentication
         setIsAuthenticatingWithShortLivedToken(false);
@@ -61,12 +59,12 @@ function SAMLSignInPage() {
             Navigation.goBack();
             clearSignInData();
         });
-    }, []);
+    }, [dismissOpenAuthSession]);
 
     useEffect(
         () => () => {
             // Leaving the page must not leave the in-app browser open, or the next sign-in attempt cannot open one.
-            if (!dismissOpenAuthSession(isAuthSessionOpen)) {
+            if (!dismissOpenAuthSession()) {
                 return;
             }
             hasExitedSAMLFlow.current = true;
