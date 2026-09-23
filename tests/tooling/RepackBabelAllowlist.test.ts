@@ -58,6 +58,14 @@ beforeAll(() => {
             'lib/spec.d.ts': "declare const x: typeof codegenNativeComponent('RNCThing');",
         },
     );
+    // Flow pragma inside a React Native style licence header — MUST be flagged
+    writePackage(
+        'rn-header-flow-pkg',
+        {main: 'lib/index.js'},
+        {
+            'lib/index.js': '/**\n * Copyright (c) Meta Platforms, Inc.\n *\n * @format\n * @flow\n */\nmodule.exports = 1;',
+        },
+    );
     // Tooling package mentioning the marker inside a detection regex — must NOT be flagged
     writePackage('@react-native-community/cli-config-android', {main: 'build/index.js'}, {'build/index.js': 'const r = /codegenNativeComponent(<.*>)?/;'});
 });
@@ -107,7 +115,7 @@ describe('findMissingAllowlistEntries', () => {
         const missing = findMissingAllowlistEntries(nodeModulesPath, ['allowlisted-pkg', '@scope']);
         const names = missing.map((finding) => finding.packageName).sort();
         // Then the Flow package and both codegen packages are reported, nothing else
-        expect(names).toEqual(['codegen-commands-pkg', 'codegen-pkg', 'flow-pkg', 'ts-codegen-pkg']);
+        expect(names).toEqual(['codegen-commands-pkg', 'codegen-pkg', 'flow-pkg', 'rn-header-flow-pkg', 'ts-codegen-pkg']);
         expect(missing.find((finding) => finding.packageName === 'flow-pkg')?.need).toBe('flow');
         expect(missing.find((finding) => finding.packageName === 'codegen-pkg')?.need).toBe('codegen');
     });
@@ -122,6 +130,14 @@ describe('findMissingAllowlistEntries', () => {
         expect(missing.find((finding) => finding.packageName === 'ts-codegen-pkg')?.file).toBe('lib/commonjs/SpecNativeComponent.ts');
         // Then the .d.ts-only package is not, because declarations never reach the bundle
         expect(names).not.toContain('dts-only-pkg');
+    });
+
+    it('flags a Flow pragma inside a React Native style licence header', () => {
+        // Given a package whose @flow sits below a licence block, not directly after the comment opener
+        // When scanning the fixture tree
+        const missing = findMissingAllowlistEntries(nodeModulesPath, ['allowlisted-pkg', '@scope']);
+        // Then it is still reported as needing the babel path
+        expect(missing.find((finding) => finding.packageName === 'rn-header-flow-pkg')?.need).toBe('flow');
     });
 
     it('skips packages that are not in the prod dependency set', () => {

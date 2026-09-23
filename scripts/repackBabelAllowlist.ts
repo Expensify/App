@@ -16,7 +16,12 @@ type ScanFinding = {
 /** Only the top of a file is searched for the Flow pragma, matching how Flow itself reads it. */
 const FLOW_PRAGMA_WINDOW_BYTES = 1024;
 
-const FLOW_PRAGMA_REGEX = /(?:\/\*[\s*]*@flow(?:\s|\*)|\/\/\s*@flow(?:\s|$))/m;
+/**
+ * `@flow` anywhere in the leading window, not just directly after the comment opener: React Native's
+ * own header puts a licence block first. A false positive only costs a package the slower path, while
+ * a miss breaks the build, so this errs wide.
+ */
+const FLOW_PRAGMA_REGEX = /@flow(?:\s|$)/m;
 
 /** Fabric codegen markers whose transform only the RN babel preset provides. */
 const CODEGEN_MARKERS = ['codegenNativeComponent', 'codegenNativeCommands'];
@@ -29,10 +34,11 @@ const SCANNED_EXTENSIONS = new Set(['.js', '.cjs', '.mjs', '.jsx', '.ts', '.tsx'
 
 /**
  * Build-time tooling that ships to node_modules as a prod dependency but is never resolved into
- * the native app bundle. These mention the codegen markers because they themselves implement
- * codegen detection (regexes/strings), not because they need the babel path.
+ * the native app bundle. Some implement codegen detection themselves (regexes/strings); others are
+ * genuinely Flow-typed but only ever run on the build machine. Verified against a real bundle:
+ * neither @expo/metro-file-map nor jsc-safe-url appears in it.
  */
-const TOOLING_PACKAGE_PREFIXES = ['@expo/cli', '@react-native-community/cli', 'expo-modules-autolinking', '@react-native/codegen'];
+const TOOLING_PACKAGE_PREFIXES = ['@expo/cli', '@expo/metro-file-map', '@react-native-community/cli', 'expo-modules-autolinking', '@react-native/codegen', 'jsc-safe-url'];
 
 function isToolingPackage(packageName: string): boolean {
     return TOOLING_PACKAGE_PREFIXES.some((prefix) => packageName === prefix || packageName.startsWith(`${prefix}-`) || packageName.startsWith(`${prefix}/`));
