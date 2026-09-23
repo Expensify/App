@@ -74,6 +74,7 @@ function ReportAvatar({
                 <GroupChatAvatar
                     reportID={reportID}
                     size={size}
+                    // The layout is always single, but the legacy component still drops the single avatar's container styles when horizontal stacking is requested.
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     fallbackDisplayName={fallbackDisplayName}
                 />
@@ -94,6 +95,7 @@ function ReportAvatar({
                     reportID={reportID}
                     size={size}
                     backdropColor={backdropColor}
+                    // A thread without a workspace icon renders a single avatar even inside a horizontal stack, and there it drops its container styles.
                     containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
                     subscriptContainerStyle={subscriptAvatarContainerStyle}
                     horizontalStacking={horizontalStacking}

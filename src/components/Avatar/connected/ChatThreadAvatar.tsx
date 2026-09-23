@@ -7,6 +7,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -85,6 +86,10 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
         isParentActionLinked && isExpenseRequest && isMoneyRequestAction(parentAction) && getOriginalMessage(parentAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE;
     // A trip room is a thread of its trip preview, so it gets the workspace subscript too.
     const hasTripRoomChatType = thread?.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
+    const isArchivedTripRoom = useReportIsArchived(hasTripRoomChatType ? reportID : undefined);
+    // Once a linked parent action loads, only a trip preview gives the subscript, archived or not. Without one, an archived trip room drops it. A horizontal stack never takes it.
+    const hasTripRoomSubscript =
+        !horizontalStacking && hasTripRoomChatType && (isParentActionLinked && !!parentAction ? parentAction.actionName === CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW : !isArchivedTripRoom);
     // A thread inherits its room's chat type.
     const isWorkspaceThread = CONST.WORKSPACE_ROOM_TYPES.some((chatType) => thread?.chatType === chatType);
 
@@ -106,7 +111,7 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
     const [primaryAvatar, humanAgentIcon] = isParentActionLinked ? accountIcons : seedFallbackIcons(accountIcons, iconAccountIDs, defaultAvatars.FallbackAvatar);
 
     // A horizontal stack pairs every workspace thread with its workspace icon. Without one, only a created expense request and a trip room show it, as a subscript.
-    if (horizontalStacking && (isExpenseRequest || hasTripRoomChatType || isWorkspaceThread)) {
+    if (horizontalStacking && (isExpenseRequest || (hasTripRoomChatType && !isArchivedTripRoom) || isWorkspaceThread)) {
         return (
             <WorkspaceHorizontalAvatars
                 report={thread}
@@ -119,7 +124,8 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
         );
     }
 
-    if (isCreatedExpenseRequest || hasTripRoomChatType) {
+    // The subscript shows the copilot as the primary avatar without the copilot badge, which only the single avatar carries.
+    if (isCreatedExpenseRequest || hasTripRoomSubscript) {
         return (
             <WorkspaceSubscriptAvatar
                 report={thread}

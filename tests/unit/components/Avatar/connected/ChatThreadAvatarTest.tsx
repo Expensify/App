@@ -236,6 +236,29 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(screen.getByTestId(expectedTestID)).toBeOnTheScreen();
     });
 
+    it.each([
+        ['without the chatReportID link', {}, false, 'MockedSingleAvatar'],
+        ['without the chatReportID link, inside a horizontal stack', {}, true, 'MockedSingleAvatar'],
+        ['linked to its trip preview', LINKED_TO_PARENT, false, 'MockedWorkspaceSubscriptAvatar'],
+        ['linked to its trip preview, inside a horizontal stack', LINKED_TO_PARENT, true, 'MockedSingleAvatar'],
+    ])('should route an archived trip room %s', (_case, linkOverrides: Partial<Report>, horizontalStacking, expectedTestID) => {
+        // Given an archived trip room under its trip preview
+        seedThread(CONST.REPORT.TYPE.CHAT, tripPreviewAction, {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, ...linkOverrides});
+        mockOnyxData[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${THREAD_ID}`] = {private_isArchived: '2024-01-01 00:00:00'};
+
+        // When the avatar renders
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+                horizontalStacking={horizontalStacking}
+            />,
+        );
+
+        // Then the workspace icon only survives as the subscript of a loaded trip preview, never in a stack
+        expect(screen.getByTestId(expectedTestID)).toBeOnTheScreen();
+    });
+
     it('should hand a horizontal stack the thread row, the resolved actor, the stacking options and the sort order', () => {
         seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction(), {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM});
 
