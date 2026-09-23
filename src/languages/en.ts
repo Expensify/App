@@ -6250,6 +6250,51 @@ const translations = {
             enableNewAccountsTitle: 'Enable newly imported accounts',
             enableNewAccountsDescription: 'New Campfire accounts will be available as categories.',
             dimensionsImport: 'All Campfire dimensions import as tags',
+            exportDescription: 'Configure how Expensify data exports to Campfire.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    VENDOR_BILL: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Campfire.',
+                values: {
+                    LAST_EXPENSE: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    REPORT_EXPORTED: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Campfire.',
+                    },
+                    REPORT_SUBMITTED: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    JOURNAL_ENTRY: {
+                        label: 'Journal entries',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default Campfire vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add accounts in Campfire and sync the connection again',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',

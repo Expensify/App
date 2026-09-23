@@ -3842,5 +3842,9 @@ export type {
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
+    CampfireExportDate,
+    CampfireVendor,
+    CampfireAccount,
+    CampfireExport,
     BusinessCentralCompany,
 };

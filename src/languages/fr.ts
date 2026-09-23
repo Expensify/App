@@ -8828,6 +8828,25 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
             enableNewAccountsDescription: 'Les nouveaux comptes Campfire seront disponibles en tant que catégories.',
             dimensionsImport: 'Toutes les dimensions Campfire sont importées en tant que tags',
+            exportDescription: 'Configurer l’exportation des données Expensify vers Campfire.',
+            exportReimbursable: {label: 'Exporter les dépenses remboursables au format', values: {VENDOR_BILL: {label: 'Factures fournisseurs'}}},
+            exportDate: {
+                label: 'Date de la facture fournisseur',
+                description: 'Utiliser cette date lors de l’export des notes de frais vers Campfire.',
+                values: {
+                    LAST_EXPENSE: {label: 'Date de la dernière dépense', description: 'Date de la dépense la plus récente sur la note de frais.'},
+                    REPORT_EXPORTED: {label: 'Date d’exportation', description: 'Date à laquelle la note de frais a été exportée vers Campfire.'},
+                    REPORT_SUBMITTED: {label: 'Date de soumission', description: 'Date à laquelle la note de frais a été soumise pour approbation.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Exporter les dépenses de carte de société en', values: {JOURNAL_ENTRY: {label: 'Écritures comptables'}}},
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur par défaut pour toutes les cartes de l’entreprise',
+                description: 'Choisissez un fournisseur Campfire par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
+            noAccountsFound: 'Aucun compte trouvé',
+            noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Campfire et synchroniser à nouveau la connexion',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',

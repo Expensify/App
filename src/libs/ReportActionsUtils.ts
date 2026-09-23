@@ -2871,8 +2871,6 @@ function getExportIntegrationActionFragments(
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.CAMPFIRE:
-                    // s77rt Test in R2
-                    // https://github.com/Expensify/App/issues/100181
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 default:

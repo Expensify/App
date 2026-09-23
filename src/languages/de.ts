@@ -8810,6 +8810,25 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
             enableNewAccountsDescription: 'Neue Campfire-Konten werden als Kategorien verfügbar sein.',
             dimensionsImport: 'Alle Campfire-Dimensionen werden als Tags importiert',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Campfire exportiert werden.',
+            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {VENDOR_BILL: {label: 'Lieferantenrechnungen'}}},
+            exportDate: {
+                label: 'Rechnungsdatum des Lieferanten',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Campfire.',
+                values: {
+                    LAST_EXPENSE: {label: 'Datum der letzten Ausgabe', description: 'Datum der jüngsten Ausgabe im Bericht.'},
+                    REPORT_EXPORTED: {label: 'Exportdatum', description: 'Datum, an dem der Bericht nach Campfire exportiert wurde.'},
+                    REPORT_SUBMITTED: {label: 'Eingereichtes Datum', description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Firmenkarten-Ausgaben exportieren als', values: {JOURNAL_ENTRY: {label: 'Buchungsbelege'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für alle Firmenkarten',
+                description: 'Wählen Sie einen Standard-Campfire-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin Unternehmenskartentransaktionen exportiert werden sollen.'},
+            noAccountsFound: 'Keine Konten gefunden',
+            noAccountsFoundDescription: 'Bitte fügen Sie Konten in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
