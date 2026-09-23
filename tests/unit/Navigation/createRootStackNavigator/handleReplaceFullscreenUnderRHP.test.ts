@@ -26,6 +26,8 @@ jest.mock('@libs/Navigation/helpers/getStateFromPath', () => ({
     default: jest.fn(() => mockStubbedParsedState),
 }));
 jest.mock('@libs/getPlatform', () => jest.fn());
+const mockGetIsNarrowLayout = jest.fn(() => false);
+jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
 
 const mockGetPlatform = jest.mocked(getPlatform);
 
@@ -168,6 +170,11 @@ function getReportsSplitState(result: StackNavigationState<ParamListBase> | null
     return reportsSplitRoute?.state;
 }
 
+function getReportsSplitRouteKey(result: StackNavigationState<ParamListBase> | null) {
+    const tabRoute = result?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+    return tabRoute?.state?.routes.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)?.key;
+}
+
 function hasReportParams(params: unknown): params is ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] {
     return typeof params === 'object' && params !== null && 'reportID' in params && typeof params.reportID === 'string';
 }
@@ -214,6 +221,7 @@ const staleLongFormDeepLinkParams = {
 beforeEach(() => {
     clearPreInsertedOriginalTabRoute();
     mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+    mockGetIsNarrowLayout.mockReturnValue(false);
 });
 
 describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation', () => {
@@ -326,6 +334,43 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         );
 
         expect(getReportIDs(result)).toEqual([undefined, 'B']);
+    });
+
+    it('keeps the focused tab route key on wide web so the split navigator updates in place instead of remounting', () => {
+        // Given a wide web layout with the Reports tab focused on report A
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        mockStubbedParsedState = makeReportsParsedState('B');
+
+        // When report B is pre-inserted under the RHP
+        const result = handleReplaceFullscreenUnderRHP(
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
+            makeReportsAction('B'),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+
+        // Then the Reports split route keeps its key, so the mounted sidebar survives and only the central pane changes
+        expect(getReportsSplitRouteKey(result)).toBe('reports-split-key');
+        expect(getReportIDs(result)).toEqual([undefined, 'B']);
+    });
+
+    it('drops the focused tab route key on narrow web so the destination mounts fresh behind the RHP (#90985)', () => {
+        // Given a narrow web layout with the Reports tab focused on report A
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+        mockStubbedParsedState = makeReportsParsedState('B');
+
+        // When report B is pre-inserted under the RHP
+        const result = handleReplaceFullscreenUnderRHP(
+            makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key'), makeRoute(SCREENS.REPORT, {reportID: 'A'}, undefined, 'report-a-key')], 1),
+            makeReportsAction('B'),
+            CONFIG_OPTIONS,
+            stackRouter,
+        );
+
+        // Then the Reports split route is keyless, which forces a remount and avoids the previous page flashing
+        expect(getReportsSplitRouteKey(result)).toBeUndefined();
     });
 
     it('restores the untouched original Reports stack when the user cancels', () => {

@@ -1,3 +1,4 @@
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
@@ -534,7 +535,10 @@ function handleReplaceFullscreenUnderRHP(
         if (!updatedTabState) {
             return null;
         }
-        const staleTabState = existingTabState ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : updatedTabState;
+        // The remount guards against a push-transition flash on native and on narrow web (#90985). Wide web renders split
+        // screens without a push animation, so keeping the key there avoids remounting the whole split navigator with its sidebar.
+        const shouldRemountFocusedTab = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || getIsNarrowLayout();
+        const staleTabState = existingTabState && shouldRemountFocusedTab ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : updatedTabState;
 
         // Drop consumed deep-link hints before remounting, or React Navigation can replay the old target over the new state.
         const updatedTabRoute = {...withSanitizedDeepLinkParams(existingTabRoute, undefined), state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
