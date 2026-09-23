@@ -1,3 +1,5 @@
+import type {ChartTooltipPlacement} from '@components/Charts/types';
+
 import type {SharedValue} from 'react-native-reanimated';
 
 import {useCallback} from 'react';
@@ -7,7 +9,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import useChartInteractionState from './useChartInteractionState';
 
-/** Gap between bar top and tooltip bottom */
+/** Gap between the bar end and the tooltip */
 const TOOLTIP_BAR_GAP = 8;
 
 /**
@@ -98,8 +100,17 @@ type UseChartInteractionsProps = {
     /** Optional shared value containing the y-axis zero position */
     yZero?: SharedValue<number>;
 
+    /** Optional shared value containing the x-axis zero position (horizontal bar charts) */
+    xZero?: SharedValue<number>;
+
     /** Scale applied to the rendered chart container */
     coordinateScale?: number;
+
+    /**
+     * Where the tooltip is anchored relative to the matched point. `above` sits over the top of a
+     * vertical bar/point; `right` sits past the end of a horizontal bar, vertically centered on it.
+     */
+    tooltipPlacement?: ChartTooltipPlacement;
 };
 
 function normalizeChartCoordinate(coordinate: number, coordinateScale: number): number {
@@ -165,7 +176,9 @@ function useChartInteractions({
     resolveLabelTouchX,
     chartBottom,
     yZero,
+    xZero,
     coordinateScale = 1,
+    tooltipPlacement = 'above',
 }: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState} = useChartInteractionState();
@@ -385,13 +398,26 @@ function useChartInteractions({
      * compose them into their own useAnimatedStyle.
      */
     const initialTooltipPosition = useDerivedValue(() => {
+        const targetX = chartInteractionState.x.position.get();
         const targetY = chartInteractionState.y.y.position.get();
+
+        if (tooltipPlacement === 'right') {
+            const currentXZero = xZero?.get() ?? targetX;
+            // Position tooltip past the right end of the bar (max of targetX and xZero)
+            const barRightX = Math.max(targetX, currentXZero);
+
+            return {
+                x: barRightX + TOOLTIP_BAR_GAP,
+                y: targetY,
+            };
+        }
+
         const currentYZero = yZero?.get() ?? targetY;
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
         return {
-            x: chartInteractionState.x.position.get(),
+            x: targetX,
             y: barTopY - TOOLTIP_BAR_GAP,
         };
     });

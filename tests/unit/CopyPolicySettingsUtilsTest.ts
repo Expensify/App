@@ -270,6 +270,18 @@ describe('CopyPolicySettingsUtils', () => {
             distancePolicy.areDistanceRatesEnabled = true;
             expect(isCopyPolicySettingsPartEnabledOnSource('distanceRates', {...baseContext, policy: distancePolicy})).toBe(true);
         });
+
+        it('shows invoices only when the feature is enabled and has invoice configuration', () => {
+            const invoicePolicy = createRandomPolicy(12);
+            invoicePolicy.areInvoicesEnabled = true;
+
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: invoicePolicy, hasInvoiceConfiguration: true})).toBe(true);
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: invoicePolicy, hasInvoiceConfiguration: false})).toBe(false);
+
+            const disabledInvoicePolicy = createRandomPolicy(13);
+            disabledInvoicePolicy.areInvoicesEnabled = false;
+            expect(isCopyPolicySettingsPartEnabledOnSource('invoices', {...baseContext, policy: disabledInvoicePolicy, hasInvoiceConfiguration: true})).toBe(false);
+        });
     });
 
     describe('isTargetCompatibleForAccountingPart', () => {
@@ -435,8 +447,8 @@ describe('CopyPolicySettingsUtils', () => {
 
         describe('getControlOnlySelectedParts', () => {
             it('returns the selected parts a Collect target cannot access', () => {
-                const result = getControlOnlySelectedParts([collectTarget(1)], ['rules', 'perDiem', 'categories'] as Part[]);
-                expect(result).toEqual(expect.arrayContaining(['rules', 'perDiem']));
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['perDiem', 'categories'] as Part[]);
+                expect(result).toEqual(expect.arrayContaining(['perDiem']));
                 expect(result).not.toContain('categories');
             });
 
@@ -444,8 +456,24 @@ describe('CopyPolicySettingsUtils', () => {
                 expect(getControlOnlySelectedParts([collectTarget(1)], ['categories', 'tags'] as Part[])).toEqual([]);
             });
 
+            it('does not treat rules as Control-only, since Collect can access them', () => {
+                expect(getControlOnlySelectedParts([collectTarget(1)], ['rules'] as Part[])).toEqual([]);
+            });
+
+            it('treats invoices as Control-only when source policy has invoice fields enabled', () => {
+                const sourcePolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: true};
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['invoices'] as Part[], sourcePolicy);
+                expect(result).toContain('invoices');
+            });
+
+            it('does not treat invoices as Control-only when source policy has no invoice fields', () => {
+                const sourcePolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), areInvoiceFieldsEnabled: false};
+                const result = getControlOnlySelectedParts([collectTarget(1)], ['invoices'] as Part[], sourcePolicy);
+                expect(result).not.toContain('invoices');
+            });
+
             it('returns nothing when there are no Collect targets', () => {
-                expect(getControlOnlySelectedParts([controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+                expect(getControlOnlySelectedParts([controlTarget(1)], ['perDiem'] as Part[])).toEqual([]);
             });
         });
 
@@ -453,7 +481,7 @@ describe('CopyPolicySettingsUtils', () => {
             it('returns every Collect target when a Control-only part is selected', () => {
                 const collectA = collectTarget(1);
                 const collectB = collectTarget(2);
-                const result = getCollectTargetsToUpgrade([collectA, collectB, controlTarget(3)], ['rules'] as Part[]);
+                const result = getCollectTargetsToUpgrade([collectA, collectB, controlTarget(3)], ['perDiem'] as Part[]);
                 expect(result).toHaveLength(2);
                 expect(result.map((policy) => policy.id)).toEqual(expect.arrayContaining([collectA.id, collectB.id]));
             });
@@ -463,17 +491,17 @@ describe('CopyPolicySettingsUtils', () => {
             });
 
             it('ignores unresolved targets', () => {
-                expect(getCollectTargetsToUpgrade([undefined, controlTarget(1)], ['rules'] as Part[])).toEqual([]);
+                expect(getCollectTargetsToUpgrade([undefined, controlTarget(1)], ['perDiem'] as Part[])).toEqual([]);
             });
         });
 
         describe('shouldShowCopyPolicySettingsUpgradeStep', () => {
             it('is true when a Control-only part targets a Collect workspace', () => {
-                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['rules'] as Part[])).toBe(true);
+                expect(shouldShowCopyPolicySettingsUpgradeStep([collectTarget(1)], ['perDiem'] as Part[])).toBe(true);
             });
 
             it('is false when every target is already Control', () => {
-                expect(shouldShowCopyPolicySettingsUpgradeStep([controlTarget(1)], ['rules'] as Part[])).toBe(false);
+                expect(shouldShowCopyPolicySettingsUpgradeStep([controlTarget(1)], ['perDiem'] as Part[])).toBe(false);
             });
 
             it('is false when no Control-only part is selected', () => {
