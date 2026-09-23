@@ -973,11 +973,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Tarjeta Expensify',
                 cta: 'Revisar',
             },
-            validateAccount: {
-                title: 'Valida tu cuenta',
-                subtitle: 'Cuenta',
-                cta: 'Validar',
-            },
             addHomeAddress: {title: 'Añade tu dirección de casa para el seguimiento de distancia', subtitle: 'Cuenta', cta: 'Añadir dirección'},
             fixFailedBilling: {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
@@ -1012,12 +1007,6 @@ const translations: TranslationDeepObject<typeof en> = {
             awaitingApproval: 'Pendiente de aprobación',
             repaidLast30Days: 'Reembolsado últimos 30 días',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
-        },
-        discoverSection: {
-            title: 'Descubrir',
-            menuItemTitleNonAdmin: 'Aprende a crear gastos y enviar informes.',
-            menuItemTitleAdmin: 'Aprende a invitar a miembros, editar flujos de aprobación y conciliar tarjetas corporativas.',
-            menuItemDescription: 'Descubre lo que Expensify puede hacer en 2 minutos',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({

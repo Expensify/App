@@ -6643,11 +6643,6 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
-        discoverSectionImage: {
-            width: '100%',
-            height: undefined,
-            aspectRatio: 2.2,
-        },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,

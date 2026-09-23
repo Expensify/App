@@ -978,7 +978,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
                 subtitle: 'Carteira',
             },
-            validateAccount: {title: 'Valide sua conta', subtitle: 'Conta', cta: 'Validar'},
             addHomeAddress: {title: 'Adicione seu endereço residencial para rastrear distâncias', subtitle: 'Conta', cta: 'Adicionar endereço'},
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
             unlockBankAccount: {
@@ -993,12 +992,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Adicionar detalhes',
             },
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
-        },
-        discoverSection: {
-            title: 'Descobrir',
-            menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
-            menuItemTitleAdmin: 'Saiba como convidar membros, editar fluxos de aprovação e conciliar cartões corporativos.',
-            menuItemDescription: 'Veja o que o Expensify pode fazer em 2 minutos',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({

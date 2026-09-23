@@ -1017,11 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Κάρτα Expensify',
                 cta: 'Ανασκόπηση',
             },
-            validateAccount: {
-                title: 'Επικυρώστε τον λογαριασμό σας',
-                subtitle: 'Λογαριασμός',
-                cta: 'Επικυρώστε',
-            },
             addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη διεύθυνσης'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
@@ -1061,12 +1056,6 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Πρόσφατες συναλλαγές • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
-        discoverSection: {
-            title: 'Ανακαλύψτε',
-            menuItemTitleNonAdmin: 'Μάθετε πώς να δημιουργείτε δαπάνες και να υποβάλλετε αναφορές.',
-            menuItemTitleAdmin: 'Μάθετε πώς να προσκαλείτε μέλη, να επεξεργάζεστε ροές έγκρισης και να πραγματοποιείτε συμφωνία εταιρικών καρτών.',
-            menuItemDescription: 'Δείτε τι μπορεί να κάνει το Expensify σε 2 λεπτά',
-        },
         forYouSection: {
             reviewExpenses: ({count}: {count: number}) => ({
                 one: 'Ελέγξτε 1 δαπάνη',

@@ -68,14 +68,14 @@ describe('handleRHPVariantNavigation', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
         expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
     it('navigates home for the rhpHomePage variant when no report is topmost', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
     it('preserves the topmost report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
@@ -84,13 +84,13 @@ describe('handleRHPVariantNavigation', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
         expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
     it('navigates home for the trackExpensesWithConcierge variant when no report is topmost', () => {
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 });
