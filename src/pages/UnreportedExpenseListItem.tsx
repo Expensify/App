@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -48,7 +49,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false});
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     const transactionReportID = getNonEmptyStringOnyxID(transactionItem.reportID);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);

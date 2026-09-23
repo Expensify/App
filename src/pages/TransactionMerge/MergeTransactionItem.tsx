@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
@@ -28,7 +29,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
 
     const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, borderRadius: 0});
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 

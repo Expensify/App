@@ -1111,7 +1111,7 @@ function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
  * Scales a view about its top-left corner, e.g. to display high-resolution content
  * at a smaller size inside a clipping box without re-rendering it.
  */
-function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle & {transformOrigin?: string} {
     return {
         transform: [{scale: scaleValue}],
         transformOrigin: 'top left',
