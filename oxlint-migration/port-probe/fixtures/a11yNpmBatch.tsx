@@ -11,15 +11,8 @@ const onAccessibilityAction = () => undefined;
 export function HasAccessibilityProps() {
     return (
         <>
-            <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityTraits="button"
-            />
-            <TouchableOpacity
-                accessibilityLabel="Deprecated pair"
-                accessibilityTraits="button"
-                accessibilityComponentType="button"
-            />
+            <TouchableOpacity accessibilityRole="button" accessibilityTraits="button" />
+            <TouchableOpacity accessibilityLabel="Deprecated pair" accessibilityTraits="button" accessibilityComponentType="button" />
         </>
     );
 }
@@ -29,10 +22,7 @@ export function HasValidAccessibilityActions() {
     return (
         <>
             <View accessibilityActions={[{name: 'activate'}]} />
-            <View
-                accessibilityActions={actions}
-                onAccessibilityAction={onAccessibilityAction}
-            />
+            <View accessibilityActions={actions} onAccessibilityAction={onAccessibilityAction} />
         </>
     );
 }
@@ -52,10 +42,7 @@ export function HasValidAccessibilityIgnoresInvertColors() {
     return (
         <>
             <Image source={{uri: 'https://example.com/inverted.png'}} />
-            <Image
-                accessibilityIgnoresInvertColors
-                source={{uri: 'https://example.com/ignored.png'}}
-            />
+            <Image accessibilityIgnoresInvertColors source={{uri: 'https://example.com/ignored.png'}} />
         </>
     );
 }
@@ -135,10 +122,7 @@ export function NoNestedTouchables() {
     return (
         <>
             <View accessible={true}>
-                <TouchableOpacity
-                    accessibilityLabel="Nested"
-                    onPress={() => undefined}
-                />
+                <TouchableOpacity accessibilityLabel="Nested" onPress={() => undefined} />
             </View>
             <View accessible={true}>
                 <Text>Not clickable</Text>

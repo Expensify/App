@@ -4,11 +4,11 @@
 // oxlint gives one. Production has no such import to collide with -- the rule exists to keep them out.
 // Only import/no-absolute-path is configured here, on both tools, at production's bare "error".
 
-// no-absolute-path: an absolute specifier.
-import absolutePathModule from '/tmp/importNativeBatchAbsolute';
-
 // Control: the same module by relative path, reported by nothing.
 import {sharedConfigValue} from './importNativeBatchHelper';
+
+// no-absolute-path: an absolute specifier.
+import absolutePathModule from '/tmp/importNativeBatchAbsolute';
 
 export const absoluteBatchMarker = sharedConfigValue;
 export const absoluteBatchImport = absolutePathModule;

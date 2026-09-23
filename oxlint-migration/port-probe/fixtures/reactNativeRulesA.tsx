@@ -20,20 +20,9 @@ declare const flagValue: boolean;
 declare const condition: boolean;
 
 // jsx-boolean-value ('never'): an explicit `={true}` is the violation.
-export const explicitTrue = (
-    <Child
-        label="a"
-        {...{}}
-        data-flag={true}
-    />
-);
+export const explicitTrue = <Child label="a" {...{}} data-flag={true} />;
 // control: the shorthand the rule asks for.
-export const shorthandTrue = (
-    <Child
-        label="a"
-        data-flag
-    />
-);
+export const shorthandTrue = <Child label="a" data-flag />;
 
 // jsx-fragments ('syntax'): the long form must be the shorthand.
 export const longFragment = (
@@ -61,20 +50,13 @@ export const plainHref = <a href="https://example.com">go</a>;
 
 // jsx-no-target-blank (enforceDynamicLinks: 'always')
 export const unsafeBlank = (
-    <a
-        href="https://example.com"
-        target="_blank"
-    >
+    <a href="https://example.com" target="_blank">
         go
     </a>
 );
 // control: rel closes the hole.
 export const safeBlank = (
-    <a
-        href="https://example.com"
-        target="_blank"
-        rel="noreferrer"
-    >
+    <a href="https://example.com" target="_blank" rel="noreferrer">
         go
     </a>
 );
@@ -97,10 +79,7 @@ export const pascalComponent = <Child label="a" />;
 export const indexKeys = (
     <div>
         {items.map((item, index) => (
-            <Child
-                key={index}
-                label={item}
-            />
+            <Child key={index} label={item} />
         ))}
     </div>
 );
@@ -108,10 +87,7 @@ export const indexKeys = (
 export const stableKeys = (
     <div>
         {items.map((item) => (
-            <Child
-                key={item}
-                label={item}
-            />
+            <Child key={item} label={item} />
         ))}
     </div>
 );
@@ -138,12 +114,7 @@ export const emptyNotSelfClosing = <div></div>;
 export const emptySelfClosing = <div />;
 
 // forbid-component-props: fsClass is allowed only on the listed RN primitives.
-export const forbiddenFsClass = (
-    <Child
-        label="a"
-        fsClass="x"
-    />
-);
+export const forbiddenFsClass = <Child label="a" fsClass="x" />;
 // control: the prop on nothing, since the allowedFor list is RN components this probe does not import.
 export const noFsClass = <Child label="a" />;
 

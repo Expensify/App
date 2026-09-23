@@ -1,5 +1,6 @@
 // import-scope: members pulled off the full lodash module instead of individual methods
 import {map} from 'lodash';
+
 // valid control: the method package import
 import mapValues from 'lodash/mapValues';
 

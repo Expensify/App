@@ -1,11 +1,3 @@
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-
-import * as Libs from '@libs/SomeLib';
-
-import * as ReportActions from '@userActions/Report';
-
-import React from 'react';
-
 // Fixture for no-restricted-syntax, hosted through `core/` because oxlint has no native port: the
 // rule matches esquery selectors, so this is also the only place the bridge's selector engine is
 // tested, including the regex attribute matches and the `:not(:has(...))` in the Pressable rule.
@@ -15,6 +7,10 @@ import React from 'react';
 // script-mode file.
 import * as Parent from '../ParentModule';
 import * as Sibling from './SiblingModule';
+import * as Libs from '@libs/SomeLib';
+import * as ReportActions from '@userActions/Report';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import React from 'react';
 
 enum Status {
     Active,

@@ -9,12 +9,13 @@
 // subpath never reaches an alias check. Only `../`-style imports are matched against the alias
 // directories, which is what production relies on too.
 
+import CONST from '../src/CONST';
+
 // Control: already written with the alias, so the rule must leave it alone.
 import type ConstType from '@src/CONST';
 
 // Control: a parent import that lands outside every alias directory.
 import pkg from '../../package.json';
-import CONST from '../src/CONST';
 
 export const value: unknown = [CONST, pkg];
 

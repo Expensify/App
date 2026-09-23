@@ -8,8 +8,10 @@
 
 // Control: the named export exists, and reading it directly is not what no-named-as-default-member is about.
 import {sharedConfigValue} from './importNativeBatchHelper';
+
 // import/named: no such export.
 import {nameThatDoesNotExist} from './importNativeBatchHelper';
+
 // no-named-as-default-member: `sharedConfigValue` is a named export, read off the default import --
 // exactly the `import Config from 'react-native-config'` / `Config.SOMETHING` shape from production.
 import helperDefault from './importNativeBatchHelper';

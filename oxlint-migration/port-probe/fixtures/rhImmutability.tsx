@@ -13,13 +13,5 @@
 // This directory is in .oxfmtrc.json's ignorePatterns, so the formatter will not split the line.
 export function ReassignsAfterRender() {
     let latest = 0;
-    return (
-        <button
-            onClick={() => {
-                latest = 1;
-            }}
-        >
-            {latest}
-        </button>
-    );
+    return <button onClick={() => { latest = 1; }}>{latest}</button>;
 }

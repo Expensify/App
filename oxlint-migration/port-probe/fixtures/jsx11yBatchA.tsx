@@ -13,10 +13,7 @@ function AltText() {
     return (
         <>
             <img src="logo.png" />
-            <img
-                src="logo.png"
-                alt="Expensify logo"
-            />
+            <img src="logo.png" alt="Expensify logo" />
         </>
     );
 }
@@ -49,10 +46,7 @@ function AriaActiveDescendantHasTabindex() {
     return (
         <>
             <div aria-activedescendant="option-2" />
-            <div
-                aria-activedescendant="option-2"
-                tabIndex={-1}
-            />
+            <div aria-activedescendant="option-2" tabIndex={-1} />
         </>
     );
 }
@@ -82,10 +76,7 @@ function AriaRole() {
     return (
         <>
             <div role="buttons" />
-            <div
-                role="button"
-                tabIndex={0}
-            >
+            <div role="button" tabIndex={0}>
                 Save
             </div>
         </>
@@ -96,10 +87,7 @@ function AriaRole() {
 function AriaUnsupportedElements() {
     return (
         <>
-            <meta
-                charset="utf-8"
-                aria-hidden="false"
-            />
+            <meta charset="utf-8" aria-hidden="false" />
             <meta charset="utf-8" />
         </>
     );
@@ -112,10 +100,7 @@ function ControlHasAssociatedLabel() {
         <>
             <button type="button" />
             <button type="button">Save</button>
-            <button
-                type="button"
-                label="Save"
-            />
+            <button type="button" label="Save" />
         </>
     );
 }
@@ -149,10 +134,7 @@ function IframeHasTitle() {
     return (
         <>
             <iframe src="https://example.com/embed" />
-            <iframe
-                title="Bank statement"
-                src="https://example.com/embed"
-            />
+            <iframe title="Bank statement" src="https://example.com/embed" />
         </>
     );
 }
@@ -162,14 +144,8 @@ function IframeHasTitle() {
 function ImgRedundantAlt() {
     return (
         <>
-            <img
-                src="dog.png"
-                alt="Photo of a dog"
-            />
-            <img
-                src="dog.png"
-                alt="Dog running through a field"
-            />
+            <img src="dog.png" alt="Photo of a dog" />
+            <img src="dog.png" alt="Dog running through a field" />
         </>
     );
 }
@@ -204,10 +180,7 @@ function MediaHasCaption() {
         <>
             <video src="onboarding.mp4" />
             <video src="onboarding.mp4">
-                <track
-                    kind="captions"
-                    src="onboarding.vtt"
-                />
+                <track kind="captions" src="onboarding.vtt" />
             </video>
         </>
     );

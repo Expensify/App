@@ -22,6 +22,7 @@
                 "metro.config.js",
                 "config/babel/oxcJestTransformer.js",
                 "eslint.changed.config.mjs",
+                "oxlint-migration/rule-tester/buildTree.mjs",
                 "react-native.config.js",
                 "rock.config.mjs",
                 "rspack.config.mjs",
@@ -95,5 +96,5 @@
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl"]
+    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl", "python3"]
 }

@@ -19,15 +19,16 @@ export const diff = (a: number, b: number): number => a - b;
 // The hazard is real ASI: the two lines below parse as one expression, `rows[0].push(1)`, which
 // is why the merged form still type-checks and why no semicolon was needed to hide it.
 export function hazard(rows: number[][]): number {
-    const pushed = rows[0].push(1);
+    const pushed = rows
+    [0].push(1)
 
-    return pushed;
+    return pushed
 }
 
 // Control: the same statement, terminated, so the second line cannot continue the first.
 export function safe(rows: number[][]): number {
     const pushed = rows;
-    [0].push(1);
+    [0].push(1)
 
-    return pushed;
+    return pushed
 }

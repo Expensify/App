@@ -9,15 +9,8 @@ import React from 'react';
 function InteractiveSupportsFocus() {
     return (
         <>
-            <div
-                role="button"
-                onClick={() => undefined}
-            />
-            <div
-                role="button"
-                tabIndex={0}
-                onClick={() => undefined}
-            />
+            <div role="button" onClick={() => undefined} />
+            <div role="button" tabIndex={0} onClick={() => undefined} />
         </>
     );
 }
@@ -27,10 +20,7 @@ function MouseEventsHaveKeyEvents() {
     return (
         <>
             <div onMouseOver={() => undefined} />
-            <div
-                onMouseOver={() => undefined}
-                onFocus={() => undefined}
-            />
+            <div onMouseOver={() => undefined} onFocus={() => undefined} />
         </>
     );
 }
@@ -39,10 +29,7 @@ function MouseEventsHaveKeyEvents() {
 function NoAccessKey() {
     return (
         <>
-            <button
-                type="button"
-                accessKey="s"
-            >
+            <button type="button" accessKey="s">
                 Save
             </button>
             <button type="button">Save</button>
@@ -54,10 +41,7 @@ function NoAccessKey() {
 function NoAutofocus() {
     return (
         <>
-            <input
-                type="text"
-                autoFocus
-            />
+            <input type="text" autoFocus />
             <input type="text" />
         </>
     );
@@ -78,10 +62,7 @@ function NoDistractingElements() {
 function NoInteractiveElementToNoninteractiveRole() {
     return (
         <>
-            <button
-                type="button"
-                role="presentation"
-            />
+            <button type="button" role="presentation" />
             <button type="button">Save</button>
         </>
     );
@@ -93,10 +74,7 @@ function NoNoninteractiveElementInteractions() {
     return (
         <>
             <h3 onClick={() => undefined}>Report summary</h3>
-            <button
-                type="button"
-                onClick={() => undefined}
-            >
+            <button type="button" onClick={() => undefined}>
                 Save
             </button>
         </>
@@ -109,10 +87,7 @@ function NoNoninteractiveElementToInteractiveRole() {
     return (
         <>
             <p role="button">Notes</p>
-            <ul
-                role="menu"
-                tabIndex={0}
-            />
+            <ul role="menu" tabIndex={0} />
         </>
     );
 }
@@ -123,10 +98,7 @@ function NoNoninteractiveTabindex() {
     return (
         <>
             <div tabIndex={0} />
-            <div
-                role="tabpanel"
-                tabIndex={0}
-            />
+            <div role="tabpanel" tabIndex={0} />
         </>
     );
 }
@@ -136,10 +108,7 @@ function NoRedundantRoles() {
     return (
         <>
             <ul role="list" />
-            <ul
-                role="listbox"
-                tabIndex={0}
-            />
+            <ul role="listbox" tabIndex={0} />
         </>
     );
 }
@@ -149,11 +118,7 @@ function NoStaticElementInteractions() {
     return (
         <>
             <div onClick={() => undefined}>Tap to expand</div>
-            <div
-                role="button"
-                tabIndex={0}
-                onClick={() => undefined}
-            >
+            <div role="button" tabIndex={0} onClick={() => undefined}>
                 Tap to expand
             </div>
         </>
@@ -165,15 +130,8 @@ function NoStaticElementInteractions() {
 function RoleHasRequiredAriaProps() {
     return (
         <>
-            <div
-                role="checkbox"
-                tabIndex={0}
-            />
-            <div
-                role="checkbox"
-                aria-checked={false}
-                tabIndex={0}
-            />
+            <div role="checkbox" tabIndex={0} />
+            <div role="checkbox" aria-checked={false} tabIndex={0} />
         </>
     );
 }
@@ -183,18 +141,8 @@ function RoleHasRequiredAriaProps() {
 function RoleSupportsAriaProps() {
     return (
         <>
-            <div
-                role="checkbox"
-                aria-checked={false}
-                aria-sort="ascending"
-                tabIndex={0}
-            />
-            <div
-                role="checkbox"
-                aria-checked={false}
-                aria-label="Terms"
-                tabIndex={0}
-            />
+            <div role="checkbox" aria-checked={false} aria-sort="ascending" tabIndex={0} />
+            <div role="checkbox" aria-checked={false} aria-label="Terms" tabIndex={0} />
         </>
     );
 }
@@ -214,16 +162,10 @@ function Scope() {
 function TabindexNoPositive() {
     return (
         <>
-            <button
-                type="button"
-                tabIndex={3}
-            >
+            <button type="button" tabIndex={3}>
                 Save
             </button>
-            <button
-                type="button"
-                tabIndex={0}
-            >
+            <button type="button" tabIndex={0}>
                 Save
             </button>
         </>

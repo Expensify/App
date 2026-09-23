@@ -6,7 +6,6 @@
 /// <reference path="./tsBatchB.ts" />
 
 import type {BatchControl, BatchShape} from './tsBatchB';
-
 import {BatchAliasType} from './tsBatchB';
 import {type BatchInlineType} from './tsBatchB';
 // consistent-type-imports: BatchTypeOnly is imported in value position but only ever used as a type.
@@ -130,7 +129,7 @@ export const computedCount: number = Number('1');
 // no-explicit-any
 export function takesAny(input: any): void {
     void input;
-} // control
+}// control
 export function takesUnknown(input: unknown): void {
     void input;
 }

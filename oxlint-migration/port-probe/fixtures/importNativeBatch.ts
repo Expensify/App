@@ -10,20 +10,25 @@
 // external package and so wants it ahead of every sibling import below.
 import webpackLoaderChain from 'raw-loader!./importNativeBatchHelper';
 
+// Control: the correct shape, reported by nothing.
+import {sharedConfigValue} from './importNativeBatchHelper';
+
+// consistent-type-specifier-style prefer-top-level: an inline `type` specifier.
+import {type HelperOptions} from './importNativeBatchHelper';
+
+// extensions (ignorePackages + never for ts): the extension is spelled out.
+import extensionfulHelper from './importNativeBatchHelper.ts';
+
 // no-self-import: this file, by relative path. The file has a default export (see the bottom) so that the
 // self-import is a plain default import: oxlint's import plugin comes with default-on rules of its own
 // (import/default), which production switches off with categories.correctness but this probe does not.
 import selfImportedModule from './importNativeBatch';
-// Control: the correct shape, reported by nothing.
-import {sharedConfigValue} from './importNativeBatchHelper';
-// consistent-type-specifier-style prefer-top-level: an inline `type` specifier.
-import {type HelperOptions} from './importNativeBatchHelper';
+
 // no-named-default: `default` pulled in as a named specifier.
 import {default as renamedDefault} from './importNativeBatchHelper';
+
 // newline-after-import: the statement below has no blank line above it.
 import {helperSum} from './importNativeBatchHelper';
-// extensions (ignorePackages + never for ts): the extension is spelled out.
-import extensionfulHelper from './importNativeBatchHelper.ts';
 const noBlankLineAbove = helperSum(sharedConfigValue, 1);
 
 // import/first: the statement above is the first non-import, so this import is out of order.
