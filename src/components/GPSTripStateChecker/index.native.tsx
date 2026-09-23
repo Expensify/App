@@ -129,9 +129,7 @@ function GPSTripStateChecker() {
     }, []);
 
     const navigateToGpsScreen = () => {
-        Navigation.navigate(
-            ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportIDRef.current),
-        );
+        Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportIDRef.current));
     };
 
     const continueGpsTrip = async () => {
