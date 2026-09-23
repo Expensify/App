@@ -64,6 +64,7 @@ import {
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
+    isReportExcludedForHeldExpenses,
     isReportPendingDelete,
     isSettled,
 } from '@libs/ReportUtils';
@@ -335,7 +336,14 @@ function getBadgeFromIOUReport(
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    iouReportActions: OnyxEntry<OnyxTypes.ReportActions>,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
+
+    if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
+        return undefined;
+    }
+
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
@@ -360,13 +368,13 @@ function getBadgeFromIOUReport(
         iouReport,
         chatReport,
         policy,
-        getReportTransactions(iouReport?.reportID),
+        reportTransactions,
         // TODO: https://github.com/Expensify/App/issues/66512
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
-        getAllReportActions(iouReport?.reportID),
+        iouReportActions,
     );
     if (isWaitingSubmitFromCurrentUser) {
         return CONST.REPORT.ACTION_BADGE.SUBMIT;
@@ -397,6 +405,7 @@ function getIOUReportActionWithBadge(
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     allReports?: OnyxCollection<OnyxTypes.Report>,
+    allReportActions?: OnyxCollection<OnyxTypes.ReportActions>,
 ): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -430,12 +439,18 @@ function getIOUReportActionWithBadge(
             continue;
         }
 
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
-        if (badge) {
-            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
-                earliestAction = action;
-                actionBadge = badge;
-            }
+        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+
+        // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
+        // still needs action from the current user.
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions);
+        if (!badge) {
+            continue;
+        }
+
+        if (!earliestAction || isOlderReportAction(action, earliestAction)) {
+            earliestAction = action;
+            actionBadge = badge;
         }
     }
 

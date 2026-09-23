@@ -1927,9 +1927,9 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
     return mergedCategories;
 }
 
-function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
+function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: OnyxEntry<string[]>) {
     let mergedCurrencies: string[];
-    const currenciesArray = policyRecentlyUsedCurrencies ?? [];
+    const currenciesArray = Array.isArray(policyRecentlyUsedCurrencies) ? policyRecentlyUsedCurrencies : [];
     if (currency) {
         const currenciesWithNew = [currency, ...currenciesArray];
         mergedCurrencies = Array.from(new Set(currenciesWithNew));

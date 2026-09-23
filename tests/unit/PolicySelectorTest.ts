@@ -4,8 +4,10 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {
+    billingRestrictionPolicySelector,
     createAdminPoliciesSelector,
     createCopySettingsEligibleTargetsSelector,
+    createFilteredPoliciesInfoSelector,
     createIOURequestStartPoliciesSelector,
     createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
@@ -471,6 +473,83 @@ describe('createWorkspaceListPoliciesSelector', () => {
         const policy = makePolicy({role: CONST.POLICY.ROLE.ADMIN});
         const result = createWorkspaceListPoliciesSelector(undefined)({[`${P}p1`]: policy});
         expect(result).toHaveLength(1);
+    });
+});
+
+describe('createFilteredPoliciesInfoSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+    const userLogin = 'user@example.com';
+
+    const makePolicy = (overrides: Partial<Policy>): Policy =>
+        createMock<Policy>({
+            id: 'p1',
+            name: 'Test Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            ownerAccountID: 1,
+            pendingAction: undefined,
+            errors: undefined,
+            ...overrides,
+        });
+
+    it('reports no workspace when there are no policies', () => {
+        expect(createFilteredPoliciesInfoSelector(userLogin)({})).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
+    });
+
+    it('reports no workspace when nothing passes the shouldShowPolicy filter', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({type: CONST.POLICY.TYPE.PERSONAL}),
+        };
+        expect(createFilteredPoliciesInfoSelector(userLogin)(policies)).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
+    });
+
+    it('projects the one policy it shows down to the billing-gate fields', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', ownerAccountID: 42, employeeList: {[userLogin]: {email: userLogin}}}),
+        };
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        expect(result.filteredPoliciesCount).toBe(1);
+        // The projection, not the whole Policy — a fixed-size output keeps employeeList out of useOnyx's deepEqual
+        expect(result.firstPolicy).toStrictEqual({id: 'p1', ownerAccountID: 42});
+    });
+
+    it('skips the Teachers Unite workspace', () => {
+        const policies = {
+            [`${P}${CONST.TEACHERS_UNITE.TEST_POLICY_ID}`]: makePolicy({id: CONST.TEACHERS_UNITE.TEST_POLICY_ID}),
+        };
+        expect(createFilteredPoliciesInfoSelector(userLogin)(policies)).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
+    });
+
+    it('short-circuits at 2 and keeps the first match when several workspaces pass the filter', () => {
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', ownerAccountID: 1}),
+            [`${P}p2`]: makePolicy({id: 'p2', ownerAccountID: 2}),
+            [`${P}p3`]: makePolicy({id: 'p3', ownerAccountID: 3}),
+        };
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        expect(result.filteredPoliciesCount).toBe(2);
+        expect(result.firstPolicy).toStrictEqual({id: 'p1', ownerAccountID: 1});
+    });
+});
+
+describe('billingRestrictionPolicySelector', () => {
+    const userLogin = 'user@example.com';
+
+    it('returns only the fields the billing gate reads', () => {
+        const policy = createMock<Policy>({
+            id: 'p1',
+            ownerAccountID: 42,
+            name: 'Test Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            employeeList: {[userLogin]: {email: userLogin}},
+        });
+        expect(billingRestrictionPolicySelector(policy)).toStrictEqual({id: 'p1', ownerAccountID: 42});
+    });
+
+    it('returns undefined when the policy has not loaded', () => {
+        expect(billingRestrictionPolicySelector(undefined)).toBeUndefined();
     });
 });
 

@@ -34,7 +34,8 @@ import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {canActionTask, canModifyTask, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {clearTaskErrors} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -88,7 +89,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
 
     const assigneePersonalDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
-    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate}) : '';
+    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) : '';
 
     const isOpen = isOpenTaskReport(report);
 
