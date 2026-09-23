@@ -1,7 +1,7 @@
 ---
 title: Set Up and Manage the Expensify Card in the US
 description: Learn how to set up and manage the Expensify Card for US businesses, including enabling the card, issuing cards, and managing card settings.
-keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin, Card Admin]
+keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin, Card Admin, export account column]
 internalScope: Applies to Workspace Admins and Card Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
 ---
 
@@ -136,6 +136,25 @@ Each card shows one of the following statuses:
 **Note:** The **Status** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
 
 ![The Expensify Card list with the Status column visible, showing the badges (Pending order, Shipped, Active, Inactive]({{site.url}}/assets/images/Expensify_Card_Status_Column.png){:width="100%"}
+
+## What the Export account column shows in the Expensify Card list
+
+The Expensify Card list includes an **Export account** column so you can see which accounting account each card exports to without opening the card. The column sits between **Status** and **Limit**. Click the **Export account** column header to sort the list by export account.
+
+Each card shows one of the following:
+
+- The account chosen for that card in the **Accounting** section of its card details page.
+- Your workspace's default export account, when the card has no account of its own. Depending on your accounting integration, this reads **Default account**, **Default vendor**, **Default card**, or the account name followed by **(default)**.
+
+The **Export account** column only appears when your workspace has an accounting integration connected and that integration's export destination lets you choose an export account for a single card. This is the same condition that shows the **Accounting** section on a card's details page, so if that section is missing, the column is hidden too.
+
+**Note:** The **Export account** column is hidden on narrow and medium screens. Widen your browser window or view the list on a larger screen to see it.
+
+<!-- SCREENSHOT:
+Suggestion: The Expensify Card list on a wide browser window with the Export account column visible between Status and Limit, showing one card set to a named account and one card showing the workspace default label.
+Location: Immediately after this section.
+Purpose: Shows admins where the Export account column sits relative to Status and Limit and what the workspace default label looks like, so they don't mistake the default label for a real account name.
+-->
 
 ---
 
