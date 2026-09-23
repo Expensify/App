@@ -1,5 +1,3 @@
-import CenteredModalLayoutOverlay from '@components/CenteredModalLayoutOverlay';
-
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -9,6 +7,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import CenteredModalLayoutOverlay from './CenteredModalLayoutOverlay';
 
 type DismissibleBackdropProps = {
     /** Content laid out on top of the backdrop */
