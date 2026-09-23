@@ -284,6 +284,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
     const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
+
     // A table whose only purpose is picking rows is always in selection mode, so it shows its checkboxes from the
     // start rather than hiding them behind a long press. It also leaves the app wide selection mode alone, which
     // other screens write to and would otherwise clear the selection midway through.
