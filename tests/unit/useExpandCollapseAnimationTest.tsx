@@ -1,10 +1,10 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
+import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+
 import type {LayoutChangeEvent} from 'react-native';
 
 import * as Reanimated from 'react-native-reanimated';
-
-import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 
 import createMock from '../utils/createMock';
 
