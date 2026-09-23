@@ -9216,6 +9216,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: '批量编辑',
             editMultipleTitle: '编辑多个费用',
+            editFinalizedExpensesTitle: '编辑已完成的费用？',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `您选择的 ${total} 笔费用中有 1 笔位于已批准或已支付的报表中。您即将编辑已完成的费用。您确定吗？`,
+                other: `您选择的 ${total} 笔费用中有 ${count} 笔位于已批准或已支付的报表中。您即将编辑已完成的费用。您确定吗？`,
+            }),
             editMultipleDescription: '更改将应用于所有选中的报销，并覆盖任何先前设置的值。',
             approve: '批准',
             pay: '支付',
