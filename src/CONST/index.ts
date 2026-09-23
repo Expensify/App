@@ -575,7 +575,6 @@ const CONST = {
 
     GENERATED_RULE: {
         PROMPT_MAX_LENGTH: 6000,
-        TIMEOUT_MS: 60000,
         STATE: {
             RULE: 'rule',
             UNSUPPORTED: 'unsupported',

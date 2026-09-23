@@ -457,10 +457,6 @@ function clearGeneratedRule() {
     Onyx.set(ONYXKEYS.GENERATED_RULE, null);
 }
 
-function failGeneratedRule(generationID: string) {
-    Onyx.set(ONYXKEYS.GENERATED_RULE, {generationID, state: CONST.GENERATED_RULE.STATE.FAILED});
-}
-
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
@@ -738,7 +734,6 @@ export {
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
     generateRule,
-    failGeneratedRule,
     clearGeneratedRule,
     setNewRulePromptError,
     clearNewRulePromptError,
