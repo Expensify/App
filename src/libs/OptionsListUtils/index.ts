@@ -2077,6 +2077,67 @@ function isValidReport(
 }
 
 /**
+ * Cache for the chat preview text that `getAlternateText` resolves.
+ *
+ * `createFilteredOptionList` reuses its whole result while its Onyx inputs are unchanged, but
+ * `prepareReportOptionsForDisplay` runs on every call - once per keystroke in Search - and resolves the full preview
+ * (`getReportAlternateText`) for every option it keeps. The preview depends only on the report and on the Onyx
+ * snapshots guarded below, so it is kept per report and the whole cache is dropped as soon as any of those inputs
+ * changes identity.
+ */
+const alternateTextCache = new Map<string, string | undefined>();
+let alternateTextCacheInputs: unknown[] | undefined;
+
+// Bound the LRU cache so a wide result cap cannot grow it without limit.
+const ALTERNATE_TEXT_CACHE_MAX_ENTRIES = 500;
+
+// The cached previews belong to the signed-in account, so drop them on sign-out instead of holding them until the
+// next call.
+registerSessionCleanupCallback(() => {
+    alternateTextCache.clear();
+    alternateTextCacheInputs = undefined;
+});
+
+/** Clears the preview cache. For tests that measure or exercise the resolve path while the guarded inputs keep their identity. */
+function clearAlternateTextCache() {
+    alternateTextCache.clear();
+    alternateTextCacheInputs = undefined;
+}
+
+/** Drops every cached preview as soon as any input that feeds `getAlternateText` changes identity. */
+function syncAlternateTextCache(inputs: unknown[]) {
+    if (alternateTextCacheInputs?.length === inputs.length && inputs.every((input, index) => input === alternateTextCacheInputs?.at(index))) {
+        return;
+    }
+
+    alternateTextCache.clear();
+    alternateTextCacheInputs = inputs;
+}
+
+/** Returns the cached preview for the key, resolving and storing it on a miss. */
+function getCachedAlternateText(cacheKey: string, resolveAlternateText: () => string | undefined): string | undefined {
+    if (alternateTextCache.has(cacheKey)) {
+        const cachedAlternateText = alternateTextCache.get(cacheKey);
+        // Re-inserting refreshes recency so a frequently-hit entry is not evicted by misses on other keys.
+        alternateTextCache.delete(cacheKey);
+        alternateTextCache.set(cacheKey, cachedAlternateText);
+        return cachedAlternateText;
+    }
+
+    const alternateText = resolveAlternateText();
+
+    if (alternateTextCache.size >= ALTERNATE_TEXT_CACHE_MAX_ENTRIES) {
+        const oldestEntry = alternateTextCache.keys().next();
+        if (!oldestEntry.done) {
+            alternateTextCache.delete(oldestEntry.value);
+        }
+    }
+    alternateTextCache.set(cacheKey, alternateText);
+
+    return alternateText;
+}
+
+/**
  * Prepares report options for display by enriching them with UI-specific properties and filtering out invalid options.
  *
  * Not every property of the report option can be computed on the initial computing in the OptionListContextProvider. Some of them are based on the context (config) so they are computed here.
@@ -2107,7 +2168,7 @@ function prepareReportOptionsForDisplay(
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     rules: OnyxCollection<Rule>,
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
     isTrackIntentUser?: boolean,
@@ -2140,6 +2201,29 @@ function prepareReportOptionsForDisplay(
 
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
+    syncAlternateTextCache([
+        allReports,
+        policiesCollection,
+        personalDetails,
+        visibleReportActionsData,
+        reportAttributesDerived,
+        policyTags,
+        sortedActions,
+        transactionThreadIDs,
+        lastActions,
+        rules,
+        conciergeReportID,
+        isTrackIntentUser,
+        currentUserAccountID,
+        currentUserLogin,
+        config.dateFnsLocale,
+        convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
+        localeCompare,
+        formatPhoneNumber,
+        translate,
+    ]);
+
     for (let i = 0; i < options.length; i++) {
         const option = options.at(i);
         if (!option) {
@@ -2161,32 +2245,34 @@ function prepareReportOptionsForDisplay(
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const alternateText = getAlternateText(
-            option,
-            {showChatPreviewLine, forcePolicyNamePreview},
-            {
-                dateFnsLocale: config.dateFnsLocale,
-                isReportArchived: !!option.private_isArchived,
-                personalDetails,
-                policy,
-                invoiceReceiverPolicy,
-                visibleReportActionsData,
-                translate,
-                convertToDisplayString,
-                convertToDisplayStringWithoutCurrency,
-                reportAttributesDerived,
-                policyTags: reportPolicyTags,
-                conciergeReportID,
-                sortedActions,
-                transactionThreadIDs,
-                lastActions,
-                isTrackIntentUser,
-                currentUserAccountID,
-                currentUserLogin,
-                localeCompare,
-                formatPhoneNumber,
-                rules,
-            },
+        const alternateText = getCachedAlternateText(`${report.reportID}_${showChatPreviewLine ? 1 : 0}_${forcePolicyNamePreview ? 1 : 0}_${option.private_isArchived ? 1 : 0}`, () =>
+            getAlternateText(
+                option,
+                {showChatPreviewLine, forcePolicyNamePreview},
+                {
+                    dateFnsLocale: config.dateFnsLocale,
+                    isReportArchived: !!option.private_isArchived,
+                    personalDetails,
+                    policy,
+                    invoiceReceiverPolicy,
+                    visibleReportActionsData,
+                    translate,
+                    convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
+                    reportAttributesDerived,
+                    policyTags: reportPolicyTags,
+                    conciergeReportID,
+                    sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    isTrackIntentUser,
+                    currentUserAccountID,
+                    currentUserLogin,
+                    localeCompare,
+                    formatPhoneNumber,
+                    rules,
+                },
+            ),
         );
         const isSelected = isReportSelected(option, selectedOptions);
 
@@ -2289,7 +2375,7 @@ function getValidOptions(
         personalDetails,
         allPolicyTags,
         countryCode = CONST.DEFAULT_COUNTRY_CODE,
-        visibleReportActionsData = {},
+        visibleReportActionsData = EMPTY_VISIBLE_REPORT_ACTIONS,
         reportAttributesDerived,
         sortedActions,
         transactionThreadIDs,
@@ -2718,7 +2804,7 @@ function getSearchOptions({
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
     loginList,
-    visibleReportActionsData = {},
+    visibleReportActionsData = EMPTY_VISIBLE_REPORT_ACTIONS,
     policyCollection,
     currentUserAccountID,
     currentUserEmail,
@@ -3318,6 +3404,7 @@ function processSearchString(searchString: string | undefined): string[] {
 
 export {
     canCreateOptimisticPersonalDetailOption,
+    clearAlternateTextCache,
     clearFilteredOptionListCache,
     combineOrderingOfReportsAndPersonalDetails,
     createOptionFromReport,
