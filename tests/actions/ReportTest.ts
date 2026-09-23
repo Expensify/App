@@ -10012,6 +10012,115 @@ describe('actions/Report', () => {
                 emailList: `${TEST_USER_LOGIN},passed@test.com`,
             });
         });
+
+        it('should remove the optimistic thread instead of keeping a createChat error when OpenReport fails', async () => {
+            // Given an IOU report with an expense action that the user has no thread for yet
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(700, undefined),
+                reportID: '700',
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(7),
+                reportActionID: 'action-700',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {[reportAction.reportActionID]: reportAction});
+            await waitForBatchedUpdates();
+
+            // When the thread is created while the OpenReport request is still in flight
+            mockFetch.pause();
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            if (!result) {
+                throw new Error('Expected a transaction thread report to be created');
+            }
+
+            // Then the thread exists optimistically and the parent action points at it
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${result.reportID}` as const)).toBeTruthy();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const))?.[reportAction.reportActionID]?.childReportID).toBe(result.reportID);
+
+            // When OpenReport then fails, e.g. because the expense was deleted while the request sat in the offline queue
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+
+            // Then the thread is rolled back rather than left in Onyx with a createChat error the user cannot dismiss,
+            // which is what force-displayed it in the LHN as an empty row with a "Fix" badge
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${result.reportID}` as const)).toBeFalsy();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.reportID}` as const)).toBeFalsy();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${result.reportID}` as const)).toBeFalsy();
+
+            // And the parent action no longer links to a report that does not exist
+            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const);
+            expect(parentActions?.[reportAction.reportActionID]?.childReportID).toBeUndefined();
+
+            mockFetch.succeed();
+        });
+    });
+
+    describe('openReport', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+
+        beforeEach(async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep a user-initiated new chat with a createChat error when OpenReport fails', async () => {
+            // Given a chat the user themselves asked to create, so the error is actionable and must be kept
+            const mockFetch = TestHelper.createGlobalFetchMock();
+            global.fetch = mockFetch;
+
+            const REPORT_ID = '710';
+            const newReportObject: OnyxTypes.Report = {
+                ...createRandomReport(710, undefined),
+                reportID: REPORT_ID,
+                parentReportID: undefined,
+                parentReportActionID: undefined,
+            };
+
+            // When OpenReport fails for that create
+            mockFetch.fail();
+            Report.openReport({
+                reportID: REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                participants: [{login: 'other@test.com', accountID: 2}],
+                newReportObject,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                betas: undefined,
+                hasReportActions: false,
+            });
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+
+            // Then the report is still there and shows the retryable error, unchanged from before this fix
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
+            expect(report).toBeTruthy();
+            expect(report?.errorFields?.createChat).toBeTruthy();
+
+            mockFetch.succeed();
+        });
     });
 
     describe('resolveActionableMentionWhisper', () => {

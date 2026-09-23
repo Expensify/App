@@ -347,6 +347,14 @@ type OpenReportActionParams = {
 
     isNewThread?: boolean;
 
+    /**
+     * Whether a failed create should remove the optimistically created report instead of keeping it with a `createChat` error.
+     * Set it for reports the app creates on the user's behalf (e.g. transaction threads): the user never asked for the chat, so
+     * a red "Fix" badge on an empty LHN row is not actionable and cannot be dismissed. User-initiated creates leave it unset so
+     * they keep surfacing a retryable error.
+     */
+    shouldRemoveOptimisticReportOnFailure?: boolean;
+
     /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
     transaction?: Transaction;
 
@@ -1693,6 +1701,7 @@ function openReport(params: OpenReportActionParams) {
         isFromDeepLink = false,
         personalDetails,
         isNewThread = false,
+        shouldRemoveOptimisticReportOnFailure = false,
         transaction,
         transactionViolations,
         parentReportID,
@@ -1716,6 +1725,9 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
+    // Only reports this call optimistically created can be rolled back on failure. `failureData` runs after the API
+    // response's own `onyxData`, so setting these keys to null also clears any error the server wrote onto them.
+    const shouldRollBackOptimisticReport = isCreatingNewReport && shouldRemoveOptimisticReportOnFailure;
     // True only on a genuine return trip: `flagReportNavigatedAway` sets it on blur/unmount, so it is false on the
     // first open, on the repeated openReport calls of a single visit, and after a refresh (the set is RAM-only).
     const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
@@ -1821,7 +1833,7 @@ function openReport(params: OpenReportActionParams) {
         },
     ];
 
-    if (isNewThread) {
+    if (isNewThread && !shouldRollBackOptimisticReport) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1942,6 +1954,16 @@ function openReport(params: OpenReportActionParams) {
                 },
             },
         });
+
+        // The preview action only exists to point at the thread we just built, so remove it along with the thread.
+        // Leaving it behind would put an orphaned preview in the parent report whose `childReportID` goes nowhere.
+        if (shouldRollBackOptimisticReport) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+                value: {[iouReportActionID]: null},
+            });
+        }
 
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
@@ -2071,7 +2093,7 @@ function openReport(params: OpenReportActionParams) {
             failureData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate(settledPersonalDetails));
         }
 
-        if (!isNewThread) {
+        if (!isNewThread && !shouldRollBackOptimisticReport) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -2083,11 +2105,33 @@ function openReport(params: OpenReportActionParams) {
             });
         }
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
-        });
+        if (shouldRollBackOptimisticReport) {
+            // Undo the create entirely instead of leaving a report behind. `SidebarUtils` force-displays any report carrying
+            // errors, so a kept-but-errored report the user never asked for shows up as an empty LHN row with a "Fix" badge.
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    value: null,
+                },
+            );
+        } else {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
+            });
+        }
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
@@ -2102,7 +2146,8 @@ function openReport(params: OpenReportActionParams) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportObject.parentReportID}`,
-                value: {[parentReportActionID]: {childType: ''}},
+                // When the thread is rolled back, clear the pointer to it too so the parent action doesn't link to a report that no longer exists.
+                value: {[parentReportActionID]: shouldRollBackOptimisticReport ? {childReportID: null, childType: ''} : {childType: ''}},
             });
         }
     }
@@ -2514,6 +2559,10 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
+        // A transaction thread is created for the user, not by them, and it has no retry affordance. If the create fails
+        // (e.g. the expense was deleted while the request sat in the offline queue) roll the thread back instead of
+        // leaving an empty chat with a "Fix" badge the user cannot dismiss in the LHN.
+        shouldRemoveOptimisticReportOnFailure: true,
         transaction,
         transactionViolations,
         parentReportID: selfDMReportID,

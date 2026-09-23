@@ -39,6 +39,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
 // The name-related fields we saw for each account last time, so we can spot which accounts changed.
 let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
@@ -731,7 +733,9 @@ export default createOnyxDerivedValueConfig({
             const parentReportAction = report.parentReportActionID
                 ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
                 : undefined;
-            if (isDeletedAction(parentReportAction)) {
+            // `isDeletedAction` treats a missing action as deleted, so check for one first — otherwise a parent action that
+            // simply hasn't loaded yet silently suppresses error propagation for its child.
+            if (!isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction)) {
                 continue;
             }
 
