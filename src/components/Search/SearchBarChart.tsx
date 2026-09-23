@@ -9,7 +9,7 @@ import React from 'react';
 
 import type {SearchChartProps} from './types';
 
-function SearchBarChart({data, getLabel, getShortLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition, color}: SearchChartProps) {
+function SearchBarChart({data, getLabel, getShortLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const chartData: ChartDataPoint[] = data.map((item) => {
         const currency = item.currency ?? 'USD';
@@ -44,7 +44,6 @@ function SearchBarChart({data, getLabel, getShortLabel, getFilterQuery, onItemPr
             onBarPress={handleBarPress}
             yAxisUnit={unit}
             yAxisUnitPosition={unitPosition}
-            color={color}
         />
     );
 }

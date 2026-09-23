@@ -237,7 +237,10 @@ function VerticalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosit
     }
 
     return (
-        <GestureDetector gesture={customGestures}>
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
+        >
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
                 onLayout={handleLayout}

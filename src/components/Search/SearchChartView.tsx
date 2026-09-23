@@ -33,9 +33,6 @@ type SearchChartViewProps = {
     data: GroupedItem[];
 
     isLoading?: boolean;
-
-    /** Color every bar is drawn in. Only a bar chart reads it. */
-    color?: string;
 };
 
 /**
@@ -51,7 +48,7 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, color}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -87,7 +84,6 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color}: Sea
             isLoading={isLoading}
             unit={unit}
             unitPosition={unitPosition}
-            color={color}
         />
     );
 }
