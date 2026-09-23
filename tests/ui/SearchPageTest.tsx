@@ -9,7 +9,7 @@ import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
-import type {SearchData, SearchSelectionActionsValue} from '@components/Search/types';
+import type {SearchData, SearchSelectionActionsValue, SelectedTransactionInfo} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useNetwork from '@hooks/useNetwork';
@@ -83,7 +83,7 @@ jest.mock('@react-navigation/core', () => ({
     useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
 }));
 
-type ListProps = {onEndReached?: () => void; onSelectRow?: (item: SearchListItem) => void};
+type ListProps = {onEndReached?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
 
 // Captures the list's handlers, since FlashList never lays out in tests.
 const listProps: ListProps = {};
@@ -92,6 +92,7 @@ jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
     default: (props: ListProps) => {
         listProps.onEndReached = props.onEndReached;
         listProps.onSelectRow = props.onSelectRow;
+        listProps.ListFooterComponent = props.ListFooterComponent;
         return null;
     },
 }));
@@ -301,6 +302,7 @@ describe('SearchPageNarrow', () => {
         mockIsFocused.mockReturnValue(true);
         listProps.onEndReached = undefined;
         listProps.onSelectRow = undefined;
+        listProps.ListFooterComponent = undefined;
         mockRenderWriteActions.mockReset();
     });
 
@@ -754,14 +756,16 @@ describe('SearchPageNarrow', () => {
                 });
             });
 
-        // The real search() parks the snapshot in its loading state while a page is on the wire; the
+        // The real search() optimistically writes the page's offset and parks the snapshot in its loading state; the
         // live row cap holds there until the answer lands, so the mock has to write it too.
         const searchWritesLoadingState = () =>
             mockSearch.mockImplementation((params?: Parameters<typeof search>[0]) => {
                 if ((params?.offset ?? 0) <= 0) {
                     return Promise.resolve(200);
                 }
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, isLoading: true}}).then(() => 200);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {
+                    search: {offset: params?.offset, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, isLoading: true},
+                }).then(() => 200);
             });
 
         const answerTodoPage = (pageOffset: number, hasMoreResults = false) =>
@@ -881,6 +885,7 @@ describe('SearchPageNarrow', () => {
                 jest.advanceTimersByTime(0);
             });
             expect(renderedRowKeys()).toHaveLength(rowCount);
+            expect(mockSearch).not.toHaveBeenCalled();
         });
 
         it('retries the failed page offset instead of skipping ahead past it', async () => {
@@ -965,6 +970,152 @@ describe('SearchPageNarrow', () => {
             });
 
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        it('renders a selected report the cap would cut off, so selection only holds rows the user can see', async () => {
+            // Given a to-do tab holding more reports than one page, so the cap cuts the rest off
+            const rowCount = CONST.SEARCH.RESULTS_PAGE_SIZE + 10;
+            await seedTodoReports(rowCount);
+            await seedTodoSnapshot(true);
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            const renderedKeys = new Set(renderedRowKeys());
+            expect(renderedKeys.size).toBe(CONST.SEARCH.RESULTS_PAGE_SIZE);
+            const cutOffKey = Array.from({length: rowCount}, (_value, index) => `todo_${index + 1}`).find((key) => !renderedKeys.has(key)) ?? '';
+
+            // When a report below the cap is ticked, which a bulk action or a restored selection can do
+            await act(async () => {
+                lastWriteActionsRender()?.applySelection(() => ({[cutOffKey]: createMock<SelectedTransactionInfo>({isSelected: true})}));
+            });
+
+            // Then the list renders down to that report, because the selection sync drops any ticked row it cannot see
+            expect(renderedRowKeys()).toContain(cutOffKey);
+        });
+
+        it('waits for a page already running at mount instead of revealing its rows or skipping past it', async () => {
+            // Given a to-do tab remounting while its second page is still on the wire
+            const rowCount = CONST.SEARCH.RESULTS_PAGE_SIZE + 20;
+            await seedTodoReports(rowCount);
+            await seedTodoSnapshot(true, {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+
+            // When the screen mounts
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the rows stay at one page, because the page covering the rest hasn't answered yet
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
+
+            // When the list reaches its end while that page is still running
+            mockSearch.mockClear();
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then it re-asks the running page, in case a reload stranded it, and never the page after, which would leave it unaccounted for
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(mockSearch.mock.calls.some(([params]) => (params?.offset ?? 0) > CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(false);
+
+            // When the running page answers
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the rows it covers appear
+            expect(renderedRowKeys()).toHaveLength(rowCount);
+        });
+
+        it('hides the loading footer once the page it waits for fails', async () => {
+            // Given a to-do tab whose next page is on its way
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 20);
+            await seedTodoSnapshot(true);
+            searchWritesLoadingState();
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(listProps.ListFooterComponent).toBeTruthy();
+
+            // When that page fails, which settles the snapshot with only a response code behind
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {
+                    search: {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, responseJsonCode: 500},
+                });
+            });
+
+            // Then the footer goes away and the rows stay at the page they had, since nothing is loading any more
+            expect(listProps.ListFooterComponent).toBeFalsy();
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
+        });
+
+        it('keeps the loading footer hidden when the list ends offline', async () => {
+            // Given a to-do tab with more rows to page, opened offline
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 20);
+            await seedTodoSnapshot(true);
+            mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // When the list reaches its end
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then no footer shows, because the page is only held for reconnect, not on its way
+            expect(listProps.ListFooterComponent).toBeFalsy();
+        });
+
+        it('asks again at the next end for a page search() never sent', async () => {
+            // Given a to-do tab where search() drops the next page without writing anything, as it does for a request it skips
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 2 + 20);
+            await seedTodoSnapshot(true);
+
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            mockSearch.mockClear();
+
+            // When the list reaches its end again
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the same page is asked for again rather than the one after, which would leave a hole in the list
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(mockSearch.mock.calls.some(([params]) => (params?.offset ?? 0) > CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(false);
         });
     });
 });

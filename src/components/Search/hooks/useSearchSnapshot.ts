@@ -1,6 +1,6 @@
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchData, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -87,12 +87,35 @@ type UseSearchSnapshotParams = {
     reportActions: OptimisticTrackingParams['reportActions'];
     /** Row cap for `data`. Live searches page on this instead of a server cursor. */
     visibleRowLimit?: number;
+
+    /** Rows ticked here stay rendered past `visibleRowLimit`. */
+    selectedTransactions?: SelectedTransactions;
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_COLUMNS: SearchColumnType[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
+
+/** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked or highlighted row. */
+function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransactions: SelectedTransactions | undefined, isOffline: boolean): number {
+    const isKeySelected = (key: string | undefined) => !!key && !!selectedTransactions?.[key]?.isSelected;
+    let shownRowCount = 0;
+    let end = 0;
+    for (const [index, row] of rows.entries()) {
+        // online, a row being deleted is hidden, so it doesn't use up the cap
+        if (!isOffline && row.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        shownRowCount += 1;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group rows expose nested transactions
+        const isRowSelected = isKeySelected(row.keyForList) || !!(row as TransactionGroupListItemType).transactions?.some((transaction) => isKeySelected(transaction.keyForList));
+        if (shownRowCount <= rowLimit || !!row.shouldAnimateInHighlight || isRowSelected) {
+            end = index + 1;
+        }
+    }
+    return end;
+}
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
@@ -104,7 +127,15 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * per-group sub-snapshots, and absorbs the optimistic-row resilience. Returns the sorted rows plus the
  * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
-function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, visibleRowLimit}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({
+    queryJSON,
+    searchResults,
+    newSearchResultKeys,
+    transactions,
+    reportActions,
+    visibleRowLimit,
+    selectedTransactions,
+}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -416,8 +447,9 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
           });
 
     // slice after the sort so page 2 continues the order on screen
-    const isRowLimitApplied = visibleRowLimit !== undefined && stableSortedData.length > visibleRowLimit;
-    const visibleData = isRowLimitApplied ? stableSortedData.slice(0, visibleRowLimit) : stableSortedData;
+    const rowLimitEnd = visibleRowLimit === undefined ? stableSortedData.length : getRowLimitEnd(stableSortedData, visibleRowLimit, selectedTransactions, isOffline);
+    const isRowLimitApplied = rowLimitEnd < stableSortedData.length;
+    const visibleData = isRowLimitApplied ? stableSortedData.slice(0, rowLimitEnd) : stableSortedData;
     // selection runs off this, so cap it too or "select all" reaches rows that were never rendered
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `visibleData` is a sorted slice of the same rows
     const visibleFilteredData = isRowLimitApplied ? (visibleData as SearchData) : filteredData;

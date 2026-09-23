@@ -1,11 +1,13 @@
 import {renderHook} from '@testing-library/react-native';
 
 import useSearchSnapshot from '@components/Search/hooks/useSearchSnapshot';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchQueryJSON, SelectedTransactionInfo} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import createMock from '../../utils/createMock';
 
 const onyxData: Record<string, unknown> = {};
 
@@ -16,9 +18,10 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (key: string) => mockUseOnyx(key),
 }));
 
+let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
-    default: () => ({isOffline: false}),
+    default: () => ({isOffline: mockIsOffline}),
 }));
 // Stable object so the returned helpers keep their identity across renders, mirroring the real
 // useLocalize. The referential-stability test below relies on these not being a memo dependency churn.
@@ -152,6 +155,7 @@ function trackingReturn(searchDataWithOptimisticTransaction: unknown, optimistic
 
 describe('useSearchSnapshot', () => {
     beforeEach(() => {
+        mockIsOffline = false;
         for (const key of Object.keys(onyxData)) {
             delete onyxData[key];
         }
@@ -562,5 +566,120 @@ describe('useSearchSnapshot', () => {
         expect(result.current.data.map((item) => item.keyForList)).toEqual(['group0', 'group1']);
         // cap slices whole groups, so group2's transactions must be unreachable for bulk actions
         expect(result.current.filteredData).toEqual(groups.slice(0, 2).map((group) => expect.objectContaining({keyForList: group.keyForList, transactions: group.transactions})));
+    });
+
+    it('keeps a highlighted row past visibleRowLimit on screen', () => {
+        // Given a live list capped at two groups, where a new expense just landed in the last group
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const groups = Array.from({length: 5}, (_value, index) => ({
+            groupID: `group${index}`,
+            keyForList: `group${index}`,
+            transactions: [{transactionID: `${index}`}],
+        }));
+        mockGetSections.mockReturnValue([groups, groups.length, false]);
+        mockGetSortedSections.mockReturnValue(groups);
+
+        // When the snapshot is projected with that expense queued for highlight
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
+                searchResults,
+                newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}4`]),
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+            }),
+        );
+
+        // Then the highlighted group still renders, or the scroll-to-new-expense has no row to land on
+        expect(result.current.data.map((item) => item.keyForList)).toContain('group4');
+    });
+
+    it('does not spend visibleRowLimit on rows being deleted online', () => {
+        // Given a live list capped at two rows, whose first two rows are being deleted while online
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 5}, (_value, index) => ({
+            transactionID: `${index}`,
+            keyForList: `${index}`,
+            pendingAction: index < 2 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+        }));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        mockGetSortedSections.mockReturnValue(rows);
+
+        // When the snapshot is projected under the cap
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+            }),
+        );
+
+        // Then two rows the user can see still render, because online the deleted rows are hidden and would leave the page short
+        const shownRows = result.current.data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        expect(shownRows.map((item) => item.keyForList)).toEqual(['2', '3']);
+    });
+
+    it('keeps a group past visibleRowLimit on screen while one of its expenses is ticked', () => {
+        // Given a live list capped at two groups, where an expense inside the last group is ticked
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const groups = Array.from({length: 5}, (_value, index) => ({
+            groupID: `group${index}`,
+            keyForList: `group${index}`,
+            transactions: [{transactionID: `${index}`, keyForList: `transaction${index}`}],
+        }));
+        mockGetSections.mockReturnValue([groups, groups.length, false]);
+        mockGetSortedSections.mockReturnValue(groups);
+
+        // When the snapshot is projected with that selection
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+                selectedTransactions: {transaction4: createMock<SelectedTransactionInfo>({isSelected: true})},
+            }),
+        );
+
+        // Then the list renders down to that group, because the selection sync drops any tick it cannot see
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['group0', 'group1', 'group2', 'group3', 'group4']);
+    });
+
+    it('counts rows being deleted against visibleRowLimit while offline, where they show struck through', () => {
+        // Given an offline live list capped at two rows, whose first two rows are being deleted
+        mockIsOffline = true;
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 5}, (_value, index) => ({
+            transactionID: `${index}`,
+            keyForList: `${index}`,
+            pendingAction: index < 2 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+        }));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        mockGetSortedSections.mockReturnValue(rows);
+
+        // When the snapshot is projected under the cap
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+            }),
+        );
+
+        // Then the two deleted rows fill the page, because offline the user sees them
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['0', '1']);
     });
 });

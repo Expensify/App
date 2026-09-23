@@ -161,12 +161,15 @@ function Search({
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {areAllMatchingItemsSelected, selectedTransactions} = useSearchSelectionContext();
     // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
     const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON);
     const [offset, setOffset] = useState(0);
+    // a page left running by a previous mount is still in flight, so wait for it rather than revealing or skipping its rows
+    const isLivePageRunningAtMount = () => shouldUseLiveData && isSearchPending(searchResults) && (searchResults?.search?.offset ?? 0) > 0;
     // live paging owns its in-flight flag; the shared snapshot isLoading is forced off for live
-    const [isPagingLive, setIsPagingLive] = useState(false);
+    const [isPagingLive, setIsPagingLive] = useState(isLivePageRunningAtMount);
+    const [isLivePageAdopted, setIsLivePageAdopted] = useState(isLivePageRunningAtMount);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -303,6 +306,7 @@ function Search({
         transactions,
         reportActions,
         visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
+        selectedTransactions,
     });
 
     // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
@@ -862,17 +866,27 @@ function Search({
         // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
         // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
         const serverOffset = searchResults?.search?.offset ?? 0;
-        if (!isFocused || shouldShowLoadingState || serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        if (!isFocused || shouldShowLoadingState) {
+            return;
+        }
+
+        // onEndReached refires mid-flight under the skeleton; recording the next offset would chase past the loading page
+        if (shouldUseLiveData && isLoadingMorePage) {
+            // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
+            if (isLivePageAdopted && !isOffline) {
+                setIsLivePageAdopted(false);
+                handleSearch({queryJSON, searchKey: currentSearchKey, offset: serverOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+            }
+            return;
+        }
+
+        if (serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
             return;
         }
 
         // the cap can outrun the cursor, and pulling the cursor up to it would skip server pages for good
         // failureData parks the cursor on the page it never delivered, so retry that same offset
         const nextOffset = didLastLivePageFail ? serverOffset : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
-        // onEndReached refires mid-flight under the skeleton; recording nextOffset would chase past the loading page
-        if (shouldUseLiveData && isLoadingMorePage) {
-            return;
-        }
         wantedOffsetRef.current = nextOffset;
         // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
         if (isLoadingMorePage || isOffline) {
@@ -901,6 +915,7 @@ function Search({
         liveRowLimit,
         setRevealedLiveRows,
         didLastLivePageFail,
+        isLivePageAdopted,
         searchResults?.search?.hasMoreResults,
         isLoadingMorePage,
         searchResults?.search?.offset,
