@@ -285,12 +285,8 @@ function addSubscriptionPaymentCard(
 }
 
 /**
- * Builds the `successData` entry that records which screen initiated a 3DS verification request, so only that
- * screen's mounted useNavigateToCardAuthenticationOnLink hook reacts to the resulting link by navigating. Returning
- * it as `successData` makes the source land in the same Onyx flush as that response's link, so it stays tied to the
- * exact response that produced the link even when two 3DS requests are in flight. Callers pass their own `route.name`;
- * passing nothing (e.g. the card-authentication screen re-verifying its own iframe in place) records no source and
- * leaves the active one untouched.
+ * Goes in successData, not optimisticData, so the source lands in the same Onyx flush as its response's link and the
+ * two stay paired when 3DS requests overlap.
  */
 function getVerify3dsSubscriptionSourceData(source?: string): Array<OnyxUpdate<typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> {
     if (!source) {
@@ -378,10 +374,8 @@ function clearPaymentCard3dsVerification() {
 }
 
 /**
- * Begin a NEW 3DS attempt: drop any stale link so the backend's next link (even an identical one) registers as a
- * change and reopens the challenge. No-ops without a source — the in-place finalize/re-verify case, which must leave
- * the active link untouched. The screen that initiated the attempt is recorded separately via
- * getVerify3dsSubscriptionSourceData in the request's successData, so the source stays tied to that response's link.
+ * Clears the previous link before a new 3DS attempt. Skipped without a source: that's the challenge screen
+ * re-verifying its own iframe, which must keep the active link.
  */
 function prepareCardAuthentication(source?: string) {
     if (!source) {
