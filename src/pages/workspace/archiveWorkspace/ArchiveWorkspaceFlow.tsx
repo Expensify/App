@@ -35,11 +35,24 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ArchiveWorkspaceFlowProps = {
+    /** ID of the workspace being archived */
     policyID: string;
+
+    /** Called when the flow is finished or abandoned, so the parent can unmount this component */
     onDismiss: () => void;
+
+    /** Called when the workspace has been archived (optimistically while offline, or after a successful online archive) */
     onArchiveComplete?: () => void;
 };
 
+/**
+ * Self-contained workspace archive flow. It is mounted only while an archive is in progress, so all of the
+ * Onyx data needed to archive a workspace (full policy collection, card feeds, travel billing card settings, etc.)
+ * is subscribed to only for the lifetime of the flow instead of re-rendering the workspaces list in the background.
+ *
+ * On mount (once the data is ready) it runs the pre-archive checks (Invoicify block, outstanding balance,
+ * bill calculation for the last paid workspace) and then shows the archive confirmation modal.
+ */
 function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveWorkspaceFlowProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -69,7 +82,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
         !isEmptyObject(cardsList) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- both flags are `boolean | undefined`, so we need a logical OR here; `??` would stop at an explicit `false` and never check the second flag
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
     const hasThirdPartyCards = !isEmptyObject(cardFeeds) && !hasExpensifyCardsEnabledOnWorkspace;
