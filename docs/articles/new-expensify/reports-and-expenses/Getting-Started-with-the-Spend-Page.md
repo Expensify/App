@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative, Tag filter, filter by tag, search tags, tag list, missing tags in filter, No tag, tags not showing in filter, tag filter offline]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -189,6 +189,28 @@ For more advanced filtering, you can enter search operators directly into the se
 You can also combine filters with a keyword search for even more precision. For example, searching **"Uber in March"** will show only Uber rides from March.
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
+
+## How to find a tag using the Tag filter on the Spend page
+
+The **Tag** filter lists every tag you have access to, not only the tags used by the expenses currently loaded on the **Spend** page.
+
+1. Open **Filters** on the **Spend** page.
+2. Click or tap **Tag**.
+3. Scroll the list to load more tags. The first 200 tags load right away, and the next batch loads automatically as you reach the bottom.
+4. To jump to a specific tag, type part of its name in the search box. Expensify searches all of your tags, not just the ones already loaded.
+5. Select each tag you want to filter by.
+
+Select **No tag** to find expenses that have no tag assigned.
+
+If you select a **Workspace** filter first, the **Tag** filter only lists tags from those workspaces.
+
+## How the Tag filter behaves offline
+
+While you are offline, the **Tag** filter shows the tags that were already loaded plus the tags synced from your workspaces. New tags do not load when you scroll, and the search box only matches the tags already on your device. Reconnect to load the full list again.
+
+## Why the Tag filter appears when you have no tags yet
+
+The **Tag** filter appears whenever at least one of your workspaces has tags enabled, even before any tags are created. If the filter is missing, enable tags on the workspace. [Learn how to create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
 
 ## How to export from the Spend page
 
