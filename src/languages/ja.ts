@@ -625,10 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大文字数は${formattedMaxLength}文字です。`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'アプリを更新',
-        updatePrompt: 'このアプリの新しいバージョンが利用可能です。\n今すぐアップデートするか、後でアプリを再起動して最新の変更をダウンロードしてください。',
-    },
     deeplinkWrapper: {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
@@ -1069,6 +1065,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `${count} 件の経費を確認`,
                 other: `${count} 件の経費を確認`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: `${count} 件のドメイン管理者リクエストを確認`,
+                other: `${count} 件のドメイン管理者リクエストを確認`,
+            }),
         },
         upcomingTravel: '今後の出張',
         upcomingTravelSection: {
@@ -1152,6 +1152,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Concierge に経費の分析を依頼するか、サポートを受けます',
             inputPlaceholderMobile: 'Concierge に何でも聞いてください',
         },
+    },
+    insightsPage: {
+        viewOnSpend: '支出で表示',
+        emptyState: {title: '表示するものはありません', subtitle: '上の条件を調整してみてください'},
+        noExpensesState: {title: 'お金の使い道を確認する', subtitle: '経費が登録されると、支出の傾向や上位の加盟店など、さまざまな情報を確認できるようになります。'},
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -2165,7 +2170,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
-        viewUserHistory: 'ユーザー履歴を表示',
+        viewMemberHistory: 'メンバー履歴を表示',
         viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
@@ -3300,7 +3305,7 @@ ${date} の ${merchant} への ${amount}`,
             agentSignInBlocked:
                 'エージェントアカウントには直接サインインすることはできません。エージェントを利用するには、ご自身のアカウントでサインインし、Copilot 経由でアクセスしてください。',
         },
-        cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。もう一度サインインしてください。',
+        cannotGetAccountDetails: 'アカウントの詳細を取得できませんでした。数分待ってから、もう一度お試しください。',
         loginForm: 'ログインフォーム',
         notYou: (user: string) => `${user}ではありませんか？`,
     },
@@ -6521,6 +6526,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 expensifyCardBannerLearnMoreButton: '詳細はこちら',
                 statementCloseDateTitle: '取引明細書の締め日',
                 statementCloseDateDescription: 'カード明細の締め日を教えていただければ、Expensify 内に対応する明細を作成します。',
+                exportAccount: 'アカウントを書き出す',
             },
             workflows: {
                 title: 'ワークフロー',
@@ -6777,6 +6783,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 other: (count: number) => `${count} 件のタグ`,
             }),
             showTagGLCodes: 'タグ選択時にGLコードを表示する',
+            showTagGLCodesSubtitle: '総勘定元帳コードが表示されていない場合、お使いの会計システムではそのタグに利用できません。',
         },
         taxes: {
             subtitle: '税名と税率を追加し、デフォルトを設定します。',
@@ -8622,6 +8629,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'データを取り込みたい Campfire 内の子会社を選択してください。',
             noSubsidiariesFound: '子会社が見つかりません',
             noSubsidiariesFoundDescription: 'Campfire でエンティティを追加して、接続をもう一度同期してください',
+            noVendorsFound: '取引先が見つかりません',
+            noVendorsFoundDescription: 'Campfire にベンダーを追加して、もう一度接続を同期してください',
             importDescription: 'Campfire からインポートするコーディング設定を選択してください。',
             accountTypesDescription: 'Campfire のアカウントはカテゴリとしてインポートされます。',
             enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
@@ -9461,6 +9470,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: '複数を編集',
             editMultipleTitle: '複数の経費を編集',
+            editFinalizedExpensesTitle: '確定済みの経費を編集しますか？',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `選択した${total}件の経費のうち1件が、承認済みまたは支払済みのレポートに含まれています。確定済みの経費を編集しようとしています。よろしいですか？`,
+                other: `選択した${total}件の経費のうち${count}件が、承認済みまたは支払済みのレポートに含まれています。確定済みの経費を編集しようとしています。よろしいですか？`,
+            }),
             editMultipleDescription: '変更は選択されたすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
             pay: '支払う',
@@ -10561,6 +10575,10 @@ ${reportName}`,
                 title: ({count}: {count: number}) => ({
                     one: `トライアル：残り ${count} 日！`,
                     other: `トライアル：残り ${count} 日！`,
+                }),
+                badgeTitle: ({count}: {count: number}) => ({
+                    one: `残り ${count} 日！`,
+                    other: `残り ${count} 日！`,
                 }),
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
             },
