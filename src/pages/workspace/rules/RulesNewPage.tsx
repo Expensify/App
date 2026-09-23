@@ -26,7 +26,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import variables from '@styles/variables';
 
-import {clearNewRulePromptError, clearGeneratedRule, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
+import {clearNewRulePromptError, clearGeneratedRule, failGeneratedRule, generateRule, setNewRulePromptError} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -151,7 +151,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
         openPolicyCategoriesPage(policyID);
     };
 
-    useNetwork({onReconnect: fetchPolicyCategories});
+    const {isOffline} = useNetwork({onReconnect: fetchPolicyCategories});
 
     useFocusEffect(() => {
         fetchPolicyCategories();
@@ -168,6 +168,14 @@ function RulesNewPage({route}: RulesNewPageProps) {
         appliedGenerationIDRef.current = generatedRuleForCurrentPrompt.generationID;
         applyGeneratedRule(generatedRuleForCurrentPrompt, policyID, policyCategories, translate);
     }, [generatedRuleForCurrentPrompt, policyID, policyCategories, translate]);
+
+    useEffect(() => {
+        if (!generationID || generatedRuleForCurrentPrompt || isOffline) {
+            return;
+        }
+        const timeoutID = setTimeout(() => failGeneratedRule(generationID), CONST.GENERATED_RULE.TIMEOUT_MS);
+        return () => clearTimeout(timeoutID);
+    }, [generationID, generatedRuleForCurrentPrompt, isOffline]);
 
     const describeRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM>) => {
         const prompt = values.prompt.trim();
