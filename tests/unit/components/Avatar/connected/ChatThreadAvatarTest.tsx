@@ -20,6 +20,8 @@ const CONTAINER_STYLE = [{marginRight: 12}];
 const SUBSCRIPT_CONTAINER_STYLE = {marginRight: 0};
 const HORIZONTAL_STACKING = {maxRows: 2, overlapDivider: 4};
 const HUMAN_SUPPORT_AGENT_KEY = 'reportAction.humanSupportAgent';
+// A transaction thread points `chatReportID` at its parent, a comment thread leaves it unset.
+const LINKED_TO_PARENT = {chatReportID: PARENT_REPORT_ID};
 
 const ACTOR_ACCOUNT_ID = 42;
 const ACTOR_LOGIN = 'john@example.com';
@@ -181,10 +183,13 @@ describe('ChatThreadAvatar (connected)', () => {
     });
 
     it.each([
-        ['an expense report and a created expense', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedWorkspaceSubscriptAvatar', {}],
-        // A send-money PAY action carries IOUDetails, which `isTransactionThread` counts as a transaction.
-        ['an expense report and a paid send-money action', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY, true), 'MockedWorkspaceSubscriptAvatar', {}],
-        ['an IOU report and a created expense', CONST.REPORT.TYPE.IOU, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedSingleAvatar', {}],
+        ['an expense report and a created expense', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedWorkspaceSubscriptAvatar', LINKED_TO_PARENT],
+        // Without the chatReportID link only the actor shows.
+        ['an expense report and a created expense, without the chatReportID link', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedSingleAvatar', {}],
+        // A send-money PAY action carries IOUDetails, which `isTransactionThread` counts as a transaction, but only a created expense takes the subscript.
+        ['an expense report and a paid send-money action', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY, true), 'MockedSingleAvatar', LINKED_TO_PARENT],
+        ['an expense report and a tracked expense', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.TRACK), 'MockedSingleAvatar', LINKED_TO_PARENT],
+        ['an IOU report and a created expense', CONST.REPORT.TYPE.IOU, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedSingleAvatar', LINKED_TO_PARENT],
         ['an expense report and a comment', CONST.REPORT.TYPE.EXPENSE, createCommentAction(), 'MockedSingleAvatar', {}],
         ['an expense report and a plain pay action', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.PAY), 'MockedSingleAvatar', {}],
         ['a chat and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedSingleAvatar', {}],
@@ -211,7 +216,7 @@ describe('ChatThreadAvatar (connected)', () => {
     it.each([
         ['an expense report and a created expense', CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), 'MockedWorkspaceHorizontalAvatars', {}],
         ['a workspace chat and a trip preview', CONST.REPORT.TYPE.CHAT, tripPreviewAction, 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
-        // Inside a horizontal stack every workspace thread pairs its actor with the workspace icon, matching the legacy component.
+        // Inside a horizontal stack every workspace thread pairs its actor with the workspace icon.
         ['a policy room and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
         ['a policy expense chat and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT}],
         ['an invoice room and a comment', CONST.REPORT.TYPE.CHAT, createCommentAction(), 'MockedWorkspaceHorizontalAvatars', {chatType: CONST.REPORT.CHAT_TYPE.INVOICE}],
@@ -255,7 +260,7 @@ describe('ChatThreadAvatar (connected)', () => {
     });
 
     it('should hand an expense request the subscript props, its row and the resolved actor', () => {
-        seedThread(CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE));
+        seedThread(CONST.REPORT.TYPE.EXPENSE, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), LINKED_TO_PARENT);
 
         render(
             <ChatThreadAvatar
@@ -280,7 +285,7 @@ describe('ChatThreadAvatar (connected)', () => {
     });
 
     it('should hand an expense request the copilot as the primary avatar when one created the expense', () => {
-        seedThread(CONST.REPORT.TYPE.EXPENSE, {...createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), delegateAccountID: DELEGATE_ACCOUNT_ID});
+        seedThread(CONST.REPORT.TYPE.EXPENSE, {...createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), delegateAccountID: DELEGATE_ACCOUNT_ID}, LINKED_TO_PARENT);
 
         render(
             <ChatThreadAvatar
@@ -337,9 +342,11 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedSingleAvatarProps.containerStyles).toEqual(mockGetContainerStyles.mock.results.at(0)?.value);
     });
 
-    it('should render the copilot as the primary avatar, badged as acting for the actor', () => {
-        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction({delegateAccountID: DELEGATE_ACCOUNT_ID}));
+    it('should render the copilot of a linked parent action as the primary avatar, badged as acting for the actor', () => {
+        // Given a transaction thread under an IOU report whose expense a copilot created, linked to its parent through chatReportID
+        seedThread(CONST.REPORT.TYPE.IOU, {...createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), delegateAccountID: DELEGATE_ACCOUNT_ID}, LINKED_TO_PARENT);
 
+        // When the avatar renders
         render(
             <ChatThreadAvatar
                 reportID={THREAD_ID}
@@ -347,13 +354,50 @@ describe('ChatThreadAvatar (connected)', () => {
             />,
         );
 
+        // Then the copilot is the primary avatar with the copilot badge
         expect(mockCapturedSingleAvatarProps.avatar).toEqual(
             expect.objectContaining({id: DELEGATE_ACCOUNT_ID, source: DELEGATE_AVATAR_URL, copilot: {accountID: DELEGATE_ACCOUNT_ID, actedForAccountID: ACTOR_ACCOUNT_ID}}),
         );
     });
 
-    it('should render Concierge for a thread under the Concierge chat, without a copilot badge', () => {
+    it('should keep the actor as the primary avatar, still badged, while the copilot has no personal details', () => {
+        // Given a linked transaction thread whose expense a copilot created, before the copilot's personal details load
+        delete mockPersonalDetails[DELEGATE_ACCOUNT_ID];
+        seedThread(CONST.REPORT.TYPE.IOU, {...createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), delegateAccountID: DELEGATE_ACCOUNT_ID}, LINKED_TO_PARENT);
+
+        // When the avatar renders
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        // Then the actor fills the primary slot until the copilot can be drawn, and the badge already names the copilot
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual(
+            expect.objectContaining({id: ACTOR_ACCOUNT_ID, source: ACTOR_AVATAR_URL, copilot: {accountID: DELEGATE_ACCOUNT_ID, actedForAccountID: ACTOR_ACCOUNT_ID}}),
+        );
+    });
+
+    it('should render the actor without a copilot badge for a comment thread a copilot started', () => {
+        // Given a comment thread, which leaves chatReportID unset, under a comment a copilot posted
         seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction({delegateAccountID: DELEGATE_ACCOUNT_ID}));
+
+        // When the avatar renders
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        // Then it shows the account the copilot acted for, without a badge, because the thread doesn't link its parent action
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: ACTOR_ACCOUNT_ID, source: ACTOR_AVATAR_URL}));
+        expect(mockCapturedSingleAvatarProps.avatar).not.toHaveProperty('copilot');
+    });
+
+    it('should render Concierge for a thread under the Concierge chat, without a copilot badge', () => {
+        seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction({delegateAccountID: DELEGATE_ACCOUNT_ID}), LINKED_TO_PARENT);
         mockOnyxData[ONYXKEYS.CONCIERGE_REPORT_ID] = PARENT_REPORT_ID;
 
         render(
@@ -375,6 +419,7 @@ describe('ChatThreadAvatar (connected)', () => {
                 actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
                 originalMessage: {html: 'Hello', whisperedTo: [], humanAgentAccountID: AGENT_ACCOUNT_ID},
             }),
+            LINKED_TO_PARENT,
         );
 
         render(
@@ -401,10 +446,33 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.ACCOUNT_ID.CONCIERGE}));
     });
 
+    it('should render Concierge alone for a comment thread under a revealed human agent', () => {
+        // Given a comment thread, which leaves chatReportID unset, under a comment a revealed human agent posted
+        seedThread(
+            CONST.REPORT.TYPE.CHAT,
+            createCommentAction({
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                originalMessage: {html: 'Hello', whisperedTo: [], humanAgentAccountID: AGENT_ACCOUNT_ID},
+            }),
+        );
+
+        // When the avatar renders
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        // Then Concierge stands alone, because the thread doesn't link its parent action
+        expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.ACCOUNT_ID.CONCIERGE}));
+    });
+
     it.each([
         ['the first name when personal details carry one', 'Agnes', 'Agnes'],
         ['the generic support-agent label otherwise', undefined, HUMAN_SUPPORT_AGENT_KEY],
-    ])('should render Concierge with the revealed human agent as the subscript, named by %s', (_case, firstName, expectedName) => {
+    ])('should render Concierge with the revealed human agent of a linked parent action as the subscript, named by %s', (_case, firstName, expectedName) => {
         mockPersonalDetails[AGENT_ACCOUNT_ID] = {accountID: AGENT_ACCOUNT_ID, avatar: AGENT_AVATAR_URL, firstName};
         seedThread(
             CONST.REPORT.TYPE.CHAT,
@@ -412,6 +480,7 @@ describe('ChatThreadAvatar (connected)', () => {
                 actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
                 originalMessage: {html: 'Hello', whisperedTo: [], humanAgentAccountID: AGENT_ACCOUNT_ID},
             }),
+            LINKED_TO_PARENT,
         );
 
         render(
@@ -443,7 +512,7 @@ describe('ChatThreadAvatar (connected)', () => {
         expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: CONST.DEFAULT_NUMBER_ID, source: MockFallbackAvatar}));
     });
 
-    it('should seed the default avatar from the account ID when the actor is missing from personal details', () => {
+    it('should seed the default avatar from the account ID for a comment thread when the actor is missing from personal details', () => {
         mockPersonalDetails = {};
         seedThread(CONST.REPORT.TYPE.CHAT, createCommentAction());
 
@@ -455,5 +524,22 @@ describe('ChatThreadAvatar (connected)', () => {
         );
 
         expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: ACTOR_ACCOUNT_ID, source: getDefaultAvatarURL({accountID: ACTOR_ACCOUNT_ID})}));
+    });
+
+    it('should keep the generic fallback for a linked thread when the actor is missing from personal details', () => {
+        // Given a linked transaction thread whose actor's personal details haven't loaded
+        mockPersonalDetails = {};
+        seedThread(CONST.REPORT.TYPE.IOU, createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE), LINKED_TO_PARENT);
+
+        // When the avatar renders
+        render(
+            <ChatThreadAvatar
+                reportID={THREAD_ID}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />,
+        );
+
+        // Then the actor gets the generic fallback rather than a default avatar seeded from the account ID
+        expect(mockCapturedSingleAvatarProps.avatar).toEqual(expect.objectContaining({id: ACTOR_ACCOUNT_ID, source: MockFallbackAvatar}));
     });
 });

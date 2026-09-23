@@ -51,11 +51,16 @@ function useSeededAccountIcons(accountIDs: number[]): Icon[] {
     const personalDetails = usePersonalDetails();
     const defaultAvatars = useDefaultAvatars();
 
-    return buildAccountIcons(accountIDs, personalDetails, defaultAvatars).map((icon, index) => {
+    return seedFallbackIcons(buildAccountIcons(accountIDs, personalDetails, defaultAvatars), accountIDs, defaultAvatars.FallbackAvatar);
+}
+
+/** Replaces the generic fallback of each icon, index-aligned with `accountIDs`, with a default avatar seeded from its account ID. The unknown account keeps the generic fallback. */
+function seedFallbackIcons(icons: Icon[], accountIDs: number[], fallbackAvatar: DefaultAvatars['FallbackAvatar']): Icon[] {
+    return icons.map((icon, index) => {
         const accountID = accountIDs.at(index) ?? CONST.DEFAULT_NUMBER_ID;
-        return icon.source === defaultAvatars.FallbackAvatar && accountID !== CONST.DEFAULT_NUMBER_ID ? {...icon, source: getDefaultAvatarURL({accountID})} : icon;
+        return icon.source === fallbackAvatar && accountID !== CONST.DEFAULT_NUMBER_ID ? {...icon, source: getDefaultAvatarURL({accountID})} : icon;
     });
 }
 
 export default useAccountIcons;
-export {useSeededAccountIcons};
+export {seedFallbackIcons, useSeededAccountIcons};

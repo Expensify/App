@@ -4,6 +4,7 @@ import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -13,7 +14,9 @@ import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
+    getOriginalMessage,
     getReportActionActorAccountID,
+    isMoneyRequestAction,
     isTransactionThread,
 } from '@libs/ReportActionsUtils';
 
@@ -27,7 +30,7 @@ import {reportAvatarFieldsSelector, reportAvatarKindSelector} from '@selectors/R
 import {getParentReportActionSelector} from '@selectors/ReportAction';
 import React from 'react';
 
-import {useSeededAccountIcons} from './useAccountIcons';
+import useAccountIcons, {seedFallbackIcons} from './useAccountIcons';
 import WorkspaceHorizontalAvatars from './WorkspaceHorizontalAvatars';
 import WorkspaceSubscriptAvatar from './WorkspaceSubscriptAvatar';
 
@@ -64,6 +67,7 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
+    const defaultAvatars = useDefaultAvatars();
 
     const [thread] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportAvatarFieldsSelector});
     const parentReportID = getNonEmptyStringOnyxID(thread?.parentReportID);
@@ -72,27 +76,36 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
         selector: (actions) => getParentReportActionSelector(actions, thread?.parentReportActionID),
     });
 
-    // Mirrors `isExpenseRequest` in ReportUtils.
+    // A transaction thread points `chatReportID` at its parent, a comment thread leaves it unset. Only a linked thread shows the copilot, the revealed agent and the expense subscript.
+    const isParentActionLinked = !!parentKind && !!thread?.chatReportID && thread.chatReportID === thread.parentReportID;
+    // An expense request is a transaction thread under an expense report.
     const isExpenseRequest = parentKind === CONST.REPORT_AVATAR_KIND.EXPENSE && isTransactionThread(parentAction);
+    // Only a created expense takes the subscript. A tracked expense or a paid send-money action keeps a single avatar.
+    const isCreatedExpenseRequest =
+        isParentActionLinked && isExpenseRequest && isMoneyRequestAction(parentAction) && getOriginalMessage(parentAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE;
     // A trip room is a thread of its trip preview, so it gets the workspace subscript too.
     const hasTripRoomChatType = thread?.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
-    // Mirrors `isWorkspaceThread` in ReportUtils: a thread inherits its room's chat type.
+    // A thread inherits its room's chat type.
     const isWorkspaceThread = CONST.WORKSPACE_ROOM_TYPES.some((chatType) => thread?.chatType === chatType);
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    // A thread under the Concierge chat is a conversation with Concierge, so it shows Concierge rather than whoever asked. Mirrors `getIconsForChatThread`.
+    // A thread under the Concierge chat is a conversation with Concierge, so it shows Concierge rather than whoever asked.
     const isConciergeThread = !!conciergeReportID && parentReportID === conciergeReportID;
 
-    const delegateAccountID = isConciergeThread ? undefined : getDelegateAccountIDFromReportAction(parentAction);
+    const delegateAccountID = isParentActionLinked && !isConciergeThread ? getDelegateAccountIDFromReportAction(parentAction) : undefined;
     // Concierge for harvested and automatic actions.
     const actorAccountID = getReportActionActorAccountID(parentAction, undefined, undefined);
-    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentAction);
-    // Like the legacy component, a revealed agent only shows once their personal details have arrived. Until then Concierge stands alone.
+    const humanAgentAccountID = isParentActionLinked ? getHumanAgentAccountIDFromReportAction(parentAction) : undefined;
+    // The copilot and a revealed agent only show once their personal details have loaded. Until then the actor or Concierge stands alone, though the copilot badge still shows.
+    const loadedDelegateAccountID = delegateAccountID && personalDetails?.[delegateAccountID] ? delegateAccountID : undefined;
     const loadedHumanAgentAccountID = humanAgentAccountID && personalDetails?.[humanAgentAccountID] ? humanAgentAccountID : undefined;
-    const primaryAccountID = isConciergeThread ? CONST.ACCOUNT_ID.CONCIERGE : (delegateAccountID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const [primaryAvatar, humanAgentIcon] = useSeededAccountIcons(loadedHumanAgentAccountID ? [primaryAccountID, loadedHumanAgentAccountID] : [primaryAccountID]);
+    const primaryAccountID = isConciergeThread ? CONST.ACCOUNT_ID.CONCIERGE : (loadedDelegateAccountID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
+    const iconAccountIDs = loadedHumanAgentAccountID ? [primaryAccountID, loadedHumanAgentAccountID] : [primaryAccountID];
+    const accountIcons = useAccountIcons(iconAccountIDs);
+    // A linked thread keeps the generic fallback for an account without personal details. Any other thread seeds a default avatar from the account ID.
+    const [primaryAvatar, humanAgentIcon] = isParentActionLinked ? accountIcons : seedFallbackIcons(accountIcons, iconAccountIDs, defaultAvatars.FallbackAvatar);
 
-    // A horizontal stack pairs every workspace thread with its workspace icon. Without one, only an expense request and a trip room show it, as a subscript.
+    // A horizontal stack pairs every workspace thread with its workspace icon. Without one, only a created expense request and a trip room show it, as a subscript.
     if (horizontalStacking && (isExpenseRequest || hasTripRoomChatType || isWorkspaceThread)) {
         return (
             <WorkspaceHorizontalAvatars
@@ -106,7 +119,7 @@ function ChatThreadAvatar({reportID, size, backdropColor, containerStyle, subscr
         );
     }
 
-    if (isExpenseRequest || hasTripRoomChatType) {
+    if (isCreatedExpenseRequest || hasTripRoomChatType) {
         return (
             <WorkspaceSubscriptAvatar
                 report={thread}
