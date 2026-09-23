@@ -86,6 +86,8 @@ If a report contains both reimbursable and non-reimbursable expenses, Expensify 
 
 Select a vendor from your Certinia FFA account. This vendor is assigned to non-reimbursable payable invoices.
 
+To remove a default vendor you set earlier, open **Default vendor** and select **None** at the top of the list. Selecting the vendor that is already selected closes the list without changing the setting.
+
 ---
 
 ## How to configure Certinia advanced sync settings

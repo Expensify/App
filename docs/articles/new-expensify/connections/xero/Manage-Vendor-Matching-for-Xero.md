@@ -51,6 +51,20 @@ Workspace admins can manually select a vendor from the searchable **Vendor** fie
 
 The default vendor is used only when an expense doesn't already have a vendor assigned. If no default vendor is configured, expenses export to the vendor **Credit Card Misc**.
 
+**None** appears at the top of the list and is selected when no default vendor is set. Selecting the vendor that is already selected closes the list without changing the setting.
+
+---
+
+## How to remove the default vendor for Xero
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
+2. Select **Accounting**.
+3. Under **Xero**, select **Export**.
+4. Select **Default vendor**.
+5. Select **None** at the top of the list.
+
+Expenses that don't already have a vendor assigned then export to the vendor **Credit Card Misc**.
+
 ---
 
 # FAQ

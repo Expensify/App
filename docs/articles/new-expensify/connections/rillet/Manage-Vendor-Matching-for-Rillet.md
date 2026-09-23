@@ -67,6 +67,18 @@ Vendors are managed in Rillet, so the list is read-only in Expensify and refresh
 
 The default company card vendor is used only when an expense doesn't already have a vendor assigned.
 
+**None** appears at the top of the list and is selected when no default company card vendor is set. Selecting the vendor that is already selected closes the list without changing the setting.
+
+## How to remove the default company card vendor for Rillet
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace Name]**.
+2. Select **Accounting**.
+3. On the Rillet connection, select **Export**.
+4. Select **Default company card vendor**.
+5. Select **None** at the top of the list.
+
+Expenses that don't already have a vendor assigned then export without a default vendor applied.
+
 ## How vendors export to Rillet
 
 When company card expenses are exported, Expensify assigns vendors in the following order:

@@ -57,7 +57,7 @@ On the DualEntry integration, choose **Export** and configure:
 - **Vendor bill date** – Choose whether exports use the date of the last expense, the export date, or the submitted date.
 - **Export out-of-pocket expenses as** – Out-of-pocket expenses export as vendor bills.
 - **Export company card expenses as** – Company card and Expensify Card expenses export as direct expenses.
-- **Default vendor for all company cards** – Select the vendor used when an export can't be matched to a vendor automatically.
+- **Default vendor for all company cards** – Select the vendor used when an export can't be matched to a vendor automatically. Select **None** at the top of the list to remove a default vendor you set earlier. Selecting the vendor that is already selected closes the list without changing the setting.
 - **Company card account** – Select the DualEntry account used for company card expenses.
 - **Configure exporting to multiple accounts** – Configure different DualEntry accounts for individual card programs or cards. This setting is off by default.
 
