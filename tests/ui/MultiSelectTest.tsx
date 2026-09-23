@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
@@ -136,7 +136,24 @@ describe('MultiSelect', () => {
                 value={[]}
                 items={items}
                 onChange={jest.fn()}
-                footer={<View />}
+                footer={<View testID="custom-footer" />}
+            />,
+        );
+
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        expect(props?.footerContent).toBeDefined();
+
+        render(props?.footerContent);
+        expect(screen.getByTestId('custom-footer')).toBeOnTheScreen();
+    });
+
+    it('passes footerContent when isLoadingMore is true', () => {
+        render(
+            <MultiSelect
+                value={[]}
+                items={items}
+                onChange={jest.fn()}
+                isLoadingMore
             />,
         );
 
