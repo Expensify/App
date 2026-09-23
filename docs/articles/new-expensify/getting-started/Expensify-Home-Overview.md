@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, submit expenses to my employer, Submit workspace, customize your expense categories]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, Concierge prompt box, ask Concierge from Home, mention someone on Home, at mention, emoji suggestion, emoji shortcode, suggestion list, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the Concierge prompt box and its mention and emoji suggestions, plus the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses, and does not cover what Concierge itself can do.
 
 ---
 
@@ -30,6 +30,7 @@ Home is the default view when you sign in.
 Home is made up of a small set of sections that summarize what’s happening in your account.
 
 Home includes:
+- The Concierge prompt box
 - **Time-sensitive alerts** (when applicable)
 - **For you**
 - **Recently added**
@@ -40,6 +41,49 @@ Home includes:
 - **Your spend** (when applicable)
 
 Each section provides context so you know where to go next.
+
+---
+
+## How to ask Concierge a question from the prompt box on Home
+
+At the top of Home, under the greeting, there’s a prompt box you can type into to start a conversation with Concierge without leaving Home.
+
+On a wide screen the prompt box reads **Ask Concierge to analyze your expenses or get support**. On a narrow screen and on mobile it reads **Ask Concierge anything**.
+
+1. Select the prompt box and type your question or request.
+2. To attach a file, select the **plus icon** to the left of the prompt box, then select **Add attachment**.
+3. Press **Enter** on web, or select the **Send** icon, to send the prompt.
+
+Your prompt opens in your Concierge chat, where Concierge replies. Anything you type but don’t send is saved as a draft and is still there when you come back to Home.
+
+To learn what you can ask for, see [Learn what Concierge can do](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do).
+
+---
+
+## How to mention someone in the Concierge prompt box on Home
+
+Type `@` followed by part of a person’s name or email address to bring up a suggestion list of matching people. Select a suggestion to insert that person’s handle into your prompt.
+
+On web you can also use the keyboard:
+- Press the up and down arrow keys to move through the suggestions.
+- Press **Enter** or **Tab** to insert the highlighted suggestion. Your prompt is not sent while a suggestion list is open.
+- Press **Escape** to dismiss the suggestion list without inserting anything.
+
+The suggestion list also closes if you select somewhere outside the prompt box.
+
+<!-- SCREENSHOT:
+Suggestion: The Home prompt box with `@ma` typed and the mention suggestion list open directly above the box, showing a matching person's name and email.
+Location: Immediately after this section.
+Purpose: Confirms members are looking at the right box on Home and shows that the suggestion list appears above the prompt box rather than below it, which is where people tend to look for it first.
+-->
+
+---
+
+## How to add an emoji in the Concierge prompt box on Home
+
+Type `:` followed by part of the emoji name to bring up a suggestion list of matching emojis. For example, type `:smi` to see suggestions such as `:smile:` and `:smiley:`.
+
+Select a suggestion to insert the emoji, or on web press **Enter** or **Tab** to insert the highlighted one. Press **Escape** to dismiss the list.
 
 ---
 
@@ -113,15 +157,6 @@ The **Getting started** section shows a checklist of key setup tasks and appears
 
 The checklist items vary based on the intent selected when setting up your Expensify account.
 
-If you selected **Submit expenses to my employer**, the checklist covers the Submit workspace that was created for you during onboarding, and shows up to two items:
-
-- **Customize your expense categories** — opens the **Categories** page for your workspace. This item only appears while **Categories** is enabled for the workspace, and it is checked off once you add your own category.
-- **Link personal card** — opens **Settings > Wallet**. This item is checked off once you link a personal card.
-
-There is no **Create a workspace** item for this intent, because the Submit workspace already exists. The section is hidden once every item on the checklist is checked off.
-
-To learn more about the workspace these tasks set up, see [how to use a Submit workspace](/articles/new-expensify/getting-started/Submit-Workspace).
-
 ---
 
 ## How the Discover section works on Home
@@ -170,7 +205,19 @@ No, they serve different purposes. Home provides an overview of what needs atten
 
 ## Can actions be completed from Home?
 
-Not directly. Home links you to other parts of Expensify where actions are completed.
+Not directly, with one exception: you can start a conversation with Concierge from the prompt box at the top of Home. Everything else on Home links you to other parts of Expensify where actions are completed.
+
+## Why didn’t my prompt send when I pressed Enter?
+
+If a mention or emoji suggestion list is open, **Enter** inserts the highlighted suggestion instead of sending your prompt. Press **Escape** to close the list first, or press **Enter** again once the list has closed, and your prompt will send.
+
+## Can I use mention and emoji suggestions outside the Home prompt box?
+
+Yes. The same `@` and `:` suggestions work in the Concierge chat composer, including when you open Concierge in the panel on the right by selecting the **Help** icon in the top-right corner, and in any other chat composer in Expensify.
+
+## What happens to a prompt I type on Home but don’t send?
+
+It’s saved as a draft. The text is still in the prompt box when you return to Home, so you can finish and send it later.
 
 ## Why does the For you section sometimes appear empty?
 
@@ -202,13 +249,7 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 ## Why don’t I see the Getting started section?
 
-The **Getting started** section only appears if you selected the **manage my team**, **track and budget my expenses**, **Organize my personal spending**, or **Submit expenses to my employer** intent during onboarding.
-
-For the paid intents, it appears only while you are within 60 days of your free trial start date.
-
-For **Submit expenses to my employer**, it appears only while you are within 60 days of the date your Submit workspace was created, and only if you own that workspace. Members who were invited to someone else’s Submit workspace won’t see it.
-
-If any of these conditions are not met, the section won’t be visible.
+The **Getting started** section only appears if you selected the **manage my team**, **track and budget my expenses**, or **Organize my personal spending** intent during onboarding and you are within 60 days of your free trial start date. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Your spend section?
 
