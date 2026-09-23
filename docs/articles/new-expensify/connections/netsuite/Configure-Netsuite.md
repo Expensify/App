@@ -76,11 +76,10 @@ To manage how reports are exported from Expensify to NetSuite:
 - **Invoice Item** – Select or create the item line for invoices
 - **Export Foreign Currency Amount** – Enable to export original currency values
 - **Export to Next Open Period** – Enable to skip closed periods and use the next available NetSuite period
-- **Export Expensify Travel Payable To** – If Expensify Travel's Central invoicing feature is enabled, configure where travel card expenses are exported:
-  - **Travel payable account** – Select the payable account for Expensify Travel expenses
-  - **Journal entries posting preference** – Choose how travel invoicing journal entries are grouped when exported:
-    - *Single entry for each expense* (default) – Creates one journal entry per expense
-    - *Single, itemized entry for each report* – Creates one combined journal entry for the entire report
+- **Consolidated Travel Billing** – If Expensify Travel's Consolidated Travel Billing feature is enabled, click this row to open the **Consolidated Travel Billing** page and configure where travel card expenses are exported:
+  - **Non-reimbursable journal posting account** – Select the payable account for Expensify Travel expenses
+  - **Journal posting preference** – Choose how journal entries post
+  - **Sync Consolidated Travel Billing settlements** – Turn on this toggle to continuously reconcile settlements through NetSuite. Turning it on opens a picker where you choose the **Reconciliation account** that matches your settlement account, and that account then appears in a **Reconciliation account** row below the toggle. The toggle stays locked until you select a **Non-reimbursable journal posting account** and enable **Auto-sync** on the **Advanced** page.
 
 3. Click the **three-dot icon** > **Sync Now** to apply changes
 
@@ -93,7 +92,7 @@ For additional control:
 1. Go to **Workspaces > [Workspace Name] > Accounting > NetSuite > Advanced**
 2. Configure the following options:
 
-- **Auto-Sync** – Enable for daily syncing of NetSuite data
+- **Auto-sync** – Enable for daily syncing of NetSuite data
 - **Sync Reimbursed Reports** – Automatically updates status between systems
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
@@ -103,6 +102,8 @@ For additional control:
   - Vendor Bills
   - Journal Entries
 - **Custom Form ID** – Use a specific NetSuite form instead of the default
+
+**Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**. Learn more about [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/).
 
 3. Click the **three-dot icon** > **Sync Now** to apply changes
 
@@ -130,7 +131,7 @@ Yes. When enabled:
 
 - **Reimbursable expenses** export after reimbursement
 - **Company card expenses** export after approval
-- **Auto-Sync** ensures reimbursement status updates automatically
+- **Auto-sync** ensures reimbursement status updates automatically
 
 
 ## How do I configure corporate card exports in NetSuite?
@@ -148,15 +149,15 @@ Yes. When enabled:
 Check the **Use as Field ID** box in NetSuite. This assigns a usable ID to older segments for import into Expensify.
 
 
-## How does Auto-Sync work with reimbursed reports?
+## How does Auto-sync work with reimbursed reports?
 
 - When a report is reimbursed in Expensify, NetSuite marks it as paid
 - If paid in NetSuite, Expensify reflects that during the next sync
 
 
-## Will enabling Auto-Sync affect existing reports?
+## Will enabling Auto-sync affect existing reports?
 
-No. Auto-Sync only applies to newly approved reports. Export older reports manually if needed.
+No. Auto-sync only applies to newly approved reports. Export older reports manually if needed.
 
 
 ## How does multi-currency exporting work in NetSuite?
