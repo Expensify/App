@@ -12,7 +12,9 @@ const FORBIDDEN_IMPORT = '@libs/Navigation/helpers/submitWithDismissFirst';
 
 /** Action files whose navigation already moved to the view layer. Each is pinned here as it migrates, so it cannot drift back before the ESLint ban lands. */
 const MIGRATED_ACTION_FILES = ['IOU/Split.ts', 'IOU/SplitTransactionUpdate.ts', 'IOU/PerDiem.ts', 'IOU/SendInvoice.ts', 'IOU/TrackExpense.ts'];
-const ROUTE_CHANGING_CALL = /Navigation\.(navigate|goBack|dismissModal\w*|dismissTo\w+|removeScreenByKey|navigateBack\w*|revealRoute\w*)\(/;
+/** A route change can go through the Navigation module, through navigationRef, or through a helper that wraps either, so all three shapes are checked. */
+const ROUTE_CHANGING_CALL =
+    /(Navigation\.(navigate|goBack|dismissModal\w*|dismissTo\w+|removeScreenByKey|navigateBack\w*|revealRoute\w*)|navigationRef\.(dispatch|navigate|goBack|reset)|popReportsSplitNavigatorToReport|navigateBackOnDeleteTransaction)\(/;
 
 function collectSourceFiles(dir: string): string[] {
     return fs.readdirSync(dir, {withFileTypes: true}).flatMap((entry) => {
@@ -34,8 +36,10 @@ describe('action-layer navigation guard (#84631)', () => {
     });
 
     it('action files that already moved their navigation make no route-changing Navigation calls', () => {
-        // Given the action files whose navigation has moved to the view layer
-        // When each is scanned for a route-changing Navigation call
+        // Given every listed file still exists, so renaming or splitting one fails here instead of as an unreadable-file error
+        expect(MIGRATED_ACTION_FILES.filter((file) => !fs.existsSync(path.join(ACTIONS_DIR, file)))).toEqual([]);
+
+        // When each is scanned for a route change, whether direct or through a helper
         const offenders = MIGRATED_ACTION_FILES.filter((file) => ROUTE_CHANGING_CALL.test(fs.readFileSync(path.join(ACTIONS_DIR, file), 'utf8')));
 
         // Then none of them navigates, dismisses or pops a screen
