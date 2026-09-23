@@ -5,12 +5,17 @@ internalScope: Audience is Domain Admins and IT admins. Covers claiming a domain
 keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin, domain verification, DNS TXT record, verify domain for SAML, how to verify domain, SAML setup, domain already set up, domain exists, ask for admin access, request admin access, domain already exists in your account]
 ---
 
+# Claim and Verify a Domain
+
 If you have a private domain (e.g., yourcompany.com), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
 
-# What you can do with a claimed and verified domain
+## What you can do with a claimed and verified domain
 
 Once you've claimed and verified a domain, you can:
-- Configure SAML login
+- Add or remove domain members
+- Add or remove domain admins
+- Configure domain groups and group permissions 
+- Set up SAML login
 - Enforce SAML login for domain members
 
 ## How to claim a domain in Expensify
@@ -60,17 +65,9 @@ A private domain can only be set up once. If another Expensify account already s
 
 To leave without sending a request, click **Never mind** instead. Both buttons return you to the **Domains** tab.
 
-<!-- SCREENSHOT:
-Suggestion: The Domain exists page showing the heading "Domain already set up. Request access?" with the Ask for admin access and Never mind buttons.
-Location: After step 5 in "How to request admin access to a domain someone else set up".
-Purpose: Confirms members have hit the expected page rather than an error, so they don't retry adding the domain or contact Support believing the add failed.
--->
-
 ## What happens after you ask for admin access
 
 - Your request goes to the existing Domain Admins for that domain. An admin has to add you before you can manage it.
-- The domain does **not** appear on your **Domains** tab while the request is pending, because you don’t have access to it yet.
-- If you start the flow again for the same domain before an admin responds, the **Domain exists** page shows a disabled **Request sent** button so you don’t send a duplicate request.
 
 [Learn how to add and manage Domain Admins](/articles/new-expensify/domains/Domain-Admins) to see what you'll be able to do once an admin adds you.
 
