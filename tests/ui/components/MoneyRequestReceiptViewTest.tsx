@@ -606,7 +606,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
             expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
 
@@ -623,7 +623,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeNull();
+            expect(screen.queryByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeNull();
             expect(screen.queryByText(translateLocal('common.save'))).toBeNull();
         });
 
@@ -640,7 +640,7 @@ describe('MoneyRequestReceiptView', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedMessage'))).toBeTruthy();
+            expect(screen.getByText(translateLocal('iou.error.receiptUploadFailedSaveOnlyMessage'))).toBeTruthy();
             expect(screen.getByText(translateLocal('common.save'))).toBeTruthy();
         });
     });

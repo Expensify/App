@@ -43,10 +43,10 @@ type DotIndicatorMessageProps = {
 
     textStyles?: StyleProp<TextStyle>;
 
+    // Unused here, but OfflineWithFeedback still passes it to every error row.
     // eslint-disable-next-line react/no-unused-prop-types
     dismissError?: () => void;
 
-    /** Retries the failed receipt upload. */
     onRetryReceiptUpload?: () => void;
 };
 
@@ -129,7 +129,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
                     accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                     accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
                 >
-                    {translate('iou.error.receiptUploadFailedMessage')}
+                    {translate(onRetryReceiptUpload ? 'iou.error.receiptUploadFailedMessage' : 'iou.error.receiptUploadFailedSaveOnlyMessage')}
                 </Text>
             </View>
         );
@@ -141,7 +141,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, onRetryRec
                         onPress={onRetryReceiptUpload}
                     >
                         <Button.Icon src={expensifyIcons.ArrowCircleClockwise} />
-                        <Button.Text>{translate('attachmentView.retry')}</Button.Text>
+                        <Button.Text>{translate('common.tryAgain')}</Button.Text>
                     </Button>
                 )}
                 <Button

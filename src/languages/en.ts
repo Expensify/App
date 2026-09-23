@@ -1730,6 +1730,7 @@ const translations = {
             receiptFailureMessage: '<rbr>There was an error uploading your receipt. Please <a href="download">save the receipt</a> and <a href="retry">try again</a> later.</rbr>',
             receiptFailureMessageShort: 'There was an error uploading your receipt.',
             receiptUploadFailedMessage: 'Upload failed. Try again or save for later.',
+            receiptUploadFailedSaveOnlyMessage: 'Upload failed. Save the receipt or it will be lost.',
             saveReceipt: 'Save receipt',
             genericDeleteFailureMessage: 'Unexpected error deleting this expense. Please try again later.',
             genericEditFailureMessage: 'Unexpected error editing this expense. Please try again later.',

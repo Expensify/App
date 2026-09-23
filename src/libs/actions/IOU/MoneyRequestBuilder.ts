@@ -195,7 +195,7 @@ type RequestMoneyInformation = {
     currentReportActionID?: string;
     existingTransactionThreadReportID?: string;
 
-    /** The report already counts this transaction, so its totals and transaction count must be left alone rather than recalculated as if one were being added. */
+    /** The report already counts this transaction, so its totals and transaction count are not recalculated. */
     isTransactionAlreadyOnReport?: boolean;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -244,10 +244,10 @@ type MoneyRequestInformationParams = {
     action?: IOUAction;
     currentReportActionID?: string;
 
-    /** Reuses an existing transaction thread instead of building a new one, so a retry lands on the records the first attempt already claimed. */
+    /** Reuses this thread so a retry lands on the records the first attempt created. */
     existingTransactionThreadReportID?: string;
 
-    /** The report already counts this transaction, so its totals and transaction count must be left alone rather than recalculated as if one were being added. */
+    /** The report already counts this transaction, so its totals and transaction count are not recalculated. */
     isTransactionAlreadyOnReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -1074,7 +1074,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                                   errors: getReceiptError(transaction.receipt, transaction.receipt?.filename, isScanRequest, errorKey, CONST.IOU.ACTION_PARAMS.MONEY_REQUEST),
                               },
                               [iou.action.reportActionID]: {
-                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                                  // `errorKey + 1` so this doesn't overwrite the transaction's `ReceiptError` when the receipt view merges them.
+                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey + 1),
                               },
                           }
                         : {
@@ -1463,13 +1464,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
     } else if (isTransactionAlreadyOnReport) {
-        // A retry re-sends a transaction the report already accounts for, so its totals stay as they are.
-        // Recalculating here would count the same expense twice, and nothing reverts it: an `ALREADY_CREATED`
-        // response applies only `successData`, which does not restore these aggregates.
-        //
-        // Still cloned, even though no total is touched: `iouReport` came out of the reports collection, and the
-        // report-preview branch below writes `parentReportActionID` onto it. Every other branch here ends with an
-        // object of its own for the same reason.
+        // The report already counts this transaction, so skip the totals. Still clone it, because code below mutates `iouReport`.
         iouReport = {...iouReport};
     } else if (isPolicyExpenseChat) {
         // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
@@ -1580,8 +1575,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     });
 
     if (!isTransactionAlreadyOnReport) {
-        // An inflated count is not cosmetic: `isOneTransactionReport` is `transactionCount === 1`, so a retry
-        // taking it to 2 changes how the report renders and navigates.
+        // A retry must not bump this, because `isOneTransactionReport` checks `transactionCount === 1`.
         iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
     }
 

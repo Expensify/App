@@ -63,7 +63,6 @@ type OfflineWithFeedbackProps = Partial<ChildrenProps> & {
     shouldForceOpacity?: boolean;
     dismissError?: () => void;
 
-    /** Retries a failed receipt upload. */
     onRetryReceiptUpload?: () => void;
 };
 

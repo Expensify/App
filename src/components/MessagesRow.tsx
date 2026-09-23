@@ -33,7 +33,6 @@ type MessagesRowProps = {
     errorTextStyles?: StyleProp<TextStyle>;
     dismissError?: () => void;
 
-    /** Retries a failed receipt upload. */
     onRetryReceiptUpload?: () => void;
 };
 

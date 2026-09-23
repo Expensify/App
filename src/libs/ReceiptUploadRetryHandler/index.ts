@@ -1,4 +1,3 @@
-/** Entry point for the Retry action on a failed receipt upload: resolve the file, rebuild the request, dispatch it. */
 import Log from '@libs/Log';
 
 import {requestMoney} from '@userActions/IOU/TrackExpense';

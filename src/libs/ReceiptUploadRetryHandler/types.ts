@@ -10,10 +10,9 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-/** Rebuilds the receipt file behind a failed upload. Resolves undefined when the file is no longer on the device. */
 type ResolveReceiptFile = (source: string, filename: string) => Promise<FileObject | undefined>;
 
-/** What a retry needs that a library cannot read for itself. Nothing is persisted on the error, so the retry is rebuilt from what the failure left in Onyx. */
+/** The error stores nothing to resend, so the retry is rebuilt from these values. */
 type ReceiptRetryContext = {
     receiptError: ReceiptError;
 
@@ -29,7 +28,7 @@ type ReceiptRetryContext = {
 
     isVendorMatchingBetaEnabled: boolean | undefined;
 
-    /** Feeds `shouldCreateNewMoneyRequestReport`, so an empty collection here can push the retry into creating a second report. */
+    /** Used by `shouldCreateNewMoneyRequestReport`, so an empty collection can make the retry create a second report. */
     rules: OnyxCollection<Rule>;
 
     conciergeReportID: string | undefined;

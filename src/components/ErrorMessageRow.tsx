@@ -19,7 +19,6 @@ type ErrorMessageRowProps = {
 
     dismissError?: () => void;
 
-    /** Retries a failed receipt upload. */
     onRetryReceiptUpload?: () => void;
 };
 

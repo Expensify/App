@@ -4,6 +4,7 @@ import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import Onyx from 'react-native-onyx';
@@ -35,13 +36,14 @@ function buildFailedTransaction(overrides: Partial<Transaction> = {}): Transacti
     } as Transaction;
 }
 
-function buildContext(transaction: Transaction): ReceiptRetryContext {
+function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<ReceiptError> = {}): ReceiptRetryContext {
     return {
         receiptError: {
             error: CONST.IOU.RECEIPT_ERROR,
             source: 'file:///receipts/receipt.jpg',
             filename: 'receipt.jpg',
             action: CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+            ...receiptErrorOverrides,
         },
         transaction,
         iouReport: {reportID: IOU_REPORT_ID, chatReportID: CHAT_REPORT_ID, policyID: POLICY_ID, type: CONST.REPORT.TYPE.EXPENSE} as Report,
@@ -95,5 +97,21 @@ describe('buildRetryPayload', () => {
     it('offers no retry for a distance expense, whose waypoints the transaction alone cannot restore', () => {
         const transaction = buildFailedTransaction({comment: {waypoints: {waypoint0: {address: 'Berlin'}}}});
         expect(canBuildRetryPayload(buildContext(transaction))).toBe(false);
+    });
+
+    it('offers no retry for a replaceReceipt failure, which is not the create call the handler rebuilds', () => {
+        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT}))).toBe(false);
+    });
+
+    it('offers no retry for a trackExpense failure, whose convert-and-submit path the handler does not replay', () => {
+        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE}))).toBe(false);
+    });
+
+    it('offers no retry for the report-creation fallback error, which carries no action to replay', () => {
+        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {action: undefined}))).toBe(false);
+    });
+
+    it('offers no retry once the receipt source is no longer a local file, so there is nothing left on the device to resend', () => {
+        expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {source: 'https://example.com/receipt.jpg'}))).toBe(false);
     });
 });
