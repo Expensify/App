@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage} from '@libs/ReportActionMessageUtils';
+import {isMoneyRequestAction} from '@libs/ReportActionTypeGuards';
 
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
