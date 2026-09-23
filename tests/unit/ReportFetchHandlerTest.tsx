@@ -203,6 +203,22 @@ describe('ReportFetchHandler', () => {
         expect(mockOpenReport).not.toHaveBeenCalled();
     });
 
+    it('does NOT re-fetch for a report whose actions simply never loaded', async () => {
+        // Given a report that has been opened but has never recorded a loaded stamp
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+        renderHandler();
+        await waitForBatchedUpdates();
+        mockOpenReport.mockClear();
+
+        // When its initial load resolves without ever succeeding, the way a failed fetch leaves it
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isLoadingInitialReportActions: false});
+        await waitForBatchedUpdates();
+
+        // Then nothing re-fetches, because a stamp that was never there is not a stamp that was wiped
+        expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
     it('holds the re-fetch of a wiped loaded stamp while the Inbox tab is preloaded and resumes it once it opens', async () => {
         // Given a report mounted inside a warmed tab the user has not opened yet
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
