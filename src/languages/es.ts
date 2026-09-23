@@ -614,10 +614,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
         taskTitleExceededMaxLength: (formattedMaxLength) => `La longitud máxima del título de una tarea es de ${formattedMaxLength} caracteres.`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'Actualizar app',
-        updatePrompt: 'Existe una nueva versión de esta aplicación.\nActualiza ahora or reinicia la aplicación más tarde para recibir la última versión.',
-    },
     deeplinkWrapper: {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
@@ -1099,6 +1095,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: 'Revisa 1 gasto',
                 other: `Revisa ${count} gastos`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: 'Revisa 1 solicitud de administrador de dominio',
+                other: `Revisa ${count} solicitudes de administrador de dominio`,
+            }),
         },
         gettingStartedSection: {
             title: 'Primeros pasos',
@@ -1164,6 +1164,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: 'Pídele a Concierge que analice tus gastos o que te ayude',
             inputPlaceholderMobile: 'Pregunta a Concierge cualquier cosa',
         },
+    },
+    insightsPage: {
+        viewOnSpend: 'Ver en Gastos',
+        emptyState: {title: 'Nada que mostrar', subtitle: 'Prueba a ajustar tus criterios de arriba'},
+        noExpensesState: {title: 'Ve adónde va tu dinero', subtitle: 'Una vez que tengas gastos, encontrarás tendencias de gasto, principales comercios y mucho más.'},
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -2111,7 +2116,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Perfil avatar',
         customInstructions: 'Instrucciones personalizadas',
         copilotIntoAccount: 'Copilot a la cuenta',
-        viewUserHistory: 'Ver historial del usuario',
+        viewMemberHistory: 'Ver historial del miembro',
         viewAgentHistory: 'Ver historial del agente',
         publicSection: {
             title: 'Público',
@@ -3248,7 +3253,7 @@ ${amount} para ${merchant} - ${date}`,
             agentSignInBlocked:
                 'No se puede iniciar sesión directamente en las cuentas de agente. Para usar un agente, inicia sesión con tu propia cuenta y accede a él a través de Copilot.',
         },
-        cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
+        cannotGetAccountDetails: 'No se pudieron obtener los detalles de la cuenta. Espera unos minutos e inténtalo de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
         notYou: (user) => `¿No eres ${user}?`,
     },
@@ -6776,6 +6781,7 @@ ${amount} para ${merchant} - ${date}`,
                 other: (count: number) => `${count} etiquetas`,
             }),
             showTagGLCodes: 'Mostrar códigos del libro mayor al seleccionar una etiqueta',
+            showTagGLCodesSubtitle: 'Si no se muestra un código del libro mayor, no está disponible para esa etiqueta en tu sistema contable.',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -8619,6 +8625,8 @@ ${reportName}`,
             subsidiarySelectDescription: 'Elige la filial en Campfire de la que te gustaría importar datos.',
             noSubsidiariesFound: 'No se han encontrado filiales',
             noSubsidiariesFoundDescription: 'Por favor, añade una entidad en Campfire y sincroniza la conexión de nuevo',
+            noVendorsFound: 'No se encontraron proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en Campfire y sincroniza la conexión de nuevo',
             importDescription: 'Elige qué configuraciones de codificación quieres importar desde Campfire.',
             accountTypesDescription: 'Tus cuentas de Campfire se importarán como categorías.',
             enableNewAccountsTitle: 'Habilitar cuentas recién importadas',

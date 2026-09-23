@@ -620,10 +620,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `评论的最大长度为 ${formattedMaxLength} 个字符。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `任务标题最长为 ${formattedMaxLength} 个字符。`,
     },
-    baseUpdateAppModal: {
-        updateApp: '更新应用',
-        updatePrompt: '此应用有新版本可用。\n现在更新，或稍后重启应用以下载最新更改。',
-    },
     deeplinkWrapper: {
         launching: '正在启动 Expensify',
         expired: '您的会话已过期。',
@@ -1044,6 +1040,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 one: `审核 ${count} 笔费用`,
                 other: `审核 ${count} 笔费用`,
             }),
+            reviewDomainAdminRequests: ({count}: {count: number}) => ({
+                one: `审核 ${count} 个域管理员请求`,
+                other: `审核 ${count} 个域管理员请求`,
+            }),
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {
@@ -1118,6 +1118,11 @@ const translations: TranslationDeepObject<typeof en> = {
             inputPlaceholder: '向 Concierge 请求分析你的报销或获取支持',
             inputPlaceholderMobile: '向 Concierge 提问任何问题',
         },
+    },
+    insightsPage: {
+        viewOnSpend: '在支出中查看',
+        emptyState: {title: '没有可显示的内容', subtitle: '请尝试调整上面的条件'},
+        noExpensesState: {title: '查看你的资金流向', subtitle: '添加报销后，您就能查看消费趋势、主要商家等更多信息。'},
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -2106,7 +2111,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
-        viewUserHistory: '查看用户历史记录',
+        viewMemberHistory: '查看成员历史记录',
         viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
@@ -3216,7 +3221,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             invalidFormatEmailLogin: '输入的邮箱无效。请修正格式后重试。',
             agentSignInBlocked: '代理帐户无法直接登录。要使用代理，请先登录您自己的帐户，然后通过 Copilot 访问该代理。',
         },
-        cannotGetAccountDetails: '无法获取账户详情。请尝试重新登录。',
+        cannotGetAccountDetails: '无法获取账户详情。请稍等几分钟后重试。',
         loginForm: '登录表单',
         notYou: (user: string) => `不是 ${user} 吗？`,
     },
@@ -6608,6 +6613,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 other: (count: number) => `${count} 个标签`,
             }),
             showTagGLCodes: '在选择标签时显示总账科目代码',
+            showTagGLCodesSubtitle: '如果某个总账科目代码未显示，则说明此标签在您的会计系统中不可用。',
         },
         taxes: {
             subtitle: '添加税种名称、税率，并设置默认值。',
@@ -8396,6 +8402,8 @@ ${reportName}`,
             subsidiarySelectDescription: '选择要从中导入数据的 Campfire 子公司。',
             noSubsidiariesFound: '未找到子公司',
             noSubsidiariesFoundDescription: '请在 Campfire 中添加一个实体，然后再次同步连接',
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 Campfire 中添加供应商，然后再次同步连接',
             importDescription: '选择要从 Campfire 导入的编码配置。',
             accountTypesDescription: '您的 Campfire 账户将会作为类别导入。',
             enableNewAccountsTitle: '启用新导入的账户',
