@@ -114,6 +114,8 @@ const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmails
 
 const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
 
+const loginSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.login;
+
 const accountIDSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.accountID;
 
 export {
@@ -132,5 +134,6 @@ export {
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
     displayNameSelector,
+    loginSelector,
     accountIDSelector,
 };

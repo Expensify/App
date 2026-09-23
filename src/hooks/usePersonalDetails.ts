@@ -1,9 +1,11 @@
 /** Personal details reads for components, so nothing touches PERSONAL_DETAILS_LIST directly */
+import {getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
-import type {UseOnyxResult} from 'react-native-onyx';
+import type {OnyxEntry, UseOnyxResult} from 'react-native-onyx';
 
 // We need direct access to useOnyx from react-native-onyx to read the live personal details list instead of the search snapshot
 // eslint-disable-next-line no-restricted-imports
@@ -11,8 +13,15 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
-function usePersonalDetail(accountID: number | undefined): UseOnyxResult<PersonalDetails | undefined> {
-    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(accountID)});
+function usePersonalDetail(accountID: number | undefined): UseOnyxResult<PersonalDetails | undefined>;
+function usePersonalDetail<TReturn>(accountID: number | undefined, selector: (personalDetail: PersonalDetails | undefined) => TReturn): UseOnyxResult<TReturn>;
+function usePersonalDetail<TReturn>(accountID: number | undefined, selector?: (personalDetail: PersonalDetails | undefined) => TReturn) {
+    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+            const personalDetail = getPersonalDetailsByID(accountID, personalDetailsList);
+            return selector ? selector(personalDetail) : personalDetail;
+        },
+    });
 }
 
 function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList> {
