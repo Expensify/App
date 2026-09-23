@@ -81,7 +81,7 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
     const prevIsPendingArchive = usePrevious(isPendingArchive);
 
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
-    const {shouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
+    const {shouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
 
     const [archiveError, setArchiveError] = useState<{translationKey?: TranslationPaths; message?: string}>();
 
@@ -226,7 +226,6 @@ function ArchiveWorkspaceFlow({policyID, onDismiss, onArchiveComplete}: ArchiveW
 
     return (
         <>
-            {outstandingBalanceModal}
             {/* eslint-disable-next-line @typescript-eslint/no-deprecated -- Local modal avoids stacking issues with the global confirmation modal on mobile. */}
             <ConfirmModal
                 title={translate('workspace.common.archive')}
