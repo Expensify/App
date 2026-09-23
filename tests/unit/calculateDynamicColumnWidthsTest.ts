@@ -72,15 +72,11 @@ describe('calculateDynamicColumnWidths', () => {
             expect(result.widths).toEqual([500, 200, 200]);
         });
 
-        it('leaves space unclaimed when every column is capped below an equal share', () => {
-            // Given two columns whose content is 100px and whose cap is 200px, in a row with far more room than either
-            // can use
-            // When the widths are resolved
+        it('leaves space unclaimed when every column has reached its maximum', () => {
+            // A maximum outranks filling the row, so the columns stop at 200px each rather than absorbing the leftover.
             const result = calculateDynamicColumnWidths([buildConstraints(100, 100, 200), buildConstraints(100, 100, 200)], 900);
 
-            // Then each takes its content width and the rest of the row is left unclaimed, because a cap is a ceiling
-            // rather than a width to grow into
-            expect(result.widths).toEqual([100, 100]);
+            expect(result.widths).toEqual([200, 200]);
             expect(result.shouldScrollHorizontally).toBe(false);
         });
 
@@ -93,9 +89,9 @@ describe('calculateDynamicColumnWidths', () => {
             // When the widths are resolved
             const result = calculateDynamicColumnWidths(constraints, 1163);
 
-            // Then the export account column takes the 154px it needs rather than its 180px cap, so the columns still
-            // add up to the row and the actions cell is not pushed outside the table
-            expect(result.widths).toEqual([359, 180, 353, 154, 117]);
+            // Then the columns are squeezed instead of letting the export account column grow into its cap, so they add
+            // up to the row and the actions cell is not pushed outside the table
+            expect(result.widths).toEqual([362, 180, 355, 154, 112]);
             expect(sumOf(result.widths)).toBe(1163);
             expect(result.shouldScrollHorizontally).toBe(false);
         });

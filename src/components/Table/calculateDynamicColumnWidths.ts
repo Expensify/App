@@ -67,9 +67,8 @@ function roundWidths(widths: number[], availableWidth: number, maxWidths: number
 /**
  * Splits the available width between the columns, keeping them equal wherever it can.
  *
- * A column whose content doesn't fit an equal share takes exactly the width its content needs, and so does a column
- * capped below an equal share, which can never grow into one. Whatever is left is then split equally between the
- * remaining columns.
+ * A column whose content doesn't fit an equal share takes exactly the width its content needs, and a column capped
+ * below an equal share takes exactly its maximum. Whatever is left is then split equally between the remaining columns.
  * Settling one column shrinks the share for the rest, which can leave another column unable to fit, so this repeats
  * until every column fits its share. Each pass settles at least one column, so the column count bounds the passes.
  *
@@ -98,9 +97,7 @@ function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], 
             if (desiredWidth > equalShare) {
                 widths[index] = desiredWidth;
             } else if (maxWidth < equalShare) {
-                // Its own desired width, not its cap. A column whose content stops short of its cap would otherwise be
-                // handed room it never asked for, and the columns would add up to more than the table has.
-                widths[index] = desiredWidth;
+                widths[index] = maxWidth;
             } else {
                 continue;
             }
@@ -157,12 +154,19 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
 
     // 2. Everything fits, so a column that can't fit an equal share takes exactly what its content needs and the rest of
     // the columns split what's left equally.
+    //
+    // Growing a capped column to its maximum can claim room a later column still needs, which leaves the columns wider
+    // than the row even though their content fits inside it. That is a table whose content does not fit after all, so it
+    // falls through to the squeeze below rather than overflowing.
     const totalDesiredWidth = sum(desiredWidths);
     if (totalDesiredWidth <= availableWidth) {
-        return {
-            widths: roundWidths(distributeAvailableWidth(desiredWidths, maxWidths, availableWidth), availableWidth, maxWidths),
-            shouldScrollHorizontally: false,
-        };
+        // Rounded before the check, because the split leaves fractions that can add up to a hair over the row and a
+        // whole table would fall through over a rounding error.
+        const distributedWidths = roundWidths(distributeAvailableWidth(desiredWidths, maxWidths, availableWidth), availableWidth, maxWidths);
+
+        if (sum(distributedWidths) <= availableWidth) {
+            return {widths: distributedWidths, shouldScrollHorizontally: false};
+        }
     }
 
     // 4. Even squeezed to their minimums the columns don't fit, so they stop there and the table scrolls. Rounding up
@@ -190,7 +194,9 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
         widths: roundWidths(
             desiredWidths.map((desiredWidth, index) => {
                 const minWidth = minWidths.at(index) ?? 0;
-                return minWidth + (desiredWidth - minWidth) * squeezeRatio;
+                // Clamped because a table that reached here with room to spare shares out more than each column asked
+                // for, which would otherwise push a capped column past its maximum.
+                return Math.min(minWidth + (desiredWidth - minWidth) * squeezeRatio, maxWidths.at(index) ?? 0);
             }),
             availableWidth,
             maxWidths,
