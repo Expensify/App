@@ -293,7 +293,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                         style={[styles.flex1, styles.mnh0]}
                         contentContainerStyle={[styles.flexGrow1, tableBodyContentContainerStyle]}
                         keyboardShouldPersistTaps="handled"
-                        showsVerticalScrollIndicator={false}
                     >
                         <View style={[styles.flexGrow1, styles.justifyContentCenter]}>{emptyStateContent}</View>
                         {!!footerElement && <View style={emptyStateFooterStyle}>{footerElement}</View>}
@@ -385,7 +384,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 ref={listRef}
                 data={listData}
                 style={[styles.flex1, styles.mnh0]}
-                showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}
                 ListHeaderComponent={pageHeaderElement}
                 ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
