@@ -1,7 +1,7 @@
 ---
 title: How to Export Reports
 description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, download reports, download receipt, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download reports, download receipt, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data, select all, select all on this page, download all matching reports]
 internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
@@ -81,12 +81,14 @@ For reports on a Submit workspace, the PDF also includes an **Approve or Pay** b
 ## How to download multiple reports as PDFs
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
-2. Select the checkbox next to each report you want to download, or use the top checkbox to select all.
+2. Select the checkbox next to each report you want to download, or use the top checkbox to select all. When your search has more reports than fit on one page, the top checkbox offers **Select all on this page** and **Select all**.
 3. Select **Selected** at the top.
 4. Select **Download reports**.
 5. Wait for the files to finish preparing, then select **Download file** to save them to your device. You can also select **Send me the file when it's ready** to have Concierge send the files to you in a chat message instead.
 
 Each report downloads as its own PDF, including all expenses, attached receipts, and report notes.
+
+**Select all on this page** downloads the reports listed on the current page. **Select all** downloads every report that matches your current search and filters, including reports on later pages.
 
 ## How to download the receipts on a report
 
@@ -124,6 +126,12 @@ You can download the receipts on several reports at once in a single ZIP file.
 
 The window stays open and switches to **Your file is ready!** when the export finishes, so you can select **Download file** to save the file right away. Concierge also sends you the file in a chat message. To close the window instead of waiting, select **Dismiss**.
 
+## How do I download every report matching my search as a PDF?
+
+On the **Reports** page, select the top checkbox, then select **Select all**. Select **Selected** at the top, then select **Download reports**. Expensify resolves the full set of matching reports for you, so the download covers every report that matches your current search and filters, not only the reports on the current page.
+
+**Download reports** started with **Select all** always shows the preparing status window, even when only one report matches, and it clears your selection once the export starts.
+
 ## What happens if some reports fail to download as PDFs?
 
 When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
@@ -132,12 +140,12 @@ When you download multiple reports as PDFs, a message tells you how many of the 
 
 Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
 
-This applies to the downloads that show a preparing status window, whether you start them from the **Reports** page or from a report's **More** menu: **Export** with any template other than **Basic export**, **Download receipt** or **Download receipts**, and **Download reports** when you selected more than one report.
+This applies to the downloads that show a preparing status window, whether you start them from the **Reports** page or from a report's **More** menu: **Export** with any template other than **Basic export**, **Download receipt** or **Download receipts**, and **Download reports** when you selected more than one report or used **Select all**.
 
 It does not apply to:
 
 - **Basic export**, which downloads straight to your device without a status window.
-- **Download report** for a single report, which uses its own window that does not reappear after a refresh. Start the download again to get a new PDF.
+- **Download report** for a single report, which uses its own window that does not reappear after a refresh. Start the download again to get a new PDF. This also applies when you select exactly one report on the **Reports** page, but not when you use **Select all**.
 - **Send me the file when it's ready** — Concierge sends that file to you in a chat message instead, so no status window reappears.
 
 ## Why don't I see Download receipt or Download receipts on a report?

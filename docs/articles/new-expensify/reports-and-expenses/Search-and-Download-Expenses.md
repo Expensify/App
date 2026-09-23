@@ -92,9 +92,11 @@ You can download a single report or multiple reports as PDFs. Each PDF includes 
 ## Download multiple reports
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), then select **Spend** > **Reports**.
-2. Check the box next to each report you want to download, or use the top checkbox to select all.
+2. Check the box next to each report you want to download, or use the top checkbox and then choose **Select all on this page** or **Select all**.
 3. Click **Selected**.
 4. Select **Download reports**.
+
+**Select all on this page** downloads the reports listed on the current page. **Select all** downloads every report that matches your current search and filters, including reports on later pages.
 
 A status window appears while your files are prepared. When they're ready, the download starts automatically. If it doesn't, click **Download file**. You can also click **Send me the file when it's ready** to have **Concierge** send the files to you in a chat message instead.
 
