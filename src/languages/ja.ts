@@ -625,10 +625,6 @@ const translations: TranslationDeepObject<typeof en> = {
         commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
         taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大文字数は${formattedMaxLength}文字です。`,
     },
-    baseUpdateAppModal: {
-        updateApp: 'アプリを更新',
-        updatePrompt: 'このアプリの新しいバージョンが利用可能です。\n今すぐアップデートするか、後でアプリを再起動して最新の変更をダウンロードしてください。',
-    },
     deeplinkWrapper: {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
@@ -2174,7 +2170,7 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
-        viewUserHistory: 'ユーザー履歴を表示',
+        viewMemberHistory: 'メンバー履歴を表示',
         viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
@@ -3895,6 +3891,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
         countrySelectionStepHeader: '銀行口座はどこにありますか？',
         accountDetailsStepHeader: 'あなたの口座情報は何ですか？',
         accountTypeStepHeader: 'これはどの種類のアカウントですか？',
@@ -6787,6 +6784,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 other: (count: number) => `${count} 件のタグ`,
             }),
             showTagGLCodes: 'タグ選択時にGLコードを表示する',
+            showTagGLCodesSubtitle: '総勘定元帳コードが表示されていない場合、お使いの会計システムではそのタグに利用できません。',
         },
         taxes: {
             subtitle: '税名と税率を追加し、デフォルトを設定します。',
@@ -9471,6 +9469,11 @@ ${reportName}`,
         bulkActions: {
             editMultiple: '複数を編集',
             editMultipleTitle: '複数の経費を編集',
+            editFinalizedExpensesTitle: '確定済みの経費を編集しますか？',
+            editFinalizedExpensesConfirmation: ({count, total}: {count: number; total: number}) => ({
+                one: `選択した${total}件の経費のうち1件が、承認済みまたは支払済みのレポートに含まれています。確定済みの経費を編集しようとしています。よろしいですか？`,
+                other: `選択した${total}件の経費のうち${count}件が、承認済みまたは支払済みのレポートに含まれています。確定済みの経費を編集しようとしています。よろしいですか？`,
+            }),
             editMultipleDescription: '変更は選択されたすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
             pay: '支払う',
