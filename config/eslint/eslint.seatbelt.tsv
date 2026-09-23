@@ -945,8 +945,6 @@
 "../../src/pages/inbox/ReactionListWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/actionContents/ActionContentRouter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/actionContents/JoinRequestContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/report/actionContents/MemberChangeContent.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/pages/inbox/report/actionContents/MentionWhisperContent.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/inbox/report/actionContents/ReimbursementDeQueuedContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/actionContents/RemovedFromApprovalChainContent.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/inbox/report/AncestorReportActionItem.tsx"	"rulesdir/no-direct-personal-details-list"	1
@@ -1078,7 +1076,6 @@
 "../../src/pages/Search/SavedSearchRenamePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Search/SearchAddApproverPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Search/SearchChangeApproverPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/Search/SearchEditMultiple/SearchEditMultiplePage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleTagPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1138,8 +1135,7 @@
 "../../src/pages/signin/SignInPageLayout/SignInPageContent.tsx"	"rulesdir/no-raw-typography"	2
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"react-hooks/set-state-in-effect"	4
-"../../src/pages/tasks/DynamicNewTaskDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/pages/tasks/DynamicNewTaskPage.tsx"	"rulesdir/no-direct-personal-details-list"	2
+"../../src/pages/tasks/DynamicNewTaskPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/tasks/DynamicTaskShareDestinationSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TeachersUnite/SaveTheWorldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionDuplicate/DuplicateTransactionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
