@@ -44,23 +44,22 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
-                <>
+                <View style={[styles.navigationTabBarItemContent, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
                     <View style={styles.tn0Half}>
                         <AccountNavigationAvatar
-                            isSelected={isSelected || (!shouldUseNarrowLayout && hovered)}
+                            // The floating bar marks the selected tab with a pill behind the whole item, so the
+                            // avatar's own ring would double up on it. The side bar has no pill and keeps it.
+                            isSelected={!shouldUseNarrowLayout && (isSelected || hovered)}
                             isHovered={hovered}
                         />
                     </View>
-                    {/* The floating bottom bar has no room for labels, so it renders the avatar alone. */}
-                    {!shouldUseNarrowLayout && (
-                        <Text
-                            numberOfLines={2}
-                            style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
-                        >
-                            {translate('initialSettingsPage.account')}
-                        </Text>
-                    )}
-                </>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
+                    >
+                        {translate('initialSettingsPage.account')}
+                    </Text>
+                </View>
             )}
         </PressableWithFeedback>
     );

@@ -58,7 +58,7 @@ const darkTheme = {
     signInSidebar: colors.green800,
     sidebar: colors.productDark100,
     sidebarHover: colors.productDark300,
-    floatingTabBarBG: 'rgba(6,27,9,0.65)',
+    floatingTabBarBG: 'rgba(6,27,9,0.88)',
     floatingTabBarBorder: colors.productDark400,
     floatingTabBarSelectedBG: 'rgba(26,61,50,0.50)',
     heading: colors.productDark900,

@@ -751,9 +751,21 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.floatingTabBarBorder,
         },
 
+        // Wraps a tab's icon and label so the selected pill can be as wide as they are rather than as wide as
+        // the tab's share of the bar. A long label then pushes the pill past its tab instead of spilling out of it.
+        navigationTabBarItemContent: {
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
         navigationTabBarItemSelected: {
             backgroundColor: theme.floatingTabBarSelectedBG,
             borderRadius: variables.componentBorderRadiusCircle,
+            // The padding widens the pill while the matching negative margin keeps it from taking that width
+            // away from the label, so the pill reaches past its tab instead of squeezing what it wraps.
+            paddingHorizontal: variables.floatingTabBarSelectedOverhang,
+            marginHorizontal: -variables.floatingTabBarSelectedOverhang,
         },
 
         // Ends a tab root screen's scrollable content above the floating bar, so its last row stays reachable
@@ -767,7 +779,6 @@ const staticStyles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingHorizontal: 4,
         },
 
         // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned

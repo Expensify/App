@@ -32,6 +32,7 @@ import {getAvatarURL} from '@libs/UserAvatarUtils';
 import HomePage from '@pages/home/HomePage';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -46,7 +47,7 @@ import type {ImageSourcePropType} from 'react-native';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
-import {BlendMode, ClipOp, ImageFormat, Skia} from '@shopify/react-native-skia';
+import {BlendMode, ClipOp, FontWeight, ImageFormat, Skia} from '@shopify/react-native-skia';
 import React, {useEffect, useState} from 'react';
 import {Image, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
@@ -96,12 +97,45 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 /** The recolored copies of one tab icon, one per selection state. */
 type TintedTabIconPair = {active: NativeBottomTabIcon; inactive: NativeBottomTabIcon};
 
-/** Paints the status dot in the canvas' top right corner, where a native badge would have sat. */
-function drawStatusDot(canvas: SkCanvas, canvasWidth: number, scale: number, color: string) {
+/** The account avatar drawn with its label, and the size it came out at. */
+type AvatarTabIcon = {uri: string; width: number; height: number};
+
+/** Paints the status dot in the glyph's top right corner, where a native badge would have sat. */
+function drawStatusDot(canvas: SkCanvas, glyphRight: number, scale: number, color: string) {
     const radius = variables.nativeTabIconDotRadius * scale;
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(color));
-    canvas.drawCircle(canvasWidth - radius, radius, radius, paint);
+    canvas.drawCircle(glyphRight - radius, radius, radius, paint);
+}
+
+/** The label's own face, matching what the bar drew before it became native: Expensify Neue, bold when selected. */
+function getLabelFont(isSelected: boolean, scale: number) {
+    const typeface = Skia.FontMgr.System().matchFamilyStyle(FontUtils.fontFamily.single.EXP_NEUE.fontFamily, {
+        weight: isSelected ? FontWeight.Bold : FontWeight.Normal,
+    });
+    return Skia.Font(typeface, variables.fontSizeSmall * scale);
+}
+
+/**
+ * Draws the label under the glyph and reports how much room it took. iOS 26 discards the title color an item
+ * appearance carries while honoring its font, and neither `unselectedItemTintColor` nor re-asserting it after
+ * layout gets through, so the text is painted into the image the item is handed instead.
+ */
+function drawLabel(canvas: SkCanvas, label: string, color: string, isSelected: boolean, scale: number, canvasWidth: number, top: number) {
+    const font = getLabelFont(isSelected, scale);
+    const paint = Skia.Paint();
+    paint.setColor(Skia.Color(color));
+    paint.setAntiAlias(true);
+    const width = font.measureText(label).width;
+    const metrics = font.getMetrics();
+    canvas.drawText(label, (canvasWidth - width) / 2, top - metrics.ascent, paint, font);
+}
+
+/** Width and height the label occupies, so a canvas can be sized before anything is drawn into it. */
+function measureLabel(label: string, isSelected: boolean, scale: number) {
+    const font = getLabelFont(isSelected, scale);
+    const metrics = font.getMetrics();
+    return {width: font.measureText(label).width, height: metrics.descent - metrics.ascent};
 }
 
 /**
@@ -114,7 +148,14 @@ function drawStatusDot(canvas: SkCanvas, canvasWidth: number, scale: number, col
  * instead of shrinking it to fit reserved room, and the dot overlaps the glyph's top right corner the way the
  * indicator on the mobile web bar does.
  */
-async function createTabIcon(source: ImageSourcePropType, color: string, dotColor: string | undefined): Promise<NativeBottomTabIcon | undefined> {
+async function createTabIcon(
+    source: ImageSourcePropType,
+    color: string,
+    dotColor: string | undefined,
+    label: string,
+    labelColor: string,
+    isSelected: boolean,
+): Promise<NativeBottomTabIcon | undefined> {
     const asset = Image.resolveAssetSource(source);
     if (!asset?.uri) {
         return undefined;
@@ -124,13 +165,21 @@ async function createTabIcon(source: ImageSourcePropType, color: string, dotColo
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
     const scale = asset.scale ?? 1;
-    const canvasWidth = image?.width() ?? 0;
-    const canvasHeight = image?.height() ?? 0;
-    const surface = image ? Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight) : null;
 
-    if (!image || !surface) {
-        image?.dispose();
-        surface?.dispose();
+    if (!image) {
+        return undefined;
+    }
+
+    const glyphWidth = image.width();
+    const glyphHeight = image.height();
+    const gap = variables.nativeTabIconLabelGap * scale;
+    const labelSize = measureLabel(label, isSelected, scale);
+    const canvasWidth = Math.ceil(Math.max(glyphWidth, labelSize.width));
+    const canvasHeight = Math.ceil(glyphHeight + gap + labelSize.height);
+    const surface = Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight);
+
+    if (!surface) {
+        image.dispose();
         return undefined;
     }
 
@@ -139,11 +188,14 @@ async function createTabIcon(source: ImageSourcePropType, color: string, dotColo
     paint.setColorFilter(Skia.ColorFilter.MakeBlend(Skia.Color(color), BlendMode.SrcIn));
 
     const canvas = surface.getCanvas();
-    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, image.width(), image.height()), Skia.XYWHRect(0, 0, image.width(), image.height()), paint);
+    const glyphLeft = (canvasWidth - glyphWidth) / 2;
+    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, glyphWidth, glyphHeight), Skia.XYWHRect(glyphLeft, 0, glyphWidth, glyphHeight), paint);
 
     if (dotColor) {
-        drawStatusDot(canvas, canvasWidth, scale, dotColor);
+        drawStatusDot(canvas, glyphLeft + glyphWidth, scale, dotColor);
     }
+
+    drawLabel(canvas, label, labelColor, isSelected, scale, canvasWidth, glyphHeight + gap);
 
     surface.flush();
 
@@ -162,13 +214,17 @@ async function createTabIcon(source: ImageSourcePropType, color: string, dotColo
  * circle off-screen and handed over as a data URI. It fills the same canvas as every other tab icon, so the avatar
  * is drawn at the size of the glyphs next to it.
  */
-async function createCircularAvatarIcon(uri: string, dotColor: string | undefined): Promise<string | undefined> {
+async function createCircularAvatarIcon(uri: string, dotColor: string | undefined, label: string, labelColor: string, isSelected: boolean): Promise<AvatarTabIcon | undefined> {
     const response = await fetch(uri);
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
     const scale = variables.nativeTabIconScale;
-    const canvasSize = variables.iconBottomBar * scale;
-    const surface = Skia.Surface.MakeOffscreen(canvasSize, canvasSize);
+    const avatarSize = variables.iconBottomBar * scale;
+    const gap = variables.nativeTabIconLabelGap * scale;
+    const labelSize = measureLabel(label, isSelected, scale);
+    const canvasWidth = Math.ceil(Math.max(avatarSize, labelSize.width));
+    const canvasHeight = Math.ceil(avatarSize + gap + labelSize.height);
+    const surface = Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight);
 
     if (!image || !surface) {
         image?.dispose();
@@ -179,18 +235,21 @@ async function createCircularAvatarIcon(uri: string, dotColor: string | undefine
     const sourceSize = Math.min(image.width(), image.height());
     const sourceX = (image.width() - sourceSize) / 2;
     const sourceY = (image.height() - sourceSize) / 2;
+    const avatarLeft = (canvasWidth - avatarSize) / 2;
     const circle = Skia.Path.Make();
-    circle.addCircle(canvasSize / 2, canvasSize / 2, canvasSize / 2);
+    circle.addCircle(avatarLeft + avatarSize / 2, avatarSize / 2, avatarSize / 2);
 
     const canvas = surface.getCanvas();
     canvas.save();
     canvas.clipPath(circle, ClipOp.Intersect, true);
-    canvas.drawImageRect(image, Skia.XYWHRect(sourceX, sourceY, sourceSize, sourceSize), Skia.XYWHRect(0, 0, canvasSize, canvasSize), Skia.Paint());
+    canvas.drawImageRect(image, Skia.XYWHRect(sourceX, sourceY, sourceSize, sourceSize), Skia.XYWHRect(avatarLeft, 0, avatarSize, avatarSize), Skia.Paint());
     canvas.restore();
 
     if (dotColor) {
-        drawStatusDot(canvas, canvasSize, scale, dotColor);
+        drawStatusDot(canvas, avatarLeft + avatarSize, scale, dotColor);
     }
+
+    drawLabel(canvas, label, labelColor, isSelected, scale, canvasWidth, avatarSize + gap);
 
     surface.flush();
 
@@ -202,7 +261,7 @@ async function createCircularAvatarIcon(uri: string, dotColor: string | undefine
     snapshot.dispose();
     surface.dispose();
 
-    return `data:image/png;base64,${base64}`;
+    return {uri: `data:image/png;base64,${base64}`, width: canvasWidth / scale, height: canvasHeight / scale};
 }
 
 /**
@@ -293,8 +352,16 @@ function TabNavigator() {
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesDotColor,
         [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: accountDotColor,
     };
-    // The signature covers everything baked into the bitmaps, so a status that comes or goes redraws them.
-    const iconsSignature = `${theme.icon}|${theme.iconMenu}|${inboxDotColor}|${workspacesDotColor}|${accountDotColor}`;
+    const tabLabels: Record<string, string> = {
+        [SCREENS.HOME]: translate('common.home'),
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
+        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
+        [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: translate('initialSettingsPage.account'),
+    };
+    // The signature covers everything baked into the bitmaps, so a status that comes or goes, a theme swap or a
+    // language change redraws them.
+    const iconsSignature = [theme.icon, theme.iconMenu, theme.text, theme.textSupporting, inboxDotColor, workspacesDotColor, accountDotColor, ...Object.values(tabLabels)].join('|');
 
     const [tintedIcons, setTintedIcons] = useState<{signature: string; icons: Record<string, TintedTabIconPair>}>();
     const tintedIconsForTheme = tintedIcons?.signature === iconsSignature ? tintedIcons.icons : undefined;
@@ -303,11 +370,18 @@ function TabNavigator() {
         let isActive = true;
         const inactiveColor = theme.icon;
         const activeColor = theme.iconMenu;
+        // The label colors the bar drew before it became native: the supporting tone when idle, the plain text
+        // tone when selected. Both come from the theme, so light and dark each get their own pair.
+        const inactiveLabelColor = theme.textSupporting;
+        const activeLabelColor = theme.text;
         const signature = iconsSignature;
 
         Promise.all(
             TAB_ICONS.map(([name, source]) =>
-                Promise.all([createTabIcon(source, inactiveColor, dotColors[name]), createTabIcon(source, activeColor, dotColors[name])]).then(([inactive, active]) => ({
+                Promise.all([
+                    createTabIcon(source, inactiveColor, dotColors[name], tabLabels[name], inactiveLabelColor, false),
+                    createTabIcon(source, activeColor, dotColors[name], tabLabels[name], activeLabelColor, true),
+                ]).then(([inactive, active]) => ({
                     name,
                     inactive,
                     active,
@@ -349,11 +423,13 @@ function TabNavigator() {
     });
     const avatarURI = typeof avatarSource === 'string' ? avatarSource : undefined;
     const avatarSignature = `${avatarURI}|${accountDotColor}`;
-    const [circularAvatar, setCircularAvatar] = useState<{signature: string; uri: string}>();
-    const circularAvatarURI = circularAvatar?.signature === avatarSignature ? circularAvatar.uri : undefined;
-    const accountTabIcon: NativeBottomTabIcon = circularAvatarURI
-        ? {type: 'image', source: {uri: circularAvatarURI, width: variables.iconBottomBar, height: variables.iconBottomBar, scale: variables.nativeTabIconScale}, tinted: false}
-        : ACCOUNT_TAB_ICON;
+    const [circularAvatar, setCircularAvatar] = useState<{signature: string; active: AvatarTabIcon; inactive: AvatarTabIcon}>();
+    const avatarPair = circularAvatar?.signature === avatarSignature ? circularAvatar : undefined;
+    const toAvatarIcon = (icon: AvatarTabIcon): NativeBottomTabIcon => ({
+        type: 'image',
+        source: {uri: icon.uri, width: icon.width, height: icon.height, scale: variables.nativeTabIconScale},
+        tinted: false,
+    });
 
     useEffect(() => {
         let isActive = true;
@@ -364,12 +440,13 @@ function TabNavigator() {
         }
 
         const signature = avatarSignature;
-        createCircularAvatarIcon(avatarURI, accountDotColor)
-            .then((result) => {
-                if (!isActive || !result) {
+        const label = tabLabels[NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR];
+        Promise.all([createCircularAvatarIcon(avatarURI, accountDotColor, label, theme.textSupporting, false), createCircularAvatarIcon(avatarURI, accountDotColor, label, theme.text, true)])
+            .then(([inactive, active]) => {
+                if (!isActive || !inactive || !active) {
                     return;
                 }
-                setCircularAvatar({signature, uri: result});
+                setCircularAvatar({signature, active, inactive});
             })
             .catch(() => {});
 
@@ -377,7 +454,7 @@ function TabNavigator() {
             isActive = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [avatarSignature]);
+    }, [avatarSignature, iconsSignature]);
 
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
@@ -452,26 +529,26 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
-                options={{tabBarLabel: translate('common.home'), tabBarIcon: getTabBarIcon(SCREENS.HOME, HOME_TAB_ICON)}}
+                options={{tabBarLabel: '', tabBarIcon: getTabBarIcon(SCREENS.HOME, HOME_TAB_ICON)}}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
                 options={{
-                    tabBarLabel: translate('common.inbox'),
+                    tabBarLabel: '',
                     tabBarIcon: getTabBarIcon(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, INBOX_TAB_ICON),
                 }}
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
-                options={{tabBarLabel: translate('common.spend'), tabBarIcon: getTabBarIcon(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SPEND_TAB_ICON)}}
+                options={{tabBarLabel: '', tabBarIcon: getTabBarIcon(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SPEND_TAB_ICON)}}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
                 options={{
-                    tabBarLabel: translate('common.workspacesTabTitle'),
+                    tabBarLabel: '',
                     tabBarIcon: getTabBarIcon(NAVIGATORS.WORKSPACE_NAVIGATOR, WORKSPACES_TAB_ICON),
                 }}
             />
@@ -479,8 +556,10 @@ function TabNavigator() {
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                 component={SettingsSplitNavigator}
                 options={{
-                    tabBarLabel: translate('initialSettingsPage.account'),
-                    tabBarIcon: circularAvatarURI ? accountTabIcon : getTabBarIcon(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabIcon),
+                    tabBarLabel: '',
+                    tabBarIcon: avatarPair
+                        ? ({focused}: {focused: boolean}) => toAvatarIcon(focused ? avatarPair.active : avatarPair.inactive)
+                        : getTabBarIcon(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, ACCOUNT_TAB_ICON),
                 }}
             />
         </Tab.Navigator>

@@ -36,6 +36,9 @@ export default {
     bottomTabHeight: 72,
     floatingTabBarHeight,
     floatingTabBarHorizontalInset: 16,
+    // How far the selected pill reaches past the icon and label. Measured off the iOS glass bubble, where the
+    // account tab's 121px label sits in a 222px bubble, so 17pt a side.
+    floatingTabBarSelectedOverhang: 17,
     floatingTabBarBottomInset,
     // Vertical space the floating bar takes over the content it hides, so scrollable content can end above it.
     floatingTabBarContentInset: floatingTabBarHeight + floatingTabBarBottomInset,
@@ -109,6 +112,8 @@ export default {
     iconBottomBar: 24,
     /** Radius of the status dot drawn into a native tab bar icon, and the room reserved for it around the glyph. */
     nativeTabIconDotRadius: 4,
+    // Gap between the glyph and the label baked under it, matching the spacing the JS bar uses.
+    nativeTabIconLabelGap: 6,
     /** Pixel density the native tab bar icons are rasterized at. */
     nativeTabIconScale: 3,
     iconHeader: 48,
