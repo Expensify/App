@@ -3,7 +3,7 @@ export {default as useChartLabelMeasurements} from './useChartLabelMeasurements'
 export {default as useChartParagraphs} from './useChartParagraphs';
 export {useChartFontManager} from '@components/Charts/context/ChartFontsContext';
 export {default as ChartFontsProvider} from '@components/Charts/context/ChartFontsProvider';
-export {useChartInteractions, findClosestPoint, TOOLTIP_BAR_GAP} from './useChartInteractions';
+export {useChartInteractions, TOOLTIP_BAR_GAP} from './useChartInteractions';
 export type {HitTestArgs, ResolveTargetIndexArgs} from './useChartInteractions';
 export {default as useChartLabelFormats} from './useChartLabelFormats';
 export {default as useDynamicYDomain} from './useDynamicYDomain';
