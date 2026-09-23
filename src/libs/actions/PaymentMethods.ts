@@ -27,7 +27,6 @@ import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type Policy from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
 import type Session from '@src/types/onyx/Session';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
@@ -269,7 +268,7 @@ function addSubscriptionPaymentCard(
     ];
 
     if (CONST.SCA_CURRENCIES.has(currency)) {
-        addPaymentCardSCA(parameters, {optimisticData, successData, failureData}, source);
+        addPaymentCardSCA(parameters, source);
     } else {
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
             optimisticData,
@@ -305,9 +304,9 @@ function getVerify3dsSubscriptionSourceData(source?: string): Array<OnyxUpdate<t
  * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardSCA(
-    params: AddPaymentCardParams,
-    onyxData: OnyxData<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> = {
+function addPaymentCardSCA(params: AddPaymentCardParams, source?: string) {
+    prepareCardAuthentication(source);
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -321,6 +320,7 @@ function addPaymentCardSCA(
                 key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
                 value: {isLoading: false},
             },
+            ...getVerify3dsSubscriptionSourceData(source),
         ],
         failureData: [
             {
@@ -329,13 +329,6 @@ function addPaymentCardSCA(
                 value: {isLoading: false},
             },
         ],
-    },
-    source?: string,
-) {
-    prepareCardAuthentication(source);
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, {
-        ...onyxData,
-        successData: [...(onyxData.successData ?? []), ...getVerify3dsSubscriptionSourceData(source)],
     });
 }
 

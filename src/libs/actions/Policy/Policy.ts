@@ -1607,7 +1607,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardSCA(params, undefined, source);
+        PaymentMethods.addPaymentCardSCA(params, source);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
