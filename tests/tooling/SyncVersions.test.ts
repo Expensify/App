@@ -278,6 +278,32 @@ describe('syncVersions.sh sync (submodule only)', () => {
         expect(git(appDir, 'ls-tree', 'origin/main', 'Mobile-Expensify')).toContain(shaAtCheck);
     });
 
+    it('rebases and retries when App main moved since the check step', () => {
+        setUpFixture('9.3.11-48', '9.3.11-48');
+        const newSubmoduleSha = advanceMobileExpensify();
+        runScript('check');
+
+        // Someone else pushes to App main between `check` and `sync`, so the first push is not a fast-forward
+        const other = path.join(tmpRoot, 'App-other');
+        execFileSync('git', ['clone', path.join(tmpRoot, 'App.git'), other], {stdio: 'pipe', env: {...process.env, ...GIT_ALLOW_FILE_TRANSPORT}});
+        git(other, 'config', 'user.name', 'other');
+        git(other, 'config', 'user.email', 'other@test.com');
+        fs.writeFileSync(path.join(other, 'UNRELATED.md'), 'unrelated\n');
+        git(other, 'add', 'UNRELATED.md');
+        git(other, 'commit', '-m', 'Unrelated change on App main');
+        git(other, 'push', 'origin', 'main');
+
+        const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'false', EXPECTED_SUBMODULE_SHA: newSubmoduleSha}});
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('::warning::Push failed, attempting rebase...');
+        expect(git(appDir, 'ls-tree', 'origin/main', 'Mobile-Expensify')).toContain(newSubmoduleSha);
+        expect(git(appDir, 'log', '-2', '--format=%s', 'origin/main').split('\n')).toEqual([
+            `Bump Mobile-Expensify submodule to latest main (${newSubmoduleSha})`,
+            'Unrelated change on App main',
+        ]);
+    });
+
     it('fails when the submodule checkout moved since the check step', () => {
         setUpFixture('9.3.11-48', '9.3.11-48');
         advanceMobileExpensify();
@@ -318,6 +344,33 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
         expect(git(appDir, 'log', '-2', '--format=%s', 'origin/main').split('\n')).toEqual([
             'Update Mobile-Expensify submodule version to 9.3.11-48 (sync recovery)',
             'Update version to 9.3.11-48 (sync recovery)',
+        ]);
+    });
+
+    it('rebases and retries when App main moved since the check step', () => {
+        setUpFixture('9.3.10-1', '9.3.11-48', true);
+        advanceMobileExpensify();
+        runScript('check');
+
+        // Someone else pushes to App main between `check` and `sync`, so the first push is not a fast-forward
+        const other = path.join(tmpRoot, 'App-other');
+        execFileSync('git', ['clone', path.join(tmpRoot, 'App.git'), other], {stdio: 'pipe', env: {...process.env, ...GIT_ALLOW_FILE_TRANSPORT}});
+        git(other, 'config', 'user.name', 'other');
+        git(other, 'config', 'user.email', 'other@test.com');
+        fs.writeFileSync(path.join(other, 'UNRELATED.md'), 'unrelated\n');
+        git(other, 'add', 'UNRELATED.md');
+        git(other, 'commit', '-m', 'Unrelated change on App main');
+        git(other, 'push', 'origin', 'main');
+
+        const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'true'}});
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('::warning::Push failed, attempting rebase...');
+        expect(readVersion(path.join(appDir, 'package.json'))).toBe('9.3.11-48');
+        expect(git(appDir, 'log', '-3', '--format=%s', 'origin/main').split('\n')).toEqual([
+            'Update Mobile-Expensify submodule version to 9.3.11-48 (sync recovery)',
+            'Update version to 9.3.11-48 (sync recovery)',
+            'Unrelated change on App main',
         ]);
     });
 
@@ -370,5 +423,18 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
         expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
         expect(readVersion(path.join(appDir, 'package.json'))).toBe('9.3.11-48');
         expect(git(appDir, 'log', '-1', '--format=%s', 'origin/main')).toBe('Update version to 9.3.11-48 (sync recovery)');
+    });
+});
+
+describe('testSyncVersions.yml', () => {
+    // The macOS job is path-gated to this file by name, and the three full version sync cases skip on
+    // Ubuntu, so renaming this file would stop the job triggering and reopen that coverage hole with
+    // nothing failing. Asserted from inside the file that gets renamed, in the suite the Ubuntu Bun
+    // tests job runs on every tests/tooling change.
+    it('names this test file in both its path filter and its run step', () => {
+        const repoRoot = path.resolve(__dirname, '../..');
+        const workflow = fs.readFileSync(path.join(repoRoot, '.github/workflows/testSyncVersions.yml'), {encoding: 'utf-8'});
+
+        expect(workflow.split(path.relative(repoRoot, __filename))).toHaveLength(3);
     });
 });
