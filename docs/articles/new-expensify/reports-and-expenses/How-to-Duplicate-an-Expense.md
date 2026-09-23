@@ -1,17 +1,22 @@
 ---
 title: How to Duplicate an Expense
 description: Learn how to create a copy of one or more expenses in Expensify using Duplicate expense.
-keywords: [New Expensify, duplicate expense, copy expense, duplicate cash expense, duplicate distance expense, duplicate per diem expense, create copy of expense, bulk duplicate, duplicate multiple expenses]
-internalScope: Audience is all members. Covers how to duplicate a single expense and how to bulk-duplicate multiple expenses from the Expenses tab or a report. Does not cover duplicate detection, resolving flagged duplicates, or merging expenses.
+keywords: [New Expensify, duplicate expense, copy expense, duplicate cash expense, duplicate distance expense, duplicate per diem expense, duplicate GPS expense, duplicate GPS distance expense, GPS route not copied, create copy of expense, bulk duplicate, duplicate multiple expenses]
+internalScope: Audience is all members. Covers how to duplicate a single expense, how to bulk-duplicate multiple expenses from the Expenses tab or a report, and what a duplicated GPS distance expense contains. Does not cover duplicate detection, resolving flagged duplicates, or merging expenses.
 ---
 
 # How to duplicate an expense
 
-You can create a copy of one or more expenses using **Duplicate expense**. This generates new expenses with the same details as the originals, including the merchant, amount, category, tags, and tax. The date is set to today and receipt images are not copied. An expense that is on a report is copied onto your primary workspace, while an Unreported expense is copied onto your personal space.
+You can create a copy of one or more expenses using **Duplicate expense**. This generates new expenses on your primary workspace with the same details as the originals, including the merchant, amount, category, tags, and tax. The date is set to today and receipt images are not copied.
 
 This is useful when you need to create similar expenses quickly without re-entering all the details manually. You can duplicate a single expense or select multiple expenses and duplicate them all at once.
 
 **Note:** Card expenses cannot be duplicated. Only cash, distance, and per diem expenses are eligible to be duplicated. 
+
+<!-- LINK:
+Learn about expense types. 
+Page creation GH: https://github.com/Expensify/Expensify/issues/614406
+-->
 
 ---
 
@@ -63,11 +68,21 @@ Purpose: Helps the user identify the bulk duplicate option in the dropdown.
 
 ## What happens after you duplicate an expense
 
-The duplicate expense keeps the original expense's merchant, amount, category, tags, tax, and billable or reimbursable status. The date is set to today and receipt images are not included.
-
-The duplicate matches the reported state of the original. If the original expense is on a report, the copy is created on your primary workspace. If the original is an Unreported expense, the copy is created on your personal space and is not added to a report.
+The duplicate expense is created on your primary workspace with the original expense's merchant, amount, category, tags, tax, and billable or reimbursable status. The date is set to today and receipt images are not included.
 
 If the original expense's coding (such as categories or tags) is not available on your primary workspace, the duplicate expense will still be created. You will be prompted to correct the coding on the expense. 
+
+---
+
+## What happens when you duplicate a GPS distance expense
+
+A GPS distance expense records the route you actually drove. The recorded route is not stored on the saved expense, so it cannot be re-created on the copy.
+
+When you duplicate a GPS distance expense that is not on a report (an Unreported expense), or when you do not have a workspace, the copy is created as a manual distance expense. The copy keeps the total distance from the original, but the route map and its start and end addresses are not included. You can edit the distance on the copy the same way you edit any manual distance expense.
+
+When you duplicate a GPS distance expense that is already on a workspace report, the copy stays a GPS distance expense and the route is included.
+
+[Learn how to create a GPS Distance expense](/articles/new-expensify/reports-and-expenses/Distance-Expenses)
 
 ---
 
@@ -88,6 +103,10 @@ No. Expenses from company cards or Expensify Cards cannot be duplicated. Only ca
 ## Does the duplicated expense include the receipt image?
 
 No. Receipt images are not copied to the duplicate expense. You will need to attach a new receipt if one is required.
+
+## Why does my duplicated GPS distance expense have no route map?
+
+Duplicating an Unreported GPS distance expense creates a manual distance expense, because the recorded GPS route is not stored on the saved expense. The copy keeps the total distance, but not the route map or the start and end addresses.
 
 ## Why is Duplicate not showing in the menu?
 
