@@ -44,6 +44,8 @@ registerMiddlewares();
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 const mockSearchQueryParam = jest.fn(() => 'type:chat category:abcd');
+// SearchFullscreenNavigator is nested inside TabNavigator in the real tree, and the Search root route is
+// resolved by walking down from the root through that tab navigator, so the mocked state has to keep that level.
 jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
     default: (selector: (state: unknown) => unknown) =>
@@ -51,13 +53,21 @@ jest.mock('@hooks/useRootNavigationState', () => ({
             index: 0,
             routes: [
                 {
-                    name: 'SearchFullscreenNavigator',
+                    name: 'TabNavigator',
                     state: {
                         index: 0,
                         routes: [
                             {
-                                name: 'Search_Root',
-                                params: {q: mockSearchQueryParam()},
+                                name: 'SearchFullscreenNavigator',
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: 'Search_Root',
+                                            params: {q: mockSearchQueryParam()},
+                                        },
+                                    ],
+                                },
                             },
                         ],
                     },
