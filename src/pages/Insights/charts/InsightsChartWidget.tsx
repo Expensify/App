@@ -21,8 +21,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -41,11 +39,9 @@ type InsightsChartWidgetProps = {
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
-
-    containerStyles?: StyleProp<ViewStyle>;
 };
 
-function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, containerStyles}: InsightsChartWidgetProps) {
+function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -63,7 +59,6 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
-            containerStyles={containerStyles}
             titleRightContent={
                 state === INSIGHTS_CHART_STATE.READY ? (
                     <WidgetHeaderMenu
