@@ -95,6 +95,12 @@ You can only delete expenses in your own account.
 
 If you need access to another member’s expenses, ask them to [add you as a Copilot](/articles/new-expensify/settings/Copilot-Access). This allows you to manage expenses on their behalf.
 
+## How can a Workspace Admin delete another member's Draft report?
+
+Open the member’s **Draft** report on your workspace and choose **More** > **Delete**.
+
+This deletes the report only. The expenses on it become **Unreported** and stay in the member’s account, so they can be added to a new report. You can’t delete a member’s report after it is submitted, and you can’t delete a member’s individual expenses. [Learn more about report statuses and actions](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
+
 ## How can a Workspace Admin allow members to delete company card expenses?
 
 Workspace Admins can allow deletion of future imported company card expenses by enabling **Allow deleting transactions**. 

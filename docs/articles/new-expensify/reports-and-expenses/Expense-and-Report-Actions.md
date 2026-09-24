@@ -92,6 +92,7 @@ Use this guide to understand:
 
 **Workspace Admin**
 - Export reports
+- Delete Draft reports on their workspace, including Draft reports submitted by other members
 - Mark reports as exported
 - Change approver
 - Bypass approvers
@@ -139,7 +140,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Change workspace** | Draft reports | Submitter | Moves the report to another workspace |
 | **Change workspace** | Before export | Approver, Workspace Admin | Moves the report to another workspace |
 | **Change approver** | Submitted reports | Workspace Admin | Adds or bypasses approvers |
-| **Delete** | Draft reports only | Submitter | Permanently removes the report |
+| **Delete** | Draft reports only | Submitter, Workspace Admin | Removes the report. When a Workspace Admin deletes another member’s report, the expenses on it become Unreported instead of being deleted |
 | **Undelete** | Deleted expenses | Submitter | Restores a deleted expense |
 | **Unapprove** | After approval, before payment | Approver | Reverts approval |
 | **Mark as exported** | Approved or Paid reports | Workspace Admin | Marks report as exported manually |
@@ -156,7 +157,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
 | **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
-| **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
+| **Delete** | Only on draft/unsubmitted reports | Submitter, Workspace Admin | Removes the report. A Workspace Admin can delete another member’s Draft report, which leaves the expenses on it Unreported in that member's account |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
