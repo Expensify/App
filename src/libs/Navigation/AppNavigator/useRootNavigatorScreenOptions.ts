@@ -54,8 +54,8 @@ const useRootNavigatorScreenOptions = () => {
             animationTypeForReplace: 'pop',
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
-                // The RHP has its own scrim (BaseOverlay), so don't add react-navigation's dark card overlay behind it.
-                cardOverlayEnabled: false,
+                // The wide RHP draws its own scrim (BaseOverlay), so drop react-navigation's dark card overlay behind the floating card. Narrow keeps it, as nothing else dims the background there.
+                cardOverlayEnabled: shouldUseNarrowLayout,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) =>
                     modalCardStyleInterpolator({
                         props,

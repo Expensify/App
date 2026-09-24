@@ -138,7 +138,7 @@ function MultifactorAuthenticationModalNavigator() {
     }, [phase, backdropProgress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: backdropProgress.get() * variables.overlayOpacity,
+        opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
 
     const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
