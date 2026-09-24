@@ -1,15 +1,17 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -41,7 +43,6 @@ type ReportFieldProps = {
 };
 
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
     const policyID = selectedParticipants?.at(0)?.policyID;
@@ -114,22 +115,30 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const shouldReportBeEditable = (isUnreported ? outstandingReports.length >= 1 : outstandingReports.length > 1) && !isMoneyRequestReport(reportID);
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={shouldReportBeEditable}
-            title={reportName}
-            description={translate('common.report')}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID || !selectedReportID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
-            }}
-            interactive={shouldReportBeEditable}
-            shouldRenderAsHTML
+        <MenuItem.Root
+            onPress={
+                shouldReportBeEditable
+                    ? callFunctionIfActionIsAllowed(() => {
+                          if (!transactionID || !selectedReportID) {
+                              return;
+                          }
+                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
+                      })
+                    : undefined
+            }
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItemField.Content name={translate('common.report')}>
+                    <MenuItem.FieldValueHTML>{reportName}</MenuItem.FieldValueHTML>
+                </MenuItemField.Content>
+                {shouldReportBeEditable && (
+                    <MenuItem.Trailing>
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 

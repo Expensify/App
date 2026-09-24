@@ -1,5 +1,6 @@
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
@@ -11,8 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
 import variables from '@styles/variables';
@@ -21,7 +20,6 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ComponentRef} from 'react';
@@ -39,7 +37,7 @@ type DescriptionFieldProps = {
 };
 
 function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps) {
-    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, reportID} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -120,27 +118,21 @@ function DescriptionField({isDescriptionRequired, policy}: DescriptionFieldProps
                                 />
                             </View>
                         ) : (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={!isReadOnly}
-                                shouldParseTitle
-                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                                title={iouComment}
-                                description={translate('common.description')}
-                                onPress={() => {
-                                    if (!transactionID) {
-                                        return;
-                                    }
-
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                disabled={didConfirm}
-                                interactive={!isReadOnly}
-                                numberOfLinesTitle={2}
-                                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+                            <MenuItem.Root
+                                isDisabled={didConfirm}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={translate('common.description')}>
+                                        {!!iouComment && <MenuItem.FieldValueHTML>{Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []})}</MenuItem.FieldValueHTML>}
+                                    </MenuItemField.Content>
+                                    {!iouComment && isDescriptionRequired && (
+                                        <MenuItem.Trailing>
+                                            <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
+                                        </MenuItem.Trailing>
+                                    )}
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                     </MentionReportContext.Provider>
                 </ShowContextMenuActionsContext.Provider>
