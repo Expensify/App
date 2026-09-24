@@ -6,7 +6,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationState} from '@react-navigation/routers';
+import type {NavigationState} from '@react-navigation/native';
 
 jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
