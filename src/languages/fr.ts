@@ -1014,6 +1014,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Payez votre facture avant le ${date} pour éviter une interruption de service`,
                 overdueTitle: 'Votre paiement est en retard, veuillez régler votre facture',
             },
+            renewSubscription: {
+                title: 'Activez le renouvellement automatique pour conserver votre tarif actuel',
+                subtitle: ({date}: {date: string}) => `L’abonnement prend fin le ${date}`,
+                cta: 'Gérer',
+            },
         },
         discoverSection: {
             title: 'Découvrir',
@@ -1835,6 +1840,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Choisissez une option pour modifier l’approbateur de cette note de frais. (Mettez à jour vos <a href="${workflowSettingLink}">paramètres d’espace de travail</a> pour changer cela définitivement pour toutes les notes de frais.)`,
             changedApproverMessage: (managerID: number) => `a changé l'approbateur en <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `a changé l'approbateur final en <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `a réaffecté l'approbateur à <mention-user accountID="${managerID}"/> via une mise à jour du flux de travail`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -3954,6 +3960,8 @@ ${amount} pour ${merchant} - ${date}`,
                 'Ce compte bancaire ne peut pas être supprimé car il est utilisé pour les paiements par Carte Expensify. Si vous souhaitez tout de même supprimer ce compte, veuillez contacter Concierge.',
             sameDepositAndWithdrawalAccount: 'Les comptes de dépôt et de retrait sont identiques.',
         },
+        unlockAlreadyRequestedTitle: 'Demande déjà soumise',
+        unlockAlreadyRequestedDescription: 'Votre demande de déverrouillage de ce compte bancaire a déjà été envoyée. Concierge vous contactera si autre chose est nécessaire.',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
@@ -8702,10 +8710,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             providerFinalApprover: (providerName: string) => `Approbateur final ${providerName}`,
             syncing: 'Synchronisation des employés',
             approvalModeDescription: (providerName: string) => `Les membres et les responsables sont configurés pour se synchroniser avec ${providerName}.`,
-            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
-            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
             approvalModeDescriptions: {
                 basic: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.',
                 manager: (providerName: string) => `Les employé·e·s soumettent leurs rapports à leur responsable direct configuré dans ${providerName}.`,
@@ -8770,6 +8774,17 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     other: (count: number) => `${count} candidat·s`,
                 }),
             },
+            approverField: `Premier approbateur`,
+            finalApprover: `Approbateur final`,
+            finalApproverOptional: 'Approbateur final (facultatif)',
+            approvalModeDescription: (providerName: string) => `Définissez l’approbateur pour les nouveaux membres importés de ${providerName} vers Expensify.`,
+            approverFieldDescription: (providerName: string) =>
+                `Choisissez le premier approbateur pour vos candidat·es : soit leur recruteur·se, soit leur coordinateur·rice assigné·e dans ${providerName}.`,
+            approvalModeDescriptions: {
+                basic: 'Choisir un seul approbateur',
+                advanced: `Le recruteur ou le coordinateur du candidat devient la personne qui approuve ses dépenses`,
+                custom: 'Définir manuellement les approbateurs dans Expensify',
+            },
         },
         merge: {
             connections: 'Connexions',
@@ -8795,6 +8810,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 custom: 'Approbation personnalisée',
                 advanced: 'Approbation avancée',
             },
+            approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Êtes-vous sûr·e de vouloir modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles avec ${providerName} sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+            approvalModeWarningConfirm: 'Modifier le mode d’approbation',
             syncingModalTitle: 'Votre connexion est en cours de synchronisation',
             syncingModalDescription: 'La première connexion peut prendre un certain temps. Vous serez informé de toute erreur.',
             syncLimitReached: {title: 'Réessayez demain', prompt: "Vous avez atteint votre limite de synchronisation pour aujourd'hui."},
@@ -8826,6 +8845,25 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
             enableNewAccountsDescription: 'Les nouveaux comptes Campfire seront disponibles en tant que catégories.',
             dimensionsImport: 'Toutes les dimensions Campfire sont importées en tant que tags',
+            exportDescription: 'Configurer l’exportation des données Expensify vers Campfire.',
+            exportReimbursable: {label: 'Exporter les dépenses remboursables au format', values: {VENDOR_BILL: {label: 'Factures fournisseurs'}}},
+            exportDate: {
+                label: 'Date de la facture fournisseur',
+                description: 'Utiliser cette date lors de l’export des notes de frais vers Campfire.',
+                values: {
+                    LAST_EXPENSE: {label: 'Date de la dernière dépense', description: 'Date de la dépense la plus récente sur la note de frais.'},
+                    REPORT_EXPORTED: {label: 'Date d’exportation', description: 'Date à laquelle la note de frais a été exportée vers Campfire.'},
+                    REPORT_SUBMITTED: {label: 'Date de soumission', description: 'Date à laquelle la note de frais a été soumise pour approbation.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Exporter les dépenses de carte de société en', values: {JOURNAL_ENTRY: {label: 'Écritures comptables'}}},
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur par défaut pour toutes les cartes de l’entreprise',
+                description: 'Choisissez un fournisseur Campfire par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
+            noAccountsFound: 'Aucun compte trouvé',
+            noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Campfire et synchroniser à nouveau la connexion',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -8839,6 +8877,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noCompaniesFoundDescription: 'Veuillez ajouter une société dans Dynamics 365 Business Central et synchroniser à nouveau la connexion',
             noVendorsFound: 'Aucun fournisseur trouvé',
             noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Business Central et synchroniser à nouveau la connexion',
+            importDescription: 'Choisissez quelles configurations de codage importer depuis Dynamics 365 Business Central.',
+            items: 'Articles',
+            enableNewCategories: 'Activer les nouvelles catégories importées',
         },
     },
     getAssistancePage: {
@@ -10811,6 +10852,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             trialEnded: {
                 title: 'Votre période d’essai gratuite est terminée',
                 subtitle: 'Ajoutez une carte de paiement pour continuer à utiliser toutes vos fonctionnalités préférées.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Votre abonnement prend fin le ${date}`,
+                subtitle: 'Activez le renouvellement automatique pour conserver votre tarif actuel.',
+                manage: 'Gérer',
             },
             earlyDiscount: {
                 claimOffer: 'Profiter de l’offre',
