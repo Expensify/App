@@ -2,7 +2,7 @@
 
 import {file} from 'bun';
 /**
- * Fails the lint run when a new inline `eslint-disable` bypasses the Onyx.connect() ban.
+ * Fails the lint run when a new inline `eslint-disable` bypasses the Onyx.connect() ban or `rulesdir/no-unsafe-onyx-read`.
  *
  * The ban (`rulesdir/no-onyx-connect`, shipped by eslint-config-expensify) is a normal lint rule,
  * so an inline disable can silence it. The runner re-elevates those disables by scanning source
@@ -19,22 +19,20 @@ import {file} from 'bun';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 
-import {collectDisableDirectivesFromSource, findNewBypasses} from './onyxConnectBypass';
+import type {BannedRule} from './onyxConnectBypass';
+
+import {BANNED_RULES, collectDisableDirectivesFromSource, findNewBypasses} from './onyxConnectBypass';
 
 const projectRoot = path.resolve(import.meta.dir, '..');
 
-/** Files among the lint targets that mention Onyx, connect, and eslint-disable. */
-function findCandidateFiles(targets: string[]): string[] {
+/** Files among the lint targets that mention every one of `searchTerms`. */
+function findCandidateFiles(targets: string[], searchTerms: string[]): string[] {
     const pathSpecs = targets.length > 0 ? targets : ['.'];
     try {
-        const output = execFileSync(
-            'git',
-            ['grep', '-lI', '--all-match', '--untracked', '--no-recurse-submodules', '-e', 'Onyx', '-e', 'connect', '-e', 'eslint-disable', '--', ...pathSpecs],
-            {
-                cwd: projectRoot,
-                encoding: 'utf8',
-            },
-        );
+        const output = execFileSync('git', ['grep', '-lI', '--all-match', '--untracked', '--no-recurse-submodules', ...searchTerms.flatMap((term) => ['-e', term]), '--', ...pathSpecs], {
+            cwd: projectRoot,
+            encoding: 'utf8',
+        });
         return output.split('\n').filter(Boolean);
     } catch (error: unknown) {
         if (typeof error === 'object' && error !== null && 'status' in error && error.status === 1) {
@@ -45,11 +43,13 @@ function findCandidateFiles(targets: string[]): string[] {
 }
 
 /**
- * Checks `targets` for new Onyx.connect() ban bypasses, reporting any to stderr.
- * Returns `true` if a new bypass was found (i.e. the caller should fail).
+ * Checks `targets` for new bypasses of `ban`, reporting any to stderr.
+ * Returns `true` if a new bypass was found.
  */
-async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
-    const candidates = findCandidateFiles(targets);
+async function checkBan(targets: string[], ban: BannedRule): Promise<boolean> {
+    const candidates = findCandidateFiles(targets, ban.searchTerms)
+        .map((relativePath) => relativePath.split(path.sep).join('/'))
+        .filter(ban.appliesTo);
     if (candidates.length === 0) {
         return false;
     }
@@ -58,22 +58,27 @@ async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
         await Promise.all(
             candidates.map(async (relativePath) => {
                 const source = await file(path.join(projectRoot, relativePath)).text();
-                return collectDisableDirectivesFromSource(source, relativePath.split(path.sep).join('/'));
+                return collectDisableDirectivesFromSource(source, relativePath, ban);
             }),
         )
     ).flat();
 
-    const newBypasses = findNewBypasses(suppressed);
+    const newBypasses = findNewBypasses(suppressed, ban);
     if (newBypasses.length === 0) {
         return false;
     }
 
-    console.error('Onyx.connect() is banned and the ban cannot be bypassed with eslint-disable. Use the useOnyx() hook to read Onyx data instead.');
+    console.error(ban.message);
     console.error('New bypasses found:');
     for (const bypass of newBypasses) {
         console.error(`  ${bypass.file}:${bypass.line}`);
     }
     return true;
+}
+
+async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
+    const results = await Promise.all(BANNED_RULES.map((ban) => checkBan(targets, ban)));
+    return results.some(Boolean);
 }
 
 if (import.meta.main) {
