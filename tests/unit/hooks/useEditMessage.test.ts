@@ -90,8 +90,18 @@ function makeDebouncedValidator({flushResult}: {flushResult: boolean}): Debounce
 }
 
 describe('useEditMessage', () => {
+    let pendingAnimationFrame: FrameRequestCallback | undefined;
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => {
+        pendingAnimationFrame = undefined;
+        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            pendingAnimationFrame = callback;
+            return 1;
+        });
     });
 
     afterEach(async () => {
@@ -99,7 +109,12 @@ describe('useEditMessage', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
+
+    function finishActionLayout() {
+        act(() => pendingAnimationFrame?.(0));
+    }
 
     function renderUseEditMessage(overrides?: Partial<HookProps>) {
         const report = LHNTestUtils.getFakeReport();
@@ -154,6 +169,8 @@ describe('useEditMessage', () => {
             mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
         });
 
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+        finishActionLayout();
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
@@ -168,8 +185,24 @@ describe('useEditMessage', () => {
             mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
         });
 
+        expect(scrollToLastMessage).not.toHaveBeenCalled();
+        finishActionLayout();
         expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
         expect(mockScrollToBottom).not.toHaveBeenCalled();
+    });
+
+    it('scrolls to the final saved action after the editor layout has been replaced', () => {
+        // Given a draft on the newest action.
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
+
+        // When the edit is submitted, its optimistic update is queued before layout settles.
+        act(() => hook.result.current.publishDraft('Updated message'));
+        expect(mockEditReportComment).toHaveBeenCalledTimes(1);
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+
+        // Then scrolling runs after the restored action row gets a layout frame.
+        finishActionLayout();
+        expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
     it('does not scroll after deleting a non-newest message draft', () => {
