@@ -33,7 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -98,7 +98,8 @@ function WalletPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [nvpLockedVbaUnlockRequested] = useOnyx(ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
@@ -157,8 +158,12 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
-            pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
+            if (nvpLockedVbaUnlockRequested?.[`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${accountData.bankAccountID}`]) {
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+                return;
+            }
+            pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed});
             return;
         }
 

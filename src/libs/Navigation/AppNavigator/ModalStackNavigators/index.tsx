@@ -15,6 +15,7 @@ import type {
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
+    MergeATSApprovalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
@@ -985,11 +986,22 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/import/CampfireImportPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireExportPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_PREFERRED_EXPORTER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfirePreferredExporterPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_VENDOR_BILL_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireVendorBillDatePage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireDefaultCompanyCardVendorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_COMPANY_CARD_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireCompanyCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralCompanySelector').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_IMPORT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/import/BusinessCentralImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1341,9 +1353,16 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_ATTENDEES_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesPage').default,
 });
 
+const MergeATSApprovalModalStackNavigator = createModalStackNavigator<MergeATSApprovalNavigatorParamList>({
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApprovalModePage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApproverFieldPage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSFinalApproverPage').default,
+});
+
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersContentPage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIBE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchNLFilterPage').default,
 });
 
 const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSavedSearchParamList>({
@@ -1421,6 +1440,7 @@ export {
     EnablePaymentsStackNavigator,
     ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    MergeATSApprovalModalStackNavigator,
     MergeTransactionStackNavigator,
     MissingPersonalDetailsModalStackNavigator,
     MoneyRequestModalStackNavigator,

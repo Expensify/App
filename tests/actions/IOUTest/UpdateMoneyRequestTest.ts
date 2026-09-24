@@ -3121,7 +3121,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     getCurrencySymbol: getCurrencySymbolLocal,
                     transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: fakeTransaction},
                     transactionViolations: {},
-                    betas: undefined,
                     isASAPSubmitBetaEnabled: false,
                     introSelected: undefined,
                     currentUserAccountID: RORY_ACCOUNT_ID,

@@ -131,7 +131,6 @@ function SubmitDetailsPage({
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
@@ -424,7 +423,6 @@ function SubmitDetailsPage({
                     conciergeChat,
                     quickAction,
                     recentWaypoints,
-                    betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
                     optimisticTransactionID,

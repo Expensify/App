@@ -134,6 +134,7 @@ function SubmitExpenseOrchestrator({
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+    const [destinationReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationReportID}`);
     const [isConfirming, setIsConfirming] = useState(false);
     const confirmingSafetyTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -386,7 +387,7 @@ function SubmitExpenseOrchestrator({
         }
 
         if (destinationReportID) {
-            dismissRHPToReport(destinationReportID, runAfterDismiss);
+            dismissRHPToReport(destinationReportID, runAfterDismiss, destinationReportDraft ?? {});
             return;
         }
 
