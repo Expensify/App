@@ -1,6 +1,7 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getHtmlWithAttachmentID} from '@libs/ReportActionsUtils';
+import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 
@@ -20,9 +21,13 @@ type AttachmentCommentFragmentProps = {
 function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted, reportActionID}: AttachmentCommentFragmentProps) {
     const styles = useThemeStyles();
     const htmlContent = getHtmlWithAttachmentID(styleAsDeleted ? `<del>${html}</del>` : html, reportActionID);
+    const endSendMessageVisibleSpanOnLayout = useSendMessageSpanMarks(reportActionID);
 
     return (
-        <View style={addExtraMargin ? styles.mt2 : {}}>
+        <View
+            style={addExtraMargin ? styles.mt2 : {}}
+            onLayout={endSendMessageVisibleSpanOnLayout}
+        >
             <RenderCommentHTML
                 containsOnlyEmojis={false}
                 source={source}

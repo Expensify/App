@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -60,6 +60,28 @@ type FieldsListValuesPageProps = {
     testID: string;
 };
 
+type FieldsListValuesTableHeaderProps = {
+    /** Action buttons to display in a separate row when needed */
+    headerButtons: React.ReactNode;
+    /** Whether to render the action buttons above the list subtitle */
+    shouldDisplayButtonsInSeparateLine: boolean;
+    /** Translated subtitle for the current field type */
+    subtitle: string;
+};
+
+function FieldsListValuesTableHeader({headerButtons, shouldDisplayButtonsInSeparateLine, subtitle}: FieldsListValuesTableHeaderProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <>
+            {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+            <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
+            </View>
+        </>
+    );
+}
+
 function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, featureName, policyFeature, getValueSettingsRoute, getAddValueRoute, testID}: FieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,7 +95,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);
     const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
     const listInputSubtitleKey = isInvoicePage ? 'workspace.invoiceFields.listInputSubtitle' : 'workspace.reportFields.listInputSubtitle';
@@ -331,6 +353,13 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
     const headerButtons = getHeaderButtons();
+    const tableHeaderComponent = (
+        <FieldsListValuesTableHeader
+            headerButtons={headerButtons}
+            shouldDisplayButtonsInSeparateLine={shouldDisplayButtonsInSeparateLine}
+            subtitle={translate(listInputSubtitleKey)}
+        />
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -358,14 +387,12 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate(listInputSubtitleKey)}</Text>
-                </View>
+                {isInvoicePage && tableHeaderComponent}
                 <WorkspaceReportFieldListValuesTable
                     listValues={listValueRows}
                     selectionEnabled={canWrite}
                     selectedKeys={selectedKeys}
+                    headerComponent={isInvoicePage ? undefined : tableHeaderComponent}
                     onRowSelectionChange={setSelectedKeys}
                     isInvoicePage={isInvoicePage}
                 />

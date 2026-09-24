@@ -78,6 +78,7 @@ function DynamicIOURequestStepTaxAmountPage({
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -90,7 +91,8 @@ function DynamicIOURequestStepTaxAmountPage({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
@@ -133,6 +135,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 return;
             }
             updateMoneyRequestTaxAmount({
+                isVendorMatchingBetaEnabled,
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,
@@ -149,6 +152,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
             saveAndNavigateBack();
             return;

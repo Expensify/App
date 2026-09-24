@@ -17,9 +17,10 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
@@ -141,7 +142,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         return <SearchQueryListItem {...props} />;
     }
 
-    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;
+    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, onFocus, shouldSyncFocus, wrapperStyle} = props;
     const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
@@ -153,7 +154,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={wrapperStyle}
@@ -183,10 +183,11 @@ function SearchAutocompleteList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb2,
+        style: [styles.pb2, styles.ph2],
     });
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
@@ -195,7 +196,8 @@ function SearchAutocompleteList({
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
@@ -203,6 +205,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
@@ -258,7 +261,7 @@ function SearchAutocompleteList({
             convertToDisplayString,
             options: listOptions,
             draftComments,
-            betas: betas ?? [],
+            isDefaultRoomsBetaEnabled,
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
@@ -279,11 +282,12 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            rules,
         }).options;
     }, [
         listOptions,
         draftComments,
-        betas,
+        isDefaultRoomsBetaEnabled,
         autocompleteQueryValue,
         countryCode,
         loginList,
@@ -298,6 +302,7 @@ function SearchAutocompleteList({
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -346,7 +351,7 @@ function SearchAutocompleteList({
         allFeeds,
         options: listOptions ?? emptyOptionList,
         draftComments,
-        betas,
+        isDefaultRoomsBetaEnabled,
         countryCode,
         loginList,
         policies,
@@ -468,13 +473,17 @@ function SearchAutocompleteList({
     // debounce below so they don't fire a server request on every keystroke.
     const hasUpstreamDebounce = inputQueryValue !== undefined;
 
-    const debounceHandleSearch = useDebounce(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
-            return;
-        }
+    const debounceHandleSearch = useDebounce(
+        () => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
 
-        handleSearch(autocompleteQueryWithoutFilters);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+            handleSearch(autocompleteQueryWithoutFilters);
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     useEffect(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
@@ -527,7 +536,6 @@ function SearchAutocompleteList({
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });
 
@@ -785,14 +793,16 @@ function SearchAutocompleteList({
             ListItem={SearchRouterItem}
             style={{
                 containerStyle: [styles.mh100],
-                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                listStyle: styles.overscrollBehaviorContain,
                 contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
-            initialScrollIndex={0}
+            // Index 0 pins the wide layout to the top, where `initiallyFocusedItemKey` resolves to a row below the
+            // "Recent searches" section. The narrow layout focuses no row, so it has no scroll target.
+            initialScrollIndex={shouldUseNarrowLayout ? undefined : 0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}

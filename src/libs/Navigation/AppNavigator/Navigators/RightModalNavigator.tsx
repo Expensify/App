@@ -7,6 +7,7 @@ import {
     secondOverlayRHPOnWideRHPProgress,
     secondOverlayWideRHPProgress,
     thirdOverlayProgress,
+    useWideRHPActions,
     useWideRHPState,
 } from '@components/WideRHPContextProvider';
 
@@ -23,6 +24,7 @@ import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStack
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,6 +35,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+import {MergeATSApprovalDraftProvider} from '@pages/workspace/recruiting/approver/MergeATSApprovalDraftContext';
 
 import variables from '@styles/variables';
 
@@ -42,8 +45,10 @@ import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
@@ -71,6 +76,14 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
         <SearchAdvancedFiltersProvider>
             <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
         </SearchAdvancedFiltersProvider>
+    );
+}
+
+function MergeATSApprovalWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSApprovalDraftProvider>
+            <ModalStackNavigators.MergeATSApprovalModalStackNavigator {...props} />
+        </MergeATSApprovalDraftProvider>
     );
 }
 
@@ -114,7 +127,6 @@ function SecondaryOverlay() {
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
-const loadBetaOverridesPage = () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/BetaOverridesPage').default;
 
 type RightModalDialogFrameProps = {
     /** Whether the RHP container should carry dialog semantics (role=dialog + aria-modal) — true on wide layout. */
@@ -124,7 +136,7 @@ type RightModalDialogFrameProps = {
     style: React.ComponentProps<typeof Animated.View>['style'];
 
     /** Callback ref for the container node so the provider can observe node identity changes. */
-    onContainerRef: (node: View | null) => void;
+    onContainerRef: (node: ComponentRef<typeof View> | null) => void;
 
     /** RHP stack navigator rendered inside the dialog frame. */
     children: React.ReactNode;
@@ -160,13 +172,14 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [containerNode, setContainerNode] = useState<View | null>(null);
-    const [setContainerNodeFromRef] = useState(() => (node: View | null) => {
+    const [containerNode, setContainerNode] = useState<ComponentRef<typeof View> | null>(null);
+    const [setContainerNodeFromRef] = useState(() => (node: ComponentRef<typeof View> | null) => {
         setContainerNode(node);
     });
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
     const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
@@ -253,6 +266,26 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             isExecutingRef.current = false;
         }
     }, [navigation]);
+
+    const clearWideRHPKeysAfterTabChanged = useCallback(() => {
+        const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
+        const isFullScreenTopmostRoute = isFullScreenName(navigationRef.getRootState()?.routes?.at(-1)?.name);
+        const hasTabChanged = isRhpOpened && isFullScreenTopmostRoute;
+        if (!hasTabChanged) {
+            return;
+        }
+        clearWideRHPKeys();
+    }, [clearWideRHPKeys, route.key]);
+
+    useFocusEffect(
+        useCallback(() => {
+            // When we open a second RightModalNavigator while the previous one is covered by a fullscreen navigator, we need to synchronize the keys.
+            syncRHPKeys();
+
+            // Super wide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
+            return () => clearWideRHPKeysAfterTabChanged();
+        }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
+    );
 
     return (
         <NarrowPaneContextProvider>
@@ -456,8 +489,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 options={modalStackScreenOptions}
                             />
                             <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.BETA_OVERRIDES}
-                                getComponent={loadBetaOverridesPage}
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL}
+                                component={MergeATSApprovalWithDraftContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}

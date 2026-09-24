@@ -1,6 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
@@ -72,7 +72,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);
     const oldValueName = usePrevious(currentValueName);
     const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
@@ -163,12 +163,10 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                             />
                         </View>
                     </View>
-                    <MenuItemWithTopDescription
-                        title={currentValueName ?? oldValueName}
-                        description={translate('common.value')}
-                        shouldShowRightIcon={canWrite && !reportFieldID}
-                        interactive={canWrite && !reportFieldID}
-                        onPress={navigateToEditValue}
+                    <MenuItemField
+                        name={translate('common.value')}
+                        value={currentValueName ?? oldValueName}
+                        onPress={canWrite && !reportFieldID ? navigateToEditValue : undefined}
                     />
                     {canWrite && !isImportedReportField && (
                         <MenuItemAction

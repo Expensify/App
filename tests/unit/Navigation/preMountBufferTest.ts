@@ -213,6 +213,37 @@ describe('Navigation pre-mount buffer', () => {
         expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
     });
 
+    it('cancel: removePreInsertedFullscreenIfNeeded also tears down when the Share modal, not the RHP, hosts the buffer', () => {
+        // Given a Submit-tab destination pre-inserted under the Share modal (#100767)
+        const SHARE_KEY = 'share-1';
+        setRootState([
+            {key: ORIGIN_KEY, name: SCREENS.REPORT},
+            {key: SHARE_KEY, name: NAVIGATORS.SHARE_MODAL_NAVIGATOR},
+        ]);
+        mockDispatch.mockImplementationOnce(() => {
+            setRootState([
+                {key: ORIGIN_KEY, name: SCREENS.REPORT},
+                {key: DEST_KEY, name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                {key: `pre-mount-buffer-${SHARE_KEY}`, name: SCREENS.PRE_MOUNT_BUFFER},
+                {key: SHARE_KEY, name: NAVIGATORS.SHARE_MODAL_NAVIGATOR},
+            ]);
+        });
+        // eslint-disable-next-line rulesdir/no-direct-pre-insert-fullscreen-under-rhp -- unit-testing the guarded function itself, not a production call site
+        Navigation.preInsertFullscreenUnderRHP(ROUTES.HOME);
+        mockDispatch.mockClear();
+
+        // When the user backs out of the Submit confirm page while the Share modal is still on top
+        Navigation.removePreInsertedFullscreenIfNeeded();
+
+        // Then the buffer and the speculative destination are removed, so a later Share reveal cannot inherit them
+        expect(mockDispatch).toHaveBeenCalledTimes(2);
+        const bufferStripAction = mockDispatch.mock.calls.at(0)?.at(0);
+        expect(bufferStripAction?.payload?.routes?.map((r) => r.key)).toEqual([ORIGIN_KEY, DEST_KEY, SHARE_KEY]);
+        const removeFullscreenAction = mockDispatch.mock.calls.at(1)?.at(0);
+        expect(removeFullscreenAction?.type).toBe(CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP);
+        expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
+    });
+
     it('dismissModalWithReport clears the live buffer when dismissing to the already topmost report', () => {
         // Given a buffered destination above the report that dismissal targets
         const reportID = 'report-1';

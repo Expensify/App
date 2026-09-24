@@ -3,7 +3,7 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import {shallowCompare} from '@libs/ObjectUtils';
+import {isRecord, shallowCompare} from '@libs/ObjectUtils';
 
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
@@ -13,26 +13,44 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 
 import {getActionFromState} from '@react-navigation/core';
 import {CommonActions, findFocusedRoute} from '@react-navigation/native';
 
 import type {LinkToOptions} from './types';
 
-import getMinimalAction from './getMinimalAction';
+import getMinimalAction, {isNamedActionPayload} from './getMinimalAction';
 
 type FullScreenRoute = Omit<NavigationPartialRoute, 'state'> & Pick<NavigationRoute, 'state'>;
 
-const defaultLinkToOptions: LinkToOptions = {
+const defaultLinkToOptions = {
     forceReplace: false,
-};
+    shouldSkipInitialSplitNavigatorSidebar: false,
+    skipMatchingFullScreenRoute: false,
+} satisfies Pick<LinkToOptions, 'forceReplace' | 'shouldSkipInitialSplitNavigatorSidebar' | 'skipMatchingFullScreenRoute'>;
+
+/** The split router reads this transient marker from the innermost screen params. */
+function addSkipInitialSidebarParam(params: unknown): Record<string, unknown> {
+    const navigationParams = isRecord(params) ? params : {};
+    if (typeof navigationParams.screen === 'string' && (navigationParams.params === undefined || isRecord(navigationParams.params))) {
+        return {...navigationParams, params: addSkipInitialSidebarParam(navigationParams.params)};
+    }
+    return {...navigationParams, shouldSkipInitialSidebar: true};
+}
+
+function addSkipInitialSidebarParamToAction(action: NavigationAction): NavigationAction {
+    if (!isNamedActionPayload(action.payload)) {
+        return action;
+    }
+    return {...action, payload: {...action.payload, params: addSkipInitialSidebarParam(action.payload.params)}};
+}
 
 /**
  * Leaf screen names that represent the root/landing view of each tab.
  * Used to distinguish plain tab switches from cross-tab deep navigations.
  */
-const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
+const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
 
 function areNamesAndParamsEqual(currentState: NavigationState, stateFromPath: PartialState<NavigationState>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -161,7 +179,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    const {forceReplace} = {...defaultLinkToOptions, ...options};
+    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar, skipMatchingFullScreenRoute} = {...defaultLinkToOptions, ...options};
 
     const normalizedPath = normalizePath(path);
     const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
@@ -232,14 +250,14 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     const isTargetAtTabRoot = ROOT_TAB_SCREENS.has(focusedRouteFromPath?.name ?? '');
     if (currentActiveScreen && targetActiveScreen && currentActiveScreen !== targetActiveScreen && !isTargetAtTabRoot) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-        navigation.dispatch(action);
+        navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(action) : action);
         return;
     }
 
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
     // Skip when current top is already RHP — the underlying tab is already in place, and the extra dispatch
     // would corrupt the navigation state. Issue: https://github.com/Expensify/App/issues/89006
-    if (shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (!skipMatchingFullScreenRoute && shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the
@@ -281,10 +299,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
-    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    const minimalActionName = minimalAction.payload && 'name' in minimalAction.payload && typeof minimalAction.payload.name === 'string' ? minimalAction.payload.name : undefined;
-    if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && action.payload.name === NAVIGATORS.TAB_NAVIGATOR && !isFullScreenName(minimalActionName)) {
-        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-    }
-    navigation.dispatch(minimalAction);
+    const {action: resolvedAction, isFocusedRouteInDifferentScope} = getMinimalAction(action, navigation.getRootState());
+    const resolvedActionName = resolvedAction.payload && 'name' in resolvedAction.payload && typeof resolvedAction.payload.name === 'string' ? resolvedAction.payload.name : undefined;
+
+    // A focused split in another workspace or domain needs a sibling in the same stack.
+    const shouldPushSiblingSplit = isFocusedRouteInDifferentScope && resolvedAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
+    const shouldPushTabNavigator = action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && action.payload.name === NAVIGATORS.TAB_NAVIGATOR && !isFullScreenName(resolvedActionName);
+    const minimalAction: NavigationAction = shouldPushSiblingSplit || shouldPushTabNavigator ? {...resolvedAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH} : resolvedAction;
+    navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(minimalAction) : minimalAction);
 }

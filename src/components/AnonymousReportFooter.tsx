@@ -16,7 +16,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AvatarWithDisplayName from './AvatarWithDisplayName';
-import Button from './ButtonComposed';
+import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
 import Text from './Text';
 
@@ -31,7 +31,7 @@ function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint || isInSidePanel;
+    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.inboxSideBarWidth) < variables.anonymousReportFooterBreakpoint || isInSidePanel;
 
     return (
         <View style={[styles.anonymousRoomFooter, styles.anonymousRoomFooterFlexDirection(isSmallSizeLayout)]}>

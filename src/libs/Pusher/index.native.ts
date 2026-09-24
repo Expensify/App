@@ -71,6 +71,8 @@ function init(args: Args): Promise<void> {
         socket.init({
             apiKey: args.appKey,
             cluster: args.cluster,
+            activityTimeout: CONST.PUSHER.ACTIVITY_TIMEOUT_MS,
+            pongTimeout: CONST.PUSHER.PONG_TIMEOUT_MS,
             onConnectionStateChange: (currentState: string, previousState: string) => {
                 if (currentState === CONST.PUSHER.STATE.CONNECTED) {
                     socket?.getSocketId().then((id: string) => {

@@ -111,7 +111,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -138,7 +138,6 @@ jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
         introSelected: undefined,
-        betas: undefined,
         isSelfTourViewed: false,
         activePolicyID: undefined,
         activePolicy: undefined,
@@ -231,6 +230,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: 'report1',
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,
