@@ -7,6 +7,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
@@ -47,6 +48,8 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
@@ -89,7 +92,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canWriteMembers}
+            shouldBeBlocked={!canWriteMembers || !isWorkArrangementBetaEnabled}
         >
             <ScreenWrapper
                 testID="WorkArrangementPage"
