@@ -56,8 +56,8 @@ function BaseParticipantPicker({
     return (
         <ScreenWrapper
             includePaddingTop={false}
-            shouldEnableKeyboardAvoidingView={false}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldKeyboardOffsetBottomSafeAreaPadding={false}
             testID="ParticipantPickerModal"
         >
             <HeaderWithBackButton
