@@ -1,4 +1,5 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -256,14 +257,18 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     );
                 })}
 
-                <MenuItemWithTopDescription
-                    description={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}
-                    onPress={addAdditionalApprover}
-                    shouldShowRightIcon
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    errorText={approvalWorkflow?.errors?.additionalApprover ? translate(approvalWorkflow.errors.additionalApprover) : undefined}
-                    brickRoadIndicator={approvalWorkflow?.errors?.additionalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemSectionRow onPress={addAdditionalApprover}>
+                    <MenuItemField.Row name={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}>
+                        {!!approvalWorkflow?.errors?.additionalApprover && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!approvalWorkflow?.errors?.additionalApprover && (
+                        <MenuItem.HelpText
+                            isError
+                            message={translate(approvalWorkflow.errors.additionalApprover)}
+                        />
+                    )}
+                </MenuItemSectionRow>
 
                 {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
                     <View style={styles.mt6}>
