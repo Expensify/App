@@ -44,8 +44,6 @@ type WithReportOrNotFoundOnyxProps = {
     /** The policy linked to the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Beta features list */
-
     isLoadingReportData: OnyxEntry<boolean>;
 };
 

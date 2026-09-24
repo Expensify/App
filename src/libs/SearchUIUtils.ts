@@ -2430,8 +2430,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
 
-    /** Beta features list */
-
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The personal details of the participants */
