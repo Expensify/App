@@ -6,6 +6,7 @@
 require 'digest'
 require 'fileutils'
 require 'json'
+require 'etc'
 require 'pathname'
 require 'uri'
 
@@ -74,12 +75,14 @@ module PatchedIOSArtifacts
               'hybrid and standalone would share one link.' if @package_name.to_s.empty?
 
         link = File.join(SOURCE_LINK_ROOT, @package_name, File.basename(tarball))
+        assert_ours(SOURCE_LINK_ROOT)
+        assert_ours(File.dirname(link))
+        assert_ours(link)
         return link if File.symlink?(link) && File.identical?(link, tarball)
 
-        assert_ours(SOURCE_LINK_ROOT)
         FileUtils.mkdir_p(File.dirname(link))
         assert_ours(File.dirname(link))
-        # Renaming onto a real directory raises, and the podspec would end up pointing at that directory.
+        # The rename below cannot replace a real directory.
         FileUtils.remove_entry(link) if File.directory?(link) && !File.symlink?(link)
         staging = "#{link}.#{Process.pid}"
         begin
@@ -94,8 +97,8 @@ module PatchedIOSArtifacts
 
     HERMES_CLI_PREFIX = '${PODS_ROOT}'
 
-    # hermes-engine.podspec resolves the compiler with require.resolve, so its absolute path would
-    # reach Podfile.lock. Xcode expands PODS_ROOT before the bundling phase reads this.
+    # hermes-engine.podspec resolves the compiler with require.resolve, which yields an absolute
+    # path. Podfile.lock hashes it, and Xcode expands PODS_ROOT before the bundling phase reads it.
     def self.pods_root_relative_path(path)
         return nil unless path.start_with?('/') && File.exist?(path)
 
@@ -103,28 +106,29 @@ module PatchedIOSArtifacts
         "#{HERMES_CLI_PREFIX}/#{relative}"
     end
 
-    # Every account shares /tmp, so a path owned by someone else is either left over from a second
-    # user or a way to aim the React-Core-prebuilt source at a tarball we did not download.
+    # Every account shares /tmp, so a path owned by someone else can aim a podspec source at a file
+    # we did not put there. Sticky /tmp keeps its owner, so only they or root can clear it.
     def self.assert_ours(path)
         return unless File.symlink?(path) || File.exist?(path)
 
-        info = File.lstat(path)
-        raise "#{LOG_PREFIX} #{path} is a link. Remove it and run pod install again." if info.symlink?
-        raise "#{LOG_PREFIX} #{path} belongs to another account, so the React-Core-prebuilt source link " \
-              'cannot be written. Remove it and run pod install again.' unless info.uid == Process.uid
+        owner = File.lstat(path).uid
+        return if owner == Process.uid
+
+        name = Etc.getpwuid(owner)&.name || "uid #{owner}"
+        raise "#{LOG_PREFIX} #{path} belongs to #{name}, so this install cannot write there. " \
+              "Ask #{name} to remove it, or remove it as root, then run pod install again."
     end
 
     # A stored podspec keeps whatever compiler path it was written with, and CocoaPods reuses that
     # copy instead of reading the podspec again.
     def self.force_hermes_podspec_reevaluation
-        sandbox = Pod::Config.instance.sandbox
-        stored = File.join(sandbox.specifications_root, 'hermes-engine.podspec.json')
-        return unless File.exist?(stored)
+        stored = stored_podspec('hermes-engine')
+        return if stored.nil? && Pod::Config.instance.sandbox.specification_path('hermes-engine').nil?
 
-        hermes_cli_path = JSON.parse(File.read(stored)).dig('user_target_xcconfig', 'HERMES_CLI_PATH').to_s
-        return if hermes_cli_path.empty? || hermes_cli_path.start_with?(HERMES_CLI_PREFIX)
+        hermes_cli_path = stored&.dig('user_target_xcconfig', 'HERMES_CLI_PATH').to_s
+        return if hermes_cli_path.start_with?(HERMES_CLI_PREFIX)
 
-        sandbox.remove_local_podspec('hermes-engine')
+        Pod::Config.instance.sandbox.remove_local_podspec('hermes-engine')
         log('The hermes-engine podspec carries a machine-specific compiler path; re-evaluating it.')
     end
 
@@ -133,10 +137,34 @@ module PatchedIOSArtifacts
     # the memoized copy so CocoaPods re-evaluates the podspec, re-running our download (and dSYM
     # merge). The re-read podspec is byte-identical, so Podfile.lock stays put.
     def self.force_rncore_podspec_reevaluation
-        return if File.exist?(artifacts_stamp_path) && File.read(artifacts_stamp_path) == @artifacts_stamp
+        stamp_matches = File.exist?(artifacts_stamp_path) && File.read(artifacts_stamp_path) == @artifacts_stamp
+        reason = if !stamp_matches
+                     "Artifacts changed to #{@artifacts_stamp}"
+                 elsif !stored_source_link_exists?
+                     "#{SOURCE_LINK_ROOT} no longer holds this install's tarball link"
+                 end
+        return if reason.nil?
 
         Pod::Config.instance.sandbox.remove_local_podspec('React-Core-prebuilt')
-        log("Artifacts changed to #{@artifacts_stamp}; the React-Core-prebuilt podspec will be re-evaluated.")
+        log("#{reason}; the React-Core-prebuilt podspec will be re-evaluated.")
+    end
+
+    # The link lives in /tmp, which reboot empties, so a stored source can point at nothing.
+    def self.stored_source_link_exists?
+        source = stored_podspec('React-Core-prebuilt')&.dig('source', 'http').to_s
+        return true unless source.start_with?('file://')
+
+        File.exist?(URI::DEFAULT_PARSER.unescape(URI(source).path))
+    end
+
+    # A podspec left unparseable by an interrupted install is a reason to re-evaluate, not to stop.
+    def self.stored_podspec(name)
+        path = Pod::Config.instance.sandbox.specification_path(name)
+        return nil if path.nil?
+
+        JSON.parse(File.read(path))
+    rescue JSON::ParserError, Errno::ENOENT
+        nil
     end
 
     # Prepends sync-prebuilt-rncore.sh to react-native's '[RNCore] Replace ...' build phase, so a
