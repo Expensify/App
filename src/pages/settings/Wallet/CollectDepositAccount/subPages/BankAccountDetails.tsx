@@ -26,15 +26,16 @@ import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
-function BankAccountDetails({isEditing, onNext, formValues, fieldsMap}: CustomSubPageProps) {
+function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsType}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const bankCountry = formValues[INPUT_IDS.BANK_COUNTRY] ?? '';
 
-    // Only a handful of countries hold accounts in more than one currency, so the rest have nothing to pick.
+    // Only a handful of countries hold accounts in more than one currency, so the rest have nothing to pick. Wire
+    // details are the same whatever the currency, so the choice is offered on the local path only.
     const localCurrencies = getLocalCurrencies(bankCountry);
-    const hasCurrencyChoice = localCurrencies.length > 1;
+    const hasCurrencyChoice = fieldsType === CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL && localCurrencies.length > 1;
 
     // The picker only offers an exclude list, so everything the country has no mapping for is excluded.
     const {currencyList} = useCurrencyListState();

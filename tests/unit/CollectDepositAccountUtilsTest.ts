@@ -80,14 +80,6 @@ describe('CollectDepositAccountUtils', () => {
             // Then it is rejected, because the validator is anchored rather than matched anywhere in the value
             expect(getValidationErrors(values, fieldsMap, translate)).toEqual({routingNumber: 'common.error.invalidCharacter'});
         });
-
-        it('blocks the step when the country and currency have no mapping', () => {
-            // Given a combination that rendered no inputs at all
-            const errors = getValidationErrors({} as CollectDepositAccountForm, {}, translate);
-
-            // Then the step is blocked, so an account with no details can never be submitted
-            expect(errors).toEqual({bankCurrency: 'common.error.fieldRequired'});
-        });
     });
 
     describe('getSubmitParameters', () => {

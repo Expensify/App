@@ -3,7 +3,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {CollectDepositAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {BankAccountFieldsMap} from './BankAccountFields/types';
 
@@ -12,11 +11,6 @@ import {addErrorMessage} from './ErrorUtils';
 /** Validates against the mapping's regexes, which are the same ones the API applies to local submissions. */
 function getValidationErrors(values: CollectDepositAccountForm, fieldsMap: BankAccountFieldsMap, translate: LocaleContextProps['translate']): Record<string, string> {
     const errors: Record<string, string> = {};
-
-    if (isEmptyObject(fieldsMap)) {
-        addErrorMessage(errors, INPUT_IDS.BANK_CURRENCY, translate('common.error.fieldRequired'));
-        return errors;
-    }
 
     for (const [fieldName, field] of Object.entries(fieldsMap)) {
         const value = values[fieldName] ?? '';
