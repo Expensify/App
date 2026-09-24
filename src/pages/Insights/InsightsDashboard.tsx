@@ -140,7 +140,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
-    const {filters, isResolved, setFilters} = useInsightsFilters(dashboardID);
+    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
 
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const jsonQuery = query?.jsonQuery;
@@ -180,6 +180,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             />
             <InsightsPageControls
                 filters={filters}
+                defaultFilters={defaultFilters}
                 onChange={setFilters}
             />
             <InsightsDashboardContent

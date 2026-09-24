@@ -19,6 +19,9 @@ type UseInsightsFilters = {
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
+    /** Filters the dashboard starts from before any selection is stored, which a control's Reset returns to */
+    defaultFilters: InsightsFilters;
+
     /** Whether the Onyx data the filters are built from has loaded */
     isResolved: boolean;
 
@@ -34,11 +37,11 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFilters 
     // The selector keeps the page off every other search key's writes, since the whole nvp is shared with the Spend page.
     const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey)});
 
-    const filters: InsightsFilters = {
+    const defaultFilters: InsightsFilters = {
         ...DEFAULT_INSIGHTS_FILTERS,
         groupCurrency: activePolicy?.outputCurrency ?? CONST.CURRENCY.USD,
-        ...parseInsightsFilters(storedQuery),
     };
+    const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
 
     // Storing the merged query is what re-requests the dashboard: it changes the query the page resolves, which its effect is keyed on.
     const setFilters = (update: Partial<InsightsFilters>) => {
@@ -47,6 +50,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFilters 
 
     return {
         filters,
+        defaultFilters,
         isResolved: activePolicyIDMetadata.status === 'loaded' && activePolicyMetadata.status === 'loaded' && storedQueryMetadata.status === 'loaded',
         setFilters,
     };

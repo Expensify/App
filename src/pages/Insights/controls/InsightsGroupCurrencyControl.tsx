@@ -12,7 +12,12 @@ import type {InsightsControlProps} from './insightsControls';
 
 import INSIGHTS_CONTROL_ANCHOR_ALIGNMENT from './insightsControls';
 
-function InsightsGroupCurrencyControl({value, onChange}: InsightsControlProps<string>) {
+type InsightsGroupCurrencyControlProps = InsightsControlProps<string> & {
+    /** Currency Reset returns to, the one the dashboard starts from */
+    defaultValue: string;
+};
+
+function InsightsGroupCurrencyControl({value, defaultValue, onChange}: InsightsGroupCurrencyControlProps) {
     const {translate} = useLocalize();
     const label = translate('common.groupCurrency');
 
@@ -20,9 +25,9 @@ function InsightsGroupCurrencyControl({value, onChange}: InsightsControlProps<st
         <CurrencyPopup
             label={label}
             value={value}
-            defaultValue={value}
+            defaultValue={defaultValue}
             searchPlaceholder={translate('common.search')}
-            onChange={(item) => onChange(item?.value ?? value)}
+            onChange={(item) => onChange(item?.value ?? defaultValue)}
             closeOverlay={closeOverlay}
         />
     );

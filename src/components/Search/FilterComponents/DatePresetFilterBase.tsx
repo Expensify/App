@@ -88,7 +88,7 @@ type DatePresetFilterBaseProps = {
     /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
     shouldShowCustomDate?: boolean;
 
-    /** Custom date modifiers the picker offers. Defaults to On, Before and After. When only `On` is left, the option reads "Custom day" and the modifier list is dropped. */
+    /** Defaults to On, Before and After */
     allowedCustomDateModifiers?: readonly CustomDateModifier[];
 
     /** Whether the search advanced filters form Onyx data is loading or not */
@@ -471,7 +471,6 @@ function DatePresetFilterBase({
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
             />
-            {/* With a single allowed modifier there is nothing to choose between, so the picker is the calendar alone. */}
             {allowedCustomDateModifiers.length > 1 && (
                 <>
                     <SpacerView

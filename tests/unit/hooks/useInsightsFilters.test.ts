@@ -89,6 +89,29 @@ describe('useInsightsFilters', () => {
         expect(result.current.filters).toEqual(stored);
     });
 
+    it('keeps reporting the page defaults once a selection is stored, so a control can reset to them', async () => {
+        // Given a dashboard stored in USD for a user whose default workspace reports in PLN
+        await setUpActivePolicy('PLN');
+        await Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {
+            [SPEND_SEARCH_KEY]: {
+                query: buildInsightsQueryString({date: {preset: CONST.SEARCH.DATE_PRESETS.LAST_MONTH}, policyIDs: ['A1'], groupBy: CONST.SEARCH.GROUP_BY.QUARTER, groupCurrency: 'USD'}),
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // When the dashboard resolves its filters
+        const {result} = renderHook(() => useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND));
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+
+        // Then the defaults ignore the stored selections, keeping the default workspace currency for Group currency's Reset
+        expect(result.current.defaultFilters).toEqual({
+            date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
+            policyIDs: [],
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            groupCurrency: 'PLN',
+        });
+    });
+
     it('waits for the stored selections before saying it has resolved', async () => {
         // Given Onyx with nothing loaded yet
         // When the dashboard first asks for its filters

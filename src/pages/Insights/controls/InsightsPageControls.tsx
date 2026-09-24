@@ -13,10 +13,13 @@ type InsightsPageControlsProps = {
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
+    /** Filters the dashboard starts from, which a control's Reset returns to */
+    defaultFilters: InsightsFilters;
+
     onChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsPageControls({filters, onChange}: InsightsPageControlsProps) {
+function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
 
     return (
@@ -31,6 +34,7 @@ function InsightsPageControls({filters, onChange}: InsightsPageControlsProps) {
             />
             <InsightsGroupCurrencyControl
                 value={filters.groupCurrency}
+                defaultValue={defaultFilters.groupCurrency}
                 onChange={(groupCurrency) => onChange({groupCurrency})}
             />
         </View>
