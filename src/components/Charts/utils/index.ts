@@ -430,6 +430,30 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
     return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
 }
 
+/**
+ * Nice-rounded value domain for the horizontal bar chart's x-axis. victory-native only nices the y-axis, so we
+ * pre-nice here (anchored at zero unless negatives) to keep the last tick past the longest bar. Returns undefined
+ * for a degenerate domain, letting victory-native pick its own bounds.
+ */
+function getNiceValueDomain(data: ChartDataPoint[], tickCount: number): [number, number] | undefined {
+    if (data.length === 0) {
+        return undefined;
+    }
+    const values = data.map((point) => point.total);
+    const min = Math.min(0, ...values);
+    const max = Math.max(0, ...values);
+    if (min === max) {
+        return undefined;
+    }
+    const [niceMin = min, niceMax = max] = scaleLinear().domain([min, max]).nice(tickCount).domain();
+    return [niceMin, niceMax];
+}
+
+/** Tick values victory-native will render for a niced value domain, used to size the axis label gutter. */
+function getNiceValueTicks(domain: [number, number], tickCount: number): number[] {
+    return scaleLinear().domain(domain).ticks(tickCount);
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -476,6 +500,8 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getNiceValueDomain,
+    getNiceValueTicks,
     getYAxisLabelWidth,
 };
 

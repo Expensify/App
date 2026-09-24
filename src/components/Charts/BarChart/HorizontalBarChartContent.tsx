@@ -2,9 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
 import type {HitTestArgs, ResolveTargetIndexArgs} from '@components/Charts/hooks';
-import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs, useDynamicYDomain} from '@components/Charts/hooks';
+import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartParagraphs} from '@components/Charts/hooks';
 import {findClosestPoint} from '@components/Charts/hooks/useChartInteractions';
-import {calculateMinDomainPadding, getFontLineMetrics, measureTextWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, getFontLineMetrics, getNiceValueDomain, getNiceValueTicks, measureTextWidth} from '@components/Charts/utils';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, LABEL_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/VictoryTheme';
 
 import useTheme from '@hooks/useTheme';
@@ -135,13 +135,18 @@ function ValueAxisLabels({xTicks, xScale, chartBottom, fontSize, fontManager, la
             return null;
         }
         const tickX = xScale(tick);
+        // Center on the tick. The right gutter (chartPadding.right) reserves room for the last label so it
+        // fits centered without being pushed inward (which would collide with its neighbor); guard only the
+        // far-left "0" against a negative x.
+        const labelWidth = paraData.width + GLYPH_PADDING;
+        const x = Math.max(0, tickX - paraData.width / 2);
         return (
             <Paragraph
                 key={`x-value-${tick}`}
                 paragraph={paraData.para}
-                x={tickX - paraData.width / 2}
+                x={x}
                 y={labelTop}
-                width={paraData.width + GLYPH_PADDING}
+                width={labelWidth}
             />
         );
     });
@@ -162,7 +167,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
         y: lastIndex - index,
     }));
 
-    const valueDomain = useDynamicYDomain(data);
+    const valueDomain = getNiceValueDomain(data, VictoryTheme.axis.tickCount);
 
     const {formatValue} = useChartLabelFormats({
         data,
@@ -298,6 +303,20 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const valueLabelHeight = ascent + descent;
     const labelSpace = VictoryTheme.axis.labelGap + valueLabelHeight;
 
+    // The last value tick lands at the plot's right edge and its label is centered on it, so reserve half the
+    // widest label as a right gutter. This squeezes the plot inward just enough that the max label stays on-canvas
+    // without being pushed left into its neighbor.
+    const valueLabelRightGutter = (() => {
+        if (!fontManager || !valueDomain) {
+            return 0;
+        }
+        let widest = 0;
+        for (const tick of getNiceValueTicks(valueDomain, VictoryTheme.axis.tickCount)) {
+            widest = Math.max(widest, measureTextWidth(formatValue(tick), fontManager, variables.iconSizeExtraSmall));
+        }
+        return widest / 2;
+    })();
+
     const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         if (!fontManager) {
             return null;
@@ -335,6 +354,7 @@ function HorizontalBarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPos
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
     const chartPadding = {
         ...VictoryTheme.axis.padding,
+        right: VictoryTheme.axis.padding.right + valueLabelRightGutter,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,
         left: categoryLabelWidth + CATEGORY_LABEL_GAP + GLYPH_PADDING,
     };
