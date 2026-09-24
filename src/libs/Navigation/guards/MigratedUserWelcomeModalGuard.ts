@@ -3,8 +3,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
-import {isDelegateSession} from '@userActions/Session';
-
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,7 +16,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import {isSupportalSessionSelector} from '@selectors/Session';
+import {isDelegateSessionSelector, isSupportalSessionSelector} from '@selectors/Session';
 import Onyx from 'react-native-onyx';
 
 import type {GuardResult, NavigationGuard} from './types';
@@ -48,7 +46,7 @@ function resetSessionFlag() {
 function navigateToMigratedUserWelcomeModalIfReady() {
     if (
         isSupportalSessionSelector(session) ||
-        isDelegateSession(session) ||
+        isDelegateSessionSelector(session) ||
         !session?.authToken ||
         isLoadingApp ||
         hasRedirectedToMigratedUserModal ||
