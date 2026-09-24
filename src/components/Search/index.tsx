@@ -863,8 +863,10 @@ function Search({
 
         // a failed page never writes `hasMoreResults`, and a failure doesn't mean the server is out of rows
         if (!searchResults?.search?.hasMoreResults && !didLastLivePageFail) {
-            // before the first answer `hasMoreResults` is only the default, so wait for the server to say it is out of pages
-            if (shouldUseLiveData && isSnapshotPending && !isOffline) {
+            // before the first answer `hasMoreResults` is only the default, so wait for the server to say it is out of pages;
+            // no `state` means no request for this tab has even gone out yet
+            const hasLiveSearchStarted = searchResults?.search?.state !== undefined;
+            if (shouldUseLiveData && (!hasLiveSearchStarted || (isSnapshotPending && !isOffline))) {
                 wantedOffsetRef.current = nextOffset;
                 return;
             }
@@ -927,6 +929,7 @@ function Search({
         didLastLivePageFail,
         isLivePageAdopted,
         searchResults?.search?.hasMoreResults,
+        searchResults?.search?.state,
         isLoadingMorePage,
         searchResults?.search?.offset,
         shouldShowLoadingState,

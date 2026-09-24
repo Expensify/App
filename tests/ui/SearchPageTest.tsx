@@ -1236,5 +1236,29 @@ describe('SearchPageNarrow', () => {
             expect(renderedRowKeys()).toHaveLength(rowCount);
             expect(mockSearch).not.toHaveBeenCalled();
         });
+
+        it('does not page in cached rows locally on a tab no request has gone out for yet', async () => {
+            // Given a to-do tab this device has never opened, viewed offline, so there is no snapshot and no request on the wire
+            const rowCount = CONST.SEARCH.RESULTS_PAGE_SIZE * 2 + 7;
+            await seedTodoReports(rowCount);
+            mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // When the list reaches its end twice
+            for (let i = 0; i < 2; i++) {
+                await act(async () => {
+                    listProps.onEndReached?.();
+                });
+                await act(async () => {
+                    jest.advanceTimersByTime(0);
+                });
+            }
+
+            // Then the rows stay at one page, because the missing snapshot's `hasMoreResults: false` is a default, not the server's answer
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
+        });
     });
 });
