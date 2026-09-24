@@ -531,7 +531,8 @@ describe('ReportActionsList (body)', () => {
         // Given a report with its action list ready to mount.
         mockShouldCallLegendListOnLoad = false;
         renderReportActionsList();
-        const onLoad = mockUseReportActionsScroll.mock.results.at(-1)?.value.onLoad;
+        const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {onLoad?: jest.Mock} | undefined;
+        const onLoad = scrollHookResult?.onLoad;
         expect(onLoad).not.toHaveBeenCalled();
 
         // When LegendList reports that its first layout is complete.
