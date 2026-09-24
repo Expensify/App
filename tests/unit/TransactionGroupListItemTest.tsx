@@ -51,6 +51,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
     isCreatedDateType: jest.fn(() => false),
+    isCashBackWithdrawalGroup: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
     getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
