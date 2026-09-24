@@ -1,12 +1,14 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -23,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -34,7 +37,12 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params.memberAccountID);
     const policyID = route.params.policyID;
-    const [memberPersonalDetails] = usePersonalDetail(accountID);
+    const [memberPersonalDetails, memberPersonalDetailsResult] = usePersonalDetail(accountID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const memberLogin = memberPersonalDetails?.login;
+    const isLoadingMemberPersonalDetails = isLoadingOnyxValue(memberPersonalDetailsResult);
+    const hasDisplayNameSet = !!memberPersonalDetails?.firstName || !!memberPersonalDetails?.lastName;
+    const isPolicyMember = !!memberLogin && !!policy?.employeeList?.[memberLogin];
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_MEMBER_DISPLAY_NAME_FORM>) => getDisplayNameErrors(values.firstName, values.lastName, translate);
 
@@ -44,6 +52,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!isLoadingMemberPersonalDetails && (hasDisplayNameSet || !isPolicyMember)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
@@ -54,14 +63,18 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                     title={translate('displayNamePage.headerTitle')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
+                {isLoadingMemberPersonalDetails && <FullscreenLoadingIndicator />}
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_MEMBER_DISPLAY_NAME_FORM}
                     validate={validate}
                     onSubmit={(values) => {
+                        if (!memberLogin) {
+                            return;
+                        }
                         updatePolicyMemberDisplayName(policyID, values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, {
                             accountID,
-                            email: memberPersonalDetails?.login,
+                            email: memberLogin,
                             firstName: memberPersonalDetails?.firstName,
                             lastName: memberPersonalDetails?.lastName,
                             displayName: memberPersonalDetails?.displayName,
