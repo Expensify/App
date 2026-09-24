@@ -102,17 +102,18 @@ function resolveActiveSorting<ColumnKey extends string = string>(
     userSorting: ActiveSorting<ColumnKey>,
     columnKeys: ColumnKey[],
     initialSortColumn: ColumnKey | undefined,
+    initialSortOrder: SortOrder,
 ): ActiveSorting<ColumnKey> {
     if (shouldUseNarrowTableLayout) {
         // Narrow layouts drop columns for space rather than because the data lost them, so the fallback below must not
         // run here. Otherwise resizing past the breakpoint would silently discard the sort the user picked.
-        return narrowLayoutSortColumn ? {columnKey: narrowLayoutSortColumn, order: 'asc'} : userSorting;
+        return narrowLayoutSortColumn ? {columnKey: narrowLayoutSortColumn, order: CONST.SEARCH.SORT_ORDER.ASC} : userSorting;
     }
 
     // A column that stops being rendered (e.g. a conditional column loses its last value) can leave the table sorted
     // by a key no header shows an arrow for. Falling back to the initial column keeps the sort visible and correct.
     if (userSorting.columnKey && !columnKeys.includes(userSorting.columnKey)) {
-        return {columnKey: initialSortColumn, order: 'asc'};
+        return {columnKey: initialSortColumn, order: initialSortOrder};
     }
 
     return userSorting;
@@ -141,7 +142,7 @@ function useSorting<T, ColumnKey extends string = string>({
         order: initialSortOrder,
     });
 
-    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn);
+    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn, initialSortOrder);
 
     const updateSorting: SortingMethods<ColumnKey>['updateSorting'] = (value) => {
         const newSorting = typeof value === 'function' ? value(userSorting) : value;
@@ -154,7 +155,7 @@ function useSorting<T, ColumnKey extends string = string>({
         // diverge from. Otherwise the first press after a column disappears asks for the order already on screen.
         updateSorting({
             columnKey: columnKey ?? activeSorting.columnKey,
-            order: activeSorting.order === 'asc' ? 'desc' : 'asc',
+            order: activeSorting.order === CONST.SEARCH.SORT_ORDER.ASC ? CONST.SEARCH.SORT_ORDER.DESC : CONST.SEARCH.SORT_ORDER.ASC,
         });
     };
 

@@ -37,14 +37,14 @@ type WorkspaceTaxesTableProps = {
  * Sorts rate values numerically rather than as text, so "9%" comes before "10%".
  */
 function compareTaxRateValues(value1: string, value2: string): number {
-    const number1 = Number.parseFloat(value1);
-    const number2 = Number.parseFloat(value2);
+    return Number.parseFloat(value1) - Number.parseFloat(value2);
+}
 
-    if (Number.isNaN(number1) || Number.isNaN(number2)) {
-        return 0;
-    }
-
-    return number1 - number2;
+/**
+ * Returns the rate value only when it holds a number, so one that does not parse can be treated as missing.
+ */
+function getNumericTaxRateValue(value: string): string | undefined {
+    return Number.isNaN(Number.parseFloat(value)) ? undefined : value;
 }
 
 export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKeys, shouldShowTaxCodeColumn, onRowSelectionChange, headerComponent}: WorkspaceTaxesTableProps) {
@@ -122,13 +122,9 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         const nameComparison = localeCompare(item1.name, item2.name) * orderMultiplier;
 
         if (activeSorting.columnKey === 'taxRate') {
-            const rateComparison = compareTaxRateValues(item1.taxRateValue, item2.taxRateValue);
-
-            if (rateComparison !== 0) {
-                return rateComparison * orderMultiplier;
-            }
-
-            return nameComparison;
+            // A rate that does not parse cannot be ordered against the ones that do, so it sorts last in both
+            // directions. Comparing it equal to every rate instead would leave the comparator non-transitive.
+            return compareOptionalValues(getNumericTaxRateValue(item1.taxRateValue), getNumericTaxRateValue(item2.taxRateValue), compareTaxRateValues, orderMultiplier, nameComparison);
         }
 
         if (activeSorting.columnKey === 'taxCode') {

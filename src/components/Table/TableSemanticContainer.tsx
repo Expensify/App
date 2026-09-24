@@ -3,6 +3,8 @@ import ScrollView from '@components/ScrollView';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {canMeasureText} from '@libs/measureTextWidth';
+
 import type {LayoutChangeEvent} from 'react-native';
 
 import React from 'react';
@@ -35,7 +37,8 @@ type TableSemanticContainerProps = {
      * Whether the table sizes its columns from their content. `onLayout` and `scrollWidth` below are both derived from
      * this, but only in the wide layout, so the wrapper has to be kept for the narrow one too. Dropping it there would
      * change the returned tree across the layout breakpoint and remount the body, losing its scroll position and the
-     * active search string along with it.
+     * active search string along with it. Platforms that cannot measure text never set either, so they never see that
+     * change and keep the wrapper out.
      */
     shouldUseDynamicColumns: boolean;
 
@@ -67,7 +70,7 @@ function TableSemanticContainer({isEnabled, title, rowCount, columnCount, render
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const shouldWrapTableRun = isEnabled || shouldUseDynamicColumns || onLayout !== undefined || scrollWidth !== undefined;
+    const shouldWrapTableRun = isEnabled || (shouldUseDynamicColumns && canMeasureText()) || onLayout !== undefined || scrollWidth !== undefined;
     if (!shouldWrapTableRun) {
         return children;
     }
