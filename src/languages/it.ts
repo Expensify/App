@@ -1012,6 +1012,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Paga la tua fattura entro il ${date} per evitare l’interruzione del servizio`,
                 overdueTitle: 'Il tuo pagamento è in ritardo, ti preghiamo di saldare la fattura',
             },
+            renewSubscription: {
+                title: 'Attiva il rinnovo automatico per mantenere il tuo prezzo attuale',
+                subtitle: ({date}: {date: string}) => `L’abbonamento termina il ${date}`,
+                cta: 'Gestisci',
+            },
         },
         discoverSection: {
             title: 'Scopri',
@@ -1824,6 +1829,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Scegli un'opzione per cambiare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dello spazio di lavoro</a> per cambiarlo in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l’approvatore in <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `ha cambiato l’approvatore finale in <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8633,10 +8639,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             providerFinalApprover: (providerName: string) => `Approvatore finale ${providerName}`,
             syncing: 'Sincronizzazione dipendenti',
             approvalModeDescription: (providerName: string) => `I membri e i responsabili sono configurati per la sincronizzazione con ${providerName}.`,
-            approvalModeWarningTitle: 'Cambiare modalità di approvazione?',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Sei sicuro di voler cambiare la modalità di approvazione per questo spazio di lavoro? Scopri di più sulle diverse modalità di flusso di lavoro abilitate per ${providerName} nel nostro <a href="${helpSiteURL}">sito di assistenza</a>.`,
-            approvalModeWarningConfirm: 'Cambia modalità di approvazione',
             approvalModeDescriptions: {
                 basic: 'Tutti gli utenti inviano a una singola persona per l’elaborazione e l’approvazione.',
                 manager: (providerName: string) => `I dipendenti inviano i report al proprio responsabile diretto configurato in ${providerName}.`,
@@ -8701,6 +8703,17 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     other: (count: number) => `${count} candidati`,
                 }),
             },
+            approverField: `Primo approvatore`,
+            finalApprover: `Approvatore finale`,
+            finalApproverOptional: 'Approvatore finale (facoltativo)',
+            approvalModeDescription: (providerName: string) => `Imposta il responsabile delle approvazioni per i nuovi membri importati da ${providerName} in Expensify.`,
+            approverFieldDescription: (providerName: string) =>
+                `Scegli il primo approvatore per i tuoi candidati: il loro Recruiter oppure il loro Coordinator assegnato in ${providerName}.`,
+            approvalModeDescriptions: {
+                basic: 'Scegli un solo approvatore',
+                advanced: `Il recruiter o il coordinatore del candidato diventa il suo approvatore di spese`,
+                custom: 'Imposta manualmente gli approvatori in Expensify',
+            },
         },
         merge: {
             connections: 'Connessioni',
@@ -8726,6 +8739,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 custom: 'Approvazione personalizzata',
                 advanced: 'Approvazione avanzata',
             },
+            approvalModeWarningTitle: 'Cambiare modalità di approvazione?',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Sei sicuro di voler cambiare la modalità di approvazione per questo spazio di lavoro? Scopri di più sulle diverse modalità di flusso di lavoro abilitate per ${providerName} nel nostro <a href="${helpSiteURL}">sito di assistenza</a>.`,
+            approvalModeWarningConfirm: 'Cambia modalità di approvazione',
             syncingModalTitle: 'La tua connessione è in sincronizzazione',
             syncingModalDescription: "La prima connessione può richiedere un po' di tempo. Ti verrà notificato qualsiasi errore.",
             syncLimitReached: {title: 'Riprova domani', prompt: 'Hai raggiunto il limite di sincronizzazioni per oggi.'},
@@ -8757,6 +8774,25 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             enableNewAccountsTitle: 'Abilita i conti appena importati',
             enableNewAccountsDescription: 'I nuovi account Campfire saranno disponibili come categorie.',
             dimensionsImport: 'Tutte le dimensioni Campfire vengono importate come tag',
+            exportDescription: 'Configura come i dati di Expensify vengono esportati in Campfire.',
+            exportReimbursable: {label: 'Esporta le spese rimborsabili come', values: {VENDOR_BILL: {label: 'Fatture fornitori'}}},
+            exportDate: {
+                label: 'Data fattura fornitore',
+                description: 'Usa questa data quando esporti i report in Campfire.',
+                values: {
+                    LAST_EXPENSE: {label: 'Data dell’ultima spesa', description: 'Data della spesa più recente nel report.'},
+                    REPORT_EXPORTED: {label: 'Data di esportazione', description: 'Data in cui il report è stato esportato su Campfire.'},
+                    REPORT_SUBMITTED: {label: 'Data di invio', description: "Data in cui il report è stato inviato per l'approvazione."},
+                },
+            },
+            exportNonReimbursable: {label: 'Esporta le spese con carta aziendale come', values: {JOURNAL_ENTRY: {label: 'Scritture contabili'}}},
+            defaultCompanyCardVendor: {
+                label: 'Fornitore predefinito per tutte le carte aziendali',
+                description: 'Scegli un fornitore Campfire predefinito per le spese che non vengono abbinate automaticamente.',
+            },
+            companyCardAccount: {label: 'Conto carta aziendale', description: 'Scegli dove esportare le transazioni della carta aziendale.'},
+            noAccountsFound: 'Nessun account trovato',
+            noAccountsFoundDescription: 'Aggiungi degli account in Campfire e sincronizza di nuovo la connessione',
         },
         businessCentral: {
             businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
@@ -8770,6 +8806,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             noCompaniesFoundDescription: "Aggiungi un'azienda in Dynamics 365 Business Central e sincronizza di nuovo la connessione",
             noVendorsFound: 'Nessun fornitore trovato',
             noVendorsFoundDescription: 'Aggiungi i fornitori in Business Central e sincronizza di nuovo la connessione',
+            importDescription: 'Scegli quali configurazioni di codifica importare da Dynamics 365 Business Central.',
+            items: 'Articoli',
+            enableNewCategories: 'Abilita le categorie appena importate',
         },
     },
     getAssistancePage: {
@@ -10746,6 +10785,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             trialEnded: {
                 title: 'La tua prova gratuita è terminata',
                 subtitle: 'Aggiungi una carta di pagamento per continuare a usare tutte le tue funzionalità preferite.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Il tuo abbonamento termina il ${date}`,
+                subtitle: 'Attiva il rinnovo automatico per mantenere il tuo prezzo attuale.',
+                manage: 'Gestisci',
             },
             earlyDiscount: {
                 claimOffer: 'Richiedi offerta',

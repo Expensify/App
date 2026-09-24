@@ -9262,6 +9262,8 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
 /**
  * Builds the report action for a change of approver. Pass isReassignment when the new approver replaces the
  * report's current one instead of being added to the workflow, so the message names the skipped approver.
+ * Pass isFinalApprover when the new approver bypasses the remaining approvers in the chain, so the message
+ * calls them the final approver.
  */
 function buildOptimisticChangeApproverReportAction(
     managerID: number,
@@ -9269,11 +9271,12 @@ function buildOptimisticChangeApproverReportAction(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReassignment = false,
     previousApproverID?: number,
+    isFinalApprover?: boolean,
 ): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     const newApproverName = getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber});
-    let text = `changed the approver to ${newApproverName}`;
-    let html = `changed the approver to <mention-user accountID="${managerID}"/>`;
+    let text = `changed the ${isFinalApprover ? 'final ' : ''}approver to ${newApproverName}`;
+    let html = `changed the ${isFinalApprover ? 'final ' : ''}approver to <mention-user accountID="${managerID}"/>`;
     if (isReassignment && previousApproverID) {
         text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
         html += `, skipped <mention-user accountID="${previousApproverID}"/>`;
@@ -9304,6 +9307,7 @@ function buildOptimisticChangeApproverReportAction(
         originalMessage: {
             lastModified: created,
             mentionedAccountIDs,
+            isFinalApprover,
             ...(isReassignment ? {isReassignment: true, previousApproverID} : {}),
         },
         shouldShow: false,

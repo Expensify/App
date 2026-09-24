@@ -10,7 +10,10 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React, {useRef, useState} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -55,11 +58,21 @@ function DatePresetFilterBaseHarness({defaultDateValues = emptyDateValues, allow
     );
 }
 
+const Stack = createStackNavigator();
+
 function renderDatePresetFilterBase(props: HarnessProps = {}) {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <DatePresetFilterBaseHarness {...props} />
-        </ComposeProviders>,
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP}>
+                    {() => (
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                            <DatePresetFilterBaseHarness {...props} />
+                        </ComposeProviders>
+                    )}
+                </Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>,
     );
 }
 
