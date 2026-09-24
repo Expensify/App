@@ -141,7 +141,7 @@ function SearchStaticList({
 
         if (!item.reportAction?.childReportID) {
             const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            // betas, introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
+            // introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
@@ -152,7 +152,6 @@ function SearchStaticList({
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
-                betas: undefined,
                 personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,

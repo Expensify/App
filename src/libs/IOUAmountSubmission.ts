@@ -102,7 +102,6 @@ type SubmitAmountArgs = {
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     onboarding: OnyxEntry<OnyxTypes.Onboarding>;
@@ -351,7 +350,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         introSelected,
         isOffline,
         recentWaypoints,
-        betas,
         transactionViolations,
         transactionDrafts,
         storedTransaction,
@@ -405,7 +403,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
                 optimisticChatReportID,
