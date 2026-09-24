@@ -346,4 +346,4 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: Use
 }
 
 export default useDateSegmentInput;
-export type {UseDateSegmentInputParams, UseDateSegmentInputResult};
+export type {UseDateSegmentInputResult};
