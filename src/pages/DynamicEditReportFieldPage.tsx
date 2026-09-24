@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
-import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderThreeDotsMenu from '@components/Header/primitives/HeaderThreeDotsMenu';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -187,15 +188,12 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
             shouldEnableMaxHeight
             testID="DynamicEditReportFieldPage"
         >
-            <Header>
-                <Header.BackButton onPress={goBack} />
-                <Header.Title title={fieldName} />
-                {!!menuItems?.length && (
-                    <Header.Right>
-                        <Header.ThreeDotsMenu items={menuItems} />
-                    </Header.Right>
-                )}
-            </Header>
+            <HeaderWithBackButtonAndTitle
+                title={fieldName}
+                onBackButtonPress={goBack}
+            >
+                {!!menuItems?.length && <HeaderThreeDotsMenu items={menuItems} />}
+            </HeaderWithBackButtonAndTitle>
 
             {(reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || isReportFieldTitle) && (
                 <EditReportFieldText
