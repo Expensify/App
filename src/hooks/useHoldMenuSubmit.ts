@@ -56,6 +56,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -87,11 +88,11 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             approveMoneyRequest({
                 getCurrencyDecimals,
                 expenseReport: currentMoneyRequestReport,
+                rules,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -105,6 +106,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,
@@ -127,6 +129,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                rules,
             });
         }
         onClose();

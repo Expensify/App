@@ -40,6 +40,7 @@ import type {
     IsFilterValue,
     IsFilterValues,
     ReceiptTypeValue,
+    TransactionStatusValue,
     SearchAdvancedFiltersKey,
     SearchNegatableFilterKeys,
 } from '@src/types/form/SearchAdvancedFiltersForm';
@@ -60,6 +61,7 @@ import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
+import getCollator from './CollatorUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import Log from './Log';
@@ -67,9 +69,9 @@ import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from './Navigation/navigationRef';
 import {isRecord} from './ObjectUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -103,12 +105,13 @@ const operatorToCharMap = {
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
+const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
-
+const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -177,24 +180,239 @@ function sanitizeSearchValue(str: string) {
     return escaped;
 }
 
-const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
+function getKeywordQueryForSearchInput(keywords: string[]) {
+    const keywordQuery = keywords.map(sanitizeSearchValue).join(' ');
+
+    // An unmatched opening quote is a literal keyword character, not a phrase delimiter.
+    // Show it as entered only when there is no later quote that could close it on resubmission.
+    if (keywords.at(0)?.startsWith('"') && keywordQuery.startsWith('\\"') && !keywordQuery.slice(2).includes('"')) {
+        return keywordQuery.slice(1);
+    }
+
+    return keywordQuery;
+}
+
+function sanitizeSearchValuePreservingEscapes(str: string) {
+    let escaped = '';
+
+    for (let index = 0; index < str.length; index++) {
+        const char = str.at(index) ?? '';
+        if (char !== '\\') {
+            escaped += /["“”]/.test(char) ? `\\${char}` : char;
+            continue;
+        }
+
+        let nextIndex = index;
+        while (str.at(nextIndex) === '\\') {
+            nextIndex++;
+        }
+
+        const backslashCount = nextIndex - index;
+        const nextChar = str.at(nextIndex);
+        if (nextChar === ',') {
+            escaped += `${'\\'.repeat(backslashCount)}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
+        if (nextChar && /["“”]/.test(nextChar)) {
+            escaped += `${'\\'.repeat(backslashCount + (backslashCount % 2 === 0 ? 1 : 0))}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
+        escaped += '\\'.repeat(backslashCount + (backslashCount % 2));
+        index = nextIndex - 1;
+    }
+
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || escaped.includes(',')) {
+        return `"${escaped}"`;
+    }
+
+    return escaped;
+}
+
+const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(?:-[^\\s:><=]+)+)`;
+const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
+const syntaxValuePattern = '"(?:\\\\.|[^"\\\\])*"|[^\\s]+';
+const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*(${syntaxValuePattern})`, 'gi');
+const syntaxWithoutValueRegex = new RegExp(`^${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+
+function quoteSyntaxSpans(segment: string) {
+    return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
+        const syntaxValue = match.slice(prefix.length).trim();
+        const sanitizedSyntaxValue = sanitizeSearchValuePreservingEscapes(syntaxValue);
+        return `${prefix}${sanitizedSyntaxValue.startsWith('"') ? sanitizedSyntaxValue : `"${sanitizedSyntaxValue}"`}`;
+    });
+}
+
+function isEscaped(str: string, index: number) {
+    let backslashCount = 0;
+    for (let i = index - 1; i >= 0 && str.at(i) === '\\'; i--) {
+        backslashCount++;
+    }
+    return backslashCount % 2 === 1;
+}
+
+function isQuoteChar(char: string | undefined) {
+    return char === '"' || char === '“' || char === '”';
+}
+
+function isCompleteQuotedValue(str: string) {
+    return isQuoteChar(str.at(0)) && str.length > 1 && isQuoteChar(str.at(-1)) && !isEscaped(str, str.length - 1);
+}
+
+function hasUnescapedQuote(str: string) {
+    for (let index = 0; index < str.length; index++) {
+        if (isQuoteChar(str.at(index)) && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function hasClosingQuote(str: string, openingQuoteIndex: number) {
+    for (let index = openingQuoteIndex + 1; index < str.length; index++) {
+        if (isQuoteChar(str.at(index)) && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function tokenizeKeywordSegments(keywords: string) {
+    const segments: string[] = [];
+    let index = 0;
+
+    while (index < keywords.length) {
+        while (index < keywords.length && /\s/.test(keywords.at(index) ?? '')) {
+            index++;
+        }
+
+        if (index >= keywords.length) {
+            break;
+        }
+
+        const start = index;
+        const startsWithQuote = isQuoteChar(keywords.at(index)) && hasClosingQuote(keywords, index);
+        let insideQuote = startsWithQuote;
+        if (startsWithQuote) {
+            index++;
+        }
+
+        while (index < keywords.length) {
+            const char = keywords.at(index);
+
+            if (!insideQuote && /\s/.test(char ?? '')) {
+                break;
+            }
+
+            if (char === '\\') {
+                // Match the search parser's escapedChar rule: a backslash does not escape whitespace.
+                index += /[,"“”\\]/.test(keywords.at(index + 1) ?? '') ? 2 : 1;
+                continue;
+            }
+
+            if (isQuoteChar(char)) {
+                if (insideQuote) {
+                    index++;
+                    if (startsWithQuote) {
+                        break;
+                    }
+                    insideQuote = false;
+                    continue;
+                }
+
+                if (hasClosingQuote(keywords, index) && !syntaxWithoutValueRegex.test(keywords.slice(start, index))) {
+                    insideQuote = true;
+                }
+            }
+
+            index++;
+        }
+
+        segments.push(keywords.slice(start, index));
+    }
+
+    return segments;
+}
+
+const groupByWithoutValueRegex = new RegExp(`^${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+
+function getGroupByValueForValidation(segment: string) {
+    const valueWithoutTrailingCommas = segment.replaceAll(/,+$/g, '');
+    return isCompleteQuotedValue(valueWithoutTrailingCommas) ? valueWithoutTrailingCommas.slice(1, -1) : valueWithoutTrailingCommas;
+}
+
+function getUnclosedQuotedGroupByValue(segment: string | undefined) {
+    if (!segment || !isQuoteChar(segment.at(0)) || hasClosingQuote(segment, 0)) {
+        return;
+    }
+
+    const value = segment.slice(1);
+    return VALID_GROUP_BYS.has(value.toLowerCase()) ? value : undefined;
+}
+
+function shouldCombineKeywordSegments(segment: string, nextSegment: string | undefined) {
+    if (!nextSegment || !syntaxWithoutValueRegex.test(segment)) {
+        return false;
+    }
+
+    const nextSegmentValue = getGroupByValueForValidation(nextSegment);
+    return syntaxWithoutValueRegex.test(nextSegment) || (groupByWithoutValueRegex.test(segment) && !VALID_GROUP_BYS.has(nextSegmentValue.toLowerCase()));
+}
+
+function sanitizeIncompleteQuotedValue(str: string) {
+    const sanitized = sanitizeSearchValue(str);
+    return sanitized.startsWith('"') ? sanitized : `"${sanitized}"`;
+}
+
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
  * keyword instead of being parsed as the `type` filter. Plain keywords (e.g. `foo`) are left untouched.
  */
 function escapeKeyword(keywords: string) {
-    return (
-        keywords
-            .match(/"([^"]*)"|(\S+)/g)
-            ?.map((q) => {
-                if (q.toLowerCase().match(syntaxRegex)) {
-                    return `"${q}"`;
-                }
-                return q;
-            })
-            .join(' ') ?? ''
-    );
+    const segments = tokenizeKeywordSegments(keywords);
+    let skipNextSegment = false;
+
+    return segments
+        .map((segment, index) => {
+            if (skipNextSegment) {
+                skipNextSegment = false;
+                return '';
+            }
+
+            const nextSegment = segments.at(index + 1);
+            const unclosedGroupByValue = groupByWithoutValueRegex.test(segment) ? getUnclosedQuotedGroupByValue(nextSegment) : undefined;
+            if (unclosedGroupByValue) {
+                skipNextSegment = true;
+                return `${segment}${unclosedGroupByValue}`;
+            }
+
+            skipNextSegment = shouldCombineKeywordSegments(segment, nextSegment);
+            const q = skipNextSegment ? `${segment} ${nextSegment}` : segment;
+
+            if (isQuoteChar(q.at(0))) {
+                return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);
+            }
+
+            // A quoted span embedded in an ordinary token is one keyword; syntax inside it is literal text.
+            if (/\s/.test(segment) && hasUnescapedQuote(segment)) {
+                return sanitizeSearchValuePreservingEscapes(q);
+            }
+
+            const quotedSyntax = quoteSyntaxSpans(q).trim();
+            if (quotedSyntax !== q) {
+                return quotedSyntax;
+            }
+
+            return hasUnescapedQuote(q) || q.includes('\\') ? sanitizeSearchValuePreservingEscapes(q) : q;
+        })
+        .filter(Boolean)
+        .join(' ');
 }
 
 function getRangeQueryValue(from?: string, to?: string) {
@@ -458,18 +676,32 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
- * Whether the query includes a positive `has:submitted-violation` filter.
- * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
+ * Whether the query includes a positive `has:submitted-violation` or `has:approved-violation` filter.
+ * Used so the Violations column and CSV export only appear when those filters are active. Normal
+ * search snapshots can still include FORWARDED actions with violation data.
  */
-function queryHasSubmittedViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
     if (hasFilterGroups.length === 0) {
         return false;
     }
 
     return hasFilterGroups.some((group) =>
-        group.filters.some((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && filter.value.toString() === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION),
+        group.filters.some((filter) => {
+            if (filter.operator !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                return false;
+            }
+            const value = filter.value.toString();
+            return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
+        }),
     );
+}
+
+/**
+ * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
+ */
+function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
+    return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 }
 
 /**
@@ -508,21 +740,6 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         });
     }
 
-    if (
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
-    ) {
-        if (typeof filterValue === 'string') {
-            return getPersonalDetailByEmail(filterValue)?.accountID.toString() ?? filterValue;
-        }
-
-        return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
-    }
-
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         if (typeof filterValue === 'string') {
             return resolvePolicyIDFromName(filterValue, policies);
@@ -553,7 +770,7 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
  * The reason for this is that the computation of hashes should not depend on the locale.
  * This is used to ensure that hashes stay consistent.
  */
-const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
+const customCollator = getCollator(CONST.LOCALES.EN);
 
 let defaultSearchQueryJSON: SearchQueryJSON | undefined;
 
@@ -584,6 +801,30 @@ function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQuery
     }
 
     return false;
+}
+
+function getQueryHashWithoutFilters(query: SearchQueryJSON, exclude: ReadonlySet<SearchFilterKey>) {
+    let orderedQuery = '';
+    const flatFilters = query.flatFilters
+        .map((filter) => {
+            const filterKey = filter.key;
+            const filters = cloneDeep(filter.filters);
+            filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
+            return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
+        })
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString));
+
+    for (const {filterString, filterKey} of flatFilters) {
+        if (exclude.has(filterKey)) {
+            continue;
+        }
+
+        orderedQuery += ` ${filterString}`;
+    }
+
+    const primaryHash = hashText(orderedQuery, 2 ** 32);
+
+    return primaryHash;
 }
 
 /**
@@ -751,6 +992,7 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+
         result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
@@ -829,6 +1071,23 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQue
     }
 
     return queryParts.join(' ');
+}
+
+const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+
+function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
+    const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
+    const keptFilters = currentQueryJSON.flatFilters.filter((filter) => NON_FILTER_CHIP_KEYS.has(filter.key));
+
+    return buildSearchQueryString({
+        ...currentQueryJSON,
+        type: defaultQueryJSON?.type ?? currentQueryJSON.type,
+        flatFilters: [...resetFilters, ...keptFilters],
+    });
+}
+
+function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON) {
+    return getQueryHashWithoutFilters(currentQueryJSON, NON_FILTER_CHIP_KEYS) !== getQueryHashWithoutFilters(defaultQueryJSON, NON_FILTER_CHIP_KEYS);
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -952,8 +1211,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (columns?.length) {
-        const filterValueArray = [...new Set<string>(columns)];
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        // Violations is only meaningful with has:submitted-violation / has:approved-violation.
+        const shouldIncludeViolationsColumn = hasValuesIncludeViolationFilter(supportedFilterValues.has);
+        const filterValueArray = [...new Set<string>(columns)].filter((column) => shouldIncludeViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        if (filterValueArray.length) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+        }
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -979,6 +1242,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
                     filterKey === FILTER_KEYS.WITHDRAWAL_TYPE ||
+                    filterKey === FILTER_KEYS.TRANSACTION_STATUS ||
                     filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
             ) {
@@ -1339,11 +1603,9 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
  * Reverse operation of buildQueryStringFromFilterFormValues()
  */
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
-    policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -1400,6 +1662,11 @@ function buildFilterFormValuesFromQuery(
             } else {
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
             }
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.find((transactionStatus): transactionStatus is TransactionStatusValue =>
+                VALID_TRANSACTION_STATUSES.has(transactionStatus),
+            );
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
@@ -1479,17 +1746,8 @@ function buildFilterFormValuesFromQuery(
             filtersForm[filterKey] = filterValues.find((currency) => validCurrencies.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const uniqueTags = new Set<string>();
-            const tagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags);
-            for (const tagList of tagLists) {
-                for (const policyTagList of Object.values(tagList ?? {})) {
-                    for (const tag of Object.values(policyTagList.tags ?? {})) {
-                        uniqueTags.add(tag.name);
-                    }
-                }
-            }
-            uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((name) => uniqueTags.has(name));
+            // Tag values are kept as-is: with server-side tag pagination the local tag data is never complete, so validating against it would silently drop valid tags
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
             const uniqueCategories = new Set<string>();
@@ -1785,7 +2043,8 @@ function getFilterDisplayValue({
         return getBankAccountSearchLabel(bankAccount);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
+        const filterReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`];
+        return getReportName(filterReport, filterReport?.reportID ? reportAttributes?.[filterReport.reportID]?.reportName : undefined) || filterValue;
     }
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
@@ -2318,9 +2577,21 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
     return buildSearchQueryJSON(params.q, params.rawQuery);
 }
 
-function getCurrentSearchQueryJSON() {
-    const rootState = navigationRef.getRootState();
-    const lastTabNavigator = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+/**
+ * Resolves the params of the Search root route that the app is currently showing (or would return to),
+ * from a navigation state tree.
+ *
+ * This deliberately does NOT look at the focused route: when an RHP (e.g. a report) is stacked on top of
+ * the Search tab, the focused route is the RHP and carries no `q`, but the Search root route underneath
+ * still does. It also does not walk only the live tree. A non-focused tab navigator has its nested state
+ * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
+ *
+ * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
+ * only re-reads it on navigation events. Call `getCurrentSearchQueryJSON` imperatively where you need the
+ * value at an arbitrary moment (e.g. right after a delegate switch, which clears the map without navigating).
+ */
+function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams | undefined {
+    const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
     const tabStateFromParams = getParamsState(lastTabNavigator?.params);
     const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
     const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
@@ -2336,22 +2607,19 @@ function getCurrentSearchQueryJSON() {
 
     // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
     // neither .state nor the preserved state map will have an entry. Use nested route params when
-    // React Navigation provided them, otherwise fall back to the default initialParams query.
+    // React Navigation provided them and they parse, otherwise fall back to the default initialParams query.
     if (!lastSearchNavigatorState) {
-        const nestedQueryJSON = getSearchQueryJSONFromRouteParams(nestedSearchRootParams);
-        if (nestedQueryJSON) {
-            return nestedQueryJSON;
+        if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
+            return nestedSearchRootParams;
         }
-        return buildSearchQueryJSON(buildSearchQueryString());
+        return {q: buildSearchQueryString()};
     }
 
-    const lastSearchRoute = getLastRouteByName(lastSearchNavigatorState, SCREENS.SEARCH.ROOT);
-    const queryJSON = getSearchQueryJSONFromRouteParams(lastSearchRoute?.params);
-    if (!queryJSON) {
-        return;
-    }
+    return getSearchRootParamsFromSearchNavigatorState(lastSearchNavigatorState);
+}
 
-    return queryJSON;
+function getCurrentSearchQueryJSON() {
+    return getSearchQueryJSONFromRouteParams(getSearchRootParamsFromRootState(navigationRef.getRootState()));
 }
 
 /**
@@ -2387,7 +2655,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeForMatch(referenceText).toLowerCase());
 }
 
-const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
+const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.DAY, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
 
 /**
  * Determines whether sortBy and sortOrder should be fully reset (re-derived by
@@ -2527,30 +2795,6 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Returns an object containing the filter values needed to reset
- * the currently applied advanced filters back to their initial state.
- *
- * - STATUS is reset to `ALL`
- * - TYPE is reset to `EXPENSE`
- * - COLUMNS is reset to undefined only if the current TYPE is not EXPENSE
- * - Other filters are reset to `undefined`
- */
-function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
-    const isTypeExpense = searchAdvancedFiltersForm.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-    return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
-        if (filterKey === FILTER_KEYS.TYPE) {
-            if (!isTypeExpense) {
-                acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-            }
-        } else if (filterKey !== FILTER_KEYS.COLUMNS || !isTypeExpense) {
-            Object.assign(acc, {[filterKey]: undefined});
-        }
-
-        return acc;
-    }, {} as Partial<SearchAdvancedFiltersForm>);
-}
-
-/**
  * Set of filter keys that represent free-text fields where the default `:` (eq) operator
  * should be treated as a substring/partial match (`contains`) when querying the backend.
  * This allows searches like `merchant:coffee` to match "Coffee shop".
@@ -2643,11 +2887,52 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
     return update;
 }
 
+/**
+ * Checks whether a query still matches a default query: it contains all of the default query's filter keys and has the same type.
+ * Used to detect when a query no longer represents a given default/suggested search (e.g. a filter was removed).
+ */
+function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
+    if (!queryJSON || !defaultQueryJSON) {
+        return true;
+    }
+
+    const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+
+    return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
+}
+
+function getValidLastQuery(lastQuery: string | undefined, defaultQuery: string) {
+    if (!lastQuery) {
+        return defaultQuery;
+    }
+
+    const lastQueryJSON = buildSearchQueryJSON(lastQuery);
+
+    if (!lastQueryJSON) {
+        return defaultQuery;
+    }
+
+    const defaultQueryJSON = buildSearchQueryJSON(defaultQuery);
+
+    if (!defaultQueryJSON) {
+        return defaultQuery;
+    }
+
+    if (!doesQueryMatchDefaultFilterKeysAndType(lastQueryJSON, defaultQueryJSON)) {
+        return defaultQuery;
+    }
+
+    return lastQuery;
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
     getRangeQueryValue,
+    getQueryHashWithoutFilters,
     getQueryHashes,
+    hasFiltersChangedFromDefault,
     withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
@@ -2656,6 +2941,7 @@ export {
     isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
+    buildQueryStringWithResetFilters,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,
@@ -2666,9 +2952,11 @@ export {
     buildCannedSearchQuery,
     resolvePolicyIDFromName,
     sanitizeSearchValue,
+    getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
+    getSearchRootParamsFromRootState,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
     isDefaultExpenseReportsQuery,
@@ -2685,7 +2973,6 @@ export {
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
-    getAdvancedFiltersToReset,
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
@@ -2698,7 +2985,10 @@ export {
     removeNegation,
     getFilterFormValues,
     getFilterFromQuery,
-    queryHasSubmittedViolationFilter,
+    getValidLastQuery,
+    doesQueryMatchDefaultFilterKeysAndType,
+    queryHasViolationFilter,
+    hasValuesIncludeViolationFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};

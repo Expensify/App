@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
+import {getGroupPendingDeleteOnyxUpdate, getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -9,9 +9,10 @@ import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import {buildCannedSearchQuery} from '@src/libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -52,14 +53,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 // In production, requestMoney defers its API.write() call until the target screen's
@@ -383,6 +376,32 @@ describe('actions/IOU', () => {
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
+        it('when the current hash includes a positive policyID filter and there is no iou report, it should return false', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const policyID = '12345';
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
+                type: 'expense',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                filters: {operator: 'eq', left: 'policyID', right: policyID},
+                inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID}],
+                    },
+                ],
+                hash: 591785023,
+                recentSearchHash: 714245045,
+                similarSearchHash: 1023624111,
+            });
+
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, undefined, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
         it('when the current hash includes a non-negated status filter it should only return true if the iou report matches the status', () => {
             const transaction = {
                 ...createRandomTransaction(1),
@@ -592,6 +611,76 @@ describe('actions/IOU', () => {
             expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
         });
 
+        it('writes the group-by:from drill-down snapshot under a hash that excludes the group limit', async () => {
+            // Given an active `group-by:from` search whose `limit` is meant to bound how many member groups show.
+            // `limit` is part of the query hash, so if the optimistic per-member snapshot kept it, the snapshot
+            // would land on a hash the group row never reads and expanding the row would show nothing.
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON('type:expense group-by:from limit:10');
+            if (!groupedQueryJSON) {
+                throw new Error('Failed to parse the group-by:from search query');
+            }
+            expect(groupedQueryJSON.limit).toBe(10);
+
+            // The drill-down query the group row builds: the grouping is replaced by a `from:<member>` filter.
+            const drillDownFlatFilters = groupedQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
+            drillDownFlatFilters.push({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: RORY_ACCOUNT_ID}],
+            });
+            const buildDrillDownHash = (keepLimit: boolean) =>
+                actualSearchQueryUtils.buildSearchQueryJSON(
+                    actualSearchQueryUtils.buildSearchQueryString({
+                        ...groupedQueryJSON,
+                        groupBy: undefined,
+                        limit: keepLimit ? groupedQueryJSON.limit : undefined,
+                        flatFilters: drillDownFlatFilters,
+                    }),
+                )?.hash;
+            const hashWithoutLimit = buildDrillDownHash(false);
+            const hashWithLimit = buildDrillDownHash(true);
+            // The whole point of the fix only exists if `limit` actually changes the hash.
+            expect(hashWithoutLimit).toBeDefined();
+            expect(hashWithoutLimit).not.toBe(hashWithLimit);
+
+            // Only the active search should be patched, so no other recorded query can write the same hash.
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await waitForBatchedUpdates();
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // When an expense is created while that grouped search is open.
+            // `getSearchOnyxUpdate` reads the active search exactly once, and `mockReturnValueOnce` restores the
+            // suite-wide default afterwards so this override cannot leak into the following tests.
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(groupedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), reimbursable: true},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            // Then the per-member snapshot is written under the limit-free hash the group row reads,
+            // and nothing is written under the hash that would result from carrying `limit` over
+            const optimisticKeys = result?.optimisticData?.map((update) => update.key) ?? [];
+            expect(optimisticKeys).toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithoutLimit}`);
+            expect(optimisticKeys).not.toContain(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithLimit}`);
+
+            // And that snapshot carries its own hash, without which the drill-down page stays gated on
+            // `isSearchDataLoaded` and renders "Nothing to show"
+            const drillDownUpdate = result?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithoutLimit}`);
+            expect(drillDownUpdate?.value).toHaveProperty('search.hash', hashWithoutLimit);
+        });
+
         // Builds the snapshot update for a transaction whose `modifiedMerchant` starts at the given value, and
         // returns the optimistic snapshot update plus its transaction key so each case only asserts on the outcome.
         const getSnapshotUpdateForModifiedMerchant = (modifiedMerchant: string | undefined) => {
@@ -646,6 +735,148 @@ describe('actions/IOU', () => {
             const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant('Edited Merchant');
             expect(update).toBeDefined();
             expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], 'Edited Merchant');
+        });
+
+        it('writes the money-request action under the self-DM chat when there is no iouReport', () => {
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            const selfDMReportID = 'self-dm-report';
+            const transaction = {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const iouAction = {
+                reportActionID: 'action-1',
+                reportID: selfDMReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: RORY_ACCOUNT_ID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, iouAction.reportActionID, 'actorAccountID'], RORY_ACCOUNT_ID);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', ONYXKEYS.PERSONAL_DETAILS_LIST, String(RORY_ACCOUNT_ID), 'displayName']);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
+
+        it('clears the previous money-request action IOUTransactionID in the snapshot when moving', () => {
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            const oldReportID = 'old-report';
+            const oldActionID = 'old-action';
+            const transaction = {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                previousMoneyRequestAction: {
+                    reportID: oldReportID,
+                    reportActionID: oldActionID,
+                },
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, oldActionID, 'originalMessage', 'IOUTransactionID'], null);
+        });
+
+        it('does not re-increment groupBy:from aggregates when the transaction is already in the snapshot', async () => {
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+
+            const groupHash = 424242;
+            const transaction = {...createRandomTransaction(1), amount: -5000, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(
+                createMock<SearchQueryJSON>({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    filters: undefined,
+                    inputQuery: 'type:expense groupBy:from',
+                    flatFilters: [],
+                    hash: groupHash,
+                    recentSearchHash: groupHash,
+                    similarSearchHash: groupHash,
+                }),
+            );
+
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`, {
+                search: {hash: groupHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hasResults: true},
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture mixes transaction + group keys; TS widens computed keys into one signature
+                data: {
+                    [transactionKey]: transaction,
+                    [groupKey]: {
+                        accountID: RORY_ACCOUNT_ID,
+                        count: 3,
+                        total: -15000,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as unknown as SearchResultDataType,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getSearchOnyxUpdate({
+                transaction: {...transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`);
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).not.toHaveProperty(['data', groupKey]);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', transactionKey, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
+    });
+
+    describe('getGroupPendingDeleteOnyxUpdate', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}42` as const;
+        const otherGroupKey = `${CONST.SEARCH.GROUP_PREFIX}43` as const;
+
+        it('flags each group optimistically and clears the flag on failure', () => {
+            // A group row's snapshot entry outlives its child transactions, so the flag has to ride in the delete
+            // request itself: without the failureData a failed delete would hide the group row for good.
+            const result = getGroupPendingDeleteOnyxUpdate(1234, [groupKey, otherGroupKey]);
+
+            expect(result?.optimisticData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.SNAPSHOT}1234`);
+            expect(result?.optimisticData?.at(0)?.value).toHaveProperty(['data', groupKey, 'pendingAction'], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(result?.optimisticData?.at(0)?.value).toHaveProperty(['data', otherGroupKey, 'pendingAction'], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            expect(result?.failureData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.SNAPSHOT}1234`);
+            expect(result?.failureData?.at(0)?.value).toHaveProperty(['data', groupKey, 'pendingAction'], null);
+            expect(result?.failureData?.at(0)?.value).toHaveProperty(['data', otherGroupKey, 'pendingAction'], null);
+        });
+
+        it('returns undefined for a delete that wipes out no whole group', () => {
+            expect(getGroupPendingDeleteOnyxUpdate(1234, [])).toBeUndefined();
+            expect(getGroupPendingDeleteOnyxUpdate(undefined, [groupKey])).toBeUndefined();
         });
     });
 });

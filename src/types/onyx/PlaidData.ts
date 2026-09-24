@@ -3,7 +3,6 @@ import type PlaidBankAccount from './PlaidBankAccount';
 
 /** Model of plaid data */
 type PlaidData = {
-    /** Name of the bank */
     bankName?: string;
 
     /**
@@ -12,7 +11,6 @@ type PlaidData = {
      */
     plaidAccessToken: string;
 
-    /** List of plaid bank accounts */
     bankAccounts?: PlaidBankAccount[];
 
     /** Whether the data is being fetched from server */

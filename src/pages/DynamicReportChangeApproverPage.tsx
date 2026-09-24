@@ -1,4 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,7 +17,7 @@ import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -30,7 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -41,6 +40,7 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 const APPROVER_TYPE = {
     ADD_APPROVER: 'addApprover',
     BYPASS_APPROVER: 'bypassApprover',
+    REASSIGN_APPROVER: 'reassignApprover',
 } as const;
 
 type ApproverType = ValueOf<typeof APPROVER_TYPE>;
@@ -52,15 +52,13 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
-    const [hasError, setHasError] = useState(false);
+    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const hasAutoAppliedRef = useRef(false);
-    const hasNavigatedToAddApproverRef = useRef(false);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
 
     const goBack = () => {
@@ -68,12 +66,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     };
 
     const changeApprover = useCallback(() => {
-        if (!selectedApproverType) {
-            setHasError(true);
-            return;
-        }
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
-            hasNavigatedToAddApproverRef.current = true;
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -87,9 +80,14 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
+        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+            Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
+            return;
+        }
+
+        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules);
         Navigation.dismissToPreviousRHP();
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
@@ -111,22 +109,24 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             });
         }
 
+        if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
+            data.push({
+                text: translate('iou.changeApprover.actions.reassignApprover'),
+                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
+            });
+        }
+
         return data;
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
-    useEffect(() => {
-        if (selectedApproverType === undefined && approverTypes.length > 0) {
-            setSelectedApproverType(approverTypes.at(0)?.keyForList);
-            return;
-        }
-
-        if (!hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList && !hasNavigatedToAddApproverRef.current) {
-            hasAutoAppliedRef.current = true;
-            changeApprover();
-        }
-    }, [approverTypes, selectedApproverType, changeApprover]);
-
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !isPolicyAdmin(policy) ||
+        isPendingDeletePolicy(policy) ||
+        !isMoneyRequestReport(report) ||
+        isMoneyRequestReportPendingDeletion(report);
 
     const confirmButtonOptions = useMemo(
         () => ({
@@ -169,21 +169,12 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
                         return;
                     }
                     setSelectedApproverType(option.keyForList);
-                    setHasError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldUpdateFocusedIndex
                 customListHeader={listHeader}
                 initiallyFocusedItemKey={selectedApproverType}
-            >
-                {hasError && (
-                    <FormHelpMessage
-                        isError
-                        style={[styles.ph5, styles.mb3]}
-                        message={translate('common.error.pleaseSelectOne')}
-                    />
-                )}
-            </SelectionList>
+            />
         </ScreenWrapper>
     );
 }

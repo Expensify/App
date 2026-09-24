@@ -31,7 +31,6 @@ type ReceiptSectionProps = {
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
 
-    /** Whether the receipt should be displayed */
     shouldDisplayReceipt: boolean;
 
     /** Whether the receipt is currently being stitched */
@@ -108,6 +107,7 @@ function ReceiptSection({
                 receiptThumbnail={receiptSource.receiptThumbnail}
                 resolvedReceiptImage={receiptSource.resolvedReceiptImage as string | undefined}
                 effectiveReceiptSource={receiptSource.effectiveReceiptSource}
+                receiptPageCount={transaction?.receipt?.pageCount ?? 0}
                 isOdometerDistanceRequest={isOdometerDistanceRequest}
                 isDistanceRequest={isDistanceRequest}
                 compactReceiptContainerStyle={compact.compactReceiptContainerStyle}

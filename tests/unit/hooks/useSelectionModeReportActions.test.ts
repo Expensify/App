@@ -77,6 +77,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
+        isBetaEnabledOrUnknown: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
@@ -135,6 +136,9 @@ function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; is
         handleSubmitReport: mockLifecycleHandleSubmitReport,
         shouldBlockSubmit: overrides?.shouldBlockSubmit ?? false,
         isBlockSubmitDueToPreventSelfApproval: overrides?.isBlockSubmitDueToPreventSelfApproval ?? false,
+        approveSubMenuItems: undefined,
+        approveSubMenuHeaderText: '',
+        shouldShowApproveSubMenu: false,
     };
 }
 
