@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef} from 'react';
 
 import Address from './substeps/AddressStep';
@@ -60,6 +60,7 @@ type PersonalBankAccountSubPageProps = SubPageProps & {
 function AddPersonalBankAccountPage() {
     const {translate} = useLocalize();
     const route = useRoute();
+    const isFocused = useIsFocused();
     const urlSubPage = (route.params as {subPage?: string} | undefined)?.subPage;
 
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -221,6 +222,7 @@ function AddPersonalBankAccountPage() {
     useEffect(() => {
         if (
             fullPersonalBankAccount?.source !== CONST.BANK_ACCOUNT.SOURCE.WALLET ||
+            !isFocused ||
             !currentPageName ||
             currentPageName === SUB_PAGE_NAMES.SUCCESS ||
             !pages.some((page) => page.pageName === currentPageName)
@@ -228,7 +230,7 @@ function AddPersonalBankAccountPage() {
             return;
         }
         updatePersonalBankAccountCurrentPage(currentPageName);
-    }, [currentPageName, fullPersonalBankAccount?.source, pages]);
+    }, [currentPageName, fullPersonalBankAccount?.source, isFocused, pages]);
 
     const handleNext = (data?: unknown) => {
         // When editing a field from the confirmation step, jump straight back to it.

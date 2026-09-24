@@ -11,7 +11,7 @@ import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamL
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
 
-import {clearPersonalBankAccount} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, updatePersonalBankAccountCurrentPage} from '@userActions/BankAccounts';
 import type * as FormActions from '@userActions/FormActions';
 import {clearDraftValues} from '@userActions/FormActions';
 
@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type * as ReactNavigation from '@react-navigation/native';
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 
@@ -58,6 +59,15 @@ jest.mock('@userActions/PaymentMethods', () => ({
 const closeRHPFlowSpy = jest.spyOn(Navigation, 'closeRHPFlow').mockImplementation(() => {});
 const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+let mockIsFocused = true;
+
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
+    return {
+        ...actualNavigation,
+        useIsFocused: () => mockIsFocused,
+    };
+});
 
 type TestRootParamList = {
     [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
@@ -146,6 +156,7 @@ describe('AddPersonalBankAccountPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsFocused = true;
         initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
         await act(async () => {
             await Onyx.clear();
@@ -194,5 +205,39 @@ describe('AddPersonalBankAccountPage', () => {
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
         expect(clearPersonalBankAccount).toHaveBeenCalledWith({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
         expect(goBackSpy).toHaveBeenCalledWith();
+    });
+
+    it('updates the saved Wallet page when an earlier route becomes focused again', async () => {
+        initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
+
+        jest.mocked(updatePersonalBankAccountCurrentPage).mockClear();
+        mockIsFocused = false;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalled();
+
+        mockIsFocused = true;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {isLoading: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
     });
 });
