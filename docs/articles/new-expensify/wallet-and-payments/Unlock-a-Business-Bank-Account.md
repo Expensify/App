@@ -1,8 +1,8 @@
 ---
 title: Unlock a Business Bank Account
 description: Request an unlock for a locked business bank account in Expensify and restore reimbursements and payments.
-keywords: [New Expensify, locked bank account, unlock bank account, reimbursements failed, ACH rejected, bank error, fix bank account, Expensify Card locked, ACH company ID, unlock payment method]
-internalScope: Audience is Workspace Admins with a locked business bank account. Covers requesting an unlock and preventing future lockouts. Does not cover initial bank account setup, validation, sharing, or unsharing.
+keywords: [New Expensify, locked bank account, unlock bank account, reimbursements failed, ACH rejected, bank error, fix bank account, Expensify Card locked, ACH company ID, unlock payment method, request already submitted, duplicate unlock request]
+internalScope: Audience is Workspace Admins with a locked business bank account. Covers requesting an unlock, what happens if you request an unlock more than once, and preventing future lockouts. Does not cover initial bank account setup, validation, sharing, or unsharing.
 ---
 
 # Unlock a Business Bank Account
@@ -24,7 +24,7 @@ When a bank account is locked, you’ll see a **Locked** badge on the account in
  - **Settings > Wallet** in the **Bank accounts** section
  - **Workspaces > [Workspace Name] > Workflows** in the **Payments** section
 
-You’ll also see a Time-sensitive alert on **Home** with a **Fix** button that guides you through the unlock process.
+You’ll also see an alert in the **Time sensitive** section on **Home** with a **Fix** button that guides you through the unlock process.
 
 ---
 
@@ -36,13 +36,27 @@ You’ll also see a Time-sensitive alert on **Home** with a **Fix** button that 
 
 ## How to unlock a business bank account
 
-From Wallet or the Workspace: 
+You can start the request from **Home**, **Wallet**, or a workspace’s **Workflows**. The steps are the same on web and mobile.
 
-1. Click the bank account with the **Locked** badge.
-2. Click **Fix** or **Unlock account**.
-3. In the chat that opens, send the message to Concierge to request the unlock.
+1. Click **Fix** on the **Time sensitive** alert on **Home**, or click the bank account with the **Locked** badge in **Wallet** or **Workflows**.
+2. If a **Locked bank account** message appears, click **Unlock bank account**.
+3. Review the confirmation Expensify posts in your Concierge chat.
 
-Concierge will walk you through the next steps to unlock the account, or confirm when your account is ready to use.
+Expensify sends the request to Concierge for you — you don’t need to write a message. Concierge will walk you through the next steps to unlock the account, or confirm when your account is ready to use.
+
+---
+
+## What happens if you request an unlock more than once
+
+Expensify sends only one unlock request per bank account. If you click **Fix** or **Unlock bank account** again for the same account, a **Request already submitted** message appears confirming that your request is already with Concierge, and no duplicate request is sent.
+
+Click **Got it** to dismiss the message. Your place in the queue is unaffected — clicking again does not speed up the unlock.
+
+<!-- SCREENSHOT:
+Suggestion: The "Request already submitted" confirmation message that appears after clicking Fix a second time for the same locked bank account, including the Got it button.
+Location: Immediately after the "What happens if you request an unlock more than once" section.
+Purpose: Prevents admins from reading the message as an error or a failed request and contacting support to ask why their second attempt "didn't work".
+-->
 
 ---
 
@@ -90,4 +104,12 @@ No. Locked accounts can't be deleted until they're resolved and unlocked.
 ## Why hasn’t my account unlocked yet?
 
 The failed debit may still be processing with your bank. Concierge will notify you as soon as it can be retried.
+
+## Why do I see “Request already submitted” when I click Fix?
+
+You’ve already requested an unlock for that bank account. Expensify blocks duplicate requests, so Concierge still has your original request. Click **Got it** and wait for Concierge to reply.
+
+## Can I submit another unlock request to speed things up?
+
+No. Only one request per bank account is sent, and repeat clicks show the **Request already submitted** message instead. Unlocking depends on your bank returning the failed debit, which a second request can’t change.
 
