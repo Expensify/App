@@ -69,7 +69,6 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
-import {usePendingScrollToEditingReportActionID, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
@@ -78,6 +77,7 @@ import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
+import useScrollToEditingReportAction from './useScrollToEditingReportAction';
 
 type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
@@ -267,26 +267,13 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         revealDraftFromReportAction(persistedDraftReportAction);
     }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
 
-    // A message put into edit mode from the composer (ArrowUp) can sit outside the list's render window, so its editor never mounts and never
-    // takes focus. Scroll to it here, where the rendered indexes are known, so the row mounts and the message stays visible while it's edited.
-    const pendingScrollToEditingReportActionID = usePendingScrollToEditingReportActionID();
-    const {clearPendingScrollToEditingAction} = useReportActionActiveEditActions();
     const reportScrollManager = useReportScrollManager();
 
-    useEffect(() => {
-        if (!pendingScrollToEditingReportActionID) {
-            return;
-        }
-
-        clearPendingScrollToEditingAction();
-
-        const editingReportActionIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === pendingScrollToEditingReportActionID);
-        if (editingReportActionIndex < 0) {
-            return;
-        }
-
-        reportScrollManager.scrollToIndex(editingReportActionIndex);
-    }, [clearPendingScrollToEditingAction, pendingScrollToEditingReportActionID, renderedVisibleReportActions, reportScrollManager]);
+    // The rendered indexes are known here, so scrolling the row into view mounts it and keeps the message visible while it's edited.
+    useScrollToEditingReportAction({
+        visibleReportActions: renderedVisibleReportActions,
+        scrollToIndex: (index) => reportScrollManager.scrollToIndex(index),
+    });
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
