@@ -627,13 +627,7 @@ function useAutocompleteSuggestions({
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             }));
         }
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL: {
-            const filteredDatePresets = getDatePresets(autocompleteKey, true)
-                .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(datePreset.toLowerCase()))
-                .sort()
-                .slice(0, 10);
-            return filteredDatePresets.map((datePreset) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ANY_APPROVAL, text: datePreset}));
-        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
@@ -645,7 +639,8 @@ function useAutocompleteSuggestions({
                 .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(datePreset.toLowerCase()))
                 .sort()
                 .slice(0, 10);
-            return filteredDatePresets.map((datePreset) => ({filterKey: autocompleteKey, text: datePreset}));
+            const filterKey = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL ? CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ANY_APPROVAL : autocompleteKey;
+            return filteredDatePresets.map((datePreset) => ({filterKey, text: datePreset}));
         }
         default: {
             return [];
