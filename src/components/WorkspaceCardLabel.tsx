@@ -98,8 +98,7 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
         });
     }, [isVisible, windowWidth]);
 
-    // Because of the React Compiler we don't need to memoize it manually
-    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    // eslint-disable-next-line react/jsx-no-constructed-context-values -- React Compiler memoizes this, no manual useMemo needed
     const popoverContextValue: WorkspaceCardLabelPopoverContextValue = {closePopover: () => setVisible(false)};
 
     return (
