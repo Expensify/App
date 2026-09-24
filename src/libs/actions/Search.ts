@@ -1309,8 +1309,6 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        // Always send the flag, including when it is false. The backend defaults a missing flag to true so that
-        // older clients keep saving recent searches, so omitting it on a programmatic search saves that query.
         shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
