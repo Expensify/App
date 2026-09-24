@@ -61,7 +61,7 @@ import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
@@ -269,10 +269,20 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const reportScrollManager = useReportScrollManager();
 
+    // Which rows are on screen, tracked so an edit started on a message the user can already see doesn't move the list.
+    const viewableRowIndexesRef = useRef<Set<number>>(new Set());
+
     // The rendered indexes are known here, so scrolling the row into view mounts it and keeps the message visible while it's edited.
     useScrollToEditingReportAction({
         visibleReportActions: renderedVisibleReportActions,
-        scrollToIndex: (index) => reportScrollManager.scrollToIndex(index),
+        scrollToIndex: (index) => {
+            // Already on screen, so its editor has mounted and taken focus — scrolling would only yank the user.
+            if (viewableRowIndexesRef.current.has(index)) {
+                return;
+            }
+
+            reportScrollManager.scrollToIndex(index);
+        },
     });
 
     // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
@@ -318,6 +328,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         trackVerticalScrolling(event);
         setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    };
+
+    const trackViewableRowIndexes = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+        viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index).filter((index) => index !== null));
+        onViewableItemsChanged(info);
     };
 
     const loadOlderChatsOnEndReached = () => {
@@ -520,7 +535,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         flushPendingScrollToBottom();
                     }}
                     onScroll={trackScrollPositionAndThreshold}
-                    onViewableItemsChanged={onViewableItemsChanged}
+                    onViewableItemsChanged={trackViewableRowIndexes}
                     extraData={extraData}
                     key={listID}
                     overrideProps={{
