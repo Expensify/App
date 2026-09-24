@@ -205,7 +205,7 @@ describe('AddPersonalBankAccountPage', () => {
         fireEvent.press(screen.getByLabelText('Back'));
 
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-        expect(clearPersonalBankAccount).toHaveBeenCalledWith({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+        expect(clearPersonalBankAccount).toHaveBeenCalledWith();
         expect(goBackSpy).toHaveBeenCalledWith();
     });
 

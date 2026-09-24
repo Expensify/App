@@ -20,7 +20,7 @@ function useSubPageImpl({pages, onFinished, startFrom = 0, skipPages = [], onPag
     const isEditing = params?.action === 'edit';
 
     const startPageName = startFrom >= 0 ? pages.at(startFrom)?.pageName : undefined;
-    const isRedirecting = !urlPageName && (!!startPageName || startFrom < 0);
+    const isRedirecting = !urlPageName && !!startPageName;
 
     useEffect(() => {
         if (!isRedirecting) {

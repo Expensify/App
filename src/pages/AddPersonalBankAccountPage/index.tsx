@@ -202,7 +202,7 @@ function AddPersonalBankAccountPage() {
         startFrom = validatedSavedPageIndex >= 0 ? validatedSavedPageIndex : draftStartFrom;
     }
     const isURLSubPageValid = !urlSubPage || pages.some((page) => page.pageName === urlSubPage);
-    const fallbackPageName = pages.at(startFrom)?.pageName ?? pages.at(0)?.pageName;
+    const fallbackPageName = startFrom >= 0 ? (pages.at(startFrom)?.pageName ?? pages.at(0)?.pageName) : undefined;
     const fallbackRoute = fallbackPageName ? buildRoute(fallbackPageName) : undefined;
 
     const {CurrentPage, isEditing, nextPage, prevPage, moveTo, pageIndex, currentPageName, isRedirecting} = useSubPage<PersonalBankAccountSubPageProps>({
@@ -263,7 +263,7 @@ function AddPersonalBankAccountPage() {
         if (pageIndex === 0) {
             if (fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
                 clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-                clearPersonalBankAccount({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+                clearPersonalBankAccount();
             }
             Navigation.goBack();
             return;
