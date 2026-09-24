@@ -82,9 +82,9 @@ type ExpenseFieldRowProps = {
  *
  * Tapping it opens the same selector the push row opened. The caret only says the row holds a value to pick.
  *
- * A field nobody can change is not a field to pick, so it keeps the borderless push row even on the form that
- * borders everything else: a border there reads as an input waiting to be typed into. That rule lives here rather
- * than in each caller so every locked field on the form looks the same.
+ * A field nobody can change stays a field: it keeps the border and reads as a disabled input, losing only the
+ * caret and the press handler. That rule lives here rather than in each caller so every locked field on the form
+ * looks the same.
  */
 function ExpenseFieldRow({
     name,
@@ -120,7 +120,14 @@ function ExpenseFieldRow({
                 {hasValue ? (
                     <>
                         <MenuItem.FieldName numberOfLines={1}>{name}</MenuItem.FieldName>
-                        {valueComponent ?? <MenuItem.FieldValue numberOfLines={numberOfLinesValue}>{value}</MenuItem.FieldValue>}
+                        {valueComponent ?? (
+                            <MenuItem.FieldValue
+                                numberOfLines={numberOfLinesValue}
+                                isMuted={!isInteractive}
+                            >
+                                {value}
+                            </MenuItem.FieldValue>
+                        )}
                     </>
                 ) : (
                     <MenuItem.FieldNamePlaceholder numberOfLines={1}>{name}</MenuItem.FieldNamePlaceholder>
@@ -147,7 +154,6 @@ function ExpenseFieldRow({
         </MenuItem.Row>
     );
 
-    const hasMessages = !!errorText || !!hintText;
     const messages = (
         <>
             {!!errorText && <FormHelpMessage message={errorText} />}
@@ -161,32 +167,16 @@ function ExpenseFieldRow({
         </>
     );
 
-    if (!isInteractive) {
-        return (
-            <View>
-                <MenuItem.Root
-                    isDisabled={isDisabled}
-                    accessibilityLabel={accessibilityLabel}
-                    sentryLabel={sentryLabel}
-                    testID={testID}
-                >
-                    {row}
-                </MenuItem.Root>
-                {/* The push row carries the form's horizontal padding inside itself, so its messages sit outside it
-                    and have to be inset here to line up with the row's text. */}
-                {hasMessages && <View style={styles.mh5}>{messages}</View>}
-            </View>
-        );
-    }
-
     return (
         <View style={[styles.mh4, styles.mv2]}>
             <Animated.View style={[styles.moneyRequestFieldRowFill, backgroundStyle]}>
                 <MenuItem.Root
-                    style={[styles.moneyRequestFieldRow, !!errorText && styles.borderColorDanger]}
-                    // Guarded like every other `MenuItem` preset, so an anonymous user gets the sign-in prompt
-                    // rather than the field's selector.
-                    onPress={callFunctionIfActionIsAllowed(onPress)}
+                    style={[styles.moneyRequestFieldRow, !isInteractive && styles.moneyRequestFieldRowDisabled, !!errorText && styles.borderColorDanger]}
+                    // A locked field has nothing to open, so it is handed no press handler at all: `MenuItem.Root`
+                    // reads that as a non-interactive row and drops the button role and the focus stop with it.
+                    // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
+                    // the sign-in prompt rather than the field's selector.
+                    onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress) : undefined}
                     isDisabled={isDisabled}
                     accessibilityLabel={accessibilityLabel}
                     sentryLabel={sentryLabel}

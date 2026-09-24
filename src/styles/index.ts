@@ -3511,6 +3511,14 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        // `moneyRequestFieldRow` for a field the user cannot change. Takes its fill and border straight from
+        // `textInputDisabledContainer`, so a locked row reads as the disabled input it is rather than as a field
+        // still waiting to be filled in.
+        moneyRequestFieldRowDisabled: {
+            backgroundColor: theme.highlightBG,
+            borderColor: theme.borderLighter,
+        },
+
         // Fill behind `moneyRequestFieldRow`. The row's own background would cover anything drawn under it, so the
         // fill is a layer of its own for a highlight animation to take over.
         moneyRequestFieldRowFill: {

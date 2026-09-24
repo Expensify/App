@@ -132,8 +132,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
                 // flattened first. Plain names pass through unchanged, with their entities decoded.
                 value={Parser.htmlToText(reportName)}
                 onPress={openReportPage}
-                // A report the user cannot change drops to the borderless push row, the same as every other locked
-                // field on this form: the row itself owns that rule.
+                // A report the user cannot change reads as a disabled field, the same as every other locked field
+                // on this form: the row itself owns that rule.
                 isInteractive={shouldReportBeEditable}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
             />

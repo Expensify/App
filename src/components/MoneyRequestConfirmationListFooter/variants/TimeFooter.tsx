@@ -1,6 +1,7 @@
-import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
+import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import TimeDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/TimeDetailsFields';
+import useAddReceiptLayout from '@components/MoneyRequestConfirmationListFooter/hooks/useAddReceiptLayout';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {TimeFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
@@ -12,8 +13,11 @@ import {View} from 'react-native';
 function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: TimeFooterProps) {
     const styles = useThemeStyles();
 
+    // The add-receipt button and the spacing around the preview both key off whether the section shows a receipt.
+    const {expenseFormLayout, hasReceipt} = useAddReceiptLayout(policy, receiptOptions);
+
     return (
-        <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+        <ExpenseFormLayoutContext.Provider value={expenseFormLayout}>
             <View>
                 {/*
                     Separates the workspace row above from the expense details, so the two read as distinct sections.
@@ -22,10 +26,15 @@ function TimeFooter({policy, policyTags, selectedParticipants, amountDisplay, re
                 */}
                 {visibilityFlags.hasParticipantSection && <View style={[styles.dividerLine, styles.mv2]} />}
 
-                <ReceiptSection
-                    policy={policy}
-                    {...receiptOptions}
-                />
+                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the divider
+                    above and of the first field below it goes here. */}
+                <View style={hasReceipt ? styles.mv2 : undefined}>
+                    <ReceiptSection
+                        policy={policy}
+                        shouldHideEmptyState
+                        {...receiptOptions}
+                    />
+                </View>
                 <ConfirmationFieldList
                     policy={policy}
                     policyTags={policyTags}

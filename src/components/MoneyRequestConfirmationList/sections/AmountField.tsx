@@ -68,7 +68,8 @@ function AmountField({
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
-    // Only the manual form fills the trailing slot beside the field, with its compact add-receipt button.
+    // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
+    // state, with their compact add-receipt button.
     const {amountTrailingAction} = useExpenseFormLayout();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
     // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
@@ -91,6 +92,10 @@ function AmountField({
     const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
+    // The read-only row only opens the amount page for a form whose amount the user could have typed in the first
+    // place. A distance or time amount is computed from the fields below it, so its row has nothing to open and is
+    // not offered as a control at all: no caret, no hover, no press.
+    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
@@ -344,27 +349,45 @@ function AmountField({
                     {amountTrailingAction}
                 </View>
             ) : (
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields}
-                    title={formattedAmount}
-                    description={translate('iou.amount')}
-                    interactive={!isReadOnly && !shouldShowTimeRequestFields}
-                    onPress={() => {
-                        if (isDistanceRequest || shouldShowTimeRequestFields || !transactionID) {
-                            return;
-                        }
+                // The distance and time forms compute their amount rather than take it, so the field is a read-only
+                // row on them. The trailing slot travels with it, or those forms would have nowhere to offer the
+                // compact add-receipt button from.
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                    <View style={styles.flex1}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canOpenAmountPage}
+                            title={formattedAmount}
+                            description={translate('iou.amount')}
+                            interactive={canOpenAmountPage}
+                            onPress={() => {
+                                if (!canOpenAmountPage || !transactionID) {
+                                    return;
+                                }
 
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, reportActionID, CONST.IOU.PAGE_INDEX.CONFIRM, Navigation.getActiveRoute()),
-                        );
-                    }}
-                    style={[styles.moneyRequestMenuItem, styles.mt2]}
-                    titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                />
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(
+                                        action,
+                                        iouType,
+                                        transactionID,
+                                        reportID,
+                                        reportActionID,
+                                        CONST.IOU.PAGE_INDEX.CONFIRM,
+                                        Navigation.getActiveRoute(),
+                                    ),
+                                );
+                            }}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.moneyRequestConfirmationAmount}
+                            disabled={didConfirm}
+                            brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                        />
+                    </View>
+                    {/* The push row carries its own 20px of horizontal padding, so the button is inset to the 16px
+                        the bordered fields below it sit at. */}
+                    {!!amountTrailingAction && <View style={styles.mr4}>{amountTrailingAction}</View>}
+                </View>
             )}
         </>
     );

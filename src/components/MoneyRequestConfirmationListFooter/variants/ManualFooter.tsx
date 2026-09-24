@@ -1,14 +1,11 @@
-import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
-import AddReceiptButton from '@components/MoneyRequestConfirmationList/sections/AddReceiptButton';
 import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFooter/ConfirmationFieldList';
 import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/ManualDetailsFields';
+import useAddReceiptLayout from '@components/MoneyRequestConfirmationListFooter/hooks/useAddReceiptLayout';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {ManualFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -23,18 +20,12 @@ import {View} from 'react-native';
  */
 function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: ManualFooterProps) {
     const styles = useThemeStyles();
-    const {action, iouType, isPerDiemRequest, isReadOnly} = useConfirmationFields();
 
     // The add-receipt button and the spacing around the preview both key off whether the section shows a receipt.
-    // This is a close approximation of what `ReceiptSection` resolves for itself rather than the same decision: it
-    // reads the raw receipt path where the section reads the thumbnail it resolves from the transaction, and it
-    // does not know about the distance-map case that hides the receipt area outright. Neither gap is reachable
-    // from this footer today, since a manual expense carries no distance data.
-    const hasReceipt = (!!receiptOptions.receiptPath && !!receiptOptions.receiptFilename) || !!receiptOptions.isLoadingReceipt;
-    const canAddReceipt = !isReadOnly && shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+    const {expenseFormLayout, hasReceipt} = useAddReceiptLayout(policy, receiptOptions);
 
     return (
-        <ExpenseFormLayoutContext.Provider value={{shouldUseDropdownRows: true, amountTrailingAction: !hasReceipt && canAddReceipt ? <AddReceiptButton /> : undefined}}>
+        <ExpenseFormLayoutContext.Provider value={expenseFormLayout}>
             <View>
                 {/*
                     Separates the workspace row above from the expense details, so the two read as distinct sections.

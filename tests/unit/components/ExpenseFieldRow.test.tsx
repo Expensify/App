@@ -1,6 +1,8 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -136,10 +138,35 @@ describe('ExpenseFieldRow', () => {
             // When the row is pressed
             pressRow();
 
-            // Then nothing opens, and the row is not offered as a control at all: a locked field reads as a plain
-            // line of detail rather than as one of the form's bordered inputs
+            // Then nothing opens, and the row is not offered as a control at all: a locked field stays one of the
+            // form's fields, but reads as a disabled input rather than as something to tap
             expect(onPress).not.toHaveBeenCalled();
             expect(screen.queryByRole('button')).toBeNull();
+        });
+    });
+
+    describe('read-only presentation', () => {
+        it('renders a field the user cannot change as a disabled input', () => {
+            const {result} = renderHook(() => useThemeStyles());
+
+            // Given a field nobody can change
+            render(
+                <ExpenseFieldRow
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    isInteractive={false}
+                    onPress={jest.fn()}
+                    testID="category-row"
+                />,
+            );
+
+            // When the form renders it
+            const row = screen.getByTestId('category-row');
+
+            // Then it keeps the bordered container every other field on the form has, rather than dropping to a
+            // borderless push row, and is greyed the way a disabled text input is
+            expect(row).toHaveStyle({borderWidth: result.current.moneyRequestFieldRow.borderWidth});
+            expect(row).toHaveStyle(result.current.moneyRequestFieldRowDisabled);
         });
     });
 });

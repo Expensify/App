@@ -15,8 +15,9 @@ type ExpenseFormLayoutContextValue = {
     shouldUseDropdownRows: boolean;
 
     /**
-     * Rendered beside the amount field, vertically aligned with it. The manual form puts its compact add-receipt
-     * button here, which is how the amount field stays unaware that the button exists.
+     * Rendered beside the amount field, vertically aligned with it. Every form that offers a receipt from the
+     * field row rather than from a full-width empty state puts its compact add-receipt button here, which is how
+     * the amount field stays unaware that the button exists.
      */
     amountTrailingAction?: ReactNode;
 };
@@ -27,7 +28,8 @@ const defaultExpenseFormLayout: ExpenseFormLayoutContextValue = {shouldUseDropdo
 /**
  * The bordered-row presentation, shared by every footer that wants it and nothing more. A module-level constant
  * rather than a literal per render, so providing it never re-renders the whole field tree for a new identity. The
- * manual footer builds its own value instead, since it also fills the amount field's trailing slot.
+ * footers that also offer the compact add-receipt button build their own value through `useAddReceiptLayout`,
+ * since they fill the amount field's trailing slot as well.
  */
 const dropdownRowsExpenseFormLayout: ExpenseFormLayoutContextValue = {shouldUseDropdownRows: true};
 
@@ -39,3 +41,4 @@ function useExpenseFormLayout(): ExpenseFormLayoutContextValue {
 
 export default ExpenseFormLayoutContext;
 export {dropdownRowsExpenseFormLayout, useExpenseFormLayout};
+export type {ExpenseFormLayoutContextValue};
