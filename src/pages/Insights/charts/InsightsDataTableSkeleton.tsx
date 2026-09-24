@@ -2,6 +2,7 @@ import SkeletonRect from '@components/SkeletonRect';
 import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 
 import useContainerWidth from '@hooks/useContainerWidth';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -11,7 +12,8 @@ import {View} from 'react-native';
 const AVATAR_SIZE = variables.avatarSizeMedium;
 const GAP_X = 12;
 const ROW_PADDING_Y = 16;
-const ROW_PADDING_X = 16;
+const ROW_PADDING_X_NARROW = 20;
+const ROW_PADDING_X_WIDE = 32;
 
 const ROW_HEIGHT = AVATAR_SIZE + ROW_PADDING_Y * 2;
 const BAR_HEIGHT = 8;
@@ -38,9 +40,11 @@ type InsightsDataTableSkeletonProps = {
 function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDataTableSkeletonProps) {
     const styles = useThemeStyles();
     const {onLayout, containerWidth} = useContainerWidth();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const rowPaddingX = shouldUseNarrowLayout ? ROW_PADDING_X_NARROW : ROW_PADDING_X_WIDE;
 
-    const textStartX = ROW_PADDING_X + (shouldShowAvatar ? AVATAR_SIZE + GAP_X : 0);
-    const contentEndX = containerWidth - ROW_PADDING_X;
+    const textStartX = rowPaddingX + (shouldShowAvatar ? AVATAR_SIZE + GAP_X : 0);
+    const contentEndX = containerWidth - rowPaddingX;
     const amountX = Math.max(contentEndX - AMOUNT_WIDTH, textStartX + LABEL_WIDTH + GAP_X);
     const shareX = Math.max(contentEndX - SHARE_WIDTH, textStartX + LABEL_WIDTH + GAP_X);
 
@@ -59,7 +63,7 @@ function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDa
                     <>
                         {shouldShowAvatar && (
                             <SkeletonRect
-                                transform={[{translateX: ROW_PADDING_X}, {translateY: ROW_PADDING_Y}]}
+                                transform={[{translateX: rowPaddingX}, {translateY: ROW_PADDING_Y}]}
                                 width={AVATAR_SIZE}
                                 height={AVATAR_SIZE}
                                 borderRadius={AVATAR_SIZE / 2}

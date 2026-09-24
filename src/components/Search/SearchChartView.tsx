@@ -10,7 +10,10 @@ import {formatToParts} from '@libs/NumberFormatUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
+import {View} from 'react-native';
 
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy, SearchQueryJSON} from './types';
 
@@ -38,13 +41,16 @@ type SearchChartViewProps = {
 
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
+
+    /** Style of the view around the chart, which the details below it don't share */
+    chartContainerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, renderDetails, chartContainerStyle}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -111,7 +117,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, rend
 
     return (
         <>
-            {CHART_VIEW_TO_CHART[view]}
+            <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
             {renderDetails?.(rows)}
         </>
     );
