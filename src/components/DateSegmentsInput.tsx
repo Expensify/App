@@ -7,7 +7,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isSafari} from '@libs/Browser';
 import {getDateMaskParts} from '@libs/DateInputMaskUtils';
 import type {DateSegmentName} from '@libs/DateInputMaskUtils';
 import mergeRefs from '@libs/mergeRefs';
@@ -26,8 +25,8 @@ import {PressableWithoutFeedback} from './Pressable';
 import RNTextInput from './RNTextInput';
 import Text from './Text';
 
-/** Safari clips the caret of an input sized to its text exactly, the same allowance TextInputMeasurement makes */
-const SAFARI_CARET_ALLOWANCE = 2;
+/** A measured width is rounded to a whole pixel, which can leave it short of the text and wrap the mask */
+const WIDTH_ROUNDING_ALLOWANCE = 1;
 
 /** Reads back the padding the field hands its text, which is what a selection has to leave alone to cover the line */
 function getVerticalPadding(inputStyle: BaseTextInputProps['style']): ViewStyle {
@@ -65,7 +64,6 @@ function DateSegmentsInput({
     const {mask, getSegmentProps, setSegmentRef, focusFirstUnfilledSegment, isSegmentElement, isAllSelected, onFieldBlur} = dateSegmentsConfig;
 
     const parts = getDateMaskParts(mask).map((part) => ({...part, segmentProps: getSegmentProps(part.name)}));
-    const caretAllowance = isSafari() ? SAFARI_CARET_ALLOWANCE : 0;
 
     // A form hangs its validation on the field's blur, so it only runs once focus leaves the whole field
     const handleSegmentBlur: NonNullable<BaseTextInputProps['onBlur']> = (event) => {
@@ -102,7 +100,7 @@ function DateSegmentsInput({
                     // The mask letters a half typed segment has not reached yet stay on screen, so the date keeps its shape
                     const remainder = part.placeholder.slice(segmentProps.value.length);
                     const measuredText = `${segmentProps.value}${remainder}`;
-                    const width = (measuredWidths[part.name] ?? measuredText.length * CONST.CHARACTER_WIDTH) + caretAllowance;
+                    const width = (measuredWidths[part.name] ?? measuredText.length * CONST.CHARACTER_WIDTH) + WIDTH_ROUNDING_ALLOWANCE;
 
                     return (
                         <React.Fragment key={part.name}>
