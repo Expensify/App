@@ -4,6 +4,7 @@
  */
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -81,7 +82,10 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
 
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.ph5, styles.pt4, containerStyle]}>
+            <ScrollView
+                style={[styles.flex1]}
+                contentContainerStyle={[styles.ph5, styles.pt4, containerStyle]}
+            >
                 <Text style={styles.mb5}>{translate('search.filters.describeSearch.description')}</Text>
                 <TextInput
                     label={translate('search.filters.describeSearch.inputLabel')}
@@ -93,14 +97,15 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                         if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey)) {
                             return;
                         }
+                        e.preventDefault();
                         handleSubmit();
                     }}
                     autoFocus
                     autoGrowHeight
                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                 />
-            </View>
-            <View style={buttonContainerStyle ?? [styles.mtAuto, styles.m4, styles.mb5]}>
+            </ScrollView>
+            <View style={buttonContainerStyle ?? [styles.m4, styles.mb5]}>
                 <FormHelpMessage
                     isError
                     message={errorMessage}
@@ -109,7 +114,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={size}
                     isLoading={isLoading}
-                    isDisabled={isLoading}
+                    isDisabled={isLoading || !nlQuery.trim()}
                     onPress={handleSubmit}
                 >
                     <Button.KeyboardShortcut />
