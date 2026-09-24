@@ -22,7 +22,7 @@ Bank accounts may be locked after a failed debit attempt or a bank-side restrict
 When a bank account is locked, you’ll see a **Locked** badge on the account in: 
 
  - **Settings > Wallet** in the **Bank accounts** section
- - **Workspaces > [Workspace Name] > Workflows** in the **Payments** section
+ - **Workspaces > [Workspace Name] > Workflows > Payments**
 
 You’ll also see an alert in the **Time sensitive** section on **Home** with a **Fix** button that guides you through the unlock process.
 
@@ -39,9 +39,11 @@ You’ll also see an alert in the **Time sensitive** section on **Home** with a 
 You can start the request from **Home**, **Wallet**, or a workspace’s **Workflows**. The steps are the same on web and mobile.
 
 1. Do one of the following:
-   - On **Home**, click **Fix** on the locked bank account alert in the **Time sensitive** section.
-   - In **Settings > Wallet** or **Workspaces > [Workspace Name] > Workflows**, click the bank account with the **Locked** badge, or click **Unlock** next to it.
-2. Review the request Expensify posts in your Concierge chat.
+   - On **Home**, click **Fix** on the locked bank account alert in the **Time sensitive** section, then skip to step 3.
+   - Go to **Settings > Wallet** and find the account in the **Bank accounts** section.
+   - Go to **Workspaces > [Workspace Name] > Workflows** and click the **Payments** tab. **Workflows** opens on the **Submissions** tab, so the bank account isn’t shown until you switch to **Payments**.
+2. In **Wallet** or **Payments**, click the bank account with the **Locked** badge, or click **Unlock** next to it.
+3. Review the request Expensify posts in your Concierge chat.
 
 There is no extra confirmation step. Expensify sends the request to Concierge as soon as you click and takes you straight to your Concierge chat, where the request appears as a message — you don’t need to write anything. Concierge will walk you through the next steps to unlock the account, or confirm when your account is ready to use.
 
@@ -96,7 +98,7 @@ Ask your bank to allow ACH debits from the following originators:
 
 ## Will I be notified when my bank account is locked?
 
-Yes. You’ll see a **Locked** badge in **Wallet** and **Workflows**, and Concierge will message you.
+Yes. You’ll see a **Locked** badge in **Wallet** and on the **Payments** tab of **Workflows**, and Concierge will message you.
 
 ## Can I delete a locked bank account?
 
