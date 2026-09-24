@@ -214,41 +214,61 @@ describe('MoneyRequestViewReportFields', () => {
     });
 
     it('shows up to three fields per row on a wide layout', async () => {
+        // Given a report with 7 fields, a count that does not divide evenly into rows of three, because a partly
+        // filled last row is the case that would regress if the chunking were off by one
         await renderReportFields(7);
 
-        // 7 fields fill two rows of three and one row holding the remaining field
+        // When the fields are laid out on a wide layout
+        // Then they occupy 3 rows, two full rows of three plus one holding the remaining field, which is what packing
+        // the fields three to a row rather than stacking them produces
         expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(3);
     });
 
     it('shows one field per row on a narrow layout', async () => {
+        // Given a narrow layout, where three fields side by side would each be too cramped to read
         mockShouldUseNarrowLayout = true;
+
+        // When 4 fields are laid out
         await renderReportFields(4);
 
+        // Then each one gets its own row, so the column count drops to 1 rather than staying at 3
         expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
     });
 
     it('shows one field per row on a wide layout when a single column is requested', async () => {
-        // A one-expense report passes `shouldUseSingleColumn`, so its fields stack even though the layout is wide
+        // Given a wide layout and a caller asking for a single column, which is how the one-expense report view
+        // renders its fields inside a container too narrow for the grid
+        // When 4 fields are laid out
         await renderReportFields(4, [], true);
 
+        // Then each one gets its own row, proving `shouldUseSingleColumn` overrides the wide layout rather than only
+        // taking effect when the layout is already narrow
         expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
     });
 
     it('renders every field as an input holding its value', async () => {
+        // Given a report with 2 fields that already hold values
         await renderReportFields(2);
 
+        // When each field is looked up by its label
+        // Then it is an input carrying the saved value, because the fields are edited in place now instead of being
+        // rows that show the value and navigate to the editor page to change it
         expect(screen.getByLabelText('Field1')).toHaveProp('value', 'Value1');
         expect(screen.getByLabelText('Field2')).toHaveProp('value', 'Value2');
     });
 
     it('saves a value typed into a field without leaving the report', async () => {
+        // Given a report with 2 fields
         await renderReportFields(2);
 
+        // When a new value is typed into the first field and the field is left
         const input = screen.getByLabelText('Field1');
         fireEvent.changeText(input, 'Updated value');
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
+        // Then the value is saved from the report itself, with the old value passed along so the optimistic update can
+        // be rolled back. This is the whole point of inline editing: no navigation to the editor page to change a value
         expect(updateReportField).toHaveBeenCalledTimes(1);
         expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
             reportField: {fieldID: 'field1', value: 'Updated value'},
@@ -257,13 +277,17 @@ describe('MoneyRequestViewReportFields', () => {
     });
 
     it('saves the empty value when an optional field is cleared', async () => {
+        // Given a report with 2 optional fields that already hold values
         await renderReportFields(2);
 
+        // When the first field is emptied and left
         const input = screen.getByLabelText('Field1');
         fireEvent.changeText(input, '');
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
+        // Then the empty value is saved, because deliberately clearing an optional field is a real edit and must not
+        // be mistaken for the no-op case where the user tabbed through without changing anything
         expect(updateReportField).toHaveBeenCalledTimes(1);
         expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
             reportField: {fieldID: 'field1', value: ''},
@@ -272,65 +296,110 @@ describe('MoneyRequestViewReportFields', () => {
     });
 
     it('rejects clearing a required field instead of saving it', async () => {
+        // Given a report holding a required field, which the editor page used to guard with its own form validation
         await renderReportFields(1, [buildRequiredField()]);
 
+        // When the field is emptied and left
         const input = screen.getByLabelText('RequiredField');
         fireEvent.changeText(input, '');
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
+        // Then nothing is saved and the error is shown instead, so moving the editing inline did not drop the
+        // validation that the editor page used to apply before it would submit
         expect(updateReportField).not.toHaveBeenCalled();
         expect(screen.getByText('common.error.fieldRequired')).toBeOnTheScreen();
     });
 
     it('does not save when the option a list field already holds is picked again', async () => {
+        // Given a list field already set to Option1
         await renderReportFields(1, [buildListField()]);
 
+        // When the dropdown is opened and that same option is picked
         fireEvent.press(screen.getByLabelText('ListField'));
         await waitForBatchedUpdatesWithAct();
 
         fireEvent.press(screen.getByTestId('base-list-item-Option1'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then no update is sent, because a re-pick is not an edit and saving it would put a pointless entry in the
+        // report history and mark the field as recently used for a value the user never actually changed
         expect(updateReportField).not.toHaveBeenCalled();
     });
 
     it('does not save when the value is left unchanged', async () => {
+        // Given a report with 2 fields that already hold values
         await renderReportFields(2);
 
+        // When a field is focused and left without typing, which happens constantly as the user tabs through a row
         const input = screen.getByLabelText('Field1');
         fireEvent(input, 'blur');
         await waitForBatchedUpdatesWithAct();
 
+        // Then nothing is saved, because blur is the save trigger now and merely passing through a field must not
+        // cost a write
         expect(updateReportField).not.toHaveBeenCalled();
     });
 
+    it('resets the displayed text when an edit is skipped because it only changed the whitespace', async () => {
+        // Given a report with 2 fields that already hold values
+        await renderReportFields(2);
+
+        // When the value is retyped with surrounding whitespace and the field is left
+        const input = screen.getByLabelText('Field1');
+        fireEvent.changeText(input, '  Value1  ');
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no update is sent, because the value is unchanged once trimmed
+        expect(updateReportField).not.toHaveBeenCalled();
+
+        // Then the field shows the saved value again rather than the whitespace the user typed. The saved value never
+        // changed, so nothing else would ever correct the display and the text would silently snap back on remount
+        expect(screen.getByLabelText('Field1')).toHaveProp('value', 'Value1');
+    });
+
     it('keeps the fields of a row aligned at the top so an error grows the row downwards', async () => {
+        // Given a full row of 3 fields
         await renderReportFields(3);
 
+        // When the row is laid out
+        // Then its fields are aligned to the top, so one field growing taller to show a validation error pushes its
+        // own content down instead of re-centering the two fields beside it
         expect(screen.getAllByTestId('reportFieldsRow').at(0)).toHaveStyle({alignItems: 'flex-start'});
     });
 
     it('holds back a field violation until the field has been left', async () => {
+        // Given a required field that is already empty when the report opens, so its violation is true from the start
         await renderReportFields(1, [buildEmptyField()]);
 
+        // Then the error is not shown yet, because a report full of empty required fields would otherwise open as a
+        // wall of red before the user has touched anything
         expect(screen.queryByText('EmptyField is required')).toBeNull();
 
+        // When the user focuses the field and leaves it without filling it in
         fireEvent(screen.getByLabelText('EmptyField'), 'blur');
         await waitForBatchedUpdatesWithAct();
 
+        // Then the error appears, because by now the user has had their chance to fill it in
         expect(screen.getByText('EmptyField is required')).toBeOnTheScreen();
     });
 
     it('renders a list field as a collapsed combobox rather than a row that opens a page', async () => {
+        // Given a report holding a list field set to Option1
         await renderReportFields(1, [buildListField()]);
 
+        // When the field is inspected before it has been opened
         const listInput = screen.getByLabelText('ListField');
+
+        // Then it exposes itself to assistive tech as a closed combobox showing the current value, which is what a
+        // dropdown that opens in place must look like, unlike the old row that announced itself as a link to a page
         expect(listInput).toHaveProp('role', CONST.ROLE.COMBOBOX);
         expect(listInput).toHaveProp('accessibilityState', {expanded: false});
         expect(listInput).toHaveProp('value', 'Option1');
 
-        // The dropdown content is deferred until the field is first opened, so no option row is mounted up front.
+        // Then no option row is mounted yet, because building the option list for every list field on a report full of
+        // them would be paid for up front even though most dropdowns are never opened
         expect(screen.queryByText('Option2')).toBeNull();
     });
 
@@ -349,39 +418,47 @@ describe('MoneyRequestViewReportFields', () => {
     });
 
     it('opens the option list in place when a list field is pressed', async () => {
+        // Given a report holding a list field
         await renderReportFields(1, [buildListField()]);
 
+        // When the field is pressed
         fireEvent.press(screen.getByLabelText('ListField'));
         await waitForBatchedUpdatesWithAct();
 
+        // Then the options appear over the report and the combobox reports itself as expanded, which is what
+        // replacing the navigation to the editor page with an in-place dropdown has to produce
         expect(screen.getByLabelText('ListField')).toHaveProp('accessibilityState', {expanded: true});
         expect(screen.getByText('Option2')).toBeOnTheScreen();
     });
 
     it('keeps the caret in the same place when the option list opens', async () => {
+        // Given a closed list field whose caret sits in a container padded on one side only
         await renderReportFields(1, [buildListField()]);
 
         expect(getRenderedStyles()).toEqual(expect.arrayContaining([expect.objectContaining(caretContainer)]));
 
+        // When the list is opened and the caret flips to point up
         fireEvent.press(screen.getByLabelText('ListField'));
         await waitForBatchedUpdatesWithAct();
 
-        // The caret container is padded on one side only, so `rotate(180deg)` would mirror that padding along with
-        // the caret and slide it 11px left the moment the list opens. Mirroring on the vertical axis turns the caret
-        // over while leaving its box — and so the caret's distance from the field's right edge — untouched.
+        // Then the caret is mirrored on the vertical axis rather than rotated. `rotate(180deg)` would carry the
+        // asymmetric padding around with it and slide the caret 11px left the instant the list opens, so the caret
+        // would visibly jump sideways every time the user opened a dropdown
         const expandedStyles = getRenderedStyles();
         expect(expandedStyles).toEqual(expect.arrayContaining([expect.objectContaining({...caretContainer, transform: [{scaleY: -1}]})]));
         expect(expandedStyles).not.toEqual(expect.arrayContaining([expect.objectContaining({transform: [{rotate: '180deg'}]})]));
     });
 
     it('sizes the option popover like the Spend dropdowns instead of matching the field width', async () => {
+        // Given a report holding a list field, which in the grid can be as narrow as a third of a row
         await renderReportFields(1, [buildListField()]);
 
+        // When its option list is opened
         fireEvent.press(screen.getByLabelText('ListField'));
         await waitForBatchedUpdatesWithAct();
 
-        // A popover as narrow as the field it is anchored to looked cramped, so it uses the width every Spend
-        // filter dropdown uses.
+        // Then the popover takes the standard dropdown width rather than the width of the field it is anchored to,
+        // because a popover that narrow left the option labels cramped and truncated
         const popover = screen.UNSAFE_getByType(PopoverWithMeasuredContent);
         expect(popover.props.popoverDimensions).toEqual(expect.objectContaining({width: CONST.POPOVER_DROPDOWN_WIDTH}));
     });

@@ -91,6 +91,10 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
 
         if (trimmedValue === lastSavedValue.trim()) {
             setValidationError('');
+            // Nothing is sent, so the saved value never changes and the resync above that follows it never runs.
+            // Without this the field would keep displaying the whitespace the user left behind until it remounted,
+            // at which point the text would visibly snap back to the value that was really stored.
+            setDraftValue(lastSavedValue);
             return;
         }
 
