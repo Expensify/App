@@ -182,6 +182,31 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
         });
 
+        it('does not return the missing amount message for a zero amount expense created in the self DM', () => {
+            // Given a $0 expense created in the self DM, which is stored as unreported so no iou report resolves for it
+            const functionArgs: Parameters<typeof getTransactionPreviewTextAndTranslationPaths>[0] = {
+                ...basicProps,
+                iouReport: undefined,
+                transaction: {
+                    ...basicProps.transaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 0,
+                    modifiedAmount: undefined,
+                    merchant: 'Valid Merchant',
+                    created: '2024-01-01',
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When we build the preview text for it
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then no missing amount error is shown, because $0 is a valid amount for an unreported expense
+            expect(result.RBRMessage.translationPath).not.toEqual('iou.missingAmount');
+        });
+
         it('should display cash or card as the preview type', () => {
             const functionArgsWithCardTransaction = {
                 ...basicProps,
@@ -588,6 +613,30 @@ describe('TransactionPreviewUtils', () => {
         it('should ensure RBR is not shown when no violation and no hold', () => {
             const functionArgs = {...basicProps, isTransactionOnHold: false};
             const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowRBR).toBeFalsy();
+        });
+
+        it('should ensure RBR is not shown for a zero amount expense created in the self DM', () => {
+            // Given a $0 expense created in the self DM, which is stored as unreported so no iou report resolves for it
+            const functionArgs = {
+                ...basicProps,
+                iouReport: undefined,
+                transaction: {
+                    ...basicProps.transaction,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 0,
+                    modifiedAmount: undefined,
+                    merchant: 'Valid Merchant',
+                    created: '2024-01-01',
+                },
+                violations: [],
+                isTransactionOnHold: false,
+            };
+
+            // When we compute the preview conditionals
+            const result = createTransactionPreviewConditionals(functionArgs);
+
+            // Then no red brick road is shown, so the fix clears the dot and not just the message
             expect(result.shouldShowRBR).toBeFalsy();
         });
 
