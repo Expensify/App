@@ -434,7 +434,7 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'anyApproval:'}));
 
         expect(result.current.length).toBeGreaterThan(0);
-        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ANY_APPROVAL);
         expect(result.current.map((item) => item.text)).toEqual(['today', 'yesterday', 'lastWeek', 'lastMonth'].sort());
     });
 
