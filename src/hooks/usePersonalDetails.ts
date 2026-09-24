@@ -1,8 +1,6 @@
 /** Personal details reads for components, so nothing touches PERSONAL_DETAILS_LIST directly */
-import {getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
-
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
+import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry, UseOnyxResult} from 'react-native-onyx';
@@ -13,15 +11,15 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
+// Pass a selector when only part of the record is needed, so the caller doesn't re-render on the person's other fields
 function usePersonalDetail(accountID: number | undefined): UseOnyxResult<PersonalDetails | undefined>;
 function usePersonalDetail<TReturn>(accountID: number | undefined, selector: (personalDetail: PersonalDetails | undefined) => TReturn): UseOnyxResult<TReturn>;
 function usePersonalDetail<TReturn>(accountID: number | undefined, selector?: (personalDetail: PersonalDetails | undefined) => TReturn) {
-    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
-            const personalDetail = getPersonalDetailsByID(accountID, personalDetailsList);
-            return selector ? selector(personalDetail) : personalDetail;
-        },
-    });
+    const personalDetailSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
+        const personalDetail = personalDetailsSelector(accountID)(personalDetailsList);
+        return selector ? selector(personalDetail) : personalDetail;
+    };
+    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailSelector});
 }
 
 function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList> {

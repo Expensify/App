@@ -169,6 +169,11 @@ function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
+/** Undo `skipNextFocusRestore` when its goBack never happened. */
+function cancelSkipNextFocusRestore(): void {
+    skipNextRestore = false;
+}
+
 /** Native-only. Web captures via `focusin` so this stub exists only to keep the import cross-platform. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function notifyPressedTrigger(_ref: RefObject<ComponentRef<typeof View> | null> | null, _identifier?: string): void {}
@@ -690,6 +695,7 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    cancelSkipNextFocusRestore,
     notifyPressedTrigger,
     registerPressable,
     isFocusRestoreInProgress,
