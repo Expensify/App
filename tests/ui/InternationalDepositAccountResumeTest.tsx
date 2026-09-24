@@ -84,15 +84,14 @@ describe('InternationalDepositAccount resume fields', () => {
         personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET, isLoading: false, corpayFieldsError: null};
         corpayFields = undefined;
         mockedUseOnyx.mockImplementation((key, options) => {
-            const applySelector = <TValue,>(value: TValue) => (options?.selector ? options.selector(value) : value);
             if (key === ONYXKEYS.PERSONAL_BANK_ACCOUNT) {
-                return [applySelector(personalBankAccount), {status: 'loaded'}];
+                return [(options?.selector ? options.selector(personalBankAccount) : personalBankAccount) ?? undefined, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT) {
-                return [applySelector(draftValues), {status: 'loaded'}];
+                return [(options?.selector ? options.selector(draftValues) : draftValues) ?? undefined, {status: 'loaded'}];
             }
             if (key === ONYXKEYS.CORPAY_FIELDS) {
-                return [applySelector(corpayFields), {status: 'loaded'}];
+                return [(options?.selector ? options.selector(corpayFields) : corpayFields) ?? undefined, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });

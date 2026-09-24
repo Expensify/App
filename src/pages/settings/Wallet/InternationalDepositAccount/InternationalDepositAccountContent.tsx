@@ -141,7 +141,7 @@ function InternationalDepositAccountContent({
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (!isWalletSetup || !isFocused || isRedirecting) {
+        if (!isWalletSetup || !isFocused || isRedirecting || !currentPageName) {
             return;
         }
         updatePersonalBankAccountCurrentPage(currentPageName);

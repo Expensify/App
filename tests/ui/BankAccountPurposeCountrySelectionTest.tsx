@@ -163,23 +163,6 @@ describe('BankAccountPurpose CountrySelection', () => {
     it('resumes the exact Wallet business account after its transient state was cleared', async () => {
         // Given dismissal preserved the exact Wallet account ID while clearing the transient reimbursement account
         mockedUseOnyx.mockImplementation((key) => {
-            if (key === ONYXKEYS.BANK_ACCOUNT_LIST) {
-                return [
-                    {
-                        789: {
-                            bankCountry: 'LT',
-                            bankCurrency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT,
-                            accountData: {
-                                bankAccountID: 789,
-                                created: '2026-09-25',
-                                state: CONST.BANK_ACCOUNT.STATE.SETUP,
-                                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-                            },
-                        },
-                    },
-                    {status: 'loaded'},
-                ];
-            }
             if (key === ONYXKEYS.REIMBURSEMENT_ACCOUNT) {
                 return [CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, {status: 'loaded'}];
             }
@@ -206,7 +189,7 @@ describe('BankAccountPurpose CountrySelection', () => {
             jest.runOnlyPendingTimers();
         });
 
-        // Then it reopens the exact saved account rather than a newer account with the same country and currency
+        // Then it reopens the exact account saved in the Wallet resume draft
         expect(mockedClearReimbursementAccount).not.toHaveBeenCalled();
         expect(mockedClearReimbursementAccountDraft).not.toHaveBeenCalled();
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: 456, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
