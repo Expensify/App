@@ -4,12 +4,14 @@
  */
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {parseExpenseFilters} from '@libs/actions/Search';
@@ -50,6 +52,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
     const [errorMessage, setErrorMessage] = useState('');
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
 
     const handleSubmit = () => {
         const trimmedQuery = nlQuery.trim();
@@ -79,43 +82,53 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
             });
     };
 
+    const button = (
+        <View style={buttonContainerStyle ?? [styles.mtAuto, styles.m4, styles.mb5]}>
+            <FormHelpMessage
+                isError
+                message={errorMessage}
+            />
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={size}
+                isLoading={isLoading}
+                isDisabled={isLoading}
+                onPress={handleSubmit}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('search.filters.describeSearch.buttonText')}</Button.Text>
+            </Button>
+        </View>
+    );
+
     return (
         <View style={[styles.flex1]}>
-            <View style={[styles.ph5, styles.pt4, containerStyle]}>
-                <Text style={styles.mb5}>{translate('search.filters.describeSearch.description')}</Text>
-                <TextInput
-                    label={translate('search.filters.describeSearch.inputLabel')}
-                    accessibilityLabel={translate('search.filters.describeSearch.inputLabel')}
-                    role={CONST.ROLE.PRESENTATION}
-                    value={nlQuery}
-                    onChangeText={setNlQuery}
-                    onKeyPress={(e) => {
-                        if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey)) {
-                            return;
-                        }
-                        handleSubmit();
-                    }}
-                    autoFocus
-                    autoGrowHeight
-                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                />
-            </View>
-            <View style={buttonContainerStyle ?? [styles.mtAuto, styles.m4, styles.mb5]}>
-                <FormHelpMessage
-                    isError
-                    message={errorMessage}
-                />
-                <Button
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={size}
-                    isLoading={isLoading}
-                    isDisabled={isLoading}
-                    onPress={handleSubmit}
-                >
-                    <Button.KeyboardShortcut />
-                    <Button.Text>{translate('search.filters.describeSearch.buttonText')}</Button.Text>
-                </Button>
-            </View>
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1]}
+            >
+                <View style={[styles.ph5, styles.pt4, containerStyle]}>
+                    <Text style={styles.mb5}>{translate('search.filters.describeSearch.description')}</Text>
+                    <TextInput
+                        label={translate('search.filters.describeSearch.inputLabel')}
+                        accessibilityLabel={translate('search.filters.describeSearch.inputLabel')}
+                        role={CONST.ROLE.PRESENTATION}
+                        value={nlQuery}
+                        onChangeText={setNlQuery}
+                        onKeyPress={(e) => {
+                            if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey)) {
+                                return;
+                            }
+                            handleSubmit();
+                        }}
+                        autoFocus
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                    />
+                </View>
+                {shouldButtonBeInScrollView && button}
+            </ScrollView>
+            {!shouldButtonBeInScrollView && button}
         </View>
     );
 }
