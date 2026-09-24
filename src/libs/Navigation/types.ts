@@ -2262,6 +2262,7 @@ type RoomMembersNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
+    [SCREENS.MONEY_REQUEST.CREATE_BILL]: undefined;
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM]: {
         action: IOUAction;
         iouType: IOUType;

@@ -128,7 +128,7 @@ function TransactionGroupListItemImpl({
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
-    const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || searchType === CONST.SEARCH.DATA_TYPES.BILL;
     const reportGroupID = isExpenseReportType ? (groupItem as TransactionReportGroupListItemType).reportID : undefined;
 
     const snapshotActions = reportGroupID ? Object.values(currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] ?? {}) : [];
@@ -463,7 +463,7 @@ function TransactionGroupListItemImpl({
             ),
         };
 
-        if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || searchType === CONST.SEARCH.DATA_TYPES.BILL) {
             return (
                 <ReportListItemHeader
                     report={liveGroupItem as TransactionReportGroupListItemType}

@@ -188,6 +188,63 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
+        [CONST.SEARCH.SEARCH_KEYS.BILLS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.BILLS,
+            translationPath: 'billPay.bills',
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            icon: 'Document',
+            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.BILL}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: {
+            key: CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE,
+            translationPath: 'search.tabs.approve',
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            icon: 'ThumbsUp',
+            searchQuery: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.BILL, action: CONST.SEARCH.ACTION_FILTERS.APPROVE}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.BILLS_PAY,
+            translationPath: 'search.tabs.pay',
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            icon: 'MoneyBag',
+            searchQuery: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.BILL, action: CONST.SEARCH.ACTION_FILTERS.PAY, payer: accountID?.toString()}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
         [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
             translationPath: 'search.tabs.submit',

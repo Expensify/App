@@ -1,3 +1,4 @@
+import BillPaymentButton from '@components/BillPaymentButton';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
@@ -200,6 +201,10 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             }
         }
     };
+
+    if (moneyRequestReport?.type === CONST.REPORT.TYPE.BILL || isInvoiceReport) {
+        return <BillPaymentButton report={moneyRequestReport} />;
+    }
 
     return (
         <AnimatedSettlementButton

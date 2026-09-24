@@ -112,6 +112,7 @@ import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAc
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
+import {canPayBill} from './BillPayUtils';
 import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -1472,7 +1473,7 @@ function isReportIDApproved(reportID: string | undefined) {
  */
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
-    return report?.type === CONST.REPORT.TYPE.EXPENSE;
+    return report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.BILL;
 }
 
 /**
@@ -4552,6 +4553,14 @@ function getReasonAndReportActionThatRequiresAttention(
 
     if (isReportArchived) {
         return null;
+    }
+
+    const billPolicy = (policiesParam ?? allPolicies)?.[`${ONYXKEYS.COLLECTION.POLICY}${optionOrReport.policyID}`];
+    if (canPayBill(optionOrReport, billPolicy, currentUserAccountID, currentUserLogin)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.PAY,
+        };
     }
 
     if (isJoinRequestInAdminRoom(optionOrReport, currentUserLogin)) {
@@ -10403,6 +10412,10 @@ function reasonForReportToBeInOptionList({
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+    if (report?.isHiddenForBillReceiver) {
+        return null;
+    }
+
     const isInDefaultMode = !isInFocusMode;
 
     // Include the currently viewed report. If we excluded the currently viewed report, then there

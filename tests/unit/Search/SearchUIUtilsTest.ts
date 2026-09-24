@@ -14679,6 +14679,9 @@ describe('getLastSearchQuery', () => {
     const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
 
     const searchFilters: OnyxTypes.SearchFilters = {
+        [CONST.SEARCH.SEARCH_KEYS.BILLS]: {query: 'type:bill', timestamp: '2026-09-23 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: {query: 'type:bill action:approve', timestamp: '2026-09-23 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: {query: 'type:bill action:pay', timestamp: '2026-09-23 00:00:00.000'},
         [submitKey]: {query: submitQuery, timestamp: '2026-08-21 00:00:00.000'},
         [savedSearchKey]: {query: savedSearchQuery, timestamp: '2026-08-21 00:00:00.000'},
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`, timestamp: '2026-08-21 00:00:00.000'},

@@ -1,3 +1,4 @@
+import BillPaymentButton from '@components/BillPaymentButton';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
@@ -188,6 +189,16 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             rules,
         });
     };
+
+    if (iouReport?.type === CONST.REPORT.TYPE.BILL || isInvoiceReport(iouReport)) {
+        return (
+            <BillPaymentButton
+                report={iouReport}
+                isDisabled={shouldDisablePointerEvents}
+                searchHash={hash}
+            />
+        );
+    }
 
     return (
         <SearchScopeProvider isOnSearch={false}>

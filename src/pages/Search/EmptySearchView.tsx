@@ -278,6 +278,7 @@ function EmptySearchViewContent({
                 };
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+            case CONST.SEARCH.DATA_TYPES.BILL:
                 if (!isFilteredWorkspaceAccessible) {
                     content = {
                         ...defaultViewItemHeader.folder,

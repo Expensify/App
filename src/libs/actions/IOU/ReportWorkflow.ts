@@ -13,6 +13,7 @@ import type {
     UnapproveExpenseReportParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {canPayBill, isBillReport} from '@libs/BillPayUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
@@ -222,8 +223,12 @@ function canIOUBePaid(
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
-    if (isEmptyObject(iouReport)) {
+    if (isEmptyObject(iouReport) || iouReport.isHiddenForBillReceiver) {
         return false;
+    }
+
+    if (isBillReport(iouReport) || iouReport?.isBillPayReport) {
+        return !isChatReportArchived && canPayBill(iouReport, policy, currentUserAccountID, currentUserLogin);
     }
 
     if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {

@@ -590,11 +590,16 @@ function getSearchActionOnyxData(hash: number, reportID: string, currentSearchKe
 }
 
 function getSearchPayOnyxData(hash: number, reportID: string, currentSearchKey?: SearchKey): AdditionalPayOnyxData {
-    return getSearchActionOnyxData(hash, reportID, currentSearchKey, [CONST.SEARCH.SEARCH_KEYS.PAY]);
+    return getSearchActionOnyxData(hash, reportID, currentSearchKey, [CONST.SEARCH.SEARCH_KEYS.PAY, CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]);
 }
 
 function getSearchApproveOnyxData(hash: number, reportID: string, currentSearchKey?: SearchKey): AdditionalPayOnyxData {
-    return getSearchActionOnyxData(hash, reportID, currentSearchKey, [CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH, CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]);
+    return getSearchActionOnyxData(hash, reportID, currentSearchKey, [
+        CONST.SEARCH.SEARCH_KEYS.APPROVE,
+        CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE,
+        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
+        CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
+    ]);
 }
 
 type GetPayActionCallbackParams = {

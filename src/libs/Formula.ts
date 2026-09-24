@@ -673,7 +673,7 @@ function formatType(type: string | undefined): string {
         [CONST.REPORT.TYPE.EXPENSE]: 'Expense Report',
         [CONST.REPORT.TYPE.INVOICE]: 'Invoice',
         [CONST.REPORT.TYPE.CHAT]: 'Chat',
-        [CONST.REPORT.UNSUPPORTED_TYPE.BILL]: 'Bill',
+        [CONST.REPORT.TYPE.BILL]: 'Bill',
         [CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK]: 'Paycheck',
         [CONST.REPORT.TYPE.IOU]: 'IOU',
         [CONST.REPORT.TYPE.TASK]: 'Task',
