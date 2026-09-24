@@ -1,5 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -13,16 +14,20 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCompanyCardCustomName, getDefaultCardName} from '@libs/CardUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {getCardExportAccountTitle, getExportAccountColumn, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -32,6 +37,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
+import {Str} from 'expensify-common';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -41,7 +47,7 @@ import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableCont
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
 
-type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
+type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'exportAccount' | 'actions';
 
 type WorkspaceCompanyCardsTableHandle = {
     clearSelection: () => void;
@@ -49,8 +55,6 @@ type WorkspaceCompanyCardsTableHandle = {
 
 type WorkspaceCompanyCardsTableProps = {
     ref?: React.Ref<WorkspaceCompanyCardsTableHandle>;
-
-    /** Policy ID */
     policyID: string;
 
     /** Whether the policy is done loading, i.e. its account ID has resolved. Offline this is `true` even without an account ID, since it can never resolve until we reconnect */
@@ -59,10 +63,7 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether the company cards page fetch is still expected to land, i.e. no feeds are cached for the workspace yet */
     isPageFetchPending: boolean;
 
-    /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
-
-    /** Company cards */
     companyCards: UseCompanyCardsResult;
 
     /** Whether to disable assign card button */
@@ -74,13 +75,8 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether the narrow-layout selection mode is active */
     isSelectionModeEnabled: boolean;
 
-    /** On assign card callback */
     onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
-
-    /** On reload page callback */
     onReloadPage: () => void;
-
-    /** On reload feed callback */
     onReloadFeed: () => void;
 };
 
@@ -124,6 +120,8 @@ function WorkspaceCompanyCardsTable({
     // again rather than being suppressed forever.
     const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.shouldPromptBrokenConnection : false;
 
+    const policy = usePolicy(policyID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
@@ -192,22 +190,63 @@ function WorkspaceCompanyCardsTable({
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
+    // Drives the actions column's dynamic sizing below. Mirrors the row's own Assign button condition rather than
+    // isAssigningCardDisabled, since a disabled Assign button still renders and needs the same space as an enabled one.
+    const canAnyCardBeAssigned = canWriteCompanyCards && (companyCardEntries ?? []).some((entry) => !entry.isAssigned);
+
+    // Mirrors the Accounting section's own eligibility check on the card details page, so the column follows the same rules.
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
+    const cardExportSettings = getPolicyCardExportSettings(connectedIntegration, policyID, translate, policy);
+    const shouldShowExportAccountColumn = !!cardExportSettings?.shouldShowMenuItem;
+
+    const columns: Array<TableColumn<CompanyCardsTableColumnKey, WorkspaceCompanyCardTableItemData>> = [
         {
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            styling: {
+                // Cell text never wraps, so without minWidth: 0 the grid track sizes from the full string instead of
+                // its share and the row overflows the table.
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                // Whichever of the cardholder's name (or the unassigned label) or their login renders wider decides the column's width.
+                getContentToMeasure: (item) => [
+                    {
+                        text: item.isAssigned ? Str.removeSMSDomain(item.cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards'),
+                        fontSize: fontScale.text,
+                    },
+                    {text: item.isAssigned ? Str.removeSMSDomain(item.cardholder?.login ?? '') : '', fontSize: fontScale.label},
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+            },
         },
         {
             key: 'card',
             label: translate('workspace.companyCards.card'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: formatMaskedCardName(item.cardName), fontSize: fontScale.text}],
+                shouldFitContent: true,
+                maxWidth: CONST.TABLES.DYNAMIC_COLUMNS.MAX_FREE_TEXT_COLUMN_WIDTH,
+            },
         },
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             sortable: true,
+            styling: {
+                containerStyles: [styles.mnw0],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
+            },
         },
+        ...(shouldShowExportAccountColumn ? [getExportAccountColumn<WorkspaceCompanyCardTableItemData>(translate('workspace.moreFeatures.companyCards.exportAccount'), styles)] : []),
         {
             key: 'actions',
             label: '',
@@ -215,6 +254,17 @@ function WorkspaceCompanyCardsTable({
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
+            // A fixed width would reserve the Assign button's space even when no row can show it, so only measure
+            // content while at least one row can render the button.
+            ...(canAnyCardBeAssigned
+                ? {
+                      dynamicSizing: {
+                          getContentToMeasure: (item) => (!item.isAssigned ? [{text: translate('workspace.companyCards.assign'), fontSize: fontScale.text, fontWeight: '700'}] : []),
+                          shouldFitContent: true,
+                          extraWidth: styles.ph2.paddingHorizontal * 2 + styles.gap3.gap + variables.iconSizeNormal + styles.pr3.paddingRight,
+                      },
+                  }
+                : {width: variables.tableCaretColumnWidth}),
         },
     ];
 
@@ -234,6 +284,8 @@ function WorkspaceCompanyCardsTable({
                       isAssigned,
                       assignedCard,
                       cardholder,
+                      // Unassigned cards have no details page and so no Accounting section to match, hence no title.
+                      exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
@@ -272,7 +324,8 @@ function WorkspaceCompanyCardsTable({
             return -1 * orderMultiplier;
         }
 
-        const cardNameSortingResult = localeCompare(a.cardName, b.cardName) * orderMultiplier;
+        const cardNameComparison = localeCompare(a.cardName, b.cardName);
+        const cardNameSortingResult = cardNameComparison * orderMultiplier;
 
         if (!a.isAssigned && !b.isAssigned) {
             return cardNameSortingResult;
@@ -291,6 +344,13 @@ function WorkspaceCompanyCardsTable({
 
         if (activeSorting.columnKey === 'customCardName') {
             return localeCompare(a.customCardName ?? '', b.customCardName ?? '') * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'exportAccount') {
+            const exportAccountComparison = localeCompare(a.exportAccountTitle ?? '', b.exportAccountTitle ?? '');
+
+            // Most cards share the default export account, so ties fall back to the card name for a stable order.
+            return (exportAccountComparison !== 0 ? exportAccountComparison : cardNameComparison) * orderMultiplier;
         }
 
         return 0;
@@ -369,6 +429,7 @@ function WorkspaceCompanyCardsTable({
             isAssigningCardDisabled={isAssigningCardDisabled}
             canWriteCompanyCards={canWriteCompanyCards}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            shouldShowExportAccountColumn={shouldShowExportAccountColumn}
         />
     );
 
@@ -411,6 +472,7 @@ function WorkspaceCompanyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
+            shouldUseDynamicColumns
             initialSortColumn="member"
             selectionEnabled={showTableControls}
             selectedKeys={validSelectedCardKeys}
@@ -458,12 +520,9 @@ function WorkspaceCompanyCardsTable({
                             titleStyles={[styles.mb2, styles.mt8]}
                             subtitleStyle={styles.textSupporting}
                         />
-                        <Button
-                            isDisabled={isOffline}
-                            onPress={feedErrorReloadAction}
-                        >
+                        <ButtonDisabledWhenOffline onPress={feedErrorReloadAction}>
                             <Button.Text>{translate('common.tryAgain')}</Button.Text>
-                        </Button>
+                        </ButtonDisabledWhenOffline>
                     </View>
                 </ScrollView>
             )}

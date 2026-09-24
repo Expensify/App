@@ -21,7 +21,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type MovedTransactionActionProps = {
-    /** The moved transaction action data */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>;
 
     /** Original report from which the given reportAction is first created */

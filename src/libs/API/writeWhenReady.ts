@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {claimReadGateForDeferredWrite} from '@libs/Network/SequentialQueue';
 
 import CONST from '@src/CONST';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -27,6 +28,9 @@ type WriteWhenReadyOptions = {
 
     /** Fires only after `write()` has been called and returned without throwing. A throwing handler is logged, not thrown. */
     onWriteStarted?: () => void;
+
+    /** Whether READs wait for this write. Defaults to `true`.*/
+    shouldClaimReadGate?: boolean;
 };
 
 // Must stay longer than the default barrier's worst case (a unit test pins that); exported so that test asserts the real value.
@@ -115,6 +119,10 @@ function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransit
  *   - Does not support `write()`'s `conflictResolver`: a deferred request isn't in the sequential
  *     queue or considered for conflict resolution until it actually executes.
  *   - Call order isn't preserved across independent `writeWhenReady` calls - their barriers race.
+ *   - READs wait on this the same way they wait on a queued write, just for longer, since the barrier
+ *     runs before the request does. Pass `{shouldClaimReadGate: false}` to opt out. While the gate is on,
+ *     a barrier must not wait on a READ of its own - that READ parks behind this write, so the barrier only
+ *     releases on the safety timeout.
  *
  * Caution:
  *   - The default barrier waits for any transition (~2s worst case if none starts). Pass
@@ -144,7 +152,7 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     Log.info('[API] Called API writeWhenReady', false, buildLogParams(command, apiCommandParameters ?? {}));
 
     // A bare number for `options` is treated as `safetyTimeoutMs`.
-    const {safetyTimeoutMs = SAFETY_TIMEOUT_MS, onRelease, onWriteStarted} = typeof options === 'number' ? {safetyTimeoutMs: options} : options;
+    const {safetyTimeoutMs = SAFETY_TIMEOUT_MS, onRelease, onWriteStarted, shouldClaimReadGate = true} = typeof options === 'number' ? {safetyTimeoutMs: options} : options;
 
     return new Promise((resolve, reject) => {
         let hasExecuted = false;
@@ -152,6 +160,9 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
         let safetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
         const abortController = new AbortController();
         let barrierError: unknown;
+
+        // Claimed before the barrier is even built, so a READ on the very next line already parks behind us.
+        const settleReadGateClaim = shouldClaimReadGate ? claimReadGateForDeferredWrite() : () => {};
 
         const execute = (reason: ReleaseReason) => {
             if (hasExecuted) {
@@ -181,7 +192,9 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
                     Log.warn('[API] writeWhenReady onRelease threw', {command, error});
                 }
 
-                write(command, apiCommandParameters, onyxData).then(resolve, reject);
+                // Settled off the write promise, so the handover doesn't depend on push() still being
+                // reached synchronously inside write().
+                write(command, apiCommandParameters, onyxData).then(resolve, reject).finally(settleReadGateClaim);
 
                 // Isolated so a throwing side effect can't be mistaken for a failed write.
                 try {
@@ -193,6 +206,8 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
                     });
                 }
             } catch (error) {
+                // write() never returned a promise to settle the claim off, so release it here.
+                settleReadGateClaim();
                 reject(error);
             }
         };

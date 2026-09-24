@@ -17,7 +17,6 @@ type StepScreenDragAndDropWrapperProps = {
     /** The title to show in the header (should be translated already) */
     headerTitle: string;
 
-    /** A function triggered when the back button is pressed */
     onBackButtonPress: () => void;
 
     /** A function triggered when the entry transition is ended. Useful for auto-focusing elements. */
@@ -29,7 +28,6 @@ type StepScreenDragAndDropWrapperProps = {
     /** An ID used for unit testing */
     testID: string;
 
-    /** The children to render */
     children: ((isDraggingOver: boolean) => ReactNode) | ReactNode;
 };
 

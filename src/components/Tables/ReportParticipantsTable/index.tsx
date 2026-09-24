@@ -18,7 +18,6 @@ import ReportParticipantsTableRow from './ReportParticipantsTableRow';
 type ReportParticipantsTableColumnKey = 'member' | 'role' | 'actions';
 
 type ReportParticipantRowData = TableData & {
-    /** The accountID of the participant */
     accountID: number;
 
     /** The participant's login (email/phone) */
@@ -61,7 +60,6 @@ type ReportParticipantsTableProps = {
     /** The list of selected row keys */
     selectedKeys: string[];
 
-    /** Callback when the set of selected rows changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 

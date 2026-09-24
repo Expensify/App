@@ -47,6 +47,7 @@ import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
 import pointerEventsNone from './utils/pointerEventsNone';
 import positioning from './utils/positioning';
+import scrollbarGutterStable from './utils/scrollbarGutterStable';
 import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
@@ -126,6 +127,11 @@ type Styles = Record<string, StyleObject | StyleFunction>;
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+
+// The bulk action bar's height, which the space reserved for it at the end of a list has to match. Derived from the
+// bar's own padding and its tallest item, a small button, rather than written down a second time: a written height
+// silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
+const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -377,7 +383,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
         customEmojiFont: FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT,
 
-        mentionSuggestionsAvatarContainer: {
+        compactAvatarContainer: {
             width: 24,
             height: 24,
             alignItems: 'center',
@@ -479,6 +485,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
         },
 
+        lineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -520,8 +530,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textExtraSmall: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeExtraSmall,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.finePrint,
         },
 
         textMicro: {
@@ -549,17 +559,19 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: lineHeightScale.text,
         },
 
+        // Not aliased to a token: `lineHeightXSmall` (11/17) is not `lineHeightScale.finePrint` (12), so swapping it shifts the layout. Needs a design call.
         textExtraSmallSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
             lineHeight: variables.lineHeightXSmall,
         },
+        // Deliberate mismatch: `micro`'s size with `finePrint`'s 12 line height, which is what it always had.
         textDoubleDecker: {
-            fontSize: variables.fontSizeSmall,
+            fontSize: fontScale.micro,
             opacity: 0.8,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: 12,
+            lineHeight: lineHeightScale.finePrint,
         },
         noPaddingBottom: {
             paddingBottom: 0,
@@ -574,18 +586,19 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textLarge: {
-            fontSize: variables.fontSizeLarge,
+            fontSize: fontScale.pageHeader,
         },
 
         textXLarge: {
-            fontSize: variables.fontSizeXLarge,
+            fontSize: fontScale.h1,
         },
 
         textXLargeThemeText: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: fontScale.h1,
         },
 
+        // Not aliased to a token: `fontScale` has no entry for 28 or 32/37. Needs a design call on whether to grow the scale or restyle the call sites.
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -952,7 +965,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            // This is to match production build after ButtonComposed migration.
+            // This is to match production build after the Button composition migration.
             ...spacing.ph6,
         },
 
@@ -1134,6 +1147,14 @@ const staticStyles = (theme: ThemeColors) =>
 
         condensedBadgeText: {
             fontSize: variables.fontSizeExtraSmall,
+            // It is needed to unset the lineHeight inherited from badgeText. Otherwise the 9px glyph is
+            // laid out inside a 16px line box, which native resolves asymmetrically and renders the text
+            // too high. Unsetting it lets the text center on its own font metrics.
+            lineHeight: undefined,
+        },
+
+        condensedBadgeTextDefaultSize: {
+            fontSize: variables.fontSizeSmall,
         },
 
         badgeDefaultText: {
@@ -1580,12 +1601,12 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
-        },
+        } satisfies ViewStyle & {transformOrigin?: string},
 
         textInputLabel: {
-            fontSize: variables.fontSizeNormal,
+            fontSize: fontScale.text,
             color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            ...fontFamilyScale.regular,
         },
 
         textInputLabelBackground: {
@@ -1667,15 +1688,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         textInputPrefix: {
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             verticalAlign: 'middle',
         },
 
         textInputSuffix: {
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             verticalAlign: 'middle',
         },
 
@@ -1710,20 +1731,20 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textLabelSupporting: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.label,
             color: theme.textSupporting,
         },
 
         textLabelSupportingEmptyValue: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeNormal,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.text,
             color: theme.textSupporting,
         },
 
         textLabelSupportingNormal: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
+            ...fontFamilyScale.regular,
+            fontSize: fontScale.label,
             color: theme.textSupporting,
         },
 
@@ -1901,23 +1922,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.appBG,
         },
 
-        sidebarAvatar: {
-            borderRadius: variables.avatarSizeSmall,
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-        },
-
-        selectedAvatarBorder: {
-            padding: 1,
-            borderWidth: 2,
-            borderRadius: 20,
-            height: variables.avatarSizeSmall + 6,
-            width: variables.avatarSizeSmall + 6,
-            borderColor: theme.success,
-            right: -3,
-            top: -3,
-        },
-
         floatingActionButton: {
             backgroundColor: theme.success,
             height: variables.componentSizeLarge,
@@ -1968,9 +1972,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeH2,
-            lineHeight: variables.lineHeightSizeH2,
-            ...headlineFont,
+            fontSize: fontScale.h2,
+            lineHeight: lineHeightScale.h2,
+            ...fontFamilyScale.heading,
         },
 
         onboardingNavigatorOuterView: {
@@ -2210,7 +2214,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         appContentHeader: {
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             display: 'flex',
             paddingRight: 20,
@@ -2223,7 +2226,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         LHNToggle: {
             alignItems: 'center',
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
         },
@@ -2769,6 +2771,22 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableRowHeight,
         },
 
+        tableRowVerticalPadding: {
+            paddingVertical: variables.tableRowPaddingVertical,
+        },
+
+        tableRowVerticalPaddingCompact: {
+            paddingVertical: variables.tableRowPaddingVerticalCompact,
+        },
+
+        tableRowContentHeight: {
+            minHeight: variables.tableRowHeight - variables.tableRowPaddingVertical * 2 - variables.borderTopWidth,
+        },
+
+        tableRowContentHeightCompact: {
+            minHeight: variables.tableRowHeightCompact - variables.tableRowPaddingVerticalCompact * 2 - variables.borderTopWidth,
+        },
+
         tableHeaderContentHeight: {
             minHeight: variables.tableHeaderContentHeight,
         },
@@ -2877,7 +2895,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             display: 'flex',
             paddingLeft: 20,
-            height: variables.contentHeaderHeight,
             width: '100%',
         },
 
@@ -2895,6 +2912,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarHeight: {
             height: variables.contentHeaderHeight,
+        },
+
+        headerBarNarrowHeight: {
+            height: variables.contentHeaderNarrowHeight,
         },
 
         imageViewContainer: {
@@ -3154,8 +3175,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -3285,7 +3304,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         flipUpsideDown: {
-            transform: `rotate(180deg)`,
+            transform: [{rotate: '180deg'}],
         },
 
         navigationScreenCardStyle: {
@@ -3461,8 +3480,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestConfirmationAmount: {
-            ...headlineFont,
-            fontSize: variables.fontSizeH1,
+            ...fontFamilyScale.heading,
+            fontSize: fontScale.h2,
         },
 
         moneyRequestMenuItem: {
@@ -3476,11 +3495,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         moneyRequestAmountContainer: {
             minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
-        },
-
-        requestPreviewBox: {
-            marginTop: 12,
-            maxWidth: variables.reportPreviewMaxWidth,
         },
 
         moneyRequestPreviewBox: {
@@ -3699,6 +3713,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.ph5,
         },
 
+        listItemRow: {
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            ...spacing.ph5,
+            ...userSelect.userSelectNone,
+        },
+
         dotIndicatorMessage: {
             display: 'flex',
             flexDirection: 'row',
@@ -3792,6 +3816,25 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
             width: 180,
             marginBottom: 20,
+        },
+
+        digitalWalletConfirmIllustration: {
+            width: variables.w102,
+            height: variables.w102,
+            marginBottom: 12,
+        },
+
+        digitalWalletConfirmError: {
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            right: 0,
+        },
+
+        digitalWalletResultIllustration: {
+            width: variables.iconSection,
+            height: variables.iconSection,
+            marginBottom: 12,
         },
 
         googleSearchSeparator: {
@@ -4035,6 +4078,14 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 8,
         },
 
+        // Float above the receipt to avoid zooming with it.
+        receiptPageCountBadge: {
+            position: 'absolute',
+            bottom: 12,
+            left: 12,
+            marginLeft: 0,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
@@ -4135,7 +4186,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemButton: {
-            minWidth: 68,
+            minWidth: variables.widgetItemButtonMinWidth,
         },
 
         gettingStartedRowIconContainer: {
@@ -4228,6 +4279,11 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: 14,
         },
 
+        // Reserved so the centered home layout does not slide sideways when the scrollbar appears.
+        homePageScrollView: {
+            ...scrollbarGutterStable,
+        },
+
         homePageContentContainer: {
             flexGrow: 1,
             paddingTop: 0,
@@ -4259,8 +4315,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
+            ...textVariants.textStrong,
         },
 
         emptyCardSectionTitle: {
@@ -4318,6 +4373,26 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             flexDirection: 'row',
             alignSelf: 'flex-start',
+        },
+
+        conciergeFeedbackThumb: {
+            width: variables.componentSizeSmall,
+            height: variables.componentSizeSmall,
+            borderRadius: variables.buttonBorderRadius,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.transparent,
+        },
+
+        // Matches the add reaction bubble because hoverComponentBG is barely visible on the chat background
+        conciergeFeedbackThumbHovered: {
+            backgroundColor: theme.buttonDefaultBG,
+        },
+
+        // A line height would push the emoji glyph above the center of the thumb
+        conciergeFeedbackThumbEmoji: {
+            fontSize: variables.fontSizeNormal,
+            textAlign: 'center',
         },
 
         emojiReactionListHeader: {
@@ -4416,6 +4491,45 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
             flexShrink: 1,
+        },
+
+        merchantRuleCalloutContainer: {
+            backgroundColor: theme.tooltipHighlightBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        // Pins the callout to the top of the scroll area, like floatingMessageCounterWrapper, so scrolling cannot hide it.
+        // Both occupy that strip, so the callout sits one layer above: it is dismissible, and the "New messages" pill
+        // underneath it stays reachable once the callout is gone.
+        merchantRuleCalloutOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.t0,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 101,
+        },
+
+        // Floats above the composer without taking height, so the conversation does not jump when it appears.
+        merchantRuleCalloutComposerOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.bFull,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 100,
+        },
+
+        merchantRuleCalloutText: {
+            ...textVariants.label,
+            color: theme.textReversed,
+            // Banner sets breakAll on its container, which would split this sentence mid-word
+            ...wordBreak.breakWord,
+        },
+
+        // The callout sits on a reversed surface, dark in the light theme and light in the dark one, so text and link
+        // use the reversed colors.
+        merchantRuleCalloutAction: {
+            ...textVariants.labelStrong,
+            color: theme.linkReversed,
         },
 
         quickReactionsContainer: {
@@ -4679,18 +4793,13 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.mh5,
         },
 
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
-        },
-
         taskRightIconContainer: {
-            width: variables.componentSizeNormal,
+            width: variables.iconSizeNormal,
             marginLeft: 'auto',
-            ...spacing.mt1,
             ...pointerEventsAuto,
             ...display.dFlex,
-            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
         },
 
         shareCodeContainer: {
@@ -4816,7 +4925,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         tabSelectorBadge: {
             minWidth: 18,
-            height: 16,
+            minHeight: 16,
             marginLeft: 8,
             justifyContent: 'center',
         },
@@ -4915,6 +5024,10 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderWidth: 1,
             borderColor: theme.border,
+        },
+
+        reportPreviewActionRow: {
+            height: variables.h40,
         },
 
         reportPreviewBox: {
@@ -5024,16 +5137,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         rotate90: {
-            transform: 'rotate(90deg)',
+            transform: [{rotate: '90deg'}],
         },
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() && !isMobile() && {transform: [{scale: 0.5}], fontSize: 22, overflow: 'visible'}),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
-                    transform: 'scale(0.7)',
+                    transform: [{scale: 0.7}],
                     fontSize: 13,
                     lineHeight: 15,
                     overflow: 'visible',
@@ -5050,18 +5163,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarStatusAvatarContainer: {
-            height: variables.avatarSizeMedium,
-            width: variables.avatarSizeMedium,
             backgroundColor: theme.componentBG,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.avatarSizeMedium / 2,
-        },
-
-        sidebarStatusAvatarWithEmojiContainer: {
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-            top: -2,
         },
 
         sidebarStatusAvatar: {
@@ -5334,7 +5439,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        menuItemChevron: {
+        menuItemTrailingIcon: {
             ...pointerEventsAuto,
             ...flex.justifyContentCenter,
             ...flex.alignItemsEnd,
@@ -5401,10 +5506,51 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
-        // The filter bar row is 34px tall, but the default (larger) bulk-action button is 40px.
-        // To keep the bar from growing, we pull the button up/down by half the difference: (40 - 34) / 2 = 3.
-        searchBulkActionsButton: {
-            marginVertical: -3,
+        // The layer BulkActionBar floats in. It covers its container so the bar can center itself over the table, and
+        // passes touches through everywhere except the bar itself.
+        bulkActionBarLayer: {
+            position: 'absolute',
+            bottom: CONST.BULK_ACTION_BAR.BOTTOM_OFFSET,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+        },
+
+        // Resolved under the inverted theme BulkActionBar renders its contents in, so `appBG` here is the opposite of
+        // the page's background. Everything inside the bar is colored by that same theme rather than styled specially.
+        bulkActionBar: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingVertical: variables.bulkActionBarPaddingVertical,
+            paddingLeft: 20,
+            paddingRight: 16,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.appBG,
+            boxShadow: theme.shadow,
+        },
+
+        // Reserves the space the bar floats over at the end of the list it covers, so the last rows can still be
+        // scrolled clear of it. Applied to the list's content rather than its container: content grows below the
+        // viewport, so the rows on screen stay where they are when a selection shows or hides the bar.
+        bulkActionBarListSpacing: {
+            paddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
+        },
+
+        // Wide enough for a three-digit count, so the bar does not resize as the selection grows past 9 or 99. A
+        // selection can cover far more rows than are on screen. Also keeps the width steady while the count loads.
+        bulkActionBarCount: {
+            minWidth: 88,
+            marginRight: 4,
+            justifyContent: 'center',
+        },
+
+        // Matches the height of the bar's buttons: as the tallest item in the row it would otherwise set the bar's height.
+        bulkActionBarCloseButton: {
+            height: variables.componentSizeSmall,
+            width: variables.componentSizeSmall,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         filtersBar: {
@@ -5454,7 +5600,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersClearButton: {
+        searchFiltersResetButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',
@@ -5465,7 +5611,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
-        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         // Compact search inputs that appear above lists/popovers. Matches the smaller
         // "above the table" search input heights (34 on web/desktop, 46 on mobile).
@@ -6600,9 +6745,6 @@ const staticStyles = (theme: ThemeColors) =>
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
-        chartExpandedContent: {
-            transformOrigin: 'top left',
-        },
         chartContent: {
             height: CHART_CONTENT_MIN_HEIGHT,
         },
@@ -6826,7 +6968,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
@@ -6940,7 +7083,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
         }),
 
-        getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
+        getWidgetRowGroupStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
         }),
@@ -7072,7 +7215,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         }),
 
         // The 40px bulk-actions button swaps in for the table filter bar row (32px search bar on wide layouts, 44px on narrow),
-        // so offset its vertical margin to keep the row height identical and prevent the table from shifting (see searchBulkActionsButton).
+        // so offset its vertical margin to keep the row height identical and prevent the table from shifting.
         tableBulkActionsButton: (shouldUseNarrowTableLayout: boolean) => ({
             marginVertical: shouldUseNarrowTableLayout ? 2 : -4,
         }),
@@ -7231,11 +7374,11 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerTitleStyle: (color: string) =>
             ({
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-                fontSize: 17,
-                lineHeight: variables.widgetHeaderTitleLineHeight,
+                ...textVariants.textStrong,
                 color,
             }) satisfies TextStyle,
+
+        getWidgetContainerBottomPaddingStyle: (shouldUseNarrowLayout: boolean): ViewStyle => (shouldUseNarrowLayout ? spacing.pb2 : spacing.pb5),
 
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({
@@ -7274,15 +7417,20 @@ const plainStyles = (theme: ThemeColors) =>
             paddingRight: 24,
         },
 
-        getWidgetItemIconContainerStyle: (backgroundColor: string) =>
-            ({
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: variables.componentBorderRadiusNormal,
-                width: variables.componentSizeNormal,
-                height: variables.componentSizeNormal,
-                backgroundColor,
-            }) satisfies ViewStyle,
+        conciergePromptBoxPlaceholderSkeleton: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: variables.composerTextInputPaddingLeft,
+            justifyContent: 'center',
+        },
+
+        widgetItemIconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        },
 
         homePageMainLayout: (shouldUseNarrowLayout: boolean) =>
             ({
@@ -7302,6 +7450,32 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        insightsDashboardLayout: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsChartGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'stretch',
+            marginHorizontal: -variables.insightsCardGap / 2,
+            marginVertical: -variables.insightsCardGap / 2,
+        } satisfies ViewStyle,
+
+        insightsChartGridCell: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
+                padding: variables.insightsCardGap / 2,
+            }) satisfies ViewStyle,
+
+        insightsEmptyStateIllustration: {
+            width: variables.insightsEmptyStateIllustrationSize,
+            height: variables.insightsEmptyStateIllustrationSize,
+        } satisfies ImageStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

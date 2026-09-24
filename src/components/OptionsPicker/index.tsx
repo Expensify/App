@@ -12,7 +12,6 @@ import {View} from 'react-native';
 import OptionItem from './OptionItem';
 
 type OptionsPickerItem<TKey extends string> = {
-    /** A unique identifier for each option */
     key: TKey;
 
     /** Text to be displayed */
@@ -23,19 +22,13 @@ type OptionsPickerItem<TKey extends string> = {
 };
 
 type OptionsPickerProps<TKey extends string> = {
-    /** Options list */
     options: Array<OptionsPickerItem<TKey>>;
-
-    /** Selected option's identifier */
     selectedOption: TKey;
-
-    /** Option select handler */
     onOptionSelected: (option: TKey) => void;
 
     /** Indicates whether the picker is disabled */
     isDisabled?: boolean;
 
-    /** Optional style */
     style?: StyleProp<ViewStyle>;
 };
 

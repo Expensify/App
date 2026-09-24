@@ -5,11 +5,13 @@ import useOnyx from '@hooks/useOnyx';
 
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault} from '@libs/SearchQueryUtils';
+import {shouldShowFilter, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import React, {useState} from 'react';
 
@@ -41,24 +43,23 @@ type SearchAdvancedFiltersProviderProps = {
 
 function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProviderProps) {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryJSON, currentSearchQueryJSON} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
-
-    const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm) : undefined;
 
     const applyFilters = () => {
         Navigation.dismissModal({afterTransition: () => setFilterQueryParams(values)});
     };
 
     const resetFilters = () => {
-        if (!advancedFiltersToReset) {
+        if (!currentSearchQueryJSON) {
             return;
         }
+
         Navigation.dismissModal({
             afterTransition: () => {
-                setFilterQueryParams(advancedFiltersToReset);
+                Navigation.setParams({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
                 setSearchContext(false);
             },
         });
@@ -70,7 +71,13 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
 
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {
         currentDraftFilters: values,
-        shouldShowResetFilters: !isEmptyObject(advancedFiltersToReset),
+        shouldShowResetFilters:
+            currentDefaultSearchQueryJSON && currentSearchQueryJSON
+                ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON)
+                : !!searchAdvancedFiltersForm &&
+                  ObjectUtils.typedKeys<SearchAdvancedFiltersKey, SearchAdvancedFiltersForm[SearchAdvancedFiltersKey]>(searchAdvancedFiltersForm).filter((key) =>
+                      shouldShowFilter(SKIPPED_SEARCH_FILTERS, key, searchAdvancedFiltersForm?.[key], searchAdvancedFiltersForm?.type),
+                  ).length > 0,
     };
 
     const searchAdvancedFiltersActionValue: SearchAdvancedFiltersActionValue = {

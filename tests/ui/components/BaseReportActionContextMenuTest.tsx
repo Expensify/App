@@ -429,6 +429,7 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             undefined,
             false,
             undefined,
+            {},
         );
     });
 });

@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SearchResultsContext} from '@components/Search/SearchContextDefinitions';
@@ -32,7 +33,7 @@ ThemeProviderWithLight.displayName = 'ThemeProviderWithLight';
 
 function renderSearchActionHeader(action: ReportAction, report: Report | undefined, isOnSearch: boolean) {
     return render(
-        <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <SearchScopeProvider isOnSearch={isOnSearch}>
                 {/* shouldUseLiveData: true keeps useOnyx reading from real Onyx collections instead of a search snapshot, since this test doesn't set up snapshot data */}
                 <SearchResultsContext.Provider

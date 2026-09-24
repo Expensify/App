@@ -58,6 +58,19 @@ To send a personal payment, you must first [set up your Wallet](https://help.exp
 4. If you've made a payment before, the most recently used method will be selected by default. Tap the right side of the button to view other options.
 5. If this is your first time paying, you’ll be asked to select a payment method after tapping **Pay**.
 
+## How to cancel a personal payment before the recipient sets up their Wallet
+
+When you pay a personal expense from your Wallet and the recipient has not [set up their Wallet](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Set-up-your-wallet) yet, the payment is held until they do. While it is held, you (the sender) can cancel it and have the funds returned.
+
+1. Open the payment report.
+2. Select **More**.
+3. Select **Cancel payment**.
+4. When asked **Are you sure that you want to cancel this payment?**, confirm to cancel.
+
+The payment is cancelled and the held funds are returned to you. Once the recipient sets up their Wallet and the payment completes, **Cancel payment** is no longer available.
+
+**Note:** Only the sender sees the **Cancel payment** option. The recipient cannot cancel the payment.
+
 ---
 
 # FAQ
@@ -86,6 +99,16 @@ You can reimburse Workspace expenses using business bank accounts in the followi
 ## Why don't I see my bank account when I click Pay?
 
 Only bank accounts that match the report's currency appear as payment options. If you have a USD bank account but the report is in EUR, the USD account will not be shown. To pay the report, connect a bank account in the matching currency, or select **Mark as paid** to record a payment made outside Expensify.
+
+---
+
+## Why do I see a Pay report prompt asking me to enable global reimbursements?
+
+The **Pay report** prompt appears when your workspace's USD business bank account is not enabled for global reimbursements and the submitter's deposit account is in a currency other than USD. Expensify cannot send the payment until one of those changes.
+
+Select **Enable Global Reimbursements** to start setting up global reimbursements on the USD business bank account, or select **Cancel** to close the prompt and ask the submitter to add a USD deposit account instead. Selecting **Cancel** leaves the report in the **Approved** state.
+
+[Learn how to enable global reimbursements on a USD business bank account](/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States).
 
 ---
 

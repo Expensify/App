@@ -135,6 +135,8 @@ describe('actions/IOU/createExpenseByType', () => {
             isTrackIntentUser: undefined,
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            rules: undefined,
+            isVendorMatchingBetaEnabled: false,
         };
 
         return {transaction, transactionDetails, params};
@@ -155,6 +157,7 @@ describe('actions/IOU/createExpenseByType', () => {
             formatPhoneNumber: (phoneNumber: string) => phoneNumber,
             participantsPolicyTags: {},
             policyTags: {},
+            rules: undefined,
             ...overrides,
         });
     }

@@ -6,6 +6,7 @@ import type {ListItem, TextInputOptions} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
@@ -23,7 +24,6 @@ type SingleSelectItem<T> = {
 };
 
 type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefined> & {
-    /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
 
     /** Whether the search input should be displayed */
@@ -35,7 +35,6 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
 
-    /** Custom height for each item in the list */
     itemHeight?: number;
 
     /** Whether the popover keeps a fixed height instead of growing with its content */
@@ -43,6 +42,12 @@ type SingleSelectProps<T> = SearchFilterCommonProps<SingleSelectItem<T> | undefi
     allowDeselect?: boolean;
     hasTitle?: boolean;
     hasHeader?: boolean;
+
+    /** Optional content rendered above the list, e.g. explanatory text about what the filter applies to */
+    header?: React.JSX.Element;
+
+    /** Height of `header`, added to the list height so the header does not consume space reserved for the rows */
+    headerHeight?: number;
 };
 
 /**
@@ -59,6 +64,8 @@ function SingleSelectImpl({
     shouldShowList = true,
     hasTitle,
     hasHeader,
+    header,
+    headerHeight,
     itemHeight,
     shouldUseFixedPopoverHeight,
     footer,
@@ -66,6 +73,7 @@ function SingleSelectImpl({
     onChange,
 }: SingleSelectProps<string>) {
     const {translate} = useLocalize();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -135,6 +143,7 @@ function SingleSelectImpl({
             hasTitle={hasTitle}
             isSearchable={isSearchable}
             itemHeight={itemHeight ?? variables.optionRowHeightCompact}
+            extraHeight={headerHeight}
             shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
@@ -152,7 +161,9 @@ function SingleSelectImpl({
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
+                    customListHeaderContent={header}
                     footerContent={footer}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             </Activity>
         </ListFilterWrapper>

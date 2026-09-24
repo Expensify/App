@@ -20,8 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
+import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
 import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
@@ -37,7 +37,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-type SelectedReportRef = {reportID: string | undefined};
+type SelectedReportRef = {reportID: string | undefined; policyID?: string};
 
 /**
  * Decides whether the bulk change-approver page should auto-apply the only
@@ -51,14 +51,16 @@ function shouldAutoApplyApprover({
     onyxReports,
     approverTypes,
     selectedApproverType,
+    areSelectedPoliciesLoaded = true,
 }: {
     isLoadingBulkChangeApproverPage: boolean;
     selectedReports: SelectedReportRef[];
     onyxReports: Record<string, Report> | undefined;
     approverTypes: Array<{keyForList: ApproverType}>;
     selectedApproverType: ApproverType | undefined;
+    areSelectedPoliciesLoaded?: boolean;
 }): boolean {
-    if (isLoadingBulkChangeApproverPage || selectedReports.length === 0) {
+    if (isLoadingBulkChangeApproverPage || selectedReports.length === 0 || !areSelectedPoliciesLoaded) {
         return false;
     }
 
@@ -71,6 +73,38 @@ function shouldAutoApplyApprover({
 }
 
 export {shouldAutoApplyApprover};
+
+function canReassignAllReports({
+    selectedReports,
+    onyxReports,
+    allPolicies,
+}: {
+    selectedReports: SelectedReportRef[];
+    onyxReports: Record<string, Report> | undefined;
+    allPolicies: OnyxCollection<Policy>;
+}): boolean {
+    return (
+        selectedReports.length > 0 &&
+        selectedReports.every((selectedReport) => {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+            const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
+            const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
+            return (
+                !!policy &&
+                !!report &&
+                isPolicyAdmin(policy) &&
+                !isPendingDeletePolicy(policy) &&
+                isMoneyRequestReport(report) &&
+                !isMoneyRequestReportPendingDeletion(report) &&
+                isProcessingReport(report) &&
+                isApprovalEnabled
+            );
+        })
+    );
+}
+
+export {canReassignAllReports};
 
 function SearchChangeApproverPage() {
     const {translate, formatPhoneNumber} = useLocalize();
@@ -101,6 +135,7 @@ function SearchChangeApproverPage() {
     };
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const hasAutoAppliedRef = useRef(false);
     // Set when navigating to WORKSPACE_UPGRADE; prevents the auto-close in useLayoutEffect from
@@ -137,6 +172,7 @@ function SearchChangeApproverPage() {
         return Array.from(policies.values());
     };
     const selectedPolicies = getSelectedPolicies();
+    const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
 
     const changeApprover = () => {
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
@@ -164,6 +200,11 @@ function SearchChangeApproverPage() {
             return;
         }
 
+        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+            Navigation.navigate(ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP);
+            return;
+        }
+
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
@@ -173,7 +214,17 @@ function SearchChangeApproverPage() {
 
             if (report.managerID !== currentUserDetails.accountID) {
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber);
+                assignReportToMe(
+                    report,
+                    currentUserDetails.accountID,
+                    currentUserDetails.email ?? '',
+                    policy,
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    isTrackIntentUser,
+                    formatPhoneNumber,
+                    rules,
+                );
             }
         }
 
@@ -191,19 +242,23 @@ function SearchChangeApproverPage() {
             },
         ];
 
-        const hasPermission = selectedReports.every((selectedReport) => {
+        const hasAdminPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
-
-            if (!policy || !report) {
-                return false;
-            }
-
-            return isPolicyAdmin(policy) && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
         });
+        const canReassign = canReassignAllReports({selectedReports, onyxReports, allPolicies});
+
+        const isAllowedToBypassApprovers =
+            hasAdminPermission &&
+            selectedReports.every((selectedReport) => {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
+
+                return !!policy && !!report && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            });
 
         const shouldShowBypassApproversOption =
-            hasPermission &&
+            isAllowedToBypassApprovers &&
             selectedReports.some((selectedReport) => {
                 const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
 
@@ -220,6 +275,15 @@ function SearchChangeApproverPage() {
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
                 isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
+            });
+        }
+
+        if (canReassign) {
+            data.push({
+                text: translate('iou.changeApprover.actions.reassignApprover'),
+                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
             });
         }
 
@@ -251,6 +315,7 @@ function SearchChangeApproverPage() {
         onyxReports,
         approverTypes,
         selectedApproverType,
+        areSelectedPoliciesLoaded,
     });
 
     useEffect(() => {

@@ -28,7 +28,7 @@ function handleWalletStatementNavigation(
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas});
         return;
     }
 
