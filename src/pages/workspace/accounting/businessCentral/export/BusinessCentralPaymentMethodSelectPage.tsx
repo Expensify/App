@@ -45,6 +45,7 @@ function BusinessCentralPaymentMethodSelectPage({policy}: WithPolicyConnectionsP
             isSelected: paymentMethodCode === paymentMethod.code,
         })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(paymentMethodOptions);
+
     // The payment method is optional, and an empty code clears it
     const noneOption: PaymentMethodListItem = {
         value: '',

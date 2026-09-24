@@ -35,7 +35,8 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
     const businessCentralConfig = policy?.connections?.businessCentral?.config;
     const businessCentralData = policy?.connections?.businessCentral?.data;
     const exportConfig = businessCentralConfig?.export;
-    // Integration-Server stores an empty exporter until an admin picks one, and the workspace owner exports in the meantime.
+
+    // Integration-Server stores the exporter as an empty string until an admin picks one, and the workspace owner exports in the meantime.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const exporter = exportConfig?.exporter || policy?.owner;
     const exportDate = exportConfig?.exportDate ?? CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE;

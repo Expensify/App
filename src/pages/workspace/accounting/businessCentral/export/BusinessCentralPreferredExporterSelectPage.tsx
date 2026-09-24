@@ -33,7 +33,8 @@ function BusinessCentralPreferredExporterSelectPage({policy}: WithPolicyConnecti
     const policyOwner = policy?.owner;
     const businessCentralConfig = policy?.connections?.businessCentral?.config;
     const savedExporter = businessCentralConfig?.export?.exporter;
-    // Integration-Server stores an empty exporter until an admin picks one, and the workspace owner exports in the meantime.
+
+    // Integration-Server stores the exporter as an empty string until an admin picks one, and the workspace owner exports in the meantime.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const exporter = savedExporter || policyOwner;
     const exporters = getAdminEmployees(policy);
