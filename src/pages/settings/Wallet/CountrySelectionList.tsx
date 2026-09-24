@@ -73,7 +73,8 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const confirmButtonOptions = {
         showButton: true,
         text: isEditing ? translate('common.confirm') : translate('common.next'),
-        isDisabled: isOffline,
+        // Nothing selected would submit an account with no country, so the step cannot be confirmed yet.
+        isDisabled: isOffline || !selectedCountry,
         onConfirm,
     };
 

@@ -580,28 +580,34 @@ describe('createHasWorkspaceToSubmitToSelector', () => {
 
 describe('isCollectingDepositAccountsSelector', () => {
     it('returns true when any workspace collects deposit accounts', () => {
+        // Given one workspace that collects deposit accounts and one that does not
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
             policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true}),
         };
 
+        // Then the flow is relevant, because the collecting workspace still wants the employee's details
         expect(isCollectingDepositAccountsSelector(policies)).toBe(true);
     });
 
     it('returns false when no workspace collects deposit accounts', () => {
+        // Given only workspaces that do not collect deposit accounts
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
             policy2: buildSelectorPolicy(2, {}),
         };
 
+        // Then the flow is not offered, because nobody is asking the employee for their details
         expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
     });
 
     it('returns false when the only collecting workspace is pending deletion', () => {
+        // Given a collecting workspace that is on its way out
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         };
 
+        // Then the flow is not offered, because that workspace will never reimburse anyone
         expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
     });
 });
@@ -612,14 +618,19 @@ describe('createBanksInCountrySelector', () => {
     };
 
     it('returns true when a collecting workspace banks in that country', () => {
+        // Given a collecting workspace with a GB bank account, when the employee adds a GB account
+        // Then local details are collected, because the employer can pay them domestically
         expect(createBanksInCountrySelector('GB')(collectingGB)).toBe(true);
     });
 
     it('returns false when no collecting workspace banks in that country', () => {
+        // Given a collecting workspace that only banks in GB, when the employee adds a DE account
+        // Then wire details are collected, because the money has to arrive from abroad
         expect(createBanksInCountrySelector('DE')(collectingGB)).toBe(false);
     });
 
     it('returns false for a country only listed on an archived workspace', () => {
+        // Given a GB bank account on a collecting workspace that is pending deletion
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {
                 isCollectDepositAccountsEnabled: true,
@@ -628,14 +639,17 @@ describe('createBanksInCountrySelector', () => {
             }),
         };
 
+        // Then it does not make the account local, because that workspace can no longer pay from there
         expect(createBanksInCountrySelector('GB')(policies)).toBe(false);
     });
 
     it('returns false for a country only listed on a workspace that does not collect', () => {
+        // Given a GB bank account on a workspace that does not collect deposit accounts
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false, reimbursement: {countries: {GB: {}}}}),
         };
 
+        // Then it says nothing about how this account is paid, so wire details are collected
         expect(createBanksInCountrySelector('GB')(policies)).toBe(false);
     });
 });
