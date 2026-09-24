@@ -737,6 +737,26 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 2}));
         });
 
+        it('counts no report for a selected unreported expense, which sits on none', async () => {
+            setSearchQuery('type:expense footerCount:reports');
+            // Two expenses from one report, one unreported: three expenses, one report.
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: 'report1'},
+                transaction3: {...buildSelectedTransaction(CONST.CURRENCY.USD), reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            };
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1}));
+        });
+
         it('counts the selected expenses when the count selector is on expenses', async () => {
             setSearchQuery('type:expense footerCount:expenses');
             mockSelectedTransactions.current = {

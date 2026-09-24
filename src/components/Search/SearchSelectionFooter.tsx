@@ -682,7 +682,10 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
-    const selectedReportCount = isReportsSearch ? selectedReports.length : new Set(selectedTransactionsKeys.map((key) => selectedTransactions[key]?.reportID).filter(Boolean)).size;
+    // An unreported expense sits on no report — it carries the unreported placeholder ID — so it adds none.
+    const selectedReportCount = isReportsSearch
+        ? selectedReports.length
+        : new Set(selectedTransactionsKeys.map((key) => selectedTransactions[key]?.reportID).filter((reportID) => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID)).size;
 
     // The count follows whatever the footer is describing: the selection's own reports when rows were hand-picked, the
     // server's report count otherwise. footerData.count already carries the expense side of both cases.
