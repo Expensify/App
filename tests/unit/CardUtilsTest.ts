@@ -77,6 +77,7 @@ import {
     isCardPendingDigitalWalletApproval,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isExpensifyCardPending,
     isExpiredCard,
     isMatchingCard,
     isPersonalCard,
@@ -5145,6 +5146,34 @@ describe('isCardPendingDigitalWalletApproval', () => {
 
     it('is false when the card has no wallet addition awaiting approval', () => {
         expect(isCardPendingDigitalWalletApproval(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}))).toBe(false);
+    });
+});
+
+describe('isExpensifyCardPending', () => {
+    it('is true for a card waiting to be issued', () => {
+        expect(isExpensifyCardPending(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}))).toBe(true);
+    });
+
+    it('is true for a card waiting to be activated', () => {
+        expect(isExpensifyCardPending(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}))).toBe(true);
+    });
+
+    // Those two states describe a physical card on its way to the cardholder. A virtual card is spendable as soon as
+    // it is assigned, so reading it as pending would tell the cardholder to wait for something that never arrives.
+    it('is false for a virtual card in either of those states', () => {
+        const card: Card = {
+            ...createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
+            nameValuePairs: createMock<Card['nameValuePairs']>({isVirtual: true}),
+        };
+        expect(isExpensifyCardPending(card)).toBe(false);
+    });
+
+    it('is false for a card that has been issued and activated', () => {
+        expect(isExpensifyCardPending(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}))).toBe(false);
+    });
+
+    it('is false when there is no card', () => {
+        expect(isExpensifyCardPending(undefined)).toBe(false);
     });
 });
 

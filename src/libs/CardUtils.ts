@@ -1731,6 +1731,17 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+/**
+ * True when an Expensify Card is waiting to be issued or activated and so cannot be spent on yet.
+ *
+ * Those two states describe a physical card on its way to the cardholder. A virtual card is issued and spendable as
+ * soon as it is assigned and has no activation step, so it is never waiting on either, which is why
+ * `isExpensifyCardPendingAction` leaves virtual cards out as well.
+ */
+function isExpensifyCardPending(card?: Card) {
+    return !card?.nameValuePairs?.isVirtual && (isCardPendingIssue(card) || isCardPendingActivate(card));
+}
+
 /** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */
 function isCardPendingDigitalWalletApproval(card?: Card) {
     return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
@@ -2325,6 +2336,7 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isExpensifyCardPending,
     isCardPendingDigitalWalletApproval,
     isActiveExpensifyCard,
     hasActiveExpensifyCard,
