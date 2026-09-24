@@ -78,7 +78,9 @@ const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): 
 const createBanksInCountrySelector =
     (countryISO: string) =>
     (policies: OnyxCollection<Policy>): boolean =>
-        Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && countryISO in (policy.reimbursement?.countries ?? {}));
+        Object.values(policies ?? {}).some(
+            (policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy) && countryISO in (policy.reimbursement?.countries ?? {}),
+        );
 
 /**
  * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so

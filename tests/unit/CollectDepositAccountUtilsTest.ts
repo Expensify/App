@@ -1,6 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {getBankAccountFields} from '@libs/BankAccountFields';
+import {getBankAccountFields, hasLocalBankAccountFields} from '@libs/BankAccountFields';
 import {getSubmitParameters, getValidationErrors} from '@libs/CollectDepositAccountUtils';
 
 import CONST from '@src/CONST';
@@ -39,6 +39,15 @@ describe('CollectDepositAccountUtils', () => {
             // Then Canada's own inputs are used, so the user is not asked for an IBAN they cannot supply
             expect(fields.accountNumber.label).toBe('Account Number');
             expect(fields.branchID.label).toBe('Transit Number');
+        });
+    });
+
+    describe('hasLocalBankAccountFields', () => {
+        it('reports the countries that have no domestic mapping', () => {
+            // Given BG, which an employer can hold a business bank account in but which has no domestic mapping
+            // Then it is reported as unmapped, so the flow asks for wire details instead of dead-ending
+            expect(hasLocalBankAccountFields('BG')).toBe(false);
+            expect(hasLocalBankAccountFields('GB')).toBe(true);
         });
     });
 

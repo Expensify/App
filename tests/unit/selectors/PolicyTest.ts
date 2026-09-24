@@ -619,6 +619,18 @@ describe('createBanksInCountrySelector', () => {
         expect(createBanksInCountrySelector('DE')(collectingGB)).toBe(false);
     });
 
+    it('returns false for a country only listed on an archived workspace', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                isCollectDepositAccountsEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                reimbursement: {countries: {GB: {}}},
+            }),
+        };
+
+        expect(createBanksInCountrySelector('GB')(policies)).toBe(false);
+    });
+
     it('returns false for a country only listed on a workspace that does not collect', () => {
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false, reimbursement: {countries: {GB: {}}}}),

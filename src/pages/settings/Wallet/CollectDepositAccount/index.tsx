@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {getBankAccountFields} from '@libs/BankAccountFields';
+import {getBankAccountFields, hasLocalBankAccountFields} from '@libs/BankAccountFields';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -47,7 +47,7 @@ function CollectDepositAccount() {
     const bankCountry = formValues[INPUT_IDS.BANK_COUNTRY] ?? '';
     const [banksInCountry = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createBanksInCountrySelector(bankCountry)});
 
-    const fieldsType = banksInCountry ? CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL : CONST.BANK_ACCOUNT.FIELDS_TYPE.INTERNATIONAL;
+    const fieldsType = banksInCountry && hasLocalBankAccountFields(bankCountry) ? CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL : CONST.BANK_ACCOUNT.FIELDS_TYPE.INTERNATIONAL;
     const fieldsMap = getBankAccountFields(bankCountry, formValues[INPUT_IDS.BANK_CURRENCY] ?? '', fieldsType);
 
     const goBack = () => {

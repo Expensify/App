@@ -28,9 +28,14 @@ function getBankAccountFields(countryISO: string, currency: string, fieldsType: 
     return currenciesFields?.[currency] ?? currenciesFields?.[DEFAULT_KEY] ?? {};
 }
 
+/** Countries with no local mapping are collected with international wire details, matching Classic's getByISO. */
+function hasLocalBankAccountFields(countryISO: string): boolean {
+    return !!localFields[countryISO];
+}
+
 /** Currencies a country can hold a local account in, so the flow can offer them on the country step. */
 function getLocalCurrencies(countryISO: string): string[] {
     return Object.keys(localFields[countryISO]?.currenciesFields ?? {});
 }
 
-export {getBankAccountFields, getLocalCurrencies};
+export {getBankAccountFields, getLocalCurrencies, hasLocalBankAccountFields};
