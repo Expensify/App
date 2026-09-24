@@ -3,7 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -93,7 +93,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
 
-        const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        const shouldSkipWaitForWrites = hasPendingSearchWrite();
         requestedHashesRef.current.add(hash);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);

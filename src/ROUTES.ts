@@ -12,6 +12,7 @@ import type CONST from './CONST';
 import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
 import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
+import type {SearchKey} from './libs/SearchKeyUtils';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
@@ -716,6 +717,10 @@ const DYNAMIC_ROUTES = {
         path: 'certinia/advanced',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
     },
+    POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
+        path: 'certinia-fx-expense-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED],
+    },
     POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
         path: 'certinia-report-status/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
@@ -1267,6 +1272,12 @@ const DYNAMIC_ROUTES = {
         // The results screen opens automatically when an HR sync finishes, and a sync can complete
         // while the user is on either the HR page or the members list, so both are entry screens.
         entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
+    },
+    WORKSPACE_RECRUITING_SYNC_RESULTS: {
+        // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
+        // while the user is on either the recruiting page or the members list, so both are entry screens.
+        path: 'recruiting-sync-results',
+        entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.MEMBERS],
     },
     WORKSPACE_OWNER_CHANGE_CHECK: {
         path: 'change-owner/:policyID/:accountID/:error',
@@ -2057,9 +2068,10 @@ const ROUTES = {
     SEARCH_ROUTER: 'search-router',
     SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, rawQuery, name}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string}) => {
+        getRoute: ({query, rawQuery, name, searchKey}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string; searchKey?: SearchKey}) => {
             const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
-            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
+            const searchKeySegment = searchKey ? `&searchKey=${encodeURIComponent(searchKey)}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}${searchKeySegment}` as const;
         },
     },
     SEARCH_SAVE: 'search/save',
@@ -2071,7 +2083,10 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS: 'search/filters',
     SEARCH_ADVANCED_FILTERS_CONTENT: {
         route: 'search/filters/:filterKey',
-        getRoute: (filterKey: SearchFilterKey | UserFriendlyKey) => `search/filters/${filterKey}` as const,
+        getRoute: (filterKey: SearchFilterKey | UserFriendlyKey, applyDirectly?: boolean) => {
+            const baseRoute = `search/filters/${filterKey}` as const;
+            return applyDirectly ? (`${baseRoute}?applyDirectly=true` as const) : baseRoute;
+        },
     },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
@@ -2165,6 +2180,7 @@ const ROUTES = {
         },
     },
     CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
+    CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP: 'search/change-approver/reassign',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
@@ -2284,6 +2300,7 @@ const ROUTES = {
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'settings/security/closeAccount/confirm',
     SETTINGS_MERGE_ACCOUNTS: {
         route: 'settings/security/merge-accounts',
         getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
@@ -2514,11 +2531,17 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
         route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/add-to-digital-wallet` as const,
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
+        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/add-to-digital-wallet`, backTo),
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string, isFromDomainCardDetail?: boolean) => `settings/wallet/card/${cardID}/activate${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
+    },
+    SETTINGS_WALLET_CARD_ADDED_TO_WALLET: {
+        route: 'settings/wallet/card/:cardID/added-to-wallet',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/added-to-wallet` as const,
     },
     SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
@@ -2621,6 +2644,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
+    SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES: 'settings/profile/status/vacation-delegate/missing-workspaces',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_HELP: 'settings/help',
 
@@ -2636,7 +2660,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean, sourceReportID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2653,6 +2677,11 @@ const ROUTES = {
             }
             if (isPendingCreation) {
                 queryParams.push('isPendingCreation=true');
+            }
+            // The report the user was viewing when they opened Concierge from the side-pane button (native).
+            // Threaded on the route so it stays scoped to this Concierge navigation entry instead of a global key.
+            if (sourceReportID) {
+                queryParams.push(`sourceReportID=${encodeURIComponent(sourceReportID)}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -2694,6 +2723,10 @@ const ROUTES = {
     REPORT_CHANGE_APPROVER_ADD_APPROVER: {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
+    },
+    REPORT_CHANGE_APPROVER_REASSIGN_APPROVER: {
+        route: 'r/:reportID/change-approver/reassign',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/reassign` as const,
     },
     REPORT_SETTINGS_COLUMNS: {
         route: 'r/:reportID/settings/columns',
@@ -4390,6 +4423,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const;
         },
     },
+    POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/xero/advanced/fx-expense-account-selector',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/fx-expense-account-selector` as const;
+        },
+    },
     POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
         getRoute: (policyID: string | undefined) => {
@@ -4419,6 +4461,10 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
         },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/custom-dimension/:dimensionID',
+        getRoute: (policyID: string, dimensionID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/custom-dimension/${dimensionID}` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
@@ -4482,11 +4528,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
         route: 'workspaces/:policyID/accounting/netsuite/token-input/:subPage',
-        getRoute: (policyID: string | undefined, subPage: string) => {
+        getRoute: (policyID: string | undefined, subPage: string, authType?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT route');
             }
-            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}` as const;
+            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}${authType ? `?authType=${authType}` : ''}` as const;
         },
     },
     POLICY_ACCOUNTING_NETSUITE_SETUP: {
@@ -4617,6 +4663,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
         getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/connections/netsuite/advanced/fx-expense-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/fx-expense-account/select` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID: {
         route: 'workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
         getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
@@ -4714,6 +4764,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
         },
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/fx-expense-account` as const;
+        },
+    },
     POLICY_ACCOUNTING_CERTINIA_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/certinia/prerequisites/:subPage?/:isSandbox?',
         getRoute: (policyID: string, subPage?: string, isSandbox?: boolean) => {
@@ -4802,6 +4861,15 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_ADVANCED route');
             }
             return `workspaces/${policyID}/accounting/certinia/advanced` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/certinia/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/advanced/fx-expense-account` as const;
         },
     },
     POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING: {
@@ -4990,6 +5058,46 @@ const ROUTES = {
     POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR: {
         route: 'workspaces/:policyID/accounting/campfire/subsidiary-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_IMPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/import` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/campfire/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/campfire/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/campfire/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
+        route: 'workspaces/:policyID/accounting/business-central/prerequisites',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/prerequisites` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_SETUP: {
+        route: 'workspaces/:policyID/accounting/business-central/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/setup` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/company-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/company-selector` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_IMPORT: {
+        route: 'workspaces/:policyID/accounting/business-central/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/import` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
