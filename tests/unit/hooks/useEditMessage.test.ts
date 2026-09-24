@@ -21,7 +21,7 @@ jest.mock('@libs/actions/Report', () => {
     return {
         ...actual,
         editReportComment: jest.fn(),
-        clearReportActionDrafts: jest.fn(),
+        clearAllReportActionDrafts: jest.fn(),
     };
 });
 
