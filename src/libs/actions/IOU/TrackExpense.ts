@@ -202,7 +202,6 @@ type GetTrackExpenseInformationParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
     defaultWorkspaceName?: string;
     optimisticChatReportID?: string;
@@ -891,7 +890,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         activePolicy,
         conciergeChat,
         quickAction,
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
@@ -1051,7 +1049,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             // This workspace is created by AddTrackedExpenseToPolicy, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
             hasOwnedPaidPolicy: undefined,
-            betas,
             isSelfTourViewed,
             delegateAccountID,
         });
@@ -2348,6 +2345,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         accountantParams,
         currentUser,
         reportActionsList,
+        personalDetailsByLogins,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2405,7 +2403,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, undefined, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
@@ -2495,7 +2493,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         conciergeChat,
         quickAction,
         recentWaypoints = [],
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         previousOdometerDraft,
@@ -2505,6 +2502,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserLocalCurrency,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2668,7 +2666,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         activePolicy,
         conciergeChat,
         quickAction,
-        betas,
         isSelfTourViewed,
         defaultWorkspaceName,
         optimisticChatReportID,
@@ -2826,6 +2823,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
+                personalDetailsByLogins,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

@@ -253,7 +253,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID,
                         currentUserLogin,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -387,7 +386,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -474,7 +472,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -563,7 +560,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -651,7 +647,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -710,7 +705,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -799,7 +793,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     introSelected: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     currentUserLogin: CARLOS_EMAIL,
-                    betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
@@ -889,7 +882,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
                         full: false,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -992,7 +984,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 full: false,
                 policy,
                 chatReportPolicy: policy,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1090,7 +1081,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     full: true,
                     policy: scanFailedPolicy,
                     chatReportPolicy: scanFailedPolicy,
-                    betas: [CONST.BETAS.ALL],
                     isASAPSubmitBetaEnabled: true,
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
@@ -1178,7 +1168,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1234,7 +1223,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1404,7 +1392,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
@@ -1476,7 +1463,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
@@ -1538,7 +1524,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
@@ -1582,7 +1567,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -1641,7 +1625,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -1719,7 +1702,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
-                        betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -1779,7 +1761,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -2138,7 +2119,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 currency: undefined,
                 activePolicy: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 delegateAccountID: undefined,
                 hasOwnedPaidPolicy: false,
@@ -2211,7 +2191,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     introSelected: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     currentUserLogin: CARLOS_EMAIL,
-                    betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
@@ -2263,7 +2242,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it('should not call completeOnboarding when introSelected is undefined', () => {
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, false, CARLOS_ACCOUNT_ID, undefined, undefined);
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
         });
 
@@ -2276,7 +2255,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     isInviteOnboardingComplete: true,
                 },
                 false,
-                [CONST.BETAS.ALL],
                 CARLOS_ACCOUNT_ID,
                 undefined,
                 undefined,
@@ -2291,7 +2269,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 },
                 false,
-                [CONST.BETAS.ALL],
                 CARLOS_ACCOUNT_ID,
                 undefined,
                 undefined,
@@ -2306,7 +2283,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 },
                 false,
-                [CONST.BETAS.ALL],
                 CARLOS_ACCOUNT_ID,
                 undefined,
                 undefined,
@@ -2320,7 +2296,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2340,7 +2316,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2359,7 +2335,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2375,7 +2351,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2392,7 +2368,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined, 'adminsChatReport123', 'policyID456');
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined, 'adminsChatReport123', 'policyID456');
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2411,7 +2387,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, undefined, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, CARLOS_ACCOUNT_ID, undefined, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -2428,7 +2404,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
             };
             const conciergeChat = {reportID: 'concierge-onboarding-1'};
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL], CARLOS_ACCOUNT_ID, conciergeChat, undefined);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, CARLOS_ACCOUNT_ID, conciergeChat, undefined);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({

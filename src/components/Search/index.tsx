@@ -167,7 +167,6 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -612,7 +611,6 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    betas,
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
@@ -676,7 +674,6 @@ function Search({
                             backTo,
                             currentUserLogin: email ?? '',
                             currentUserAccountID: accountID,
-                            betas,
                             personalDetails,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
@@ -761,7 +758,6 @@ function Search({
             handleSearch,
             unmarkReportRHPWidth,
             introSelected,
-            betas,
             personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,

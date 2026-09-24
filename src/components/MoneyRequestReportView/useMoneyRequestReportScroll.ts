@@ -119,7 +119,6 @@ function useMoneyRequestReportScroll({
     const {scrollOffsetRef} = useActionListContext();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -298,7 +297,6 @@ function useMoneyRequestReportScroll({
                 reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

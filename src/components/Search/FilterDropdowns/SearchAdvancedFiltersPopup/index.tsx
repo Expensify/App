@@ -1,21 +1,34 @@
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
+import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
 
 import {useDebounceWithControls} from '@hooks/useDebounce';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePointerMovement from '@hooks/usePointerMovement';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import getButtonState from '@libs/getButtonState';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import type {ComponentRef} from 'react';
@@ -30,7 +43,11 @@ import ReportFieldFilterContentPopupWrapper from './ReportFieldFilterContentPopu
 import TextInputFilterContentPopupWrapper from './TextInputFilterContentPopupWrapper';
 
 type SearchAdvancedFiltersPopupProps = {
+    /** Query JSON to build the current filter state */
     queryJSON: SearchQueryJSON;
+
+    /** Closes the filters popover overlay */
+    closeOverlay: () => void;
 };
 
 /** Which filter contents are mounted and what each was given. */
@@ -106,10 +123,13 @@ function MountedFilterContent({filterKey, values, ready, onChange}: MountedFilte
     );
 }
 
-function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps) {
+function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
+    const [isDescribeMode, setIsDescribeMode] = useState(false);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
@@ -122,6 +142,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     }));
     const {activeFilter, mountedFilters, formWhileHidden, contentVersions, readyFilters} = mountedFilterState;
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
 
     // Shows a filter's content. A visited one stays mounted, so a return reveals it rather than building it again.
     const showFilter = (filterKey: SearchFilter['key']) => {
@@ -164,6 +185,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const {invoke: debouncedMarkShownFilterReady, cancel: cancelReadyWait} = useDebounceWithControls(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
 
     const hoverFilter = (filterKey: SearchFilter['key']) => {
+        setIsDescribeMode(false);
         showFilter(filterKey);
         debouncedMarkShownFilterReady();
     };
@@ -185,6 +207,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
 
     // Moving the focus is deliberate and never passes over rows on the way, so nothing is withheld from it.
     const focusFilter = (filterKey: SearchFilter['key']) => {
+        setIsDescribeMode(false);
         cancelReadyWait();
         showFilter(filterKey);
         markShownFilterReady();
@@ -192,37 +215,89 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
 
     const mayDeriveContent = (filterKey: SearchFilter['key']) => !DEFERRED_CONTENT_FILTERS.has(filterKey) || readyFilters.includes(filterKey);
 
+    const getDescribeButtonBackground = (pressed: boolean) => {
+        if (pressed) {
+            return styles.buttonHoveredBG;
+        }
+        if (isDescribeMode) {
+            return styles.hoveredComponentBG;
+        }
+        return undefined;
+    };
+
+    const handleNLSuccess = (route: Route) => {
+        closeOverlay();
+        Navigation.navigate(route);
+    };
+
     return (
         <SafeTriangle submenuRef={filterContentRef}>
             <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
-                <FilterList
-                    style={[styles.typeFiltersPopupContainer]}
-                    type={searchAdvancedFiltersForm?.type}
-                    selectedFilter={activeFilter}
-                    onHoverIn={hoverFilter}
-                    onPointerMove={trackPointerMovement}
-                    onPointerLeave={stopTrackingPointer}
-                    onFocus={focusFilter}
-                />
+                <View style={[styles.typeFiltersPopupContainer]}>
+                    <PressableWithFeedback
+                        style={({pressed}) => [styles.typeFilterMenu, getDescribeButtonBackground(pressed)]}
+                        accessible
+                        accessibilityLabel={translate('search.filters.describeSearch.title')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel="SearchAdvancedFiltersPopup-DescribeSearch"
+                        onHoverIn={() => setIsDescribeMode(true)}
+                        onFocus={() => setIsDescribeMode(true)}
+                        onPress={() => setIsDescribeMode(true)}
+                    >
+                        {({pressed}) => (
+                            <>
+                                <Icon
+                                    src={icons.Sparkles}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeSmall}
+                                    height={variables.iconSizeSmall}
+                                />
+                                <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
+                                <Icon
+                                    src={icons.ArrowRight}
+                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isDescribeMode, isPressed: pressed})})}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </>
+                        )}
+                    </PressableWithFeedback>
+                    <SpacerView
+                        shouldShow
+                        style={[styles.reportHorizontalRule]}
+                    />
+                    <FilterList
+                        type={searchAdvancedFiltersForm?.type}
+                        selectedFilter={isDescribeMode ? undefined : activeFilter}
+                        onHoverIn={hoverFilter}
+                        onPointerMove={trackPointerMovement}
+                        onPointerLeave={stopTrackingPointer}
+                        onFocus={focusFilter}
+                    />
+                </View>
                 <View
                     ref={filterContentRef}
                     style={[styles.filterContentContainer]}
                 >
-                    {mountedFilters.map((filterKey) => (
-                        // `Activity` keeps a hidden content mounted while taking it out of layout and unmounting its
-                        // effects, so it holds no Onyx subscriptions until it is shown again.
-                        <Activity
-                            key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
-                            mode={filterKey === activeFilter ? 'visible' : 'hidden'}
-                        >
-                            <MountedFilterContent
-                                filterKey={filterKey}
-                                values={filterKey === activeFilter ? searchAdvancedFiltersForm : formWhileHidden[filterKey]}
-                                ready={mayDeriveContent(filterKey)}
-                                onChange={updateFilterQueryParams}
-                            />
-                        </Activity>
-                    ))}
+                    {isDescribeMode ? (
+                        <SearchNLFilterContent onSuccess={handleNLSuccess} />
+                    ) : (
+                        mountedFilters.map((filterKey) => (
+                            // `Activity` keeps a hidden content mounted while taking it out of layout and unmounting its
+                            // effects, so it holds no Onyx subscriptions until it is shown again.
+                            <Activity
+                                key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
+                                mode={filterKey === activeFilter ? 'visible' : 'hidden'}
+                            >
+                                <MountedFilterContent
+                                    filterKey={filterKey}
+                                    values={filterKey === activeFilter ? searchAdvancedFiltersForm : formWhileHidden[filterKey]}
+                                    ready={mayDeriveContent(filterKey)}
+                                    onChange={updateFilterQueryParams}
+                                />
+                            </Activity>
+                        ))
+                    )}
                 </View>
             </View>
         </SafeTriangle>
