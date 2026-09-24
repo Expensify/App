@@ -9756,6 +9756,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
+                customDay: 'Jour personnalisé',
             },
             status: 'Statut',
             keyword: 'Mot-clé',
