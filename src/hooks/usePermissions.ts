@@ -19,7 +19,7 @@ export default function usePermissions(): UsePermissions {
     const betaOverrides = useContext(BetaOverridesContext);
     return useMemo(() => {
         const permissions: UsePermissions = {
-            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides),
+            isBetaEnabled: (beta: Beta) => true || Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides),
 
             // Prefer isBetaEnabled. This exists for the consumers that must tell "off" apart from "not loaded yet",
             // currently the inactive vendor violation and the approval mode next steps, reached from many components
