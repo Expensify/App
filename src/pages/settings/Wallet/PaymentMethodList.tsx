@@ -30,6 +30,7 @@ import {
     isCardInactive,
     isCardPendingActivate,
     isCardPendingIssue,
+    isCardPendingDigitalWalletApproval,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
@@ -331,7 +332,9 @@ function PaymentMethodList({
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
+                // A row showing a connection message doesn't repeat the card's own errors, unless the card has a pending action.
+                // A pending wallet approval hides them too, because that flow shows its errors on its own confirmation screen.
+                const shouldShowCardErrorMessages = (!shouldShowCardConnectionMessage && !isCardPendingDigitalWalletApproval(card)) || !!card.pendingAction;
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
@@ -465,6 +468,12 @@ function PaymentMethodList({
                         ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
+                        // The domain gets one row, so a pending approval on any of its cards has to surface there.
+                        // The CTA needs the pending card's own ID, which the group row doesn't carry.
+                        if (isCardPendingDigitalWalletApproval(card) && !assignedCardsGroupedItem.digitalWalletApprovalCardID) {
+                            assignedCardsGroupedItem.digitalWalletApprovalCardID = card.cardID;
+                            assignedCardsGroupedItem.digitalWalletProvider = card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider;
+                        }
                     }
                     continue;
                 }
@@ -517,6 +526,8 @@ function PaymentMethodList({
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                     shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
+                    digitalWalletApprovalCardID: isCardPendingDigitalWalletApproval(card) ? card.cardID : undefined,
+                    digitalWalletProvider: card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider,
                 });
             }
 

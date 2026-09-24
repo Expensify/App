@@ -1736,15 +1736,33 @@ function isCardPendingDigitalWalletApproval(card?: Card) {
     return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
 }
 
-/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. */
-function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
+/** An Expensify Card in a state the Wallet and Home surfaces display. */
+function isActiveExpensifyCard(card: Card) {
+    return isCard(card) && isExpensifyCard(card) && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0);
+}
+
+/** True when the user holds an Expensify Card. */
+function hasActiveExpensifyCard(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, isActiveExpensifyCard);
+}
+
+/** True when one of the user's Expensify Cards has a wallet addition waiting to be confirmed or denied. */
+function hasCardPendingDigitalWalletApproval(cards: CardList | undefined) {
+    return hasAssignedCardMatching(cards, (card) => isActiveExpensifyCard(card) && isCardPendingDigitalWalletApproval(card));
+}
+
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. Only the generic name needs a capitalized variant. */
+function getWalletProviderNameKey(
+    walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>,
+    shouldStartSentence = false,
+): 'appleWallet' | 'googleWallet' | 'digitalWallet' | 'digitalWalletCapitalized' {
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
         return 'appleWallet';
     }
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
         return 'googleWallet';
     }
-    return 'digitalWallet';
+    return shouldStartSentence ? 'digitalWalletCapitalized' : 'digitalWallet';
 }
 
 function isCardWithCustomZeroLimit(card: Card): boolean {
@@ -2308,6 +2326,9 @@ export {
     isCardPendingIssue,
     isCardPendingActivate,
     isCardPendingDigitalWalletApproval,
+    isActiveExpensifyCard,
+    hasActiveExpensifyCard,
+    hasCardPendingDigitalWalletApproval,
     getWalletProviderNameKey,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
