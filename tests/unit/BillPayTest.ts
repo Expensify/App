@@ -54,6 +54,7 @@ describe('Bill Pay', () => {
         const approved = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
         expect(canPayBill(approved, policy, 456, 'admin@example.com')).toBe(false);
         expect(canPayBill(approved, {...policy, reimburser: undefined}, accountID, email)).toBe(true);
+        expect(canPayBill(approved, {...policy, reimburser: undefined, owner: email}, 456, 'admin@example.com')).toBe(true);
     });
 
     it('includes received standalone invoices without requiring a room', () => {

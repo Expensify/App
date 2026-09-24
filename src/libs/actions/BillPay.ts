@@ -22,7 +22,7 @@ import mergeAdditionalPayOnyxData from './IOU/mergeAdditionalPayOnyxData';
 import {getSearchPayOnyxData} from './Search';
 
 function payBill(report: OnyxEntry<Report>, paymentMethodType: PaymentMethodType, bankAccountID?: number, searchHash?: number, searchKey?: SearchKey) {
-    if (!report) {
+    if (!report || (paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !bankAccountID)) {
         return;
     }
     const key = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const;
@@ -54,7 +54,11 @@ function payBill(report: OnyxEntry<Report>, paymentMethodType: PaymentMethodType
         ],
     };
     const searchData = searchHash === undefined ? undefined : getSearchPayOnyxData(searchHash, report.reportID, searchKey);
-    write(WRITE_COMMANDS.PAY_BILL, {reportID: report.reportID, paymentMethodType, bankAccountID}, mergeAdditionalPayOnyxData(onyxData, searchData));
+    if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        write(WRITE_COMMANDS.MARK_REIMBURSED, {reportID: report.reportID, comment: ''}, mergeAdditionalPayOnyxData(onyxData, searchData));
+    } else {
+        write(WRITE_COMMANDS.REIMBURSE_REPORT, {reportID: report.reportID, bankAccountID: bankAccountID ?? CONST.DEFAULT_NUMBER_ID}, mergeAdditionalPayOnyxData(onyxData, searchData));
+    }
 }
 
 function createBill(params: Omit<CreateBillParams, 'reportID' | 'invoiceReportID'>, accountID: number) {

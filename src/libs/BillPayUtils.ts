@@ -36,7 +36,7 @@ function canPayBill(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | null,
     if (report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || (report.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED)) {
         return false;
     }
-    const reimburser = policy?.reimburser ?? policy?.achAccount?.reimburser ?? policy?.owner;
+    const reimburser = policy?.reimburser ?? policy?.achAccount?.reimburser;
     return reimburser ? reimburser === email : policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
