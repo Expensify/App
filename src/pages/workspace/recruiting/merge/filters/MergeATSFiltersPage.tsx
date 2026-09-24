@@ -134,7 +134,7 @@ function MergeATSFiltersPage({
                     </OfflineWithFeedback>
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
-                    {errorKey && (
+                    {!!errorKey && (
                         <FormHelpMessage
                             isError
                             message={translate(errorKey)}
