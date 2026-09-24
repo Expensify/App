@@ -51,7 +51,7 @@
     Fix: keep the renderer alive without a GrDirectContext and fall back to
     CanvasKit.MakeSWCanvasSurface in onResize, so the chart still renders (on the
     CPU) instead of crashing the page. If that also fails, leave this.surface null -
-    the constructor already initialises it to null and both draw() and
+    the constructor already initializes it to null and both draw() and
     makeImageSnapshot() null-check it. This mirrors the sibling
     renderPictureToSurface path, which already treats a failed WebGL surface as
     recoverable rather than fatal. Charts on capable clients are unaffected and
@@ -134,3 +134,37 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-16; the latest is 2.11.2 and 2.12.0-next.1 does not carry it either). Its dispose() applies the same isConnected guard (deferred by a microtask, since its caller is a layout effect) and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
 - E/App issue: https://github.com/Expensify/App/issues/98254
 - PR introducing patch: https://github.com/Expensify/App/pull/100714
+
+### [@shopify+react-native-skia+2.11.2+004+load-skia-web-fail-closed.patch](@shopify+react-native-skia+2.11.2+004+load-skia-web-fail-closed.patch)
+
+- Reason:
+
+    ```
+    Makes LoadSkiaWeb fail closed when CanvasKit comes up without its bindings
+    (Sentry APP-M73 / APP-M7F: "PictureRecorder is not a constructor"), and stops
+    it from caching a rejected init forever (APP-M6B / APP-M76: the LinkError was
+    re-thrown on every later chart mount in the tab).
+
+    Both come from pairing canvaskit.js glue from one canvaskit-wasm release with
+    canvaskit.wasm from another. Newer glue plus an older binary fails to link
+    (the binary declares an import the glue no longer supplies). Older glue plus a
+    newer binary is worse: it links, because the newer binary's imports are a
+    subset of what the old glue provides, but the glue then reads the exports
+    under stale minified names, the embind constructors never register, and
+    CanvasKitInit resolves with an object that has no classes at all.
+    LoadSkiaWeb stored that object on global.CanvasKit, Skia.web.ts wrapped it,
+    and the first draw threw from a worklet queue where no React error boundary
+    can reach it. The App side fixes the pairing itself (the binary is served
+    under a versioned URL); this patch is the safety net for tabs that still hit
+    a mismatch.
+
+    LoadSkiaWeb now checks that the resolved module has its PictureRecorder and
+    Paint constructors before publishing it, throwing otherwise so the failure
+    surfaces inside WithSkiaWeb's lazy() and reaches the chart's error boundary.
+    It also clears ckSharedPromise when the init rejects or fails that check, so
+    the next mount gets a fresh attempt instead of the cached failure.
+    ```
+
+- Upstream PR/issue:
+- E/App issue: https://github.com/Expensify/App/issues/102042
+- PR introducing patch:

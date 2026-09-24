@@ -44,6 +44,18 @@ function getCurrentBranchName(): string {
 const localBranchName = getCurrentBranchName();
 
 /**
+ * CanvasKit ships as a matched pair: the JS glue (`canvaskit.js`, bundled into a content-hashed chunk) and
+ * the `canvaskit.wasm` binary it instantiates. The pair is only compatible within a single `canvaskit-wasm`
+ * release, so the binary must be served from a URL that changes with the release too. Otherwise a client can
+ * pair one deploy's glue with another deploy's binary (stale HTTP cache, or a tab that outlived a deploy and
+ * got claimed by the new service worker) and CanvasKit either fails to link (`LinkError: Import #N "a" "wd"`)
+ * or links against the wrong exports and resolves without its bindings (`PictureRecorder is not a constructor`).
+ * See https://github.com/Expensify/App/issues/102042.
+ */
+const canvaskitVersion = (JSON.parse(fs.readFileSync(require.resolve('canvaskit-wasm/package.json'), 'utf-8')) as {version: string}).version;
+const CANVASKIT_WASM_FILENAME = `canvaskit-${canvaskitVersion}.wasm`;
+
+/**
  * React Compiler + react-native-worklets loaders.
  */
 function getOxcAndWorkletsLoaders(isDevServer: boolean) {
@@ -137,6 +149,9 @@ function getDefineValues(file: string): DefinePluginOptions {
         // Expose the current git branch so the debug menu can display it in the browser tab title.
         // Empty string in non-development builds.
         __GIT_BRANCH__: JSON.stringify(isDevelopmentFile ? localBranchName : ''),
+        // Where `SkiaWebChart` tells CanvasKit to fetch its wasm binary from. Versioned so the glue in this
+        // bundle can never be paired with another release's binary (see `CANVASKIT_WASM_FILENAME`).
+        __CANVASKIT_WASM_URL__: JSON.stringify(`/${CANVASKIT_WASM_FILENAME}`),
     };
     /* eslint-enable @typescript-eslint/naming-convention */
 }
@@ -404,8 +419,10 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
                 // Group‑IB web SDK injection file
                 {from: 'web/snippets/gib.js', to: 'gib.js'},
-                // CanvasKit WASM files for @shopify/react-native-skia web support (uses full version)
-                {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'},
+                // CanvasKit WASM binary for @shopify/react-native-skia web support (uses the full build). Emitted
+                // under a versioned name so it can't be served stale against newer glue; the URL is passed to
+                // the app through the `__CANVASKIT_WASM_URL__` define above.
+                {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm', to: CANVASKIT_WASM_FILENAME},
             ],
         },
         html: {
@@ -498,9 +515,11 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   clientsClaim: true,
                                   skipWaiting: true,
                                   // Cap is generous on purpose: the vendor (~6.5 MiB), main (~5.5 MiB),
-                                  // authScreens.prefetch (~6.3 MiB) chunks and canvaskit.wasm (~7.6 MiB) are
-                                  // all critical for offline boot, so we precache the lot. Everything in the
-                                  // App build is content-hashed, so growth here only costs first-install bytes.
+                                  // authScreens.prefetch (~6.3 MiB) chunks and the canvaskit wasm (~7.7 MiB) are
+                                  // all critical for offline boot, so we precache the lot. JS chunks are
+                                  // content-hashed and the wasm is versioned (see `CANVASKIT_WASM_FILENAME`),
+                                  // so growth here only costs first-install bytes. Copied assets that keep a
+                                  // fixed name (e.g. `cmaps/`) are keyed by Workbox revision instead.
                                   maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
                                   // Single-page app: any unmatched navigation should serve the cached app shell.
                                   navigateFallback: '/index.html',
