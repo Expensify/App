@@ -56,6 +56,7 @@ Expensify supports the following commercial card feed types:
 - [Understand How Credit Card Connections Work](/articles/new-expensify/connect-credit-cards/Understand-How-Credit-Card-Connections-Work)
 - [Assign Company Cards](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Assign-Company-Cards)
 - [Configure Company Card Settings](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Configure-Company-Card-Settings)
+- [View Company Card Feed Transactions](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/View-Company-Card-Feed-Transactions)
 
 ---
 
