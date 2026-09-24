@@ -1,6 +1,5 @@
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -44,12 +43,6 @@ const DESCRIPTIONS = {
     [CONST.MERGE.ATS_FILTER_TYPE.OFFICES]: 'workspace.recruiting.filters.offices.description',
 } as const;
 
-const EMPTY_SELECTION_ERRORS = {
-    [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: 'workspace.recruiting.filters.stages.emptySelectionError',
-    [CONST.MERGE.ATS_FILTER_TYPE.TAGS]: 'workspace.recruiting.filters.tags.emptySelectionError',
-    [CONST.MERGE.ATS_FILTER_TYPE.OFFICES]: undefined,
-} as const;
-
 function MergeATSFilterSelectionPage({
     route: {
         params: {policyID, filterType},
@@ -64,7 +57,6 @@ function MergeATSFilterSelectionPage({
     const filters = useMergeATSFiltersDraftState(policyID);
     const {setFilter} = useMergeATSFiltersDraftActions();
     const [selectedValues, setSelectedValues] = useState<Set<string>>(() => new Set(filters[filterType]));
-    const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
 
     const optionItems = getMergeATSFilterOptions(filterType, mergeATS?.data).map((option) => ({
         text: option.name,
@@ -103,14 +95,8 @@ function MergeATSFilterSelectionPage({
 
     const titleKey = TITLES[filterType];
     const descriptionKey = DESCRIPTIONS[filterType];
-    const emptySelectionErrorKey = EMPTY_SELECTION_ERRORS[filterType];
 
     const handleSave = () => {
-        if (selectedValues.size === 0 && emptySelectionErrorKey) {
-            setHasAttemptedSave(true);
-            return;
-        }
-
         setFilter(filterType, [...selectedValues]);
         Navigation.goBack(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.getRoute(policyID));
     };
@@ -147,13 +133,6 @@ function MergeATSFilterSelectionPage({
                         style={styles.mtAuto}
                         addBottomSafeAreaPadding
                     >
-                        {selectedValues.size === 0 && hasAttemptedSave && !!emptySelectionErrorKey && (
-                            <FormHelpMessage
-                                isError
-                                message={translate(emptySelectionErrorKey)}
-                                style={styles.mb3}
-                            />
-                        )}
                         <Button
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
