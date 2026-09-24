@@ -89,7 +89,7 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, onGrou
             containerStyles={containerStyles}
             titleRightContent={
                 !!groupByControl || !!headerMenu ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         {groupByControl}
                         {headerMenu}
                     </View>
