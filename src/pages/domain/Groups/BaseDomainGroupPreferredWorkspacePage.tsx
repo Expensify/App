@@ -13,11 +13,10 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useInitialSelection from '@hooks/useInitialSelection';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
@@ -85,9 +84,7 @@ function BaseDomainGroupPreferredWorkspacePage({
     // Freeze the workspace selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
     const initialPolicyID = useInitialSelection(checkedPolicyID, {resetOnFocus: true});
 
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(selectedPolicyID)});
 

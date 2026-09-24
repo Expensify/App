@@ -15,8 +15,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useInitialSelection from '@hooks/useInitialSelection';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -25,6 +23,7 @@ import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -129,9 +128,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     // Freeze the workspace selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
     const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
 
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
