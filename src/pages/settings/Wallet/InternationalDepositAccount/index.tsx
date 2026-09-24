@@ -118,6 +118,8 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
             draftValues={draftValues}
             country={country}
             isAccountLoading={personalBankAccount?.isLoading ?? false}
+            isWalletSetup={personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET}
+            savedPage={personalBankAccount?.currentPage}
             backTo={backTo}
         />
     );
