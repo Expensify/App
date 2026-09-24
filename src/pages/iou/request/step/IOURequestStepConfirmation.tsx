@@ -351,7 +351,10 @@ function IOURequestStepConfirmationContent({
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
-    const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
+    const sourceReport = useMemo(
+        () => (sourceReportID ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {}) : undefined),
+        [sourceReportID, reportDrafts],
+    );
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
     const defaultParticipants = useMemo(() => {
@@ -424,7 +427,12 @@ function IOURequestStepConfirmationContent({
                 return;
             }
             const selectedParticipant = participantsList.at(0);
-            const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
+            const selectedPolicyID =
+                selectedParticipant?.policyID ??
+                (selectedParticipant?.reportID
+                    ? getReportOrDraftReport(selectedParticipant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {})
+                          ?.policyID
+                    : undefined);
             if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
                 return;
             }
@@ -515,6 +523,7 @@ function IOURequestStepConfirmationContent({
         [
             activeTransactionID,
             closeParticipantPicker,
+            reportDrafts,
             currentUserPersonalDetails.accountID,
             navigation,
             selfDMReport,
@@ -560,7 +569,12 @@ function IOURequestStepConfirmationContent({
                     return true;
                 }
 
-                return !!participant?.reportID && isPolicyExpenseChatUtils(getReportOrDraftReport(participant.reportID));
+                return (
+                    !!participant?.reportID &&
+                    isPolicyExpenseChatUtils(
+                        getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}),
+                    )
+                );
             });
 
         if (isPolicyExpenseChatUtils(report)) {
@@ -573,7 +587,7 @@ function IOURequestStepConfirmationContent({
         }
 
         return hasPolicyExpenseChat(defaultParticipants);
-    }, [report, transaction?.participants, defaultParticipants]);
+    }, [report, transaction?.participants, defaultParticipants, reportDrafts]);
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -609,6 +623,7 @@ function IOURequestStepConfirmationContent({
     const preMountedDraftReportIDRef = useRef<string | undefined>(undefined);
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
+        reportDrafts,
         transaction,
         transactions,
         receiptFiles,
@@ -667,7 +682,9 @@ function IOURequestStepConfirmationContent({
     const firstParticipant = participants.at(0);
 
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
-    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
+    // A self-DM participant is not a policy expense chat either, but it carries accountID 0, so leaving it in here
+    // sends `getChatByParticipants` looking for a chat with account 0 that can never exist.
+    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat && !isSelfDMDestination;
     const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
     const p2pRecipientAccountID = firstParticipant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
