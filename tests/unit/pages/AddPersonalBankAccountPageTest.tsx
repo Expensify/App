@@ -21,13 +21,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type * as ReactNavigation from '@react-navigation/native';
-import type {NavigatorScreenParams} from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {NavigationContainer} from '@react-navigation/native';
+import * as ReactNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -70,8 +68,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 type TestRootParamList = {
-    [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
-    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+    [NAVIGATORS.TAB_NAVIGATOR]: ReactNavigation.NavigatorScreenParams<TabNavigatorParamList>;
+    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: ReactNavigation.NavigatorScreenParams<RightModalNavigatorParamList>;
 };
 
 const RootStack = createRootStackNavigator<TestRootParamList>();
@@ -125,7 +123,7 @@ async function renderPageOverTab(focusedTabIndex: number) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <PortalProvider>
-                <NavigationContainer
+                <ReactNavigation.NavigationContainer
                     ref={navigationRef}
                     initialState={{
                         index: 1,
@@ -142,7 +140,7 @@ async function renderPageOverTab(focusedTabIndex: number) {
                             component={TestRightModalNavigator}
                         />
                     </RootStack.Navigator>
-                </NavigationContainer>
+                </ReactNavigation.NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
     );
