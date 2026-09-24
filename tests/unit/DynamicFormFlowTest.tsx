@@ -515,8 +515,8 @@ describe('DynamicFormFlow', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getAllByLabelText(/stepCounter/)).toHaveLength(3);
-        expect(screen.getByText('common.next')).toBeOnTheScreen();
-        fireEvent.press(screen.getByText('common.next'));
+        expect(screen.queryByText('common.next')).not.toBeOnTheScreen();
+        fireEvent.press(screen.getByText('common.confirm'));
         await waitForBatchedUpdatesWithAct();
 
         expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({accountNumber: '12345678'}));
