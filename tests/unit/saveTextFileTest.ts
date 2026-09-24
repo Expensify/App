@@ -102,4 +102,18 @@ describe('saveTextFile', () => {
 
         expect(mockUnlink).toHaveBeenCalledWith('/cache/onyx-state.txt');
     });
+
+    it('removes a partial native file and propagates a write failure', async () => {
+        // Given writing the temporary file fails after it may have created one
+        const error = new Error('Write failed');
+        mockWriteFile.mockRejectedValueOnce(error);
+        mockUnlink.mockResolvedValueOnce(undefined);
+
+        // When saving the text file
+        await expect(saveTextFileNative(options)).rejects.toBe(error);
+
+        // Then the partial file is removed and the share sheet is not opened
+        expect(mockUnlink).toHaveBeenCalledWith('/cache/onyx-state.txt');
+        expect(mockShareOpen).not.toHaveBeenCalled();
+    });
 });

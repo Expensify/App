@@ -28,7 +28,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import {getErrorMessage} from '@libs/ErrorUtils';
-import {maskOnyxState, readOnyxState, shareAsFile} from '@libs/ExportOnyxState';
+import {maskOnyxState, readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxState';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,7 +49,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import {differenceInDays} from 'date-fns';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
@@ -90,13 +90,13 @@ function TroubleshootPage() {
         setShouldResetSearchQuery(true);
         clearOnyxAndResetApp();
     };
-    const exportOnyxState = useCallback(async () => {
+    const exportOnyxState = async () => {
         try {
             const value = await readOnyxState();
             const dataToShare = maskOnyxState(value, shouldMaskOnyxState);
-            await shareAsFile(JSON.stringify(dataToShare));
+            await saveOnyxStateFile(JSON.stringify(dataToShare));
         } catch (error) {
-            Log.alert('[Troubleshoot] Unable to export Onyx state', {error: getErrorMessage(error)});
+            Log.warn('[Troubleshoot] Unable to export Onyx state', {error: getErrorMessage(error)});
             await showConfirmModal({
                 title: translate('genericErrorPage.title'),
                 prompt: translate('common.genericErrorMessage'),
@@ -104,7 +104,7 @@ function TroubleshootPage() {
                 shouldShowCancelButton: false,
             });
         }
-    }, [shouldMaskOnyxState, showConfirmModal, translate]);
+    };
 
     const getSurveyCompletedWithinLastMonth = () => {
         const surveyThresholdInDays = 30;

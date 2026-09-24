@@ -5,9 +5,8 @@ import type SaveTextFile from './types';
 
 const saveTextFile: SaveTextFile = async ({fileName, content}) => {
     const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
-    await RNFS.writeFile(path, content, 'utf8');
-
     try {
+        await RNFS.writeFile(path, content, 'utf8');
         await Share.open({
             url: `file://${path}`,
             failOnCancel: false,

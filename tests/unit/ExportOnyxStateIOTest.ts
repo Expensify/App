@@ -1,4 +1,4 @@
-import {readOnyxState, shareAsFile} from '@libs/ExportOnyxState';
+import {readOnyxState, saveOnyxStateFile} from '@libs/ExportOnyxState';
 import saveTextFile from '@libs/saveTextFile';
 
 import CONST from '@src/CONST';
@@ -32,7 +32,7 @@ describe('Onyx state export', () => {
         const content = '{"test":1}';
         jest.mocked(saveTextFile).mockResolvedValueOnce(undefined);
 
-        await shareAsFile(content);
+        await saveOnyxStateFile(content);
 
         expect(saveTextFile).toHaveBeenCalledWith({fileName: CONST.DEFAULT_ONYX_DUMP_FILE_NAME, content});
     });
