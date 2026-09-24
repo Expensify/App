@@ -602,7 +602,7 @@ function getAccountingIntegrationData(
                     CONST.CAMPFIRE_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.campfire?.data?.fields?.map((field) => `${CONST.CAMPFIRE_CONFIG.FIELD_MAPPING_PREFIX}${field.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.CAMPFIRE_CONFIG.EXPORTER,
                     CONST.CAMPFIRE_CONFIG.EXPORT_DATE,
@@ -653,8 +653,13 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS,
+                    CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.businessCentral?.data?.dimensions?.map((dimension) => `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}`) ?? []),
+                ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [],
                 onAdvancedPagePress: () => null,
