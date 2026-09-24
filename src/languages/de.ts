@@ -8862,6 +8862,51 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Dynamics 365 Business Central importiert werden sollen.',
             items: 'Artikel',
             enableNewCategories: 'Neu importierte Kategorien aktivieren',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Dynamics 365 Business Central exportiert werden.',
+            exportDate: {
+                label: 'Transaktionsdatum',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum der letzten Ausgabe',
+                        description: 'Datum der letzten im Bericht erfassten Ausgabe.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum, an dem der Bericht nach Dynamics 365 Business Central exportiert wurde.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Einreichungsdatum',
+                        description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
+                    },
+                },
+            },
+            exportReimbursable: 'Erstattungsfähige Ausgaben exportieren als',
+            exportNonReimbursable: 'Firmenkartenausgaben exportieren als',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Fibu Buch.-Blatt',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Einkaufsrechnungen',
+            },
+            reimbursableAccount: {
+                label: 'Erstattungskonto',
+                description: 'Wählen Sie aus, wohin erstattungsfähige Ausgaben exportiert werden.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für Firmenkarten',
+                description: 'Wählen Sie einen standardmäßigen Dynamics 365 Business Central-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {
+                label: 'Firmenkartenkonto',
+                description: 'Wählen Sie aus, wohin Firmenkartentransaktionen exportiert werden.',
+            },
+            paymentMethod: {
+                label: 'Zahlungsform',
+                description: 'Wählen Sie eine Zahlungsform für Einkaufsrechnungen, damit Dynamics 365 Business Central sie mit Ihrer Bank abgleichen kann.',
+            },
+            noBankAccountsFound: 'Keine Bankkonten gefunden',
+            noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            noPaymentMethodsFound: 'Keine Zahlungsformen gefunden',
+            noPaymentMethodsFoundDescription: 'Bitte fügen Sie Zahlungsformen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {

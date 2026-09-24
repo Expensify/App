@@ -8465,6 +8465,51 @@ ${reportName}`,
             importDescription: '选择要从 Dynamics 365 Business Central 导入的编码配置。',
             items: '项目',
             enableNewCategories: '启用新导入的类别',
+            exportDescription: '配置 Expensify 数据导出到 Dynamics 365 Business Central 的方式。',
+            exportDate: {
+                label: '交易日期',
+                description: '将报表导出到 Dynamics 365 Business Central 时使用此日期。',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: '最新支出日期',
+                        description: '报告中最近一次支出的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: '导出日期',
+                        description: '报告导出至 Dynamics 365 Business Central 的日期。',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报告提交审批的日期。',
+                    },
+                },
+            },
+            exportReimbursable: '将可报销费用导出为',
+            exportNonReimbursable: '导出公司卡费用为',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: '普通日记账',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: '采购发票',
+            },
+            reimbursableAccount: {
+                label: '可报销费用账户',
+                description: '选择可报销费用的导出位置。',
+            },
+            defaultCompanyCardVendor: {
+                label: '默认公司卡供应商',
+                description: '为未自动匹配的费用选择默认的 Dynamics 365 Business Central 供应商。',
+            },
+            companyCardAccount: {
+                label: '公司卡账户',
+                description: '选择公司卡交易的导出位置。',
+            },
+            paymentMethod: {
+                label: '付款方式',
+                description: '为采购发票选择付款方式，以便 Dynamics 365 Business Central 将其与您的银行进行对账。',
+            },
+            noBankAccountsFound: '未找到银行账户',
+            noBankAccountsFoundDescription: '请在 Dynamics 365 Business Central 中添加银行账户，然后重新同步连接',
+            noPaymentMethodsFound: '未找到付款方式',
+            noPaymentMethodsFoundDescription: '请在 Dynamics 365 Business Central 中添加付款方式，然后重新同步连接',
         },
     },
     getAssistancePage: {

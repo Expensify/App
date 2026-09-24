@@ -8790,6 +8790,51 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             importDescription: 'Escolha quais configurações de codificação importar do Dynamics 365 Business Central.',
             items: 'Itens',
             enableNewCategories: 'Ativar novas categorias importadas',
+            exportDescription: 'Configure como os dados do Expensify são exportados para o Dynamics 365 Business Central.',
+            exportDate: {
+                label: 'Data da transação',
+                description: 'Use esta data ao exportar relatórios para o Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Data da última despesa',
+                        description: 'Data da despesa mais recente no relatório.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data de exportação',
+                        description: 'Data em que o relatório foi exportado para o Dynamics 365 Business Central.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data de envio',
+                        description: 'Data em que o relatório foi enviado para aprovação.',
+                    },
+                },
+            },
+            exportReimbursable: 'Exportar despesas reembolsáveis como',
+            exportNonReimbursable: 'Exportar despesas de cartão corporativo como',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Diário geral',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Faturas de compra',
+            },
+            reimbursableAccount: {
+                label: 'Conta de despesas reembolsáveis',
+                description: 'Escolha para onde exportar as despesas reembolsáveis.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Fornecedor padrão do cartão corporativo',
+                description: 'Escolha um fornecedor padrão do Dynamics 365 Business Central para despesas que não forem correspondidas automaticamente.',
+            },
+            companyCardAccount: {
+                label: 'Conta de cartão corporativo',
+                description: 'Escolha para onde exportar as transações de cartão corporativo.',
+            },
+            paymentMethod: {
+                label: 'Forma de pagamento',
+                description: 'Escolha uma forma de pagamento para as faturas de compra para que o Dynamics 365 Business Central possa conciliá-las com seu banco.',
+            },
+            noBankAccountsFound: 'Nenhuma conta bancária encontrada',
+            noBankAccountsFoundDescription: 'Adicione contas bancárias no Dynamics 365 Business Central e sincronize a conexão novamente',
+            noPaymentMethodsFound: 'Nenhuma forma de pagamento encontrada',
+            noPaymentMethodsFoundDescription: 'Adicione formas de pagamento no Dynamics 365 Business Central e sincronize a conexão novamente',
         },
     },
     getAssistancePage: {

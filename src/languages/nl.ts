@@ -8784,6 +8784,51 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             importDescription: 'Kies welke codeerconfiguraties je uit Dynamics 365 Business Central wilt importeren.',
             items: 'Artikelen',
             enableNewCategories: 'Nieuw geïmporteerde categorieën inschakelen',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Dynamics 365 Business Central.',
+            exportDate: {
+                label: 'Transactiedatum',
+                description: 'Gebruik deze datum bij het exporteren van rapporten naar Dynamics 365 Business Central.',
+                values: {
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Datum van de laatste uitgave',
+                        description: 'Datum van de meest recente uitgave op het rapport.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum waarop het rapport naar Dynamics 365 Business Central is geëxporteerd.',
+                    },
+                    [CONST.BUSINESS_CENTRAL_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Inleverdatum',
+                        description: 'Datum waarop het rapport ter goedkeuring is ingediend.',
+                    },
+                },
+            },
+            exportReimbursable: 'Vergoedbare uitgaven exporteren als',
+            exportNonReimbursable: 'Bedrijfspaskosten exporteren als',
+            exportDestination: {
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY]: 'Algemeen journaal',
+                [CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE]: 'Inkoopfacturen',
+            },
+            reimbursableAccount: {
+                label: 'Rekening voor vergoedbare uitgaven',
+                description: 'Kies waarheen vergoedbare uitgaven worden geëxporteerd.',
+            },
+            defaultCompanyCardVendor: {
+                label: 'Standaard leverancier bedrijfspas',
+                description: 'Kies een standaard Dynamics 365 Business Central-leverancier voor uitgaven die niet automatisch worden gekoppeld.',
+            },
+            companyCardAccount: {
+                label: 'Bedrijfskaartrekening',
+                description: 'Kies waarheen transacties met bedrijfspassen worden geëxporteerd.',
+            },
+            paymentMethod: {
+                label: 'Betalingswijze',
+                description: 'Kies een betalingswijze voor inkoopfacturen, zodat Dynamics 365 Business Central ze kan afstemmen met je bank.',
+            },
+            noBankAccountsFound: 'Geen bankrekeningen gevonden',
+            noBankAccountsFoundDescription: 'Voeg bankrekeningen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
+            noPaymentMethodsFound: 'Geen betalingswijzen gevonden',
+            noPaymentMethodsFoundDescription: 'Voeg betalingswijzen toe in Dynamics 365 Business Central en synchroniseer de verbinding opnieuw',
         },
     },
     getAssistancePage: {

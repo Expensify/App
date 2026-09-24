@@ -5099,6 +5099,42 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/business-central/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/import` as const,
     },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT: {
+        route: 'workspaces/:policyID/accounting/business-central/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/business-central/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DATE: {
+        route: 'workspaces/:policyID/accounting/business-central/export/date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/date` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: {
+        route: 'workspaces/:policyID/accounting/business-central/export/reimbursable-destination',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/reimbursable-destination` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/reimbursable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/reimbursable-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION: {
+        route: 'workspaces/:policyID/accounting/business-central/export/non-reimbursable-destination',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/non-reimbursable-destination` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR: {
+        route: 'workspaces/:policyID/accounting/business-central/export/default-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/default-vendor` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: {
+        route: 'workspaces/:policyID/accounting/business-central/export/payment-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/payment-method` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,
