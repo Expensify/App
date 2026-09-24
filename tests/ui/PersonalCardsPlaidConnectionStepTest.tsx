@@ -7,23 +7,14 @@ import PlaidConnectionStep from '@pages/settings/Wallet/PersonalCards/steps/Plai
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
-import type {OnyxData} from '@src/types/onyx/Request';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// The real API layer applies optimisticData before the request is sent, so the mock has to do the same for the
-// component to observe the optimistic state. The server response is never simulated here.
 jest.mock('@libs/API', () => ({
-    read: jest.fn((_command: string, _params: unknown, onyxData?: OnyxData<OnyxKey>) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const {default: OnyxInstance} = require('react-native-onyx');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        OnyxInstance.update(onyxData?.optimisticData ?? []);
-    }),
+    read: jest.fn(),
     write: jest.fn(),
 }));
 jest.mock('@expensify/react-native-hybrid-app', () => ({
@@ -53,11 +44,21 @@ jest.mock('@userActions/BankAccounts', () => ({setPlaidEvent: jest.fn()}));
 jest.mock('@libs/actions/PersonalCards', () => ({setAddNewPersonalCardStepAndData: jest.fn()}));
 
 const readSpy = jest.mocked(API.read);
+const TOO_MANY_ATTEMPTS_KEY = 'bankAccount.error.tooManyAttempts';
 const STALE_ERROR_TIMESTAMP = '1700000000000';
+const STALE_THROTTLE_ERROR = {[STALE_ERROR_TIMESTAMP]: 'Sorry, you have attempted this action too many times in a short period. Please try again later, thanks!'};
 
 describe('PlaidConnectionStep (personal cards)', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => {
+        // The real API layer applies optimisticData before the request is sent, so the mock has to do the same for the
+        // component to observe the optimistic state. The server response is never simulated here.
+        readSpy.mockImplementation((_command, _parameters, onyxData) => {
+            Onyx.update(onyxData?.optimisticData ?? []);
+        });
     });
 
     afterEach(async () => {
@@ -74,7 +75,7 @@ describe('PlaidConnectionStep (personal cards)', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.ADD_NEW_PERSONAL_CARD]: {data: {selectedCountry: CONST.COUNTRY.US}},
                 [ONYXKEYS.IS_PLAID_DISABLED]: true,
-                [ONYXKEYS.PLAID_DATA]: {...CONST.PLAID.DEFAULT_DATA, errors: {[STALE_ERROR_TIMESTAMP]: 'Sorry, you have attempted this action too many times in a short period.'}},
+                [ONYXKEYS.PLAID_DATA]: {...CONST.PLAID.DEFAULT_DATA, errors: STALE_THROTTLE_ERROR},
             });
         });
 
@@ -87,6 +88,6 @@ describe('PlaidConnectionStep (personal cards)', () => {
         expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, expect.objectContaining({country: CONST.COUNTRY.US, isPersonal: true}), expect.anything());
 
         // And the saved throttle message is not shown while the server has not answered
-        expect(screen.queryByText('bankAccount.error.tooManyAttempts')).toBeNull();
+        expect(screen.queryByText(TOO_MANY_ATTEMPTS_KEY)).toBeNull();
     });
 });

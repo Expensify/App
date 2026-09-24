@@ -7,23 +7,14 @@ import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConne
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxKey} from '@src/ONYXKEYS';
-import type {OnyxData} from '@src/types/onyx/Request';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-// The real API layer applies optimisticData before the request is sent, so the mock has to do the same for the
-// component to observe the optimistic state. The server response is never simulated here.
 jest.mock('@libs/API', () => ({
-    read: jest.fn((_command: string, _params: unknown, onyxData?: OnyxData<OnyxKey>) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const {default: OnyxInstance} = require('react-native-onyx');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        OnyxInstance.update(onyxData?.optimisticData ?? []);
-    }),
+    read: jest.fn(),
     write: jest.fn(),
 }));
 jest.mock('@expensify/react-native-hybrid-app', () => ({
@@ -66,6 +57,11 @@ describe('PlaidConnectionStep (company cards)', () => {
     });
 
     beforeEach(async () => {
+        // The real API layer applies optimisticData before the request is sent, so the mock has to do the same for the
+        // component to observe the optimistic state. The server response is never simulated here.
+        readSpy.mockImplementation((_command, _parameters, onyxData) => {
+            Onyx.update(onyxData?.optimisticData ?? []);
+        });
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ADD_NEW_COMPANY_CARD, {data: {selectedCountry: CONST.COUNTRY.US}});
         });

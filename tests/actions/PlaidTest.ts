@@ -8,8 +8,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
-import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
-
 jest.mock('@libs/API', () => ({
     read: jest.fn(),
     write: jest.fn(),
@@ -116,10 +114,14 @@ describe('actions/Plaid', () => {
 
         // Then the flag is cleared optimistically, because the response re-derives it from the server-side throttle state
         expect(readSpy).toHaveBeenCalledTimes(1);
-        const [, , onyxData] = getRequiredWriteCall(readSpy.mock.calls, 0);
-        expect(getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.IS_PLAID_DISABLED, Onyx.METHOD.SET).value).toBe(false);
+        const call = readSpy.mock.calls.at(0);
+        if (!call) {
+            throw new Error('API.read was not called');
+        }
+        const [, , onyxData] = call;
+        expect(onyxData?.optimisticData).toContainEqual({onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.IS_PLAID_DISABLED, value: false});
 
         // And a failed request leaves the flag to the server's own onyxData, which carries the real throttle state
-        expect(getRequiredOnyxUpdates(onyxData, 'failureData')).not.toContainEqual(expect.objectContaining({key: ONYXKEYS.IS_PLAID_DISABLED}));
+        expect(onyxData?.failureData).not.toContainEqual(expect.objectContaining({key: ONYXKEYS.IS_PLAID_DISABLED}));
     });
 });
