@@ -39,6 +39,7 @@ import MenuItemFieldValue from './leaves/content/MenuItemFieldValue';
 import MenuItemLabel from './leaves/content/MenuItemLabel';
 import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
+import MenuItemHelpText from './leaves/MenuItemHelpText';
 import MenuItemBrickRoadIndicator from './leaves/trailing/icons/MenuItemBrickRoadIndicator';
 import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
 import MenuItemDownCaret from './leaves/trailing/icons/MenuItemDownCaret';
@@ -68,6 +69,7 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     RightLabel: MenuItemRightLabel,
     Copy: MenuItemCopy,
     ExternalLink: MenuItemExternalLink,
+    HelpText: MenuItemHelpText,
 });
 
 export default MenuItem;
