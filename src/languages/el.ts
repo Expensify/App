@@ -1030,11 +1030,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Κάρτα Expensify',
                 cta: 'Ανασκόπηση',
             },
-            validateAccount: {
-                title: 'Επικυρώστε τον λογαριασμό σας',
-                subtitle: 'Λογαριασμός',
-                cta: 'Επικυρώστε',
-            },
             addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
@@ -1054,6 +1049,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Έλεγχος',
                 dueSoonTitle: ({date}: {date: string}) => `Πληρώστε το τιμολόγιό σας έως ${date} για να αποφύγετε τη διακοπή της υπηρεσίας`,
                 overdueTitle: 'Η πληρωμή σας έχει λήξει, παρακαλούμε εξοφλήστε το τιμολόγιό σας',
+            },
+            renewSubscription: {
+                title: 'Ενεργοποιήστε την αυτόματη ανανέωση για να διατηρήσετε την τρέχουσα τιμή σας',
+                subtitle: ({date}: {date: string}) => `Η συνδρομή λήγει στις ${date}`,
+                cta: 'Διαχείριση',
             },
         },
         freeTrialSection: {
@@ -1078,12 +1078,6 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Εξοφλήθηκε τις τελευταίες 30 ημέρες',
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
-        discoverSection: {
-            title: 'Ανακαλύψτε',
-            menuItemTitleNonAdmin: 'Μάθετε πώς να δημιουργείτε δαπάνες και να υποβάλλετε αναφορές.',
-            menuItemTitleAdmin: 'Μάθετε πώς να προσκαλείτε μέλη, να επεξεργάζεστε ροές έγκρισης και να πραγματοποιείτε συμφωνία εταιρικών καρτών.',
-            menuItemDescription: 'Δείτε τι μπορεί να κάνει το Expensify σε 2 λεπτά',
-        },
         forYouSection: {
             reviewExpenses: ({count}: {count: number}) => ({
                 one: 'Ελέγξτε 1 δαπάνη',
@@ -1555,6 +1549,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amount ? `πληρώθηκε ${amount} με τραπεζικό λογαριασμό ${last4Digits}` : `πληρώθηκε με τραπεζικό λογαριασμό ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `πληρώθηκε ${amount ? `${amount} ` : ''}με τραπεζικό λογαριασμό ${last4Digits} μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Προσωπικός λογαριασμός • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Επαγγελματικός λογαριασμός • ${lastFour}`,
         nextStep: 'Επόμενα βήματα',
@@ -1882,6 +1877,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `άλλαξε τον τελικό εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -2821,6 +2817,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Παρακαλούμε διορθώστε αυτήν τη σύνδεση στις <a href="${companyCardsRoute}">εταιρικές κάρτες</a>`,
             askAdminToFixConnection: 'Παρακαλούμε ζητήστε από έναν διαχειριστή να διορθώσει αυτήν τη σύνδεση',
             reconnectBank: 'Η σύνδεσή σας με την τράπεζα χρειάζεται επαναπιστοποίηση',
+            pending: 'Σε εκκρεμότητα',
         },
         bankAccountStatus: {
             active: 'Ενεργό',
@@ -4347,7 +4344,7 @@ ${amount} για ${merchant} - ${date}`,
         legalFirstName: 'Επίσημο μικρό όνομα',
         legalLastName: 'Επώνυμο (όπως αναγράφεται στα επίσημα έγγραφα)',
         enterTheDateOfBirthOfTheOwner: 'Ποια είναι η ημερομηνία γέννησης του κατόχου;',
-        enterTheSSN: 'Ποιος είναι ο αριθμός κοινωνικής ασφάλισης του ιδιοκτήτη;',
+        enterTheSSN: 'Ποια είναι τα τελευταία 4 ψηφία του Αριθμού Κοινωνικής Ασφάλισης του ιδιοκτήτη;',
         dontWorry: 'Μην ανησυχείτε, δεν κάνουμε κανέναν προσωπικό έλεγχο πιστοληπτικής ικανότητας!',
         enterTheOwnersAddress: 'Ποια είναι η διεύθυνση του ιδιοκτήτη;',
         letsDoubleCheck: 'Ας ελέγξουμε διπλά ότι όλα φαίνονται σωστά.',
@@ -7659,10 +7656,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             providerFinalApprover: (providerName: string) => `τελικός εγκριτής ${providerName}`,
             syncing: 'Γίνεται συγχρονισμός υπαλλήλων',
             approvalModeDescription: (providerName: string) => `Τα μέλη και οι υπεύθυνοι έχουν ρυθμιστεί ώστε να συγχρονίζονται με το ${providerName}.`,
-            approvalModeWarningTitle: 'Αλλαγή λειτουργίας έγκρισης;',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
-            approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
             approvalModeDescriptions: {
                 basic: 'Όλοι οι χρήστες υποβάλλουν σε ένα μόνο άτομο για επεξεργασία και έγκριση.',
                 manager: (providerName: string) => `Οι υπάλληλοι υποβάλλουν αναφορές στον άμεσο προϊστάμενό τους που έχει ρυθμιστεί στο ${providerName}.`,
@@ -7723,12 +7716,45 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            filters: {
+                description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
+                stages: {
+                    title: 'Στάδιο εργασίας',
+                    description: 'Επιλέξτε το στάδιο πρόσληψης των υποψηφίων που θέλετε να συγχρονίζονται με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Στάδια εργασίας',
+                    allSelected: 'Όλα τα στάδια εργασίας',
+                },
+                tags: {
+                    title: 'Ετικέτα',
+                    description: 'Επιλέξτε τις ετικέτες υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Ετικέτες',
+                    allSelected: 'Όλες οι ετικέτες',
+                },
+                offices: {
+                    title: 'Γραφείο',
+                    description: 'Επιλέξτε τα γραφεία των υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Γραφεία',
+                    allSelected: 'Όλα τα γραφεία',
+                },
+                enableJobStagesOrTags: 'Ενεργοποιήστε τα στάδια εργασίας ή τις ετικέτες για να συνεχίσετε',
+            },
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 υποψήφιος',
                     other: (count: number) => `${count} υποψήφιοι`,
                 }),
+            },
+            approverField: `Πρώτος εγκρίνων`,
+            finalApprover: `Τελική έγκριση`,
+            finalApproverOptional: 'Τελικός εγκρίτης (προαιρετικό)',
+            approvalModeDescription: (providerName: string) => `Ορίστε τον εγκριτή για τα νέα μέλη που εισάγονται από το ${providerName} στο Expensify.`,
+            approverFieldDescription: (providerName: string) =>
+                `Επιλέξτε τον πρώτο εγκρίνοντα για τους υποψηφίους σας: είτε τον υπεύθυνο προσλήψεών τους είτε τον συντονιστή τους που έχει οριστεί στο ${providerName}.`,
+            approvalModeDescriptions: {
+                basic: 'Επιλέξτε έναν μόνο εγκρίνοντα',
+                advanced: `Ο υπεύθυνος προσλήψεων ή ο συντονιστής της υποψηφιότητας γίνεται εγκρίνων των εξόδων τους`,
+                custom: 'Ορίστε χειροκίνητα εγκριτές στο Expensify',
             },
         },
         merge: {
@@ -7755,6 +7781,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 custom: 'Προσαρμοσμένη έγκριση',
                 advanced: 'Προηγμένη έγκριση',
             },
+            approvalModeWarningTitle: 'Αλλαγή λειτουργίας έγκρισης;',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
+            approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
             syncingModalTitle: 'Η σύνδεσή σας συγχρονίζεται',
             syncingModalDescription: 'Η πρώτη σύνδεση μπορεί να πάρει λίγο χρόνο. Θα ενημερωθείτε για τυχόν σφάλματα.',
             syncLimitReached: {
@@ -8977,6 +9007,25 @@ ${reportName}`,
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Campfire θα είναι διαθέσιμοι ως κατηγορίες.',
             dimensionsImport: 'Όλες οι διαστάσεις Campfire εισάγονται ως ετικέτες',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Campfire.',
+            exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {VENDOR_BILL: {label: 'Τιμολόγια προμηθευτών'}}},
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Campfire.',
+                values: {
+                    LAST_EXPENSE: {label: 'Ημερομηνία τελευταίας δαπάνης', description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.'},
+                    REPORT_EXPORTED: {label: 'Ημερομηνία εξαγωγής', description: 'Ημερομηνία εξαγωγής της αναφοράς στο Campfire.'},
+                    REPORT_SUBMITTED: {label: 'Ημερομηνία υποβολής', description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Εξαγωγή εταιρικών εξόδων κάρτας ως', values: {JOURNAL_ENTRY: {label: 'Λογιστικές εγγραφές'}}},
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Campfire για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Campfire και συγχρονίστε ξανά τη σύνδεση',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -8990,6 +9039,9 @@ ${reportName}`,
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
             noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Business Central και συγχρονίστε ξανά τη σύνδεση',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Dynamics 365 Business Central.',
+            items: 'Στοιχεία',
+            enableNewCategories: 'Ενεργοποίηση νέων εισαγόμενων κατηγοριών',
         },
     },
     getAssistancePage: {
@@ -11011,6 +11063,11 @@ ${reportName}`,
             trialEnded: {
                 title: 'Η δωρεάν δοκιμή σας έληξε',
                 subtitle: 'Προσθέστε μια κάρτα πληρωμής για να συνεχίσετε να χρησιμοποιείτε όλες τις αγαπημένες σας δυνατότητες.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Η συνδρομή σας λήγει στις ${date}`,
+                subtitle: 'Ενεργοποιήστε την αυτόματη ανανέωση για να διατηρήσετε την τρέχουσα τιμή σας.',
+                manage: 'Διαχείριση',
             },
             earlyDiscount: {
                 claimOffer: 'Αποκτήστε την προσφορά',

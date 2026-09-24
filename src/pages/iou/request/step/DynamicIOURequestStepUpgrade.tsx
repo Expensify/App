@@ -93,7 +93,6 @@ function DynamicIOURequestStepUpgrade({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const createReportForCurrentUser = useCreateNewReport();
 
@@ -338,7 +337,6 @@ function DynamicIOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: email,
             onboardingPurposeSelected,
-            betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
             delegateAccountID,
@@ -363,7 +361,6 @@ function DynamicIOURequestStepUpgrade({
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
-            betas,
             isSelfTourViewed,
             hasActiveAdminPolicies,
             delegateAccountID,

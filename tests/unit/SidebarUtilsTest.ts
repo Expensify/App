@@ -1226,7 +1226,6 @@ describe('SidebarUtils', () => {
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
-                betas: [],
                 transactionViolations: {},
                 draftComment: undefined,
                 transactions: {},
