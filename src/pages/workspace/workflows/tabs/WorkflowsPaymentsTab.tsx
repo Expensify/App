@@ -25,7 +25,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, setWorkspaceReimbursement} from '@libs/actions/Policy/Policy';
-import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
@@ -129,6 +129,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
     const bankAccountID = isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : bankAccountConnectedToWorkspace?.methodID;
     const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const isAccountInSetupState = isBankAccountPartiallySetup(state);
     const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const canChangePayer = canWritePayments && !isAccountInSetupState;
@@ -160,7 +163,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     ) : undefined;
     const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
     const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
-    const canInteractWithBankAccountRow = canWritePayments && !isOffline && !isBankAccountPendingDelete;
+    const canInteractWithBankAccountRow = canWritePayments && !isBankAccountPendingDelete;
     // Only the reimburser can send the unlock request, so a locked account offers no action to anyone else rather than
     // an Unlock button that would instead start connecting a different bank account.
     const canPerformBankAccountAction = !isBusinessBankAccountLocked || isUserReimburser;
@@ -178,7 +181,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         }
         // User who is reimburser can initiate unlocking process
         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-            pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
+            if (unlockRequestedAt) {
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+                return;
+            }
+            pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
             navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
             return;
         }
@@ -209,7 +216,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
         shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
-        disabled: isOffline || !canWritePayments || isBankAccountPendingDelete,
+        disabled: !canWritePayments || isBankAccountPendingDelete,
         shouldShowRightIcon: canWritePayments && !isBankAccountPendingDelete,
         interactive: canWritePayments && !isBankAccountPendingDelete,
         descriptionAddon: bankConnectionStatusAddon,
