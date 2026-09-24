@@ -4,7 +4,6 @@ import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportL
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {TransactionWithOptionalHighlight} from './useMoneyRequestReportSortedTransactions';
@@ -12,8 +11,8 @@ import type {TransactionWithOptionalHighlight} from './useMoneyRequestReportSort
 type TransactionListItemData = {type: 'section-header'; groupKey: string; group: OnyxTypes.GroupedTransactions} | {type: 'transaction'; transaction: TransactionWithOptionalHighlight};
 
 type UseMoneyRequestReportGroupedTransactionsParams = {
-    /** The money request report containing the transactions */
-    report: StableReport;
+    /** Currency of the money request report, used for the per-group totals */
+    reportCurrency: string;
 
     /** Transactions sorted by the current column/direction */
     sortedTransactions: TransactionWithOptionalHighlight[];
@@ -52,7 +51,7 @@ type UseMoneyRequestReportGroupedTransactionsResult = {
  * interleaves with other hook calls and the whole chain becomes ineligible for a reactive scope.
  */
 function useMoneyRequestReportGroupedTransactions({
-    report,
+    reportCurrency,
     sortedTransactions,
     resolvedTransactions,
     currentGroupBy,
@@ -60,7 +59,6 @@ function useMoneyRequestReportGroupedTransactions({
     isOffline,
 }: UseMoneyRequestReportGroupedTransactionsParams): UseMoneyRequestReportGroupedTransactionsResult {
     const {localeCompare} = useLocalize();
-    const reportCurrency = report.currency ?? '';
 
     let groupedTransactions: OnyxTypes.GroupedTransactions[] = [];
     if (shouldGroupTransactions) {
