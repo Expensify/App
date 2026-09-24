@@ -8578,6 +8578,23 @@ ${reportName}`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            filters: {
+                description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
+                stages: {
+                    title: 'ジョブの段階',
+                    description: 'このワークスペースと同期したい候補者の選考ステージを選択してください',
+                    toggleTitle: 'ジョブのステージ',
+                    allSelected: 'すべての採用ステージ',
+                },
+                tags: {
+                    title: 'タグ',
+                    description: 'このワークスペースと同期したい候補者のタグを選択してください',
+                    toggleTitle: 'タグ',
+                    allSelected: 'すべてのタグ',
+                },
+                offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
+                enableJobStagesOrTags: '続行するにはジョブステージまたはタグを有効にしてください',
+            },
             subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
                 importedCount: () => ({

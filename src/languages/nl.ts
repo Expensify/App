@@ -8668,6 +8668,28 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            filters: {
+                description: (providerName: string) => `Selecteer welke leden worden geïmporteerd uit ${providerName}. Je kunt kiezen op basis van functieniveaus, tags en kantoren.`,
+                stages: {
+                    title: 'Functiefase',
+                    description: 'Kies de sollicitatiefase van kandidaten die je met deze workspace wilt synchroniseren',
+                    toggleTitle: 'Functiefasen',
+                    allSelected: 'Alle functiestappen',
+                },
+                tags: {
+                    title: 'Label',
+                    description: 'Kies de tags van kandidaten die je met deze workspace wilt synchroniseren',
+                    toggleTitle: 'Tags',
+                    allSelected: 'Alle labels',
+                },
+                offices: {
+                    title: 'Kantoor',
+                    description: 'Kies de kantoren van kandidaten die je met deze workspace wilt synchroniseren',
+                    toggleTitle: 'Kantoren',
+                    allSelected: 'Alle kantoren',
+                },
+                enableJobStagesOrTags: 'Schakel functiestadia of labels in om door te gaan',
+            },
             subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
             syncResults: {
                 importedCount: () => ({

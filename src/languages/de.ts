@@ -8742,6 +8742,28 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             importSettings: 'Import-Einstellungen',
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+            filters: {
+                description: (providerName: string) => `Wählen Sie aus, welche Mitglieder aus ${providerName} importiert werden. Sie können nach Jobphasen, Tags und Büros auswählen.`,
+                stages: {
+                    title: 'Jobphase',
+                    description: 'Wählen Sie die Bewerbungsphase der Kandidat:innen, die Sie mit diesem Workspace synchronisieren möchten',
+                    toggleTitle: 'Jobphasen',
+                    allSelected: 'Alle Stellenphasen',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Wählen Sie die Tags der Kandidat:innen, die Sie mit diesem Workspace synchronisieren möchten',
+                    toggleTitle: 'Tags',
+                    allSelected: 'Alle Tags',
+                },
+                offices: {
+                    title: 'Büro',
+                    description: 'Wählen Sie die Büros der Kandidat:innen aus, die Sie mit diesem Workspace synchronisieren möchten',
+                    toggleTitle: 'Büros',
+                    allSelected: 'Alle Büros',
+                },
+                enableJobStagesOrTags: 'Aktivieren Sie Jobphasen oder Tags, um fortzufahren',
+            },
             subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
             syncResults: {
                 importedCount: () => ({

@@ -8688,6 +8688,23 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             importSettings: 'Ustawienia importu',
             defaultApprover: 'Domyślny zatwierdzający',
             approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
+            filters: {
+                description: (providerName: string) => `Wybierz, którzy członkowie zostaną zaimportowani z ${providerName}. Możesz wybierać spośród etapów rekrutacji, tagów i biur.`,
+                stages: {
+                    title: 'Etap zadania',
+                    description: 'Wybierz etap rekrutacji kandydatów, których chcesz zsynchronizować z tym miejscem pracy',
+                    toggleTitle: 'Etapy zlecenia',
+                    allSelected: 'Wszystkie etapy pracy',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Wybierz tagi kandydatów, które chcesz zsynchronizować z tym obszarem roboczym',
+                    toggleTitle: 'Tagi',
+                    allSelected: 'Wszystkie tagi',
+                },
+                offices: {title: 'Biuro', description: 'Wybierz biura kandydatów, które chcesz zsynchronizować z tym miejscem pracy', toggleTitle: 'Biura', allSelected: 'Wszystkie biura'},
+                enableJobStagesOrTags: 'Włącz etapy zleceń lub tagi, aby kontynuować',
+            },
             subtitle: 'Połącz narzędzia rekrutacyjne i utrzymuj zgody kandydatów w synchronizacji.',
             syncResults: {
                 importedCount: () => ({

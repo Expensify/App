@@ -8671,6 +8671,28 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             importSettings: 'Importar configurações',
             defaultApprover: 'Aprovador padrão',
             approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
+            filters: {
+                description: (providerName: string) => `Selecione quais membros serão importados de ${providerName}. Você pode escolher por etapas do trabalho, tags e escritórios.`,
+                stages: {
+                    title: 'Etapa do trabalho',
+                    description: 'Escolha a etapa do processo seletivo dos candidatos que você gostaria de sincronizar com este workspace',
+                    toggleTitle: 'Etapas do trabalho',
+                    allSelected: 'Todas as etapas de trabalho',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Escolha as tags dos candidatos que você gostaria de sincronizar com este workspace',
+                    toggleTitle: 'Tags',
+                    allSelected: 'Todas as tags',
+                },
+                offices: {
+                    title: 'Escritório',
+                    description: 'Escolha os escritórios dos candidatos que você gostaria de sincronizar com este espaço de trabalho',
+                    toggleTitle: 'Escritórios',
+                    allSelected: 'Todos os escritórios',
+                },
+                enableJobStagesOrTags: 'Ative Estágios de Trabalho ou Tags para continuar',
+            },
             subtitle: 'Conecte ferramentas de recrutamento e mantenha as aprovações de candidatos em sincronia.',
             syncResults: {
                 importedCount: () => ({
