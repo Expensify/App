@@ -1,4 +1,7 @@
+import CONST from '@src/CONST';
+
 import type {SetStateAction} from 'react';
+import type {ValueOf} from 'type-fest';
 
 import {useState} from 'react';
 
@@ -7,7 +10,7 @@ import type {Middleware, MiddlewareHookResult} from './types';
 /**
  * The sort order of a column in the table.
  */
-type SortOrder = 'asc' | 'desc';
+type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 
 /**
  * The active sorting configuration of the table.
@@ -61,6 +64,7 @@ type SortingMethods<ColumnKey extends string = string> = {
 type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
     initialSortColumn?: ColumnKey;
+    initialSortOrder?: SortOrder;
     narrowLayoutSortColumn?: ColumnKey;
     shouldUseNarrowTableLayout?: boolean;
     onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
@@ -124,6 +128,7 @@ function resolveActiveSorting<ColumnKey extends string = string>(
 function useSorting<T, ColumnKey extends string = string>({
     compareItems,
     initialSortColumn,
+    initialSortOrder = CONST.SEARCH.SORT_ORDER.ASC,
     narrowLayoutSortColumn,
     shouldUseNarrowTableLayout,
     onSortingChange,
@@ -131,7 +136,7 @@ function useSorting<T, ColumnKey extends string = string>({
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
     const [userSorting, setUserSorting] = useState<ActiveSorting<ColumnKey>>({
         columnKey: initialSortColumn,
-        order: 'asc',
+        order: initialSortOrder,
     });
 
     const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn);
