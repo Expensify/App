@@ -858,11 +858,10 @@ function Search({
     // dropped. Stays set until that page actually shows up in the snapshot.
     const wantedOffsetRef = useRef<number | undefined>(undefined);
 
-    // the list also reports an end whenever its rows rebuild, so a scroll is what tells a real end apart
+    // rebuilds report ends too, only a scroll moves the visible rows; not onScroll, it's a worklet on native
     const hasScrolledSinceLastEndRef = useRef(true);
-    const onListScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const onViewableItemsChanged = () => {
         hasScrolledSinceLastEndRef.current = true;
-        onSearchListScroll?.(event);
     };
 
     const fetchMoreResults = useCallback(() => {
@@ -1397,7 +1396,8 @@ function Search({
         tableHeaderVisible,
         contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
-        onScroll: onListScroll,
+        onScroll: onSearchListScroll,
+        onViewableItemsChanged,
         onEndReached: fetchMoreResults,
         ListFooterComponent: listFooterComponent,
         onLayout,

@@ -83,7 +83,7 @@ jest.mock('@react-navigation/core', () => ({
     useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
 }));
 
-type ListProps = {onEndReached?: () => void; onScroll?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
+type ListProps = {onEndReached?: () => void; onViewableItemsChanged?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
 
 // Captures the list's handlers, since FlashList never lays out in tests.
 const listProps: ListProps = {};
@@ -91,7 +91,7 @@ jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
     __esModule: true,
     default: (props: ListProps) => {
         listProps.onEndReached = props.onEndReached;
-        listProps.onScroll = props.onScroll;
+        listProps.onViewableItemsChanged = props.onViewableItemsChanged;
         listProps.onSelectRow = props.onSelectRow;
         listProps.ListFooterComponent = props.ListFooterComponent;
         return null;
@@ -302,7 +302,7 @@ describe('SearchPageNarrow', () => {
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
         listProps.onEndReached = undefined;
-        listProps.onScroll = undefined;
+        listProps.onViewableItemsChanged = undefined;
         listProps.onSelectRow = undefined;
         listProps.ListFooterComponent = undefined;
         mockRenderWriteActions.mockReset();
@@ -948,7 +948,7 @@ describe('SearchPageNarrow', () => {
 
             // When the user scrolls back to the end
             await act(async () => {
-                listProps.onScroll?.();
+                listProps.onViewableItemsChanged?.();
                 listProps.onEndReached?.();
             });
             await act(async () => {
