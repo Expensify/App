@@ -1,12 +1,19 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {CollectDepositAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 
 import type {BankAccountFieldsMap} from './BankAccountFields/types';
 
 import {addErrorMessage} from './ErrorUtils';
+
+// The only fields carrying a length or format validator, so the rest never reach the mismatch message.
+const INVALID_VALUE_MESSAGES: Record<string, TranslationPaths> = {
+    [INPUT_IDS.ROUTING_NUMBER]: 'bankAccount.error.routingNumber',
+    [INPUT_IDS.ACCOUNT_NUMBER]: 'bankAccount.error.accountNumber',
+};
 
 /** Validates against the mapping's regexes, which are the same ones the API applies to local submissions. */
 function getValidationErrors(values: CollectDepositAccountForm, fieldsMap: BankAccountFieldsMap, translate: LocaleContextProps['translate']): Record<string, string> {
@@ -25,7 +32,7 @@ function getValidationErrors(values: CollectDepositAccountForm, fieldsMap: BankA
         }
 
         if (!matchesValidator.test(value)) {
-            addErrorMessage(errors, fieldName, field.errorMessage || translate('common.error.invalidCharacter'));
+            addErrorMessage(errors, fieldName, field.errorMessage || translate(INVALID_VALUE_MESSAGES[fieldName] ?? 'common.error.invalidCharacter'));
         }
     }
 

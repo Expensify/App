@@ -79,6 +79,13 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
                 value={formValues[INPUT_IDS.BANK_COUNTRY]}
                 onPress={editCountry}
             />
+            {!!formValues[INPUT_IDS.BANK_CURRENCY] && (
+                <MenuItemField
+                    name={translate('common.currency')}
+                    value={formValues[INPUT_IDS.BANK_CURRENCY]}
+                    onPress={editDetails}
+                />
+            )}
             {Object.entries(fieldsMap).map(([fieldName, field]) => (
                 <MenuItemField
                     key={fieldName}

@@ -77,8 +77,23 @@ describe('CollectDepositAccountUtils', () => {
             // Given a routing number one digit longer than the mapping allows
             const values = {routingNumber: '1234567'} as CollectDepositAccountForm;
 
+            // When validating
+            const errors = getValidationErrors(values, fieldsMap, translate);
+
             // Then it is rejected, because the validator is anchored rather than matched anywhere in the value
-            expect(getValidationErrors(values, fieldsMap, translate)).toEqual({routingNumber: 'common.error.invalidCharacter'});
+            expect(errors).toEqual({routingNumber: 'bankAccount.error.routingNumber'});
+        });
+
+        it('names the field rather than blaming a character when a length check fails', () => {
+            // Given an account number shorter than its validator allows, with every character otherwise valid
+            const lengthCheckedFields = {accountNumber: {label: 'Account Number', validator: '[0-9]{8}', placeholder: '', errorMessage: ''}};
+            const values = {accountNumber: '1234'} as CollectDepositAccountForm;
+
+            // When validating
+            const errors = getValidationErrors(values, lengthCheckedFields, translate);
+
+            // Then the message asks for a valid account number, since no character was actually wrong
+            expect(errors).toEqual({accountNumber: 'bankAccount.error.accountNumber'});
         });
     });
 

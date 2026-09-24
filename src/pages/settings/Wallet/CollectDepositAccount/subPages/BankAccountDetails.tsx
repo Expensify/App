@@ -32,14 +32,16 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
 
     const bankCountry = formValues[INPUT_IDS.BANK_COUNTRY] ?? '';
 
-    // Only a handful of countries hold accounts in more than one currency, so the rest have nothing to pick. Wire
-    // details are the same whatever the currency, so the choice is offered on the local path only.
     const localCurrencies = getLocalCurrencies(bankCountry);
-    const hasCurrencyChoice = fieldsType === CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL && localCurrencies.length > 1;
+    const isLocal = fieldsType === CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL;
 
-    // The picker only offers an exclude list, so everything the country has no mapping for is excluded.
+    // Locally the country decides the options, so the choice only matters when it holds more than one. A wire has no
+    // default to fall back on - countries with no mapping would otherwise submit an empty currency, which the API rejects.
+    const hasCurrencyChoice = isLocal ? localCurrencies.length > 1 : true;
+
+    // The picker only offers an exclude list, so locally everything the country has no mapping for is excluded.
     const {currencyList} = useCurrencyListState();
-    const excludedCurrencies = Object.keys(currencyList).filter((currencyCode) => !localCurrencies.includes(currencyCode));
+    const excludedCurrencies = isLocal ? Object.keys(currencyList).filter((currencyCode) => !localCurrencies.includes(currencyCode)) : [];
 
     // Editing holds the new values back until submit, so the draft is written here rather than on every keystroke.
     const handleSubmit = useStepFormSubmit<typeof ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM>({
