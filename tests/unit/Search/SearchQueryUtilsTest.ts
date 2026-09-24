@@ -2141,6 +2141,45 @@ describe('SearchQueryUtils', () => {
                 expect(withDecimalLimit?.hash).toEqual(withoutLimit?.hash);
             });
         });
+
+        describe('compare hashing', () => {
+            it('should return different primaryHash for queries with different compare modes', () => {
+                // Given two queries that differ only by compare mode
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then compare affects the primary hash
+                expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+            });
+
+            it('should return different primaryHash for a query with compare vs without', () => {
+                // Given a query with compare and the same query without it
+                const withoutCompare = buildSearchQueryJSON('type:expense');
+                const withCompare = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+
+                // Then the primary hashes differ
+                expect(withoutCompare?.hash).not.toEqual(withCompare?.hash);
+            });
+
+            it('should return same primaryHash for the same compare mode queried twice', () => {
+                // Given the same compare query built twice
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then the primary hash is stable
+                expect(queryJSONa?.hash).toEqual(queryJSONb?.hash);
+            });
+
+            it('should not include compare in the similar or recent search hashes', () => {
+                // Given two queries that differ only by compare mode
+                const queryJSONa = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+                const queryJSONb = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+
+                // Then only the primary hash differs; similar and recent hashes ignore compare
+                expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+                expect(queryJSONa?.recentSearchHash).toEqual(queryJSONb?.recentSearchHash);
+            });
+        });
     });
 
     describe('buildQueryStringWithResetFilters', () => {
@@ -2675,6 +2714,37 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('view:pie');
             expect(result).toContain('merchant:Amazon');
+        });
+
+        test('serializes the compare root key', () => {
+            // Given a query JSON carrying a compare mode
+            const queryJSON = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then compare round-trips into the query string
+            expect(result).toContain(`compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
+        });
+
+        test('serializes compare alongside other filters', () => {
+            // Given a query JSON with compare and a regular filter
+            const queryJSON = buildSearchQueryJSON(`type:expense compare:${CONST.SEARCH.COMPARE.AVERAGE} category:travel`);
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then both the compare key and the filter are serialized
+            expect(result).toContain(`compare:${CONST.SEARCH.COMPARE.AVERAGE}`);
+            expect(result).toContain('category:travel');
+        });
+
+        test('omits compare when not present in the query', () => {
+            // Given a query JSON with no compare mode
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = buildSearchQueryString(queryJSON);
+
+            // Then no compare key is emitted
+            expect(result).not.toContain('compare:');
         });
 
         test('wraps keyword values in quotes so they are not re-interpreted as filter syntax', () => {
