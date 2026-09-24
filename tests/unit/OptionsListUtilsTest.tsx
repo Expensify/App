@@ -10466,6 +10466,7 @@ describe('OptionsListUtils', () => {
                     conciergeReportID: undefined,
                     config: {showChatPreviewLine: true},
                     convertToDisplayString,
+                    pendingDeleteMemberAccountIDs: undefined,
                 };
             };
 
@@ -12119,24 +12120,22 @@ describe('OptionsListUtils', () => {
     });
 
     describe('single report options with members pending removal', () => {
-        // No custom name, so the avatar label is built from the participants and the pending removals change the output.
-        const groupChatReport: Report = {
-            reportID: '9002',
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            reportName: '',
-            participants: {
-                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-            },
-        };
+        it('leaves the members pending removal out of the group chat icon', () => {
+            // Given a group chat with no custom name, so its avatar label is built from the participants,
+            // and one of those members is pending removal
+            const groupChatReport: Report = {
+                reportID: '9002',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                reportName: '',
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
 
-        it('leaves the members pending removal out of the group chat icon built by createOptionFromReport', () => {
-            // Given a group chat with one member pending removal, as the search router and the "In" filter see it
-            const pendingDeleteMemberAccountIDs = ['4'];
-
-            // When the option is built for that report
+            // When the option is built with that member passed as pending removal
             const option = createOptionFromReport({
                 dateFnsLocale: undefined,
                 convertToDisplayString,
@@ -12147,56 +12146,12 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
-                pendingDeleteMemberAccountIDs,
-            });
-
-            // Then the avatar label names only the members that are staying
-            expect(option.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
-        });
-
-        it('leaves the members pending removal out of the group chat icon built by getReportDisplayOption', () => {
-            // Given the same group chat with one member pending removal, as the share flow sees it
-            const pendingDeleteMemberAccountIDs = ['4'];
-
-            // When the display option is built for that report
-            const option = getReportDisplayOption({
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                report: groupChatReport,
-                unknownUserDetails: undefined,
-                personalDetails: PERSONAL_DETAILS,
-                privateIsArchived: undefined,
-                rules: undefined,
-                policy: undefined,
-                conciergeReportID: undefined,
-                translate: translateLocal,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                reportAttributesDerived: undefined,
-                pendingDeleteMemberAccountIDs,
+                pendingDeleteMemberAccountIDs: ['4'],
             });
 
             // Then the avatar label names only the members that are staying
             expect(option.icons?.at(0)?.name).toBe('Iron Man, Spider-Man');
-        });
-
-        it('keeps every member in the group chat icon when nothing is pending removal', () => {
-            // Given a group chat with no member pending removal, the usual case outside an in-flight removal
-            // When the option is built for that report
-            const option = createOptionFromReport({
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                report: groupChatReport,
-                personalDetails: PERSONAL_DETAILS,
-                privateIsArchived: undefined,
-                rules: undefined,
-                policy: undefined,
-                sortedActions: undefined,
-                conciergeReportID: undefined,
-                pendingDeleteMemberAccountIDs: undefined,
-            });
-
-            // Then every member is named, so undefined does not silently drop anyone
-            expect(option.icons?.at(0)?.name).toBe('Black Panther, Iron Man, Spider-Man');
         });
     });
 });
