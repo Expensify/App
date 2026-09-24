@@ -322,7 +322,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // already-visible page mounted until hydration finishes instead of exposing intermediate estimated
     // layouts. The hydrated list then mounts from scratch using the full dataset.
     const initialReportActionsSnapshot = useInitial(renderedVisibleReportActions.length > 0 ? renderedVisibleReportActions : undefined);
-    const reportActionsToRender = hasOnceLoadedReportActions ? renderedVisibleReportActions : (initialReportActionsSnapshot ?? renderedVisibleReportActions);
+    const shouldKeepInitialSnapshot = isInitialReportLoadPending && !isOffline && !showFullHistory;
+    const reportActionsToRender = shouldKeepInitialSnapshot ? (initialReportActionsSnapshot ?? renderedVisibleReportActions) : renderedVisibleReportActions;
 
     // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
     // give it chronological data and use its normal start/end and scrolling semantics.
@@ -385,7 +386,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     });
 
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
-    const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
+    // A warm report already has its complete action page. Only an initial visit needs a cover
+    // while the first page finishes loading and LegendList positions it.
+    const [shouldCoverInitialViewport] = useState(!hasOnceLoadedReportActions);
+    const shouldShowInitialViewportSkeleton = !isOffline && shouldCoverInitialViewport && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
 
     const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
         onViewableItemsChanged(info);
@@ -533,8 +537,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         );
     };
 
-    // Native mobile does not render updates flatlist the changes even though component did update called.
-    // To notify there something changes we can use extraData prop to flatlist
+    // Ensure row presentation updates when these values change without changing the action data.
     const extraData = [
         unreadMarkerReportActionID,
         isArchivedNonExpenseReport(report, isReportArchived),
@@ -544,7 +547,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         latestConciergeFeedbackActionID,
     ];
 
-    const listHeaderComponent = (
+    const latestActionsFooter = (
         <ReportActionsListHeader
             reportID={reportID}
             isDraftPendingCompletion={isDraftPendingCompletion}
@@ -553,7 +556,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    const offlineHistoryHeader = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -621,8 +624,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
                     onEndReached={loadNewerChatsAfterTransitions}
                     onEndReachedThreshold={PAGINATION_THRESHOLD}
-                    ListHeaderComponent={listFooterComponent}
-                    ListFooterComponent={listHeaderComponent}
+                    ListHeaderComponent={offlineHistoryHeader}
+                    ListFooterComponent={latestActionsFooter}
                     ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     keyboardShouldPersistTaps="handled"
                     onLayout={recordTimeToMeasureItemLayout}

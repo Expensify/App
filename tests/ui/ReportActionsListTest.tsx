@@ -527,6 +527,33 @@ describe('ReportActionsList (body)', () => {
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
     });
 
+    it('forwards the list load event so initial scroll tracking can resume', () => {
+        // Given a report with its action list ready to mount.
+        mockShouldCallLegendListOnLoad = false;
+        renderReportActionsList();
+        const onLoad = mockUseReportActionsScroll.mock.results.at(-1)?.value.onLoad;
+        expect(onLoad).not.toHaveBeenCalled();
+
+        // When LegendList reports that its first layout is complete.
+        act(() => getCapturedListProps()?.onLoad?.());
+
+        // Then the scroll hook receives that event to finish initial positioning.
+        expect(onLoad).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows a previously hydrated report without replaying the loading cover', () => {
+        // Given a report that was already loaded before this list mounted
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockShouldCallLegendListOnLoad = false;
+
+        // When the user opens the report again
+        renderReportActionsList();
+
+        // Then cached actions stay visible while LegendList completes its layout
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
     it('releases the initial viewport cover after a terminal OpenReport failure', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockHasOnceLoadedReportActions = false;
@@ -571,6 +598,7 @@ describe('ReportActionsList (body)', () => {
     it('keeps the initial actions visible until the hydrated page is complete', async () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
         const groupingSpy = jest.spyOn(ReportActionsUtils, 'isConsecutiveActionMadeByPreviousActor');
         const view = renderReportActionsList();
 
@@ -613,6 +641,45 @@ describe('ReportActionsList (body)', () => {
 
         expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length + 1);
         expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === olderMockReportAction.reportActionID)).toBe(true);
+    });
+
+    it.each([
+        {isOffline: true, isLoadingInitialReportActions: true},
+        {isOffline: false, isLoadingInitialReportActions: false},
+    ])('keeps actions live after a first load cannot complete: %p', async ({isOffline, isLoadingInitialReportActions}) => {
+        // Given cached actions with no successful OpenReport response
+        mockUseNetwork.mockReturnValue({isOffline});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = isLoadingInitialReportActions;
+        const view = renderReportActionsList();
+
+        // When an optimistic action is added while offline or after a terminal load failure
+        const existingAction = mockReportActions.at(1);
+        if (!existingAction) {
+            throw new Error('Expected a cached report action');
+        }
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [
+                {
+                    ...existingAction,
+                    reportActionID: 'new-comment',
+                    created: '2023-01-03',
+                },
+                ...mockReportActions,
+            ],
+        });
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                conciergeChat={undefined}
+                onLayout={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the new action appears without waiting for hydration
+        expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('new-comment');
     });
 
     it('keeps a hydrated list mounted when its RAM-only loading entry briefly regresses', async () => {
