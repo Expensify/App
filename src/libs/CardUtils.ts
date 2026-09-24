@@ -1744,7 +1744,7 @@ function isCardPendingIssueOrActivation(card?: Card) {
  * `isExpensifyCardPendingAction` leaves virtual cards out as well.
  */
 function isExpensifyCardPending(card?: Card) {
-    return !card?.nameValuePairs?.isVirtual && isCardPendingIssueOrActivation(card);
+    return card?.bank === CONST.EXPENSIFY_CARD.BANK && !card.nameValuePairs?.isVirtual && isCardPendingIssueOrActivation(card);
 }
 
 /** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */

@@ -5168,6 +5168,13 @@ describe('isExpensifyCardPending', () => {
         expect(isExpensifyCardPending(card)).toBe(false);
     });
 
+    // A company card's states mean something else entirely, so the Expensify Card states must not be read off one.
+    it('is false for a company card in one of those states', () => {
+        const companyCard: Card = {...createRandomCompanyCard(1), state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED};
+
+        expect(isExpensifyCardPending(companyCard)).toBe(false);
+    });
+
     it('is false for a card that has been issued and activated', () => {
         expect(isExpensifyCardPending(createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}))).toBe(false);
     });
