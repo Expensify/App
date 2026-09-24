@@ -4236,7 +4236,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
         enterTheDateOfBirthOfTheOwner: '所有者の生年月日はいつですか？',
-        enterTheSSN: '所有者の社会保障番号は何ですか？',
+        enterTheSSN: '所有者の社会保障番号の下4桁は何ですか？',
         dontWorry: 'ご安心ください。個人信用情報の審査は一切行いません。',
         enterTheOwnersAddress: 'オーナーの住所は何ですか？',
         letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',
