@@ -3420,6 +3420,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             countries?: Record<string, unknown>;
         };
 
+        /** Whether the workspace collects employee deposit account details to reimburse them outside of Expensify */
+        isCollectDepositAccountsEnabled?: boolean;
+
         /** The set reimburser for the policy */
         reimburser?: string;
 

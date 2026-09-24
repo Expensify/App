@@ -498,13 +498,6 @@ const ONYXKEYS = {
     /** Set while search filter category data is loading */
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
 
-    /**
-     * Set when we are loading the reimbursement countries used to decide whether to collect international deposit
-     * details. RAM-only so an interrupted request never persists a stuck `true` and leaves the deposit account flow
-     * showing a loading state on the next launch.
-     */
-    RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP: 'isLoadingDepositAccountSetup',
-
     HAS_LOADED_APP: 'hasLoadedApp',
 
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
@@ -1751,7 +1744,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA]: boolean;
-    [ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;

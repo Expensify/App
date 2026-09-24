@@ -15,6 +15,7 @@ import {
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
     isPolicyAdmin,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -73,6 +74,10 @@ const createOwnedPaidPoliciesCountsSelector =
  * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
  * are never valid targets.
  */
+/** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
+const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean =>
+    Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
+
 const createCopySettingsEligibleTargetsSelector =
     (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): string[] =>
@@ -578,5 +583,6 @@ export {
     policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
+    isCollectingDepositAccountsSelector,
 };
 export type {ReusablePolicyConnectionName};

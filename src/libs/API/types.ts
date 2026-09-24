@@ -1500,7 +1500,6 @@ const READ_COMMANDS = {
     OPEN_BANK_ACCOUNT_SHARE_PAGE: 'OpenBankAccountSharePage',
     OPEN_PUBLIC_PROFILE_PAGE: 'OpenPublicProfilePage',
     OPEN_PLAID_BANK_LOGIN: 'OpenPlaidBankLogin',
-    OPEN_DEPOSIT_ACCOUNT_SETUP: 'OpenDepositAccountSetup',
     OPEN_PLAID_CARDS_BANK_LOGIN: 'OpenPlaidCardsBankLogin',
     OPEN_PLAID_BANK_ACCOUNT_SELECTOR: 'OpenPlaidBankAccountSelector',
     OPEN_SEARCH_PAGE: 'OpenSearchPage',
@@ -1617,7 +1616,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE]: null;
     [READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE]: Parameters.OpenPublicProfilePageParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_LOGIN]: Parameters.OpenPlaidBankLoginParams;
-    [READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP]: null;
     [READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN]: Parameters.OpenPlaidCompanyCardLoginParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_ACCOUNT_SELECTOR]: Parameters.OpenPlaidBankAccountSelectorParams;
     [READ_COMMANDS.GET_OLDER_ACTIONS]: Parameters.GetOlderActionsParams;

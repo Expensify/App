@@ -6,11 +6,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useTimeSensitiveAddBankAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount';
 import useTimeSensitiveAddDepositAccount from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddDepositAccount';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
-import TimeSensitiveGroup from '@src/pages/home/TimeSensitiveSection/TimeSensitiveGroup';
 import useTimeSensitiveItems from '@src/pages/home/TimeSensitiveSection/useTimeSensitiveItems';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
+import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
@@ -18,7 +18,6 @@ import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@src/libs/actions/BankAccounts', () => ({
     openPersonalBankAccountSetupView: jest.fn(),
-    openDepositAccountSetup: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -77,7 +76,8 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: '
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
 
 function TimeSensitiveSection() {
-    return <TimeSensitiveGroup items={useTimeSensitiveItems()} />;
+    const items = useTimeSensitiveItems();
+    return <View>{items}</View>;
 }
 
 const renderTimeSensitiveSection = () =>

@@ -6,6 +6,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {
     activeAdminPoliciesSelector,
+    isCollectingDepositAccountsSelector,
     adminPoliciesConnectedToQBDSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createHasWorkspaceToSubmitToSelector,
@@ -573,5 +574,42 @@ describe('createHasWorkspaceToSubmitToSelector', () => {
         };
 
         expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+});
+
+describe('isCollectingDepositAccountsSelector', () => {
+    it('is true when any workspace collects, even if others do not', () => {
+        // Given one workspace that collects deposit accounts and one that does not
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true}),
+        };
+
+        // When checking whether the task applies to the user
+        // Then it does, because the collecting workspace still wants their details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(true);
+    });
+
+    it('is false when no workspace collects', () => {
+        // Given only workspaces that do not collect deposit accounts
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {}),
+        };
+
+        // When checking whether the task applies to the user
+        // Then it does not
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+
+    it('ignores a collecting workspace that is archived', () => {
+        // Given a collecting workspace that has been archived
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        // When checking whether the task applies to the user
+        // Then it does not, because that workspace will not be reimbursing anyone
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
     });
 });
