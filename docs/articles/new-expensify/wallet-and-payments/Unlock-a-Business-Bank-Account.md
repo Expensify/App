@@ -38,6 +38,8 @@ You’ll also see an alert in the **Time sensitive** section on **Home** with a 
 
 You can start the request from **Home**, **Wallet**, or a workspace’s **Workflows**. The steps are the same on web and mobile.
 
+For a workspace’s bank account, only the reimburser — the workspace member set to pay — can request the unlock. Other Workspace Admins don’t see the **Time sensitive** alert on **Home**, and **Workflows** offers them no **Unlock** option. If you’re not the reimburser, ask them to follow these steps.
+
 1. Do one of the following:
    - On **Home**, click **Fix** on the locked bank account alert in the **Time sensitive** section, then skip to step 3.
    - Go to **Settings > Wallet** and find the account in the **Bank accounts** section.
@@ -47,15 +49,17 @@ You can start the request from **Home**, **Wallet**, or a workspace’s **Workfl
 
 **Note:** **Workflows** remembers the last tab you used. The first time you open it, it starts on **Submissions**, so you need to click **Payments**. After that, returning to **Workflows** takes you straight back to **Payments** and you can skip that click.
 
-There is no extra confirmation step. Expensify sends the request to Concierge as soon as you click and takes you straight to your Concierge chat, where the request appears as a message — you don’t need to write anything. Concierge will walk you through the next steps to unlock the account, or confirm when your account is ready to use.
+There is no extra confirmation step. Expensify sends the request as soon as you click and opens your Concierge chat. The request appears there as a message, so you don’t need to write anything. Concierge will walk you through the next steps, or confirm when your account is ready to use.
 
 ---
 
 ## What happens if you request an unlock more than once
 
-Expensify sends only one unlock request per bank account. If you click **Fix**, **Unlock**, or the locked bank account again for the same account, a **Request already submitted** message appears confirming that your request is already with Concierge, and no duplicate request is sent.
+Expensify sends only one unlock request per bank account. While your request is with Concierge, clicking **Fix**, **Unlock**, or the locked bank account again shows a **Request already submitted** message instead of sending a duplicate.
 
 Click **Got it** to dismiss the message. Your place in the queue is unaffected — clicking again does not speed up the unlock.
+
+If the request hits an error and fails to send, Expensify does not record it. Clicking **Fix** or **Unlock** again sends a fresh request rather than showing the **Request already submitted** message. Going offline does not count as a failure — the request is queued and sent when you reconnect.
 
 <!-- SCREENSHOT:
 Suggestion: The "Request already submitted" confirmation message that appears after clicking Fix a second time for the same locked bank account, including the Got it button.
@@ -110,7 +114,7 @@ No. Locked accounts can't be deleted until they're resolved and unlocked.
 
 The failed debit may still be processing with your bank. Concierge will notify you as soon as it can be retried.
 
-## Why do I see “Request already submitted” when I click Fix or Unlock?
+## Why do I see the Request already submitted message when I click **Fix** or **Unlock**?
 
 You’ve already requested an unlock for that bank account. Expensify blocks duplicate requests, so Concierge still has your original request. Click **Got it** and wait for Concierge to reply.
 
