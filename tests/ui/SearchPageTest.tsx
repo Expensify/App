@@ -1034,6 +1034,39 @@ describe('SearchPageNarrow', () => {
             expect(renderedRowKeys()).toHaveLength(rowCount);
         });
 
+        it('does not re-ask a later page once the page adopted at mount has settled', async () => {
+            // Given a to-do tab remounting while its second page is still on the wire
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 3);
+            await seedTodoSnapshot(true, {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING});
+            searchWritesLoadingState();
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // When that page answers before the list ever reaches its end, and the next end asks for the page after it
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE, true);
+            mockSearch.mockClear();
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+
+            // When the list reaches its end again while that page is running
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then it is not asked for again, because only the adopted page could have been stranded by a reload
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+        });
+
         it('hides the loading footer once the page it waits for fails', async () => {
             // Given a to-do tab whose next page is on its way
             await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 20);

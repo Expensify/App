@@ -204,6 +204,10 @@ function Search({
 
     // gate on state: loading so it self-clears — Onyx resolves loading on every response
     const isLivePageInFlight = shouldUseLiveData && livePageOffset !== undefined && livePageOffset === searchResults?.search?.offset && isSnapshotPending;
+    // once the adopted page settles, a later page in flight is ours and must not be re-asked
+    if (isLivePageAdopted && !isLivePageInFlight) {
+        setIsLivePageAdopted(false);
+    }
 
     // live results drop `errors`, so the response code is the only failure signal left
     const didLastLivePageFail = shouldUseLiveData && typeof searchResults?.search?.responseJsonCode === 'number';
