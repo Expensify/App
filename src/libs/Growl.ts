@@ -79,6 +79,6 @@ export default {
     success,
 };
 
-export type {GrowlRef, GrowlAction, GrowlOptions, GrowlPosition, GrowlType};
+export type {GrowlRef, GrowlAction, GrowlPosition, GrowlType};
 
 export {growlRef, setIsReady};
