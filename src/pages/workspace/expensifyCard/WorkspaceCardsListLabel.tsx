@@ -192,7 +192,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             feed: [feedKey],
             withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.NEVER, CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
         });
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     return (

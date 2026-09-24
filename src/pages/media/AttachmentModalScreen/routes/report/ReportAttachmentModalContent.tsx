@@ -23,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
@@ -66,7 +67,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
-    const submitRef = useRef<View | HTMLElement>(null);
+    const submitRef = useRef<ComponentRef<typeof View> | HTMLElement>(null);
 
     const shouldFetchReport = isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
 
