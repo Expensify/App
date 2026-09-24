@@ -260,9 +260,15 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
-    const onShowPreviousMessages = handleShowPreviousMessages;
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const shouldRestoreTailAfterHistoryRevealRef = useRef(false);
+    const onShowPreviousMessages = () => {
+        // A short Concierge session has no scrollable range. Revealing its older actions makes
+        // the list scrollable, so preserve the tail the reader was looking at before the reveal.
+        shouldRestoreTailAfterHistoryRevealRef.current = !hasScrolledOverThreshold && !hasNewerActions;
+        handleShowPreviousMessages();
+    };
 
     const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
@@ -328,6 +334,17 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
     // give it chronological data and use its normal start/end and scrolling semantics.
     const listData = reportActionsToRender.toReversed();
+
+    useEffect(() => {
+        if (!showFullHistory || !shouldRestoreTailAfterHistoryRevealRef.current) {
+            return;
+        }
+        const animationFrame = requestAnimationFrame(() => {
+            legendListRef.current?.scrollToEnd({animated: false});
+            shouldRestoreTailAfterHistoryRevealRef.current = false;
+        });
+        return () => cancelAnimationFrame(animationFrame);
+    }, [showFullHistory, listData.length]);
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;

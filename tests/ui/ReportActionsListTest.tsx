@@ -141,22 +141,25 @@ const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.
 // content is never mounted, so useMarkAsRead/useReportActionsScroll are never called.
 const mockLegendListMount = jest.fn();
 const mockLegendListUnmount = jest.fn();
+const mockLegendScrollToEnd = jest.fn();
 let mockShouldCallLegendListOnLoad = true;
 jest.mock('@legendapp/list/react-native', () => {
     const reactModule = jest.requireActual<typeof React>('react');
+    const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void}>(({onLoad}, ref) => {
+        reactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockLegendScrollToEnd}), []);
+        reactModule.useEffect(() => {
+            mockLegendListMount();
+            if (mockShouldCallLegendListOnLoad) {
+                onLoad?.();
+            }
+            return () => {
+                mockLegendListUnmount();
+            };
+        }, []);
+        return null;
+    });
     return {
-        LegendList: jest.fn(({onLoad}: {onLoad?: () => void}) => {
-            reactModule.useEffect(() => {
-                mockLegendListMount();
-                if (mockShouldCallLegendListOnLoad) {
-                    onLoad?.();
-                }
-                return () => {
-                    mockLegendListUnmount();
-                };
-            }, []);
-            return null;
-        }),
+        LegendList: jest.fn((props: {onLoad?: () => void; ref?: React.Ref<{scrollToEnd: typeof mockLegendScrollToEnd}>}) => reactModule.createElement(MockLegendListContent, props)),
     };
 });
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
@@ -240,6 +243,17 @@ const getRenderedReportActionsListItemProps = (
     }
 
     return child.props;
+};
+
+const getShowHistoryPress = (action: OnyxTypes.ReportAction, index: number): (() => void) | undefined => {
+    const renderedItem = getCapturedListProps()?.renderItem?.({item: action, index});
+    if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
+        return undefined;
+    }
+    const historyButton = React.Children.toArray(renderedItem.props.children).find(
+        (child): child is React.ReactElement<{onPress: () => void}> => React.isValidElement<{onPress?: () => void}>(child) && typeof child.props.onPress === 'function',
+    );
+    return historyButton?.props.onPress;
 };
 
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
@@ -741,7 +755,7 @@ describe('ReportActionsList (body)', () => {
         });
 
         expect(mockAllowLegendListItemOverflow).toHaveBeenCalledTimes(1);
-        expect(mockAllowLegendListItemOverflow).toHaveBeenCalledWith(null, 1);
+        expect(mockAllowLegendListItemOverflow).toHaveBeenCalledWith(expect.objectContaining({scrollToEnd: mockLegendScrollToEnd}), 1);
     });
 
     it('groups comments by layout characteristics for measurement estimates', () => {
@@ -1585,6 +1599,57 @@ describe('ReportActionsList (body)', () => {
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(true);
+        });
+
+        it('keeps a short Concierge session at its visible tail when Show History reveals older actions', () => {
+            // Given a short session at its latest action, with history filtered out.
+            setupMainDMConciergeMocks();
+            let isShowingFullHistory = false;
+            mockUseConciergeSessionState.mockImplementation(() => ({sessionStartTime: SESSION_START, showFullHistory: isShowingFullHistory, hadMessagesAtSessionStart: false}));
+            mockUseConciergeSessionActions.mockReturnValue({
+                startSession: jest.fn(),
+                setShowFullHistory: (show: boolean) => {
+                    isShowingFullHistory = show;
+                },
+                setHadMessagesAtSessionStart: jest.fn(),
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: oldReportActions, hasOlderActions: false});
+            const animationFrames: FrameRequestCallback[] = [];
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrames.push(callback);
+                return animationFrames.length;
+            });
+
+            try {
+                const view = renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+                const actions = getCapturedVisibleActions();
+                const createdIndex = actions?.findIndex((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? -1;
+                const createdAction = actions?.at(createdIndex);
+                if (!createdAction) {
+                    throw new Error('Expected the Concierge created action');
+                }
+
+                // When the reader reveals the older history.
+                act(() => getShowHistoryPress(createdAction, createdIndex)?.());
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                act(() => {
+                    for (const callback of animationFrames) {
+                        callback(0);
+                    }
+                });
+
+                // Then all actions are available while the latest session stays in view.
+                expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === 'old-user-msg')).toBe(true);
+                expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+            } finally {
+                requestAnimationFrameSpy.mockRestore();
+            }
         });
 
         it('should show all actions unfiltered when user sends a message in current session', () => {
