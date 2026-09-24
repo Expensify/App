@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
@@ -27,11 +28,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
+import type {PersonalDetails, ReportAction, Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
@@ -49,14 +50,14 @@ function parseReportActionJSON(draftReportAction: string): ReportAction | null {
     }
 }
 
-const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, currentUserPersonalDetail: PersonalDetails | undefined) =>
     DebugUtils.stringifyJSON({
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportID,
         reportActionID: rand64(),
         created: DateUtils.getDBTime(),
         actorAccountID: session?.accountID,
-        avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
+        avatar: currentUserPersonalDetail?.avatar ?? '',
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'Hello world!', text: 'Hello world!'}],
     } satisfies ReportAction);
 
@@ -68,18 +69,18 @@ function DebugReportActionCreatePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, personalDetailsList));
+    const [currentUserPersonalDetail] = usePersonalDetail(session?.accountID);
+    const [draftReportAction, setDraftReportAction] = useState<string>(() => getInitialReportAction(reportID, session, currentUserPersonalDetail));
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const reportAction = useMemo(() => parseReportActionJSON(draftReportAction), [draftReportAction]);
+    const reportAction = parseReportActionJSON(draftReportAction);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
-    const createReportAction = useCallback(() => {
+    const createReportAction = () => {
         if (!reportAction) {
             return;
         }
@@ -87,22 +88,18 @@ function DebugReportActionCreatePage({
             [reportAction.reportActionID]: reportAction,
         });
         Navigation.navigate(ROUTES.DEBUG_REPORT_TAB_ACTIONS.getRoute(reportID));
-    }, [reportAction, reportID]);
+    };
 
-    const editJSON = useCallback(
-        (updatedJSON: string) => {
-            try {
-                DebugUtils.validateReportActionJSON(updatedJSON);
-                setError('');
-            } catch (e) {
-                const {cause, message} = e as SyntaxError;
-                setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-            } finally {
-                setDraftReportAction(updatedJSON);
-            }
-        },
-        [translate],
-    );
+    const editJSON = (updatedJSON: string) => {
+        try {
+            DebugUtils.validateReportActionJSON(updatedJSON);
+            setError('');
+        } catch (e) {
+            const {cause, message} = e as SyntaxError;
+            setError(cause ? translate(message as TranslationPaths, cause as never) : message);
+        }
+        setDraftReportAction(updatedJSON);
+    };
 
     return (
         <ScreenWrapper
