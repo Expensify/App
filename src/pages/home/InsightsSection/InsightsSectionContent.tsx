@@ -9,6 +9,7 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,8 @@ function InsightsSectionContent() {
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
     const insightConfigs = useHomeInsightConfigs();
     const [selectedKey] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
@@ -73,7 +76,12 @@ function InsightsSectionContent() {
                             {
                                 text: translate('common.view'),
                                 icon: icons.Expand,
-                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key})),
+                                onSelected: () =>
+                                    Navigation.navigate(
+                                        isInsightsPageEnabled
+                                            ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)
+                                            : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
+                                    ),
                                 shouldCallAfterModalHide: true,
                             },
                         ]}

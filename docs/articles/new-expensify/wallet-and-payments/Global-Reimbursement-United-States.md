@@ -89,6 +89,20 @@ To begin reimbursing:
 
 ---
 
+## How to enable Global Reimbursements when paying a report
+
+When you select **Pay** on an approved report, Expensify may prompt you to enable Global Reimbursements if the submitter has a non-USD bank account.
+
+1. Open the approved report and select **Pay**.
+2. In the **Pay report** prompt, select **Enable Global Reimbursements**.
+3. Complete the Global Reimbursements setup.
+
+After Global Reimbursements are enabled, you can reimburse the submitter to their non-USD bank account.
+
+If you select **Cancel**, the report remains Approved and is not reimbursed.
+
+---
+
 # FAQ
 
 ## How do employees add their deposit-only accounts?
@@ -96,5 +110,3 @@ To begin reimbursing:
 An employee can add their deposit accounts by doing the following:
 1. Navigate to **Account > Wallet**.
 2. Click **Add deposit-only bank account** and input their bank account details.
-
-</div>
