@@ -431,8 +431,8 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
- * Nice-rounded value domain for the horizontal bar chart's x-axis. victory-native only nices the y-axis, so we
- * pre-nice here (anchored at zero unless negatives) to keep the last tick past the longest bar. Returns undefined
+ * Nice-rounded value domain for the horizontal bar chart's x-axis. victory-native only applies .nice() to the
+ * y-axis, so we pre-round here (anchored at zero unless negatives) to keep the last tick past the longest bar. Returns undefined
  * for a degenerate domain, letting victory-native pick its own bounds.
  */
 function getNiceValueDomain(data: ChartDataPoint[], tickCount: number): [number, number] | undefined {
@@ -449,7 +449,7 @@ function getNiceValueDomain(data: ChartDataPoint[], tickCount: number): [number,
     return [niceMin, niceMax];
 }
 
-/** Tick values victory-native will render for a niced value domain, used to size the axis label gutter. */
+/** Tick values victory-native will render for a nice-rounded value domain, used to size the axis label gutter. */
 function getNiceValueTicks(domain: [number, number], tickCount: number): number[] {
     return scaleLinear().domain(domain).ticks(tickCount);
 }
