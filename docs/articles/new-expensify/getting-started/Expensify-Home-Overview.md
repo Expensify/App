@@ -1,7 +1,7 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, Upcoming travel, upcoming trips on Home, flight to, hotel in, car rental in, train to, traveler, canceled reservation, canceled booking, canceled trip missing from Home]
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, subscription ending soon, turn on auto-renew, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, Upcoming travel, upcoming trips on Home, flight to, hotel in, car rental in, train to, traveler, canceled reservation, canceled booking, canceled trip missing from Home]
 internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Upcoming travel, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses, and does not cover booking or managing travel.
 
 ---
@@ -54,10 +54,13 @@ These alerts appear when:
 - A reimbursement is waiting for the payee to add a personal deposit account
 - There is potential risk, such as suspected Expensify Card fraud on an active card
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
+- Your Annual subscription ends within one month and **Auto-renew** is off, so your workspace is about to move to Pay-per-use billing
 
 Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger time-sensitive alerts.
 
 If there are no urgent issues, this section will not appear.
+
+To learn more about the alert shown when an Annual subscription is ending, see [Manage Annual Subscription Settings](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Manage-Annual-Subscription-Settings).
 
 ---
 
