@@ -8,7 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isTripPreview} from '@libs/ReportActionsUtils';
+import {getLatestConciergeFeedbackActionIDFromReportActions, isTripPreview} from '@libs/ReportActionsUtils';
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -62,6 +62,9 @@ type AncestorReportActionItemProps = {
 
     linkedTransactionRouteError: Errors | undefined;
     parentReportAction: OnyxEntry<ReportAction>;
+
+    /** Whether the report being viewed allows the Concierge feedback prompt on the message it hangs off */
+    shouldAllowConciergeFeedback: boolean;
     shouldUseThreadDividerLine: boolean;
     transactionThreadReport: OnyxEntry<Report>;
 };
@@ -81,6 +84,7 @@ function AncestorReportActionItem({
     isSelfTourViewed,
     linkedTransactionRouteError,
     parentReportAction,
+    shouldAllowConciergeFeedback,
     shouldUseThreadDividerLine,
     transactionThreadReport,
 }: AncestorReportActionItemProps) {
@@ -94,6 +98,11 @@ function AncestorReportActionItem({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {selector: getStableReportSelector});
 
     const {isBetaEnabled} = usePermissions();
+
+    // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the newest Concierge answer
+    const [latestConciergeFeedbackActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
+        selector: getLatestConciergeFeedbackActionIDFromReportActions,
+    });
 
     const shouldDisplayThreadDivider = !isTripPreview(reportAction);
     const isAncestorReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
@@ -163,6 +172,7 @@ function AncestorReportActionItem({
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 isThreadReportParentAction
+                isLatestConciergeFeedbackAction={shouldAllowConciergeFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                 linkedTransactionRouteError={linkedTransactionRouteError}
             />
         </OfflineWithFeedback>
