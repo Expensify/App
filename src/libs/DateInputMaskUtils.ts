@@ -308,7 +308,6 @@ export {
     getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentDisplay,
-    getSegmentLength,
     getSegmentsFromISODate,
     getSegmentsFromText,
     getViewDateFromSegments,

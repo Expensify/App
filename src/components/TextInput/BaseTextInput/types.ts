@@ -22,7 +22,7 @@ type DateSegmentsConfig = {
 
     getSegmentProps: UseDateSegmentInputResult['getSegmentProps'];
     setSegmentRef: UseDateSegmentInputResult['setSegmentRef'];
-    focusSegment: UseDateSegmentInputResult['focusSegment'];
+    focusFirstUnfilledSegment: UseDateSegmentInputResult['focusFirstUnfilledSegment'];
     isSegmentElement: UseDateSegmentInputResult['isSegmentElement'];
     isAllSelected: UseDateSegmentInputResult['isAllSelected'];
     onFieldBlur: UseDateSegmentInputResult['onFieldBlur'];

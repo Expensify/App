@@ -1,16 +1,14 @@
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
-
 /**
  * Drives the guided date input, where the year, month and day are edited in one input each. Every keystroke is handled
  * here and the raw keystroke is prevented, so a segment can only ever hold digits it is allowed to hold.
- *
- * Focus belongs to the browser. Each segment reports its own focus, and this hook only ever moves it when a keystroke
- * calls for one, which is why nothing here has to arbitrate against a caret it does not control.
  */
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
 import {
     DATE_SEGMENT_NAMES,
     EMPTY_SEGMENTS,
     getAdjacentSegmentName,
+    getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentDisplay,
     getSegmentsFromISODate,
@@ -23,6 +21,8 @@ import {
 import type {DateSegmentName, DateSegments} from '@libs/DateInputMaskUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 
+import CONST from '@src/CONST';
+
 import type {TextInputKeyPressEvent} from 'react-native';
 
 import {useRef, useState} from 'react';
@@ -30,10 +30,12 @@ import {useRef, useState} from 'react';
 const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
 const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
 
-const BACKSPACE_KEY = 'Backspace';
 const DELETE_KEY = 'Delete';
 const SELECT_ALL_KEY = 'a';
-const MOVE_KEYS = {ArrowLeft: -1, ArrowRight: 1} as const;
+const MOVE_KEYS = {
+    [CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey]: -1,
+    [CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey]: 1,
+} as const;
 
 /** The characters a locale uses between segments, any of which means the user is finished with the one they are on */
 const SEPARATOR_KEYS = new Set(['-', '/', '.', ' ']);
@@ -67,17 +69,11 @@ type DateSegmentProps = {
 };
 
 type UseDateSegmentInputResult = {
-    /** The committed date, shown while the field is not being edited */
-    displayValue: string;
-
-    /** Whether the user is inside the field, so the segments rather than the committed date are what to render */
-    isEditing: boolean;
-
     /** Hands over each segment's input, so a keystroke can move focus as it is handled */
     setSegmentRef: (name: DateSegmentName, element: AnimatedTextInputRef | null) => void;
 
-    /** Moves focus to a segment and rests the caret after its digits */
-    focusSegment: (name: DateSegmentName) => void;
+    /** Where a press on the field rather than on a segment lands */
+    focusFirstUnfilledSegment: () => void;
 
     /** Whether focus is going to another segment, which is moving within the field rather than leaving it */
     isSegmentElement: (target: unknown) => boolean;
@@ -107,25 +103,22 @@ function isMoveKey(key: string): key is keyof typeof MOVE_KEYS {
     return key in MOVE_KEYS;
 }
 
-export default function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
+function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit}: UseDateSegmentInputParams): UseDateSegmentInputResult {
     // The segments only describe an edit in progress, so they are seeded on focus rather than synced with the value
     const [segments, setSegments] = useState<DateSegments>(EMPTY_SEGMENTS);
     const [isEditing, setIsEditing] = useState(false);
     const segmentRefs = useRef<Partial<Record<DateSegmentName, AnimatedTextInputRef | null>>>({});
-    // The month the calendar should show, which follows the typed date once the year is complete
     const [viewDate, setViewDate] = useState<Date | undefined>(undefined);
     const [viewDateVersion, setViewDateVersion] = useState(0);
-    // Whether the next digit replaces the segment instead of extending it, set on arriving at a segment
+    // Set on arriving at a segment, so the next digit replaces it instead of extending it
     const [shouldOverwrite, setShouldOverwrite] = useState(false);
     const [appliedValue, setAppliedValue] = useState(value);
-    // Whether the field was left holding digits that do not add up to a date, which stay on screen so the user can see
-    // what still has to be corrected
+    // Digits that do not add up to a date stay on screen after the field is left, so the user can correct them
     const [hasInvalidEntry, setHasInvalidEntry] = useState(false);
     // Native selection cannot span separate inputs, so selecting the whole date is tracked here and drawn by the field
     const [isAllSelected, setIsAllSelected] = useState(false);
 
-    // A date set from outside, by the calendar or by a restored draft, has to reach the segments as well. Without this
-    // an edit in progress would keep showing the date it started from, since the segments are what the field renders.
+    // A date set from outside, by the calendar or a restored draft, has to reach an edit in progress too
     if (value !== appliedValue) {
         setAppliedValue(value);
 
@@ -148,10 +141,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
 
     const isSegmentElement = (target: unknown) => !!target && Object.values(segmentRefs.current).some((element) => element === target);
 
-    /**
-     * Arriving at a segment rests the caret after the digits already in it, rather than wherever the browser last left
-     * the caret there, so a half typed month reads as 02 and not 0 followed by a caret and a 2.
-     */
+    /** Rests the caret after the segment's digits, so a half typed month reads as 02 and not 0, a caret, then 2 */
     const focusSegment = (name: DateSegmentName) => {
         const element = segmentRefs.current[name];
         element?.focus();
@@ -160,25 +150,20 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         element?.setSelectionRange?.(caretPosition, caretPosition);
     };
 
-    /** Landing on a segment arms the overwrite, so the next digit replaces what is there rather than extending it */
     const enterSegment = (name: DateSegmentName) => {
         setShouldOverwrite(true);
         focusSegment(name);
     };
 
     /**
-     * Reports what the segments now amount to, on every keystroke rather than once the date is finished. A form reads
-     * its value when it is submitted, which can happen before the field has even been left, so an entry part way
-     * through has to read as no date at all instead of leaving the date from before the edit in place.
+     * Runs on every keystroke rather than once the date is finished. A form can be submitted before the field is left,
+     * so an entry part way through has to read as no date at all rather than the date from before the edit.
      */
     const commitSegments = (newSegments: DateSegments) => {
         onCommit(getISODateFromSegments(newSegments) ?? '');
     };
 
-    /**
-     * Asks the calendar to follow the input. The count is what carries the request, since the user can have moved the
-     * calendar elsewhere with its arrows or its month picker and then typed the month it was already showing.
-     */
+    /** The count carries the request, since the user may have moved the calendar away and typed the month it was on */
     const assertViewDate = (nextViewDate: Date | undefined) => {
         if (!nextViewDate) {
             return;
@@ -188,10 +173,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         setViewDateVersion((version) => version + 1);
     };
 
-    /**
-     * The one place segments are written, so the calendar cannot fall out of step with them. The month already on
-     * screen is the fallback while the typed month is unfinished, which keeps the calendar where the user left it.
-     */
+    /** The one place segments are written, so the calendar cannot fall out of step with them */
     const applySegments = (newSegments: DateSegments) => {
         setSegments(newSegments);
         assertViewDate(getViewDateFromSegments(newSegments, (viewDate ?? new Date()).getMonth(), minDate, maxDate));
@@ -235,10 +217,9 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
             return;
         }
 
-        if (key === BACKSPACE_KEY || key === DELETE_KEY) {
+        if (key === CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey || key === DELETE_KEY) {
             event.preventDefault();
 
-            // Deleting the whole date leaves the user at the start of the empty one, ready to type it again
             if (wasAllSelected) {
                 applySegments(EMPTY_SEGMENTS);
                 enterSegment(FIRST_SEGMENT_NAME);
@@ -283,10 +264,6 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         enterSegment(LAST_SEGMENT_NAME);
     };
 
-    /**
-     * A segment reporting that it now holds focus, whether the user clicked it or a keystroke sent them there. Arriving
-     * at a segment always arms the overwrite, so the first digit replaces what is already in it.
-     */
     const handleSegmentFocus = () => {
         setShouldOverwrite(true);
 
@@ -302,10 +279,6 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         setIsEditing(true);
     };
 
-    /**
-     * Digits that do not add up to a date stay on screen once the field is left, so the user can see what still has to
-     * be corrected. The date they report was already emptied as they were typed.
-     */
     const handleFieldBlur = () => {
         setIsEditing(false);
         setViewDate(undefined);
@@ -320,10 +293,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         }
     };
 
-    /**
-     * Emptying the field puts the user back at its first segment. The clear button unmounts as it is pressed, so the
-     * press lands on whatever is underneath, and leaving it to decide where focus goes makes that a race.
-     */
+    // The clear button unmounts as it is pressed, so focus is placed here rather than left to whatever is underneath
     const handleClear = () => {
         setSegments(EMPTY_SEGMENTS);
         setHasInvalidEntry(false);
@@ -334,10 +304,8 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
 
     if (!isEnabled) {
         return {
-            displayValue: value,
-            isEditing: false,
             setSegmentRef: () => {},
-            focusSegment: () => {},
+            focusFirstUnfilledSegment: () => {},
             isSegmentElement: () => false,
             viewDate: undefined,
             viewDateVersion: 0,
@@ -349,16 +317,17 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         };
     }
 
-    // The segments describe an edit in progress or one left unusable, so outside of those the committed date is what
-    // the field has to show
+    // Outside an edit in progress or one left unusable, the committed date is what the field shows
     const shouldShowSegments = isEditing || hasInvalidEntry;
     const displayedSegments = shouldShowSegments ? segments : getSegmentsFromISODate(value);
 
+    const focusFirstUnfilledSegment = () => {
+        focusSegment(getFirstUnfilledSegmentName(displayedSegments) ?? LAST_SEGMENT_NAME);
+    };
+
     return {
-        displayValue: value,
-        isEditing,
         setSegmentRef,
-        focusSegment,
+        focusFirstUnfilledSegment,
         isSegmentElement,
         viewDate: isEditing ? viewDate : undefined,
         viewDateVersion,
@@ -376,4 +345,5 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     };
 }
 
+export default useDateSegmentInput;
 export type {UseDateSegmentInputParams, UseDateSegmentInputResult};

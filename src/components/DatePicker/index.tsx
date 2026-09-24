@@ -204,12 +204,6 @@ function DatePicker({
         [showDatePickerModal],
     );
 
-    // Reaching the field by keyboard never fires a press, so focus is what opens the calendar once typing is allowed.
-    // The segments report their own focus to the hook, so there is nothing to seed here.
-    const handleFocus = () => {
-        showDatePickerModal();
-    };
-
     const handleInputKeyPress = useCallback(
         (event: TextInputKeyPressEvent) => {
             if (!isNumeric(event.nativeEvent.key)) {
@@ -308,14 +302,14 @@ function DatePicker({
                                   mask: dateMask,
                                   getSegmentProps: segmentInput.getSegmentProps,
                                   setSegmentRef: segmentInput.setSegmentRef,
-                                  focusSegment: segmentInput.focusSegment,
+                                  focusFirstUnfilledSegment: segmentInput.focusFirstUnfilledSegment,
                                   isSegmentElement: segmentInput.isSegmentElement,
                                   isAllSelected: segmentInput.isAllSelected,
                                   onFieldBlur: segmentInput.onFieldBlur,
                               }
                             : undefined
                     }
-                    value={segmentInput.displayValue}
+                    value={selectedDate}
                     placeholder={placeholder ?? dateMask}
                     errorText={errorText}
                     inputStyle={shouldAllowTyping ? undefined : styles.pointerEventsNone}
@@ -323,7 +317,8 @@ function DatePicker({
                     hideFocusedState={shouldDismissKeyboardBeforeShow && !shouldAllowTyping}
                     onPress={shouldDismissKeyboardBeforeShow || shouldAllowTyping ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={shouldAllowTyping ? undefined : () => showDatePickerModal()}
-                    onFocus={shouldAllowTyping ? handleFocus : undefined}
+                    // Reaching the field by keyboard never fires a press, so focus is what opens the calendar
+                    onFocus={shouldAllowTyping ? showDatePickerModal : undefined}
                     onKeyPress={shouldAllowTyping ? undefined : handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}

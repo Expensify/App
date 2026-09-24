@@ -4,7 +4,6 @@ import {
     getFirstUnfilledSegmentName,
     getISODateFromSegments,
     getSegmentDisplay,
-    getSegmentLength,
     getSegmentsFromISODate,
     getSegmentsFromText,
     getViewDateFromSegments,
@@ -156,14 +155,6 @@ describe('DateInputMaskUtils', () => {
         it('uses the letters and separators of the localized mask', () => {
             expect(getDateMaskParts('AAAA/MM/JJ').map((part) => part.placeholder)).toEqual(['AAAA', 'MM', 'JJ']);
             expect(getDateMaskParts('AAAA/MM/JJ').map((part) => part.separator)).toEqual(['/', '/', '']);
-        });
-    });
-
-    describe('getSegmentLength', () => {
-        it('gives the year twice the digits of the others', () => {
-            expect(getSegmentLength('year')).toBe(4);
-            expect(getSegmentLength('month')).toBe(2);
-            expect(getSegmentLength('day')).toBe(2);
         });
     });
 
