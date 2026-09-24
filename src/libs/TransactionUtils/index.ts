@@ -2326,7 +2326,11 @@ function shouldShowViolation(
         return false;
     }
 
-    return violationName !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport);
+    if (violationName === CONST.VIOLATIONS.DUPLICATED_TRANSACTION && isIOUReport(iouReport)) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
