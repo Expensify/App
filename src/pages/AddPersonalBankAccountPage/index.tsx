@@ -168,8 +168,10 @@ function AddPersonalBankAccountPage() {
     }
     const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
     const hasCompletedPlaidConnection = !!selectedPlaidAccount?.plaidAccessToken;
-    const canResumeSavedPage = isManual || fullPersonalBankAccount?.currentPage === SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT || hasCompletedPlaidConnection;
-    const savedPageIndex = canResumeSavedPage ? pages.findIndex((page) => page.pageName === fullPersonalBankAccount?.currentPage) : -1;
+    const hasCompletedManualConnection = !!personalBankAccount?.routingNumber && !!personalBankAccount?.accountNumber;
+    const savedPageIndex = pages.findIndex((page) => page.pageName === fullPersonalBankAccount?.currentPage && !skipPages.includes(page.pageName));
+    const canResumeSavedPage = savedPageIndex >= 0 && (fullPersonalBankAccount?.currentPage === setupPageName || (isManual ? hasCompletedManualConnection : hasCompletedPlaidConnection));
+    const validatedSavedPageIndex = canResumeSavedPage ? savedPageIndex : -1;
     const setupPageIndex = pages.findIndex((page) => page.pageName === setupPageName);
     const firstIncompletePageIndex = pages.findIndex((page) => {
         if (skipPages.includes(page.pageName)) {
@@ -189,13 +191,15 @@ function AddPersonalBankAccountPage() {
         return page.pageName === SUB_PAGE_NAMES.CONFIRMATION;
     });
     const isResumeStateLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, personalBankAccountMetadata, fullPersonalBankAccountMetadata, plaidDataMetadata);
-    const hasCompletedConnection = isManual ? !!personalBankAccount?.routingNumber && !!personalBankAccount?.accountNumber : hasCompletedPlaidConnection;
-    const draftStartFrom = hasCompletedConnection && firstIncompletePageIndex > 0 ? firstIncompletePageIndex : Math.max(setupPageIndex, 0);
+    const hasCompletedConnection = isManual ? hasCompletedManualConnection : hasCompletedPlaidConnection;
+    const setupPageIndexOrDefault = Math.max(setupPageIndex, 0);
+    const firstIncompleteNonSkippedPageIndex = firstIncompletePageIndex >= 0 ? firstIncompletePageIndex : setupPageIndexOrDefault;
+    const draftStartFrom = hasCompletedConnection && firstIncompleteNonSkippedPageIndex > setupPageIndexOrDefault ? firstIncompleteNonSkippedPageIndex : setupPageIndexOrDefault;
     let startFrom = 0;
     if (isResumeStateLoading) {
         startFrom = -1;
     } else if (fullPersonalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
-        startFrom = savedPageIndex >= 0 ? savedPageIndex : draftStartFrom;
+        startFrom = validatedSavedPageIndex >= 0 ? validatedSavedPageIndex : draftStartFrom;
     }
     const isURLSubPageValid = !urlSubPage || pages.some((page) => page.pageName === urlSubPage);
     const fallbackPageName = pages.at(startFrom)?.pageName ?? pages.at(0)?.pageName;

@@ -218,7 +218,7 @@ describe('actions/BankAccounts', () => {
     });
 
     describe('openWalletPersonalBankAccountSetup', () => {
-        test('resumes the exact saved US page without clearing its draft', async () => {
+        test('opens the base US route when resuming US progress so the page can validate the destination', async () => {
             const personalBankAccount = {
                 source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
                 currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
@@ -237,7 +237,7 @@ describe('actions/BankAccounts', () => {
                 internationalDraft: undefined,
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER));
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
             expect(await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(personalDraft);
         });
 

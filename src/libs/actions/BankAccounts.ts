@@ -195,10 +195,7 @@ function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft,
     }
 
     if (personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        const savedPage = Object.values(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES).some((pageName) => pageName === personalBankAccount.currentPage)
-            ? personalBankAccount.currentPage
-            : undefined;
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(savedPage));
+        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
         return;
     }
 

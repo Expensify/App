@@ -78,6 +78,7 @@ const RootStack = createRootStackNavigator<TestRootParamList>();
 const TabNav = createBottomTabNavigator<TabNavigatorParamList>();
 const AddPersonalBankAccountStack = createPlatformStackNavigator<AddPersonalBankAccountNavigatorParamList>();
 let initialSubPage: ValueOf<typeof CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES> = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
+let shouldUseInitialSubPage = true;
 
 const getEmptyComponent = () => jest.fn();
 
@@ -110,7 +111,7 @@ function TestRightModalNavigator() {
             <AddPersonalBankAccountStack.Screen
                 name={SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT}
                 component={AddPersonalBankAccountPage}
-                initialParams={{subPage: initialSubPage}}
+                initialParams={shouldUseInitialSubPage ? {subPage: initialSubPage} : undefined}
             />
         </AddPersonalBankAccountStack.Navigator>
     );
@@ -158,6 +159,7 @@ describe('AddPersonalBankAccountPage', () => {
         jest.clearAllMocks();
         mockIsFocused = true;
         initialSubPage = CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS;
+        shouldUseInitialSubPage = true;
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -239,5 +241,107 @@ describe('AddPersonalBankAccountPage', () => {
         });
 
         expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
+    });
+
+    it('resumes saved Plaid progress when the selected account has an access token', async () => {
+        shouldUseInitialSubPage = false;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                selectedPlaidAccountID: 'plaid-account-1',
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+                addressStreet: '1 Main St',
+                addressCity: 'New York',
+                addressState: 'NY',
+                addressZipCode: '10001',
+                country: CONST.COUNTRY.US,
+            });
+            await Onyx.set(ONYXKEYS.PLAID_DATA, {
+                plaidAccessToken: 'access-token',
+                errors: {},
+                bankAccounts: [
+                    {
+                        accountNumber: '1234',
+                        addressName: 'Plaid checking',
+                        plaidAccountID: 'plaid-account-1',
+                        routingNumber: '123456789',
+                        mask: '1234',
+                        plaidAccessToken: 'access-token',
+                        bankName: 'Plaid Bank',
+                    },
+                ],
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER);
+    });
+
+    it('falls back to the Plaid connection page when saved Plaid progress has no access token', async () => {
+        shouldUseInitialSubPage = false;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                selectedPlaidAccountID: 'plaid-account-1',
+            });
+            await Onyx.set(ONYXKEYS.PLAID_DATA, {
+                plaidAccessToken: '',
+                errors: {},
+                bankAccounts: [
+                    {
+                        accountNumber: '1234',
+                        addressName: 'Plaid checking',
+                        plaidAccountID: 'plaid-account-1',
+                        routingNumber: '123456789',
+                        mask: '1234',
+                        plaidAccessToken: '',
+                        bankName: 'Plaid Bank',
+                    },
+                ],
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT);
+    });
+
+    it('does not resume a saved personal-information page that is skipped', async () => {
+        shouldUseInitialSubPage = false;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+                legalFirstName: 'Ada',
+                legalLastName: 'Lovelace',
+            });
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME,
+            });
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+                addressStreet: '1 Main St',
+                addressCity: 'New York',
+                addressState: 'NY',
+                addressZipCode: '10001',
+                country: CONST.COUNTRY.US,
+            });
+        });
+
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR));
+
+        expect(updatePersonalBankAccountCurrentPage).not.toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.LEGAL_NAME);
+        expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER);
     });
 });
