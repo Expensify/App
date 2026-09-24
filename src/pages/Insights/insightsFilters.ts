@@ -22,7 +22,6 @@ const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
 };
 
-/** Time buckets the headline chart offers, the only group-by values a dashboard is allowed to be stored with. */
 const INSIGHTS_GROUP_BY_OPTIONS = [CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.QUARTER, CONST.SEARCH.GROUP_BY.YEAR] as const;
 
 export type {InsightsFilters};

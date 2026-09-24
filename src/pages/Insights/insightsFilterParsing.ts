@@ -1,5 +1,3 @@
-/** Converts a dashboard's selections between the stored query string, the Insights filter model, and the shape the date picker speaks. */
-
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
@@ -70,7 +68,6 @@ function toSearchDateValues(date: InsightsFilters['date']): SearchDateValues {
     return {...getEmptyDateValues(), [CONST.SEARCH.DATE_MODIFIERS.RANGE]: getRangeQueryValue(date.from, date.to)};
 }
 
-/** Reads back what the date picker applied. Returns nothing when the picker holds no date Insights can report on, so the caller keeps the date it had. */
 function fromSearchDateValues(values: SearchDateValues): InsightsFilters['date'] | undefined {
     const {from, to} = getRangeBoundariesFromFormValue(values[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
     if (from && to) {

@@ -34,7 +34,6 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFilters 
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
 
-    // The selector keeps the page off every other search key's writes, since the whole nvp is shared with the Spend page.
     const [storedQuery, storedQueryMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getLastSearchQuery(searchFilters, searchKey)});
 
     const defaultFilters: InsightsFilters = {
@@ -43,7 +42,6 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFilters 
     };
     const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
 
-    // Storing the merged query is what re-requests the dashboard: it changes the query the page resolves, which its effect is keyed on.
     const setFilters = (update: Partial<InsightsFilters>) => {
         setInsightsFilters(searchKey, buildInsightsQueryString({...filters, ...update}));
     };

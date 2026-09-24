@@ -10,7 +10,7 @@ import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 
-/** Builds the date filter in the shape a search query is built from. A preset and a single day both read as `date:`, a range as `date>=` and `date<=`. */
+/** Builds the date filter in the shape a search query is built from. */
 function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvancedFiltersForm> {
     if ('preset' in date) {
         return {dateOn: date.preset};
@@ -30,7 +30,7 @@ function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvanced
     };
 }
 
-/** Builds the dashboard-wide query the whole page is narrowed by. This is both what `GetInsights` is asked for and what the dashboard's selections are stored as. */
+/** Builds the dashboard-wide query the whole page is narrowed by. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy});
 }
