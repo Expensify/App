@@ -274,8 +274,8 @@ function getCardFeedsForDisplay(
 /**
  * The settings of the company card feed an assigned card belongs to.
  *
- * A direct feed keeps its credentials in `oAuthAccountDetails` but its settings, including the workspaces it is
- * linked to, alongside a custom feed's in `companyCards`. The card's `bank` can carry the `#domainID` suffix,
+ * Both direct and custom feeds keep their settings, including the workspaces they are linked to, in `companyCards`.
+ * `oAuthAccountDetails` only holds a direct feed's credentials. The card's `bank` can carry the `#domainID` suffix,
  * which is not part of the settings key.
  */
 function getFeedSettingsForCard(card: AssignedCardForFeedAccess, allCardFeeds: OnyxCollection<CardFeeds>): CustomCardFeedData | undefined {

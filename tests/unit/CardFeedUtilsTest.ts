@@ -4,6 +4,7 @@ import {
     getCardFeedsForDisplayPerPolicy,
     getExpensifyCardFeedsForDisplay,
     getFeedInfo,
+    getPolicyIDsNamedByCardFeeds,
     getVisibleCompanyCardFeedsForSelector,
 } from '@libs/CardFeedUtils';
 
@@ -600,5 +601,60 @@ describe('getAssignedCardFeedAccess', () => {
         const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
 
         expect(getAssignedCardFeedAccess({bank, domainName: '', fundID: undefined}, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: undefined, isAdmin: false});
+    });
+});
+
+describe('getPolicyIDsNamedByCardFeeds', () => {
+    const fundID = 1234;
+    const bank = cardFeedAmericaExpressMock;
+    const card = {bank, domainName: 'acme-corp.com', fundID: String(fundID)};
+
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
+            },
+        };
+    }
+
+    // These IDs decide which policies a consumer loads. Returning none leaves the workspace unresolved, which reads
+    // as the cardholder not being an admin of it.
+    it('collects every workspace a feed links to', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1', 'WS2']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1', 'WS2']);
+    });
+
+    it('collects the preferred policy as well as the linked ones', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1'], preferredPolicy: 'WS2'}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1', 'WS2']);
+    });
+
+    it('lists a workspace two cards share only once', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card, {...card, bank}], cardFeeds)).toEqual(['WS1']);
+    });
+
+    it('skips the empty entries a feed can carry', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['', 'WS1'], preferredPolicy: ''}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1']);
+    });
+
+    it('returns nothing for a feed that names no workspace', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual([]);
+    });
+
+    it('returns nothing for a card without a fundID', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([{bank, domainName: '', fundID: undefined}], cardFeeds)).toEqual([]);
     });
 });
