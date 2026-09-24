@@ -2196,7 +2196,11 @@ const translations: TranslationDeepObject<typeof en> = {
         zeHirHirs: 'Ze / Hir',
         callMeByMyName: 'Llámame por mi nombre',
     },
-    displayNamePage: {headerTitle: 'Nombre', isShownOnProfile: 'Este nombre es visible en tu perfil.', isShownOnMemberProfile: 'El nombre visible se mostrará en el perfil del miembro.'},
+    displayNamePage: {
+        headerTitle: 'Nombre',
+        isShownOnProfile: 'Este nombre es visible en tu perfil.',
+        isShownOnMemberProfile: 'El nombre para mostrar aparecerá en el perfil del miembro. Una vez guardado, solo el miembro podrá editarlo.',
+    },
     timezonePage: {
         timezone: 'Zona horaria',
         isShownOnProfile: 'Tu zona horaria se muestra en tu perfil.',

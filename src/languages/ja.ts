@@ -2249,7 +2249,11 @@ const translations: TranslationDeepObject<typeof en> = {
         zeHirHirs: 'Ze / Hir',
         callMeByMyName: '私の名前で呼んでください',
     },
-    displayNamePage: {headerTitle: '表示名', isShownOnProfile: '表示名はあなたのプロフィールに表示されます。', isShownOnMemberProfile: '表示名はメンバーのプロフィールに表示されます。'},
+    displayNamePage: {
+        headerTitle: '表示名',
+        isShownOnProfile: '表示名はあなたのプロフィールに表示されます。',
+        isShownOnMemberProfile: '表示名はメンバーのプロフィールに表示されます。保存後は、そのメンバー本人のみが編集できます。',
+    },
     timezonePage: {
         timezone: 'タイムゾーン',
         isShownOnProfile: 'あなたのタイムゾーンはプロフィールに表示されています。',
