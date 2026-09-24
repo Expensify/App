@@ -344,7 +344,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 <PendingDigitalWalletApprovalRow
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
-                    style={[styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                    style={[styles.pv3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (
