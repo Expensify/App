@@ -224,14 +224,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             return sortedVisibleReportActions;
         }
 
+        // A completed reveal belongs to the saved action, even when pagination keeps that action off screen.
+        if (persistedDraftReportAction && !isDraftPendingCompletion && getReportActionHtml(persistedDraftReportAction) === getReportActionHtml(draftReportAction)) {
+            return sortedVisibleReportActions;
+        }
+
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
-                const isDraftStillRevealingPersistedAction = getReportActionHtml(action) !== getReportActionHtml(draftReportAction);
-                if (!isDraftPendingCompletion && !isDraftStillRevealingPersistedAction) {
-                    return sortedVisibleReportActions;
-                }
-
                 const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
                 visibleReportActionsWithDraft[index] = draftReportAction;
                 return visibleReportActionsWithDraft;
