@@ -13,6 +13,6 @@ type VerticalScrollbarWidth = {
 
 type UseVerticalScrollbarWidth = () => VerticalScrollbarWidth;
 
-export type {ScrollableNodeHolder, VerticalScrollbarWidth};
+export type {ScrollableNodeHolder};
 
 export default UseVerticalScrollbarWidth;
