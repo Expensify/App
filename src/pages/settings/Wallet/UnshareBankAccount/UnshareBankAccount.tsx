@@ -6,7 +6,6 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -56,32 +55,12 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
     const adminEmails = admins?.filter((admin) => admin !== currentUserPersonalDetails?.email) ?? [];
     const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
-    const adminsWithInfo = adminEmails.map((admin) => {
-        const personalDetails = adminPersonalDetails[admin];
-        const formattedAdmin = formatMemberForList({
-            text: personalDetails?.displayName,
-            alternateText: personalDetails?.login,
-            keyForList: personalDetails?.login ?? '',
-            accountID: personalDetails?.accountID,
-            login: personalDetails?.login,
-            pendingAction: personalDetails?.pendingAction,
-            reportID: '',
-        });
-        return {...formattedAdmin, isInteractive: false};
-    });
-
-    let adminsList = adminsWithInfo;
-    if (debouncedSearchTerm) {
-        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        adminsList = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
-    }
-
+    const isLoading = unsharedBankAccountData?.isLoading ?? false;
     const error = getLatestErrorMessage(bankAccountList?.[bankAccountID] ?? {});
     const isExpensifyCardError = error?.includes(CONST.EXPENSIFY_CARD.BANK);
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
     const shouldShowTextInput = Number(totalAdmins) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-    const isLoading = unsharedBankAccountData?.isLoading ?? false;
     const shouldShowSuccess = unsharedBankAccountData?.shouldShowSuccess ?? false;
 
     const isExpensifyCardSettlementAccountRef = useRef(isExpensifyCardSettlementAccount);
@@ -151,38 +130,57 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         unshareBankAccount(Number(bankAccountID), unshareUser.login);
     };
 
-    const itemRightSideComponent = (item: ListItem) => {
-        const promptUnshare = () => {
-            showConfirmModal({
-                title: translate('common.areYouSure'),
-                prompt: translate('walletPage.unshareBankAccountWarning', {admin: item?.text}),
-                confirmText: translate('common.unshare'),
-                cancelText: translate('common.cancel'),
-                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
+    const promptUnshare = (unshareUser: {login?: string | null; text?: string | null}) => {
+        showConfirmModal({
+            title: translate('common.areYouSure'),
+            prompt: translate('walletPage.unshareBankAccountWarning', {admin: unshareUser.text}),
+            confirmText: translate('common.unshare'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
 
-                // Chained here so this modal is off the stack before the error modal can be pushed on top of it.
-                handleUnshare({login: item?.login, text: item?.text});
-            });
-        };
-        const isUnshareButtonLoading = isLoading && unsharedBankAccountData?.email === item?.login;
-
-        return (
-            <Button
-                isLoading={isUnshareButtonLoading}
-                size={CONST.BUTTON_SIZE.SMALL}
-                isDisabled={isLoading}
-                variant={CONST.BUTTON_VARIANT.DANGER}
-                onPress={promptUnshare}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.unshare')}</Button.Text>
-            </Button>
-        );
+            // Chained here so this modal is off the stack before the error modal can be pushed on top of it.
+            handleUnshare(unshareUser);
+        });
     };
+
+    const adminsWithInfo = adminEmails.map((admin) => {
+        const personalDetails = adminPersonalDetails[admin];
+        const formattedAdmin = formatMemberForList({
+            text: personalDetails?.displayName,
+            alternateText: personalDetails?.login,
+            keyForList: personalDetails?.login ?? '',
+            accountID: personalDetails?.accountID,
+            login: personalDetails?.login,
+            pendingAction: personalDetails?.pendingAction,
+            reportID: '',
+        });
+        return {
+            ...formattedAdmin,
+            isInteractive: false,
+            actionElement: (
+                <Button
+                    isLoading={isLoading && unsharedBankAccountData?.email === formattedAdmin.login}
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    isDisabled={isLoading}
+                    variant={CONST.BUTTON_VARIANT.DANGER}
+                    onPress={() => promptUnshare({login: formattedAdmin.login, text: formattedAdmin.text})}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.unshare')}</Button.Text>
+                </Button>
+            ),
+        };
+    });
+
+    let adminsList = adminsWithInfo;
+    if (debouncedSearchTerm) {
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        adminsList = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+    }
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
@@ -210,7 +208,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     }}
                     data={adminsList}
                     shouldShowListEmptyContent={false}
-                    rightHandSideComponent={itemRightSideComponent}
                     footerContent={
                         <ErrorMessageRow
                             errors={isExpensifyCardError ? null : unsharedBankAccountData?.errors}

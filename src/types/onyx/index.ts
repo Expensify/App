@@ -143,7 +143,8 @@ import type {PolicyEmployeeList} from './PolicyEmployee';
 import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
-import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type PolicyRoomsMetadata from './PolicyRoomsMetadata';
+import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags, SearchTagFilterItem} from './PolicyTag';
 import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
@@ -185,6 +186,7 @@ import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
+import type SearchTagFiltersPaginationState from './SearchTagFiltersPaginationState';
 import type SecurityGroup from './SecurityGroup';
 import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
@@ -328,6 +330,7 @@ export type {
     PolicyTags,
     PolicyTagLists,
     ParticipantsPolicyTags,
+    SearchTagFilterItem,
     PrivatePersonalDetails,
     QuickAction,
     ShareBankAccount,
@@ -398,7 +401,9 @@ export type {
     NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
+    PolicyRoomsMetadata,
     SearchResults,
+    SearchTagFiltersPaginationState,
     ReviewDuplicates,
     PrivateSubscription,
     PrivatePromoDiscount,
