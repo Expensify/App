@@ -153,11 +153,9 @@ function useSignOut() {
         }
         isSignOutFlowInFlight = true;
 
-        try {
-            await runSignOut({shouldAlwaysConfirm});
-        } finally {
+        return runSignOut({shouldAlwaysConfirm}).finally(() => {
             isSignOutFlowInFlight = false;
-        }
+        });
     };
 
     const runLeaveDelegateAccount = async (gpsDraftDetailsRef?: RefObject<GpsDraftDetails | undefined>) => {
@@ -202,11 +200,9 @@ function useSignOut() {
         }
         isSignOutFlowInFlight = true;
 
-        try {
-            await runLeaveDelegateAccount(gpsDraftDetailsRef);
-        } finally {
+        return runLeaveDelegateAccount(gpsDraftDetailsRef).finally(() => {
             isSignOutFlowInFlight = false;
-        }
+        });
     };
 
     return {
