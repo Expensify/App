@@ -7032,7 +7032,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('it should return false for a money request action with a failed transaction', () => {
@@ -7066,7 +7066,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return true for a money request action with a valid linkedTransaction', async () => {
@@ -7101,7 +7101,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('it should return false for a report action by another user', () => {
@@ -7120,7 +7120,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a deleted report action', () => {
@@ -7141,7 +7141,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a report action with pending DELETE', () => {
@@ -7161,7 +7161,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('it should return false for a CREATED action type', () => {
@@ -7180,7 +7180,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on a settled expense report', async () => {
@@ -7216,7 +7216,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on an approved expense report', async () => {
@@ -7253,7 +7253,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for a money request action on a closed expense report', async () => {
@@ -7289,7 +7289,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${closedReport.reportID}`, closedReport);
 
-            expect(canEditReportAction(moneyRequestAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(moneyRequestAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return false for an optimistic attachment-only action (still uploading)', () => {
@@ -7310,7 +7310,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(false);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(false);
         });
 
         it('should return true for an optimistic attachment+text action (text is editable while uploading)', () => {
@@ -7331,7 +7331,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for a synced attachment-only action (optimistic flags cleared)', () => {
@@ -7353,7 +7353,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for a synced attachment+text action', () => {
@@ -7374,7 +7374,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
 
         it('should return true for an optimistic plain-text comment (no attachment)', () => {
@@ -7394,7 +7394,7 @@ describe('ReportUtils', () => {
                 created: '2025-03-05 16:34:27',
             };
 
-            expect(canEditReportAction(reportAction, transaction, undefined)).toEqual(true);
+            expect(canEditReportAction(reportAction, transaction, undefined, undefined)).toEqual(true);
         });
     });
 

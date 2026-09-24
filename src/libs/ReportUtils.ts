@@ -5619,7 +5619,7 @@ function canEditReportAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
     linkedTransaction: OnyxEntry<Transaction>,
     rules: OnyxCollection<Rule>,
-    reportActions?: OnyxEntry<ReportActions>,
+    reportActions: OnyxEntry<ReportActions>,
 ): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
