@@ -36,7 +36,6 @@ function PersonalCardUpgradePage() {
     const {isOffline} = useNetwork();
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -63,7 +62,6 @@ function PersonalCardUpgradePage() {
             currentUserEmailParam: email,
             shouldCreateControlPolicy: false,
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
             delegateAccountID,
             hasOwnedPaidPolicy,

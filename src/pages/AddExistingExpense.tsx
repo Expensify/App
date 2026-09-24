@@ -12,14 +12,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -73,11 +70,6 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const [openReportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT, {selector: openExpenseReportIDsSelector});
     const isInLandscapeMode = useIsInLandscapeMode();
     const styles = useThemeStyles();
-    // The table enables selection in this narrow pane modal off the real screen size, so the header has to match it.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const shouldShowSelectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const transactionsSelector = useCallback(
         (allTransactions: OnyxCollection<Transaction>) =>
@@ -208,15 +200,8 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             focusTrapSettings={{active: false}}
         >
             <HeaderWithBackButton
-                title={shouldShowSelectionModeHeader ? translate('common.selectMultiple') : translate('iou.addExistingExpense')}
-                onBackButtonPress={() => {
-                    if (shouldShowSelectionModeHeader) {
-                        setSelectedIds([]);
-                        turnOffMobileSelectionMode();
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
+                title={translate('iou.addExistingExpense')}
+                onBackButtonPress={Navigation.goBack}
             />
             <View style={styles.flex1}>
                 <AddExistingExpenseTable

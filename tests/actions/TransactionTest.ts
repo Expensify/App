@@ -95,6 +95,7 @@ jest.mock('@react-navigation/native');
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/API/writeWhenReady');
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
@@ -272,7 +273,6 @@ describe('actions/Transaction', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -721,7 +721,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
@@ -908,7 +907,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: RORY_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
@@ -1099,7 +1097,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
@@ -1299,7 +1296,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
