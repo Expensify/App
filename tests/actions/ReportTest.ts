@@ -3612,7 +3612,7 @@ describe('actions/Report', () => {
 
     describe('deleteAppReport', () => {
         const currentUserAccountID = 1;
-        it("should not move another owner's expenses to the current user's self DM", async () => {
+        it("should remove another owner's transaction threads instead of moving them to the current user's self DM", async () => {
             // Given a workspace admin is deleting another member's draft expense report
             const memberAccountID = 2;
             const expenseReport: OnyxTypes.Report = {
@@ -3635,6 +3635,7 @@ describe('actions/Report', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 childReportID: transactionThread.reportID,
                 created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
                 originalMessage: {
                     amount: 100,
                     currency: CONST.CURRENCY.USD,
@@ -3642,7 +3643,11 @@ describe('actions/Report', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             };
+            const transactionThreadAction = createRandomReportAction(35);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`, {
+                [transactionThreadAction.reportActionID]: transactionThreadAction,
+            });
 
             // When the admin deletes the member's report
             Report.deleteAppReport({
@@ -3659,12 +3664,26 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the admin's self DM remains untouched because Auth will move the expense to the member's self DM
+            // Then the admin's self DM remains untouched and App removes the transaction thread after Auth confirms the deletion
             expect(ReportUtils.findSelfDMReportID()).toBeUndefined();
-            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`)).toMatchObject({
-                parentReportID: expenseReport.reportID,
-                policyID: expenseReport.policyID,
-            });
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_APP_REPORT,
+                expect.anything(),
+                expect.objectContaining({
+                    successData: expect.arrayContaining([
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                            value: null,
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                            value: null,
+                        },
+                    ]),
+                }),
+            );
         });
 
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
