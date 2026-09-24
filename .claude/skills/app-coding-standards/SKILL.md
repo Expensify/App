@@ -75,6 +75,9 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-2](rules/ui-2-new-page-scrollview.md) — New pages must be scrollable
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
 
+### Onyx
+- [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick
+
 ## Usage
 
 **During development**: When writing or modifying `src/` files, consult the relevant standard files for detailed conditions, examples, and exceptions.
