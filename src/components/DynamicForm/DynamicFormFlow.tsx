@@ -321,7 +321,7 @@ function DynamicFormFlow({
                 currency={currency}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                 onSubmit={handleNext}
-                onOpenListItemEditor={openListItemEditor}
+                onOpenListItemEditor={(fieldKey, itemID) => openListItemEditor(fieldKey, itemID, isEditing ? 'edit' : undefined)}
             />
         );
     } else if (!isLoading && editorField && editorGroup) {

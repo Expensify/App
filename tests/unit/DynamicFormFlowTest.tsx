@@ -43,6 +43,10 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string) => key,
+        numberFormat: (value: number) => String(value),
+        toLocaleDigit: (digit: string) => digit,
+        fromLocaleDigit: (digit: string) => digit,
+        localeCompare: (a: string, b: string) => a.localeCompare(b),
         preferredLocale: 'en',
     })),
 );
@@ -435,6 +439,19 @@ describe('DynamicFormFlow', () => {
         expect(onSubmit).toHaveBeenCalledWith({
             owners: [expect.objectContaining({name: 'Alice Nguyen', ssn: '123456789'}), expect.objectContaining({name: 'Marcus Webb', ssn: '987654321'})],
         });
+    });
+
+    it('keeps edit mode when an item is added from a group page opened from the confirmation', async () => {
+        mockRouteParams.subPage = 'ownership';
+        mockRouteParams.action = 'edit';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {legalType: 'BUSINESS'});
+        });
+        await renderFlow();
+        fireEvent.press(screen.getByText('dynamicForm.addItem'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('legalEntityShareholders~new', 'edit'));
     });
 
     it('leaves the flow from Back on the first shown page when the first group is hidden', async () => {
