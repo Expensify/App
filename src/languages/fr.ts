@@ -1627,7 +1627,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>Une erreur s’est produite lors du téléchargement de votre reçu. Veuillez <a href="download">enregistrer le reçu</a> et <a href="retry">réessayer</a> plus tard.</rbr>',
             receiptFailureMessageShort: 'Une erreur s’est produite lors du téléchargement de votre reçu.',
-            receiptUploadFailedMessage: 'Échec du téléchargement du reçu. Enregistrez le reçu ou supprimez la dépense et perdez-la.',
+            receiptUploadFailedMessage: 'Le téléversement a échoué. Réessayez ou enregistrez pour plus tard.',
             saveReceipt: 'Enregistrer le reçu',
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
@@ -1660,6 +1660,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reportsNotMarkedAsDoneDescription: "Ces notes de frais n'ont pas pu être marquées comme terminées. Vérifiez qu'aucune dépense n'est en attente ou en suspens, puis réessayez.",
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
+            receiptUploadFailedSaveOnlyMessage: 'Téléversement échoué. Enregistrez votre reçu pour le conserver.',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera complètement votre reçu téléversé. Êtes-vous sûr ?',

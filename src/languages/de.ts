@@ -1623,7 +1623,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>Beim Hochladen deiner Quittung ist ein Fehler aufgetreten. Bitte <a href="download">speichere die Quittung</a> und <a href="retry">versuche es später erneut</a>.</rbr>',
             receiptFailureMessageShort: 'Beim Hochladen Ihres Belegs ist ein Fehler aufgetreten.',
-            receiptUploadFailedMessage: 'Beleg-Upload fehlgeschlagen. Speichere den Beleg oder lösche die Ausgabe und verliere sie.',
+            receiptUploadFailedMessage: 'Upload fehlgeschlagen. Versuchen Sie es erneut oder speichern Sie es für später.',
             saveReceipt: 'Beleg speichern',
             genericDeleteFailureMessage: 'Unerwarteter Fehler beim Löschen dieses Belegs. Bitte versuche es später erneut.',
             genericEditFailureMessage: 'Unerwarteter Fehler beim Bearbeiten dieser Ausgabe. Bitte versuche es später noch einmal.',
@@ -1656,6 +1656,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Diese Berichte konnten nicht als erledigt markiert werden. Prüfen Sie, dass Ausgaben nicht zurückgehalten oder ausstehend sind, und versuchen Sie es dann erneut.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
+            receiptUploadFailedSaveOnlyMessage: 'Upload fehlgeschlagen. Speichern Sie Ihre Quittung, um sie zu behalten.',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler schließt, wird deine hochgeladene Quittung vollständig entfernt. Bist du sicher?',
