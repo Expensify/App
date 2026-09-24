@@ -31,6 +31,11 @@ const mockMeasureDatabaseSize = jest.mocked(measureDatabaseSize);
 
 // The tracker keeps one-shot module state (initial schedule, first measurement), so these tests build on each other in order.
 describe('databaseSizeTracker', () => {
+    beforeEach(() => {
+        // Each test asserts its own setTag call, so an earlier test must not satisfy it
+        jest.mocked(Sentry.setTag).mockClear();
+    });
+
     afterEach(() => {
         jest.useRealTimers();
     });
