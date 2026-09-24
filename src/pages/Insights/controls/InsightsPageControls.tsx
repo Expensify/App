@@ -1,3 +1,6 @@
+import ScrollView from '@components/ScrollView';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
@@ -21,9 +24,10 @@ type InsightsPageControlsProps = {
 
 function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    return (
-        <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2, styles.ph5, styles.pb3]}>
+    const controls = (
+        <>
             <InsightsDateControl
                 value={filters.date}
                 onChange={(date) => onChange({date})}
@@ -37,8 +41,24 @@ function InsightsPageControls({filters, defaultFilters, onChange}: InsightsPageC
                 defaultValue={defaultFilters.groupCurrency}
                 onChange={(groupCurrency) => onChange({groupCurrency})}
             />
-        </View>
+        </>
     );
+
+    if (shouldUseNarrowLayout) {
+        return (
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="always"
+                style={[styles.flexGrow0, styles.pb3]}
+                contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.ph5]}
+            >
+                {controls}
+            </ScrollView>
+        );
+    }
+
+    return <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2, styles.ph5, styles.pb3]}>{controls}</View>;
 }
 
 export default InsightsPageControls;
