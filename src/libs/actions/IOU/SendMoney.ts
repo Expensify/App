@@ -25,7 +25,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {addOptimization, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

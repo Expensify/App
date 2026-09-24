@@ -27,7 +27,7 @@ import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
-import {notifyNewAction} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

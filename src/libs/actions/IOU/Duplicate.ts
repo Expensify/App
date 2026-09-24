@@ -12,7 +12,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
-import {isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
+import {getReimbursementChoice, isInstantSubmitEnabled, isPolicyAccessible, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -1372,7 +1372,7 @@ function bulkDuplicateExpenses({
     const policyWillSplitReport =
         isInstantSubmitEnabled(targetPolicy) &&
         isSubmitAndClose(targetPolicy) &&
-        (allNonReimbursable || targetPolicy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
+        (allNonReimbursable || getReimbursementChoice(targetPolicy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
 
     // A copy of an unreported expense is tracked, so only an expense that lands on the report can submit it.
     const lastReportBoundIndex = targetPolicy ? transactionsToDuplicate.findLastIndex((t) => !!t.reportID && t.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) : -1;

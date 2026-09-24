@@ -1,6 +1,6 @@
 ---
 title: Import Merchant Rules using a spreadsheet
-description: Learn how to bulk-create Merchant Rules by importing a spreadsheet, and how Tag values are interpreted for single-level and multi-level tags.
+description: Learn how to bulk-create Merchant Rules by importing a spreadsheet, how Tag values are interpreted for single-level and multi-level tags.
 keywords: [New Expensify, import merchant rules, merchant rules spreadsheet, bulk merchant rules, import rules CSV, workspace rules, multi-level tags import]
 internalScope: Audience is Workspace Admins on the Control plan with Rules enabled. Covers bulk-creating Merchant Rules by importing a spreadsheet and how Tag cells are interpreted for single-level and multi-level tags. Does not cover creating Merchant Rules manually, personal expense rules, or importing tags themselves.
 ---
@@ -20,6 +20,8 @@ To import Merchant Rules, you must be:
 
 If **Rules** is not enabled, [learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#how-to-enable-workspace-rules).
 
+The **Updated vendor** field is offered only on a workspace where vendor matching is active. Learn more about [vendor matching for QuickBooks Online](/articles/new-expensify/connections/quickbooks-online/Manage-Vendor-Matching-for-QuickBooks-Online).
+
 ---
 
 ## How to import Merchant Rules using a spreadsheet
@@ -31,7 +33,7 @@ Prepare a spreadsheet where each row is one rule. Include a column for the merch
 3. Open the **Expense defaults** tab.
 4. Click **More**, then select **Import merchant rules**.
 5. Upload your spreadsheet file.
-6. Map each column to a merchant rule field. Map the merchant column to **Merchant is** or **Merchant contains**, and map at least one field to update, such as **Updated merchant**, **Updated category**, **Updated tag**, or **Updated description**.
+6. Map each column to a merchant rule field. Map the merchant column to **Merchant is** or **Merchant contains**, and map at least one field to update, such as **Updated merchant**, **Updated category**, **Updated tag**, **Updated description**, or **Updated vendor**.
 7. Click **Import**.
 
 <!-- SCREENSHOT:

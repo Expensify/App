@@ -16,7 +16,6 @@ import getClipboardText from '@libs/Clipboard/getClipboardText';
 import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
-import {getDownloadFileName} from '@libs/fileDownload/FileUtils';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -249,8 +248,10 @@ import type {
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+import type {ComponentRef, RefObject} from 'react';
+// RN Text is restricted in favor of @components/Text, but this type is the host instance, which the wrapper does not export.
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
@@ -335,12 +336,12 @@ type ContextMenuActionPayload = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: RefObject<HTMLDivElement | View | Text | null>;
+    anchor?: RefObject<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ComponentRef<typeof View> | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
-    anchorRef?: RefObject<View | null>;
+    anchorRef?: RefObject<ComponentRef<typeof View> | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
@@ -1625,9 +1626,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(translate, sourceURLWithAuth, getDownloadFileName(originalFileName ?? '', sourceURL ?? ''), '', isAnchorTag && isMobileSafari()).then(() =>
-                setDownload(sourceID, false),
-            );
+            fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -1702,13 +1701,18 @@ const ContextMenuActions: ContextMenuAction[] = [
             currentUserAccountID,
             rules,
         }) => {
+            // A single-expense report preview also exposes its embedded money request action.
+            // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
+            // can delete a member's report and leave its expenses unreported.
+            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
+
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
 
-            if (isMoneyRequestAction(moneyRequestAction)) {
-                reportID = moneyRequestAction?.reportID;
-            } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
-                reportID = reportAction?.childReportID;
+            if (isMoneyRequestAction(actionToDelete)) {
+                reportID = actionToDelete?.reportID;
+            } else if (isReportPreviewActionReportActionsUtils(actionToDelete)) {
+                reportID = actionToDelete?.childReportID;
             }
 
             // Hide Delete for per-diem expense split children in selfDM — users must edit the
@@ -1724,24 +1728,26 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(moneyRequestAction ?? reportAction, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
+                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)
             );
         },
-        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
-            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? moneyRequestAction?.reportID : undefined;
+        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction, currentUserAccountID}) => {
+            // Must resolve to the same action shouldShow authorised, so the delete matches what was permitted.
+            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
+            const actionReportID = isMoneyRequestAction(actionToDelete) ? actionToDelete?.reportID : undefined;
 
-            const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
+            const reportID = actionReportID && Number(actionReportID) !== 0 ? actionReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));
+                hideContextMenu(false, () => showDeleteModal(reportID, actionToDelete));
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, moneyRequestAction ?? reportAction);
+            showDeleteModal(reportID, actionToDelete);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DELETE,

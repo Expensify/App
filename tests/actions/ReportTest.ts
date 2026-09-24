@@ -2672,85 +2672,6 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
     });
 
-    describe('editing a comment while its attachment is still uploading', () => {
-        const reportID = '123';
-        const reportActionID = '722';
-        const localSource = 'blob:https://dev.new.expensify.com:8082/1b3b-4817';
-        const syncedSource = `https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.csv`;
-        const uploadingHtml = `hello<br /><br /><a href="${localSource}" ${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="${localSource}" data-expensify-source="${localSource}" data-name="file.csv" data-attachment-id="1">file.csv</a>`;
-        const syncedHtml = `hello<br /><br /><a href="${syncedSource}" data-expensify-source="${syncedSource}" data-attachment-id="1">file.csv</a>`;
-        const editKeepingAttachment = `hello edited\n\n[file.csv](${localSource})`;
-
-        const seedUploadingComment = async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                [reportActionID]: {
-                    reportID,
-                    reportActionID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: '2024-10-21 10:37:59.881',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: uploadingHtml, text: 'hello [Attachment]'}],
-                },
-            });
-            await waitForBatchedUpdates();
-        };
-
-        const getAction = async () => (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[reportActionID];
-
-        const syncAttachment = async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                [reportActionID]: {pendingAction: null, message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: syncedHtml, text: 'hello [Attachment]'}]},
-            });
-            await waitForBatchedUpdates();
-            await waitForBatchedUpdates();
-        };
-
-        const getUpdateCommentRequests = () => PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.UPDATE_COMMENT);
-
-        it('lets a later edit that removes the attachment win over the edit still waiting on the upload', async () => {
-            global.fetch = TestHelper.createGlobalFetchMock();
-            setHasRadio(false);
-            await seedUploadingComment();
-
-            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined);
-            await waitForBatchedUpdates();
-
-            expect(getUpdateCommentRequests()).toHaveLength(0);
-            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.textForNewComment).toBe(editKeepingAttachment);
-
-            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', undefined);
-            await waitForBatchedUpdates();
-
-            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
-
-            await syncAttachment();
-
-            const requests = getUpdateCommentRequests();
-            expect(requests).toHaveLength(1);
-            expect(requests.at(0)?.data?.reportComment).toBe('hello removed');
-        });
-
-        it('replays an edit restored from Onyx once the attachment has synced', async () => {
-            global.fetch = TestHelper.createGlobalFetchMock();
-            setHasRadio(false);
-            await seedUploadingComment();
-
-            await Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: {reportID, textForNewComment: editKeepingAttachment, currentUserLogin: ''}});
-            await waitForBatchedUpdates();
-
-            expect(getUpdateCommentRequests()).toHaveLength(0);
-
-            await syncAttachment();
-
-            const requests = getUpdateCommentRequests();
-            expect(requests).toHaveLength(1);
-            expect(requests.at(0)?.data?.reportComment).toContain('hello edited');
-            expect(requests.at(0)?.data?.reportComment).toContain(syncedSource);
-            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
-        });
-    });
-
     it('it should only send the last sequential UpdateComment request to BE', async () => {
         global.fetch = TestHelper.createGlobalFetchMock();
         const reportID = '123';
@@ -3319,10 +3240,11 @@ describe('actions/Report', () => {
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID,
                 onboardingPolicyID,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 delegateAccountID: undefined,
             });
 
@@ -3356,11 +3278,12 @@ describe('actions/Report', () => {
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID: '7957055873634068',
                 onboardingPolicyID: 'A70D00C752416808',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 userReportedIntegration: null,
                 selectedInterestedFeatures,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 delegateAccountID: undefined,
             });
 
@@ -3391,11 +3314,12 @@ describe('actions/Report', () => {
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID: '7957055873634069',
                 onboardingPolicyID: 'A70D00C752416809',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 userReportedIntegration: 'other',
                 userReportedIntegrationName: 'Acme Books',
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 delegateAccountID: undefined,
             });
 
@@ -3427,10 +3351,11 @@ describe('actions/Report', () => {
                 onboardingMessage: onboardingMessages[engagementChoice],
                 adminsChatReportID: '7957055873634070',
                 onboardingPolicyID: 'A70D00C752416810',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 userReportedIntegration: 'other',
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 delegateAccountID: undefined,
             });
 
@@ -3469,7 +3394,7 @@ describe('actions/Report', () => {
             const onboardingData = ReportUtils.prepareOnboardingOnyxData({
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
@@ -3517,7 +3442,7 @@ describe('actions/Report', () => {
             const onboardingData = ReportUtils.prepareOnboardingOnyxData({
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
@@ -3550,7 +3475,7 @@ describe('actions/Report', () => {
             const onboardingData = ReportUtils.prepareOnboardingOnyxData({
                 engagementChoice,
                 onboardingMessage: onboardingMessages[engagementChoice],
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
@@ -3564,6 +3489,51 @@ describe('actions/Report', () => {
             expect(newSelfDMReportID).toBeTruthy();
             const createsSelfDM = onboardingData?.optimisticData.some((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${newSelfDMReportID}`);
             expect(createsSelfDM).toBe(true);
+        });
+
+        it('should complete looking-around onboarding with Concierge as the actor', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            jest.mocked(global.fetch).mockClear();
+            await waitForBatchedUpdates();
+
+            const conciergeChatReportID = '4455667788';
+            const conciergeChat: OnyxTypes.Report = {
+                reportID: conciergeChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [TEST_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`, conciergeChat);
+            await waitForBatchedUpdates();
+
+            const engagementChoice = CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            Report.completeOnboarding({
+                conciergeChat,
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL,
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+            expect(calls.length).toBeGreaterThan(0);
+            const body = calls.at(-1)?.[1]?.body;
+            expect(body).toBeInstanceOf(FormData);
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected CompleteGuidedSetup request body to be FormData');
+            }
+            const formEntries = Object.fromEntries(body);
+            expect(formEntries.actorAccountID).toBe(String(CONST.ACCOUNT_ID.CONCIERGE));
+            expect(formEntries.engagementChoice).toBe(engagementChoice);
         });
     });
 

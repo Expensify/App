@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -47,6 +48,7 @@ import reject from 'lodash/reject';
 import React, {startTransition, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
+import AddToGroupButton from './AddToGroupButton';
 import useGroupChatDraftParticipantSync from './useGroupChatDraftParticipantSync';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
@@ -260,6 +262,10 @@ function NewChatPage({ref}: NewChatPageProps) {
     const selectOption = (option?: OptionWithKey) => {
         const latestSelectedOptions = latestSelectedOptionsRef.current;
 
+        // Picking a destination hands composer focus to the main pane. A chat that is already open there mounts no composer to
+        // release the Side Panel's claim, so without this the Side Panel wins the refocus that follows the dismiss.
+        ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+
         if (option?.isSelfDM) {
             // Keep the self DM inert while a group selection is pending.
             if (latestSelectedOptions.length > 0) {
@@ -319,9 +325,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         });
     };
 
-    const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
+    const getRowActionElement = (item: OptionWithKey) => {
         if (item.isSelfDM) {
-            return null;
+            return undefined;
         }
 
         if (item.isSelected) {
@@ -340,22 +346,21 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         // "Add to group" only makes sense for eligible (login-bearing, non-excluded) users
         if (!item.login || excludedGroupEmails.has(item.login)) {
-            return null;
+            return undefined;
         }
 
-        const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
         return (
-            <Button
-                onPress={() => toggleOption(item)}
-                style={[styles.pl2]}
-                accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
-                innerStyles={buttonInnerStyles}
-                size={CONST.BUTTON_SIZE.SMALL}
-            >
-                <Button.Text>{translate('newChatPage.addToGroup')}</Button.Text>
-            </Button>
+            <AddToGroupButton
+                item={item}
+                onPress={toggleOption}
+            />
         );
     };
+
+    const sectionsWithRowActions = sections.map((section) => ({
+        ...section,
+        data: section.data.map((option) => ({...option, actionElement: getRowActionElement(option)})),
+    }));
 
     const createGroup = () => {
         const latestSelectedOptions = latestSelectedOptionsRef.current;
@@ -417,7 +422,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
                 ListItem={BareUserListItem}
-                sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
+                sections={areOptionsInitialized ? sectionsWithRowActions : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
@@ -430,7 +435,6 @@ function NewChatPage({ref}: NewChatPageProps) {
                     onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                     isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
-                rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

@@ -1,6 +1,5 @@
 import {sendMoneyElsewhere} from '@libs/actions/IOU/SendMoney';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import type * as ReportActions from '@libs/actions/Report';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -35,14 +34,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual<typeof ReportActions>('@src/libs/actions/Report');
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());

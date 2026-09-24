@@ -4,6 +4,7 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -169,6 +170,16 @@ function IOURequestStepDistanceOdometer({
     if (getPlatform() === CONST.PLATFORM.ANDROID) {
         keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
     }
+    // The remount above also resets the ScrollView's scroll position (e.g. after returning from the camera). These refs
+    // live outside the remounted subtree, so they survive it and can restore the offset once the fresh ScrollView mounts.
+    const scrollOffsetRef = useRef(0);
+    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    useEffect(() => {
+        if (scrollOffsetRef.current === 0) {
+            return;
+        }
+        scrollViewRef.current?.scrollTo({y: scrollOffsetRef.current, animated: false});
+    }, [keyboardAvoidingViewInstanceKey]);
     const {keyboardVerticalOffset, onLayout: measureOwnLayout} = useOdometerKeyboardVerticalOffset();
 
     const shouldUseDefaultExpensePolicy = useMemo(
@@ -649,9 +660,15 @@ function IOURequestStepDistanceOdometer({
                 shouldOffsetBottomSafeAreaPadding
                 onLayout={measureOwnLayout}
             >
-                <View
+                <ScrollView
+                    ref={scrollViewRef}
                     testID="odometerContentContainer"
-                    style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+                    onScroll={(e) => {
+                        scrollOffsetRef.current = e.nativeEvent.contentOffset.y;
+                    }}
+                    scrollEventThrottle={16}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
                 >
                     <View>
                         {/* Start Reading */}
@@ -787,7 +804,7 @@ function IOURequestStepDistanceOdometer({
                             <Button.Text>{buttonText}</Button.Text>
                         </Button>
                     </View>
-                </View>
+                </ScrollView>
             </KeyboardAvoidingView>
         </StepScreenWrapper>
     );

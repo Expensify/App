@@ -85,7 +85,8 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildPolicyData} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, notifyNewAction} from '@userActions/Report';
+import {buildInviteToRoomOnyxData} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 
@@ -2347,6 +2348,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         accountantParams,
         currentUser,
         reportActionsList,
+        personalDetailsByLogins,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2404,7 +2406,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
@@ -2504,6 +2506,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         currentUserLocalCurrency,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2825,6 +2828,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
+                personalDetailsByLogins,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

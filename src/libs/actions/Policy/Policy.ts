@@ -1,5 +1,6 @@
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -315,6 +316,7 @@ type DuplicatePolicyDataOptions = {
     file?: File | CustomRNImageManipulatorResult;
     policyCategories?: PolicyCategories;
     localCurrency: string;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 type SetWorkspaceReimbursementActionParams = {
@@ -3592,6 +3594,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         localCurrency,
         currentUserAccountID,
         currentUserEmail,
+        personalDetailsByLogins,
     } = options;
 
     const {
@@ -3611,7 +3614,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
 
     const outputCurrency = isOverviewOptionSelected && policy?.outputCurrency ? policy?.outputCurrency : localCurrency;
 
-    const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false)) : [];
+    const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetailsByLogins, false, false)) : [];
     const {customUnitID: distanceCustomUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
     const perDiemCustomUnitID = generateCustomUnitID();
 
