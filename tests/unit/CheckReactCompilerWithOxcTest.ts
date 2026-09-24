@@ -16,19 +16,18 @@ type CompilerError = {
 
 type CompilationResult = {
     status: 'compiled' | 'failed' | 'no-components';
-    memoized: boolean;
     errors: CompilerError[];
 };
 
 const runnerPath = path.resolve(__dirname, '../../scripts/check-react-compiler-with-oxc-runner.mjs');
 
 function isCompilationResult(value: unknown): value is CompilationResult {
-    if (typeof value !== 'object' || value === null || !('status' in value) || !('memoized' in value) || !('errors' in value)) {
+    if (typeof value !== 'object' || value === null || !('status' in value) || !('errors' in value)) {
         return false;
     }
 
-    const {status, memoized, errors} = value;
-    return (status === 'compiled' || status === 'failed' || status === 'no-components') && typeof memoized === 'boolean' && Array.isArray(errors);
+    const {status, errors} = value;
+    return (status === 'compiled' || status === 'failed' || status === 'no-components') && Array.isArray(errors);
 }
 
 function checkReactCompilerWithOxc(source: string, filename: string): CompilationResult {
@@ -133,39 +132,6 @@ function BadComponent({condition}) {
         const result = checkReactCompilerWithOxc(source, 'types.ts');
         expect(result.status).toBe('no-components');
         expect(result.errors).toEqual([]);
-    });
-
-    it('reports memoized=true when the compiler emits a memoization cache', () => {
-        // Given a component doing work the compiler can cache
-        const source = `
-            function MyComponent({items}: {items: number[]}) {
-                const doubled = items.map((x) => x * 2);
-                return <div>{doubled.join(',')}</div>;
-            }
-        `;
-
-        // When it is checked
-        const result = checkReactCompilerWithOxc(source, 'MyComponent.tsx');
-
-        // Then it compiles and reports a memo cache
-        expect(result.status).toBe('compiled');
-        expect(result.memoized).toBe(true);
-    });
-
-    it('reports memoized=false for a file with no components or hooks', () => {
-        // Given a plain utility file
-        const source = `
-            export function add(a: number, b: number): number {
-                return a + b;
-            }
-        `;
-
-        // When it is checked
-        const result = checkReactCompilerWithOxc(source, 'mathUtils.ts');
-
-        // Then there is nothing to memoize
-        expect(result.status).toBe('no-components');
-        expect(result.memoized).toBe(false);
     });
 
     it('includes source location in error details', () => {
