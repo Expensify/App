@@ -14,7 +14,8 @@ type Options = {
 
 /**
  * Rspack plugin that writes a Brotli 11 twin (`foo.js` -> `foo.js.br`) beside every emitted asset matching `test`.
- * Every match gets one, however small or incompressible: the CDN rewrite appends `.br` blindly, so a missing twin is a 404.
+ * Every match gets one, however small or incompressible: the CDN rewrite appends `.br` blindly, and a missing twin doesn't even 404 — the SPA fallback answers 200
+ * with the app shell, so the browser either fails to decode that HTML as Brotli or refuses to run it as a script.
  */
 class BrotliCompressionPlugin {
     private readonly options: Options;
