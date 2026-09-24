@@ -53,7 +53,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {Ref, RefObject} from 'react';
-import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeMethods, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
+import type {BlurEvent, HostInstance, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
@@ -379,7 +379,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef<NativeMethods>();
+    const animatedRef = useAnimatedRef<HostInstance>();
     /**
      * Set the TextInput Ref
      */

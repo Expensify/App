@@ -110,6 +110,7 @@ function useAutoCreateSubmitWorkspace() {
                         // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
                         // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
                         shouldSkipConciergeOnboarding: shouldCreateWorkspace,
+                        currentUserAccountID,
                         delegateAccountID,
                     });
                 } catch (error) {

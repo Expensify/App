@@ -1,3 +1,6 @@
+/* eslint-disable max-lines */
+// TransactionUtils aggregates the shared transaction helpers, so its length grows with the number of utilities it collects rather than with any one
+// of them. Splitting it is a repo-wide refactor, so the rule is suppressed here the same way it is in ReportUtils, ReportActionsUtils and SearchUIUtils.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
@@ -725,7 +728,10 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
+    // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
+    // a missing field on an expense report either, where only the merchant is checked.
+    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {

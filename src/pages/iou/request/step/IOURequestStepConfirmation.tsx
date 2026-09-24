@@ -27,6 +27,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -254,6 +255,7 @@ function IOURequestStepConfirmationContent({
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -351,7 +353,10 @@ function IOURequestStepConfirmationContent({
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
-    const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
+    const sourceReport = useMemo(
+        () => (sourceReportID ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {}) : undefined),
+        [sourceReportID, reportDrafts],
+    );
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
     const defaultParticipants = useMemo(() => {
@@ -424,7 +429,12 @@ function IOURequestStepConfirmationContent({
                 return;
             }
             const selectedParticipant = participantsList.at(0);
-            const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
+            const selectedPolicyID =
+                selectedParticipant?.policyID ??
+                (selectedParticipant?.reportID
+                    ? getReportOrDraftReport(selectedParticipant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {})
+                          ?.policyID
+                    : undefined);
             if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
                 return;
             }
@@ -440,6 +450,29 @@ function IOURequestStepConfirmationContent({
             if (shouldKeepOnSelfDM) {
                 setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
                 setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+
+                // The rate the expense picked up from a workspace does not exist outside it, so leaving it in place
+                // makes the Rate field read "Pending..." and the amount go blank once the expense is back on the self
+                // DM. Re-resolve the rate the self DM itself uses, the same way starting a track distance expense does.
+                if (isDistanceRequest) {
+                    const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: selfDMReport?.reportID,
+                        isPolicyExpenseChat: false,
+                        isTrackDistanceExpense: true,
+                        policy: policyForMovingExpenses,
+                        lastSelectedDistanceRates,
+                        expenseDate: transaction?.created,
+                    });
+                    setCustomUnitRateID(
+                        activeTransactionID,
+                        selfDMRateID,
+                        transaction,
+                        policyForMovingExpenses,
+                        false,
+                        policyForMovingExpenses?.outputCurrency ?? personalPolicy?.outputCurrency,
+                    );
+                }
+
                 if (iouType !== CONST.IOU.TYPE.TRACK) {
                     navigation.setParams({iouType: CONST.IOU.TYPE.TRACK});
                 }
@@ -515,6 +548,7 @@ function IOURequestStepConfirmationContent({
         [
             activeTransactionID,
             closeParticipantPicker,
+            reportDrafts,
             currentUserPersonalDetails.accountID,
             navigation,
             selfDMReport,
@@ -527,6 +561,7 @@ function IOURequestStepConfirmationContent({
             blockDistanceRequestIfNeeded,
             getCurrencyDecimals,
             policyID,
+            policyForMovingExpenses,
         ],
     );
 
@@ -560,7 +595,12 @@ function IOURequestStepConfirmationContent({
                     return true;
                 }
 
-                return !!participant?.reportID && isPolicyExpenseChatUtils(getReportOrDraftReport(participant.reportID));
+                return (
+                    !!participant?.reportID &&
+                    isPolicyExpenseChatUtils(
+                        getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}),
+                    )
+                );
             });
 
         if (isPolicyExpenseChatUtils(report)) {
@@ -573,7 +613,7 @@ function IOURequestStepConfirmationContent({
         }
 
         return hasPolicyExpenseChat(defaultParticipants);
-    }, [report, transaction?.participants, defaultParticipants]);
+    }, [report, transaction?.participants, defaultParticipants, reportDrafts]);
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -609,6 +649,7 @@ function IOURequestStepConfirmationContent({
     const preMountedDraftReportIDRef = useRef<string | undefined>(undefined);
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
+        reportDrafts,
         transaction,
         transactions,
         receiptFiles,

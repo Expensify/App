@@ -5,6 +5,7 @@ import type {SearchColumnType, SearchData, SearchQueryJSON} from '@components/Se
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
@@ -127,6 +128,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
@@ -397,6 +399,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             fallbackPolicyID: policyForMovingExpensesID,
             sortBy: queryJSON.sortBy,
             shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+            isVendorColumnAvailable,
         });
     })();
 

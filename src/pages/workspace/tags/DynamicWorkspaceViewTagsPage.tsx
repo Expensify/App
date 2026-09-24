@@ -49,6 +49,8 @@ import SCREENS from '@src/SCREENS';
 import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+import type {ComponentRef} from 'react';
+
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -71,7 +73,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
-    const dropdownButtonRef = useRef<View>(null);
+    const dropdownButtonRef = useRef<ComponentRef<typeof View>>(null);
     const isFocused = useIsFocused();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;

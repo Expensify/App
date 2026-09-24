@@ -2058,6 +2058,59 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('areRequiredFieldsEmpty', () => {
+        const regularChatReport: Report = createRandomReport(888);
+
+        it('does not flag a zero amount on an unreported expense', () => {
+            // Given a $0 track expense created in the self DM, which stores the transaction as unreported
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty, with no report to look up (reportID '0' resolves to nothing)
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then the zero amount is not treated as missing, because an unreported expense deliberately allows $0
+            expect(result).toBe(false);
+        });
+
+        it('does not flag a zero amount on an unreported expense whose receipt scan failed', () => {
+            // Given a $0 unreported expense whose receipt scan failed
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            });
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, undefined);
+
+            // Then the amount is still not treated as missing, because being unreported is the only condition for allowing $0
+            expect(result).toBe(false);
+        });
+
+        it('still flags a zero amount on a regular chat report', () => {
+            // Given a $0 expense on a reported, non-expense report
+            const transaction = generateTransaction({reportID: regularChatReport.reportID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, regularChatReport);
+
+            // Then the existing behaviour is preserved: $0 is only valid on an unreported expense
+            expect(result).toBe(true);
+        });
+
+        it('ignores the amount on an expense report and checks the merchant instead', () => {
+            // Given a $0 expense on an expense report, where only a missing merchant counts as a missing field
+            const transaction = generateTransaction({reportID: openReport.reportID, amount: 0, merchant: 'Coffee Shop'});
+
+            // When we check whether its required fields are empty
+            const result = TransactionUtils.areRequiredFieldsEmpty(transaction, openReport as Report);
+
+            // Then the valid merchant means nothing is missing, unchanged by the rule that only unreported expenses allow $0
+            expect(result).toBe(false);
+        });
+    });
+
     describe('getMerchant', () => {
         it('should return merchant if transaction has merchant', () => {
             const transaction = generateTransaction({

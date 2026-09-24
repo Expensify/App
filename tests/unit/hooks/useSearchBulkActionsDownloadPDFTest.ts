@@ -86,6 +86,7 @@ let mockSelectedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
+let mockCurrentSearchKey: string | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
@@ -97,7 +98,7 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: mockCurrentSearchResults,
     }),
     useSearchQueryContext: () => ({
-        currentSearchKey: undefined,
+        currentSearchKey: mockCurrentSearchKey,
     }),
     useSearchSelectionActions: () => ({
         clearSelectedTransactions: mockClearSelectedTransactions,
@@ -236,6 +237,7 @@ describe('useSearchBulkActions - Download report', () => {
         mockSelectedReports = [];
         mockCurrentSearchResults = undefined;
         mockAreAllMatchingItemsSelected = false;
+        mockCurrentSearchKey = undefined;
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
@@ -479,6 +481,37 @@ describe('useSearchBulkActions - Download report', () => {
 
         expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
         expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining(['1', '2']));
+        expect(exportReportToPDF).not.toHaveBeenCalled();
+    });
+
+    it('should send the current search key in the query when all matching reports are selected', async () => {
+        // Given a keyed report view (e.g. Reports) where "Select all" has been used, so the matching reports
+        // aren't enumerated on the client and the backend must resolve them from the serialized query
+        mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.REPORTS;
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the Download PDF bulk action is triggered
+        const pdfOption = getDownloadPDFOption(result.current.headerButtonsOptions);
+        act(() => {
+            pdfOption?.onSelected?.();
+        });
+
+        // Then the query sent to the backend includes the search key, because it changes which records the
+        // search matches and omitting it could export a different report set than the one shown as selected
+        expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
+        const [reportIDs, serializedQuery] = jest.mocked(exportReportsToPDF).mock.calls.at(0) ?? [];
+        expect(reportIDs).toEqual([]);
+        expect(JSON.parse(serializedQuery ?? '{}')).toEqual(expect.objectContaining({searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}));
         expect(exportReportToPDF).not.toHaveBeenCalled();
     });
 

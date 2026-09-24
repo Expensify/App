@@ -521,6 +521,11 @@ describe('WorkspaceMoreFeaturesPage', () => {
             },
         );
 
+        it('shows the Vendors row for Rillet even with the beta disabled (Rillet is GA)', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.RILLET]: {config: {isConfigured: true}}}, false);
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+        });
+
         // Xero (R3) is still beta-gated, so it stays hidden when the beta is off.
         it('hides the Vendors row for a beta-gated integration (Xero) when the beta is disabled', async () => {
             await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}}, false);
