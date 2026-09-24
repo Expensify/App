@@ -59,7 +59,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Inbox', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['Box', 'Building', 'Exit', 'Plus', 'Copy', 'Star', 'Trashcan', 'Transfer']);
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -146,7 +146,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
 
         if (isOwner) {
             menuItems.push({
-                icon: canArchivePolicies ? icons.Inbox : icons.Trashcan,
+                icon: canArchivePolicies ? icons.Box : icons.Trashcan,
                 text: translate(canArchivePolicies ? 'workspace.common.archive' : 'workspace.common.delete'),
                 shouldShowLoadingSpinnerIcon: !!isLoadingBill && pendingPolicyID === item.policyID,
                 onSelected: () => {
