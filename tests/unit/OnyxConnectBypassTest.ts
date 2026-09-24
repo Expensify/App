@@ -1,4 +1,4 @@
-import {BANNED_RULE_ID, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxConnectBypass';
+import {BANNED_RULE_ID, ONYX_READ_BAN, collectDisableDirectivesFromSource, findNewBypasses} from '../../scripts/onyxConnectBypass';
 
 const ONYX_CONNECT_CALL = `Onyx${'.connect'}`;
 const onyxConnectCall = (key: string): string => `${ONYX_CONNECT_CALL}({key: "${key}"});`;
@@ -139,5 +139,71 @@ describe('findNewBypasses', () => {
 
     it('returns nothing for an empty input', () => {
         expect(findNewBypasses([])).toEqual([]);
+    });
+});
+
+describe('no-unsafe-onyx-read bypasses', () => {
+    const onyxReadCall = `await Onyx${'.get'}(ONYXKEYS.SESSION);`;
+
+    it('flags a disable that names the rule', () => {
+        // Given a src file that silences no-unsafe-onyx-read on the next line
+        const source = ['// eslint-disable-next-line rulesdir/no-unsafe-onyx-read', onyxReadCall].join('\n');
+
+        // When the read ban scans it
+        const suppressed = collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN);
+
+        // Then the directive counts as a bypass, since the rule must not be silenced inline
+        expect(suppressed).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('flags a blanket disable that covers an Onyx.get call', () => {
+        // Given a blanket disable over a read
+        const source = ['/* eslint-disable */', onyxReadCall].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because a blanket directive silences the rule just as well as a named one
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
+    it('ignores a blanket disable that covers no read', () => {
+        // Given a blanket disable over code that never reads Onyx
+        const source = ['/* eslint-disable */', 'console.log(1);'].join('\n');
+
+        // When the read ban scans it
+        // Then nothing is reported, so unrelated blanket comments keep working
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('does not treat a no-onyx-connect disable as a read bypass', () => {
+        // Given a disable of the connect ban
+        const source = [`// eslint-disable-next-line ${BANNED_RULE_ID}`, onyxReadCall].join('\n');
+
+        // When the read ban scans it
+        // Then it is left to the connect ban, since each ban only owns its own rule
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([]);
+    });
+
+    it('allows only the grandfathered addUtilsToWindow disable', () => {
+        // Given the existing addUtilsToWindow disable plus one more in that file and one elsewhere
+        const bans = [
+            {file: 'src/setup/addUtilsToWindow.ts', line: 1},
+            {file: 'src/setup/addUtilsToWindow.ts', line: 40},
+            {file: 'src/libs/Foo.ts', line: 3},
+        ];
+
+        // When the read ban compares them with its grandfather list
+        // Then only the file-level dev-console disable survives
+        expect(findNewBypasses(bans, ONYX_READ_BAN)).toEqual([
+            {file: 'src/setup/addUtilsToWindow.ts', line: 40},
+            {file: 'src/libs/Foo.ts', line: 3},
+        ]);
+    });
+
+    it('covers src but not tests', () => {
+        // Given a src file and a test suite
+        // When the read ban decides which files it checks
+        // Then tests are out of scope, since reads are allowed there and suites assert on Search snapshot keys
+        expect(ONYX_READ_BAN.appliesTo('src/pages/Foo.tsx')).toBe(true);
+        expect(ONYX_READ_BAN.appliesTo('tests/unit/FooTest.ts')).toBe(false);
     });
 });
