@@ -18,6 +18,7 @@ import {getCreated, isManualDistanceRequest as isManualDistanceRequestUtil} from
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useEffect, useRef} from 'react';
 
@@ -81,11 +82,23 @@ function DistanceRequestController({distanceState}: DistanceRequestControllerPro
         // We want this effect to run when the transaction is moving from Self DM to an expense chat, or when the policy changes
         const isPolicyChanged = prevPolicy?.id !== policy?.id;
         const didSwitchPolicy = !!prevPolicy?.id && prevPolicy.id !== policy?.id;
-        if (!transactionID || !isDistanceRequest || !isPolicyExpenseChat || (!isMovingTransactionFromTrackExpense && !isPolicyChanged)) {
+        const errorKey = 'iou.error.invalidRate';
+
+        if (!transactionID || !isDistanceRequest) {
             return;
         }
 
-        const errorKey = 'iou.error.invalidRate';
+        // Moving the expense back to the self DM (or to a P2P recipient) leaves no workspace to validate against, so a
+        // rate error raised for the workspace it just left no longer applies.
+        if (!isPolicyExpenseChat) {
+            clearFormErrors([errorKey]);
+            return;
+        }
+
+        if (!isMovingTransactionFromTrackExpense && !isPolicyChanged) {
+            return;
+        }
+
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
         if (didSwitchPolicy && transaction?.comment?.customUnit?.rateAutoUpdated) {
@@ -103,6 +116,12 @@ function DistanceRequestController({distanceState}: DistanceRequestControllerPro
         if (matchingRate?.customUnitRateID) {
             setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy, false, personalPolicy?.outputCurrency);
             clearFormErrors([errorKey]);
+            return;
+        }
+
+        // The workspace's custom units can still be loading at this point: selecting a participant resolves the new
+        // policy before Onyx has its rates, so validating now would flash an error that clears itself a moment later.
+        if (isEmptyObject(policyRates)) {
             return;
         }
 

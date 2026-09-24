@@ -8,7 +8,7 @@ import type useDistanceRequestState from '@components/MoneyRequestConfirmationLi
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -125,5 +125,90 @@ describe('DistanceRequestController', () => {
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             }),
         );
+    });
+
+    describe('rate validation when the selected workspace changes', () => {
+        const RATE_ERROR = 'iou.error.invalidRate';
+
+        /** A workspace whose distance rates have not arrived from Onyx yet. */
+        const policyWithoutRates = createMock<Policy>({id: 'workspaceB', customUnits: {}});
+
+        /** A loaded workspace whose only rate matches neither the selected rate ID nor its value/unit (the unit comes from the custom unit attributes). */
+        const policyWithUnrelatedRate = createMock<Policy>({
+            id: 'workspaceB',
+            customUnits: {
+                unitID: {
+                    customUnitID: 'unitID',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                    enabled: true,
+                    rates: {
+                        rateB: {customUnitRateID: 'rateB', rate: 999, currency: CONST.CURRENCY.USD, enabled: true, name: 'Other rate'},
+                    },
+                },
+            },
+        });
+
+        const renderController = ({
+            policy,
+            isPolicyExpenseChat,
+            setFormError,
+            clearFormErrors,
+        }: {
+            policy: Policy | undefined;
+            isPolicyExpenseChat: boolean;
+            setFormError: jest.Mock;
+            clearFormErrors: jest.Mock;
+        }) =>
+            render(
+                <DistanceRequestController
+                    transactionID="txn1"
+                    transaction={transaction}
+                    policy={policy}
+                    isDistanceRequest
+                    isManualDistanceRequest={false}
+                    isPolicyExpenseChat={isPolicyExpenseChat}
+                    isMovingTransactionFromTrackExpense={false}
+                    isReadOnly={false}
+                    isTypeSplit={false}
+                    customUnitRateID="rateFromAnotherWorkspace"
+                    mileageRate={{rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: CONST.CURRENCY.USD}}
+                    rate={67}
+                    unit={CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}
+                    currency={CONST.CURRENCY.USD}
+                    distance={DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
+                    distanceRequestAmount={201}
+                    shouldCalculateDistanceAmount={false}
+                    currentUserAccountID={1}
+                    isDistanceRequestWithPendingRoute={false}
+                    hasRoute
+                    defaultMileageRateCustomUnitRateID={undefined}
+                    selectedParticipants={[]}
+                    selectedParticipantsProp={[]}
+                    setFormError={setFormError}
+                    clearFormErrors={clearFormErrors}
+                />,
+            );
+
+        it('does not flag the rate while the newly selected workspace still has no rates loaded', () => {
+            const setFormError = jest.fn();
+            renderController({policy: policyWithoutRates, isPolicyExpenseChat: true, setFormError, clearFormErrors: jest.fn()});
+
+            expect(setFormError).not.toHaveBeenCalled();
+        });
+
+        it('still flags the rate once the workspace rates are loaded and none of them match', () => {
+            const setFormError = jest.fn();
+            renderController({policy: policyWithUnrelatedRate, isPolicyExpenseChat: true, setFormError, clearFormErrors: jest.fn()});
+
+            expect(setFormError).toHaveBeenCalledWith(RATE_ERROR);
+        });
+
+        it('clears a workspace rate error once the expense is no longer on a workspace chat', () => {
+            const clearFormErrors = jest.fn();
+            renderController({policy: undefined, isPolicyExpenseChat: false, setFormError: jest.fn(), clearFormErrors});
+
+            expect(clearFormErrors).toHaveBeenCalledWith([RATE_ERROR]);
+        });
     });
 });

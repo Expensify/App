@@ -2,10 +2,8 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
@@ -15,6 +13,7 @@ import React from 'react';
 
 import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
 
+import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import SearchBarChart from './SearchBarChart';
 import {useSearchQueryContext} from './SearchContext';
@@ -34,6 +33,9 @@ type SearchChartViewProps = {
     data: GroupedItem[];
 
     isLoading?: boolean;
+
+    /** Color every bar is drawn in. Only a bar chart reads it. */
+    color?: string;
 };
 
 /**
@@ -49,7 +51,7 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, color}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
@@ -58,24 +60,12 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleItemPress = (filterQuery: string) => {
-        const currentQueryString = buildSearchQueryString(queryJSON);
-        const parsedQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+        const query = buildChartDrillDownQuery(queryJSON, filterQuery);
 
-        if (!parsedQueryJSON) {
-            Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
+        if (!query) {
             return;
         }
-        const newQueryJSON: SearchQueryJSON = {
-            ...parsedQueryJSON,
-            groupBy: undefined,
-            view: CONST.SEARCH.VIEW.TABLE,
-            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-        };
-
-        const newQueryString = buildSearchQueryString(newQueryJSON);
-        // Drilling into a chart segment stays within the same search, so the key travels with it.
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString, searchKey: currentSearchKey}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: currentSearchKey}));
     };
 
     const firstItem = data.at(0);
@@ -97,6 +87,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
             isLoading={isLoading}
             unit={unit}
             unitPosition={unitPosition}
+            color={color}
         />
     );
 }
