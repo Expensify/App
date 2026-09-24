@@ -852,7 +852,17 @@ describe('getViolationsOnyxData', () => {
 
         it('should add the tagOutOfPolicy violation once the tag has been disabled', () => {
             // Given a tag the admin has disabled rather than deleted
-            policyTags = {...policyTags, Tag: {...policyTags.Tag, tags: {...policyTags.Tag?.tags, [firstTagName]: {name: firstTagName, enabled: false}}}} as PolicyTagLists;
+            policyTags = {
+                Tag: {
+                    name: 'Tag',
+                    required: true,
+                    orderWeight: 0,
+                    tags: {
+                        [firstTagName]: {name: firstTagName, enabled: false},
+                        [secondTagName]: {name: secondTagName, enabled: true},
+                    },
+                },
+            };
 
             // When the stored violations are synced against it
             const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, policyTags, policy);
@@ -904,6 +914,18 @@ describe('getViolationsOnyxData', () => {
             const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, undefined, policy);
 
             // Then the server's violations are kept, since a missing tag list is not evidence that the tag is gone
+            expect(result).toEqual(transactionViolations);
+        });
+
+        it('should leave the violations untouched when the tag list is an empty object', () => {
+            // Given a policy whose tags resolve to `{}` - the "not loaded" fallback copyPolicySettings and
+            // usePolicyData write, not a workspace that genuinely has zero tag lists
+            transactionViolations = [tagOutOfPolicyViolation];
+
+            // When the stored violations are synced
+            const result = syncTagOutOfPolicyViolation(transactionViolations, transaction, {}, policy);
+
+            // Then the server's violations survive, rather than the multi-level branch stripping them all
             expect(result).toEqual(transactionViolations);
         });
 

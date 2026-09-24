@@ -182,7 +182,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
-        const tags = policyTagList[policyTagKeys[i]].tags;
+        const tags = policyTagList[policyTagKeys[i]]?.tags;
         const listHasEnabledTags = hasEnabledTags(tags);
         if (!listHasEnabledTags) {
             continue;
@@ -209,8 +209,10 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
             if (!selectedTag) {
                 continue;
             }
-            const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            // An empty tag list arrives without the `tags` key, despite the type. The loop above skips those lists via
+            // hasEnabledTags, this one only skips on an unselected level, so it has to guard the lookup itself.
+            const tags = policyTagList[policyTagKeys[i]]?.tags;
+            const isTagInPolicy = !!tags?.[selectedTag]?.enabled;
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -446,17 +448,10 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
 }
 
 /**
- * Syncs the tag violations with the current tag list of the policy.
- *
- * A tag list change (a tag deleted, disabled, renamed or re-added) can land on its own - the workspace admin who
- * changed it holds no copy of every submitter's transaction, and a push that only carries `policyTags_` leaves the
- * stored `transactionViolations_` untouched. Re-deriving the tag violations at read time keeps an open expense in
- * step with the tag list without writing to Onyx, so it can never race the server value or the optimistic data of
- * the action that changed the tags.
- *
- * The rules are the same ones `getViolationsOnyxData` applies, so the violations shown before and after the next
- * refetch match. Violations are returned untouched when the policy or its tags aren't hydrated, since an absent tag
- * list is not evidence that a tag is gone.
+ * Syncs tagOutOfPolicy/missingTag with the current policy tag list. A tag-list change can arrive on its own
+ * (e.g. an admin deleting a tag), leaving the stored transactionViolations_ untouched - re-deriving here at
+ * read time keeps an open expense in sync without writing to Onyx. Left untouched when the tag list isn't
+ * hydrated yet, since that's not evidence the tag is gone.
  */
 function syncTagOutOfPolicyViolation(
     violations: TransactionViolation[],
@@ -464,6 +459,10 @@ function syncTagOutOfPolicyViolation(
     policyTagList: OnyxEntry<PolicyTagLists>,
     policy: OnyxEntry<Policy>,
 ): TransactionViolation[] {
+    // An empty object means the tag list isn't hydrated, not that the workspace has zero tag lists: nothing deletes a
+    // tag list container (deletePolicyTags only removes tags inside one), enabling tags always materializes
+    // CONST.POLICY.DEFAULT_TAG_LIST, and copyPolicySettings writes `{}` as its "tags not loaded" fallback. Letting `{}`
+    // through would take the multi-level branch below, which strips every tag violation and re-adds none.
     if (!transaction || !policy || !policyTagList || isEmptyObject(policyTagList)) {
         return violations;
     }
