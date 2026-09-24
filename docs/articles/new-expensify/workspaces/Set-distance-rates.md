@@ -1,7 +1,7 @@
 ---
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands, track tax, tax reclaimable on]
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands, track tax, tax reclaimable on, disable distance rate, delete distance rate, rate not valid for this workspace, disabled rate violation]
 internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, does not cover creating distance expenses.
 ---
 
@@ -82,9 +82,29 @@ To prevent members from using a distance rate, you can either disable it or dele
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Distance rates**.
-3. Select each rate you want to disable or delete.
-4. Choose **Selected**.
-5. Choose **Disable rates** or **Delete rates**.
+3. Select the checkbox next to each rate you want to disable or delete.
+4. Select the button that shows how many rates you selected, such as **1 selected**.
+5. Select **Disable rate** or **Delete rate**. When you select more than one rate, these read **Disable rates** and **Delete rates**.
+
+You can also open a single rate and turn off the **Enable rate** toggle to disable it, or select **Delete** to remove it.
+
+---
+
+## What happens to existing expenses when you disable or delete a distance rate
+
+Disabling and deleting affect expenses that already use the rate differently.
+
+When you **disable** a rate:
+
+- Expenses that already use the rate keep that rate, and the amount does not change.
+- Members can still edit the distance or the waypoints on those expenses, and the amount is recalculated using the same rate.
+- No violation is added, because the rate is still on the workspace.
+
+When you **delete** a rate:
+
+- The rate is permanently removed from the workspace.
+- Expenses that already use the rate show a **Rate not valid for this workspace** violation.
+- Selecting a rate that is still on the workspace clears the violation and updates the amount.
 
 ---
 
@@ -137,7 +157,7 @@ Yes. A workspace can have multiple active distance rates. Members can select fro
 
 ## Can I disable a distance rate without deleting it?
 
-Yes. Disabled distance rates remain in the workspace but cannot be selected on new distance expenses. You can re-enable the rate at any time.
+Yes. Disabled distance rates remain in the workspace but cannot be selected on new distance expenses. Expenses that already use the rate keep it and are not flagged with a violation. You can re-enable the rate at any time.
 
 ## Can I apply taxes to distance rates?
 
@@ -153,7 +173,7 @@ Every change to a distance rate is recorded in the workspace **#admins** room. B
 
 ## What happens if I delete a distance rate?
 
-Deleted distance rates are permanently removed from the workspace and cannot be restored. If you want to prevent members from using a rate without removing it permanently, disable the rate instead.
+Deleted distance rates are permanently removed from the workspace and cannot be restored. Expenses that already use the rate show a **Rate not valid for this workspace** violation until a rate that is still on the workspace is selected. If you want to prevent members from using a rate without removing it permanently, disable the rate instead.
 
 ## Can I change the reimbursement rate for existing distance expenses?
 
