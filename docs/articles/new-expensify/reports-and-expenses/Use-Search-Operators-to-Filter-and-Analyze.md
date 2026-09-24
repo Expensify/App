@@ -29,6 +29,8 @@ Enter search operators in the search bar that opens from the **Search** icon.
 
 The search bar on the **Spend** page filters your current results by keyword only. Anything you type there is matched as a keyword, even if it looks like an operator. To filter with operators, open the search bar from the **Search** icon.
 
+If you would rather not write the syntax yourself, select **Describe your search** at the top of the filter list and type what you want to see in plain English. [Learn how to describe your search on the Spend page](/articles/new-expensify/reports-and-expenses/Describe-Your-Search-on-the-Spend-Page).
+
 ---
 
 ## How to build a search query with search operators
