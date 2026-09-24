@@ -14,10 +14,9 @@ type ScrollToIndexOptions = {
 type ReportScrollManagerData = {
     /**
      * Scroll to a list index. `isEditing` suppresses the scroll (web only, defaults to `false`).
-     * When `animated` is omitted each platform keeps its prior default: web animates, native jumps
-     * instantly. ReportActionItemMessageEdit's Android Chrome keyboard hack passes `{animated: false}`
-     * to scroll instantly when the edit composer gains focus and the soft keyboard shifts the viewport,
-     * and the action-badge follow-scroll passes `{animated: true}` so native animates like web does.
+     * Omitting `animated` keeps each platform's default: web animates, native jumps. Two callers override it —
+     * ReportActionItemMessageEdit passes `false` for its Android Chrome keyboard hack, and the action-badge
+     * follow-scroll passes `true` so native animates like web.
      */
     scrollToIndex: (index: number, options?: ScrollToIndexOptions) => void;
     scrollToBottom: () => void;
