@@ -284,8 +284,7 @@ function BaseTextInput({
     // The hidden element in TextInputMeasurement and the real input are laid out by two different native text engines,
     // so they don't always agree on where the value wraps, which leaves the container a line short of the visible input.
     // The input's own content size is the height it actually needs, so prefer it once it has reported one.
-    const autoGrowContentHeight =
-        shouldUseAutoGrowHeight && inputContentHeight > 0 ? inputContentHeight + variables.inputPaddingTop + variables.inputPaddingBottom : textInputHeight;
+    const autoGrowContentHeight = shouldUseAutoGrowHeight && inputContentHeight > 0 ? inputContentHeight + variables.inputPaddingTop + variables.inputPaddingBottom : textInputHeight;
 
     const shouldAddPaddingBottom = isMultiline || (shouldUseAutoGrowHeight && autoGrowContentHeight > variables.componentSizeLarge);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
