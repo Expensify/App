@@ -17,7 +17,7 @@ import {isMergeConnected} from '@libs/merge/MergeUtils';
 import {getMergeATSFilterOptions} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {RecruitingMergeImportSettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {MergeATSFiltersNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -30,7 +30,7 @@ import {View} from 'react-native';
 
 import {useMergeATSFiltersDraftActions, useMergeATSFiltersDraftState} from './MergeATSFiltersDraftContext';
 
-type MergeATSFilterSelectionPageProps = PlatformStackScreenProps<RecruitingMergeImportSettingsNavigatorParamList, typeof SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER>;
+type MergeATSFilterSelectionPageProps = PlatformStackScreenProps<MergeATSFiltersNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER>;
 
 const TITLES = {
     [CONST.MERGE.ATS_FILTER_TYPE.STAGES]: 'workspace.recruiting.filters.stages.title',

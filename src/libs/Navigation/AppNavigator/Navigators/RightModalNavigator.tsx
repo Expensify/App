@@ -36,7 +36,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
 import {MergeATSApprovalDraftProvider} from '@pages/workspace/recruiting/approver/MergeATSApprovalDraftContext';
-import MergeATSFiltersDraftProvider from '@pages/workspace/recruiting/merge/filters/MergeATSFiltersDraftContext';
+import {MergeATSFiltersDraftProvider} from '@pages/workspace/recruiting/merge/filters/MergeATSFiltersDraftContext';
 
 import variables from '@styles/variables';
 
@@ -80,10 +80,10 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
     );
 }
 
-function MergeATSImportSettingsDraftWithContext(props: Record<string, unknown>) {
+function MergeATSFiltersWithDraftContext(props: Record<string, unknown>) {
     return (
         <MergeATSFiltersDraftProvider>
-            <ModalStackNavigators.MergeATSImportSettingsModalStackNavigator {...props} />
+            <ModalStackNavigators.MergeATSFiltersModalStackNavigator {...props} />
         </MergeATSFiltersDraftProvider>
     );
 }
@@ -424,10 +424,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
                             />
                             <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS}
-                                component={MergeATSImportSettingsDraftWithContext}
-                            />
-                            <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.NEW_TASK}
                                 component={ModalStackNavigators.NewTaskModalStackNavigator}
                             />
@@ -500,6 +496,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
                                 getComponent={loadSearchSavePage}
                                 options={modalStackScreenOptions}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS}
+                                component={MergeATSFiltersWithDraftContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL}

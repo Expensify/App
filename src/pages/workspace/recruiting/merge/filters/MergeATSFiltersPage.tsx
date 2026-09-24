@@ -18,7 +18,7 @@ import {getMergeATSFilterValues, getConnectedATSProvider, getMergeATSFilterLabel
 import type {MergeATSFilterType} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {RecruitingMergeImportSettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {MergeATSFiltersNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -32,7 +32,7 @@ import {View} from 'react-native';
 
 import {useMergeATSFiltersDraftActions, useMergeATSFiltersDraftState} from './MergeATSFiltersDraftContext';
 
-type MergeATSFiltersPageProps = PlatformStackScreenProps<RecruitingMergeImportSettingsNavigatorParamList, typeof SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.ROOT>;
+type MergeATSFiltersPageProps = PlatformStackScreenProps<MergeATSFiltersNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS>;
 
 function MergeATSFiltersPage({
     route: {

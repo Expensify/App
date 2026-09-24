@@ -59,5 +59,4 @@ function MergeATSFiltersDraftProvider({children}: ChildrenProps) {
     );
 }
 
-export default MergeATSFiltersDraftProvider;
-export {useMergeATSFiltersDraftActions, useMergeATSFiltersDraftState};
+export {MergeATSFiltersDraftProvider, useMergeATSFiltersDraftActions, useMergeATSFiltersDraftState};

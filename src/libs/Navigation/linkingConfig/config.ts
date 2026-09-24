@@ -1778,12 +1778,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.POLICY_COPY_SETTINGS.CONFIRM]: ROUTES.POLICY_COPY_SETTINGS_CONFIRM.route,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS]: {
-                    screens: {
-                        [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.ROOT]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.route,
-                        [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.NEW_TASK]: {
                     screens: {
                         [SCREENS.NEW_TASK.DYNAMIC_ROOT]: DYNAMIC_ROUTES.NEW_TASK.path,
@@ -2075,6 +2069,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: ROUTES.CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP,
                         [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS]: {
+                    screens: {
+                        [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.route,
+                        [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL]: {
