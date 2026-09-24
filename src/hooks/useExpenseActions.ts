@@ -194,7 +194,8 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const hasMultipleSplits = !!transaction?.comment?.originalTransactionID && getChildTransactions(allTransactions, transaction.comment.originalTransactionID).length > 1;
     const hasSplitIndicator = isExpenseSplit && hasMultipleSplits;
-    const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
+    const isDeletingOwnExpense = requestParentReportAction?.actorAccountID === accountID;
+    const shouldShowEditSplitOnDeleteAction = isDeletingOwnExpense && !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
 
     // Duplicate report throttle
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
@@ -534,7 +535,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             onSelected: async () => {
                 const transactionCount = Object.keys(transactions).length;
 
-                if (transactionCount === 1) {
+                if (transactionCount === 1 && isDeletingOwnExpense) {
                     if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
                         deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                         return;
