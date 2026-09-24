@@ -5149,7 +5149,7 @@ describe('canResolveTransactionCard', () => {
     });
 
     it('rejects a managed card expense on a feed the mover does not administer', () => {
-        // Given a card absent from the mover's list — the regression in #101767, where the card sat on the
+        // Given a card absent from the mover's list. This is the regression in #101767, where the card sat on the
         // submitter's own workspace feed and only the draft report was shared
         const transaction = buildCardTransaction({cardID: 9999});
 

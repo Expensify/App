@@ -339,8 +339,9 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, Workspac
 
 /**
  * Whether the viewer can resolve the card an expense sits on: their own cards, plus the feeds of workspaces they
- * administer. "Auto report" needs it — the backend resolves each destination through the card, and one unresolvable
- * card fails the whole batched move. The `managedCard` flag cannot answer it, carrying no feed or workspace identity.
+ * administer. "Auto report" needs it because the backend resolves each destination through the card, and one
+ * unresolvable card fails the whole batched move. The `managedCard` flag cannot answer it, carrying no feed or
+ * workspace identity.
  */
 function canResolveTransactionCard(transaction: OnyxEntry<Pick<Transaction, 'managedCard' | 'cardID'>>, nonPersonalAndWorkspaceCards: OnyxEntry<CardList>): boolean {
     // Inlined rather than calling isManagedCardTransaction: TransactionUtils already imports this file.

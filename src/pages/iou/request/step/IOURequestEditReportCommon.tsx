@@ -373,7 +373,8 @@ function IOURequestEditReportCommon({
             return undefined;
         }
 
-        // One card this user cannot resolve — missing, or on a feed they do not administer — fails the whole move.
+        // A card this user cannot resolve, because it is missing or on a feed they do not administer, fails the
+        // whole move.
         if (!areAllManagedCardsResolvable) {
             return undefined;
         }

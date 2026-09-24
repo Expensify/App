@@ -2916,7 +2916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         // everybody else's expenses. Requirements:
         //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
         //   - every expense on a card the mover can resolve, since the backend resolves each destination through the
-        //     card; no card, or a feed they do not administer, fails the whole request
+        //     card. No card, or a feed they do not administer, fails the whole request
         //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
         //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
         // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
