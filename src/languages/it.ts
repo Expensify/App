@@ -6583,6 +6583,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     `Scegli il conto ${integration} in cui esportare le transazioni.${exportPageLink ? ` Seleziona un’altra <a href="${exportPageLink}">opzione di esportazione</a> per modificare i conti disponibili.` : ''}`,
                 lastUpdated: 'Ultimo aggiornamento',
                 transactionStartDate: 'Data di inizio transazione',
+                bulkUpdateTransactionStartDate: 'Aggiorna data di inizio transazione',
                 updateCard: 'Aggiorna carta',
                 unassignCard: 'Rimuovi carta',
                 unassignCards: 'Rimuovi carte',

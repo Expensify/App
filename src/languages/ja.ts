@@ -6495,6 +6495,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
                 lastUpdated: '最終更新日時',
                 transactionStartDate: '取引開始日',
+                bulkUpdateTransactionStartDate: '取引開始日を更新',
                 updateCard: 'カードを更新',
                 unassignCard: 'カードの割り当てを解除',
                 unassignCards: 'カードの割り当てを解除',
