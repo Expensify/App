@@ -43,7 +43,10 @@ export default {
     // Blur the bar lays over what it covers. The web radius is a CSS blur; the Android one is expo-blur's own
     // 0 to 100 intensity, which is not the same unit, so the two are tuned to match rather than shared.
     floatingTabBarBlurRadius: 24,
-    floatingTabBarBlurIntensity: 65,
+    floatingTabBarBlurIntensity: 60,
+    // expo-blur on Android derives its radius as intensity / factor, so this puts the radius at 5, soft enough that
+    // shapes and colors under the bar still show through, without changing the tint the intensity sets.
+    floatingTabBarBlurReductionFactor: 12,
     // Vertical space the floating bar takes over the content it hides, so scrollable content can end above it.
     floatingTabBarContentInset: floatingTabBarHeight + floatingTabBarBottomInset,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).

@@ -1,3 +1,6 @@
+import TabBarBlurTarget from '@components/Navigation/NavigationTabBar/TabBarBlur/TabBarBlurTarget';
+import TabBarBlurTargetContextProvider from '@components/Navigation/NavigationTabBar/TabBarBlur/TabBarBlurTargetContext';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 
@@ -11,8 +14,8 @@ import SCREENS from '@src/SCREENS';
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Insights, Settings, and Workspaces pages.
  */
-import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import type {NavigationAction, Router, TabNavigationState} from '@react-navigation/native';
+import type {BottomTabBarProps, BottomTabNavigationOptions, BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import type {NavigationAction, ParamListBase, Router, ScreenLayoutArgs, TabNavigationState} from '@react-navigation/native';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
@@ -24,6 +27,10 @@ import TabNavigatorBar from './TabNavigatorBar';
 import {HomePageScreen, InsightsPageScreen, ReportsSplitNavigatorScreen, SettingsSplitNavigatorScreen, WorkspaceNavigatorScreen} from './tabScreens';
 
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
+
+const renderTabScreenLayout = (args: ScreenLayoutArgs<ParamListBase, string, BottomTabNavigationOptions, BottomTabNavigationProp<ParamListBase>>) => (
+    <TabBarBlurTarget>{bottomTabScreenLayoutWrapper(args)}</TabBarBlurTarget>
+);
 
 const Tab = createBottomTabNavigator<TabNavigatorParamList>();
 
@@ -89,38 +96,40 @@ function TabNavigator() {
     };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
-            screenLayout={bottomTabScreenLayoutWrapper}
-            UNSTABLE_router={tabRouterOverride}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigatorScreen}
-            />
-        </Tab.Navigator>
+        <TabBarBlurTargetContextProvider>
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                tabBar={renderTabBar}
+                screenOptions={screenOptions}
+                screenLayout={renderTabScreenLayout}
+                UNSTABLE_router={tabRouterOverride}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigatorScreen}
+                />
+            </Tab.Navigator>
+        </TabBarBlurTargetContextProvider>
     );
 }
 
