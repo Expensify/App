@@ -2251,7 +2251,7 @@ type CampfireAccount = {
  * Field retrieved from Campfire.
  */
 type CampfireField = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the field. */
     id: string;
 
     /** Name of the field. */
