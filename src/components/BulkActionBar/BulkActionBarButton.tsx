@@ -10,6 +10,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -28,7 +29,7 @@ function BulkActionBarButton<TValueType>({option, onSubItemSelected}: BulkAction
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const anchorRef = useRef<View | null>(null);
+    const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
 
