@@ -21,7 +21,9 @@ type DateSegmentsConfig = {
     mask: string;
 
     getSegmentProps: UseDateSegmentInputResult['getSegmentProps'];
-    focusRequest: UseDateSegmentInputResult['focusRequest'];
+    setSegmentRef: UseDateSegmentInputResult['setSegmentRef'];
+    focusSegment: UseDateSegmentInputResult['focusSegment'];
+    isSegmentElement: UseDateSegmentInputResult['isSegmentElement'];
     isAllSelected: UseDateSegmentInputResult['isAllSelected'];
     onFieldBlur: UseDateSegmentInputResult['onFieldBlur'];
 };

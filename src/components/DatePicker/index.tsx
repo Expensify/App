@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import isTypedDateInputSupported from '@libs/isTypedDateInputSupported';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {isNumeric} from '@libs/ValidationUtils';
 
 import {setDraftValues} from '@userActions/FormActions';
@@ -73,7 +73,8 @@ function DatePicker({
     // picker was dismissed before it resolved.
     const openIntentRef = useRef(false);
 
-    const shouldAllowTyping = isTypedDateInputSupported();
+    // Touch devices keep the calendar on its own, so the soft keyboard does not cover it
+    const shouldAllowTyping = !canUseTouchScreen();
     const dateMask = translate('common.dateFormat');
 
     // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
@@ -306,7 +307,9 @@ function DatePicker({
                             ? {
                                   mask: dateMask,
                                   getSegmentProps: segmentInput.getSegmentProps,
-                                  focusRequest: segmentInput.focusRequest,
+                                  setSegmentRef: segmentInput.setSegmentRef,
+                                  focusSegment: segmentInput.focusSegment,
+                                  isSegmentElement: segmentInput.isSegmentElement,
                                   isAllSelected: segmentInput.isAllSelected,
                                   onFieldBlur: segmentInput.onFieldBlur,
                               }

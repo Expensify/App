@@ -1,9 +1,11 @@
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
 /**
  * Drives the guided date input, where the year, month and day are edited in one input each. Every keystroke is handled
  * here and the raw keystroke is prevented, so a segment can only ever hold digits it is allowed to hold.
  *
- * Focus belongs to the browser. Each segment reports its own focus, and this hook only ever asks for a move when a
- * keystroke calls for one, which is why nothing here has to arbitrate against a caret it does not control.
+ * Focus belongs to the browser. Each segment reports its own focus, and this hook only ever moves it when a keystroke
+ * calls for one, which is why nothing here has to arbitrate against a caret it does not control.
  */
 import {
     DATE_SEGMENT_NAMES,
@@ -23,7 +25,7 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import type {TextInputKeyPressEvent} from 'react-native';
 
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 
 const FIRST_SEGMENT_NAME = DATE_SEGMENT_NAMES[0];
 const LAST_SEGMENT_NAME = DATE_SEGMENT_NAMES[DATE_SEGMENT_NAMES.length - 1];
@@ -53,12 +55,6 @@ type UseDateSegmentInputParams = {
     onCommit: (isoDate: string) => void;
 };
 
-/** A request for a segment to take focus. The count is what carries it, so asking twice for the same segment works */
-type SegmentFocusRequest = {
-    name: DateSegmentName;
-    version: number;
-};
-
 /** Everything one segment's input needs. The segment itself is stateless and reports back through these */
 type DateSegmentProps = {
     value: string;
@@ -77,8 +73,14 @@ type UseDateSegmentInputResult = {
     /** Whether the user is inside the field, so the segments rather than the committed date are what to render */
     isEditing: boolean;
 
-    /** The segment the caller should move focus to, or undefined when no move has been asked for */
-    focusRequest: SegmentFocusRequest | undefined;
+    /** Hands over each segment's input, so a keystroke can move focus as it is handled */
+    setSegmentRef: (name: DateSegmentName, element: AnimatedTextInputRef | null) => void;
+
+    /** Moves focus to a segment and rests the caret after its digits */
+    focusSegment: (name: DateSegmentName) => void;
+
+    /** Whether focus is going to another segment, which is moving within the field rather than leaving it */
+    isSegmentElement: (target: unknown) => boolean;
 
     /** The month the calendar should show, so it follows the date being typed. Undefined leaves the calendar alone */
     viewDate: Date | undefined;
@@ -109,7 +111,7 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     // The segments only describe an edit in progress, so they are seeded on focus rather than synced with the value
     const [segments, setSegments] = useState<DateSegments>(EMPTY_SEGMENTS);
     const [isEditing, setIsEditing] = useState(false);
-    const [focusRequest, setFocusRequest] = useState<SegmentFocusRequest | undefined>(undefined);
+    const segmentRefs = useRef<Partial<Record<DateSegmentName, AnimatedTextInputRef | null>>>({});
     // The month the calendar should show, which follows the typed date once the year is complete
     const [viewDate, setViewDate] = useState<Date | undefined>(undefined);
     const [viewDateVersion, setViewDateVersion] = useState(0);
@@ -140,14 +142,28 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         }
     }
 
-    const requestFocus = (name: DateSegmentName) => {
-        setFocusRequest((previous) => ({name, version: (previous?.version ?? 0) + 1}));
+    const setSegmentRef = (name: DateSegmentName, element: AnimatedTextInputRef | null) => {
+        segmentRefs.current[name] = element;
+    };
+
+    const isSegmentElement = (target: unknown) => !!target && Object.values(segmentRefs.current).some((element) => element === target);
+
+    /**
+     * Arriving at a segment rests the caret after the digits already in it, rather than wherever the browser last left
+     * the caret there, so a half typed month reads as 02 and not 0 followed by a caret and a 2.
+     */
+    const focusSegment = (name: DateSegmentName) => {
+        const element = segmentRefs.current[name];
+        element?.focus();
+
+        const caretPosition = element?.value?.length ?? 0;
+        element?.setSelectionRange?.(caretPosition, caretPosition);
     };
 
     /** Landing on a segment arms the overwrite, so the next digit replaces what is there rather than extending it */
     const enterSegment = (name: DateSegmentName) => {
         setShouldOverwrite(true);
-        requestFocus(name);
+        focusSegment(name);
     };
 
     /**
@@ -293,7 +309,6 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     const handleFieldBlur = () => {
         setIsEditing(false);
         setViewDate(undefined);
-        setFocusRequest(undefined);
         setShouldOverwrite(false);
         setIsAllSelected(false);
 
@@ -321,7 +336,9 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
         return {
             displayValue: value,
             isEditing: false,
-            focusRequest: undefined,
+            setSegmentRef: () => {},
+            focusSegment: () => {},
+            isSegmentElement: () => false,
             viewDate: undefined,
             viewDateVersion: 0,
             hasTypedDigits: false,
@@ -340,7 +357,9 @@ export default function useDateSegmentInput({value, isEnabled, minDate, maxDate,
     return {
         displayValue: value,
         isEditing,
-        focusRequest,
+        setSegmentRef,
+        focusSegment,
+        isSegmentElement,
         viewDate: isEditing ? viewDate : undefined,
         viewDateVersion,
         hasTypedDigits: shouldShowSegments && hasAnySegment(segments),
