@@ -817,10 +817,15 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
  * Creates a selector for useOnyx that computes the filtered member count.
  * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
  */
-function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
+function createFilteredMemberCountSelector(
+    employeeList: PolicyEmployeeList | undefined,
+    policyOwner: string | undefined,
+    currentUserLogin: string | undefined,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+) {
     return (personalDetails: PersonalDetailsList | undefined): number => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, false, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins, false, false);
 
         return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
             const accountID = policyMemberEmailsToAccountIDs[email];
@@ -1155,14 +1160,36 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
 }
 
+// An anchored filter with no regex operators. Letter and digit escapes (\d, \w, ...) are classes, not literals.
+const LITERAL_PARENT_TAGS_FILTER = /^\^((?:\\[^A-Za-z0-9]|[^\\.*+?()[\]{}|^$])*)\$$/;
+const ESCAPED_CHARACTER = /\\([\s\S])/g;
+
+/**
+ * Whether a parentTagsFilter matches a parent tag path.
+ * Filters are almost always an anchored, escaped parent path, which is compared as a string -
+ * compiling a RegExp per tag dominates scans over large tag lists.
+ */
+function matchesParentTagsFilter(filter: string | undefined, parentTagPath: string): boolean {
+    if (!filter) {
+        return true;
+    }
+
+    const literal = LITERAL_PARENT_TAGS_FILTER.exec(filter)?.[1];
+
+    if (literal !== undefined) {
+        return literal.replaceAll(ESCAPED_CHARACTER, '$1') === parentTagPath;
+    }
+
+    return new RegExp(filter).test(parentTagPath);
+}
+
 /**
  * Checks whether a policy tag is selectable under a given parent tag path.
  * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
  * while tags without a filter apply everywhere.
  */
 function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
-    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+    return matchesParentTagsFilter(policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter, parentTagPath);
 }
 
 /**
@@ -2282,8 +2309,31 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
+
+    // Walks the records instead of `Object.values(...).some(...)`: a tag list can hold thousands of tags, and copying
+    // them into an array to ask whether any of them has a filter costs that copy on every caller render.
     // An empty tag list arrives without the `tags` key, despite the type.
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    for (const tagListName in policyTagList) {
+        if (!Object.hasOwn(policyTagList, tagListName)) {
+            continue;
+        }
+
+        const tags = policyTagList[tagListName]?.tags;
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (tag?.rules?.parentTagsFilter || tag?.parentTagsFilter) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -2778,11 +2828,11 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO and Sage Intacct or Dual Entry:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Rillet, and DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
- *   - Rillet (R4) configured connection. Beta required
+ *   - Rillet (R4) configured connection. GA, so no beta required
  *   - DualEntry configured connection. GA, so no beta required
  *   - Business Central configured connection. Beta required
  *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
@@ -2791,13 +2841,10 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
+    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return (
-        isVendorMatchingBetaEnabled &&
-        (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy))
-    );
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy));
 }
 
 /**
@@ -3539,6 +3586,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.netsuite?.options?.config?.exporter,
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
+        policy?.connections?.campfire?.config?.export?.exporter,
     ];
 }
 
@@ -3637,6 +3685,7 @@ export {
     getXeroSupplierByID,
     getXeroSuppliers,
     getDualEntryVendors,
+    getCampfireVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
@@ -3666,6 +3715,7 @@ export {
     isTagInPolicy,
     findPolicyTagAtLevel,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     hasCustomCategories,
     hasConfiguredRules,
     isMaxExpenseAmountSet,

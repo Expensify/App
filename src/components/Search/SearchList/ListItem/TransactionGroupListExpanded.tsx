@@ -92,7 +92,6 @@ function TransactionGroupListExpandedImpl({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -223,7 +222,6 @@ function TransactionGroupListExpandedImpl({
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
-                        betas,
                         personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
@@ -243,7 +241,6 @@ function TransactionGroupListExpandedImpl({
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
-                    betas,
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,

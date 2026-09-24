@@ -12,7 +12,6 @@ import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -23,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -244,7 +244,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         currentUserAccountID,
         currentUserLogin,
         introSelected,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         activePolicy,
@@ -309,7 +308,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             currentUserAccountID,
             currentUserLogin,
             introSelected,
-            betas,
             isSelfTourViewed,
             activePolicy,
             chatReport,
@@ -359,7 +357,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         currentUserAccountID,
         currentUserLogin,
         introSelected,
-        betas,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -398,11 +395,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // `tableTopRadius`/`tableBottomRadius` below and squares off the list's outer corners. Skip it for the first
     // and last rows only, so every other row keeps its existing (already square) behavior.
     const shouldApplyAnimatedBorderRadius = !isLargeScreenWidth && !isFirstItem && !isLastItem;
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected,
+        borderRadius: 0,
         shouldApplyOtherStyles: shouldApplyAnimatedBorderRadius,
     });
 

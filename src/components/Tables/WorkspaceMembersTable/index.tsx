@@ -1,5 +1,6 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLocalize from '@hooks/useLocalize';
@@ -148,75 +149,16 @@ export default function WorkspaceMembersTable({
         }
 
         if (activeSorting.columnKey === 'role') {
-            if (!item1.role && !item2.role) {
-                return memberNameComparison;
-            }
-
-            if (!item1.role) {
-                return 1;
-            }
-
-            if (!item2.role) {
-                return -1;
-            }
-
-            const roleComparison = localeCompare(translate('workspace.common.roleName', item1.role), translate('workspace.common.roleName', item2.role));
-
-            if (roleComparison !== 0) {
-                return roleComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
+            return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField1') {
-            const item1CustomField1Value = item1.employeeUserID;
-            const item2CustomField1Value = item2.employeeUserID;
-
-            if (!item1CustomField1Value && !item2CustomField1Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField1Value) {
-                return 1;
-            }
-
-            if (!item2CustomField1Value) {
-                return -1;
-            }
-
-            const employeeIdComparison = localeCompare(item1CustomField1Value, item2CustomField1Value);
-
-            if (employeeIdComparison !== 0) {
-                return employeeIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField2') {
-            const item1CustomField2Value = item1.employeePayrollID;
-            const item2CustomField2Value = item2.employeePayrollID;
-
-            if (!item1CustomField2Value && !item2CustomField2Value) {
-                return memberNameComparison;
-            }
-
-            if (!item1CustomField2Value) {
-                return 1;
-            }
-
-            if (!item2CustomField2Value) {
-                return -1;
-            }
-
-            const payrollIdComparison = localeCompare(item1CustomField2Value, item2CustomField2Value);
-
-            if (payrollIdComparison !== 0) {
-                return payrollIdComparison * orderMultiplier;
-            }
-
-            return memberNameComparison;
+            return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;

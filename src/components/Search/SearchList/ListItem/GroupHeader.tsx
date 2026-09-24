@@ -6,7 +6,6 @@ import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
@@ -15,6 +14,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -173,7 +173,7 @@ function GroupHeader({
     // The rows this header labels are a sibling list row, and they own the scroller. These labels only follow it.
     const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
-    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
+    const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded, item.groupKeyForList);
 
     // A group with a query of its own is not empty, it just has not been fetched yet.
     const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
@@ -191,10 +191,9 @@ function GroupHeader({
         keyForList: item.groupKeyForList,
     });
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected: isItemSelected,
         shouldApplyOtherStyles: false,
     });
 

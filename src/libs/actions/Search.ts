@@ -78,7 +78,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
-    Beta,
     BillingGraceEndPeriod,
     ExportTemplate,
     IntroSelected,
@@ -270,7 +269,6 @@ type HandleActionButtonPressParams = {
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -313,7 +311,6 @@ function handleActionButtonPress({
     consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -366,7 +363,6 @@ function handleActionButtonPress({
                 currentUserAccountID,
                 currentUserLogin,
                 introSelected,
-                betas,
                 isASAPSubmitBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
@@ -609,7 +605,6 @@ type GetPayActionCallbackParams = {
     currentUserAccountID?: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -640,7 +635,6 @@ function getPayActionCallback({
     currentUserAccountID,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -695,7 +689,6 @@ function getPayActionCallback({
         activePolicy,
         policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
@@ -1241,9 +1234,10 @@ function search({
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
-     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Tells the backend whether this query was submitted by the user, so it may be saved to the recent searches NVP.
      * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
-     * refreshes) must not evict the user's real recent searches.
+     * refreshes) must not evict the user's real recent searches. Always serialized, even when false, because the
+     * backend treats a missing flag as true for backwards compatibility with older clients.
      */
     shouldSaveRecentSearch?: boolean;
     /**
@@ -1300,7 +1294,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
+        shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
