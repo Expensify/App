@@ -12,13 +12,26 @@ import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Jest runs no layout engine, so the blank receipt on native (#99376) can only be seen on a device. What can be tested
-// here is the part that caused it and the arithmetic built on it: the scaler has to ask the card for its natural height,
-// and the scale has to follow from the space offered and the height the card measures.
+// here is the part that caused it and the arithmetic built on it: the scaler has to render the card itself rather than
+// the scrolling DistanceEReceipt, which fills its parent, and the scale has to follow from the space offered and the
+// height the card measures.
+jest.mock('@components/DistanceEReceiptPanel', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
+    function MockDistanceEReceiptPanel() {
+        return MockReact.createElement(View, {testID: 'distance-e-receipt-panel'});
+    }
+    return {
+        __esModule: true,
+        default: MockDistanceEReceiptPanel,
+    };
+});
+
 jest.mock('@components/DistanceEReceipt', () => {
     const MockReact = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<typeof ReactNative>('react-native');
-    function MockDistanceEReceipt({shouldUseNaturalHeight}: {shouldUseNaturalHeight?: boolean}) {
-        return MockReact.createElement(View, {testID: shouldUseNaturalHeight ? 'distance-e-receipt-natural-height' : 'distance-e-receipt'});
+    function MockDistanceEReceipt() {
+        return MockReact.createElement(View, {testID: 'distance-e-receipt'});
     }
     return {
         __esModule: true,
@@ -49,9 +62,9 @@ async function renderScaled({box, cardHeight}: {box?: {width: number; height: nu
 }
 
 describe('ScaledDistanceEReceipt', () => {
-    it('asks the card for its natural height, which is what it measures and scales', async () => {
+    it('renders the card itself, at its natural height, rather than the scrolling layout that fills its parent', async () => {
         await renderScaled();
-        expect(screen.getByTestId('distance-e-receipt-natural-height')).toBeTruthy();
+        expect(screen.getByTestId('distance-e-receipt-panel')).toBeTruthy();
         expect(screen.queryByTestId('distance-e-receipt')).toBeNull();
     });
 

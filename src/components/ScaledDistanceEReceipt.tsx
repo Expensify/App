@@ -10,7 +10,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-import DistanceEReceipt from './DistanceEReceipt';
+import DistanceEReceiptPanel from './DistanceEReceiptPanel';
 
 // The card lays out at a fixed width and the map inside it is a 1024px thumbnail, so past roughly three times
 // that width the map is the first thing to blur. Text keeps scaling cleanly either way.
@@ -57,10 +57,7 @@ function ScaledDistanceEReceipt({transaction}: ScaledDistanceEReceiptProps) {
                 onLayout={onCardLayout}
                 testID="scaled-distance-e-receipt-card"
             >
-                <DistanceEReceipt
-                    transaction={transaction}
-                    shouldUseNaturalHeight
-                />
+                <DistanceEReceiptPanel transaction={transaction} />
             </View>
         </View>
     );
