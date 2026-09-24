@@ -66,7 +66,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
         if (value === currentIsOffice || !canWriteMembers) {
             return;
         }
-        setEmployeeWorkArrangement(policy, [accountID], value, translate);
+        setEmployeeWorkArrangement(policy, [accountID], value, personalDetails, translate);
         navigateBackToDetails();
     };
 

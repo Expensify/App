@@ -22,14 +22,13 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
-import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import {getRoom} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GovernmentMileageRate, Policy, PolicyEmployee, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {GovernmentMileageRate, PersonalDetailsList, Policy, PolicyEmployee, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {CommuterExclusions, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -657,7 +656,13 @@ type WorkArrangementMemberUpdate = {
  * affected accountID, and one optimistic member work arrangement changelog action is
  * created per member in the workspace admins room.
  */
-function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], isOffice: boolean, translate: LocalizedTranslate) {
+function setEmployeeWorkArrangement(
+    policy: OnyxEntry<Policy>,
+    employeeAccountIDList: number[],
+    isOffice: boolean,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    translate: LocalizedTranslate,
+) {
     const policyID = policy?.id;
     if (!policyID) {
         return;
@@ -668,7 +673,7 @@ function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountID
     const newLabel = getWorkArrangementLabel(isOffice);
     const updates: WorkArrangementMemberUpdate[] = [];
     for (const accountID of employeeAccountIDList) {
-        const personalDetail = getPersonalDetail(accountID);
+        const personalDetail = personalDetails?.[accountID];
         const login = personalDetail?.login;
         if (!login) {
             continue;
@@ -769,7 +774,7 @@ function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountID
         failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: reportActionsKey, value: failureReportActions});
     }
 
-    const parameters: SetEmployeeWorkArrangementParams = {policyID, employeeAccountIDList: employeeAccountIDList.join(','), isOffice};
+    const parameters: SetEmployeeWorkArrangementParams = {policyID, employeeAccountIDList: updates.map((update) => update.accountID).join(','), isOffice};
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {optimisticData, successData, failureData};
     API.write(WRITE_COMMANDS.SET_EMPLOYEE_WORK_ARRANGEMENT, parameters, onyxData);
 }

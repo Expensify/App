@@ -387,6 +387,10 @@ describe('DistanceRate', () => {
         const member2AccountID = 12;
         const member1Email = 'member1@test.com';
         const member2Email = 'member2@test.com';
+        const personalDetails = {
+            [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
+            [member2AccountID]: {accountID: member2AccountID, login: member2Email, displayName: 'Member Two'},
+        };
 
         afterEach(() => {
             jest.restoreAllMocks();
@@ -432,10 +436,7 @@ describe('DistanceRate', () => {
 
         async function seedWorkArrangementPolicy(policy: Policy) {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
-                [member2AccountID]: {accountID: member2AccountID, login: member2Email, displayName: 'Member Two'},
-            });
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', policyID: policy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} as Report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {});
             await waitForBatchedUpdates();
@@ -454,7 +455,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When both members are assigned the office-based arrangement
-            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true, personalDetails, translate);
             await waitForBatchedUpdates();
 
             // Then only the changed member and one pending changelog entry are updated
@@ -495,7 +496,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the matching member and an unknown account are passed
-            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false, personalDetails, translate);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog entry is changed
@@ -518,7 +519,7 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
 
             // Then success updates clear the pending state for both the member and changelog action
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
@@ -541,7 +542,7 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
 
             // Then failure data restores the member value, clears its pending state, and removes the changelog action
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
@@ -584,7 +585,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true, translate);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
             await waitForBatchedUpdates();
 
             // Then the member is updated without creating a changelog action
@@ -608,13 +609,14 @@ describe('DistanceRate', () => {
 
             pause();
             // The missing account has personal details but no employeeList entry
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
+            const personalDetailsWithGhost = {
+                ...personalDetails,
                 [missingMemberAccountID]: {accountID: missingMemberAccountID, login: 'ghost@test.com', displayName: 'Ghost'},
-            });
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithGhost);
             await waitForBatchedUpdates();
             // When the member missing from the policy employee list is passed
-            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, translate);
+            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, personalDetailsWithGhost, translate);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog action is created
@@ -637,7 +639,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member is assigned an arrangement without a policy ID
-            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true, translate);
+            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true, personalDetails, translate);
             await waitForBatchedUpdates();
 
             // Then neither the policy nor the admins room changelog is changed
