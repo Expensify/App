@@ -1247,6 +1247,45 @@ describe('SearchPageNarrow', () => {
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2}));
         });
 
+        it('counts a page that lands after a remount rewound the snapshot to the first page', async () => {
+            // Given a to-do tab whose second page is on the wire
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 3);
+            await seedTodoSnapshot(true);
+            searchWritesLoadingState();
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}` as const;
+            const firstRender = renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+
+            // When the tab remounts and a first-page request rewinds the snapshot before that page answers
+            firstRender.unmount();
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                await Onyx.merge(snapshotKey, {search: {offset: 0, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING, isLoading: true}});
+            });
+
+            // And the second page answers, then the first page, as the response and finallyData of each request write them
+            for (const pageOffset of [CONST.SEARCH.RESULTS_PAGE_SIZE, 0]) {
+                await act(async () => {
+                    await Onyx.merge(snapshotKey, {search: {offset: pageOffset, hasMoreResults: true}});
+                    await Onyx.merge(snapshotKey, {search: {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED}});
+                });
+            }
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the second page's rows are on screen, because its response brings its own offset back before the first page rewinds it
+            expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE * 2);
+        });
+
         it('keeps paging while another search on the same tab is running', async () => {
             // Given a to-do tab whose second page already answered
             await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 2 + 20);
