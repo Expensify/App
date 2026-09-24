@@ -30,7 +30,7 @@ import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 /**
@@ -63,6 +63,7 @@ function RequireTwoFactorAuthenticationOverlay() {
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const {signOut, leaveDelegateAccount, isActingAsDelegate, isTrackingGPS} = useSignOut();
     const gpsDraftDetailsRef = useRef<GpsDraftDetails | undefined>(undefined);
+    const [isEscapeInFlight, setIsEscapeInFlight] = useState(false);
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -94,6 +95,17 @@ function RequireTwoFactorAuthenticationOverlay() {
         }
         snapshotOnboardingResumePathIfNeeded();
     }, [shouldShowRequire2FAPage, isIn2FASetupFlow, snapshotOnboardingResumePathIfNeeded]);
+
+    const onEscapePress = () => {
+        if (isEscapeInFlight) {
+            return;
+        }
+        setIsEscapeInFlight(true);
+        const escapeAction = isActingAsDelegate ? leaveDelegateAccount({gpsDraftDetailsRef}) : signOut({shouldAlwaysConfirm: true});
+        escapeAction.finally(() => {
+            setIsEscapeInFlight(false);
+        });
+    };
 
     const enableTwoFactorAuth = () => {
         snapshotOnboardingResumePathIfNeeded();
@@ -130,7 +142,8 @@ function RequireTwoFactorAuthenticationOverlay() {
                             <View style={[styles.flexRow, styles.gap2, styles.justifyContentCenter, styles.alignSelfCenter]}>
                                 <Button
                                     size={CONST.BUTTON_SIZE.LARGE}
-                                    onPress={isActingAsDelegate ? () => leaveDelegateAccount({gpsDraftDetails: gpsDraftDetailsRef.current}) : () => signOut({shouldAlwaysConfirm: true})}
+                                    isLoading={isEscapeInFlight}
+                                    onPress={onEscapePress}
                                 >
                                     <Button.Text>{translate(isActingAsDelegate ? 'delegate.leaveAccount' : 'initialSettingsPage.signOut')}</Button.Text>
                                 </Button>

@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSignOut from '@hooks/useSignOut';
 
 import {disconnect} from '@libs/actions/Delegate';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {getSaveablePendingReceiptRequests, saveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
 
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -78,6 +78,7 @@ const mockDelegateDisconnect = jest.mocked(disconnect);
 const mockGetSaveablePendingReceiptRequests = jest.mocked(getSaveablePendingReceiptRequests);
 const mockSaveReceiptsToGallery = jest.mocked(saveReceiptsToGallery);
 const mockStopGpsTrip = jest.mocked(stopGpsTrip);
+const mockGetGpsPoints = jest.mocked(getGpsPoints);
 
 type MockOnyxState = {
     isTrackingGPS?: boolean;
@@ -162,6 +163,36 @@ describe('useSignOut', () => {
         expect(mockSignOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
     });
 
+    it('should ignore a second sign-out while the first confirm is still open', async () => {
+        // Given the first sign-out confirm is still waiting for the user
+        let resolveModal: (value: {action: string}) => void = () => {};
+        mockShowConfirmModal.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveModal = resolve;
+                }),
+        );
+        const {result} = renderHook(() => useSignOut());
+
+        let firstSignOut: Promise<void> | undefined;
+        act(() => {
+            firstSignOut = result.current.signOut({shouldAlwaysConfirm: true});
+        });
+
+        // When they press Sign out again before the first modal closes
+        await act(async () => {
+            await result.current.signOut({shouldAlwaysConfirm: true});
+        });
+
+        // Then only one confirm modal is opened
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            resolveModal({action: ModalActions.CLOSE});
+            await firstSignOut;
+        });
+    });
+
     it('should show merged save-and-sign-out confirm when offline with pending receipts', async () => {
         // Given the user is offline and has pending receipts to save
         mockIsOffline = true;
@@ -226,12 +257,13 @@ describe('useSignOut', () => {
 
         const {result} = renderHook(() => useSignOut());
 
-        // When they confirm leaving the delegated account with GPS draft details from the overlay ref
+        // When they confirm leaving after the ref has the latest GPS draft
         await act(async () => {
-            await result.current.leaveDelegateAccount({gpsDraftDetails: mockGpsDraftDetails});
+            await result.current.leaveDelegateAccount({gpsDraftDetailsRef: {current: mockGpsDraftDetails}});
         });
 
-        // Then the GPS switch-account warning appears and the trip is stopped before disconnect
+        // Then points are read from the ref after confirm, and the trip is stopped before disconnect
+        expect(mockGetGpsPoints).toHaveBeenCalledWith(mockGpsDraftDetails);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: 'gps.switchAccountWarningTripInProgress.title',

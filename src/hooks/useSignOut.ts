@@ -17,6 +17,8 @@ import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 
+import type {RefObject} from 'react';
+
 import {stopLocationUpdatesAsync} from 'expo-location';
 
 import useConfirmModal from './useConfirmModal';
@@ -30,9 +32,12 @@ type SignOutOptions = {
 };
 
 type LeaveDelegateAccountOptions = {
-    /** GPS draft details from a ref synced by GpsDraftDetailsRefSync; required when leaving during an active trip. */
-    gpsDraftDetails?: GpsDraftDetails;
+    /** Ref kept current by GpsDraftDetailsRefSync. Read only after the user confirms, so points stay fresh while the modal is open. */
+    gpsDraftDetailsRef?: RefObject<GpsDraftDetails | undefined>;
 };
+
+/** Stops a second Sign out or Leave press from stacking another confirm modal. */
+let isSignOutFlowInFlight = false;
 
 function useSignOut() {
     const {translate} = useLocalize();
@@ -60,7 +65,7 @@ function useSignOut() {
         signOutAndRedirectToSignIn();
     };
 
-    const signOut = async ({shouldAlwaysConfirm = false}: SignOutOptions = {}) => {
+    const runSignOut = async ({shouldAlwaysConfirm = false}: SignOutOptions = {}) => {
         const saveableReceipts = getSaveablePendingReceiptRequests();
         const shouldWarnBeforeSignOut = isOffline || isTrackingGPS;
         const isOfflineReceiptsCase = isOffline && !isTrackingGPS && saveableReceipts.length > 0;
@@ -142,7 +147,20 @@ function useSignOut() {
         signOutAndRedirectToSignIn();
     };
 
-    const leaveDelegateAccount = async ({gpsDraftDetails}: LeaveDelegateAccountOptions = {}) => {
+    const signOut = async ({shouldAlwaysConfirm = false}: SignOutOptions = {}) => {
+        if (isSignOutFlowInFlight) {
+            return;
+        }
+        isSignOutFlowInFlight = true;
+
+        try {
+            await runSignOut({shouldAlwaysConfirm});
+        } finally {
+            isSignOutFlowInFlight = false;
+        }
+    };
+
+    const runLeaveDelegateAccount = async (gpsDraftDetailsRef?: RefObject<GpsDraftDetails | undefined>) => {
         if (isOffline) {
             showOfflineModal();
             return;
@@ -172,10 +190,23 @@ function useSignOut() {
             if (gpsResult.action !== ModalActions.CONFIRM) {
                 return;
             }
-            await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
+            await stopGpsTrip(false, getGpsPoints(gpsDraftDetailsRef?.current), true);
         }
 
         leaveAction();
+    };
+
+    const leaveDelegateAccount = async ({gpsDraftDetailsRef}: LeaveDelegateAccountOptions = {}) => {
+        if (isSignOutFlowInFlight) {
+            return;
+        }
+        isSignOutFlowInFlight = true;
+
+        try {
+            await runLeaveDelegateAccount(gpsDraftDetailsRef);
+        } finally {
+            isSignOutFlowInFlight = false;
+        }
     };
 
     return {
