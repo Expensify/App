@@ -5331,11 +5331,19 @@ ${amount} pour ${merchant} - ${date}`,
                         label: 'Date de la dernière dépense',
                         description: 'Date de la dépense la plus récente sur la note de frais.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Date d’exportation',
                         description: 'Date à laquelle la note de frais a été exportée vers Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Date de soumission',
+                        description: 'Date à laquelle la note de frais a été soumise pour approbation.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
+                        label: 'Date d’exportation',
+                        description: 'Date à laquelle la note de frais a été exportée vers Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
                         label: 'Date de soumission',
                         description: 'Date à laquelle la note de frais a été soumise pour approbation.',
                     },

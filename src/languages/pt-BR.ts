@@ -5282,11 +5282,19 @@ ${amount} para ${merchant} - ${date}`,
                         label: 'Data da última despesa',
                         description: 'Data da despesa mais recente no relatório.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Data de exportação',
                         description: 'Data em que o relatório foi exportado para o Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data de envio',
+                        description: 'Data em que o relatório foi enviado para aprovação.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
+                        label: 'Data de exportação',
+                        description: 'Data em que o relatório foi exportado para o Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
                         label: 'Data de envio',
                         description: 'Data em que o relatório foi enviado para aprovação.',
                     },

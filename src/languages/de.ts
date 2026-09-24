@@ -5324,11 +5324,19 @@ ${amount} für ${merchant} – ${date}`,
                         label: 'Datum der letzten Ausgabe',
                         description: 'Datum der letzten Ausgabe im Bericht.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Exportdatum',
                         description: 'Datum, an dem der Bericht nach Sage Intacct exportiert wurde.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Eingereichtes Datum',
+                        description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
+                        label: 'Exportdatum',
+                        description: 'Datum, an dem der Bericht nach Sage Intacct exportiert wurde.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
                         label: 'Eingereichtes Datum',
                         description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
                     },

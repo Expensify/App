@@ -3444,6 +3444,15 @@ const CONST = {
 
     SAGE_INTACCT_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    /**
+     * Values NewDot used to write for the Sage Intacct export date before it was aligned with the backend's REPORT_* names.
+     * Only used to keep rendering a label for workspaces that still hold one of them.
+     */
+    SAGE_INTACCT_EXPORT_DATE_LEGACY: {
         EXPORTED: 'EXPORTED',
         SUBMITTED: 'SUBMITTED',
     },

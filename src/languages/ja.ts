@@ -5243,11 +5243,19 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         label: '最終経費の日付',
                         description: 'レポート内で最新の経費の日付。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'エクスポート日',
                         description: 'レポートが Sage Intacct にエクスポートされた日付。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提出日',
+                        description: 'レポートが承認申請として提出された日付。',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
+                        label: 'エクスポート日',
+                        description: 'レポートが Sage Intacct にエクスポートされた日付。',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
                         label: '提出日',
                         description: 'レポートが承認申請として提出された日付。',
                     },

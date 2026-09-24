@@ -5111,11 +5111,19 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         label: '上次报销日期',
                         description: '报表中最近一笔报销的日期。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: '导出日期',
                         description: '报表导出到 Sage Intacct 的日期。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: '提交日期',
+                        description: '报表提交审批的日期。',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
+                        label: '导出日期',
+                        description: '报表导出到 Sage Intacct 的日期。',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
                         label: '提交日期',
                         description: '报表提交审批的日期。',
                     },

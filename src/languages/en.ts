@@ -5450,11 +5450,19 @@ const translations = {
                         label: 'Date of last expense',
                         description: 'Date of the most recent expense on the report.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
                         description: 'Date the report was exported to Sage Intacct.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
                         label: 'Submitted date',
                         description: 'Date the report was submitted for approval.',
                     },
