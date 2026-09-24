@@ -68,7 +68,7 @@ jest.mock('@hooks/useOnyx', () =>
     jest.fn((key: string, options?: {selector?: unknown}) => {
         switch (key) {
             case mockPersonalDetailsListKey:
-                // With a selector this read is the report owner's personal detail; without one it is the full
+                // With a selector this read is the report owner's personal detail. Without one it is the full
                 // personal-details map.
                 return options?.selector ? [{login: 'submitter@example.com'}] : [mockPersonalDetailsList];
             case mockLoginsKey:
