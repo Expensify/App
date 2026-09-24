@@ -17,9 +17,9 @@ import type {MeasurableFont} from './measureTextWidth/types';
 import {getCompanyCardDescription} from './CardUtils';
 import {getCategoryGLCode, getDecodedLeafCategoryName, isCategoryMissing} from './CategoryUtils';
 import getBase62ReportID from './getBase62ReportID';
-import {getTagGLCode} from './PolicyUtils';
+import {getTagGLCode, getVendorDisplayName} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
-import {getReportStatusTranslation} from './ReportUtils';
+import {getPolicyName, getReportStatusTranslation} from './ReportUtils';
 import {
     isTransactionCategoryGroupListItemType,
     isTransactionDayGroupListItemType,
@@ -91,6 +91,7 @@ const EDITABLE_SEARCH_COLUMNS = new Set<SearchColumnType>([
 const DYNAMICALLY_SIZED_SEARCH_COLUMNS = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.STATUS,
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
@@ -133,6 +134,7 @@ const HUGGED_SEARCH_COLUMNS = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLU
 const SEARCH_COLUMN_HEADER_TRANSLATION_KEYS: Partial<Record<SearchColumnType, TranslationPaths>> = {
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'common.status',
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'common.merchant',
+    [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: 'common.vendor',
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'common.description',
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'common.category',
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'common.tag',
@@ -184,10 +186,12 @@ function getSearchColumnExtraWidth(column: SearchColumnType): number {
     const editableCellWidth = EDITABLE_SEARCH_COLUMNS.has(column) ? variables.editableCellChromeWidth : 0;
 
     switch (column) {
+        // The workspace cell draws the same avatar ahead of its text as the user cells do, so it reserves the same room.
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
         case CONST.SEARCH.TABLE_COLUMNS.TO:
         case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
         case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
+        case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             return editableCellWidth + USER_INFO_CELL_AVATAR_WIDTH;
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return editableCellWidth + variables.statusBadgeChromeWidth;
@@ -219,6 +223,8 @@ function getTransactionColumnContentToMeasure(
             ];
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return [{text: getMerchantName(item, translate)}];
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return [{text: getVendorDisplayName(item.policy, item.comment?.vendor)}];
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return [{text: getDescription(item)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -244,7 +250,9 @@ function getTransactionColumnContentToMeasure(
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return [{text: item.report?.orderDealNumbers}];
         case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
-            return [{text: item.policy?.name}];
+            // Resolved the way the cell resolves it, so a report whose workspace is unavailable is measured at the
+            // width of the fallback it actually shows rather than at nothing.
+            return [{text: getPolicyName({report: item.report, unavailableTranslation: translate('workspace.common.unavailable')})}];
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(item.policy, item) ?? item.taxValue ?? '')}];
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
