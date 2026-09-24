@@ -372,6 +372,30 @@ describe('actions/BankAccounts', () => {
                 expect.objectContaining({bankCountry: 'GB', bankCurrency: 'GBP', accountNumber: '12345678'}),
             );
         });
+
+        test('exposes a retryable error and clears loading when refreshing Corpay fields fails', async () => {
+            // Given saved international progress that must remain available for retry
+            const internationalDraft = {
+                bankCountry: 'DE',
+                bankCurrency: 'EUR',
+                accountNumber: '12345678',
+            };
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, internationalDraft);
+            mockFetch.fail?.();
+
+            // When refreshing the matching personal Corpay fields fails
+            fetchCorpayFields('DE', 'EUR', false, false, {preserveExistingDraft: true});
+            await waitForBatchedUpdates();
+
+            // Then loading ends, a retryable error is stored, and the user's progress remains intact
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual(
+                expect.objectContaining({
+                    isLoading: false,
+                    corpayFieldsError: 'common.genericErrorMessage',
+                }),
+            );
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(internationalDraft);
+        });
     });
 
     describe('clearPersonalBankAccount', () => {

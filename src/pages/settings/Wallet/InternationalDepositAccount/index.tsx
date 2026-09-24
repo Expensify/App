@@ -1,11 +1,19 @@
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
-import {fetchCorpayFields} from '@userActions/BankAccounts';
+import {clearCorpayBankAccountFields, clearCorpayFieldsError, fetchCorpayFields} from '@userActions/BankAccounts';
+import {clearDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,6 +27,7 @@ import InternationalDepositAccountContent from './InternationalDepositAccountCon
 type InternationalDepositAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>;
 
 function InternationalDepositAccount({route}: InternationalDepositAccountProps) {
+    const {translate} = useLocalize();
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [corpayFields, corpayFieldsMetadata] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -36,7 +45,9 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
         !!corpayFields?.formFields?.length;
     const resumeFieldsKey = `${draftValues?.bankCountry ?? ''}:${draftValues?.bankCurrency ?? ''}`;
     const requestedResumeFieldsKeyRef = useRef('');
-    const shouldWaitForResumeFields = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !!draftValues?.bankCountry && !hasMatchingCorpayFields;
+    const shouldResumeWithRefreshedFields = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !!draftValues?.bankCountry && !hasMatchingCorpayFields;
+    const hasResumeFieldsError = shouldResumeWithRefreshedFields && !!personalBankAccount?.corpayFieldsError;
+    const shouldWaitForResumeFields = shouldResumeWithRefreshedFields && !hasResumeFieldsError;
     const shouldRefreshResumeFields = shouldWaitForResumeFields && !personalBankAccount?.isLoading;
 
     useEffect(() => {
@@ -47,8 +58,56 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
         fetchCorpayFields(draftValues.bankCountry, draftValues.bankCurrency, false, false, {preserveExistingDraft: true});
     }, [draftValues?.bankCountry, draftValues?.bankCurrency, isLoading, resumeFieldsKey, shouldRefreshResumeFields]);
 
-    if (isLoading || shouldWaitForResumeFields) {
-        return <FullScreenLoadingIndicator />;
+    useEffect(() => {
+        if (!hasResumeFieldsError) {
+            return;
+        }
+        requestedResumeFieldsKeyRef.current = '';
+    }, [hasResumeFieldsError]);
+
+    const retryFetchCorpayFields = () => {
+        if (!draftValues?.bankCountry) {
+            return;
+        }
+        requestedResumeFieldsKeyRef.current = resumeFieldsKey;
+        fetchCorpayFields(draftValues.bankCountry, draftValues.bankCurrency, false, false, {preserveExistingDraft: true});
+    };
+
+    const handleLoadingBackButtonPress = () => {
+        if (hasResumeFieldsError) {
+            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
+            clearCorpayBankAccountFields();
+            clearCorpayFieldsError();
+        }
+        Navigation.goBack(backTo);
+    };
+
+    if (isLoading || shouldWaitForResumeFields || hasResumeFieldsError) {
+        return (
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                testID="InternationalDepositAccountLoading"
+            >
+                <HeaderWithBackButton
+                    title={translate('bankAccount.addBankAccount')}
+                    onBackButtonPress={handleLoadingBackButtonPress}
+                />
+                <FullPageOfflineBlockingView>
+                    {hasResumeFieldsError ? (
+                        <FullPageErrorView
+                            shouldShow
+                            title={translate('errorPage.title', {isBreakLine: false})}
+                            subtitle={translate(personalBankAccount?.corpayFieldsError ?? 'common.genericErrorMessage')}
+                            buttonTranslationKey="common.tryAgain"
+                            onButtonPress={retryFetchCorpayFields}
+                        />
+                    ) : (
+                        <FullScreenLoadingIndicator />
+                    )}
+                </FullPageOfflineBlockingView>
+            </ScreenWrapper>
+        );
     }
 
     return (

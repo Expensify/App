@@ -1296,6 +1296,10 @@ function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
 
+function clearCorpayFieldsError() {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {corpayFieldsError: null});
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -1556,6 +1560,7 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
                     key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                     value: {
                         isLoading: true,
+                        corpayFieldsError: null,
                     },
                 },
                 {
@@ -1576,7 +1581,24 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
                     },
                 },
             ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        isLoading: false,
+                        corpayFieldsError: 'common.genericErrorMessage',
+                    },
+                },
+            ],
             successData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
+                    value: {
+                        corpayFieldsError: null,
+                    },
+                },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.CORPAY_FIELDS,
@@ -2026,6 +2048,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
+    clearCorpayFieldsError,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
