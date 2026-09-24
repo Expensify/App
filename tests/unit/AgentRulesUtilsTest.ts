@@ -1,8 +1,9 @@
-import {getAgentRuleDisplayTitle, getVisibleAgentRules, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy} from '@libs/AgentRulesUtils';
+import {getAgentRuleDisplayTitle, getVisibleAgentRules, groupSuggestedAgentRulesByCategory, isRuleBotEnforcingRules, isRuleBotEnforcingRulesOnAnyPolicy} from '@libs/AgentRulesUtils';
 
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type {AgentRule} from '@src/types/onyx/Policy';
+import type SuggestedAgentRule from '@src/types/onyx/SuggestedAgentRule';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -17,6 +18,10 @@ function buildAgentRule(ruleID: string, overrides: Partial<AgentRule> = {}): Age
         created: '2025-01-01 00:00:00',
         ...overrides,
     };
+}
+
+function buildSuggestion(id: string, category?: string): SuggestedAgentRule {
+    return {id, category, title: `Title for ${id}`, prompt: `Prompt for ${id}`};
 }
 
 function buildPolicyWithAgentRules(agentRules: Record<string, AgentRule> | undefined, ruleBotAccountID: number | undefined = RULE_BOT_ACCOUNT_ID): Policy {
@@ -127,6 +132,36 @@ describe('AgentRulesUtils', () => {
 
         it('returns false when the policy collection is undefined', () => {
             expect(isRuleBotEnforcingRulesOnAnyPolicy(RULE_BOT_ACCOUNT_ID, undefined)).toBe(false);
+        });
+    });
+
+    describe('groupSuggestedAgentRulesByCategory', () => {
+        it('groups suggestions by category in the order each category first appears', () => {
+            // Given a list where a second amount suggestion comes after a merchant suggestion
+            const expenseOver = buildSuggestion('expense-amount-over', 'Amount and spending');
+            const merchantIs = buildSuggestion('merchant-is', 'Merchant');
+            const reportTotalOver = buildSuggestion('report-total-over', 'Amount and spending');
+
+            // When the suggestions are grouped
+            const sections = groupSuggestedAgentRulesByCategory([expenseOver, merchantIs, reportTotalOver]);
+
+            // Then each category is one section, so the Suggestions tab shows no duplicate header, and the sections keep the list order
+            expect(sections).toEqual([
+                {category: 'Amount and spending', suggestions: [expenseOver, reportTotalOver]},
+                {category: 'Merchant', suggestions: [merchantIs]},
+            ]);
+        });
+
+        it('puts suggestions without a category into one section with an empty category', () => {
+            // Given suggestions whose category is missing or empty
+            const missingCategory = buildSuggestion('missing');
+            const emptyCategory = buildSuggestion('empty', '');
+
+            // When the suggestions are grouped
+            const sections = groupSuggestedAgentRulesByCategory([missingCategory, emptyCategory]);
+
+            // Then they share one section, which the Suggestions tab renders without a header
+            expect(sections).toEqual([{category: '', suggestions: [missingCategory, emptyCategory]}]);
         });
     });
 });
