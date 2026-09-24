@@ -1,7 +1,7 @@
 ---
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
-keywords: [New Expensify, workflows, workflows tabs, submissions, approvals, payments, advanced, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, prevent self-approvals, auto-approve compliant reports, auto-pay approved reports]
+keywords: [New Expensify, workflows, workflows tabs, submissions, approvals, payments, advanced, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, prevent self-approvals, auto-approve compliant reports, auto-pay approved reports, multiple approval paths, shared approver, forward to different approver]
 internalScope: Audience is Workspace Admins. Covers configuring approval, submission, reimbursement, and advanced report workflows including choosing an authorized payer; does not cover connecting a bank account.
 ---
 
@@ -48,11 +48,14 @@ Purpose: Shows admins that the settings that used to sit together on one Workflo
 
 - Requires each expense to be reviewed and approved before payment.
 - You can assign an approver per workspace member.
+- An approver can forward to a different next approver depending on who submitted the report, so a shared reviewer such as an audit team can sit in more than one approval path.
 - You can also set an over-limit approver for reports that exceed a specific amount. 
 - The default approver is the **Workspace Owner**, but any workspace member can be selected.
 - Both **Workspace Admins** and **People Admins** can enable and configure Approvals.
 
 Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
+
+Workspaces that route one approver to different next approvers can only be configured in New Expensify. [Learn how to send one approver's reports to different next approvers](/articles/new-expensify/workspaces/Add-Approvals#send-one-approvers-reports-to-different-next-approvers).
 
 ## How to enable Submissions
 
