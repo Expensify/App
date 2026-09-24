@@ -85,6 +85,7 @@ function DynamicIOURequestStepTaxRatePage({
 
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
@@ -93,7 +94,8 @@ function DynamicIOURequestStepTaxRatePage({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const navigateBack = () => {
@@ -110,6 +112,7 @@ function DynamicIOURequestStepTaxRatePage({
 
     const updateTaxRates = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
         const updateTaxRateParams = {
+            isVendorMatchingBetaEnabled,
             transactionID: currentTransaction?.transactionID,
             transactionThreadReport: report,
             parentReport,
@@ -117,6 +120,7 @@ function DynamicIOURequestStepTaxRatePage({
             taxCode: '',
             taxValue: '',
             taxAmount: 0,
+            transaction: currentTransaction,
             policy,
             policyTagList: policyTags,
             policyCategories,
@@ -129,6 +133,7 @@ function DynamicIOURequestStepTaxRatePage({
             violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         };
 
         // Clearing the tax on a split must update the split draft, not the optimistic transaction, otherwise the

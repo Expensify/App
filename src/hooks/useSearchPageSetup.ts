@@ -38,7 +38,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const hash = queryJSON?.hash;
     // Without this, a plain page-level fetch during active select-all clears totals on arrival
     // (shouldClearTotals in getOnyxLoadingData), wiping a total the Search-internal effect already fetched.
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true, areAllMatchingItemsSelected);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().

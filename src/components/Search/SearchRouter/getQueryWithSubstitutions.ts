@@ -1,3 +1,4 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchAutocompleteParserRange} from '@components/Search/types';
 
 import {parse} from '@libs/SearchParser/autocompleteParser';
@@ -40,7 +41,7 @@ const getSubstitutionMapKeyWithIndex = (filterKey: SearchAutocompleteParserRange
  * }
  * return: `A from:9876 A`
  */
-function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap, currentUserAccountID?: number) {
+function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap, currentUserAccountID?: number, personalDetailsByLogin?: PersonalDetailsByLogin) {
     const parsed = parse(changedQuery);
 
     const searchAutocompleteQueryRanges = parsed.ranges;
@@ -73,6 +74,15 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
         // Resolve the 'me' keyword to the current user's account ID when not in the substitution map
         if (!substitutionEntry && range.value === CONST.SEARCH.ME && USER_FILTER_KEYS.has(range.key) && currentUserAccountID && currentUserAccountID > 0) {
             substitutionEntry = currentUserAccountID.toString();
+        }
+
+        // Resolve a login that was typed out by hand rather than picked from the autocomplete, so that the query carries
+        // account IDs whichever way the user filled it in.
+        if (!substitutionEntry && USER_FILTER_KEYS.has(range.key)) {
+            const accountID = personalDetailsByLogin?.[range.value]?.accountID;
+            if (accountID) {
+                substitutionEntry = accountID.toString();
+            }
         }
 
         if (substitutionEntry) {

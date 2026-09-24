@@ -151,8 +151,9 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {isBetaEnabled} = usePermissions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
     // Scoped transaction/violation collections (the edited transaction plus any duplicates) are read here and
     // passed into the pure edit actions, which need them to resolve duplicate-transaction violations. This mirrors
@@ -189,12 +190,14 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         originalTransaction,
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
+        rules,
     });
 
     const wasEditingOnMouseDownRef = useRef(false);
 
     const getEditParams = (): TransactionInlineEditParams => {
         return {
+            isVendorMatchingBetaEnabled,
             hash,
             transactionID,
             transaction,
@@ -220,11 +223,11 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             getCurrencySymbol,
             transactions: duplicateTransactions,
             transactionViolations: duplicateTransactionViolations,
-            betas,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             introSelected,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmail: session?.email ?? '',
+            rules,
         };
     };
 

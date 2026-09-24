@@ -146,7 +146,7 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestRe
 jest.mock('@hooks/useConfirmModal', () => ({__esModule: true, default: jest.fn(() => ({showConfirmModal: jest.fn()}))}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: jest.fn(() => ({accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL}))}));
 jest.mock('@hooks/useStrictPolicyRules', () => ({__esModule: true, default: jest.fn(() => ({areStrictPolicyRulesEnabled: mockAreStrictPolicyRulesEnabled}))}));
-jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: jest.fn(() => ({isBetaEnabled: () => false}))}));
+jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}))}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: jest.fn(() => ({translate: (key: string) => key}))}));
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: jest.fn(() => ({isOffline: false}))}));
 jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, default: jest.fn(() => ({}))}));
@@ -361,6 +361,6 @@ describe('SubmitActionButton', () => {
 
         // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated
         // in this environment, so it is undefined)
-        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined);
+        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined);
     });
 });

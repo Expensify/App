@@ -32,7 +32,7 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
-import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
+import {cancelAllSendMessageSpans} from '@libs/telemetry/sendMessageSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -126,7 +126,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -209,7 +208,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 conciergeChat,
                 currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
-                betas,
                 iouReport: report,
                 iouReportAction: iouAction,
                 personalDetails,
@@ -221,7 +219,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             reportID: reportIDFromRoute,
             introSelected,
             conciergeChat,
-            betas,
+            personalDetails,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -235,14 +233,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // For more details see https://github.com/Expensify/App/pull/80107
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID, betas]);
+    }, [reportIDFromRoute, transactionThreadReportID, oneTransactionID]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
 
         return () => {
             // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE);
+            cancelAllSendMessageSpans();
         };
     }, [reportIDFromRoute]);
 
@@ -297,7 +295,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
             currentUserLogin: currentUserEmail ?? '',
             currentUserAccountID,
-            betas,
             iouReport: report,
             transaction,
             transactionViolations: violations,
@@ -311,7 +308,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         currentUserEmail,
         currentUserAccountID,
-        betas,
         personalDetails,
         report,
         reportActions,

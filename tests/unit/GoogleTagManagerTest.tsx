@@ -177,8 +177,8 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
+            delegateAccountID: undefined,
             hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
@@ -191,8 +191,8 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: true,
+            delegateAccountID: undefined,
             hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
@@ -205,8 +205,8 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: true,
+            delegateAccountID: undefined,
             hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
@@ -227,11 +227,11 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -251,11 +251,11 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@gmail.com',
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -301,11 +301,11 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,
-            betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            rules: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();
