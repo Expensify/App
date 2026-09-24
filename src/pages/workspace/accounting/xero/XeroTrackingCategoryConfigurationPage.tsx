@@ -1,6 +1,8 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -85,14 +87,17 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                             key={menuItem.id}
                             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
                         >
-                            <MenuItemWithTopDescription
-                                title={menuItem.title}
-                                description={menuItem.description}
-                                shouldShowRightIcon
-                                onPress={menuItem.onPress}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                brickRoadIndicator={areSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) ? 'error' : undefined}
-                            />
+                            <MenuItemSectionRow onPress={menuItem.onPress}>
+                                <MenuItemField.Row
+                                    name={menuItem.description}
+                                    value={menuItem.title}
+                                >
+                                    {areSettingsInErrorFields([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRow>
                         </OfflineWithFeedback>
                     ))}
                 </View>

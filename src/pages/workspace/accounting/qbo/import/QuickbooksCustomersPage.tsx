@@ -1,6 +1,8 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -22,6 +24,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
 function QuickbooksCustomersPage({policy}: WithPolicyProps) {
@@ -80,14 +83,19 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                        description={translate('workspace.common.displayedAs')}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
-                        shouldShowRightIcon
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                        brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                    <View style={styles.mt4}>
+                        <MenuItemSectionRow onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}>
+                            <MenuItemField.Row
+                                name={translate('workspace.common.displayedAs')}
+                                value={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                            >
+                                {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                                <MenuItem.Chevron />
+                            </MenuItemField.Row>
+                        </MenuItemSectionRow>
+                    </View>
                 </OfflineWithFeedback>
             </Accordion>
         </ConnectionLayout>

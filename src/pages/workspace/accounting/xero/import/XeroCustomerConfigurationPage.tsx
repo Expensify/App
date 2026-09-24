@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,12 +42,12 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
                 accordionStyle={styles.overflowHidden}
                 subMenuItems={
-                    <MenuItemWithTopDescription
-                        interactive={false}
-                        title={translate('workspace.common.tags')}
-                        description={translate('workspace.common.displayedAs')}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                    />
+                    <MenuItemSectionRow>
+                        <MenuItemField.Row
+                            name={translate('workspace.common.displayedAs')}
+                            value={translate('workspace.common.tags')}
+                        />
+                    </MenuItemSectionRow>
                 }
                 isActive={isSwitchOn}
                 onToggle={() => updateXeroImportCustomers(policyID, !xeroConfig?.importCustomers, xeroConfig?.importCustomers)}
