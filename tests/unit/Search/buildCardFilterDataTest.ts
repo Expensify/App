@@ -317,6 +317,7 @@ const cardListClosed: CardList = {
 
 const illustrationsMock: IllustrationsType = {
     EmptyStateBackgroundImage: illustrationComponentMock,
+    IceCreamBackgroundImage: illustrationComponentMock,
     ExampleCheckES: 1,
     ExampleCheckEN: 2,
     FileImportTable: 3,
