@@ -15,6 +15,7 @@ import type {
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
+    MergeATSFiltersNavigatorParamList,
     MergeATSApprovalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
@@ -1363,6 +1364,12 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_ATTENDEES_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesPage').default,
 });
 
+const MergeATSFiltersModalStackNavigator = createModalStackNavigator<MergeATSFiltersNavigatorParamList>({
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/filters/MergeATSFiltersPage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/filters/MergeATSFilterSelectionPage').default,
+});
+
 const MergeATSApprovalModalStackNavigator = createModalStackNavigator<MergeATSApprovalNavigatorParamList>({
     [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApprovalModePage').default,
     [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApproverFieldPage').default,
@@ -1449,6 +1456,7 @@ export {
     EnablePaymentsStackNavigator,
     ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    MergeATSFiltersModalStackNavigator,
     MergeATSApprovalModalStackNavigator,
     MergeTransactionStackNavigator,
     MissingPersonalDetailsModalStackNavigator,

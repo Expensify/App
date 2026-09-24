@@ -304,6 +304,7 @@ const SCREENS = {
 
         SEARCH_COLUMNS: 'SearchColumns',
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
+        RECRUITING_MERGE_IMPORT_SETTINGS: 'RecruitingMergeImportSettings',
         RECRUITING_MERGE_APPROVAL: 'Recruiting_Merge_Approval',
         SEARCH_SAVE: 'SearchSave',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
@@ -764,6 +765,8 @@ const SCREENS = {
         HR_MERGE_GROUPS: 'Workspace_HR_Merge_Groups',
         RECRUITING: 'Workspace_Recruiting',
         DYNAMIC_RECRUITING_SYNC_RESULTS: 'Dynamic_Recruiting_Sync_Results',
+        RECRUITING_MERGE_IMPORT_SETTINGS: 'Workspace_Recruiting_Merge_Import_Settings',
+        RECRUITING_MERGE_IMPORT_SETTINGS_FILTER: 'Workspace_Recruiting_Merge_Import_Settings_Filter',
         RECRUITING_MERGE_APPROVAL_MODE: 'Workspace_Recruiting_Merge_Approval_Mode',
         RECRUITING_MERGE_APPROVER_FIELD: 'Workspace_Recruiting_Merge_Approver_Field',
         RECRUITING_MERGE_FINAL_APPROVER: 'Workspace_Recruiting_Merge_Final_Approver',

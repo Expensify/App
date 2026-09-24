@@ -3551,6 +3551,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/recruiting/merge/import-settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/import-settings` as const,
     },
+    WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER: {
+        route: 'workspaces/:policyID/recruiting/merge/import-settings/:filterType',
+        getRoute: (policyID: string, filterType: ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>) => `workspaces/${policyID}/recruiting/merge/import-settings/${filterType}` as const,
+    },
     WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE: {
         route: 'workspaces/:policyID/recruiting/merge/approval-mode',
         getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approval-mode` as const,
