@@ -6799,6 +6799,7 @@ const translations = {
                     `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
+                bulkUpdateTransactionStartDate: 'Update transaction start date',
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
                 unassignCards: 'Unassign cards',
