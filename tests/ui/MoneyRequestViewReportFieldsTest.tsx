@@ -334,6 +334,20 @@ describe('MoneyRequestViewReportFields', () => {
         expect(screen.queryByText('Option2')).toBeNull();
     });
 
+    it('hides the text cursor on a list field but keeps it on a text field', async () => {
+        // Given a report holding both a text field and a list field
+        await renderReportFields(1, [buildListField()]);
+
+        // When the two inputs are compared
+        // Then the list field hides the cursor, because its value is picked from the dropdown rather than typed, and
+        // `disableKeyboard` alone only suppresses the software keyboard and would still leave a cursor blinking in a
+        // field the user cannot type into.
+        expect(screen.getByLabelText('ListField')).toHaveProp('caretHidden', true);
+
+        // Then the text field is untouched and still shows its cursor.
+        expect(screen.getByLabelText('Field1')).not.toHaveProp('caretHidden', true);
+    });
+
     it('opens the option list in place when a list field is pressed', async () => {
         await renderReportFields(1, [buildListField()]);
 
