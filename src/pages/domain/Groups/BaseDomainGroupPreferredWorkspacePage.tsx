@@ -12,11 +12,10 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -78,9 +77,7 @@ function BaseDomainGroupPreferredWorkspacePage({
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
     const checkedPolicyID = draftPolicyID ?? selectedPolicyID;
 
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(selectedPolicyID)});
 
