@@ -1,7 +1,7 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isDirectFeed} from '@libs/CardUtils';
+import {getPlaidInstitutionId} from '@libs/CardUtils';
 
 import CONST from '@src/CONST';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
@@ -23,8 +23,8 @@ function WorkspaceCompanyCardsBalanceLabels({selectedFeed, feedName}: WorkspaceC
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // Balance is only available for Plaid-connected (direct) feeds.
-    if (!isDirectFeed(feedName)) {
+    // Balance is only returned by Plaid. OAuth/commercial direct feeds are out of scope.
+    if (!getPlaidInstitutionId(feedName)) {
         return null;
     }
 

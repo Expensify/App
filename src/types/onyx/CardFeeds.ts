@@ -115,7 +115,7 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Datetime the feed balance was last fetched from the bank, formatted as 'yyyy-MM-dd HH:mm:ss' */
     balanceTimestamp?: string | null;
 
-    /** ISO currency of currentBalance and remainingLimit. Null when the feed mixes currencies or Plaid omitted it. */
+    /** ISO currency of currentBalance and remainingLimit. Null when a single credit account omitted it (amounts still valid); mixed currencies null the amounts too. */
     balanceCurrency?: string | null;
 
     /** CSV upload layout settings (present on ccupload feeds) */

@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {createContext, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -98,7 +98,9 @@ function WorkspaceCardLabel({title, description, displayValue, valueStyle, value
         });
     }, [isVisible, windowWidth]);
 
-    const popoverContextValue = useMemo<WorkspaceCardLabelPopoverContextValue>(() => ({closePopover: () => setVisible(false)}), []);
+    // Because of the React Compiler we don't need to memoize it manually
+    // eslint-disable-next-line react/jsx-no-constructed-context-values
+    const popoverContextValue: WorkspaceCardLabelPopoverContextValue = {closePopover: () => setVisible(false)};
 
     return (
         <View style={containerStyle}>
