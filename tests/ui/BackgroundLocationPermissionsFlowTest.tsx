@@ -70,24 +70,31 @@ function createDefaultProps() {
     };
 }
 
-/** Hosts the hook and starts the flow on mount, standing in for the button press that starts it in the app. */
+/**
+ * Hosts the hook and starts the flow on mount, standing in for the button press that starts it in the app. Returns
+ * a way to press the button again and to unmount the host.
+ */
 function renderFlow(useFlow: typeof useAndroidBackgroundLocationPermissionsFlow, props: ReturnType<typeof createDefaultProps>) {
+    let startPermissionsFlow: () => void = () => {};
+
     function FlowHost() {
-        const startPermissionsFlow = useFlow({
+        startPermissionsFlow = useFlow({
             onDeny: props.onDeny,
             onError: props.onError,
             onGrant: props.onGrant,
         });
 
         useEffect(() => {
+            // The flow must only be started once, like a single button press
             startPermissionsFlow();
-            // eslint-disable-next-line react-hooks/exhaustive-deps -- the flow must only be started once, like a single button press
         }, []);
 
         return null;
     }
 
-    render(<FlowHost />);
+    const {unmount} = render(<FlowHost />);
+
+    return {startAgain: () => startPermissionsFlow(), unmount};
 }
 
 describe('BackgroundLocationPermissionsFlow', () => {
@@ -198,6 +205,49 @@ describe('BackgroundLocationPermissionsFlow', () => {
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
             expect(props.onGrant).not.toHaveBeenCalled();
             expect(props.onDeny).not.toHaveBeenCalled();
+        });
+
+        it('ignores a repeated start while the flow is running and allows a new one once it ended', async () => {
+            const props = createDefaultProps();
+            mockGetForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false, accuracy: 'none'}));
+            mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false}));
+
+            const {startAgain} = renderFlow(useAndroidBackgroundLocationPermissionsFlow, props);
+            startAgain();
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+            startAgain();
+
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+
+            startAgain();
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(2));
+        });
+
+        it('does not open the next modal when the screen unmounts while the native prompt is open', async () => {
+            const props = createDefaultProps();
+            mockGetForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false, accuracy: 'none'}));
+            mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false}));
+            const {promise: nativePrompt, resolve: answerNativePrompt} = Promise.withResolvers<LocationPermissionResponse>();
+            mockRequestForegroundPermissions.mockReturnValue(nativePrompt);
+
+            const {unmount} = renderFlow(useAndroidBackgroundLocationPermissionsFlow, props);
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CONFIRM'});
+            });
+            await waitFor(() => expect(mockRequestForegroundPermissions).toHaveBeenCalledTimes(1));
+
+            unmount();
+            await act(async () => {
+                answerNativePrompt(buildPermissionResponse({granted: true, accuracy: 'fine'}));
+            });
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
     });
 

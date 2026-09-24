@@ -54,7 +54,7 @@ async function checkPermissions({
     onAskForPermissions,
     onPreciseLocationNotGranted,
     onError,
-}: BackgroundLocationPermissionsFlowCallbacks & {onAskForPermissions: () => void; onPreciseLocationNotGranted: () => void}) {
+}: BackgroundLocationPermissionsFlowCallbacks & {onAskForPermissions: () => Promise<void>; onPreciseLocationNotGranted: () => Promise<void>}) {
     try {
         const {granted, canAskAgain} = await getForegroundPermissionsAsync();
 
@@ -78,11 +78,11 @@ async function checkPermissions({
                 return;
             }
 
-            onPreciseLocationNotGranted();
+            await onPreciseLocationNotGranted();
             return;
         }
 
-        onAskForPermissions();
+        await onAskForPermissions();
     } catch (e) {
         console.error('[GPS distance request] Failed to get location permissions: ', e);
         onError();
@@ -99,6 +99,8 @@ function useBackgroundLocationPermissionsFlow({onError, onGrant, onDeny}: Backgr
     const onErrorRef = useRef(onError);
     const closeModalRef = useRef(closeModal);
     const isModalActiveRef = useRef(false);
+    const isMountedRef = useRef(true);
+    const isFlowRunningRef = useRef(false);
 
     // The flow outlives the render that started it, so it reads the caller's callbacks from refs instead of the
     // identities it was started with.
@@ -110,19 +112,29 @@ function useBackgroundLocationPermissionsFlow({onError, onGrant, onDeny}: Backgr
     }, [onGrant, onDeny, onError, closeModal]);
 
     // The modals live in the global modal stack, so they are not torn down with the screen that started the flow.
-    // Close whichever one is still open if that screen unmounts mid-flow.
-    useEffect(
-        () => () => {
+    // Close whichever one is still open if that screen unmounts mid-flow, and stop the flow from opening the next one
+    // once a pending native permission prompt resolves.
+    useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
             if (!isModalActiveRef.current) {
                 return;
             }
             isModalActiveRef.current = false;
             closeModalRef.current();
-        },
-        [],
-    );
+        };
+    }, []);
 
     return () => {
+        // Every call stacks its own modal in the global modal stack, so a repeated press while the flow is running
+        // would show the same modal twice.
+        if (isFlowRunningRef.current) {
+            return;
+        }
+        isFlowRunningRef.current = true;
+
         const sharedModalOptions = {
             cancelText: translate('common.dismiss'),
             iconSource: ReceiptLocationMarker,
@@ -136,6 +148,10 @@ function useBackgroundLocationPermissionsFlow({onError, onGrant, onDeny}: Backgr
         // showConfirmModal resolves after the modal finished hiding, so the Precise Location modal can be opened from
         // the awaited result of the First Ask modal without the two hide/show animations clashing on iOS.
         const showStepModal = async (options: Parameters<typeof showConfirmModal>[0]) => {
+            if (!isMountedRef.current) {
+                return false;
+            }
+
             isModalActiveRef.current = true;
             const {action} = await showConfirmModal(options);
             isModalActiveRef.current = false;
@@ -181,12 +197,10 @@ function useBackgroundLocationPermissionsFlow({onError, onGrant, onDeny}: Backgr
             onGrant: () => onGrantRef.current(),
             onDeny: () => onDenyRef.current(),
             onError: () => onErrorRef.current(),
-            onAskForPermissions: () => {
-                showFirstAskModal();
-            },
-            onPreciseLocationNotGranted: () => {
-                showPreciseLocationModal();
-            },
+            onAskForPermissions: showFirstAskModal,
+            onPreciseLocationNotGranted: showPreciseLocationModal,
+        }).finally(() => {
+            isFlowRunningRef.current = false;
         });
     };
 }
