@@ -80,7 +80,6 @@ import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useRecyclingEffect} from '@legendapp/list/react-native';
 import {useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsDisplayNameSelector} from '@selectors/PersonalDetails';
@@ -219,10 +218,7 @@ function ReportActionItem({
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
-    const downloadedPreviews = useRef<string[]>([]);
-    useRecyclingEffect(() => {
-        downloadedPreviews.current = [];
-    });
+    const downloadedPreviews = useRef<{reportActionID: string; urls: string[]}>({reportActionID: action.reportActionID, urls: []});
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useReportActionItemState(!!isReportActionLinked);
 
@@ -342,11 +338,14 @@ function ReportActionItem({
         }
 
         const urls = extractLinksFromMessageHtml(action);
-        if (deepEqual(downloadedPreviews.current, urls) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (
+            (downloadedPreviews.current.reportActionID === action.reportActionID && deepEqual(downloadedPreviews.current.urls, urls)) ||
+            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
             return;
         }
 
-        downloadedPreviews.current = urls;
+        downloadedPreviews.current = {reportActionID: action.reportActionID, urls};
         expandURLPreview(reportID, action.reportActionID);
     }, [action, reportID]);
 
