@@ -312,7 +312,30 @@ describe('DynamicFormFields', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('Alice Nguyen')).toBeOnTheScreen();
-        expect(screen.getByText('allCountries.GB, 25%')).toBeOnTheScreen();
+        expect(screen.getByText('25%')).toBeOnTheScreen();
+        expect(screen.queryByText(/allCountries.GB/)).not.toBeOnTheScreen();
+        expect(screen.getByText('AN')).toBeOnTheScreen();
+    });
+
+    it('titles an item by its leading run of text answers, so first and last name read as one name', async () => {
+        const itemFields: DynamicFormField[] = [
+            {key: 'ownerType', label: 'Owner type', group: 'Owner', type: 'radio', required: true, values: [{key: 'INDIVIDUAL', label: 'Individual'}], refreshOnChange: false},
+            {key: 'firstName', label: 'First name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+            {key: 'lastName', label: 'Last name', group: 'Owner', type: 'text', required: true, refreshOnChange: false},
+            {key: 'dateOfBirth', label: 'Date of birth', group: 'Owner', type: 'date', required: true, refreshOnChange: false},
+            {key: 'ownershipPercentage', label: 'Ownership', group: 'Owner', type: 'percent', required: true, refreshOnChange: false},
+        ];
+        render(
+            <ListFieldAdapter
+                itemFields={itemFields}
+                value={[{id: '1', ownerType: 'INDIVIDUAL', firstName: 'Alice', lastName: 'Nguyen', dateOfBirth: '1990-05-19', ownershipPercentage: '25'}]}
+                renderFields={() => null}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('Alice Nguyen')).toBeOnTheScreen();
+        expect(screen.getByText('Individual, 25%')).toBeOnTheScreen();
         expect(screen.getByText('AN')).toBeOnTheScreen();
     });
 

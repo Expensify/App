@@ -70,15 +70,28 @@ type ListFieldAdapterProps = {
     onOpenEditor?: (itemID?: string) => void;
 };
 
-/** The first text answer names the row, the remaining answers describe it; sensitive answers never show */
+const SUMMARY_DESCRIPTION_LIMIT = 2;
+const SUMMARY_SKIPPED_TYPES = new Set<DynamicFormField['type']>(['date', 'address', 'country', 'file']);
+
+/** The leading run of text answers names the row, as first and last name do; up to two short remaining answers describe it */
 function summarizeItem(item: DynamicFormListItem, itemFields: DynamicFormField[], translate: LocalizedTranslate): {title: string; description: string} {
-    const shownFields = itemFields.filter((field) => !field.sensitive);
-    const titleField = shownFields.find((field) => field.type === 'text' && typeof item[field.key] === 'string' && item[field.key] !== '') ?? shownFields.at(0);
-    const title = titleField ? formatDynamicFieldValue(titleField, item, translate) : '';
+    const shownFields = itemFields.filter((field) => !field.sensitive && formatDynamicFieldValue(field, item, translate) !== '');
+    const firstTextIndex = shownFields.findIndex((field) => field.type === 'text');
+    const titleFields: DynamicFormField[] = [];
+    for (const field of shownFields.slice(Math.max(firstTextIndex, 0))) {
+        if (field.type !== 'text') {
+            break;
+        }
+        titleFields.push(field);
+    }
+    if (titleFields.length === 0 && shownFields.length > 0) {
+        titleFields.push(shownFields[0]);
+    }
+    const title = titleFields.map((field) => formatDynamicFieldValue(field, item, translate)).join(' ');
     const description = shownFields
-        .filter((field) => field !== titleField)
+        .filter((field) => !titleFields.includes(field) && !SUMMARY_SKIPPED_TYPES.has(field.type))
+        .slice(0, SUMMARY_DESCRIPTION_LIMIT)
         .map((field) => formatDynamicFieldValue(field, item, translate))
-        .filter((answer) => answer !== '')
         .join(', ');
     return {title, description};
 }
