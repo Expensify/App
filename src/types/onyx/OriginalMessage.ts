@@ -1518,6 +1518,8 @@ type OriginalMessageTakeControl = {
     mentionedAccountIDs: number[];
     /** Whether this action was triggered automatically (e.g., during auto-pay) */
     automaticAction?: boolean;
+    /** Whether the new approver became the final approver, bypassing the remaining approvers in the chain */
+    isFinalApprover?: boolean;
     /** Account ID of the new approver. Absent on OldDot take control actions, where the actor is the new approver */
     newApproverID?: number;
     /** Whether the new approver replaced the report's current approver instead of being added to the workflow */

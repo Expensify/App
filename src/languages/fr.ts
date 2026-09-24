@@ -999,7 +999,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Réparer la connexion de la carte personnelle ${cardName}` : 'Corriger la connexion de la carte personnelle'),
                 subtitle: 'Portefeuille',
             },
-            validateAccount: {title: 'Validez votre compte', subtitle: 'Compte', cta: 'Valider'},
             addHomeAddress: {title: 'Ajoutez votre adresse personnelle pour le suivi des distances', subtitle: 'Compte', cta: 'Ajouter'},
             fixFailedBilling: {title: 'Nous n’avons pas pu débiter votre carte enregistrée', subtitle: 'Abonnement'},
             unlockBankAccount: {
@@ -1020,12 +1019,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `L’abonnement prend fin le ${date}`,
                 cta: 'Gérer',
             },
-        },
-        discoverSection: {
-            title: 'Découvrir',
-            menuItemTitleNonAdmin: 'Découvrez comment créer des dépenses et soumettre des notes de frais.',
-            menuItemTitleAdmin: 'Découvrez comment inviter des membres, modifier les workflows d’approbation et rapprocher les cartes de société.',
-            menuItemDescription: 'Découvrez ce qu’Expensify peut faire en 2 min',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1841,6 +1834,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Choisissez une option pour modifier l’approbateur de cette note de frais. (Mettez à jour vos <a href="${workflowSettingLink}">paramètres d’espace de travail</a> pour changer cela définitivement pour toutes les notes de frais.)`,
             changedApproverMessage: (managerID: number) => `a changé l'approbateur en <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `a changé l'approbateur final en <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `a réaffecté l'approbateur à <mention-user accountID="${managerID}"/> via une mise à jour du flux de travail`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8767,6 +8761,29 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+            filters: {
+                description: (providerName: string) =>
+                    `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir selon les étapes de poste, les tags et les bureaux.`,
+                stages: {
+                    title: 'Étape de recrutement',
+                    description: 'Choisissez l’étape du poste des candidat·es que vous souhaitez synchroniser avec cet espace de travail',
+                    toggleTitle: 'Étapes du poste',
+                    allSelected: 'Toutes les étapes du poste',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Choisissez les tags de candidats que vous souhaitez synchroniser avec cet espace de travail',
+                    toggleTitle: 'Tags',
+                    allSelected: 'Tous les tags',
+                },
+                offices: {
+                    title: 'Bureau',
+                    description: 'Choisissez les bureaux des candidats que vous souhaitez synchroniser avec cet espace de travail',
+                    toggleTitle: 'Bureaux',
+                    allSelected: 'Tous les bureaux',
+                },
+                enableJobStagesOrTags: 'Activez les étapes de mission ou les Tags pour continuer',
+            },
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
             syncResults: {
                 importedCount: () => ({

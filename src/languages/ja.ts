@@ -984,7 +984,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
-            validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
             addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
@@ -1005,12 +1004,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `サブスクリプションは${date}に終了`,
                 cta: '管理',
             },
-        },
-        discoverSection: {
-            title: '発見',
-            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
-            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法を確認しましょう。',
-            menuItemDescription: 'Expensify でできることを 2 分で確認',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1812,6 +1805,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
+            changedFinalApproverMessage: (managerID: number) => `最終承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8585,6 +8579,23 @@ ${reportName}`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            filters: {
+                description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
+                stages: {
+                    title: 'ジョブの段階',
+                    description: 'このワークスペースと同期したい候補者の選考ステージを選択してください',
+                    toggleTitle: 'ジョブのステージ',
+                    allSelected: 'すべての採用ステージ',
+                },
+                tags: {
+                    title: 'タグ',
+                    description: 'このワークスペースと同期したい候補者のタグを選択してください',
+                    toggleTitle: 'タグ',
+                    allSelected: 'すべてのタグ',
+                },
+                offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
+                enableJobStagesOrTags: '続行するにはジョブステージまたはタグを有効にしてください',
+            },
             subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
                 importedCount: () => ({

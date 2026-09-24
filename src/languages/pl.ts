@@ -1003,7 +1003,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Napraw połączenie z prywatną kartą ${cardName}` : 'Napraw połączenie karty prywatnej'),
                 subtitle: 'Portfel',
             },
-            validateAccount: {title: 'Zweryfikuj swoje konto', subtitle: 'Konto', cta: 'Zatwierdź'},
             addHomeAddress: {title: 'Dodaj swój adres domowy do śledzenia odległości', subtitle: 'Konto', cta: 'Dodaj'},
             fixFailedBilling: {title: 'Nie mogliśmy obciążyć zapisanej karty', subtitle: 'Subskrypcja'},
             unlockBankAccount: {
@@ -1024,12 +1023,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `Subskrypcja kończy się ${date}`,
                 cta: 'Zarządzaj',
             },
-        },
-        discoverSection: {
-            title: 'Odkryj',
-            menuItemTitleNonAdmin: 'Dowiedz się, jak tworzyć wydatki i wysyłać raporty.',
-            menuItemTitleAdmin: 'Dowiedz się, jak zapraszać członków, edytować procesy zatwierdzania i uzgadniać karty firmowe.',
-            menuItemDescription: 'Zobacz, co Expensify potrafi w 2 minuty',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1860,6 +1853,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby zmienić to na stałe dla wszystkich raportów).`,
             changedApproverMessage: (managerID: number) => `zmienił(a) akceptującego na <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `zmienił(a) ostatecznego akceptującego na <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ponownie przypisał(a) akceptującego do <mention-user accountID="${managerID}"/> w wyniku aktualizacji przepływu pracy`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8695,6 +8689,23 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             importSettings: 'Ustawienia importu',
             defaultApprover: 'Domyślny zatwierdzający',
             approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
+            filters: {
+                description: (providerName: string) => `Wybierz, którzy członkowie zostaną zaimportowani z ${providerName}. Możesz wybierać spośród etapów rekrutacji, tagów i biur.`,
+                stages: {
+                    title: 'Etap zadania',
+                    description: 'Wybierz etap rekrutacji kandydatów, których chcesz zsynchronizować z tym miejscem pracy',
+                    toggleTitle: 'Etapy zlecenia',
+                    allSelected: 'Wszystkie etapy pracy',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Wybierz tagi kandydatów, które chcesz zsynchronizować z tym obszarem roboczym',
+                    toggleTitle: 'Tagi',
+                    allSelected: 'Wszystkie tagi',
+                },
+                offices: {title: 'Biuro', description: 'Wybierz biura kandydatów, które chcesz zsynchronizować z tym miejscem pracy', toggleTitle: 'Biura', allSelected: 'Wszystkie biura'},
+                enableJobStagesOrTags: 'Włącz etapy zleceń lub tagi, aby kontynuować',
+            },
             subtitle: 'Połącz narzędzia rekrutacyjne i utrzymuj zgody kandydatów w synchronizacji.',
             syncResults: {
                 importedCount: () => ({

@@ -1031,11 +1031,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Κάρτα Expensify',
                 cta: 'Ανασκόπηση',
             },
-            validateAccount: {
-                title: 'Επικυρώστε τον λογαριασμό σας',
-                subtitle: 'Λογαριασμός',
-                cta: 'Επικυρώστε',
-            },
             addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
@@ -1084,12 +1079,6 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Εξοφλήθηκε τις τελευταίες 30 ημέρες',
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
-        discoverSection: {
-            title: 'Ανακαλύψτε',
-            menuItemTitleNonAdmin: 'Μάθετε πώς να δημιουργείτε δαπάνες και να υποβάλλετε αναφορές.',
-            menuItemTitleAdmin: 'Μάθετε πώς να προσκαλείτε μέλη, να επεξεργάζεστε ροές έγκρισης και να πραγματοποιείτε συμφωνία εταιρικών καρτών.',
-            menuItemDescription: 'Δείτε τι μπορεί να κάνει το Expensify σε 2 λεπτά',
-        },
         forYouSection: {
             reviewExpenses: ({count}: {count: number}) => ({
                 one: 'Ελέγξτε 1 δαπάνη',
@@ -1888,6 +1877,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `άλλαξε τον τελικό εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -7725,6 +7715,28 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            filters: {
+                description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
+                stages: {
+                    title: 'Στάδιο εργασίας',
+                    description: 'Επιλέξτε το στάδιο πρόσληψης των υποψηφίων που θέλετε να συγχρονίζονται με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Στάδια εργασίας',
+                    allSelected: 'Όλα τα στάδια εργασίας',
+                },
+                tags: {
+                    title: 'Ετικέτα',
+                    description: 'Επιλέξτε τις ετικέτες υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Ετικέτες',
+                    allSelected: 'Όλες οι ετικέτες',
+                },
+                offices: {
+                    title: 'Γραφείο',
+                    description: 'Επιλέξτε τα γραφεία των υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Γραφεία',
+                    allSelected: 'Όλα τα γραφεία',
+                },
+                enableJobStagesOrTags: 'Ενεργοποιήστε τα στάδια εργασίας ή τις ετικέτες για να συνεχίσετε',
+            },
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
                 importedCount: () => ({

@@ -2431,9 +2431,6 @@ type CreateAndOpenSearchTransactionThreadParams = {
     currentUserLogin: string;
     currentUserAccountID: number;
 
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 
     /** The personal details of the participants */
@@ -2462,7 +2459,6 @@ function createAndOpenSearchTransactionThread({
     backTo,
     currentUserLogin,
     currentUserAccountID,
-    betas,
     personalDetails,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
@@ -2503,7 +2499,6 @@ function createAndOpenSearchTransactionThread({
             conciergeChat,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            betas,
             iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
             iouReportAction: reportActionToPass,
             transaction,

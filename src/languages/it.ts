@@ -997,7 +997,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Correggi la connessione della carta personale ${cardName}` : 'Correggi connessione carta personale'),
                 subtitle: 'Portafoglio',
             },
-            validateAccount: {title: 'Conferma il tuo account', subtitle: 'Account', cta: 'Conferma'},
             addHomeAddress: {title: 'Aggiungi il tuo indirizzo di casa per il tracciamento delle distanze', subtitle: 'Account', cta: 'Aggiungi'},
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},
             unlockBankAccount: {
@@ -1018,12 +1017,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `L’abbonamento termina il ${date}`,
                 cta: 'Gestisci',
             },
-        },
-        discoverSection: {
-            title: 'Scopri',
-            menuItemTitleNonAdmin: 'Scopri come creare spese e inviare report.',
-            menuItemTitleAdmin: 'Scopri come invitare i membri, modificare i flussi di approvazione e riconciliare le carte aziendali.',
-            menuItemDescription: 'Scopri cosa può fare Expensify in 2 minuti',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1830,6 +1823,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Scegli un'opzione per cambiare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dello spazio di lavoro</a> per cambiarlo in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l’approvatore in <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `ha cambiato l’approvatore finale in <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8696,6 +8690,28 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             importSettings: 'Impostazioni di importazione',
             defaultApprover: 'Approvatore predefinito',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coordinatore recruiting'},
+            filters: {
+                description: (providerName: string) => `Seleziona quali membri importare da ${providerName}. Puoi scegliere in base alle fasi lavorative, ai tag e alle sedi.`,
+                stages: {
+                    title: 'Fase lavoro',
+                    description: 'Scegli la fase del processo di selezione dei candidati che vuoi sincronizzare con questo spazio di lavoro',
+                    toggleTitle: 'Fasi del lavoro',
+                    allSelected: 'Tutte le fasi del lavoro',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Scegli i tag dei candidati che vuoi sincronizzare con questo spazio di lavoro',
+                    toggleTitle: 'Tag',
+                    allSelected: 'Tutti i tag',
+                },
+                offices: {
+                    title: 'Ufficio',
+                    description: 'Scegli gli uffici dei candidati che vuoi sincronizzare con questo spazio di lavoro',
+                    toggleTitle: 'Uffici',
+                    allSelected: 'Tutti gli uffici',
+                },
+                enableJobStagesOrTags: 'Abilita le fasi di lavoro o i tag per continuare',
+            },
             subtitle: 'Collega gli strumenti di recruiting e mantieni sincronizzate le approvazioni dei candidati.',
             syncResults: {
                 importedCount: () => ({

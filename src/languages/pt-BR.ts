@@ -996,7 +996,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
                 subtitle: 'Carteira',
             },
-            validateAccount: {title: 'Valide sua conta', subtitle: 'Conta', cta: 'Validar'},
             addHomeAddress: {title: 'Adicione seu endereço residencial para rastrear distâncias', subtitle: 'Conta', cta: 'Adicionar'},
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
             unlockBankAccount: {
@@ -1017,12 +1016,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `A assinatura termina em ${date}`,
                 cta: 'Gerenciar',
             },
-        },
-        discoverSection: {
-            title: 'Descobrir',
-            menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
-            menuItemTitleAdmin: 'Saiba como convidar membros, editar fluxos de aprovação e conciliar cartões corporativos.',
-            menuItemDescription: 'Veja o que o Expensify pode fazer em 2 minutos',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1826,6 +1819,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Escolha uma opção para alterar o aprovador deste relatório. (Atualize as <a href="${workflowSettingLink}">configurações do espaço de trabalho</a> para alterar isso permanentemente para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `alterou o aprovador final para <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reatribuiu o aprovador para <mention-user accountID="${managerID}"/> por meio de uma atualização do fluxo de trabalho`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8678,6 +8672,28 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             importSettings: 'Importar configurações',
             defaultApprover: 'Aprovador padrão',
             approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
+            filters: {
+                description: (providerName: string) => `Selecione quais membros serão importados de ${providerName}. Você pode escolher por etapas do trabalho, tags e escritórios.`,
+                stages: {
+                    title: 'Etapa do trabalho',
+                    description: 'Escolha a etapa do processo seletivo dos candidatos que você gostaria de sincronizar com este workspace',
+                    toggleTitle: 'Etapas do trabalho',
+                    allSelected: 'Todas as etapas de trabalho',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Escolha as tags dos candidatos que você gostaria de sincronizar com este workspace',
+                    toggleTitle: 'Tags',
+                    allSelected: 'Todas as tags',
+                },
+                offices: {
+                    title: 'Escritório',
+                    description: 'Escolha os escritórios dos candidatos que você gostaria de sincronizar com este espaço de trabalho',
+                    toggleTitle: 'Escritórios',
+                    allSelected: 'Todos os escritórios',
+                },
+                enableJobStagesOrTags: 'Ative Estágios de Trabalho ou Tags para continuar',
+            },
             subtitle: 'Conecte ferramentas de recrutamento e mantenha as aprovações de candidatos em sincronia.',
             syncResults: {
                 importedCount: () => ({
