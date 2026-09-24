@@ -1,5 +1,7 @@
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 
+import {isDelegateSession} from '@userActions/Session';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -68,6 +70,7 @@ function createGuardContext(overrides?: Partial<GuardContext>): GuardContext {
         isLoading,
         currentUrl,
         isSupportalSession: isSupportalSessionSelector(session),
+        isDelegateSession: isDelegateSession(session),
         ...overrides,
     };
 }

@@ -3,6 +3,8 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 
+import {isDelegateSession} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,6 +48,7 @@ function resetSessionFlag() {
 function navigateToMigratedUserWelcomeModalIfReady() {
     if (
         isSupportalSessionSelector(session) ||
+        isDelegateSession(session) ||
         !session?.authToken ||
         isLoadingApp ||
         hasRedirectedToMigratedUserModal ||
@@ -146,7 +149,7 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
         }
 
         if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
-            if (context.isSupportalSession) {
+            if (context.isSupportalSession || context.isDelegateSession) {
                 return {type: 'ALLOW'};
             }
 
