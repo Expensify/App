@@ -13,7 +13,7 @@ Bundle versions are separate from NetSuite's own release numbers. Updating the b
 
 ## How to read the Expensify Connect bundle release history
 
-Each entry lists the release date, documented changes, and any version-specific precautions. **Added** identifies new components or permissions; **Changed** and **Removed** describe updates to existing ones. Historical entries reflect the records available, and missing details are identified rather than inferred.
+Each entry lists documented changes and any version-specific precautions. Release dates are included where confirmed. **Added** identifies new capabilities, components, or permissions; **Changed** and **Removed** describe updates to existing ones.
 
 ## What changed in Expensify Connect 1.12
 
@@ -40,9 +40,11 @@ Record any custom permissions you added to or removed from the bundled **Expensi
 
 The bundle uses **Do Not Update Deployments** to retain existing script deployment settings. This setting does not preserve role permissions. If your connection uses the RESTlet, confirm that its deployment audience includes the exact role used by your connection, including Administrator or a custom role where applicable.
 
-## What is documented for Expensify Connect 1.11
+## What changed in Expensify Connect 1.11
 
-Detailed release notes are unavailable for this historical version, which preceded version 1.12.
+**Added**
+
+- OAuth 2.0 support on the NetSuite integration record named **Expensify**. This is separate from the **Expensify Integration** role.
 
 ## What changed in Expensify Connect 1.10
 
