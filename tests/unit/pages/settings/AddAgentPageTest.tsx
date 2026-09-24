@@ -368,18 +368,29 @@ describe('AddAgentPage', () => {
             expect(getRevealAfterTransition()).toEqual(expect.any(Function));
         });
 
-        it('opens the DM in the RHP on wide layouts instead of the fullscreen report', async () => {
+        it('keeps an uploaded avatar visible until the wide-layout DM replaces the builder', async () => {
+            // Given a wide layout with an uploaded avatar in the builder
             mockIsNarrowLayout = false;
+            mockAvatarDraft = {uploadedAvatar: {uri: 'file://photo.jpg', name: 'photo.jpg', type: 'image/jpeg'}};
             renderAddAgentPage({});
 
+            // When the agent is submitted, the builder remains visible until navigation starts
             mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
 
+            // Then its avatar draft must remain available while the builder is on screen
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
+            expect(mockClearNewAgentAvatarDraft).not.toHaveBeenCalled();
+
+            // When the personal detail is written, replace the builder with the DM
             resolveOptimisticPersonalDetail?.();
             await Promise.resolve();
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.AGENT_REPORT.getRoute(OPTIMISTIC_REPORT_ID), {forceReplace: true});
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.AGENT_REPORT.getRoute(OPTIMISTIC_REPORT_ID), expect.objectContaining({forceReplace: true}));
+            expect(mockClearNewAgentAvatarDraft).not.toHaveBeenCalled();
+
+            // Then clear the avatar draft only once the transition no longer shows the builder
+            mockNavigate.mock.calls.at(0)?.[1]?.afterTransition?.();
+            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         });
 
         it('creates the agent with the persisted preset when no photo was uploaded', () => {

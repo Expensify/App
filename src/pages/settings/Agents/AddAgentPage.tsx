@@ -148,9 +148,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         // shouldUseNarrowLayout/isSmallScreenWidth from that hook would always read as "narrow"
         // regardless of window size. getIsNarrowLayout() reflects the actual window width.
         const isNarrowLayout = getIsNarrowLayout();
-        if (!isNarrowLayout) {
-            clearNewAgentAvatarDraft();
-        }
 
         optimisticPersonalDetailPromise.then(() => {
             if (isNarrowLayout) {
@@ -167,7 +164,12 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             // On wide layouts, open the DM in a dedicated RHP screen instead of the fullscreen report split.
             // forceReplace swaps this screen out for the DM instead of pushing on top of it, so the
             // already-submitted form can't be reached again via the close/back button.
-            Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
+            Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {
+                forceReplace: true,
+                afterTransition: () => {
+                    clearNewAgentAvatarDraft();
+                },
+            });
         });
     };
 
