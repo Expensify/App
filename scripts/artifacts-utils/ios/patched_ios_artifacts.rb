@@ -100,7 +100,9 @@ module PatchedIOSArtifacts
     # hermes-engine.podspec resolves the compiler with require.resolve, which yields an absolute
     # path. Podfile.lock hashes it, and Xcode expands PODS_ROOT before the bundling phase reads it.
     def self.pods_root_relative_path(path)
-        return nil unless path.start_with?('/') && File.exist?(path)
+        # A path outside the checkout still differs between machines once PODS_ROOT is expanded.
+        raise "#{LOG_PREFIX} #{path} sits outside #{NEW_DOT_ROOT}, so hermes-engine would keep a " \
+              'checksum that no other machine reproduces.' unless path.start_with?("#{NEW_DOT_ROOT}/")
 
         relative = Pathname.new(path).relative_path_from(Pod::Config.instance.project_pods_root)
         "#{HERMES_CLI_PREFIX}/#{relative}"
@@ -407,7 +409,16 @@ end
 # so this is the last point where the path can be made machine independent.
 module PatchedHermesCliPath
     def store_podspec(name, podspec, external_source = false, json = false)
-        rewrite_hermes_cli_path(podspec) if name.to_s == 'hermes-engine' && podspec.is_a?(Pod::Specification)
+        if name.to_s == 'hermes-engine'
+            if podspec.is_a?(Pod::Specification)
+                rewrite_hermes_cli_path(podspec)
+            else
+                # Only a Specification carries the attributes we rewrite, so any other form reaches
+                # Podfile.lock with the path react-native resolved.
+                PatchedIOSArtifacts.log("CocoaPods stored the hermes-engine podspec as a #{podspec.class}, " \
+                                        'so its compiler path stays machine specific.', :error)
+            end
+        end
         super
     end
 
@@ -416,11 +427,7 @@ module PatchedHermesCliPath
         hermes_cli_path = settings.is_a?(Hash) ? settings['HERMES_CLI_PATH'] : nil
         return unless hermes_cli_path.to_s.start_with?('/')
 
-        stable = PatchedIOSArtifacts.pods_root_relative_path(hermes_cli_path)
-        raise "#{PatchedIOSArtifacts::LOG_PREFIX} Cannot place #{hermes_cli_path} relative to the Pods " \
-              'root, so hermes-engine would get a checksum that no other machine reproduces.' if stable.nil?
-
-        settings['HERMES_CLI_PATH'] = stable
+        settings['HERMES_CLI_PATH'] = PatchedIOSArtifacts.pods_root_relative_path(hermes_cli_path)
     end
 
     private :rewrite_hermes_cli_path
