@@ -2276,10 +2276,6 @@ const CONST = {
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
-    DEFERRED_LAYOUT_WRITE_KEYS: {
-        SEARCH: 'search',
-        DISMISS_MODAL: 'dismiss_modal',
-    },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
@@ -3385,6 +3381,11 @@ const CONST = {
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
             RECRUITING_COORDINATOR: 'coordinator',
+        },
+        ATS_FILTER_TYPE: {
+            TAGS: 'tags',
+            STAGES: 'stages',
+            OFFICES: 'offices',
         },
         CATEGORY: {
             HRIS: 'hris',
@@ -9486,9 +9487,6 @@ const CONST = {
             COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
-        },
-        DISCOVER_SECTION: {
-            TEST_DRIVE: 'DiscoverSection-TestDrive',
         },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',

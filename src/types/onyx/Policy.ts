@@ -3795,6 +3795,7 @@ export type {
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
+    MergeATSConnectionData,
     MergeATSFilters,
     MergeATSApproverField,
     GustoConnectionConfig,
