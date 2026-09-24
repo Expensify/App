@@ -1,10 +1,14 @@
 import type {RsbuildConfig} from '@rsbuild/core';
 
 import {mergeRsbuildConfig} from '@rsbuild/core';
+import path from 'path';
+import {fileURLToPath} from 'url';
 
 // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import mockPaths from './mockPaths.ts';
+
+const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let envFile: string;
 switch (process.env.ENV) {
@@ -29,6 +33,15 @@ const rsbuildFinal = async (config: RsbuildConfig): Promise<RsbuildConfig> => {
             // `react-native-config`/`react-native$` are intentionally not repeated here since
             // they're already set in `shared.resolve.alias` and `mergeRsbuildConfig` keeps both.
             alias: mockPaths,
+        },
+        tools: {
+            rspack: (rspackConfig) => {
+                // `@libs` is a prefix alias no single-module alias can outrank, so the module is rewritten by a loader instead
+                rspackConfig.module?.rules?.push({
+                    test: /src\/libs\/Navigation\/Navigation\.ts$/,
+                    use: [{loader: path.resolve(dirname, './mocks/navigationStoryLoader.js')}],
+                });
+            },
         },
     });
 };

@@ -1,4 +1,5 @@
 import DynamicFormFields from '@components/DynamicForm/DynamicFormFields';
+import DynamicFormFlow from '@components/DynamicForm/DynamicFormFlow';
 import DynamicFormPage from '@components/DynamicForm/DynamicFormPage';
 import DynamicFormShell from '@components/DynamicForm/DynamicFormShell';
 import getDynamicFieldErrors from '@components/DynamicForm/getDynamicFieldErrors';
@@ -13,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import styles from '@src/styles';
 import {defaultTheme} from '@src/styles/theme';
 import type {DynamicFormField} from '@src/types/onyx';
@@ -24,6 +26,7 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useArgs} from 'storybook/preview-api';
 
+import {StoryRouterProvider} from '../../.storybook/mocks/storyRouter';
 import allFieldTypes from '../../tests/fixtures/dynamicForm/allFieldTypes';
 
 const defaultStyles = styles(defaultTheme);
@@ -179,9 +182,79 @@ const PLAYGROUND_PRESETS: Record<PlaygroundPreset, Pick<DynamicFormStoryProps, '
             ],
         },
     },
+    ownersWithTabs: {
+        fields: [
+            {
+                key: 'owners',
+                label: 'Owners',
+                itemLabel: 'owner',
+                addItemDescription: 'Only applies if 25% ownership or more',
+                group: 'Owners',
+                type: 'list',
+                required: true,
+                minItems: 1,
+                refreshOnChange: false,
+                itemFields: [
+                    {
+                        key: 'ownerType',
+                        label: 'Owner type',
+                        group: 'Owner',
+                        type: 'radio',
+                        presentation: 'tabs',
+                        required: true,
+                        values: [
+                            {key: 'INDIVIDUAL', label: 'Individual'},
+                            {key: 'COMPANY', label: 'Company/Fund'},
+                        ],
+                        refreshOnChange: false,
+                    },
+                    {
+                        key: 'firstName',
+                        label: 'Legal first name',
+                        group: 'Owner',
+                        type: 'text',
+                        required: true,
+                        rule: 'legalName',
+                        showWhen: {key: 'ownerType', equals: ['INDIVIDUAL']},
+                        refreshOnChange: false,
+                    },
+                    {
+                        key: 'lastName',
+                        label: 'Legal last name',
+                        group: 'Owner',
+                        type: 'text',
+                        required: true,
+                        rule: 'legalName',
+                        showWhen: {key: 'ownerType', equals: ['INDIVIDUAL']},
+                        refreshOnChange: false,
+                    },
+                    {
+                        key: 'dateOfBirth',
+                        label: 'Date of birth',
+                        group: 'Owner',
+                        type: 'date',
+                        required: true,
+                        rule: 'dateOfBirth',
+                        showWhen: {key: 'ownerType', equals: ['INDIVIDUAL']},
+                        refreshOnChange: false,
+                    },
+                    {key: 'legalName', label: 'Legal business name', group: 'Owner', type: 'text', required: true, showWhen: {key: 'ownerType', equals: ['COMPANY']}, refreshOnChange: false},
+                    {key: 'countryOfResidence', label: 'Country of residence', group: 'Owner', type: 'country', required: true, refreshOnChange: false},
+                    {key: 'ownershipPercentage', label: 'Ownership percentage', group: 'Owner', type: 'percent', required: true, refreshOnChange: false},
+                ],
+            },
+        ],
+        draftValues: {
+            owners: [{id: '1', ownerType: 'INDIVIDUAL', firstName: 'Alice', lastName: 'Nguyen', dateOfBirth: '1990-05-19', countryOfResidence: 'US', ownershipPercentage: '25'}],
+        },
+    },
+    loneCountry: {
+        fields: allFieldTypes.filter((field) => field.key === 'country'),
+        draftValues: {country: 'GB'},
+    },
 };
 
-type PlaygroundPreset = 'bankAccount' | 'singleQuestion' | 'owners';
+type PlaygroundPreset = 'bankAccount' | 'singleQuestion' | 'owners' | 'ownersWithTabs' | 'loneCountry';
 
 type PlaygroundProps = DynamicFormStoryProps & {
     /** Loads a starting schema and draft into the editable `fields` and `draftValues` controls */
@@ -248,9 +321,58 @@ PlaygroundStory.args = {
     layout: 'pages',
 };
 PlaygroundStory.argTypes = {
-    preset: {options: ['bankAccount', 'singleQuestion', 'owners'], control: {type: 'select'}},
+    preset: {options: ['bankAccount', 'singleQuestion', 'owners', 'ownersWithTabs', 'loneCountry'], control: {type: 'select'}},
     fields: {control: {type: 'object'}},
     draftValues: {control: {type: 'object'}},
+};
+
+type FlowStoryProps = {
+    preset: PlaygroundPreset;
+    layout: 'auto' | 'stepper' | 'pages';
+    confirmation: 'auto' | 'yes' | 'no';
+};
+
+const FLOW_ROUTE_PREFIX = 'settings/wallet/add-bank-account';
+
+/** The whole flow on a story-owned route stack: pages, resume, the item editor page and the confirmation are all clickable */
+function Flow({preset, layout, confirmation}: FlowStoryProps) {
+    const {fields, draftValues} = PLAYGROUND_PRESETS[preset];
+    const isDraftReady = useSeededDraft(draftValues);
+    if (!isDraftReady) {
+        return <View />;
+    }
+    let hasConfirmation: boolean | undefined;
+    if (confirmation !== 'auto') {
+        hasConfirmation = confirmation === 'yes';
+    }
+    return (
+        <StoryRouterProvider
+            key={preset}
+            routePrefix={FLOW_ROUTE_PREFIX}
+        >
+            <DynamicFormFlow
+                fields={fields}
+                formID={STORYBOOK_FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowStory"
+                buildRoute={(pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined, pageName, action)}
+                onSubmit={(values) => alert(JSON.stringify(values, null, 4))}
+                onBack={() => alert('Left the flow')}
+                confirmationTitle="Let’s double check that everything looks right"
+                layout={layout}
+                hasConfirmation={hasConfirmation}
+            />
+        </StoryRouterProvider>
+    );
+}
+
+const FlowStory: StoryFn<FlowStoryProps> = Flow.bind({});
+FlowStory.storyName = 'Flow';
+FlowStory.args = {preset: 'bankAccount', layout: 'auto', confirmation: 'auto'};
+FlowStory.argTypes = {
+    preset: {options: ['bankAccount', 'singleQuestion', 'owners', 'ownersWithTabs', 'loneCountry'], control: {type: 'select'}},
+    layout: {options: ['auto', 'stepper', 'pages'], control: {type: 'radio'}},
+    confirmation: {options: ['auto', 'yes', 'no'], control: {type: 'radio'}},
 };
 
 const AllFieldTypes: DynamicFormStory = Template.bind({});
@@ -338,4 +460,4 @@ LargeSelect.args = {
 };
 
 export default story;
-export {AllFieldTypes, AmountWithCurrency, HiddenFileField, LargeSelect, OwnersList, PageByPageFlow, PlaygroundStory, SingleQuestion, YesNoQuestion};
+export {AllFieldTypes, AmountWithCurrency, FlowStory, HiddenFileField, LargeSelect, OwnersList, PageByPageFlow, PlaygroundStory, SingleQuestion, YesNoQuestion};
