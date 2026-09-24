@@ -11,7 +11,6 @@ import useWalletPersonalBankAccountSetup from '@hooks/useWalletPersonalBankAccou
 import variables from '@styles/variables';
 
 import {openWalletPersonalBankAccountSetup} from '@userActions/BankAccounts';
-import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -32,8 +31,6 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
     }
 
     const openPersonalSetup = () => {
-        clearReimbursementAccount();
-        clearReimbursementAccountDraft();
         openWalletPersonalBankAccountSetup({
             personalBankAccount: walletPersonalBankAccountSetup.personalBankAccount,
             personalDraft: walletPersonalBankAccountSetup.personalDraft,

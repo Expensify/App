@@ -284,7 +284,6 @@ function WalletPage() {
             personalBankAccount: walletPersonalBankAccountSetup.personalBankAccount,
             personalDraft: walletPersonalBankAccountSetup.personalDraft,
             internationalDraft: walletPersonalBankAccountSetup.internationalDraft,
-            isUserValidated,
         });
     };
 
