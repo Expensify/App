@@ -1,7 +1,7 @@
 ---
 title: Approve Expenses
 description: Approve, hold, reject, and unapprove submitted expenses
-keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, reject expense error, expense already moved or rejected, could not reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
+keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, reject expense error, expense already moved or rejected, could not reject expense, workspace approval workflow, expense approval, change approver, add approver, bypass approvers, reassign approver, skip approver, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
 internalScope: Audience is Workspace approvers and admins. Covers approving and managing submitted expenses and reports. Does not cover creating or submitting expenses.
 ---
 
@@ -57,7 +57,7 @@ If every expense on the report is held, only the **Approve [full amount]** optio
 
 1. From the Report, choose **More**. 
 2. Select **Change approver**.
-3. Select **Add approver**.
+3. Select **Add approver**, then click **Change approver**.
 4. Choose an additional approver to add to the report.
 5. Click **Save**.
 
@@ -71,10 +71,30 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 
 1. From the Report, choose **More**. 
 2. Select **Change approver**.
-3. Select **Bypass approvers**.
+3. Select **Bypass approvers**, then click **Change approver**.
 4. You are now the final approver, and the prescribed workflow has been bypassed.
 
 **Note:** Only Workspace admins can bypass the prescribed approval workflow.
+
+---
+
+## How to reassign the approver on a report
+
+Workspace admins can skip the current approver on a submitted report and assign a different workspace member in their place.
+
+1. From the Report, choose **More**. 
+2. Select **Change approver**.
+3. Select **Reassign approver**, then click **Change approver**.
+4. Choose the replacement approver.
+5. Click **Save**.
+
+The current approver is skipped, and the report is assigned to the member you chose. When that member approves, the report continues through the rest of the workspace approval workflow.
+
+The report history records the change as *changed the approver to [new approver], skipped [previous approver]*.
+
+The approver list shows workspace members who are allowed to approve the report. The current approver is not listed, and members with the **Admin** role are marked with an **Admin** badge.
+
+**Note:** Only Workspace admins can reassign an approver, and only while the report is submitted and waiting for approval. The workspace must have an approval workflow enabled.
 
 ---
 
@@ -83,10 +103,13 @@ Workspace admins can bypass the approval workflow on a report to final approve i
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Reports > Reports**.
 2. Select two or more reports using the checkboxes.
 3. Choose **Selected**, then **Change approver**.
-4. Select **Add approver** or **Bypass approvers**.
-5. If you selected **Add approver**, choose the approver and click **Save**.
+4. Select **Add approver**, **Bypass approvers**, or **Reassign approver**.
+5. Click **Change approver**.
+6. If you selected **Add approver** or **Reassign approver**, choose the approver and click **Save**.
 
 **Note:** When selecting reports across multiple workspaces, only members who belong to all selected workspaces will appear in the approver list.
+
+**Reassign approver** is only offered when every selected report is submitted, waiting for approval, and on a workspace where you are an admin and an approval workflow is enabled.
 
 ---
 
@@ -172,6 +195,12 @@ Expensify Card expenses show as pending until the merchant posts them. This can 
 
 ## Why can’t I see Bypass approvers?
 Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 
+
+## Why can’t I see Reassign approver?
+**Reassign approver** only appears when you are a Workspace admin, the report is submitted and waiting for approval, and the workspace has an approval workflow enabled.
+
+## What’s the difference between Add approver and Reassign approver?
+**Add approver** inserts an extra approver into the workflow at the current point, so the original approver still reviews the report. **Reassign approver** skips the current approver and assigns the report to the member you choose instead.
 
 ## What’s the difference between rejecting a report and rejecting an expense?
 
