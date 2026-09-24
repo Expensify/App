@@ -2,7 +2,8 @@ import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchSuggestionUtils';
 
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -19,6 +20,7 @@ import type {
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -69,8 +71,11 @@ type SelectedTransactionInfo = {
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
 
-    /** The transaction amount */
+    /** The transaction amount as a magnitude, used for bulk pay. Signed only on the reconcile path. */
     amount: number;
+
+    /** The signed amount the row displays */
+    displayAmount: number;
 
     /** The transaction currency */
     currency: string;
@@ -102,6 +107,9 @@ type SelectedTransactionInfo = {
 
     /** Whether the transaction was selected through its group header */
     isSelectedViaGroup?: boolean;
+
+    /** Whether every transaction in the group is selected. False when a `limit:` left some of the group unloaded. */
+    isEntireGroupSelected?: boolean;
 };
 
 /** Model of selected transactions */
@@ -179,6 +187,7 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
@@ -189,12 +198,15 @@ type SearchQueryContextValue = {
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    currentDefaultSearchQueryJSON: SearchQueryJSON | undefined;
+    currentDefaultSearchQueryFilterKeys: Set<QueryFilterKey>;
     suggestedSearches: Record<SearchKey, SearchTypeMenuItem>;
     shouldResetSearchQuery: boolean;
 };
 
 type SearchQueryActionsValue = {
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
+    getSearchKeyForQuery: (queryJSON: SearchQueryJSON | undefined) => SearchKey | undefined;
 };
 
 type SearchResultsContextValue = {
@@ -346,22 +358,22 @@ type SearchAmountFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED;
 type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
+type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
+
+type QueryFilterKey = SyntaxFilterKey | ReportFieldTextKey;
+type QueryFilters = Array<{
+    key: QueryFilterKey;
+    filters: QueryFilter[];
+}>;
+
 type SearchFilterKey =
-    | SyntaxFilterKey
+    | QueryFilterKey
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW;
-
-type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
-type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
-
-type QueryFilters = Array<{
-    key: SearchFilterKey;
-    filters: QueryFilter[];
-}>;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -436,6 +448,7 @@ type GroupedItem =
     | TransactionCategoryGroupListItemType
     | TransactionMerchantGroupListItemType
     | TransactionTagGroupListItemType
+    | TransactionDayGroupListItemType
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
@@ -457,7 +470,6 @@ type SearchChartProps = {
     /** Callback when a chart item is pressed - receives the filter query to apply */
     onItemPress?: (filterQuery: string) => void;
 
-    /** Whether data is loading */
     isLoading?: boolean;
 
     /** Currency unit with font fallback support */
@@ -465,6 +477,9 @@ type SearchChartProps = {
 
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
+
+    /** Color every bar is drawn in. Only a bar chart reads it. */
+    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -508,6 +523,7 @@ export type {
     QueryFilter,
     Filter,
     QueryFilters,
+    QueryFilterKey,
     SyntaxFilterKey,
     RawQueryFilter,
     SearchFilterKey,

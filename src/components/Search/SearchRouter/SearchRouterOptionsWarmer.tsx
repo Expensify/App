@@ -1,7 +1,8 @@
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {Scheduler} from '@libs/Scheduler';
 import type {IdleTask} from '@libs/Scheduler';
@@ -33,14 +34,14 @@ function SearchRouterOptionsWarmer({onDone}: SearchRouterOptionsWarmerProps) {
     // The high-churn inputs of the option-list cache, read through the same `useOnyx` layer that keys it.
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const reportAttributes = useReportAttributes();
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
 
     const churnVersionRef = useRef(0);
     useEffect(() => {
         churnVersionRef.current += 1;
-    }, [reports, policies, personalDetails, reportAttributes, sortedActions]);
+    }, [reports, policies, personalDetails, reportAttributes, sortedReportActionsData]);
 
     useEffect(() => {
         let attempts = 0;

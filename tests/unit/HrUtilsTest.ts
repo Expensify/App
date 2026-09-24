@@ -1,19 +1,9 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {
-    getConnectedHRProvider,
-    getHRApprovalMode,
-    getMergeHRFinalApprover,
-    isAnyHRConnected,
-    isAnyHRReadOnlyWorkflowMode,
-    isMergeHRCompleteSetupNeeded,
-    isMergeHRConnected,
-    isMergeHRManualSyncLimitReached,
-    shouldShowHRConnectionError,
-} from '@libs/HRUtils';
+import {getConnectedHRProvider, getHRApprovalMode, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
-import type {HRCardDescriptor} from '@pages/workspace/hr/utils';
+import type {MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
 
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -25,7 +15,7 @@ import type {
     Connections,
     GustoConnectionConfig,
     MergeHRConnectionConfig,
-    MergeHRConnectionLastSync,
+    MergeConnectionLastSync,
     PolicyConnectionSyncProgress,
     PolicyConnectionSyncStage,
     ZenefitsConnectionConfig,
@@ -94,7 +84,7 @@ function makeMergeHRConnection({
 }: {
     config?: Partial<MergeHRConnectionConfig>;
     data?: Connections[typeof MERGE_HR]['data'];
-    lastSync?: Partial<MergeHRConnectionLastSync>;
+    lastSync?: Partial<MergeConnectionLastSync>;
 } = {}): Connections[typeof MERGE_HR] {
     return {
         config: {integration: 'workday', approvalMode: null, finalApprover: null, groups: null, ...config},
@@ -124,7 +114,7 @@ function stubTranslate(path: TranslationPaths): string {
 }
 const stubFormatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => phoneNumber;
 
-function getRow(card: HRCardDescriptor | undefined, field: string) {
+function getRow(card: MergeProviderCardDescriptor | undefined, field: string) {
     return card?.configRows?.find((row) => row.field === field);
 }
 
@@ -144,32 +134,6 @@ function makeGetHRCardsParams(overrides: Partial<GetHRCardsParams> = {}): GetHRC
 }
 
 describe('HRUtils', () => {
-    describe('isMergeHRConnected', () => {
-        it('returns false for undefined policy', () => {
-            expect(isMergeHRConnected(undefined)).toBe(false);
-        });
-
-        it('returns false for policy with no connections', () => {
-            const policy = createRandomPolicy(0);
-            delete policy.connections;
-            expect(isMergeHRConnected(policy)).toBe(false);
-        });
-
-        it('returns true for policy with merge_hris connection', () => {
-            const policy = makePolicy({
-                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}})},
-            });
-            expect(isMergeHRConnected(policy)).toBe(true);
-        });
-
-        it('returns false for policy with gusto connection only', () => {
-            const policy = makePolicy({
-                connections: {[GUSTO]: makeGustoConnection()},
-            });
-            expect(isMergeHRConnected(policy)).toBe(false);
-        });
-    });
-
     describe('getConnectedHRProvider', () => {
         it('returns null for no connections', () => {
             const policy = createRandomPolicy(0);
@@ -264,7 +228,7 @@ describe('HRUtils', () => {
 
         it('returns true with basic mode for Merge HR', () => {
             const policy = makePolicy({
-                connections: {[MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, integration: 'workday'}})},
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, integration: 'workday'}})},
             });
             expect(isAnyHRReadOnlyWorkflowMode(policy)).toBe(true);
         });
@@ -292,52 +256,14 @@ describe('HRUtils', () => {
 
         it('returns correct mode for Merge HR', () => {
             const policy = makePolicy({
-                connections: {[MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, integration: 'workday'}})},
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, integration: 'workday'}})},
             });
-            expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)).toBe(CONST.MERGE_HR.APPROVAL_MODE.BASIC);
+            expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)).toBe(CONST.MERGE.APPROVAL_MODE.BASIC);
         });
 
         it('returns null for unknown connection name', () => {
             const policy = makePolicy({connections: {}});
             expect(getHRApprovalMode(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO)).toBeNull();
-        });
-    });
-
-    describe('getMergeHRFinalApprover', () => {
-        it('returns finalApprover when in basic mode', () => {
-            const policy = makePolicy({
-                connections: {
-                    [MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC, finalApprover: 'boss@company.com', integration: 'workday'}}),
-                },
-            });
-            expect(getMergeHRFinalApprover(policy)).toBe('boss@company.com');
-        });
-
-        it('returns finalApprover when in advanced (manager) mode', () => {
-            const policy = makePolicy({
-                connections: {
-                    [MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER, finalApprover: 'boss@company.com', integration: 'workday'}}),
-                },
-            });
-            expect(getMergeHRFinalApprover(policy)).toBe('boss@company.com');
-        });
-
-        it('returns null when in custom mode', () => {
-            const policy = makePolicy({
-                connections: {
-                    [MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.CUSTOM, finalApprover: 'boss@company.com', integration: 'workday'}}),
-                },
-            });
-            expect(getMergeHRFinalApprover(policy)).toBeNull();
-        });
-
-        it('returns null when finalApprover is not set', () => {
-            const policy = makePolicy({
-                connections: {
-                    [MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER, finalApprover: null, integration: 'workday'}}),
-                },
-            });
-            expect(getMergeHRFinalApprover(policy)).toBeNull();
         });
     });
 
@@ -352,7 +278,7 @@ describe('HRUtils', () => {
                     [MERGE_HR]: makeMergeHRConnection({
                         config: {integration: 'workday'},
                         data: {},
-                        lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, syncType: CONST.MERGE_HR.SYNC_TYPE.INITIAL},
+                        lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING, syncType: CONST.MERGE.SYNC_TYPE.INITIAL},
                     }),
                 },
             });
@@ -362,7 +288,7 @@ describe('HRUtils', () => {
         it('returns false when sync is done but no groups were returned', () => {
             const policy = makePolicy({
                 connections: {
-                    [MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, data: {}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE}}),
+                    [MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, data: {}, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE}}),
                 },
             });
             expect(isMergeHRCompleteSetupNeeded(policy)).toBe(false);
@@ -374,7 +300,7 @@ describe('HRUtils', () => {
                     [MERGE_HR]: makeMergeHRConnection({
                         config: {integration: 'workday', groups: ['g1']},
                         data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
-                        lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                        lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
                     }),
                 },
             });
@@ -387,7 +313,7 @@ describe('HRUtils', () => {
                     [MERGE_HR]: makeMergeHRConnection({
                         config: {integration: 'workday'},
                         data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
-                        lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                        lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
                     }),
                 },
             });
@@ -420,21 +346,21 @@ describe('HRUtils', () => {
 
         it('returns true when Merge HR sync status is FAILED', () => {
             const policy = makePolicy({
-                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED}})},
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.FAILED}})},
             });
             expect(shouldShowHRConnectionError(policy, false, true)).toBe(true);
         });
 
         it('returns false when Merge HR sync status is DONE', () => {
             const policy = makePolicy({
-                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE}})},
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE}})},
             });
             expect(shouldShowHRConnectionError(policy, false, true)).toBe(false);
         });
 
         it('returns false when Merge HR sync status is SYNCING', () => {
             const policy = makePolicy({
-                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING}})},
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING}})},
             });
             expect(shouldShowHRConnectionError(policy, false, true)).toBe(false);
         });
@@ -472,44 +398,6 @@ describe('HRUtils', () => {
                 connections: {zenefits: makeZenefitsConnection({lastSync: {isSuccessful: false, errorDate: new Date().toISOString()}})},
             });
             expect(shouldShowHRConnectionError(policy, true, true)).toBe(false);
-        });
-    });
-
-    describe('isMergeHRManualSyncLimitReached', () => {
-        const dbTimeHoursAgo = (hoursAgo: number) => new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19);
-
-        const makeMergePolicyWithSyncTimestamps = (manualSyncTimestamps?: string[]) =>
-            makePolicy({
-                connections: {[MERGE_HR]: makeMergeHRConnection({config: {integration: 'workday'}, lastSync: {manualSyncTimestamps}})},
-            });
-
-        it('returns false for undefined policy', () => {
-            expect(isMergeHRManualSyncLimitReached(undefined)).toBe(false);
-        });
-
-        it('returns false when there is no merge_hris connection', () => {
-            expect(isMergeHRManualSyncLimitReached(makePolicy())).toBe(false);
-        });
-
-        it('returns false when there are no manual sync timestamps', () => {
-            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps(undefined))).toBe(false);
-            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([]))).toBe(false);
-        });
-
-        it('returns false when only one sync happened within the last 24 hours', () => {
-            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1)]))).toBe(false);
-        });
-
-        it('returns false when both syncs are older than 24 hours', () => {
-            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(25), dbTimeHoursAgo(48)]))).toBe(false);
-        });
-
-        it('returns false when only one of the two syncs falls within the window', () => {
-            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(2), dbTimeHoursAgo(30)]))).toBe(false);
-        });
-
-        it('returns true when two syncs happened within the last 24 hours', () => {
-            expect(isMergeHRManualSyncLimitReached(makeMergePolicyWithSyncTimestamps([dbTimeHoursAgo(1), dbTimeHoursAgo(10)]))).toBe(true);
         });
     });
 });
@@ -663,7 +551,7 @@ describe('getHRCardState', () => {
                 connections: {
                     [MERGE_HR]: makeMergeHRConnection({
                         config: {integration: 'bamboohr'},
-                        lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, syncType: CONST.MERGE_HR.SYNC_TYPE.INITIAL},
+                        lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING, syncType: CONST.MERGE.SYNC_TYPE.INITIAL},
                     }),
                 },
             });
@@ -700,35 +588,35 @@ describe('getHRCardState', () => {
 describe('getApprovalModeLabel', () => {
     it('returns notSet key when no approval mode is configured', () => {
         const policy = makePolicy();
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.notSet');
     });
 
     it('returns basic label for Gusto basic approval mode', () => {
         const policy = makePolicy({
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.BASIC}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.approvalModes.basic.label');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.approvalModes.basic');
     });
 
     it('returns manager label for Gusto manager approval mode', () => {
         const policy = makePolicy({
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.MANAGER}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.approvalModes.manager.label');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.approvalModes.manager');
     });
 
     it('returns custom label for Gusto custom approval mode', () => {
         const policy = makePolicy({
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.approvalModes.custom.label');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.approvalModes.custom');
     });
 
     it('returns basic label for Merge HR basic approval mode', () => {
         const policy = makePolicy({
-            connections: {[MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE_HR.APPROVAL_MODE.BASIC}})},
+            connections: {[MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC}})},
         });
-        expect(getApprovalModeLabel(policy, MERGE_HR, stubTranslate)).toBe('workspace.hr.approvalModes.basic.label');
+        expect(getApprovalModeLabel(policy, MERGE_HR, stubTranslate)).toBe('workspace.merge.approvalModes.basic');
     });
 
     it('returns notSet for unknown approval mode', () => {
@@ -736,11 +624,11 @@ describe('getApprovalModeLabel', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- intentionally unexpected approval mode value
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: 'UNKNOWN_MODE' as GustoConnectionConfig['approvalMode']}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.notSet');
     });
 
     it('returns notSet when policy is null', () => {
-        expect(getApprovalModeLabel(undefined, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
+        expect(getApprovalModeLabel(undefined, GUSTO, stubTranslate)).toBe('workspace.merge.notSet');
     });
 });
 
@@ -801,7 +689,6 @@ describe('getHRCards', () => {
         const zenefits = cards.find((c) => c.key === 'zenefits');
 
         expect(zenefits?.isConnected).toBe(true);
-        expect(zenefits?.config).toBeDefined();
     });
 
     it('marks the connected Gusto card as connected with config', () => {
@@ -813,14 +700,13 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         expect(cards?.at(0)?.isConnected).toBe(true);
-        expect(cards?.at(0)?.config).toBeDefined();
-        expect(getRow(cards?.at(0), 'approvalMode')?.title).toBe('workspace.hr.approvalModes.basic.label');
+        expect(getRow(cards?.at(0), 'approvalMode')?.title).toBe('workspace.merge.approvalModes.basic');
     });
 
     it('marks only the matching Merge slug as connected', () => {
         const policy = makePolicy({
             connections: {
-                [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr', approvalMode: CONST.MERGE_HR.APPROVAL_MODE.MANAGER}}),
+                [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr', approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER}}),
             },
         });
         const cards = getHRCards(makeGetHRCardsParams({policy}));
@@ -830,20 +716,17 @@ describe('getHRCards', () => {
         const hibob = cards.find((c) => c.key === 'merge_hibob');
 
         expect(bamboo?.isConnected).toBe(true);
-        expect(bamboo?.config).toBeDefined();
-        expect(getRow(bamboo, 'approvalMode')?.title).toBe('workspace.hr.approvalModes.manager.label');
+        expect(getRow(bamboo, 'approvalMode')?.title).toBe('workspace.merge.approvalModes.manager');
 
         expect(workday?.isConnected).toBe(false);
-        expect(workday?.config).toBeUndefined();
 
         expect(hibob?.isConnected).toBe(false);
-        expect(hibob?.config).toBeUndefined();
     });
 
     it('connected Merge card gets lastSyncErrorMessage when sync has failed', () => {
         const policy = makePolicy({
             connections: {
-                [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr'}, lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.FAILED, errorMessage: 'Auth failed'}}),
+                [MERGE_HR]: makeMergeHRConnection({config: {integration: 'bamboohr'}, lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.FAILED, errorMessage: 'Auth failed'}}),
             },
         });
         const cards = getHRCards(makeGetHRCardsParams({policy}));
@@ -872,7 +755,7 @@ describe('getHRCards', () => {
             connections: {
                 [MERGE_HR]: makeMergeHRConnection({
                     config: {integration: 'bamboohr'},
-                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, syncType: CONST.MERGE_HR.SYNC_TYPE.INITIAL},
+                    lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING, syncType: CONST.MERGE.SYNC_TYPE.INITIAL},
                 }),
             },
         });
@@ -933,7 +816,7 @@ describe('getHRCards', () => {
                 [MERGE_HR]: makeMergeHRConnection({
                     config: {integration: 'bamboohr', groups: null},
                     data: {},
-                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.SYNCING, syncType: CONST.MERGE_HR.SYNC_TYPE.INITIAL},
+                    lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.SYNCING, syncType: CONST.MERGE.SYNC_TYPE.INITIAL},
                 }),
             },
         });
@@ -950,7 +833,7 @@ describe('getHRCards', () => {
                 [MERGE_HR]: makeMergeHRConnection({
                     config: {integration: 'bamboohr', groups: null},
                     data: {groups: [{id: 'g1', name: 'Test group', type: 'Department'}]},
-                    lastSync: {syncStatus: CONST.MERGE_HR.SYNC_STATUS.DONE},
+                    lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
                 }),
             },
         });

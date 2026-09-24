@@ -23,10 +23,12 @@ type ConfirmationFieldsContextValue = {
     isReadOnly: boolean;
     didConfirm: boolean;
     isEditingSplitBill: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
     isPolicyExpenseChat: boolean;
 
     // Mode — *what kind* of expense is being confirmed
+    isScanRequest: boolean;
     isDistanceRequest: boolean;
     isPerDiemRequest: boolean;
     isTimeRequest: boolean;

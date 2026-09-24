@@ -20,13 +20,8 @@ import {View} from 'react-native';
 import type {ReportParticipantRowData} from '.';
 
 type ReportParticipantsTableRowProps = {
-    /** The participant item for the row */
     item: ReportParticipantRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 

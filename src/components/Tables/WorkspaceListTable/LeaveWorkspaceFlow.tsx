@@ -2,6 +2,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsApproverOfOutstandingPolicyReports from '@hooks/useIsApproverOfOutstandingPolicyReports';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -40,6 +41,7 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
     const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const ownerAccountID = policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [policyOwnerDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerDisplayNameSelector(ownerAccountID)});
+    const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
     const isLoadingData = isLoadingOnyxValue(policyResult);
 
@@ -53,10 +55,10 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
 
         close(() => {
             const userLogin = currentUserPersonalDetails.login ?? '';
-            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate);
+            const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userLogin, policyOwnerDisplayName ?? '', translate, isApproverOfOutstandingReports);
             if (policy?.achAccount?.reimburser === userLogin) {
                 showConfirmModal({
-                    title: translate('common.leaveWorkspace'),
+                    title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                     prompt,
                     confirmText: translate('common.buttonConfirm'),
                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
@@ -66,9 +68,9 @@ function LeaveWorkspaceFlow({policyID, onDismiss}: LeaveWorkspaceFlowProps) {
             }
 
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: policy?.name ? translate('common.leaveWorkspaceTitle', policy.name) : translate('common.leaveWorkspace'),
                 prompt,
-                confirmText: translate('common.leaveWorkspace'),
+                confirmText: translate('common.leave'),
                 cancelText: translate('common.cancel'),
                 buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then((result) => {

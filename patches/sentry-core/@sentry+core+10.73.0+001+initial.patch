@@ -1,0 +1,123 @@
+diff --git a/node_modules/@sentry/core/build/cjs/utils/browser.js b/node_modules/@sentry/core/build/cjs/utils/browser.js
+index 9880e2d..6aee1b0 100644
+--- a/node_modules/@sentry/core/build/cjs/utils/browser.js
++++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
+@@ -29,7 +29,38 @@ function htmlTreeAsString(elem, options = {}) {
+       len += nextStr.length;
+       currentElem = currentElem.parentNode;
+     }
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++    let labelElem = null;
++    let dataLabel = null;
++    let pressableElem = null;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
++      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (current.getAttribute("aria-disabled") === "true") {
++          current = current.parentNode;
++          continue;
++        }
++        if (!dataLabel && current.dataset["sentryLabel"]) {
++          dataLabel = current.dataset["sentryLabel"];
++          labelElem = current;
++        }
++        if (!pressableElem && current.dataset["tag"] === "pressable") {
++          pressableElem = current;
++        }
++        if (dataLabel && pressableElem) break;
++      }
++      current = current.parentNode;
++    }
++    if (!dataLabel) {
++      return cssSelector;
++    }
++    if (pressableElem && labelElem === pressableElem) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
+   } catch {
+     return "<unknown>";
+   }
+@@ -42,6 +73,9 @@ function _htmlElementAsString(el, keyAttrs) {
+   }
+   if (WINDOW.HTMLElement) {
+     if (elem instanceof HTMLElement && elem.dataset) {
++      if (elem.dataset["sentryLabel"]) {
++        return `[data-sentry-label="${elem.dataset["sentryLabel"]}"]`;
++      }
+       if (elem.dataset["sentryComponent"]) {
+         return elem.dataset["sentryComponent"];
+       }
+diff --git a/node_modules/@sentry/core/build/esm/fetch.js b/node_modules/@sentry/core/build/esm/fetch.js
+index b8fac8e..14ac969 100644
+--- a/node_modules/@sentry/core/build/esm/fetch.js
++++ b/node_modules/@sentry/core/build/esm/fetch.js
+@@ -146,6 +146,10 @@ function _INTERNAL_getTracingHeadersForFetchRequest(request, fetchOptionsObj, sp
+ function endSpan(span, handlerData) {
+   if (handlerData.response) {
+     setHttpStatus(span, handlerData.response.status);
++    const requestId = handlerData.response.headers?.get("x-request-id");
++    if (requestId) {
++      span.setAttribute("request-id", requestId);
++    }
+     const contentLength = handlerData.response?.headers?.get("content-length");
+     if (contentLength) {
+       const contentLengthNum = parseInt(contentLength);
+diff --git a/node_modules/@sentry/core/build/esm/utils/browser.js b/node_modules/@sentry/core/build/esm/utils/browser.js
+index ca93f32..502acba 100644
+--- a/node_modules/@sentry/core/build/esm/utils/browser.js
++++ b/node_modules/@sentry/core/build/esm/utils/browser.js
+@@ -27,7 +27,38 @@ function htmlTreeAsString(elem, options = {}) {
+       len += nextStr.length;
+       currentElem = currentElem.parentNode;
+     }
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++    let labelElem = null;
++    let dataLabel = null;
++    let pressableElem = null;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
++      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (current.getAttribute("aria-disabled") === "true") {
++          current = current.parentNode;
++          continue;
++        }
++        if (!dataLabel && current.dataset["sentryLabel"]) {
++          dataLabel = current.dataset["sentryLabel"];
++          labelElem = current;
++        }
++        if (!pressableElem && current.dataset["tag"] === "pressable") {
++          pressableElem = current;
++        }
++        if (dataLabel && pressableElem) break;
++      }
++      current = current.parentNode;
++    }
++    if (!dataLabel) {
++      return cssSelector;
++    }
++    if (pressableElem && labelElem === pressableElem) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
+   } catch {
+     return "<unknown>";
+   }
+@@ -40,6 +71,9 @@ function _htmlElementAsString(el, keyAttrs) {
+   }
+   if (WINDOW.HTMLElement) {
+     if (elem instanceof HTMLElement && elem.dataset) {
++      if (elem.dataset["sentryLabel"]) {
++        return `[data-sentry-label="${elem.dataset["sentryLabel"]}"]`;
++      }
+       if (elem.dataset["sentryComponent"]) {
+         return elem.dataset["sentryComponent"];
+       }

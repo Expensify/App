@@ -4,8 +4,8 @@ import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportAction
 import {createTransaction} from '@libs/actions/IOU/MoneyRequest';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {notifyNewAction} from '@libs/actions/Report';
 import deleteReport from '@libs/actions/Report/DeleteReport';
+import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -88,14 +88,10 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
+jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
+    notifyNewAction: jest.fn(),
+}));
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 // In production, requestMoney defers its API.write() call until the target screen's
@@ -205,6 +201,7 @@ describe('actions/IOU', () => {
             let transactionThreadCreatedAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -222,7 +219,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -231,11 +228,11 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -468,6 +465,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: chatReport,
@@ -485,7 +483,7 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
-                        isASAPSubmitBetaEnabled: false,
+                        isASAPSubmitBetaEnabled: true,
                         transactionViolations: {},
                         currentUserAccountIDParam: 123,
                         currentUserEmailParam: 'existing@example.com',
@@ -494,11 +492,11 @@ describe('actions/IOU', () => {
                         draftTransactionIDs: [],
                         isSelfTourViewed: false,
                         quickAction: undefined,
-                        betas: [CONST.BETAS.ALL],
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         formatPhoneNumber,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -702,6 +700,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
@@ -719,7 +718,7 @@ describe('actions/IOU', () => {
                                 comment,
                             },
                             shouldGenerateTransactionThreadReport: true,
-                            isASAPSubmitBetaEnabled: false,
+                            isASAPSubmitBetaEnabled: true,
                             transactionViolations: {},
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
@@ -728,11 +727,11 @@ describe('actions/IOU', () => {
                             draftTransactionIDs: [],
                             isSelfTourViewed: false,
                             quickAction: undefined,
-                            betas: [CONST.BETAS.ALL],
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
                             formatPhoneNumber,
+                            rules: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -871,6 +870,7 @@ describe('actions/IOU', () => {
             let transactionThreadAction: OnyxEntry<ReportAction>;
             mockFetch?.pause?.();
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -888,7 +888,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -897,11 +897,11 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             return (
                 waitForBatchedUpdates()
@@ -1068,7 +1068,7 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise<void>((resolve) => {
                                 if (iouReportID) {
-                                    clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null, iouReportID);
+                                    clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null, iouReportID, false);
                                 }
                                 resolve();
                             }),
@@ -1269,6 +1269,7 @@ describe('actions/IOU', () => {
 
             // First create a tracked expense in self DM
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
@@ -1287,17 +1288,17 @@ describe('actions/IOU', () => {
                     comment,
                     billable: false,
                 },
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
 
             mockFetch?.resume?.();
@@ -1330,6 +1331,7 @@ describe('actions/IOU', () => {
             // Now pause fetch and share the tracked expense with accountant
             mockFetch?.pause?.();
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: policyExpenseChat,
@@ -1360,17 +1362,17 @@ describe('actions/IOU', () => {
                     newLogins: [],
                     formatPhoneNumber,
                 },
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1393,6 +1395,7 @@ describe('actions/IOU', () => {
 
         it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
@@ -1410,7 +1413,7 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -1419,17 +1422,18 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
         it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123'},
@@ -1447,7 +1451,7 @@ describe('actions/IOU', () => {
                     comment: '',
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -1456,17 +1460,18 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
 
         it('should pass isSelfTourViewed true to the request when user has viewed the tour', () => {
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1484,7 +1489,7 @@ describe('actions/IOU', () => {
                     comment: 'Test comment',
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -1493,11 +1498,11 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: true,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1522,6 +1527,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
 
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
@@ -1540,7 +1546,7 @@ describe('actions/IOU', () => {
                     reimbursable: true,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 policyRecentlyUsedCurrencies: [],
@@ -1549,11 +1555,11 @@ describe('actions/IOU', () => {
                 isSelfTourViewed: false,
                 currentUserEmailParam: 'existing@example.com',
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1571,6 +1577,7 @@ describe('actions/IOU', () => {
             expect(nonReimbursableTotal).toBe(0);
 
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
@@ -1589,7 +1596,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -1598,11 +1605,11 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1645,6 +1652,7 @@ describe('actions/IOU', () => {
 
             // When requesting money
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: expenseReport,
@@ -1665,7 +1673,7 @@ describe('actions/IOU', () => {
                     tag: transactionTag,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1674,11 +1682,11 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             waitForBatchedUpdates();
 
@@ -1721,6 +1729,7 @@ describe('actions/IOU', () => {
             const merchant = 'Test Store';
 
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1738,7 +1747,7 @@ describe('actions/IOU', () => {
                     comment,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -1748,10 +1757,10 @@ describe('actions/IOU', () => {
                 existingTransactionDraft: undefined,
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(iouReport).toBeDefined();
@@ -1799,6 +1808,7 @@ describe('actions/IOU', () => {
 
             const amount = 10000;
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1816,7 +1826,7 @@ describe('actions/IOU', () => {
                     comment: 'Testing with multiple personal details',
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -1826,10 +1836,10 @@ describe('actions/IOU', () => {
                 existingTransactionDraft: undefined,
                 draftTransactionIDs: [],
                 personalDetails: testPersonalDetails,
-                betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(iouReport).toBeDefined();
@@ -1848,6 +1858,7 @@ describe('actions/IOU', () => {
             const amount = 2500;
 
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -1865,7 +1876,7 @@ describe('actions/IOU', () => {
                     comment: 'Testing with empty personal details',
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
@@ -1875,10 +1886,10 @@ describe('actions/IOU', () => {
                 existingTransactionDraft: undefined,
                 draftTransactionIDs: [],
                 personalDetails: {},
-                betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -1907,7 +1918,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -1917,6 +1928,7 @@ describe('actions/IOU', () => {
 
             // Create a tracked expense
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: selfDMReport,
@@ -1934,17 +1946,17 @@ describe('actions/IOU', () => {
                     merchant: comment,
                     billable: false,
                 },
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2009,6 +2021,7 @@ describe('actions/IOU', () => {
 
             // When: submitting the tracked expense to another user
             const {iouReport} = requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action: CONST.IOU.ACTION.SUBMIT,
@@ -2029,7 +2042,7 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: selfDMReport.reportID,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
@@ -2040,10 +2053,10 @@ describe('actions/IOU', () => {
                 existingTransaction: transaction,
                 draftTransactionIDs: [],
                 personalDetails: {},
-                betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2090,6 +2103,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS, but pass the existing chat report with JULES
                     // This simulates the scenario where submit frequency is disabled and user selects a different participant
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: existingChatReport,
@@ -2107,20 +2121,20 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
-                        isASAPSubmitBetaEnabled: false,
+                        isASAPSubmitBetaEnabled: true,
                         transactionViolations: {},
                         currentUserAccountIDParam: RORY_ACCOUNT_ID,
                         currentUserEmailParam: RORY_EMAIL,
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
                         isSelfTourViewed: false,
-                        betas: [CONST.BETAS.ALL],
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         formatPhoneNumber,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2181,6 +2195,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money from CARLOS with matching chat report
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: existingChatReport,
@@ -2198,20 +2213,20 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
-                        isASAPSubmitBetaEnabled: false,
+                        isASAPSubmitBetaEnabled: true,
                         transactionViolations: {},
                         currentUserAccountIDParam: RORY_ACCOUNT_ID,
                         currentUserEmailParam: RORY_EMAIL,
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
                         isSelfTourViewed: false,
-                        betas: [CONST.BETAS.ALL],
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         formatPhoneNumber,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2263,6 +2278,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // Request money with isPolicyExpenseChat: true - should skip participant validation
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: policyExpenseChatReport,
@@ -2280,20 +2296,20 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
-                        isASAPSubmitBetaEnabled: false,
+                        isASAPSubmitBetaEnabled: true,
                         transactionViolations: {},
                         currentUserAccountIDParam: 123,
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
                         isSelfTourViewed: false,
-                        betas: [CONST.BETAS.ALL],
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         formatPhoneNumber,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2340,6 +2356,7 @@ describe('actions/IOU', () => {
                     // Request money from CARLOS but passing a policy expense chat report with different participants (JULES)
                     // Since the chatReport is a policy expense chat, participant validation should be skipped
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: policyExpenseChatReport,
@@ -2357,20 +2374,20 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
-                        isASAPSubmitBetaEnabled: false,
+                        isASAPSubmitBetaEnabled: true,
                         transactionViolations: {},
                         currentUserAccountIDParam: 123,
                         currentUserEmailParam: 'existing@example.com',
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
                         isSelfTourViewed: false,
-                        betas: [CONST.BETAS.ALL],
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         formatPhoneNumber,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2417,6 +2434,7 @@ describe('actions/IOU', () => {
                     // Track expense in self-DM with accountID: 0 (as getMoneyRequestParticipantsFromReport does)
                     // This simulates the scenario where user starts an expense from "Your Space"
                     requestMoney({
+                        isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         conciergeChat: undefined,
                         report: selfDMReport,
@@ -2435,20 +2453,20 @@ describe('actions/IOU', () => {
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
-                        isASAPSubmitBetaEnabled: false,
+                        isASAPSubmitBetaEnabled: true,
                         transactionViolations: {},
                         currentUserAccountIDParam: RORY_ACCOUNT_ID,
                         currentUserEmailParam: RORY_EMAIL,
                         policyRecentlyUsedCurrencies: [],
                         quickAction: undefined,
                         isSelfTourViewed: false,
-                        betas: [CONST.BETAS.ALL],
                         existingTransactionDraft: undefined,
                         draftTransactionIDs: [],
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         formatPhoneNumber,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2493,6 +2511,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: ''},
@@ -2510,7 +2529,7 @@ describe('actions/IOU', () => {
                         comment: 'delegate test',
                     },
                     shouldGenerateTransactionThreadReport: true,
-                    isASAPSubmitBetaEnabled: false,
+                    isASAPSubmitBetaEnabled: true,
                     transactionViolations: {},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
@@ -2519,11 +2538,11 @@ describe('actions/IOU', () => {
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2557,6 +2576,7 @@ describe('actions/IOU', () => {
                 mockFetch?.pause?.();
 
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat,
                     report: {reportID: ''},
@@ -2575,7 +2595,7 @@ describe('actions/IOU', () => {
                         isTestDrive: true,
                     },
                     shouldGenerateTransactionThreadReport: true,
-                    isASAPSubmitBetaEnabled: false,
+                    isASAPSubmitBetaEnabled: true,
                     transactionViolations: {},
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
@@ -2584,11 +2604,11 @@ describe('actions/IOU', () => {
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2623,6 +2643,7 @@ describe('actions/IOU', () => {
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When an expense is created
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action,
@@ -2648,7 +2669,7 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: '1',
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
@@ -2657,11 +2678,11 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2693,6 +2714,7 @@ describe('actions/IOU', () => {
 
             // When the expense is submitted
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: ''},
@@ -2711,7 +2733,7 @@ describe('actions/IOU', () => {
                     receipt,
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 transactionViolations: {},
@@ -2720,11 +2742,11 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -2758,6 +2780,7 @@ describe('actions/IOU', () => {
 
                 // When it is moved with a stale local receipt file
                 trackExpense({
+                    isDraftChatReport: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
@@ -2785,17 +2808,17 @@ describe('actions/IOU', () => {
                     },
                     accountantParams:
                         action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
-                    isASAPSubmitBetaEnabled: false,
+                    isASAPSubmitBetaEnabled: true,
                     currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                     introSelected: undefined,
                     quickAction: undefined,
                     recentWaypoints: [],
-                    betas: [CONST.BETAS.ALL],
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     currentUserLocalCurrency: undefined,
                     delegateAccountID: undefined,
                     reportActionsList: undefined,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2828,6 +2851,7 @@ describe('actions/IOU', () => {
 
                 // When it is moved before its upload response is processed
                 trackExpense({
+                    isDraftChatReport: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: {reportID: '123', policyID: 'A'},
@@ -2855,17 +2879,17 @@ describe('actions/IOU', () => {
                     },
                     accountantParams:
                         action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
-                    isASAPSubmitBetaEnabled: false,
+                    isASAPSubmitBetaEnabled: true,
                     currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                     introSelected: undefined,
                     quickAction: undefined,
                     recentWaypoints: [],
-                    betas: [CONST.BETAS.ALL],
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     currentUserLocalCurrency: undefined,
                     delegateAccountID: undefined,
                     reportActionsList: undefined,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2915,6 +2939,7 @@ describe('actions/IOU', () => {
 
                 // When it is submitted to a workspace with a stale local receipt file
                 requestMoney({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     action: CONST.IOU.ACTION.SUBMIT,
@@ -2946,7 +2971,7 @@ describe('actions/IOU', () => {
                         linkedTrackedExpenseReportID: '1',
                     },
                     shouldGenerateTransactionThreadReport: true,
-                    isASAPSubmitBetaEnabled: false,
+                    isASAPSubmitBetaEnabled: true,
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
                     transactionViolations: {},
@@ -2956,11 +2981,11 @@ describe('actions/IOU', () => {
                     draftTransactionIDs: [],
                     isSelfTourViewed: false,
                     quickAction: undefined,
-                    betas: [CONST.BETAS.ALL],
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -2995,6 +3020,7 @@ describe('actions/IOU', () => {
             const getCurrentSearchQueryJSONSpy = jest.spyOn(SearchQueryUtils, 'getCurrentSearchQueryJSON').mockReturnValue(currentSearchQueryJSON);
 
             requestMoney({
+                isVendorMatchingBetaEnabled: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 action: CONST.IOU.ACTION.CREATE,
@@ -3020,20 +3046,20 @@ describe('actions/IOU', () => {
                     linkedTrackedExpenseReportID: '1',
                 },
                 shouldGenerateTransactionThreadReport: true,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 isSelfTourViewed: false,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 existingTransactionDraft: undefined,
                 draftTransactionIDs: [],
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3077,6 +3103,7 @@ describe('actions/IOU', () => {
 
             // When a track expense is created
             trackExpense({
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
                 report: {reportID: '123', policyID: 'A'},
@@ -3103,17 +3130,17 @@ describe('actions/IOU', () => {
                 },
                 accountantParams:
                     action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}, newAccountIDs: [], newLogins: [], formatPhoneNumber} : undefined,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -3145,6 +3172,8 @@ describe('actions/IOU', () => {
                 transactionID: 'create-transaction-tx',
             };
             return {
+                isVendorMatchingBetaEnabled: false,
+                isDraftChatReport: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactions: [transaction],
                 conciergeChat: undefined,
@@ -3153,13 +3182,12 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
                 currentUserEmail: CREATE_TRANSACTION_USER_LOGIN,
                 shouldGenerateTransactionThreadReport: false,
-                isASAPSubmitBetaEnabled: false,
+                isASAPSubmitBetaEnabled: true,
                 quickAction: undefined,
                 files: [{transactionID: transaction.transactionID, source: 'receipt-source'}],
                 participant: {accountID: CREATE_TRANSACTION_USER_ACCOUNT_ID, login: CREATE_TRANSACTION_USER_LOGIN},
                 allTransactionDrafts: {},
                 isSelfTourViewed: false,
-                betas: [],
                 personalDetails: {},
                 recentWaypoints: [],
                 optimisticTransactionIDs: ['create-transaction-optimistic-tx'],
@@ -3168,6 +3196,7 @@ describe('actions/IOU', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 delegateAccountID: undefined,
+                rules: undefined,
             };
         };
 

@@ -6,11 +6,13 @@ import Text from '@components/Text';
 
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,6 +22,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -36,17 +39,16 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useMemo, useState} from 'react';
 
+type AssigneeListItem = ListItem & {
+    value: string;
+};
+
 type AssigneeStepProps = {
-    // The policy that the card will be issued under
+    /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Array of step names */
     stepNames: readonly string[];
-
-    /** Start from step index */
     startStepIndex: number;
-
-    /** Route params */
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
 };
 
@@ -58,10 +60,10 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const currentAssigneeFirstName = usePersonalDetailByLogin(issueNewCard?.data?.assigneeEmail, (personalDetail) => {
@@ -93,6 +95,9 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     const defaultFundID = useDefaultFundID(policyID);
     const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const isEditing = issueNewCard?.isEditing;
+
+    // Freeze the assignee that was selected when this step opened so the pre-selected member stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialAssigneeEmail = useInitialSelection(issueNewCard?.data?.assigneeEmail, {resetOnFocus: true});
 
     const submit = (assignee: ListItem) => {
         const data: Partial<IssueNewCardData> = {
@@ -141,7 +146,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         clearIssueNewCardFlow(policyID);
     };
 
-    const membersDetails: ListItem[] = [];
+    const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
@@ -151,6 +156,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             const personalDetail = employeePersonalDetails[email];
             membersDetails.push({
                 keyForList: email,
+                value: email,
                 text: personalDetail?.displayName,
                 alternateText: email,
                 login: email,
@@ -170,10 +176,13 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         sortAlphabetically(membersDetails, 'text', localeCompare);
     }
 
-    let assignees = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
+    // Pin the frozen initial assignee to the top of the full sorted list before any search filtering, so it keeps its top spot while searching (search filters the already-pinned list rather than reordering it).
+    const orderedMembersDetails = moveInitialSelectionToTop(membersDetails, initialAssigneeEmail ? [initialAssigneeEmail] : []);
+
+    let assignees: ListItem[] = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
     if (debouncedSearchTerm && areOptionsInitialized) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredMembersBeforeSearch = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
+        const filteredMembersBeforeSearch = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
         const filteredMembers = tokenizedSearch(filteredMembersBeforeSearch, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         const options = canInviteMembers
@@ -238,8 +247,9 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 onSelectRow={submit}
                 ListItem={UserListItem}
                 textInputOptions={textInputOptions}
-                isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
-                initiallyFocusedItemKey={issueNewCard?.data?.assigneeEmail}
+                isLoadingNewOptions={canInviteMembers && !!isSearchingForUsers}
+                initiallyFocusedItemKey={initialAssigneeEmail}
+                shouldScrollToFocusedIndexOnMount={false}
                 disableMaintainingScrollPosition
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding

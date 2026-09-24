@@ -23,10 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ReportActionItemThreadProps = {
-    /** The current report */
     report: OnyxEntry<Report>;
-
-    /** All the data of the action item */
     reportAction: ReportAction;
 
     /** Whether the thread item / message is being hovered */
@@ -49,7 +46,8 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
 
     const numberOfReplies = reportAction.childVisibleActionCount ?? 0;
@@ -72,7 +70,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                 <PressableWithSecondaryInteraction
                     onPress={() => {
                         const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
-                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
+                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={`${numberOfReplies} ${replyText}`}

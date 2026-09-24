@@ -5,12 +5,17 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function dismissOnly(runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
@@ -77,8 +82,8 @@ function dismissSuperWideRHP(destinationReportID: string | undefined, runAfterDi
     });
 }
 
-function dismissRHPToReport(reportID: string, runAfterDismiss: () => void) {
-    const report = getReportOrDraftReport(reportID);
+function dismissRHPToReport(reportID: string, runAfterDismiss: () => void, reportDraft: OnyxEntry<Report> | EmptyObject) {
+    const report = getReportOrDraftReport(reportID, undefined, undefined, reportDraft);
     const hasExistingTransactions = isMoneyRequestReport(report) && report?.transactionCount !== 0;
 
     if (!hasExistingTransactions) {
@@ -115,7 +120,8 @@ function dismissRHPToReport(reportID: string, runAfterDismiss: () => void) {
 // modal slides away, so the user never sees the wrong tab underneath.
 function dismissWideToNewSearchType(searchType: SearchDataTypes, runAfterDismiss: () => void) {
     const queryString = buildCannedSearchQuery({type: searchType});
-    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {
+    const searchKey = getSearchKeyForDataType(searchType);
+    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}), {
         afterTransition: runAfterDismiss,
     });
 }

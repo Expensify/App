@@ -48,7 +48,7 @@ import type Account from '@src/types/onyx/Account';
 import type {Delegate, DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import debounce from 'lodash/debounce';
@@ -221,18 +221,32 @@ function CopilotPage() {
     );
 
     const sortedDelegates = sortAlphabetically(
-        delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
+        delegates
+            .filter((delegateItem) => !delegateItem.optimisticAccountID)
+            .map((delegateItem) => ({
+                ...delegateItem,
+                sortKey: formatPhoneNumber(personalDetailsByLogin[delegateItem.email.toLowerCase()]?.displayName ?? delegateItem.email),
+            })),
         'sortKey',
         localeCompare,
     );
     const sortedDelegators = sortAlphabetically(
-        delegators.map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
+        delegators.map((delegator) => ({
+            ...delegator,
+            sortKey: formatPhoneNumber(personalDetailsByLogin[delegator.email.toLowerCase()]?.displayName ?? delegator.email),
+        })),
         'sortKey',
         localeCompare,
     );
     const searchableCopilots: SearchableCopilot[] = [
-        ...sortedDelegators.map((delegator) => ({...delegator, type: 'delegator' as const})),
-        ...sortedDelegates.map((delegateItem) => ({...delegateItem, type: 'delegate' as const})),
+        ...sortedDelegators.map((delegator) => ({
+            ...delegator,
+            type: 'delegator' as const,
+        })),
+        ...sortedDelegates.map((delegateItem) => ({
+            ...delegateItem,
+            type: 'delegate' as const,
+        })),
     ];
     const [searchInput, setSearchInput, filteredCopilots] = useSearchResults(searchableCopilots, filterCopilot);
     const filteredDelegators = filteredCopilots.filter((copilot) => copilot.type === 'delegator');
@@ -247,6 +261,7 @@ function CopilotPage() {
             const addDelegateErrors = errorFields?.addDelegate?.[email];
             const error = getLatestError(addDelegateErrors);
             const isOwnerRow = isAgentAccount === true && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
+            const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                 if (isEmptyObject(pendingAction)) {
@@ -273,12 +288,13 @@ function CopilotPage() {
                 icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
                 iconType: CONST.ICON_TYPE_AVATAR,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: isOwnerRow ? undefined : icons.ThreeDots,
-                shouldShowRightIcon: !isOwnerRow,
+                iconRight: isOwnerRow || isPendingDelete ? undefined : icons.ThreeDots,
+                shouldShowRightIcon: !isOwnerRow && !isPendingDelete,
                 pendingAction,
                 shouldForceOpacity: !!pendingAction,
                 onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                 error,
+                disabled: isPendingDelete,
                 onPress: isOwnerRow ? undefined : onPress,
                 interactive: !isOwnerRow,
                 success: selectedEmail === email,
@@ -424,7 +440,7 @@ function CopilotPage() {
         openSecuritySettingsPage();
     }, []);
 
-    const delegateAnchorRef = delegateButtonRef as RefObject<View | null>;
+    const delegateAnchorRef = delegateButtonRef as RefObject<ComponentRef<typeof View> | null>;
 
     return (
         <ScreenWrapper

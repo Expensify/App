@@ -52,6 +52,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -61,7 +62,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         email,
         localCurrencyCode,
         introSelected,
-        betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -122,6 +123,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
@@ -136,13 +138,13 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 paymentMethod,
                 activePolicy,
                 conciergeChat,
-                betas,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
                 chatReportActions,
                 delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
             return;
         }
@@ -158,6 +160,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         payMoneyRequest({
+            isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
             paymentType: type,
             chatReport: chatReportForPayment,
@@ -169,7 +172,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             activePolicy,
             policy,
             chatReportPolicy,
-            betas,
             isSelfTourViewed,
             userBillingGracePeriodEnds,
             amountOwed,
@@ -180,6 +182,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            rules,
         });
     };
 

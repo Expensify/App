@@ -1,11 +1,12 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import Composer from '@components/Composer';
-import type {ComposerRef} from '@components/Composer/types';
+import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
+import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 import Text from '@components/Text';
 import PopoverAnchorTooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
@@ -28,10 +29,12 @@ import getButtonState from '@libs/getButtonState';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
+import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
+import useComposerSuggestions from '@pages/inbox/report/ReportActionCompose/useComposerSuggestions';
 import useDebouncedCommentMaxLengthValidation from '@pages/inbox/report/ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
 
-import variables from '@styles/variables';
+import {lineHeightScale} from '@styles/typography';
 
 import {close} from '@userActions/Modal';
 import {saveConciergePromptDraft} from '@userActions/Report';
@@ -41,8 +44,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {NativeMethods, TextInputKeyPressEvent} from 'react-native';
+import type {ComponentRef} from 'react';
+import type {HostInstance, TextInputKeyPressEvent} from 'react-native';
 
+import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useAnimatedRef} from 'react-native-reanimated';
@@ -50,11 +55,22 @@ import {scheduleOnUI} from 'react-native-worklets';
 
 import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
-// Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
 
-// A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
-const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
+const DATE_LINE_HEIGHT = lineHeightScale.label;
+const GREETING_LINE_HEIGHT = lineHeightScale.h1;
+// The scale token carrying the composer's own line height (`textInputCompose`), which is what the bar stands in for.
+const PLACEHOLDER_LINE_HEIGHT = lineHeightScale.pageHeader;
+
+// A single line of placeholder text is one placeholder line height tall. Anything meaningfully taller has wrapped.
+const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = PLACEHOLDER_LINE_HEIGHT * 1.5;
+
+// Bar widths approximating the copy each one stands in for.
+const DATE_BAR_WIDTH = 120;
+const GREETING_BAR_WIDTH = 220;
+const PLACEHOLDER_BAR_WIDTH = 200;
+
+const PLACEHOLDER_SKELETON_TEST_ID = 'conciergePromptBoxPlaceholderSkeleton';
 
 type ConciergePromptBoxProps = {
     /**
@@ -64,9 +80,12 @@ type ConciergePromptBoxProps = {
      */
     isMenuVisible: boolean;
     setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Shows skeleton bars in place of the date, the greeting and the composer's placeholder. */
+    isCopyLoading: boolean;
 };
 
-function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBoxProps) {
+function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading}: ConciergePromptBoxProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -79,12 +98,13 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const {calculatePopoverPosition} = usePopoverPosition();
     const [draft] = useOnyx(ONYXKEYS.CONCIERGE_PROMPT_DRAFT);
     const [value, setValue] = useState(draft ?? '');
+    const isScreenFocused = useIsFocused();
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({reportID: conciergeTargetReportID});
 
     // Composer is a controlled input: the caret position must be tracked and fed back in (with
     // shouldCalculateCaretPosition), otherwise every value update re-renders it with the caret at the start.
-    const [selection, setSelection] = useState({start: value.length, end: value.length});
+    const [selection, setSelection] = useState<TextSelection>({start: value.length, end: value.length});
     const [lastSyncedDraft, setLastSyncedDraft] = useState(draft);
 
     const {saveDraft: debouncedSaveDraft, cancelSaveDraft} = useDebouncedSaveDraft(
@@ -109,15 +129,30 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const [isFocused, setIsFocused] = useState(false);
     const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
-    const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
-    const animatedRef = useAnimatedRef<NativeMethods>();
+    const actionButtonRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
+    const animatedRef = useAnimatedRef<HostInstance>();
+
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     // The native Composer only forwards its underlying input to a callback ref, so an object ref would never be populated.
     const composerRef = useRef<ComposerRef | null>(null);
 
+    const {suggestionsRef, measureParentContainerAndReportCursor, hideSuggestionMenu, onSaveScrollAndHideSuggestionMenu, raiseIsScrollLayoutTriggered} = useComposerSuggestions({
+        composerRef,
+        selection,
+        measureParentContainer: (callback) => containerRef.current?.measureInWindow(callback),
+    });
+
     const setComposerRef = (element: ComposerRef) => {
         animatedRef(element);
         composerRef.current = element;
+    };
+
+    // Shared by typing and by inserting a mention, so a mention takes the same validation and draft-save path as typed text.
+    const updateComment = (text: string) => {
+        setValue(text);
+        debouncedCommentMaxLengthValidation(text);
+        debouncedSaveDraft(text);
     };
 
     const clearInput = () => {
@@ -160,10 +195,15 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const longPlaceholder = translate('homePage.conciergePrompt.inputPlaceholder');
     const shortPlaceholder = translate('homePage.conciergePrompt.inputPlaceholderMobile');
 
-    // Use the long placeholder only on the wide layout once the probe confirms it fits one line.
-    // Default to the short copy until measured, so it never flashes a wrapped long placeholder that then collapses.
     const longPlaceholderFitsOneLine = longPlaceholderHeight !== null && longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
     const placeholder = shouldUseNarrowLayout || !longPlaceholderFitsOneLine ? shortPlaceholder : longPlaceholder;
+
+    // Typed text hides the placeholder anyway, so the bar has nothing to stand in for once a draft is restored.
+    const shouldShowPlaceholderSkeleton = isCopyLoading && !value;
+    // Which copy applies is only known once the probe has measured, so painting either one first means a visible swap.
+    // A breakpoint remount reopens that window on a loaded app, where a bar would claim the app is still loading.
+    const isPlaceholderSettled = shouldUseNarrowLayout || longPlaceholderHeight !== null;
+    const shouldWithholdPlaceholderCopy = shouldShowPlaceholderSkeleton || !isPlaceholderSettled;
     const canSubmit = shouldShowAskConcierge && value.trim().length > 0 && !isExceedingMaxLength;
 
     const canAddAttachment = shouldShowAskConcierge && !isExceedingMaxLength;
@@ -182,6 +222,11 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         if (canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
             return;
         }
+
+        if (suggestionsRef.current?.triggerHotkeyActions(event as unknown as KeyboardEvent)) {
+            return;
+        }
+
         const {nativeEvent} = event;
         const hasShiftModifier = 'shiftKey' in nativeEvent && !!nativeEvent.shiftKey;
         if (nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || hasShiftModifier) {
@@ -191,14 +236,45 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
         submit();
     };
 
+    useEffect(() => {
+        if (isScreenFocused) {
+            return;
+        }
+
+        hideSuggestionMenu();
+    }, [isScreenFocused, hideSuggestionMenu]);
+
     return (
         <View style={styles.gap6}>
             <View style={styles.gap1}>
-                <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
-                <Text style={styles.textHeadlineH1}>{greeting}</Text>
+                {/* The date and greeting wait on data that lands during app load (timezone, first name), so painting
+                    them early shows "Good morning." and then swaps it for "Good afternoon, <first name>". */}
+                {isCopyLoading ? (
+                    <>
+                        <SkeletonTextLine
+                            lineHeight={DATE_LINE_HEIGHT}
+                            barWidth={DATE_BAR_WIDTH}
+                        />
+                        <SkeletonTextLine
+                            lineHeight={GREETING_LINE_HEIGHT}
+                            barWidth={GREETING_BAR_WIDTH}
+                        />
+                    </>
+                ) : (
+                    <>
+                        <Text
+                            variant="label"
+                            style={styles.textLabelSupporting}
+                        >
+                            {dateLabel}
+                        </Text>
+                        <Text style={styles.textHeadlineH1}>{greeting}</Text>
+                    </>
+                )}
             </View>
             <View style={styles.pRelative}>
                 <View
+                    ref={containerRef}
                     testID="ConciergePromptBox"
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -235,13 +311,17 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                         }}
                                                         style={({hovered, pressed}) => [
                                                             styles.composerSizeButton,
-                                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment)),
+                                                            StyleUtils.getButtonBackgroundColorStyle(
+                                                                getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                            ),
                                                         ]}
                                                     >
                                                         {({hovered, pressed}) => (
                                                             <Icon
                                                                 src={icons.Plus}
-                                                                fill={StyleUtils.getIconFillColor(getButtonState(hovered && canAddAttachment, pressed && canAddAttachment))}
+                                                                fill={StyleUtils.getIconFillColor({
+                                                                    buttonState: getButtonState({isActive: hovered && canAddAttachment, isPressed: pressed && canAddAttachment}),
+                                                                })}
                                                             />
                                                         )}
                                                     </PressableWithoutFeedback>
@@ -288,15 +368,18 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             style={[styles.textInputCompose, styles.textInputCollapseCompose]}
                             value={value}
                             onChangeText={(text) => {
-                                setValue(text);
-                                debouncedCommentMaxLengthValidation(text);
-                                debouncedSaveDraft(text);
+                                raiseIsScrollLayoutTriggered();
+                                updateComment(text);
                             }}
+                            onScroll={onSaveScrollAndHideSuggestionMenu}
                             selection={selection}
                             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
                             shouldCalculateCaretPosition
                             onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
+                            onBlur={() => {
+                                setIsFocused(false);
+                                hideSuggestionMenu();
+                            }}
                             onKeyPress={handleKeyPress}
                             onPasteFile={(files) => {
                                 // Concierge isn't reachable yet, so there is nowhere to send the paste. Mirrors the disabled "+" button.
@@ -313,7 +396,8 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                             maxLines={MAX_INPUT_LINES}
                             multiline
                             textAlignVertical="top"
-                            placeholder={placeholder}
+                            // Blanked while the bar stands in for it, so the two never paint on top of each other.
+                            placeholder={shouldWithholdPlaceholderCopy ? '' : placeholder}
                             placeholderTextColor={theme.placeholderText}
                             accessibilityLabel={placeholder}
                         />
@@ -330,7 +414,29 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                 {longPlaceholder}
                             </Text>
                         </View>
+                        {shouldShowPlaceholderSkeleton && (
+                            <View
+                                testID={PLACEHOLDER_SKELETON_TEST_ID}
+                                pointerEvents="none"
+                                style={styles.conciergePromptBoxPlaceholderSkeleton}
+                            >
+                                <SkeletonTextLine
+                                    lineHeight={PLACEHOLDER_LINE_HEIGHT}
+                                    barWidth={PLACEHOLDER_BAR_WIDTH}
+                                />
+                            </View>
+                        )}
                     </View>
+                    <Suggestions
+                        ref={suggestionsRef}
+                        value={value}
+                        selection={selection}
+                        setSelection={setSelection}
+                        updateComment={updateComment}
+                        isComposerFocused={isFocused}
+                        measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                        isGroupPolicyReport={false}
+                    />
                     {/* Mirror ComposerSendButton: the justifyContentEnd wrapper stretches to the row height and anchors the send button to the bottom. */}
                     <View style={styles.justifyContentEnd}>
                         <SubmitDraftButton
@@ -359,3 +465,4 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
 }
 
 export default ConciergePromptBox;
+export {PLACEHOLDER_SKELETON_TEST_ID};

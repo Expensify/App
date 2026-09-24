@@ -1,7 +1,8 @@
 import useLocalize from '@hooks/useLocalize';
 
-import {updateMergeHRApprovalMode} from '@libs/actions/connections/MergeHR';
-import {getConnectedHRProvider, isMergeHRConnected} from '@libs/HRUtils';
+import {updateMergeApprovalMode} from '@libs/actions/connections/merge';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import {isMergeConnected} from '@libs/merge/MergeUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -10,8 +11,7 @@ import type {HRApprovalModeProviderConfig} from '@pages/workspace/hr/HRApprovalM
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-
-import type {ValueOf} from 'type-fest';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import React from 'react';
 
@@ -24,14 +24,15 @@ function MergeHRApprovalModePage({
 }: MergeHRApprovalModePageProps) {
     const {translate} = useLocalize();
 
-    const config: HRApprovalModeProviderConfig<ValueOf<typeof CONST.MERGE_HR.APPROVAL_MODE>> = {
+    const config: HRApprovalModeProviderConfig<MergeApprovalMode> = {
         testID: 'MergeHRApprovalModePage',
-        isConnected: isMergeHRConnected,
-        approvalModes: CONST.MERGE_HR.APPROVAL_MODE,
-        getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? null,
+        isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
+        approvalModes: CONST.MERGE.APPROVAL_MODE,
+        getCurrentApprovalMode: (policy) => policy?.connections?.merge_hris?.config?.approvalMode ?? undefined,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerApprovalMode', providerName),
-        handleSave: ({draftApprovalMode, currentApprovalMode}) => updateMergeHRApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
+        handleSave: ({draftApprovalMode, currentApprovalMode}) =>
+            updateMergeApprovalMode({policyID, connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR, approvalMode: draftApprovalMode, currentApprovalMode}),
     };
 
     return (

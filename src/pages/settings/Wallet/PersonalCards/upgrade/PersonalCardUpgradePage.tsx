@@ -4,7 +4,9 @@ import ScrollView from '@components/ScrollView';
 
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -35,24 +37,24 @@ function PersonalCardUpgradePage() {
     const {isOffline} = useNetwork();
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {accountID, email = ''} = currentUserPersonalDetails;
+    const delegateAccountID = useDelegateAccountID();
+    const {accountID, email = '', displayName} = currentUserPersonalDetails;
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
-            policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyName: generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-            policyOwnerEmail: '',
             transitionFromOldDot: false,
             makeMeAdmin: false,
             policyID,
@@ -63,8 +65,9 @@ function PersonalCardUpgradePage() {
             currentUserEmailParam: email,
             shouldCreateControlPolicy: false,
             isSelfTourViewed,
-            betas,
             hasActiveAdminPolicies,
+            delegateAccountID,
+            hasOwnedPaidPolicy,
         });
         setIsUpgraded(true);
     };

@@ -50,7 +50,7 @@ function HeaderDownloadButton({onPress, isLoading = false, iconFill}: HeaderDown
                 temporarilyDisableDownloadButton();
             }}
             iconSrc={icons.Download}
-            iconFill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+            iconFill={iconFill ?? StyleUtils.getIconFillColor({buttonState: getButtonState({isComplete: !isDownloadButtonActive})})}
             sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
         />
     );

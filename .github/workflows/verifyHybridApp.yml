@@ -76,6 +76,7 @@ jobs:
   verify_android:
     name: Verify Android HybridApp builds on main
     if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    cache-mode: read
     uses: ./.github/workflows/buildAndroid.yml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
@@ -85,8 +86,10 @@ jobs:
   verify_ios:
     name: Verify iOS HybridApp builds on main
     if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    cache-mode: read
     uses: ./.github/workflows/buildIOS.yml
     with:
       ref: ${{ github.event.pull_request.head.sha }}
       variant: Release
+      download-dsyms: true
     secrets: inherit

@@ -1,13 +1,13 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import {hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InternationalBankAccountForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccount, BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -115,21 +115,12 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
     return true;
 }
 
-function getInitialSubstep(
-    values: InternationalBankAccountForm,
-    fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap>,
-    skipInternationalBankAccountDetailsStep: boolean,
-) {
+function getInitialSubstep(values: InternationalBankAccountForm, fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap>) {
     if (values.bankCountry === '' || isEmptyObject(fieldsMap)) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR;
     }
     if (values.bankCurrency === '' || !testValidation(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS])) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS;
-    }
-    // When the international bank account details step is required but not yet satisfied, start there so a resumed or
-    // deep-linked flow can't land past it and submit without the IBAN/SWIFT.
-    if (!skipInternationalBankAccountDetailsStep && !hasValidInternationalBankAccountDetails(values.iban, values.swiftCode, values.accountNumber, values.swiftBicCode)) {
-        return CONST.CORPAY_FIELDS.INDEXES.MAPPING.INTERNATIONAL_BANK_ACCOUNT_DETAILS;
     }
     if (!testValidation(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE])) {
         return CONST.CORPAY_FIELDS.INDEXES.MAPPING.ACCOUNT_TYPE;
@@ -153,35 +144,16 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
         for (const rule of field.validationRules) {
             const regExpCheck = new RegExp(rule.regEx);
             if (!regExpCheck.test(values[fieldName])) {
-                addErrorMessage(errors, fieldName, rule.errorMessage);
+                // Corpay's strict SWIFT rule also requires a six-letter prefix, which its message may omit.
+                const errorMessage =
+                    fieldName === INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE && rule.regEx === CONST.CORPAY_FIELDS.STRICT_SWIFT_BIC_REGEX
+                        ? translate('addPersonalBankAccount.swiftBicFormatError')
+                        : rule.errorMessage;
+                addErrorMessage(errors, fieldName, errorMessage);
             }
         }
     }
     return errors;
 }
 
-function isInternationalBankAccountFieldLabel(label: string): boolean {
-    const normalizedLabel = label.toLowerCase();
-    return [CONST.CORPAY_FIELDS.IBAN_LABEL_KEYWORD, CONST.CORPAY_FIELDS.SWIFT_LABEL_KEYWORD].some((keyword) => normalizedLabel.includes(keyword));
-}
-
-function getAccountDetailsFieldsMap(accountDetailsFields: CorpayFieldsMap | undefined, shouldCollectInternationalDepositDetails: boolean): CorpayFieldsMap {
-    const fields = accountDetailsFields ?? {};
-    if (!shouldCollectInternationalDepositDetails) {
-        return fields;
-    }
-
-    // When we need to collect international bank account details, we'll check the initial set of bank account fields and mark the international fields as required. This minimizes the need to ask for more details in the next page.
-    const nextFields: CorpayFieldsMap = {};
-    for (const [fieldName, field] of Object.entries(fields)) {
-        nextFields[fieldName] = isInternationalBankAccountFieldLabel(field.label)
-            ? {
-                  ...field,
-                  isRequired: true,
-              }
-            : field;
-    }
-    return nextFields;
-}
-
-export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors, getAccountDetailsFieldsMap};
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors};
