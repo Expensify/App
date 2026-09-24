@@ -1,8 +1,6 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SubmitViolationsList from '@components/SubmitViolationsList';
 
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-
 import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
 
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -15,6 +13,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 import useConfirmModal from './useConfirmModal';
+import {useCurrencyListActions} from './useCurrencyList';
 import useLocalize from './useLocalize';
 
 /**

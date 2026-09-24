@@ -3128,6 +3128,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         queryJSON,
         expensifyIcons,
         translate,
+        dateFnsLocale,
+        convertToDisplayString,
         areAllMatchingItemsSelected,
         isExpenseType,
         isOffline,

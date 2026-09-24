@@ -3,7 +3,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {hasPendingRTERViolation, hasTransactionBeenRejected, isBrokenConnectionViolation} from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +10,8 @@ import type {Report, Transaction, TransactionViolation, TransactionViolations} f
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+
+import ViolationsUtils from './ViolationsUtils';
 
 type ReportSubmitViolationSummary = {
     /** A transaction on the report has its own AUTO_REPORTED_REJECTED_EXPENSE violation */

@@ -14,10 +14,11 @@ const translate = jest.fn((key: string, ...params: unknown[]) => {
     return suffix.length > 0 ? `${key}(${suffix})` : key;
 }) as unknown as LocaleContextProps['translate'];
 
-const convertToDisplayString = jest.fn((amount: number, currency: string) => `${amount} ${currency}`);
+const convertToDisplayString = jest.fn((amount: number | undefined, currency: string | undefined) => `${amount} ${currency}`);
 
 // Not exercised by the violation types covered here (overCategoryLimit doesn't need a formatted date), but
 // required by buildSubmitViolationBullets's params shape.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test double stands in for the unused date-fns Locale param
 const dateFnsLocale = {} as LocaleContextProps['dateFnsLocale'];
 
 function violationsKey(transactionID: string) {
