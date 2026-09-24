@@ -1,5 +1,6 @@
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -11,31 +12,60 @@ import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {useEffect, useRef} from 'react';
+
+/**
+ * Renders nothing and pushes the "a trip is in progress" prompt onto the global modal stack.
+ *
+ * The prompt is asked for by `closeReactNativeApp`, a non-React action that cannot call a hook, so the Onyx flag stays
+ * as the cross-boundary trigger and this component is the controller that turns it into a modal. Nothing other than
+ * the answer below clears the flag, so the entry never has to be taken down by hand.
+ */
 function GPSInProgressModal() {
     const [isGPSInProgressModalOpen] = useOnyx(ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {showConfirmModal} = useConfirmModal();
 
-    const stopGpsAndSwitchToOD = async () => {
-        setIsGPSInProgressModalOpen(false);
-        await stopGpsTrip(isOffline, getGpsPoints(gpsDraftDetails));
-        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
-    };
+    // Keeps a re-render from stacking a second prompt on top of the one that is already open.
+    const isPromptShownRef = useRef(false);
 
-    return (
-        <ConfirmModal
-            title={translate('gps.switchToODWarningTripInProgress.title')}
-            isVisible={!!isGPSInProgressModalOpen}
-            onCancel={() => setIsGPSInProgressModalOpen(false)}
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onConfirm={stopGpsAndSwitchToOD}
-            confirmText={translate('gps.switchToODWarningTripInProgress.confirm')}
-            cancelText={translate('common.cancel')}
-            prompt={translate('gps.switchToODWarningTripInProgress.prompt')}
-            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
-        />
-    );
+    // The trip keeps recording points while the prompt is open, so what gets submitted has to be read when the user
+    // answers rather than when the prompt is shown. Reading the render-time values inside the handler below would
+    // submit the trip as it stood at show time, which is a truncated trip.
+    const gpsDraftDetailsRef = useRef(gpsDraftDetails);
+    const isOfflineRef = useRef(isOffline);
+
+    useEffect(() => {
+        gpsDraftDetailsRef.current = gpsDraftDetails;
+        isOfflineRef.current = isOffline;
+
+        if (!isGPSInProgressModalOpen || isPromptShownRef.current) {
+            return;
+        }
+        isPromptShownRef.current = true;
+
+        showConfirmModal({
+            title: translate('gps.switchToODWarningTripInProgress.title'),
+            prompt: translate('gps.switchToODWarningTripInProgress.prompt'),
+            confirmText: translate('gps.switchToODWarningTripInProgress.confirm'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then(async (result) => {
+            isPromptShownRef.current = false;
+            setIsGPSInProgressModalOpen(false);
+
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            await stopGpsTrip(isOfflineRef.current, getGpsPoints(gpsDraftDetailsRef.current));
+            closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
+        });
+    }, [gpsDraftDetails, isGPSInProgressModalOpen, isOffline, showConfirmModal, translate]);
+
+    return null;
 }
 
 GPSInProgressModal.displayName = 'GPSInProgressModal';
