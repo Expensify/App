@@ -217,6 +217,10 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                             onBlur={() => setHasBeenBlurred(true)}
                             onSubmitEditing={onPress}
                             disableKeyboard
+                            // The field is focused so it stays keyboard reachable, but it holds a value picked from a
+                            // list rather than typed text, so the caret would be a caret you cannot type into.
+                            // `disableKeyboard` only suppresses the software keyboard, it does not hide the caret.
+                            caretHidden
                         />
                     </View>
                 )}
