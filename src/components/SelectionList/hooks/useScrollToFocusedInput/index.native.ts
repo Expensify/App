@@ -8,10 +8,13 @@ import type {EmitterSubscription, NativeScrollEvent, NativeSyntheticEvent, View}
 import {useCallback, useEffect, useRef} from 'react';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
 
-import type {UseScrollToFocusedInput} from './types';
+import type {ScrollInputIntoViewOptions, UseScrollToFocusedInput} from './types';
 
 /** Extra space (px) left between the focused input and the top of the visible list area after scrolling. */
 const EXTRA_SCROLL_PADDING = 16;
+
+/** Smallest distance (px) from the anchor worth scrolling for. */
+const MIN_SCROLL_DELTA = 1;
 
 type MeasureInWindowCallback = (x: number, y: number, width: number, height: number) => void;
 
@@ -57,7 +60,7 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
     }, []);
 
     const scrollInputIntoView = useCallback(
-        (input: MeasurableInput) => {
+        (input: MeasurableInput, {shouldRevealInputAboveAnchor = false, shouldScrollImmediately = false}: ScrollInputIntoViewOptions = {}) => {
             if (!isMeasurable(input)) {
                 return;
             }
@@ -77,16 +80,26 @@ const useScrollToFocusedInput: UseScrollToFocusedInput = (listRef, isKeyboardSho
                     input.measureInWindow((inputX, inputY) => {
                         const target = containerY + EXTRA_SCROLL_PADDING;
                         const delta = inputY - target;
-                        // The input is already at or above the target anchor, so there's nothing to do.
-                        if (delta <= 0) {
+                        // Sub-pixel measurements would otherwise queue a scroll on every keystroke.
+                        if (Math.abs(delta) < MIN_SCROLL_DELTA) {
                             return;
                         }
-                        list.scrollToOffset({offset: scrollOffsetRef.current + delta, animated: true});
+                        // Pulling an input down to the anchor hides list content the user scrolled to on purpose,
+                        // so callers have to ask for it.
+                        if (delta < 0 && !shouldRevealInputAboveAnchor) {
+                            return;
+                        }
+                        list.scrollToOffset({offset: scrollOffsetRef.current + delta, animated: !shouldScrollImmediately});
                     });
                 });
             };
 
             cleanup();
+
+            if (shouldScrollImmediately) {
+                performScroll();
+                return;
+            }
 
             // The keyboard is already up (e.g. moving focus between fields), so the layout is settled — scroll right away.
             if (isKeyboardShownRef.current) {

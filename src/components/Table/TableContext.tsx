@@ -1,3 +1,4 @@
+import type {ScrollInputIntoViewOptions} from '@components/SelectionList/hooks/useScrollToFocusedInput/types';
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
 import CONST from '@src/CONST';
@@ -47,7 +48,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Scrolls the table list so the given input stays visible above the keyboard (no-op on web). */
-    scrollInputIntoView: (input: MeasurableInput) => void;
+    scrollInputIntoView: (input: MeasurableInput, options?: ScrollInputIntoViewOptions) => void;
 
     /** FlashList props passed through from the Table component. */
     listProps: SharedListProps<DataType>;

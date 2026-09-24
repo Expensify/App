@@ -12,7 +12,7 @@ import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
@@ -117,6 +117,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         noResultsStateElement,
         tableListMetadata,
         isEmptyResult,
+        activeSearchString,
     } = useTableContext<TableData>();
     const {
         ListEmptyComponent,
@@ -164,10 +165,14 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
         ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
         : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
-    const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader};
+    // Typing scrolls the focused search input back into view, which crosses the point where the sticky header
+    // releases. The overlay copy only unmounts once a scroll event has made the round trip through JS, so it would
+    // otherwise still be on screen next to the real header row. Dropping it for the same commit avoids that pairing.
+    const searchScrollCorrection = Platform.OS === 'android' ? activeSearchString : '';
+    const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader, searchScrollCorrection};
     const [previousListState, setPreviousListState] = useState(currentListState);
     const shouldResetListLoad = previousListState.shouldRenderFlashList !== shouldRenderFlashList;
-    const shouldResetStickyHeader = previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader;
+    const shouldResetStickyHeader = previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader || previousListState.searchScrollCorrection !== searchScrollCorrection;
 
     if (shouldResetListLoad || shouldResetStickyHeader) {
         setPreviousListState(currentListState);

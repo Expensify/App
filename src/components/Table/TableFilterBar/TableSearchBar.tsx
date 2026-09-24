@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React, {useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
+import {Platform} from 'react-native';
 
 /**
  * Renders a search input that filters table data.
@@ -74,6 +75,16 @@ function TableSearchBar({label}: TableSearchBarProps) {
         // old row offset so the focused input stays in the viewport while the keyboard remains open.
         listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [isEmptyResult, listRef]);
+
+    useEffect(() => {
+        if (Platform.OS !== 'android' || !isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        // Android brings only the caret back on screen when the user types into an input that was scrolled off the
+        // top, which leaves the field clipped. Finish the reveal so the whole field lands below the list anchor.
+        scrollInputIntoView(inputRef.current, {shouldRevealInputAboveAnchor: true, shouldScrollImmediately: true});
+    }, [activeSearchString, scrollInputIntoView]);
 
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);
