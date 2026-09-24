@@ -1,14 +1,29 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const esbuild = require('esbuild');
-const {transformSync} = require('oxc-transform-react');
 
 const babelJest = require('babel-jest');
-const OXC_TRANSFORM_REACT_VERSION = require('oxc-transform-react/package.json').version;
 const oxcReactCompilerConfig = require('./oxcReactCompilerConfig');
 
 const babelTransformer = babelJest.createTransformer();
+
+/**
+ * esbuild and oxc-transform-react are native modules, loaded once per worker. Requiring them lazily
+ * keeps a run that never takes the OXC path from paying for them at all.
+ *
+ * @returns {{esbuild: typeof import('esbuild'), transformSync: Function, oxcVersion: string}}
+ */
+let oxcPipeline;
+function getOxcPipeline() {
+    if (!oxcPipeline) {
+        oxcPipeline = {
+            esbuild: require('esbuild'),
+            transformSync: require('oxc-transform-react').transformSync,
+            oxcVersion: require('oxc-transform-react/package.json').version,
+        };
+    }
+    return oxcPipeline;
+}
 
 const NODE_MODULES_RE = /[/\\]node_modules[/\\]/;
 const TESTS_RE = /[/\\]tests[/\\]/;
@@ -38,7 +53,7 @@ const ESBUILD_HELPERS = [
 
 /**
  * Apply the helper rewrites above. A helper is absent whenever a module does not need it, but one
- * that is present in a shape we do not recognise means esbuild changed it and the patch is now a
+ * that is present in a shape we do not recognize means esbuild changed it and the patch is now a
  * silent no-op, so fail instead.
  *
  * @param {string} code
@@ -76,11 +91,21 @@ function getLang(filename) {
     return 'jsx';
 }
 
-function shouldUseOxc(filename) {
+/**
+ * Coverage instruments whatever the transformer returns, so the OXC path would run OXC, esbuild and
+ * then istanbul on every file, where babel-jest emits the instrumentation in the pass it is already
+ * doing. Measured on one CI shard that is slower and holds more memory, so a `--coverage` run stays
+ * on babel-jest.
+ */
+function shouldUseOxc(filename, transformOptions) {
+    if (transformOptions?.instrument) {
+        return false;
+    }
     return !NODE_MODULES_RE.test(filename) && !TESTS_RE.test(filename) && !JEST_SETUP_RE.test(filename) && !MOCKS_RE.test(filename) && !TEST_FILE_RE.test(filename);
 }
 
 function processWithOxc(sourceText, sourcePath) {
+    const {esbuild, transformSync} = getOxcPipeline();
     const oxcResult = transformSync(sourcePath, sourceText, {
         lang: getLang(sourcePath),
         sourcemap: true,
@@ -106,9 +131,11 @@ function processWithOxc(sourceText, sourcePath) {
 module.exports = {
     canInstrument: false,
     getCacheKey(sourceText, sourcePath, transformOptions) {
-        if (!shouldUseOxc(sourcePath)) {
+        if (!shouldUseOxc(sourcePath, transformOptions)) {
             return babelTransformer.getCacheKey(sourceText, sourcePath, transformOptions);
         }
+
+        const {esbuild, oxcVersion} = getOxcPipeline();
 
         return crypto
             .createHash('sha1')
@@ -118,11 +145,11 @@ module.exports = {
             .update(TRANSFORMER_SOURCE)
             .update(REACT_COMPILER_CONFIG_KEY)
             .update(esbuild.version)
-            .update(OXC_TRANSFORM_REACT_VERSION)
+            .update(oxcVersion)
             .digest('hex');
     },
     process(sourceText, sourcePath, transformOptions) {
-        if (shouldUseOxc(sourcePath)) {
+        if (shouldUseOxc(sourcePath, transformOptions)) {
             const result = processWithOxc(sourceText, sourcePath);
             if (result) {
                 return result;
