@@ -133,8 +133,8 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
 
         // Then the admin is warned that every other workflow will be deleted, and Carol is not added until they confirm
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(getShowConfirmModalOption('title')).toBe(translateLocal('workflowsExpensesFromPage.moveEveryoneToNewWorkflowTitle'));
-        expect(getShowConfirmModalOption('prompt')).toBe(translateLocal('workflowsExpensesFromPage.moveEveryoneToNewWorkflowPrompt'));
+        expect(getShowConfirmModalOption('title')).toBe(translateLocal('workflowsExpensesFromPage.moveEveryoneToThisWorkflowTitle'));
+        expect(getShowConfirmModalOption('prompt')).toBe(translateLocal('workflowsExpensesFromPage.moveEveryoneToThisWorkflowPrompt'));
         expect(await getWorkflowMemberEmails()).toEqual([ADMIN_EMAIL, BOB_EMAIL]);
 
         // When the admin confirms
@@ -170,15 +170,24 @@ describe('DynamicWorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         expect(await getWorkflowMemberEmails()).toEqual([ADMIN_EMAIL, BOB_EMAIL]);
     });
 
-    it('does not warn when selecting the last member of an existing workflow', async () => {
+    it('warns before moving everyone into an existing workflow and adds the last member once confirmed', async () => {
         // Given an existing workflow being edited that has every workspace member except Carol
         await renderPage(CONST.APPROVAL_WORKFLOW.ACTION.EDIT, [ADMIN_EMAIL, BOB_EMAIL]);
 
-        // When the admin selects Carol
+        // When the admin selects Carol, the last member left
         await selectMember(CAROL_EMAIL);
 
-        // Then Carol is added right away because the warning only covers creating a new workflow
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        // Then the admin gets the same warning as when creating a workflow, and Carol is not added until they confirm
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(getShowConfirmModalOption('title')).toBe(translateLocal('workflowsExpensesFromPage.moveEveryoneToThisWorkflowTitle'));
+        expect(getShowConfirmModalOption('prompt')).toBe(translateLocal('workflowsExpensesFromPage.moveEveryoneToThisWorkflowPrompt'));
+        expect(await getWorkflowMemberEmails()).toEqual([ADMIN_EMAIL, BOB_EMAIL]);
+
+        // When the admin confirms
+        resolveShowConfirmModal({action: MockModalActions.CONFIRM});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then everyone is in the edited workflow
         expect(await getWorkflowMemberEmails()).toEqual([ADMIN_EMAIL, BOB_EMAIL, CAROL_EMAIL]);
     });
 });

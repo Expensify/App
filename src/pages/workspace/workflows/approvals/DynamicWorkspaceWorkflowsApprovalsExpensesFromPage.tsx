@@ -518,15 +518,15 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 setApprovalWorkflowMembers(workflowMembers);
             };
 
-            // Warn when selecting the last unselected workspace member of a new workflow: that moves everyone
-            // into it, which deletes every other workflow.
+            // Warn when selecting the last unselected workspace member: that moves everyone into this workflow,
+            // which deletes every other workflow.
             const selectedLogins = new Set(selectedMembers.map((member) => normalizeLogin(member.login)));
             const unselectedLogins = liveAvailableMembers.map((member) => normalizeLogin(member.email)).filter((login) => !selectedLogins.has(login));
             const isSelectingLastMember = unselectedLogins.length === 1 && members.some((member) => normalizeLogin(member.login) === unselectedLogins.at(0));
-            if (isCreateAction && isSelectingLastMember) {
+            if (isSelectingLastMember) {
                 showConfirmModal({
-                    title: translate('workflowsExpensesFromPage.moveEveryoneToNewWorkflowTitle'),
-                    prompt: translate('workflowsExpensesFromPage.moveEveryoneToNewWorkflowPrompt'),
+                    title: translate('workflowsExpensesFromPage.moveEveryoneToThisWorkflowTitle'),
+                    prompt: translate('workflowsExpensesFromPage.moveEveryoneToThisWorkflowPrompt'),
                     confirmText: translate('common.confirm'),
                     cancelText: translate('common.cancel'),
                 }).then((result) => {

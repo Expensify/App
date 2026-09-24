@@ -3021,9 +3021,9 @@ ${amount} pour ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Membre déjà dans un workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} fait déjà partie d’un workflow d’approbation qui soumet à ${approverName}. L’ajouter ici le déplacera vers ce workflow.`,
-        moveEveryoneToNewWorkflowTitle: 'Déplacer tout le monde vers un nouveau workflow',
-        moveEveryoneToNewWorkflowPrompt:
-            'Vous êtes sur le point de déplacer tout le monde vers un nouveau workflow d’approbation. Cela supprimera tous les workflows d’approbation existants et déplacera tout le monde vers le nouveau. Cette action est irréversible.',
+        moveEveryoneToThisWorkflowTitle: 'Déplacer tout le monde vers ce workflow',
+        moveEveryoneToThisWorkflowPrompt:
+            'Vous êtes sur le point de déplacer tout le monde vers ce workflow d’approbation. Cela supprimera tous les autres workflows d’approbation et déplacera tout le monde vers celui-ci. Cette action est irréversible.',
         header: 'Quand les membres suivants soumettent des dépenses :',
     },
     workflowsApproverPage: {

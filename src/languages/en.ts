@@ -3112,9 +3112,9 @@ const translations = {
         memberAlreadyInWorkflowTitle: 'Member already in a workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} is already in an approval workflow that submits to ${approverName}. Adding them here will move them to this workflow.`,
-        moveEveryoneToNewWorkflowTitle: 'Move everyone to a new workflow',
-        moveEveryoneToNewWorkflowPrompt:
-            'You’re about to move everyone to a new approval workflow. This will delete all existing approval workflows and move everyone to the new one. This action can’t be undone.',
+        moveEveryoneToThisWorkflowTitle: 'Move everyone to this workflow',
+        moveEveryoneToThisWorkflowPrompt:
+            'You’re about to move everyone to this approval workflow. This will delete all other approval workflows and move everyone to this one. This action can’t be undone.',
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
