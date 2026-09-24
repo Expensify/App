@@ -583,10 +583,7 @@ function MoneyRequestReportTransactionList({
         const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         for (const transaction of resolvedTransactions) {
-            map.set(
-                transaction.transactionID,
-                filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined, policyTagLists),
-            );
+            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined, policyTagLists));
         }
         return map;
     }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, ownerLogin, policy, policyTagLists]);

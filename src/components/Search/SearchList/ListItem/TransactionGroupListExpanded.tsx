@@ -177,12 +177,7 @@ function TransactionGroupListExpandedImpl({
             const storedViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             map.set(
                 transaction.transactionID,
-                syncTagOutOfPolicyViolation(
-                    storedViolations ?? [],
-                    transaction,
-                    policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`],
-                    transaction.policy,
-                ),
+                syncTagOutOfPolicyViolation(storedViolations ?? [], transaction, policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`], transaction.policy),
             );
         }
         return map;
