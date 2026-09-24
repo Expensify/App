@@ -22,7 +22,6 @@ const KNOWN_REPLACEMENTS = {
     'p5:p8': 'cardPadding',
     'mhn5:mhn8': 'cardEdgeToEdge',
     'pl5:pl8': 'cardPaddingLeft',
-    'mh5:mh8': 'cardMarginHorizontal',
 };
 const SPACING_CLASS_PATTERN = /^([pm](?:h|l|r|hn|ln|rn)?)(\d+)$/;
 const CARD_PADDING_STEPS = {narrow: '5', wide: '8'};
