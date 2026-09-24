@@ -10004,6 +10004,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         genericUpdateReportFieldFailureMessage: 'Erreur inattendue lors de la mise à jour du champ. Veuillez réessayer plus tard.',
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage de la note de frais. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
+        collapsedSystemMessages: () => ({
+            one: 'afficher 1 mise à jour',
+            other: (count: number) => `afficher ${count} mises à jour`,
+        }),
         connectionSettings: 'Paramètres de connexion',
         actions: {
             type: {

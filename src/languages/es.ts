@@ -9807,6 +9807,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 actualización',
+            other: (count: number) => `mostrar ${count} actualizaciones`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {

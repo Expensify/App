@@ -9904,6 +9904,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         genericUpdateReportFieldFailureMessage: 'Erro inesperado ao atualizar o campo. Tente novamente mais tarde.',
         genericUpdateReportNameEditFailureMessage: 'Erro inesperado ao renomear o relatório. Tente novamente mais tarde.',
         noActivityYet: 'Ainda não há atividade',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 atualização',
+            other: (count: number) => `mostrar ${count} atualizações`,
+        }),
         connectionSettings: 'Configurações de conexão',
         actions: {
             type: {

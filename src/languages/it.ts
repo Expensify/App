@@ -9936,6 +9936,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericUpdateReportFieldFailureMessage: "Errore imprevisto durante l'aggiornamento del campo. Riprova più tardi.",
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del report. Riprova più tardi.',
         noActivityYet: 'Ancuna nessuna attività',
+        collapsedSystemMessages: () => ({
+            one: 'mostra 1 aggiornamento',
+            other: (count: number) => `mostra ${count} aggiornamenti`,
+        }),
         connectionSettings: 'Impostazioni di connessione',
         actions: {
             type: {

@@ -9793,6 +9793,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポート名の変更中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         noActivityYet: 'まだアクティビティがありません',
+        collapsedSystemMessages: () => ({
+            one: '1件の更新を表示',
+            other: (count: number) => `${count}件の更新を表示`,
+        }),
         connectionSettings: '接続設定',
         actions: {
             type: {

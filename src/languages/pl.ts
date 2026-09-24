@@ -9926,6 +9926,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericUpdateReportFieldFailureMessage: 'Nieoczekiwany błąd podczas aktualizowania pola. Spróbuj ponownie później.',
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Spróbuj ponownie później.',
         noActivityYet: 'Brak aktywności',
+        collapsedSystemMessages: () => ({
+            one: 'pokaż 1 aktualizację',
+            other: (count: number) => `pokaż ${count} ${count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14) ? 'aktualizacje' : 'aktualizacji'}`,
+        }),
         connectionSettings: 'Ustawienia połączenia',
         actions: {
             type: {
