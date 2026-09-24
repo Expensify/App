@@ -21,6 +21,8 @@ import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 
+import {completeOnboarding} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import {MergeIntoAccountAndLogin} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +45,16 @@ jest.mock('@libs/actions/Link', () => ({
     getInternalNewExpensifyPath: jest.fn(() => '/mock-path'),
     getInternalExpensifyPath: jest.fn(() => '/mock-path'),
 }));
+
+jest.mock('@userActions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        completeOnboarding: jest.fn().mockResolvedValue(undefined),
+    };
+});
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -125,6 +137,7 @@ const renderOnboardingPrivateDomainPage = (
 };
 
 const navigate = jest.spyOn(Navigation, 'navigate');
+const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 
 function MergeIntoAccountAndLoginBlockMerge() {
     const originalXhr = HttpUtils.xhr;
@@ -1341,6 +1354,63 @@ describe('OnboardingPrivateDomain Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_EMPLOYEES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should complete Join Workspace onboarding with saved personal details after skipping verification', async () => {
+        // Given a user already supplied a name before selecting Join Workspace, skipping verification must not ask for that name again.
+        await TestHelper.signInWithTestUser(1, 'test@privatecompany.com');
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName: 'Saved', lastName: 'Name'});
+        });
+
+        const {unmount} = renderOnboardingPrivateDomainPage(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user skips private-domain verification, complete onboarding using the already saved name.
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.skip')));
+
+        // Then completion receives the saved name and Join Workspace intent instead of opening Personal Details again.
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                    firstName: 'Saved',
+                    lastName: 'Name',
+                }),
+            );
+        });
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), expect.anything());
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should ask for personal details before completing Join Workspace onboarding when no name is saved', async () => {
+        // Given a user with a Join Workspace intent and no saved name, the existing personal-details step is still required.
+        await TestHelper.signInWithTestUser(1, 'test@privatecompany.com');
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+        });
+
+        const {unmount} = renderOnboardingPrivateDomainPage(SCREENS.ONBOARDING.PRIVATE_DOMAIN, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user skips verification, continue to the required personal-details form.
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.skip')));
+
+        // Then onboarding is not completed without the user's name.
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), undefined);
+        });
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
