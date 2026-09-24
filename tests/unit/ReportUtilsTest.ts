@@ -12008,8 +12008,8 @@ describe('ReportUtils', () => {
             });
 
             it('should still return HAS_DEW_APPROVE_FAILED for the approver when the failure was an auto-approval block', async () => {
-                // Given an auto-approval block (automaticAction: true), which is still actionable — the Approve button stays
-                // enabled so the approver can approve manually. Only the next step differs, not the green dot.
+                // Given an auto-approval block (automaticAction: true), which is still actionable because the Approve
+                // button stays enabled so the approver can approve manually. Only the next step differs, not the green dot.
                 const {report, allReportActionsParam} = buildDEWReport(71020, currentUserAccountID, true);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
@@ -12043,14 +12043,14 @@ describe('ReportUtils', () => {
                     getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, accountID, undefined, isReportArchived.current, allReportActionsParam),
                 );
 
-                // Then the gate fails closed — nobody gets a dot, rather than everybody getting one
+                // Then the gate fails closed, so nobody gets a dot rather than everybody getting one
                 for (const result of results) {
                     expect(result?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
                 }
             });
 
             it('should not return HAS_DEW_APPROVE_FAILED for the approver when the report is archived', async () => {
-                // Given an archived DEW report that failed approval — there is nothing left to action on it
+                // Given an archived DEW report that failed approval, where there is nothing left to action on it
                 const {report, allReportActionsParam} = buildDEWReport(71040, currentUserAccountID);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
