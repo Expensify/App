@@ -7,7 +7,7 @@
  * disable directive can reach this check because it does not go through ESLint's message pipeline.
  *
  * Blanket `eslint-disable` / `eslint-disable-next-line` with no rule list counts only when it
- * covers a real banned call: Onyx.connect(), or Onyx.get() for the read rule. Unrelated blanket comments (e.g. around ReportUtils) remain
+ * covers a real banned call: Onyx.connect(), or Onyx.get() and Onyx.multiGet() for the read rule. Unrelated blanket comments (e.g. around ReportUtils) remain
  * ignored. Call sites are found via the Babel AST so comments and grouping parens cannot hide a
  * banned member access from a source scan.
  */
@@ -59,12 +59,12 @@ const ONYX_READ_BAN: BannedRule = {
     id: 'rulesdir/no-unsafe-onyx-read',
     name: 'no-unsafe-onyx-read',
     objects: new Set(['Onyx']),
-    methods: new Set(['get']),
+    methods: new Set(['get', 'multiGet']),
     grandfathered: new Map<string, number>([['src/setup/addUtilsToWindow.ts', 1]]),
     appliesTo: (file) => file.startsWith('src/'),
     searchTerms: ['Onyx', 'eslint-disable'],
     message:
-        'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() only from event handlers or useCallback bodies in components, pages and hooks.',
+        'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers or useCallback bodies in components, pages and hooks.',
 };
 
 const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN];

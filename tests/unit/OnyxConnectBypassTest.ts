@@ -165,6 +165,15 @@ describe('no-unsafe-onyx-read bypasses', () => {
         expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
+    it('flags a blanket disable that covers an Onyx.multiGet call', () => {
+        // Given a blanket disable over a multi-key read
+        const source = ['/* eslint-disable */', `await Onyx${'.multiGet'}([ONYXKEYS.SESSION]);`].join('\n');
+
+        // When the read ban scans it
+        // Then it counts, because the rule checks multiGet the same way it checks get
+        expect(collectDisableDirectivesFromSource(source, 'src/libs/Foo.ts', ONYX_READ_BAN)).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('ignores a blanket disable that covers no read', () => {
         // Given a blanket disable over code that never reads Onyx
         const source = ['/* eslint-disable */', 'console.log(1);'].join('\n');

@@ -37,11 +37,12 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
-## Reading Onyx data: `useOnyx`, `Onyx.connectWithoutView` and `Onyx.get()`
-There are three ways to read Onyx data, and `Onyx.connect` is deprecated:
+## Reading Onyx data: `useOnyx`, `Onyx.connectWithoutView`, `Onyx.get()` and `Onyx.multiGet()`
+There are four ways to read Onyx data, and `Onyx.connect` is deprecated:
 1. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
 2. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when `useOnyx` genuinely does not fit.
 3. **`Onyx.get()`**: an asynchronous, one-shot read of the cache that never subscribes, for event handlers in components, pages and hooks.
+4. **`Onyx.multiGet()`**: a thin wrapper around `Onyx.get()` that calls it for each key in an array and resolves the values in the same order. Every `Onyx.get()` rule below applies to it and to each key it reads.
 
 ### - Prefer a pure function over reading Onyx at all
 A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
@@ -65,7 +66,7 @@ In rare cases a component that subscribes to multiple large collections through 
 It reads the cache once and never subscribes, so the value it returns MUST NOT reach rendered output, directly or through state, a ref or a module variable. Use it in event handlers and `useCallback` bodies under `src/components`, `src/pages` and `src/hooks`. Never during render, at module scope, or in code an effect runs.
 
 ### - `Onyx.get()` MUST NOT read the Search snapshot keys
-`@hooks/useOnyx` redirects the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` to a Search snapshot inside a `SearchScopeProvider`, and `Onyx.get()` always reads the global key. These keys stay on `useOnyx`.
+`@hooks/useOnyx` redirects the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` to a Search snapshot inside a `SearchScopeProvider`, and `Onyx.get()` always reads the global key. These keys stay on `useOnyx`, and no element of an `Onyx.multiGet()` key list may be one of them. Write that list as an array literal of static keys, or a `const` bound to one, so lint can check each element.
 
 ### - Reads MUST come before a write in the same tick, or after the write is awaited
 `Onyx.get()` captures the cache when it is called, and most writes land later, so a read queued behind a write returns the old value. A derived key (`ONYXKEYS.DERIVED.*`) lags its sources, so read it only before writing them.
