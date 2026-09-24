@@ -19,7 +19,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    getWorkflowMemberEmails,
+    includesEveryWorkspaceMember,
+} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -114,11 +121,15 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
+        // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+        const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
+        const workflowToSave = {...approvalWorkflow, isDefault};
+
         startWithLoading(() => {
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
                 Navigation.dismissModal({
                     afterTransition: () => {
-                        updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow, policy, rules: rulesCollection});
+                        updateApprovalWorkflowRules({approvalWorkflow: workflowToSave, initialApprovalWorkflow, policy, rules: rulesCollection});
                     },
                 });
                 return;
@@ -129,7 +140,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
             Navigation.dismissModal({
                 afterTransition: () => {
-                    updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
+                    updateApprovalWorkflow(workflowToSave, membersToRemove, approversToRemove, policy);
                 },
             });
         });

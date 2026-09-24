@@ -28,7 +28,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getApproverChainKey, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey} from '@libs/WorkflowUtils';
+import {getApproverChainKey, getApprovalWorkflowRulesForPolicy, getRulesSubmitterToFirstApprover, getRulesSubmitterToWorkflowKey, includesEveryWorkspaceMember} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -520,9 +520,9 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
 
             // Warn when selecting the last unselected workspace member: that moves everyone into this workflow,
             // which deletes every other workflow.
-            const selectedLogins = new Set(selectedMembers.map((member) => normalizeLogin(member.login)));
-            const unselectedLogins = liveAvailableMembers.map((member) => normalizeLogin(member.email)).filter((login) => !selectedLogins.has(login));
-            const isSelectingLastMember = unselectedLogins.length === 1 && members.some((member) => normalizeLogin(member.login) === unselectedLogins.at(0));
+            const selectedLogins = selectedMembers.map((member) => member.login);
+            const nextSelectedLogins = members.map((member) => member.login);
+            const isSelectingLastMember = !includesEveryWorkspaceMember(selectedLogins, policy?.employeeList) && includesEveryWorkspaceMember(nextSelectedLogins, policy?.employeeList);
             if (isSelectingLastMember) {
                 showConfirmModal({
                     title: translate('workflowsExpensesFromPage.moveEveryoneToThisWorkflowTitle'),
@@ -586,7 +586,6 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             isMultipleApproversBetaEnabled,
             firstApprover,
             selectedMembers,
-            liveAvailableMembers,
             membersInExistingWorkflows,
             submitterToWorkflowKey,
             currentWorkflowKey,
