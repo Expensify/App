@@ -2391,7 +2391,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 // so send the search query to the backend and let it resolve the reports. The searchKey changes what
                 // the backend query matches, so it must be sent exactly as search() does or the exported set differs from the viewed set.
                 if (areAllMatchingItemsSelected) {
-                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend({...queryJSON, searchKey: currentSearchKey}) : JSON.stringify(queryJSON);
+                    const allMatchingReportQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                    if (!allMatchingReportQuery) {
+                        setIsDownloadErrorModalVisible(true);
+                        return;
+                    }
+                    const serializedQuery = serializeQueryJSONForBackend({...allMatchingReportQuery, searchKey: currentSearchKey});
                     exportReportsToPDF([], serializedQuery);
 
                     // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
