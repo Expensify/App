@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import PulsingView from '@components/PulsingView';
@@ -311,7 +311,7 @@ function SearchPageNarrow({
                             </View>
                         ) : (
                             <>
-                                <HeaderWithBackButton
+                                <HeaderWithBackButtonAndTitle
                                     title={translate('common.selectMultiple')}
                                     onBackButtonPress={() => {
                                         topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);

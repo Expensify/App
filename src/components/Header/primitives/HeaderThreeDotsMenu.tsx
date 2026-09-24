@@ -42,4 +42,3 @@ function HeaderThreeDotsMenu({items, onIconPress = () => {}, shouldOverlay = fal
 }
 
 export default HeaderThreeDotsMenu;
-export {DEFAULT_ANCHOR_ALIGNMENT};

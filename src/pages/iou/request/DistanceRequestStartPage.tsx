@@ -1,5 +1,5 @@
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 
@@ -161,7 +161,7 @@ function DistanceRequestStartPage({
                         onContainerElementChanged={setHeaderWithBackButtonContainerElement}
                         style={[styles.w100]}
                     >
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={tabTitles[iouType]}
                             onBackButtonPress={navigateBack}
                         />

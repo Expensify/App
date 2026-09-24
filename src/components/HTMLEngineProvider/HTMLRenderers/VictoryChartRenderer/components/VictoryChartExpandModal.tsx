@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import Modal from '@components/Modal';
 
 import useLocalize from '@hooks/useLocalize';
@@ -68,14 +68,11 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
             {/* GestureHandlerRootView is required for gestures inside an Android modal (separate native window),
                 and painting appBG here avoids the unpainted modal base flashing through on dark themes */}
             <GestureHandlerRootView style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
-                <HeaderWithBackButton
-                    title={translate('common.details')}
-                    shouldShowBorderBottom
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldShowCloseButton={!shouldUseNarrowLayout}
-                    onBackButtonPress={onClose}
-                    onCloseButtonPress={onClose}
-                />
+                <Header style={styles.borderBottom}>
+                    {shouldUseNarrowLayout && <Header.BackButton onPress={onClose} />}
+                    <Header.Title title={translate('common.details')} />
+                    <Header.Right>{!shouldUseNarrowLayout && <Header.CloseButton onPress={onClose} />}</Header.Right>
+                </Header>
                 <View style={[styles.flex1, styles.ph5]}>
                     <View
                         style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}

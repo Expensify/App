@@ -3,7 +3,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
@@ -1117,7 +1117,7 @@ function IOURequestStepConfirmationContent({
                      * so this inner header must be hidden to prevent duplicate back buttons and title layout issues.
                      */}
                     {!shouldHideHeader && (
-                        <HeaderWithBackButton
+                        <HeaderWithBackButtonAndTitle
                             title={headerTitle}
                             subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                             onBackButtonPress={navigateBack}
@@ -1132,7 +1132,7 @@ function IOURequestStepConfirmationContent({
                                     onPrevious={() => startTransition(showPreviousTransaction)}
                                 />
                             ) : null}
-                        </HeaderWithBackButton>
+                        </HeaderWithBackButtonAndTitle>
                     )}
                     <View style={styles.flex1}>
                         {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <LoadingIndicator />}

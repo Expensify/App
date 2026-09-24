@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useLocalize from '@hooks/useLocalize';
@@ -42,7 +42,7 @@ function SearchEditMultipleAttendeesPage() {
             shouldEnableMaxHeight
             testID="SearchEditMultipleAttendeesPage"
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={translate('iou.attendees')}
                 onBackButtonPress={Navigation.goBack}
             />

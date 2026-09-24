@@ -1,6 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -55,9 +55,8 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={headerText}
-                    shouldShowBackButton
                     onBackButtonPress={hidePickerModal}
                 />
                 <CurrencySelectionList

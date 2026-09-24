@@ -40,7 +40,7 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, should
             }}
             iconSrc={icons.BackArrow}
             iconFill={iconFill}
-            // Header makes the space for this button with the padding, so we need to add negative margin to fill the space
+            // Header makes the space for this button with the padding, so we need to add negative margin to fill the space - instead of reducing the padding from pl5 to pl2
             style={styles.mln3}
             id={CONST.BACK_BUTTON_NATIVE_ID}
             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}

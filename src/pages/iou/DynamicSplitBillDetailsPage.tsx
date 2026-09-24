@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import Icon from '@components/Icon';
 import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorContextProvider';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
@@ -156,7 +156,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     return (
         <ScreenWrapper testID="DynamicSplitBillDetailsPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
