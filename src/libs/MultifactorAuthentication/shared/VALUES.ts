@@ -9,7 +9,7 @@ import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthenticatio
  */
 const BACKEND_MESSAGE = {
     REGISTRATION_REQUIRED: 'Registration required',
-    INVALID_VALIDATE_CODE: 'Invalid validate code',
+    INVALID_VALIDATE_CODE: 'Invalid validateCode',
     TRANSACTION_EXPIRED: 'Transaction review period expired',
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
@@ -102,9 +102,9 @@ const API_RESPONSE_MAP = {
             [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
         },
     },
+    /** No INVALID_VALIDATE_CODE entry: this command does not accept a validateCode, so it can never return that error. */
     REGISTER_AUTHENTICATION_KEY: {
         [HTTP_STATUS.CLIENT_ERROR]: {
-            [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE,
             [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED,
         },
     },
