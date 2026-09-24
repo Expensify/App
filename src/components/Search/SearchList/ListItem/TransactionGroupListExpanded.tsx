@@ -33,6 +33,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {syncTagOutOfPolicyViolation} from '@libs/Violations/ViolationsUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
@@ -163,6 +164,24 @@ function TransactionGroupListExpandedImpl({
 
     const getPolicyTagListsForTransaction = (transaction: TransactionListItemType) =>
         policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(getTransactionPolicyID(transaction))}`];
+
+    // `transactionViolations_` is not re-pushed when an admin only changes the tags, so the stored violations have to
+    // be re-derived against the current tag list for the row to flag a deleted or disabled tag without a refresh.
+    // Memoized rather than derived per render so the row's `violations` prop keeps a stable identity.
+    const violationsByTransactionID = useMemo(() => {
+        const map = new Map<string, OnyxTypes.TransactionViolations>();
+        for (const transaction of visibleTransactions) {
+            const policyID =
+                [transaction.policyID, transaction.policy?.id, transaction.report?.policyID].find(Boolean) ??
+                (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? policyForMovingExpensesID : undefined);
+            const storedViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+            map.set(
+                transaction.transactionID,
+                syncTagOutOfPolicyViolation(storedViolations ?? [], transaction, policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`], transaction.policy),
+            );
+        }
+        return map;
+    }, [visibleTransactions, violations, policyTags, policyForMovingExpensesID]);
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayShowMoreButton = isExpenseReportType ? transactions.length > transactionsVisibleLimit : !!transactionsSnapshotMetadata?.hasMoreResults && !isOffline;
@@ -370,7 +389,7 @@ function TransactionGroupListExpandedImpl({
                                     policyCategories={getPolicyCategoriesForTransaction(transaction)}
                                     policyTagLists={getPolicyTagListsForTransaction(transaction)}
                                     transactionItem={transaction}
-                                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                                    violations={violationsByTransactionID.get(transaction.transactionID)}
                                     isSelected={!!transaction.isSelected}
                                     isDisabled={isTransactionPendingDelete(transaction)}
                                     dateColumnSize={dateColumnSize}

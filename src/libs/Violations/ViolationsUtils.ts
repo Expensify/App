@@ -16,6 +16,7 @@ import {
     getMatchingVendorByID,
     getPerDiemRateCustomUnitRate,
     getSortedTagKeys,
+    hasDependentTags as hasDependentTagsForPolicy,
     hasVendorFeature,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
     isDefaultTagName,
@@ -181,7 +182,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
-        const tags = policyTagList[policyTagKeys[i]].tags;
+        const tags = policyTagList[policyTagKeys[i]]?.tags;
         const listHasEnabledTags = hasEnabledTags(tags);
         if (!listHasEnabledTags) {
             continue;
@@ -208,8 +209,10 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
             if (!selectedTag) {
                 continue;
             }
-            const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            // An empty tag list arrives without the `tags` key, despite the type. The loop above skips those lists via
+            // hasEnabledTags, this one only skips on an unselected level, so it has to guard the lookup itself.
+            const tags = policyTagList[policyTagKeys[i]]?.tags;
+            const isTagInPolicy = !!tags?.[selectedTag]?.enabled;
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -442,6 +445,36 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
               }
             : violation,
     );
+}
+
+/**
+ * Syncs tagOutOfPolicy/missingTag with the current policy tag list. A tag-list change can arrive on its own
+ * (e.g. an admin deleting a tag), leaving the stored transactionViolations_ untouched - re-deriving here at
+ * read time keeps an open expense in sync without writing to Onyx. Left untouched when the tag list isn't
+ * hydrated yet, since that's not evidence the tag is gone.
+ */
+function syncTagOutOfPolicyViolation(
+    violations: TransactionViolation[],
+    transaction: OnyxEntry<Transaction>,
+    policyTagList: OnyxEntry<PolicyTagLists>,
+    policy: OnyxEntry<Policy>,
+): TransactionViolation[] {
+    // An empty object means the tag list isn't hydrated, not that the workspace has zero tag lists: nothing deletes a
+    // tag list container (deletePolicyTags only removes tags inside one), enabling tags always materializes
+    // CONST.POLICY.DEFAULT_TAG_LIST, and copyPolicySettings writes `{}` as its "tags not loaded" fallback. Letting `{}`
+    // through would take the multi-level branch below, which strips every tag violation and re-adds none.
+    if (!transaction || !policy || !policyTagList || isEmptyObject(policyTagList)) {
+        return violations;
+    }
+
+    const policyRequiresTags = !!policy.requiresTag || !!transaction.tag;
+    if (!policyRequiresTags) {
+        return violations;
+    }
+
+    return Object.keys(policyTagList).length === 1
+        ? getTagViolationsForSingleLevelTags(transaction, violations, policyRequiresTags, policyTagList)
+        : getTagViolationsForMultiLevelTags(transaction, violations, policyTagList, hasDependentTagsForPolicy(policy, policyTagList));
 }
 
 const ViolationsUtils = {
@@ -1233,6 +1266,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation, syncTagOutOfPolicyViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};

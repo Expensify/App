@@ -1,7 +1,7 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/TransactionUtils';
-import {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import {syncCustomUnitRateOutOfDateRangeViolation, syncTagOutOfPolicyViolation} from '@libs/Violations/ViolationsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
@@ -22,6 +22,9 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    // Tag violations are re-derived here, so the tag list has to be subscribed to as well - a tag list change can
+    // arrive on its own, without a matching transactionViolations_ update.
+    const [reportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !policyOverride && !!customUnitRateID && !getDistanceRateCustomUnitRate(reportPolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
@@ -29,7 +32,12 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     return useMemo(() => {
-        const syncedViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+        const syncedViolations = syncTagOutOfPolicyViolation(
+            syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy),
+            transaction,
+            reportPolicyTagList,
+            reportPolicy,
+        );
 
         return getVisibleTransactionViolations(
             transaction,
@@ -41,7 +49,18 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
             policy,
             shouldShowRterForSettledReport,
         );
-    }, [transaction, transactionViolations, iouReport, ownerLogin, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
+    }, [
+        transaction,
+        transactionViolations,
+        iouReport,
+        ownerLogin,
+        policy,
+        reportPolicy,
+        reportPolicyTagList,
+        shouldShowRterForSettledReport,
+        currentUserDetails.email,
+        currentUserDetails.accountID,
+    ]);
 }
 
 export default useTransactionViolations;
