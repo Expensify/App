@@ -38,19 +38,14 @@ type ScrollEvent = {
     };
 };
 type CapturedListProps = {
-    maintainVisibleContentPosition?: boolean | {data: boolean};
     onScroll?: (event: ScrollEvent) => void;
 };
 
-// Capture the props the list is rendered with so we can verify data anchoring remains enabled while the
-// list crosses the visible-action threshold.
 let capturedListProps: CapturedListProps = {};
-
-// Whether the captured LegendList configuration enables data-based maintain-visible-content-position.
-function isMvcpEnabled() {
-    const config = capturedListProps.maintainVisibleContentPosition;
-    return config === true || (typeof config === 'object' && config.data);
-}
+jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null})));
+jest.mock('@hooks/useMarkAsRead', () => jest.fn(() => ({markNewestActionAsRead: jest.fn(), completeSkippedMarkAsRead: jest.fn()})));
+const mockUseUnreadMarker: jest.Mock = jest.requireMock('@hooks/useUnreadMarker');
+const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 
 jest.mock('@legendapp/list/react-native', () => {
     const {forwardRef} = jest.requireActual<typeof React>('react');
@@ -128,12 +123,14 @@ async function renderList(initialOffset: number) {
             </ComposeProviders>
         </NavigationContainer>,
     );
-    await waitFor(() => expect(capturedListProps.maintainVisibleContentPosition).toBeDefined());
+    await waitFor(() => expect(capturedListProps.onScroll).toBeDefined());
     return utils;
 }
 
 beforeEach(async () => {
     capturedListProps = {};
+    mockUseUnreadMarker.mockClear();
+    mockUseMarkAsRead.mockClear();
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     await act(async () => {
@@ -158,31 +155,43 @@ afterEach(async () => {
     await waitForBatchedUpdates();
 });
 
-describe('ReportActionsList maintainVisibleContentPosition', () => {
-    it('enables data anchoring on first render when mounted while scrolled past the threshold', async () => {
+describe('ReportActionsList visible-action threshold', () => {
+    it('seeds unread marker and mark-as-read state from a saved offset past the threshold', async () => {
+        // Given a report restored away from the newest action.
         await renderList(THRESHOLD + 50);
 
-        expect(isMvcpEnabled()).toBe(true);
+        // Then neither consumer treats the report as scrolled to the end before onScroll fires.
+        expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledOverThreshold: true}));
+        expect(mockUseMarkAsRead).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledToEnd: false}));
     });
 
-    it('enables data anchoring at the bottom so initial hydration preserves the visible tail', async () => {
+    it('seeds both consumers as being at the newest action when the saved offset is zero', async () => {
+        // Given a report restored at its newest action.
         await renderList(0);
 
-        expect(isMvcpEnabled()).toBe(true);
+        // Then both consumers receive the bottom state immediately.
+        expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledOverThreshold: false}));
+        expect(mockUseMarkAsRead).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledToEnd: true}));
     });
 
-    it('keeps data anchoring enabled as the user scrolls across the threshold', async () => {
+    it('updates both consumers when scrolling across the threshold', async () => {
+        // Given a report initially at the newest action.
         await renderList(0);
-        expect(isMvcpEnabled()).toBe(true);
 
+        // When the reader scrolls away from the newest action.
         act(() => {
             capturedListProps.onScroll?.(createScrollEvent(THRESHOLD + 50));
         });
-        expect(isMvcpEnabled()).toBe(true);
+        // Then the unread marker sees the reader as away and mark-as-read pauses.
+        expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledOverThreshold: true}));
+        expect(mockUseMarkAsRead).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledToEnd: false}));
 
+        // When the reader returns to the newest action.
         act(() => {
             capturedListProps.onScroll?.(createScrollEvent(0));
         });
-        expect(isMvcpEnabled()).toBe(true);
+        // Then both consumers see the bottom state again.
+        expect(mockUseUnreadMarker).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledOverThreshold: false}));
+        expect(mockUseMarkAsRead).toHaveBeenLastCalledWith(expect.objectContaining({isScrolledToEnd: true}));
     });
 });
