@@ -1688,6 +1688,10 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchivedDescription: '此预订已归档，因为行程日期已过。如有需要，请为最终金额添加一笔报销。',
         attendees: '参与者',
         totalPerAttendee: '每位参与者',
+        reservationNightsAndRate: ({count, formattedRate}: {count: number; formattedRate: string}) => ({
+            one: `1晚 ${CONST.DOT_SEPARATOR} 每晚${formattedRate}`,
+            other: `${count}晚 ${CONST.DOT_SEPARATOR} 每晚${formattedRate}`,
+        }),
         whoIsYourAccountant: '你的会计是谁？',
         paymentComplete: '付款完成',
         time: '时间',

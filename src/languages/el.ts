@@ -1804,6 +1804,10 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchivedDescription: 'Αυτή η κράτηση έχει αρχειοθετηθεί επειδή η ημερομηνία ταξιδιού έχει περάσει. Προσθέστε μια δαπάνη για το τελικό ποσό, αν χρειάζεται.',
         attendees: 'Συμμετέχοντες',
         totalPerAttendee: 'Ανά συμμετέχοντα',
+        reservationNightsAndRate: ({count, formattedRate}: {count: number; formattedRate: string}) => ({
+            one: `1 διανυκτέρευση ${CONST.DOT_SEPARATOR} ${formattedRate} ανά διανυκτέρευση`,
+            other: `${count} διανυκτερεύσεις ${CONST.DOT_SEPARATOR} ${formattedRate} ανά διανυκτέρευση`,
+        }),
         whoIsYourAccountant: 'Ποιος είναι ο λογιστής σας;',
         paymentComplete: 'Η πληρωμή ολοκληρώθηκε',
         time: 'Ώρα',

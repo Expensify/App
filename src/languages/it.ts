@@ -1751,6 +1751,10 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchivedDescription: 'Questa prenotazione è archiviata perché la data del viaggio è passata. Aggiungi una spesa per l’importo finale, se necessario.',
         attendees: 'Partecipanti',
         totalPerAttendee: 'Per partecipante',
+        reservationNightsAndRate: ({count, formattedRate}: {count: number; formattedRate: string}) => ({
+            one: `1 notte ${CONST.DOT_SEPARATOR} ${formattedRate} a notte`,
+            other: `${count} notti ${CONST.DOT_SEPARATOR} ${formattedRate} a notte`,
+        }),
         whoIsYourAccountant: 'Chi è il tuo commercialista?',
         paymentComplete: 'Pagamento completato',
         time: 'Ora',

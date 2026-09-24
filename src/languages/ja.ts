@@ -1733,6 +1733,10 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchivedDescription: 'この予約は旅行日が過ぎたためアーカイブされています。必要に応じて、最終金額の経費を追加してください。',
         attendees: '参加者',
         totalPerAttendee: '参加者ごと',
+        reservationNightsAndRate: ({count, formattedRate}: {count: number; formattedRate: string}) => ({
+            one: `1泊 ${CONST.DOT_SEPARATOR} 1泊あたり${formattedRate}`,
+            other: `${count}泊 ${CONST.DOT_SEPARATOR} 1泊あたり${formattedRate}`,
+        }),
         whoIsYourAccountant: 'あなたの会計士は誰ですか？',
         paymentComplete: '支払いが完了しました',
         time: '時間',

@@ -1747,6 +1747,10 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchivedDescription: 'Esta reserva está arquivada porque a data da viagem já passou. Adicione uma despesa com o valor final, se necessário.',
         attendees: 'Participantes',
         totalPerAttendee: 'Por participante',
+        reservationNightsAndRate: ({count, formattedRate}: {count: number; formattedRate: string}) => ({
+            one: `1 noite ${CONST.DOT_SEPARATOR} ${formattedRate} por noite`,
+            other: `${count} noites ${CONST.DOT_SEPARATOR} ${formattedRate} por noite`,
+        }),
         whoIsYourAccountant: 'Quem é seu contador?',
         paymentComplete: 'Pagamento concluído',
         time: 'Hora',
