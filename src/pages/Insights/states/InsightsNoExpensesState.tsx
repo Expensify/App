@@ -24,6 +24,7 @@ function InsightsNoExpensesState() {
             headerContentStyles={[styles.insightsEmptyStateIllustration]}
             title={translate('insightsPage.noExpensesState.title')}
             subtitle={translate('insightsPage.noExpensesState.subtitle')}
+            minModalHeight={0}
             buttons={[
                 {
                     buttonText: translate('iou.createExpense'),
