@@ -1098,6 +1098,11 @@ const translations = {
                 overdueTitle: 'Your payment is past due, please pay your invoice',
                 cta: 'Review',
             },
+            renewSubscription: {
+                title: 'Turn on auto-renew to keep your current pricing',
+                subtitle: ({date}: {date: string}) => `Subscription ends ${date}`,
+                cta: 'Manage',
+            },
             unlockBankAccount: {
                 workspaceTitle: 'Your business bank account has been locked',
                 personalTitle: 'Your bank account has been locked',
@@ -1925,6 +1930,7 @@ const translations = {
             header: (workflowSettingLink: string) =>
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `changed the final approver to <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -6308,6 +6314,9 @@ const translations = {
             noCompaniesFoundDescription: 'Please add a company in Dynamics 365 Business Central and sync the connection again',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Please add vendors in Business Central and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Dynamics 365 Business Central.',
+            items: 'Items',
+            enableNewCategories: 'Enable newly imported categories',
         },
         type: {
             free: 'Free',
@@ -11038,6 +11047,11 @@ const translations = {
             trialEnded: {
                 title: 'Your free trial has ended',
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Your subscription ends ${date}`,
+                subtitle: 'Turn on auto-renew to keep your current pricing.',
+                manage: 'Manage',
             },
             earlyDiscount: {
                 claimOffer: 'Claim offer',

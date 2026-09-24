@@ -1012,6 +1012,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Paga la tua fattura entro il ${date} per evitare l’interruzione del servizio`,
                 overdueTitle: 'Il tuo pagamento è in ritardo, ti preghiamo di saldare la fattura',
             },
+            renewSubscription: {
+                title: 'Attiva il rinnovo automatico per mantenere il tuo prezzo attuale',
+                subtitle: ({date}: {date: string}) => `L’abbonamento termina il ${date}`,
+                cta: 'Gestisci',
+            },
         },
         discoverSection: {
             title: 'Scopri',
@@ -1824,6 +1829,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Scegli un'opzione per cambiare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dello spazio di lavoro</a> per cambiarlo in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l’approvatore in <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `ha cambiato l’approvatore finale in <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8812,6 +8818,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             noCompaniesFoundDescription: "Aggiungi un'azienda in Dynamics 365 Business Central e sincronizza di nuovo la connessione",
             noVendorsFound: 'Nessun fornitore trovato',
             noVendorsFoundDescription: 'Aggiungi i fornitori in Business Central e sincronizza di nuovo la connessione',
+            importDescription: 'Scegli quali configurazioni di codifica importare da Dynamics 365 Business Central.',
+            items: 'Articoli',
+            enableNewCategories: 'Abilita le categorie appena importate',
         },
     },
     getAssistancePage: {
@@ -10788,6 +10797,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             trialEnded: {
                 title: 'La tua prova gratuita è terminata',
                 subtitle: 'Aggiungi una carta di pagamento per continuare a usare tutte le tue funzionalità preferite.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Il tuo abbonamento termina il ${date}`,
+                subtitle: 'Attiva il rinnovo automatico per mantenere il tuo prezzo attuale.',
+                manage: 'Gestisci',
             },
             earlyDiscount: {
                 claimOffer: 'Richiedi offerta',

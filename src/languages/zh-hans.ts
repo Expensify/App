@@ -974,6 +974,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `请在 ${date} 前支付您的发票，以避免服务中断`,
                 overdueTitle: '您的付款已逾期，请支付您的发票',
             },
+            renewSubscription: {
+                title: '开启自动续订以保留您当前的价格',
+                subtitle: ({date}: {date: string}) => `订阅将于 ${date} 结束`,
+                cta: '管理',
+            },
         },
         discoverSection: {
             title: '发现',
@@ -1760,6 +1765,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `已将最终审批人更改为 <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8465,6 +8471,9 @@ ${reportName}`,
             noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '请在 Business Central 中添加供应商，然后再次同步连接',
+            importDescription: '选择要从 Dynamics 365 Business Central 导入的编码配置。',
+            items: '项目',
+            enableNewCategories: '启用新导入的类别',
         },
     },
     getAssistancePage: {
@@ -10359,6 +10368,11 @@ ${reportName}`,
             trialEnded: {
                 title: '您的免费试用已结束',
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `您的订阅将于 ${date} 结束`,
+                subtitle: '开启自动续订以保留您当前的价格。',
+                manage: '管理',
             },
             earlyDiscount: {
                 claimOffer: '领取优惠',
