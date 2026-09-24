@@ -9,7 +9,7 @@ import type {Policy} from '@src/types/onyx';
 import type {MergeATSConnectionData, MergeATSFilters, MergeApprovalMode, MergeATSApproverField} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {hasMergeSyncError, isMergeConnected, isMergeSyncDone} from './MergeUtils';
 
