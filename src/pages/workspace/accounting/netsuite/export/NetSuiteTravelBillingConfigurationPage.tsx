@@ -3,11 +3,13 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -97,10 +99,12 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
             <FormHelpMessage
                 isError={false}
                 shouldShowRedDotIndicator={false}
-                message={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`)}
-                shouldRenderMessageAsHTML
                 style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-            />
+            >
+                <RenderHTML
+                    html={`<comment><muted-text-label>${Parser.replace(translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`))}</muted-text-label></comment>`}
+                />
+            </FormHelpMessage>
             {sections.map((section) => (
                 <OfflineWithFeedback
                     pendingAction={section.pendingAction}

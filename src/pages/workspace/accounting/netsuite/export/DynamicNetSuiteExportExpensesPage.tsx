@@ -3,6 +3,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +13,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {
@@ -85,10 +87,12 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
                     <FormHelpMessage
                         isError={false}
                         shouldShowRedDotIndicator={false}
-                        message={translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`)}
-                        shouldRenderMessageAsHTML
                         style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-                    />
+                    >
+                        <RenderHTML
+                            html={`<comment><muted-text-label>${Parser.replace(translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`))}</muted-text-label></comment>`}
+                        />
+                    </FormHelpMessage>
                 )}
             </OfflineWithFeedback>
             {!shouldHideReimbursableDefaultVendor(isReimbursable, config) && (

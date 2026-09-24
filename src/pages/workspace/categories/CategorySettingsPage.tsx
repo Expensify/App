@@ -5,6 +5,7 @@ import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
@@ -33,6 +34,7 @@ import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -348,10 +350,12 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 <FormHelpMessage
                                     isError={false}
                                     shouldShowRedDotIndicator={false}
-                                    message={translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`)}
-                                    shouldRenderMessageAsHTML
                                     style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-                                />
+                                >
+                                    <RenderHTML
+                                        html={`<comment><muted-text-label>${Parser.replace(translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`))}</muted-text-label></comment>`}
+                                    />
+                                </FormHelpMessage>
                             )}
                         </>
                     )}
