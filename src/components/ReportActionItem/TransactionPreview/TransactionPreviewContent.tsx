@@ -1,5 +1,5 @@
 import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import getIOUPayerAndReceiver from '@libs/getIOUPayerAndReceiver';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -32,7 +33,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
@@ -135,8 +136,9 @@ function TransactionPreviewContent({
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy, reportActions);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, rules, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);

@@ -1,7 +1,7 @@
 ---
 title: View and Reconcile Expensify Card Expenses
 description: Learn how to view, verify, and export Expensify Card expenses by matching settlement withdrawals to grouped transactions in Expensify.
-keywords: [New Expensify, Expensify Card reconciliation, reconcile Expensify Card withdrawals, view Expensify Card expenses, verify Expensify Card totals, export Expensify Card expenses, withdrawal-based reconciliation, Workspace Admin]
+keywords: [New Expensify, Expensify Card reconciliation, reconcile Expensify Card withdrawals, view Expensify Card expenses, verify Expensify Card totals, export Expensify Card expenses, withdrawal-based reconciliation, Expensify Card current balance transactions, view transactions, Workspace Admin]
 internalScope: Audience is Workspace Admins reconciling Expensify Card activity. Covers the withdrawal-based reconciliation workflow under Reconciliation > Expensify Card. Does not cover company card statement matching, reimbursement reconciliation, or manual export-based reconciliation.
 ---
 
@@ -32,6 +32,16 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 2. Click the arrow next to the withdrawal amount to expand the row.
 3. Review the individual expenses included in that withdrawal.
    
+---
+
+## How to View the Transactions That Make Up Your Expensify Card Current Balance
+
+The **Current balance** on the Expensify Card page reflects the card expenses that have not yet been withdrawn from your settlement account. You can open a filtered list of those transactions directly from the Expensify Card page.
+
+1. From the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Under the **Current balance** amount, click **View transactions**.
+3. Review the filtered results, which show the card expenses counted toward the current balance.
+
 ---
 
 ## How to Verify Expensify Card Withdrawal Totals Against Your Bank Statement

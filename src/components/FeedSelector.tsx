@@ -14,16 +14,9 @@ import SearchInputSelectionSkeleton from './Skeletons/SearchInputSelectionSkelet
 import Text from './Text';
 
 type Props = {
-    /** Function to call when the feed is selected */
     onFeedSelect: () => void;
-
-    /** Icon for the card */
     CardFeedIcon: React.ReactNode;
-
-    /** Feed name */
     feedName?: string;
-
-    /** Supporting text */
     supportingText?: string;
 
     /** Whether the RBR indicator should be shown */
@@ -32,7 +25,6 @@ type Props = {
     /** Whether the feed selector should render a loading skeleton */
     isLoading?: boolean;
 
-    /** Style for the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 

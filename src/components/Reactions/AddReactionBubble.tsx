@@ -23,13 +23,14 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
+
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {CloseContextMenuCallback, OpenPickerCallback, PickerRefElement} from './QuickEmojiReactions/types';
 
 type AddReactionBubbleProps = {
-    /** Whether it is for context menu so we can modify its style */
     isContextMenu?: boolean;
 
     /**
@@ -44,9 +45,6 @@ type AddReactionBubbleProps = {
      */
     onWillShowPicker?: (callback?: CloseContextMenuCallback) => void;
 
-    /**
-     * Called when the user selects an emoji.
-     */
     onSelectEmoji: (emoji: Emoji, preferredSkinTone: number) => void;
 
     /**
@@ -54,7 +52,6 @@ type AddReactionBubbleProps = {
      */
     reportAction: ReportAction;
 
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
@@ -62,7 +59,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const ref = useRef<View | HTMLDivElement>(null);
+    const ref = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const {translate} = useLocalize();
 
     useEffect(() => resetEmojiPopoverAnchor, []);

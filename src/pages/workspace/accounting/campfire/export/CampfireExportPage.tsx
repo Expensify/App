@@ -61,7 +61,6 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
                 <MenuItemWithTopDescription
                     title={translate(`workspace.campfire.exportReimbursable.values.${exportReimbursable}.label`)}
                     description={translate('workspace.campfire.exportReimbursable.label')}
-                    onPress={() => {}}
                     interactive={false}
                     brickRoadIndicator={areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.REIMBURSABLE], campfireConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />

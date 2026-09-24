@@ -33,7 +33,8 @@ import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
-import {completeOnboarding, notifyNewAction} from '@userActions/Report';
+import {completeOnboarding} from '@userActions/Report';
+import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 
@@ -51,8 +52,11 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
+
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
+import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 import {getReportPreviewReportAction} from './MoneyRequestBuilder';
 
 type PayInvoiceArgs = {
@@ -70,6 +74,7 @@ type PayInvoiceArgs = {
     activePolicy?: OnyxTypes.Policy;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName: string;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
@@ -78,6 +83,7 @@ type PayInvoiceArgs = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type PayMoneyRequestData = {
@@ -91,14 +97,6 @@ type PayMoneyRequestData = {
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         | BuildPolicyDataKeys
     >;
-};
-
-type SearchPayOnyxKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT;
-
-type AdditionalPayOnyxData = {
-    optimisticData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-    successData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-    failureData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
 };
 
 type PayMoneyRequestFunctionParams = {
@@ -115,6 +113,7 @@ type PayMoneyRequestFunctionParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     chatReportPolicy: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     amountOwed: OnyxEntry<number>;
@@ -128,26 +127,8 @@ type PayMoneyRequestFunctionParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isFallbackChatReport?: boolean;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
-
-function mergeAdditionalPayOnyxData<
-    T extends {
-        optimisticData?: readonly unknown[];
-        successData?: readonly unknown[];
-        failureData?: readonly unknown[];
-    },
->(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
-    if (!additionalOnyxData) {
-        return onyxData;
-    }
-
-    return {
-        ...onyxData,
-        optimisticData: [...(onyxData.optimisticData ?? []), ...(additionalOnyxData.optimisticData ?? [])],
-        successData: [...(onyxData.successData ?? []), ...(additionalOnyxData.successData ?? [])],
-        failureData: [...(onyxData.failureData ?? []), ...(additionalOnyxData.failureData ?? [])],
-    };
-}
 
 function getPayMoneyRequestParams({
     initialChatReport,
@@ -167,6 +148,7 @@ function getPayMoneyRequestParams({
     activePolicy,
     conciergeChat,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
     currentUserLocalCurrency,
@@ -175,6 +157,7 @@ function getPayMoneyRequestParams({
     isTrackIntentUser,
     getCurrencyDecimals,
     isFallbackChatReport,
+    rules,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -193,6 +176,7 @@ function getPayMoneyRequestParams({
     currentUserEmailParam: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
     currentUserLocalCurrency: string | undefined;
@@ -201,6 +185,7 @@ function getPayMoneyRequestParams({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isFallbackChatReport?: boolean;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -233,7 +218,7 @@ function getPayMoneyRequestParams({
             successData: policySuccessData,
             params,
         } = buildPolicyData({
-            policyOwnerEmail: currentUserEmailParam,
+            policyOwner: {email: currentUserEmailParam, accountID: currentUserAccountIDParam},
             policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,
@@ -248,6 +233,10 @@ function getPayMoneyRequestParams({
             isSelfTourViewed,
             // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
             hasActiveAdminPolicies: undefined,
+            delegateAccountID,
+            // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
+            // paid-workspace check, so the #admins room keeps starting out pinned here.
+            hasOwnedPaidPolicy: undefined,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -306,7 +295,7 @@ function getPayMoneyRequestParams({
     }
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser});
+        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
     }
 
     const optimisticChatReport = {
@@ -508,11 +497,12 @@ function getPayMoneyRequestParams({
             iouReport,
             recipient,
             policy: reportPolicy,
-            betas,
+            isASAPSubmitBetaEnabled,
             delegateAccountID,
             getCurrencyDecimals,
             shouldMoveHeldTransactions: !full,
             shouldMoveScanFailedTransactions,
+            rules,
         });
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
@@ -631,6 +621,7 @@ function cancelPayment(
     currentUserEmailParam: string,
     hasViolations: boolean,
     isTrackIntentUser: boolean | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -672,6 +663,7 @@ function cancelPayment(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
+        rules,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
@@ -702,6 +694,7 @@ function cancelPayment(
             value: {
                 ...expenseReport,
                 isWaitingOnBankAccount: false,
+                canCancelReimbursement: false,
                 lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: getReportActionText(optimisticReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
@@ -753,12 +746,14 @@ function cancelPayment(
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
+                canCancelReimbursement: expenseReport.canCancelReimbursement,
                 isCancelledIOU: false,
                 nextStep:
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
                         isTrackIntentUser,
+                        rules,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -835,6 +830,7 @@ function completePaymentOnboarding(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     currentUserAccountID: number,
     conciergeChat: OnyxEntry<OnyxTypes.Report>,
+    delegateAccountID: number | undefined,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
@@ -870,6 +866,8 @@ function completePaymentOnboarding(
         introSelected,
         isSelfTourViewed,
         conciergeChat,
+        currentUserAccountID,
+        delegateAccountID,
     });
 }
 
@@ -888,6 +886,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         policy,
         chatReportPolicy,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         conciergeChat,
         amountOwed,
@@ -901,6 +900,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isTrackIntentUser,
         getCurrencyDecimals,
         isFallbackChatReport,
+        rules,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -913,7 +913,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, delegateAccountID);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -931,6 +931,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         currentUserLocalCurrency: undefined,
         conciergeChat: undefined,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
         delegateAccountID,
@@ -938,6 +939,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isTrackIntentUser,
         getCurrencyDecimals,
         isFallbackChatReport,
+        rules,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -961,6 +963,7 @@ function markReportPaymentReceived(
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     isTrackIntentUser: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     if (!chatReport || !iouReport) {
         return;
@@ -994,7 +997,7 @@ function markReportPaymentReceived(
 
     const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, true) : null;
-    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser});
+    const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser, rules});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -1136,6 +1139,7 @@ function payInvoice({
     activePolicy,
     conciergeChat,
     betas,
+    isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     defaultWorkspaceName,
     chatReportActions,
@@ -1144,6 +1148,7 @@ function payInvoice({
     delegateAccountID,
     isTrackIntentUser,
     getCurrencyDecimals,
+    rules,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1176,16 +1181,18 @@ function payInvoice({
         currentUserLocalCurrency,
         introSelected,
         betas,
+        isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         defaultWorkspaceName,
         chatReportActions,
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam, conciergeChat);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam, conciergeChat, delegateAccountID);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
@@ -1245,5 +1252,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {AdditionalPayOnyxData};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -23,22 +23,14 @@ import FilterPopupButton from './FilterPopupButton';
 
 type DropdownButtonProps = WithSentryLabel &
     Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop'> & {
-        /** The label to display on the select */
         label: string;
-
-        /** The selected value(s) if any */
         value: string | string[] | null;
 
         /** Whether to use medium size button instead of small */
         medium?: boolean;
 
-        /** Button inner styles */
         innerStyles?: StyleProp<ViewStyle>;
-
-        /** Button label style */
         labelStyle?: StyleProp<TextStyle>;
-
-        /** Caret wrapper style */
         caretWrapperStyle?: StyleProp<ViewStyle>;
         onClosePress?: () => void;
     };

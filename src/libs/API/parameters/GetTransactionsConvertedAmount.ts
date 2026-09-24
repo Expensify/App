@@ -4,7 +4,6 @@ type GetTransactionsConvertedAmountParams = {
     /** The serialized search query whose transactions should be converted */
     jsonQuery: SearchQueryString;
 
-    /** The currency the amounts should be converted to */
     targetCurrency: string;
 
     /** Comma-separated transaction IDs to scope the conversion to a specific selection; omitted for the whole-search total */

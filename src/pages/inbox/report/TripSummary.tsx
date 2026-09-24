@@ -10,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 
 type TripSummaryProps = {
-    /** The report ID */
     reportID: string | undefined;
 };
 

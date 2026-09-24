@@ -24,7 +24,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ReportActionMessageContentProps = {
-    /** The report action */
     action: ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -36,7 +35,6 @@ type ReportActionMessageContentProps = {
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
 
-    /** The ID of the report */
     reportID: string | undefined;
 
     /** Optional IOU display message passed into each fragment */

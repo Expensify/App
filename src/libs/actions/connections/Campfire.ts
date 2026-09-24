@@ -27,9 +27,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CampfireAutoSync, CampfireCoding, CampfireConnectionsConfig, CampfireExport, CampfireSync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 
 function connectToCampfire(policyID: string, apiKey: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [

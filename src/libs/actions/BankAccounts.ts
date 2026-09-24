@@ -40,7 +40,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
-import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
+import type {BankAccountList, InitiatingBankAccountUnlock, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
@@ -82,13 +82,8 @@ type OpenPersonalBankAccountSetupViewProps = {
     /** The policyID of the policy to set the bank account on */
     policyID?: string;
 
-    /** The source of the bank account */
     source?: string;
-
-    /** Whether to set up a US bank account */
     shouldSetUpUSBankAccount?: boolean;
-
-    /** Whether the user is validated */
     isUserValidated?: boolean;
 
     /** Route to navigate to after adding a bank account when the KYC flow should continue */
@@ -447,8 +442,11 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID?: string, las
 
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
+ *
+ * @returns whether a backend request was started. Callers use this to know if they should wait for the
+ * request to settle before navigating, since the new Chase flow switches to manual entry without any request.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string | undefined) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string | undefined): boolean {
     const isChaseBank = selectedPlaidBankAccount.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE;
     if (bankAccountID === CONST.DEFAULT_NUMBER_ID && isChaseBank) {
         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
@@ -462,7 +460,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
             accountNumber: '',
             routingNumber: '',
         });
-        return;
+        return false;
     }
 
     const parameters: ConnectBankAccountParams = {
@@ -478,6 +476,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
     };
 
     API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, getVBBADataForOnyx());
+    return true;
 }
 
 /**
@@ -1767,7 +1766,9 @@ function openBankAccountSharePage() {
 function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: string | undefined, optimisticReportActionID: string | null | undefined) {
     const authToken = NetworkStore.getAuthToken();
 
-    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
+    const nvpUnlockRequestedKey = `${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}` as const;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1776,6 +1777,11 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                     isLoading: true,
                     isSuccess: false,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: nvpUnlockRequestedKey,
+                value: new Date().toISOString(),
             },
         ],
         successData: [
@@ -1810,6 +1816,11 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: nvpUnlockRequestedKey,
+                value: null,
+            },
             ...(optimisticReportActionID && conciergeReportID
                 ? [
                       {
@@ -1825,7 +1836,17 @@ function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: str
     return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken, optimisticReportActionID}, onyxData);
 }
 
-function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined, delegateAccountID: number | undefined) {
+function pressLockedBankAccount(
+    bankAccountID: number,
+    translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
+    delegateAccountID: number | undefined,
+    initiatingBankAccountUnlock: OnyxEntry<InitiatingBankAccountUnlock>,
+) {
+    if (initiatingBankAccountUnlock?.isLoading && initiatingBankAccountUnlock?.bankAccountIDToUnlock === bankAccountID) {
+        return;
+    }
+
     let optimisticReportActionID: string | undefined;
 
     if (conciergeReportID) {
@@ -1867,6 +1888,9 @@ function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTrans
         bankAccountIDToUnlock: bankAccountID,
         optimisticReportActionID: optimisticReportActionID ?? null,
     });
+
+    // Write the NVP immediately so the "already requested" guard fires on the next press.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID}`, new Date().toISOString());
 }
 
 export {

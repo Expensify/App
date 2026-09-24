@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCampfireErrorField, updateCampfireDefaultVendor} from '@libs/actions/connections/Campfire';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {getCampfireVendors, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,25 +30,30 @@ type VendorListItem = ListItem & {
 };
 
 function CampfireDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const campfireConfig = policy?.connections?.campfire?.config;
-    const campfireData = policy?.connections?.campfire?.data;
     const defaultCompanyCardVendorID = campfireConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXPORT.getRoute(policyID) : undefined;
 
-    const data: VendorListItem[] =
-        campfireData?.vendors
-            ?.filter((vendorItem) => vendorItem.isActive && vendorItem.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
-            .map((vendorItem) => ({
-                value: vendorItem.id,
-                text: vendorItem.name,
-                keyForList: vendorItem.id,
-                isSelected: defaultCompanyCardVendorID === vendorItem.id,
-            })) ?? [];
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const sortedVendors = sortVendors(getCampfireVendors(policy), localeCompare);
+    const vendorOptions: VendorListItem[] = sortedVendors.map((vendorItem) => ({
+        value: vendorItem.id,
+        text: vendorItem.name,
+        keyForList: vendorItem.id,
+        isSelected: defaultCompanyCardVendorID === vendorItem.id,
+    }));
+    const clearOption: VendorListItem = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: '',
+        isSelected: !defaultCompanyCardVendorID,
+    };
+    const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
+    const {filteredData: filteredVendorOptions, textInputOptions} = useSelectionListSearch(vendorOptions);
+    const data: VendorListItem[] = shouldShowClearOption ? [clearOption, ...filteredVendorOptions] : filteredVendorOptions;
 
     const headerContent = (
         <View>
@@ -81,7 +86,7 @@ function CampfireDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CampfireDefaultCompanyCardVendorPage"
             title="workspace.campfire.defaultCompanyCardVendor.label"
-            data={filteredData}
+            data={data}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}

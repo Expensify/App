@@ -8,6 +8,8 @@ import {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
 
+import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
+
 type TodoCounts = {
     [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: number;
     [CONST.SEARCH.SEARCH_KEYS.APPROVE]: number;
@@ -41,7 +43,8 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsList] = useAllPersonalDetailsWithoutSnapshots();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Holds the most recent result so a frozen (inactive) consumer can keep returning it without recomputing.
     const [frozen, setFrozen] = useState<{counts: TodoCounts; singleReportIDs: TodoSingleReportIDs} | null>(null);
@@ -66,6 +69,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
         currentUserAccountID: userAccountID,
         login,
         areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        rules,
     });
 
     const counts: TodoCounts = {
