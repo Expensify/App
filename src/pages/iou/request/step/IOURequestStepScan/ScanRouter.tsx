@@ -18,6 +18,7 @@ import MultiScanGate from './components/MultiScanGate';
 import ScanEditReceipt from './components/ScanEditReceipt';
 import ScanFromReport from './components/ScanFromReport';
 import ScanGlobalCreate from './components/ScanGlobalCreate';
+import ScanLocationSnapshot from './components/ScanLocationSnapshot';
 import ScanSkipConfirmation from './components/ScanSkipConfirmation';
 
 type ScanRouterProps = {
@@ -123,6 +124,9 @@ ScanNewReceipt.displayName = 'ScanNewReceipt';
  * Edit branch is a fast-path that subscribes to nothing extra. Non-edit branches go through MultiScanGate
  * and the layered ScanNewReceipt/ScanNonGlobalCreate components, which scope their subscriptions to the
  * narrowest variant that needs them.
+ *
+ * The location snapshot sits above every new-receipt variant, so camera, gallery, report attachment and multi-scan all
+ * warm the same cache from the moment the screen opens, whichever variant the route lands on.
  */
 function ScanRouter({report, action, iouType, reportID, transactionID, transaction, backTo, backToReport}: ScanRouterProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -139,17 +143,20 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
     }
 
     return (
-        <MultiScanGate>
-            <ScanNewReceipt
-                report={report}
-                action={action}
-                iouType={iouType}
-                reportID={reportID}
-                transactionID={transactionID}
-                transaction={transaction}
-                backToReport={backToReport}
-            />
-        </MultiScanGate>
+        <>
+            <ScanLocationSnapshot shouldAttachLocation={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
+            <MultiScanGate>
+                <ScanNewReceipt
+                    report={report}
+                    action={action}
+                    iouType={iouType}
+                    reportID={reportID}
+                    transactionID={transactionID}
+                    transaction={transaction}
+                    backToReport={backToReport}
+                />
+            </MultiScanGate>
+        </>
     );
 }
 

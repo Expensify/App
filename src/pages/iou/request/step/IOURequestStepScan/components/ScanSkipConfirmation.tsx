@@ -21,10 +21,8 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {resolveOptimisticSplitChatReportID, startSplitBill} from '@libs/actions/IOU/Split';
-import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
-import getCurrentPosition from '@libs/getCurrentPosition';
+import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import {calculateDefaultReimbursable, getExistingTransactionID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
@@ -37,7 +35,6 @@ import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import getSkipConfirmationPreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSkipConfirmationPreMountDestinationRoute';
-import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -57,8 +54,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
-import {RESULTS} from 'react-native-permissions';
+import React, {useState} from 'react';
 
 import Camera from './Camera';
 import GpsPermissionGate from './GpsPermissionGate';
@@ -111,6 +107,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
     });
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {isOffline} = useNetwork();
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
@@ -156,39 +153,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const preInsertReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
     const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(true, preInsertReportID, isLookingAroundUser, isSelfDMDestination);
     usePreMountDestination(skipConfirmationPreMountRoute);
-
-    // Pre-fetch location if GPS is required and permission is already granted
-    useEffect(() => {
-        let ignore = false;
-        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-        if (!gpsRequired) {
-            return;
-        }
-
-        getLocationPermission().then((status) => {
-            if (ignore || (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED)) {
-                return;
-            }
-
-            clearUserLocation();
-            getCurrentPosition(
-                (successData) => {
-                    if (ignore) {
-                        return;
-                    }
-                    setUserLocation({
-                        longitude: successData.coords.longitude,
-                        latitude: successData.coords.latitude,
-                    });
-                },
-                () => {},
-            );
-        });
-
-        return () => {
-            ignore = true;
-        };
-    }, [transaction?.amount, iouType]);
 
     const cancelShutterSpans = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
@@ -357,24 +321,22 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                     });
 
                 if (locationPermissionGranted) {
-                    getCurrentPosition(
-                        (successData) => {
-                            createTransaction({
-                                ...baseParams,
-                                gpsPoint: {
-                                    lat: successData.coords.latitude,
-                                    long: successData.coords.longitude,
-                                },
-                            });
-                            runCleanup();
-                        },
-                        (errorData) => {
-                            Log.info('[ScanSkipConfirmation] getCurrentPosition failed', false, errorData);
-                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            createTransaction(baseParams);
-                            runCleanup();
-                        },
-                    );
+                    if (userLocation) {
+                        createTransaction({
+                            ...baseParams,
+                            gpsPoint: {
+                                lat: userLocation.latitude,
+                                long: userLocation.longitude,
+                            },
+                        });
+                        runCleanup();
+                        return;
+                    }
+
+                    getCurrentPositionWithinCap((settled) => {
+                        createTransaction(settled.gpsCoords ? {...baseParams, gpsPoint: settled.gpsCoords} : baseParams);
+                        runCleanup();
+                    });
                     return;
                 }
                 createTransaction(baseParams);

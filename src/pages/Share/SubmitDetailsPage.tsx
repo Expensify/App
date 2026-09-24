@@ -34,13 +34,13 @@ import {
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
+import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
-import getCurrentPosition from '@libs/getCurrentPosition';
+import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
@@ -174,6 +174,10 @@ function SubmitDetailsPage({
         },
         [],
     );
+
+    useEffect(() => {
+        snapshotUserLocation();
+    }, []);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -549,11 +553,7 @@ function SubmitDetailsPage({
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
         logReceiptCaptured({file: receipt, captureSource: 'share', receiptTraceId});
-        if (!locationPermissionGranted) {
-            finishRequestAndNavigate(receipt);
-            return;
-        }
-        // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
+        // A position the share screen already cached goes straight in, so the submit never waits on the device for a point we already hold.
         if (userLocation) {
             finishRequestAndNavigate(receipt, {
                 lat: userLocation.latitude,
@@ -561,18 +561,13 @@ function SubmitDetailsPage({
             });
             return;
         }
-        getCurrentPosition(
-            (successData) => {
-                finishRequestAndNavigate(receipt, {
-                    lat: successData.coords.latitude,
-                    long: successData.coords.longitude,
-                });
-            },
-            (errorData) => {
-                Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
-                finishRequestAndNavigate(receipt);
-            },
-        );
+        if (!locationPermissionGranted) {
+            finishRequestAndNavigate(receipt);
+            return;
+        }
+        getCurrentPositionWithinCap((settled) => {
+            finishRequestAndNavigate(receipt, settled.gpsCoords);
+        });
     };
 
     // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).

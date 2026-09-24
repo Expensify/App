@@ -252,7 +252,6 @@ function IOURequestStepConfirmationContent({
         isOdometerDistanceRequest,
     });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
-    const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
@@ -280,7 +279,6 @@ function IOURequestStepConfirmationContent({
     // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
     const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
 
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
@@ -1114,8 +1112,6 @@ function IOURequestStepConfirmationContent({
                             isLookingAroundUser={isLookingAroundUser}
                             requestType={requestType}
                             canDismissFromSearch={canDismissFromSearch}
-                            gpsRequired={!!gpsRequired}
-                            lastLocationPermissionPrompt={lastLocationPermissionPrompt}
                             isDistanceRequest={isDistanceRequest}
                             isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
                             isUnreported={isUnreported}

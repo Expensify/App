@@ -5,6 +5,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -235,6 +236,36 @@ async function renderAndConfirm() {
     await waitForBatchedUpdatesWithAct();
     fireEvent.press(screen.getByTestId('mock-confirm-button'));
     await waitForBatchedUpdatesWithAct();
+}
+
+/** Makes the mocked device answer a position read with the coordinates the share tests assert on. */
+function mockPositionAnswer() {
+    jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
+        success({
+            coords: {
+                latitude: 40.7128,
+                longitude: -74.006,
+                altitude: null,
+                accuracy: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+            },
+            timestamp: 0,
+        });
+    });
+}
+
+function getUserLocationFromOnyx(): Promise<unknown> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connect({
+            key: ONYXKEYS.USER_LOCATION,
+            callback: (val) => {
+                resolve(val);
+                Onyx.disconnect(connection);
+            },
+        });
+    });
 }
 
 function renderSubmitDetailsPage() {
@@ -566,6 +597,36 @@ describe('SubmitDetailsPage', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    it('caches the position when the share screen opens with location permission already granted', async () => {
+        // Given a device that answers a position read straight away
+        mockPositionAnswer();
+
+        // When the share screen opens
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the position is already cached, before the user taps anything
+        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
+    });
+
+    it('creates the shared expense with the position the share screen cached, without reading the device at submit', async () => {
+        // Given a shared receipt and a position the share screen cached when it opened
+        mockPositionAnswer();
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
+
+        // When the user confirms the share
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the expense carries the cached position and confirming read the device no further
+        expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+        expect(getCurrentPosition).toHaveBeenCalledTimes(1);
     });
 
     // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.
