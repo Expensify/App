@@ -31,12 +31,9 @@ jest.mock('@libs/showConfirmModalAfterMoreMenuDismiss', () => ({__esModule: true
 jest.mock('@hooks/useConfirmModal', () => ({__esModule: true, default: () => ({showConfirmModal: jest.fn(), closeModal: jest.fn()})}));
 
 // The actual server delete is out of scope; assert on the navigate-back URL the delete writes, not the deletion itself.
-const mockDeleteTransactions = jest.fn(() => ({action: 'deleted', deletedTransactionThreadReportIDs: []}));
-const mockShouldOpenSplitExpenseEditFlowOnDelete = jest.fn(() => false);
-
 jest.mock('@hooks/useDeleteTransactions', () => ({
     __esModule: true,
-    default: () => ({deleteTransactions: mockDeleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete: mockShouldOpenSplitExpenseEditFlowOnDelete}),
+    default: () => ({deleteTransactions: jest.fn(() => ({action: 'deleted', deletedTransactionThreadReportIDs: []})), shouldOpenSplitExpenseEditFlowOnDelete: () => false}),
 }));
 
 // Keep all of ReportUtils real (we rely on the real isInvoiceReport) except navigateOnDeleteExpense, which we no-op so
@@ -72,7 +69,6 @@ describe('useExpenseActions - invoice delete on the /e/:reportID (expense report
 
     afterEach(async () => {
         jest.clearAllMocks();
-        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(false);
         await act(async () => {
             await Onyx.clear();
         });
@@ -152,52 +148,5 @@ describe('useExpenseActions - invoice delete on the /e/:reportID (expense report
 
         const backUrl = await getOnyxValue(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
         expect(backUrl).toBe(ROUTES.REPORT_WITH_ID.getRoute(invoiceRoomID));
-    });
-
-    it("labels a non-owner's report-level action as Delete when the expense can be edited as a split", async () => {
-        const memberAccountID = 1;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const iouAction = {
-            ...createRandomReportAction(Number(iouActionID)),
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            actorAccountID: memberAccountID,
-            originalMessage: {
-                IOUReportID: invoiceReportID,
-                IOUTransactionID: transactionID,
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                amount: 100,
-                currency: CONST.CURRENCY.USD,
-            },
-        } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
-        const report: Report = {
-            ...createRandomReport(Number(invoiceReportID), undefined),
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: memberAccountID,
-            stateNum: undefined,
-            statusNum: undefined,
-        };
-        const transaction = {...createRandomTransaction(Number(transactionID)), transactionID, reportID: invoiceReportID, comment: {originalTransactionID: '35'}};
-
-        jest.mocked(useMoneyReportTransactionThread).mockReturnValue({
-            iouTransactionID: transactionID,
-            requestParentReportAction: iouAction,
-            transactionThreadReportID: undefined,
-            transactionThreadReport: undefined,
-            reportActions: [iouAction],
-        });
-        mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(true);
-
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, report);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceReportID}`, {[iouActionID]: iouAction});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        const {result} = renderHook(() => useExpenseActions({reportID: invoiceReportID, isReportInSearch: false, backTo: undefined}), {wrapper});
-
-        await waitFor(() => {
-            expect(result.current.actions[CONST.REPORT.SECONDARY_ACTIONS.DELETE]?.text).toBe('Delete');
-        });
     });
 });

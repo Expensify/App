@@ -1690,18 +1690,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             currentUserAccountID,
             rules,
         }) => {
-            // A single-expense report preview also exposes its embedded money request action.
-            // Preserve the expense-delete flow for its author. Otherwise, use the preview action so an admin
-            // can delete a member's report and leave its expenses unreported.
-            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
-
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
 
-            if (isMoneyRequestAction(actionToDelete)) {
-                reportID = actionToDelete?.reportID;
-            } else if (isReportPreviewActionReportActionsUtils(actionToDelete)) {
-                reportID = actionToDelete?.childReportID;
+            if (isMoneyRequestAction(moneyRequestAction)) {
+                reportID = moneyRequestAction?.reportID;
+            } else if (isReportPreviewActionReportActionsUtils(reportAction)) {
+                reportID = reportAction?.childReportID;
             }
 
             // Hide Delete for per-diem expense split children in selfDM — users must edit the
@@ -1717,26 +1712,24 @@ const ContextMenuActions: ContextMenuAction[] = [
             return (
                 !!reportIDParam &&
                 type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-                canDeleteReportAction(actionToDelete, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
+                canDeleteReportAction(moneyRequestAction ?? reportAction, reportID, iouTransaction, transactions, childReportActions, currentUserAccountID, rules) &&
                 !isArchivedRoom &&
                 !isChronosReport &&
                 !isMessageDeleted(reportAction)
             );
         },
-        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction, currentUserAccountID}) => {
-            // Must resolve to the same action shouldShow authorised, so the delete matches what was permitted.
-            const actionToDelete = moneyRequestAction?.actorAccountID === currentUserAccountID ? (moneyRequestAction ?? reportAction) : reportAction;
-            const actionReportID = isMoneyRequestAction(actionToDelete) ? actionToDelete?.reportID : undefined;
+        onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
+            const iouReportID = isMoneyRequestAction(moneyRequestAction) ? moneyRequestAction?.reportID : undefined;
 
-            const reportID = actionReportID && Number(actionReportID) !== 0 ? actionReportID : reportIDParam;
+            const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, actionToDelete));
+                hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, actionToDelete);
+            showDeleteModal(reportID, moneyRequestAction ?? reportAction);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DELETE,
