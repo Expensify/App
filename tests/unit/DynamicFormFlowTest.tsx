@@ -117,6 +117,7 @@ async function renderFlow(onSubmit: (values: DynamicFormValues) => void = jest.f
             onSubmit={onSubmit}
             onBack={onBack}
             confirmationTitle="Confirm your details"
+            hasConfirmation
         />,
     );
     await waitForBatchedUpdatesWithAct();
@@ -144,7 +145,7 @@ describe('DynamicFormFlow', () => {
         expect(screen.getByText('Account details')).toBeOnTheScreen();
         expect(screen.getByText('common.next')).toBeOnTheScreen();
         expect(screen.getByLabelText(/^stepCounter, Add bank account$/)).toBeOnTheScreen();
-        expect(screen.getAllByLabelText(/stepCounter/)).toHaveLength(3);
+        expect(screen.getAllByLabelText(/stepCounter/)).toHaveLength(4);
     });
 
     it('moves to the next page route when the page validates', async () => {
@@ -206,6 +207,7 @@ describe('DynamicFormFlow', () => {
                 formID={FORM_ID}
                 headerTitle="Identity"
                 testID="DynamicFormFlowSensitive"
+                hasConfirmation
                 buildRoute={buildRoute}
                 onSubmit={onSubmit}
                 onBack={jest.fn()}
@@ -233,6 +235,7 @@ describe('DynamicFormFlow', () => {
                     formID={FORM_ID}
                     headerTitle="Identity"
                     testID="DynamicFormFlowSensitive"
+                    hasConfirmation
                     buildRoute={buildRoute}
                     onSubmit={onSubmit}
                     onBack={jest.fn()}
@@ -265,6 +268,7 @@ describe('DynamicFormFlow', () => {
                 formID={FORM_ID}
                 headerTitle="Add bank account"
                 testID="DynamicFormFlowSkip"
+                hasConfirmation
                 buildRoute={buildRoute}
                 onSubmit={jest.fn()}
                 onBack={jest.fn()}
@@ -273,7 +277,7 @@ describe('DynamicFormFlow', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryAllByLabelText(/stepCounter/)).toHaveLength(0);
+        expect(screen.getAllByLabelText(/stepCounter/)).toHaveLength(3);
         mockRouteParams.subPage = 'account-holder-details';
         screen.unmount();
         render(
@@ -282,6 +286,7 @@ describe('DynamicFormFlow', () => {
                 formID={FORM_ID}
                 headerTitle="Add bank account"
                 testID="DynamicFormFlowSkip"
+                hasConfirmation
                 buildRoute={buildRoute}
                 onSubmit={jest.fn()}
                 onBack={jest.fn()}
@@ -356,6 +361,7 @@ describe('DynamicFormFlow', () => {
                 formID={FORM_ID}
                 headerTitle="Add bank account"
                 testID="DynamicFormFlowRedirect"
+                hasConfirmation
                 buildRoute={buildRoute}
                 onSubmit={jest.fn()}
                 onBack={jest.fn()}
@@ -394,6 +400,7 @@ describe('DynamicFormFlow', () => {
                     formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                     headerTitle="Owners"
                     testID="DynamicFormFlowListEditor"
+                    hasConfirmation
                     buildRoute={buildRoute}
                     onSubmit={onSubmit}
                     onBack={jest.fn()}
@@ -490,6 +497,32 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('account-holder-details'));
     });
 
+    it('submits from the last page when the form is short enough to skip the confirmation', async () => {
+        const onSubmit = jest.fn();
+        mockRouteParams.subPage = 'ownership';
+        render(
+            <DynamicFormFlow
+                fields={allFieldTypes}
+                formID={FORM_ID}
+                headerTitle="Add bank account"
+                testID="DynamicFormFlowNoConfirmation"
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getAllByLabelText(/stepCounter/)).toHaveLength(3);
+        expect(screen.getByText('common.next')).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({accountNumber: '12345678'}));
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(buildRoute('confirm'));
+    });
+
     it('lets a flow force the step indicator on or off regardless of page count', async () => {
         const twoGroups = allFieldTypes.filter((field) => field.group !== 'Ownership');
         mockRouteParams.subPage = 'account-details';
@@ -503,7 +536,7 @@ describe('DynamicFormFlow', () => {
                 onSubmit={jest.fn()}
                 onBack={jest.fn()}
                 confirmationTitle="Confirm"
-                shouldShowStepIndicator
+                layout="stepper"
             />,
         );
         await waitForBatchedUpdatesWithAct();
@@ -520,7 +553,7 @@ describe('DynamicFormFlow', () => {
                 onSubmit={jest.fn()}
                 onBack={jest.fn()}
                 confirmationTitle="Confirm"
-                shouldShowStepIndicator={false}
+                layout="pages"
             />,
         );
         await waitForBatchedUpdatesWithAct();
