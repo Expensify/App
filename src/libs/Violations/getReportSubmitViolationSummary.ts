@@ -1,19 +1,25 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {hasPendingRTERViolation, hasTransactionBeenRejected, isBrokenConnectionViolation} from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 type ReportSubmitViolationSummary = {
+    /** A transaction on the report has its own AUTO_REPORTED_REJECTED_EXPENSE violation */
     hasRejectedExpense: boolean;
+    /** The whole report was rejected to the submitter (report-level nextStep, no per-transaction violation to resolve) */
+    hasReportBeenRejected: boolean;
     hasPendingCardMatch: boolean;
-    otherViolationNames: Set<ValueOf<typeof CONST.VIOLATIONS>>;
+    /** First-seen violation instance per violation name, so the full message (with amounts/thresholds) can be built later */
+    otherViolations: Map<ValueOf<typeof CONST.VIOLATIONS>, TransactionViolation>;
 };
 
 /**
@@ -33,9 +39,9 @@ function getReportSubmitViolationSummary(
     violationsCollection: OnyxCollection<TransactionViolations>,
     report: OnyxEntry<Report>,
 ): ReportSubmitViolationSummary {
-    let hasRejectedExpense = hasReportBeenRejectedToSubmitter(report);
+    let hasRejectedExpense = false;
     let hasPendingCardMatch = false;
-    const otherViolationNames = new Set<ValueOf<typeof CONST.VIOLATIONS>>();
+    const otherViolations = new Map<ValueOf<typeof CONST.VIOLATIONS>, TransactionViolation>();
 
     for (const transaction of transactions) {
         if (!transaction?.transactionID) {
@@ -59,24 +65,37 @@ function getReportSubmitViolationSummary(
             if (violation.name === CONST.VIOLATIONS.RTER && violation.data?.pendingPattern && !isBrokenConnectionViolation(violation)) {
                 continue;
             }
-            otherViolationNames.add(violation.name);
+            if (!otherViolations.has(violation.name)) {
+                otherViolations.set(violation.name, violation);
+            }
         }
     }
 
-    return {hasRejectedExpense, hasPendingCardMatch, otherViolationNames};
+    return {hasRejectedExpense, hasReportBeenRejected: hasReportBeenRejectedToSubmitter(report), hasPendingCardMatch, otherViolations};
 }
 
-function lowercaseFirst(value: string): string {
-    return value.length > 0 ? `${value.charAt(0).toLowerCase()}${value.slice(1)}` : value;
-}
+type BuildSubmitViolationBulletsParams = {
+    summary: ReportSubmitViolationSummary;
+    translate: LocaleContextProps['translate'];
+    dateFnsLocale: LocaleContextProps['dateFnsLocale'];
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+};
 
-/** Builds the modal's bullet copy, in a fixed order: other violations first, then rejected, then pending card match. */
-function buildSubmitViolationBullets(summary: ReportSubmitViolationSummary, translate: LocaleContextProps['translate']): string[] {
+/**
+ * Builds the modal's bullet copy, in a fixed order: other violations first, then report/expense rejection, then
+ * pending card match. Other violations use the same full message (with amounts/thresholds) shown elsewhere in the
+ * app (e.g. the RBR message under an expense row), via ViolationsUtils.getViolationTranslation, rather than the
+ * short label - so e.g. a receipt-required violation says "Receipt required over $25.00" instead of just "Expense
+ * receipt required".
+ */
+function buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString}: BuildSubmitViolationBulletsParams): string[] {
     const bullets: string[] = [];
 
-    for (const name of summary.otherViolationNames) {
-        const shortLabel = translate(`violations.shortName.${name}` as TranslationPaths);
-        bullets.push(translate('iou.confirmSubmitReportViolations.otherViolation', lowercaseFirst(shortLabel)));
+    for (const violation of summary.otherViolations.values()) {
+        bullets.push(ViolationsUtils.getViolationTranslation({violation, translate, dateFnsLocale, convertToDisplayString}));
+    }
+    if (summary.hasReportBeenRejected) {
+        bullets.push(translate('iou.confirmSubmitReportViolations.reportRejected'));
     }
     if (summary.hasRejectedExpense) {
         bullets.push(translate('iou.confirmSubmitReportViolations.rejectedExpense'));

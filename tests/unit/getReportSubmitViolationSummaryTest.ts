@@ -8,16 +8,17 @@ import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
-const shortNameTranslations = new Map<string, string>([['violations.shortName.overCategoryLimit', 'Over category limit']]);
-
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- narrows the test double to the wider LocaleContextProps['translate'] signature the function under test expects
-const translate = jest.fn((key: string, param?: string) => {
-    const shortName = shortNameTranslations.get(key);
-    if (shortName !== undefined) {
-        return shortName;
-    }
-    return param !== undefined ? `${key}(${param})` : key;
+const translate = jest.fn((key: string, ...params: unknown[]) => {
+    const suffix = params.filter((param) => param !== undefined && param !== '').join(',');
+    return suffix.length > 0 ? `${key}(${suffix})` : key;
 }) as unknown as LocaleContextProps['translate'];
+
+const convertToDisplayString = jest.fn((amount: number, currency: string) => `${amount} ${currency}`);
+
+// Not exercised by the violation types covered here (overCategoryLimit doesn't need a formatted date), but
+// required by buildSubmitViolationBullets's params shape.
+const dateFnsLocale = {} as LocaleContextProps['dateFnsLocale'];
 
 function violationsKey(transactionID: string) {
     return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
@@ -45,7 +46,7 @@ describe('getReportSubmitViolationSummary', () => {
 
         // When the summary is built
         // Then the "Submit report?" modal has nothing to show, so every bucket must be empty
-        expect(summary).toEqual({hasRejectedExpense: false, hasPendingCardMatch: false, otherViolationNames: new Set()});
+        expect(summary).toEqual({hasRejectedExpense: false, hasReportBeenRejected: false, hasPendingCardMatch: false, otherViolations: new Map()});
     });
 
     it('flags a rejected expense violation', () => {
@@ -57,7 +58,7 @@ describe('getReportSubmitViolationSummary', () => {
         // because the caller needs to distinguish it to set shouldResolveAcknowledgedViolations on submit
         expect(summary.hasRejectedExpense).toBe(true);
         expect(summary.hasPendingCardMatch).toBe(false);
-        expect(summary.otherViolationNames.size).toBe(0);
+        expect(summary.otherViolations.size).toBe(0);
     });
 
     it('flags a pending RTER card-match violation', () => {
@@ -74,10 +75,11 @@ describe('getReportSubmitViolationSummary', () => {
     it('buckets a broken-connection RTER violation as an "other" violation instead of dropping it', () => {
         // Given a transaction with an RTER violation caused by a broken bank connection rather than a pending card match
         // (regression test: a prior version of the loop skipped every RTER-named violation, silently dropping this one)
+        const rterViolation = violation(CONST.VIOLATIONS.RTER, {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION});
         const summary = getReportSubmitViolationSummary(
             [transaction('1')],
             {
-                [violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true, rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION})],
+                [violationsKey('1')]: [rterViolation],
             },
             undefined,
         );
@@ -87,25 +89,27 @@ describe('getReportSubmitViolationSummary', () => {
         // and it must still be visible to the user as an informational "other" bullet instead of disappearing
         expect(summary.hasPendingCardMatch).toBe(false);
         expect(summary.hasRejectedExpense).toBe(false);
-        expect(summary.otherViolationNames).toEqual(new Set([CONST.VIOLATIONS.RTER]));
+        expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.RTER, rterViolation]]));
     });
 
-    it('buckets any other violation name into otherViolationNames', () => {
+    it('buckets any other violation name into otherViolations', () => {
         // Given a transaction with a violation that isn't rejected-expense or RTER (e.g. a policy category limit)
-        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]}, undefined);
+        const overCategoryLimitViolation = violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+        const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: [overCategoryLimitViolation]}, undefined);
 
         // When the summary is built
         // Then it must be collected as an informational-only bullet, since the modal only needs to warn the user, not resolve anything
-        expect(summary.otherViolationNames).toEqual(new Set([CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]));
+        expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, overCategoryLimitViolation]]));
     });
 
     it('aggregates violations across multiple transactions', () => {
         // Given two transactions on the same report, each with a different kind of violation
+        const overCategoryLimitViolation = violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const summary = getReportSubmitViolationSummary(
             [transaction('1'), transaction('2')],
             {
                 [violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)],
-                [violationsKey('2')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)],
+                [violationsKey('2')]: [overCategoryLimitViolation],
             },
             undefined,
         );
@@ -113,7 +117,7 @@ describe('getReportSubmitViolationSummary', () => {
         // When the summary is built for the whole report
         // Then it must reflect violations from every transaction, not just the first one, since submitting the report affects all of them
         expect(summary.hasRejectedExpense).toBe(true);
-        expect(summary.otherViolationNames).toEqual(new Set([CONST.VIOLATIONS.OVER_CATEGORY_LIMIT]));
+        expect(summary.otherViolations).toEqual(new Map([[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, overCategoryLimitViolation]]));
     });
 
     it('ignores transactions with no violations entry', () => {
@@ -122,21 +126,24 @@ describe('getReportSubmitViolationSummary', () => {
 
         // When the summary is built
         // Then it must not throw or treat the missing key as a violation, so a report just isn't flagged instead of crashing
-        expect(summary).toEqual({hasRejectedExpense: false, hasPendingCardMatch: false, otherViolationNames: new Set()});
+        expect(summary).toEqual({hasRejectedExpense: false, hasReportBeenRejected: false, hasPendingCardMatch: false, otherViolations: new Map()});
     });
 
-    it('flags a rejected expense when the whole report was rejected to the submitter, even with no transaction violations', () => {
+    it('flags a report-level rejection separately from a transaction-level rejected-expense violation', () => {
         // Given a report that was rejected in full (nextStep.messageKey is REJECTED_REPORT, report reopened to OPEN),
-        // where the individual transactions carry no AUTO_REPORTED_REJECTED_EXPENSE violation of their own
+        // where the individual transactions carry no AUTO_REPORTED_REJECTED_EXPENSE violation of their own - the PO
+        // asked for these two cases to use different copy, since a report-level rejection has no per-expense
+        // "Mark as resolved" action, unlike a transaction-level rejected-expense violation
         const summary = getReportSubmitViolationSummary([transaction('1')], {[violationsKey('1')]: []}, rejectedReport());
 
         // When the summary is built
-        // Then it must still surface the "rejected expense" bucket, since a whole-report rejection is a report-level state
-        // (not a TransactionViolations entry) that the modal must warn about all the same
-        expect(summary.hasRejectedExpense).toBe(true);
+        // Then it must surface the report-level rejection in its own bucket, and must NOT also flag the
+        // transaction-level rejected-expense bucket, since no transaction actually carries that violation
+        expect(summary.hasReportBeenRejected).toBe(true);
+        expect(summary.hasRejectedExpense).toBe(false);
     });
 
-    it('does not flag a rejected expense for a report in a different state than OPEN, even with a REJECTED_REPORT nextStep', () => {
+    it('does not flag a report-level rejection for a report in a different state than OPEN, even with a REJECTED_REPORT nextStep', () => {
         // Given a report whose nextStep still carries a stale REJECTED_REPORT messageKey but whose stateNum has moved on
         // (e.g. resubmitted and now back in an approval state)
         const summary = getReportSubmitViolationSummary(
@@ -150,29 +157,59 @@ describe('getReportSubmitViolationSummary', () => {
 
         // When the summary is built
         // Then it must not treat the report as currently rejected, since stateNum no longer reflects the rejected-and-reopened state
-        expect(summary.hasRejectedExpense).toBe(false);
+        expect(summary.hasReportBeenRejected).toBe(false);
     });
 });
 
 describe('buildSubmitViolationBullets', () => {
     it('returns an empty list when there is nothing to report', () => {
         // Given a summary where every bucket is empty
+        const summary = {hasRejectedExpense: false, hasReportBeenRejected: false, hasPendingCardMatch: false, otherViolations: new Map()};
+
         // When the bullets are built
         // Then there is nothing for the modal to show, so the list must be empty
-        expect(buildSubmitViolationBullets({hasRejectedExpense: false, hasPendingCardMatch: false, otherViolationNames: new Set()}, translate)).toEqual([]);
+        expect(buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString})).toEqual([]);
     });
 
-    it('orders other-violation bullets before the fixed rejected/pending-card-match bullets', () => {
-        // Given a summary with all three kinds of violation present at once
-        // When the bullets are built
-        // Then the order must be stable (other violations first, then rejected, then pending-card-match) so the modal
-        // copy doesn't shuffle between renders and matches the approved mockup
-        const bullets = buildSubmitViolationBullets({hasRejectedExpense: true, hasPendingCardMatch: true, otherViolationNames: new Set([CONST.VIOLATIONS.OVER_CATEGORY_LIMIT])}, translate);
+    it('orders bullets: other violations first, then report rejection, then expense rejection, then pending-card-match', () => {
+        // Given a summary with every kind of violation present at once
+        const summary = {
+            hasRejectedExpense: true,
+            hasReportBeenRejected: true,
+            hasPendingCardMatch: true,
+            otherViolations: new Map([[CONST.VIOLATIONS.OVER_CATEGORY_LIMIT, violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]]),
+        };
 
+        // When the bullets are built
+        const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
+
+        // Then the order must be stable so the modal copy doesn't shuffle between renders, and the other-violation
+        // bullet must use the full violation message (with the interpolated amount), not the short label
         expect(bullets).toEqual([
-            'iou.confirmSubmitReportViolations.otherViolation(over category limit)',
+            'violations.overCategoryLimit(0 USD)',
+            'iou.confirmSubmitReportViolations.reportRejected',
             'iou.confirmSubmitReportViolations.rejectedExpense',
             'iou.confirmSubmitReportViolations.pendingCardMatch',
         ]);
+    });
+
+    it('builds the full receipt-required message with the formatted threshold amount, not the short label', () => {
+        // Given a receipt-required violation whose data carries the policy's no-receipt amount threshold (e.g. $25)
+        const receiptRequiredViolation = violation(CONST.VIOLATIONS.RECEIPT_REQUIRED, {amount: 2500, currency: 'USD'});
+        const summary = {
+            hasRejectedExpense: false,
+            hasReportBeenRejected: false,
+            hasPendingCardMatch: false,
+            otherViolations: new Map([[CONST.VIOLATIONS.RECEIPT_REQUIRED, receiptRequiredViolation]]),
+        };
+
+        // When the bullets are built
+        const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
+
+        // Then the bullet must mention the actual threshold amount (via convertToDisplayString), matching the full
+        // message shown elsewhere in the app (e.g. the RBR message under an expense row), instead of a generic
+        // short label that drops the amount - this is the PO's explicit ask on the PR review
+        expect(convertToDisplayString).toHaveBeenCalledWith(2500, 'USD');
+        expect(bullets).toEqual(['violations.receiptRequired(2500 USD)']);
     });
 });

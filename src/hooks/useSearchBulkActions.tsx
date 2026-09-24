@@ -7,6 +7,7 @@ import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopo
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
+import SubmitViolationsList from '@components/SubmitViolationsList';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
@@ -541,7 +542,7 @@ function getChatReportForBulkPay(
 type ExportMenuItem = DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'accessibilityLabel' | 'shouldCallAfterModalHide'>;
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -2734,20 +2735,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const submitTransactions = [...reportIDsToSubmit].flatMap((reportID) => transactionsByReportID.get(reportID) ?? []);
                     const summary = getReportSubmitViolationSummary(submitTransactions, filteredViolationsCollection, undefined);
                     if (hasAnyReportBeenRejectedToSubmitter) {
-                        summary.hasRejectedExpense = true;
+                        summary.hasReportBeenRejected = true;
                     }
 
-                    if (!summary.hasRejectedExpense && !summary.hasPendingCardMatch && summary.otherViolationNames.size === 0) {
+                    if (!summary.hasRejectedExpense && !summary.hasReportBeenRejected && !summary.hasPendingCardMatch && summary.otherViolations.size === 0) {
                         runSubmit();
                         return;
                     }
 
-                    const bullets = buildSubmitViolationBullets(summary, translate);
+                    const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
                     showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                         title: translate('iou.confirmSubmitReportViolations.title'),
                         subtitle: translate('iou.confirmSubmitReportViolations.description'),
-                        prompt: bullets.map((bullet) => `${CONST.DOT_SEPARATOR} ${bullet}`).join('\n'),
-                        promptStyles: styles.textDanger,
+                        prompt: <SubmitViolationsList violations={bullets} />,
                         confirmText: translate('common.submitAnyway'),
                         cancelText: translate('common.cancel'),
                         buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -3151,7 +3151,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentUserLogin,
         bankAccountList,
         styles.integrationIcon,
-        styles.textDanger,
         showConfirmModal,
         clearSelectedTransactions,
         handleBasicExport,

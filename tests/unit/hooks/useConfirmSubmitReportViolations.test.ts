@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
+import SubmitViolationsList from '@components/SubmitViolationsList';
+
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
@@ -26,12 +28,15 @@ jest.mock('@components/Modal/Global/ModalContext', () => {
 });
 
 jest.mock('@hooks/useLocalize', () => () => ({
-    translate: (key: string, param?: string) => (param !== undefined ? `${key}(${param})` : key),
+    translate: (key: string, ...params: unknown[]) => {
+        const suffix = params.filter((param) => param !== undefined && param !== '').join(',');
+        return suffix.length > 0 ? `${key}(${suffix})` : key;
+    },
+    dateFnsLocale: {},
 }));
 
-jest.mock('@hooks/useThemeStyles', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({textDanger: {color: 'mock-danger'}})),
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({convertToDisplayString: (amount: number, currency: string) => `${amount} ${currency}`}),
 }));
 
 jest.mock('@userActions/Transaction', () => ({
@@ -51,6 +56,13 @@ function violation(name: TransactionViolation['name'], data?: TransactionViolati
 const transaction1 = createMock<Transaction>({transactionID: '1'});
 const reportActions: ReportAction[] = [];
 const report: OnyxEntry<Report> = undefined;
+
+/** The hook passes a <SubmitViolationsList violations={...} /> element as `prompt`; this reads its violations prop back out. */
+function getPromptViolations(): string[] {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- reading the JSX element's props back out for assertions
+    const prompt = getShowConfirmModalOption('prompt') as unknown as {props: {violations: string[]}};
+    return prompt.props.violations;
+}
 
 describe('useConfirmSubmitReportViolations', () => {
     beforeEach(() => {
@@ -83,7 +95,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Then the modal must open with the rejected-expense bullet, and submission must stay blocked until the user answers,
         // otherwise a rejected expense could be submitted silently without the user ever seeing the warning
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(getShowConfirmModalOption('prompt')).toContain('iou.confirmSubmitReportViolations.rejectedExpense');
+        expect(getPromptViolations()).toContain('iou.confirmSubmitReportViolations.rejectedExpense');
         expect(onProceed).not.toHaveBeenCalled();
     });
 
@@ -139,7 +151,7 @@ describe('useConfirmSubmitReportViolations', () => {
         expect(onProceed).toHaveBeenCalledWith(false);
     });
 
-    it('shows the confirm modal with red styling on the violations text and the confirm button', () => {
+    it('renders the violations with SubmitViolationsList (dot icon, not a unicode bullet) and keeps the danger button variant', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
         const {result} = renderHook(() => useConfirmSubmitReportViolations([transaction1], violationsCollection, reportActions, report));
@@ -148,13 +160,16 @@ describe('useConfirmSubmitReportViolations', () => {
         // When the caller tries to submit
         result.current(onProceed);
 
-        // Then the modal must be styled per the approved design (red violations text, red "Submit anyway" button),
-        // since design decided a green button didn't make sense for an action being discouraged
-        expect(getShowConfirmModalOption('promptStyles')).toEqual({color: 'mock-danger'});
+        // Then the modal's prompt must be the SubmitViolationsList component (design asked for a real dot icon
+        // instead of a unicode bullet character), and the confirm button must stay red, since design decided a
+        // green button didn't make sense for an action being discouraged
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- reading the JSX element's type back out for assertions
+        const prompt = getShowConfirmModalOption('prompt') as unknown as {type: unknown};
+        expect(prompt.type).toBe(SubmitViolationsList);
         expect(getShowConfirmModalOption('buttonVariant')).toBe(CONST.BUTTON_VARIANT.DANGER);
     });
 
-    it('shows the confirm modal with the rejected-expense bullet when the whole report was rejected to the submitter', () => {
+    it('shows the report-rejected bullet (not the rejected-expense one) when the whole report was rejected to the submitter', () => {
         // Given a report with no transaction-level violations, but rejected in full (nextStep.messageKey is
         // REJECTED_REPORT, report reopened to OPEN) - a report-level state, not a TransactionViolations entry
         const rejectedReport = createMock<Report>({
@@ -167,9 +182,12 @@ describe('useConfirmSubmitReportViolations', () => {
         // When the caller tries to submit
         result.current(onProceed);
 
-        // Then the modal must still open with the rejected-expense bullet, since flaviadefaria confirmed a whole-report
-        // rejection is in scope even though no individual transaction carries the violation
+        // Then the modal must open with the dedicated report-rejected bullet, not the transaction-level rejected-expense
+        // one, since the PO asked for these to read differently: a report-level rejection has no per-expense
+        // "Mark as resolved" action, so "Rejected expense not marked as resolved" would be misleading here
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(getShowConfirmModalOption('prompt')).toContain('iou.confirmSubmitReportViolations.rejectedExpense');
+        const violations = getPromptViolations();
+        expect(violations).toContain('iou.confirmSubmitReportViolations.reportRejected');
+        expect(violations).not.toContain('iou.confirmSubmitReportViolations.rejectedExpense');
     });
 });

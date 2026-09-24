@@ -104,7 +104,7 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
 }));
 
-const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{prompt?: string}]>();
+const mockShowConfirmModal = jest.fn<Promise<{action: string}>, [{prompt?: unknown}]>();
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
     default: () => ({showConfirmModal: mockShowConfirmModal}),
@@ -394,7 +394,11 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         });
         expect(mockSubmitMoneyRequestOnSearch.mock.calls.at(0)?.at(1)).toEqual([expect.objectContaining({reportID: REPORT_C_ID})]);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual([`${CONST.DOT_SEPARATOR} Report A & travel`, `${CONST.DOT_SEPARATOR} Report B`]);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- this specific prompt (blocked-reports list) is always a plain string, unlike the violations modal's ReactNode prompt
+        expect((mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt as string | undefined)?.split('\n').sort()).toEqual([
+            `${CONST.DOT_SEPARATOR} Report A & travel`,
+            `${CONST.DOT_SEPARATOR} Report B`,
+        ]);
     });
 
     it('lists every selected report, submits nothing and keeps the selection when all of them are blocked', async () => {
@@ -406,7 +410,11 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
 
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.error.reportsNotSubmittedTitle'}));
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt?.split('\n').sort()).toEqual([`${CONST.DOT_SEPARATOR} Report A & travel`, `${CONST.DOT_SEPARATOR} Report B`]);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- this specific prompt (blocked-reports list) is always a plain string, unlike the violations modal's ReactNode prompt
+        expect((mockShowConfirmModal.mock.calls.at(0)?.at(0)?.prompt as string | undefined)?.split('\n').sort()).toEqual([
+            `${CONST.DOT_SEPARATOR} Report A & travel`,
+            `${CONST.DOT_SEPARATOR} Report B`,
+        ]);
         expect(mockSubmitMoneyRequestOnSearch).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
     });
@@ -453,8 +461,10 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: 'iou.confirmSubmitReportViolations.title',
-                // The same violation on both reports collapses into a single bullet.
-                prompt: `${CONST.DOT_SEPARATOR} iou.confirmSubmitReportViolations.otherViolation`,
+                // The same violation on both reports collapses into a single bullet. The mock translate returns
+                // the bare key (ignoring the interpolated amount), so the full violation message from
+                // ViolationsUtils.getViolationTranslation collapses to just the translation key here.
+                prompt: expect.objectContaining({props: expect.objectContaining({violations: ['violations.overCategoryLimit']})}),
             }),
         );
         await waitFor(() => {
@@ -476,7 +486,9 @@ describe('useSearchBulkActions - bulk submit with blocked reports', () => {
 
         // Then the modal must show the rejected-expense bullet, and the submit call must carry
         // shouldResolveAcknowledgedViolations=true so the backend marks the violation resolved instead of leaving it dangling
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} iou.confirmSubmitReportViolations.rejectedExpense`}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({prompt: expect.objectContaining({props: expect.objectContaining({violations: ['iou.confirmSubmitReportViolations.rejectedExpense']})})}),
+        );
         await waitFor(() => {
             expect(mockSubmitMoneyRequestOnSearch).toHaveBeenCalledTimes(1);
         });

@@ -1,4 +1,7 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import SubmitViolationsList from '@components/SubmitViolationsList';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
 import {buildSubmitViolationBullets, getReportSubmitViolationSummary} from '@libs/Violations/getReportSubmitViolationSummary';
 
@@ -9,9 +12,10 @@ import type {Report, ReportAction, Transaction, TransactionViolations} from '@sr
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import React from 'react';
+
 import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
-import useThemeStyles from './useThemeStyles';
 
 /**
  * Hook that returns a callback to confirm any report violations (rejected expenses, pending RTER
@@ -25,22 +29,21 @@ function useConfirmSubmitReportViolations(
     report: OnyxEntry<Report>,
 ) {
     const {showConfirmModal} = useConfirmModal();
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     return (onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => {
         const summary = getReportSubmitViolationSummary(transactions, violationsCollection, report);
-        if (!summary.hasRejectedExpense && !summary.hasPendingCardMatch && summary.otherViolationNames.size === 0) {
+        if (!summary.hasRejectedExpense && !summary.hasReportBeenRejected && !summary.hasPendingCardMatch && summary.otherViolations.size === 0) {
             onProceed();
             return;
         }
 
-        const bullets = buildSubmitViolationBullets(summary, translate);
+        const bullets = buildSubmitViolationBullets({summary, translate, dateFnsLocale, convertToDisplayString});
         showConfirmModal({
             title: translate('iou.confirmSubmitReportViolations.title'),
             subtitle: translate('iou.confirmSubmitReportViolations.description'),
-            prompt: bullets.map((bullet) => `${CONST.DOT_SEPARATOR} ${bullet}`).join('\n'),
-            promptStyles: styles.textDanger,
+            prompt: <SubmitViolationsList violations={bullets} />,
             confirmText: translate('common.submitAnyway'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
