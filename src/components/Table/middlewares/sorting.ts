@@ -103,8 +103,10 @@ function resolveActiveSorting<ColumnKey extends string = string>(
     columnKeys: ColumnKey[],
     initialSortColumn: ColumnKey | undefined,
 ): ActiveSorting<ColumnKey> {
-    if (shouldUseNarrowTableLayout && narrowLayoutSortColumn) {
-        return {columnKey: narrowLayoutSortColumn, order: 'asc'};
+    if (shouldUseNarrowTableLayout) {
+        // Narrow layouts drop columns for space rather than because the data lost them, so the fallback below must not
+        // run here. Otherwise resizing past the breakpoint would silently discard the sort the user picked.
+        return narrowLayoutSortColumn ? {columnKey: narrowLayoutSortColumn, order: 'asc'} : userSorting;
     }
 
     // A column that stops being rendered (e.g. a conditional column loses its last value) can leave the table sorted
