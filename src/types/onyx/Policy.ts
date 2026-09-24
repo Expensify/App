@@ -2201,7 +2201,7 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
  * A subsidiary (entity) configured in Campfire.
  */
 type CampfireSubsidiary = {
-    /** Unique identifier of the account. */
+    /** Unique identifier of the subsidiary. */
     id: string;
 
     /** Name of the account. */
