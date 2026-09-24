@@ -598,21 +598,12 @@ describe('SubmitDetailsPage', () => {
         }
     });
 
-    it('caches the position when the share screen opens with location permission already granted', async () => {
-        // Given a device that answers a position read straight away
-        mockPositionAnswer();
-
-        // When the share screen opens
-        renderSubmitDetailsPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the position is already cached, before the user taps anything
-        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
-    });
-
     it('creates the shared expense with the position the share screen cached, without reading the device at submit', async () => {
-        // Given a shared receipt and a position the share screen cached when it opened
+        // Given a shared receipt, location permission granted when the user confirms, and a position the share screen cached when it opened
         mockPositionAnswer();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+        });
         renderSubmitDetailsPage();
         await waitForBatchedUpdatesWithAct();
 

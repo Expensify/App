@@ -35,6 +35,7 @@ import {getPickerCaptureSource} from '@libs/telemetry/ReceiptObservability';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
 import getSkipConfirmationPreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSkipConfirmationPreMountDestinationRoute';
+import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import buildReceiptFiles from '@pages/iou/request/step/IOURequestStepScan/utils/buildReceiptFiles';
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -55,6 +56,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
+import {RESULTS} from 'react-native-permissions';
 
 import Camera from './Camera';
 import GpsPermissionGate from './GpsPermissionGate';
@@ -331,8 +333,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         return;
                     }
 
-                    getCurrentPositionWithinCap((settled) => {
-                        createTransaction(settled.gpsCoords ? {...baseParams, gpsPoint: settled.gpsCoords} : baseParams);
+                    getCurrentPositionWithinCap((gpsCoords) => {
+                        createTransaction(gpsCoords ? {...baseParams, gpsPoint: gpsCoords} : baseParams);
                         runCleanup();
                     });
                     return;
@@ -358,7 +360,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                 setStartLocationPermissionFlow(true);
                 return;
             }
-            submitDirectly(files, true);
+            getLocationPermission().then((status) => submitDirectly(files, status === RESULTS.GRANTED || status === RESULTS.LIMITED));
             return;
         }
         submitDirectly(files, false);

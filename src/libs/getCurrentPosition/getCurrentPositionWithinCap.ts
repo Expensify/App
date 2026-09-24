@@ -6,46 +6,28 @@ import type {ValueOf} from 'type-fest';
 
 import getCurrentPosition from '.';
 
-type GpsCoords = {lat: number; long: number};
-
 type LocationSource = ValueOf<typeof CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE>;
 
-type SettledLocation = {
-    gpsCoords?: GpsCoords;
-    source: LocationSource;
-};
+function getCurrentPositionWithinCap(onSettled: (gpsCoords: {lat: number; long: number} | undefined, source: LocationSource) => void) {
+    let isSettled = false;
 
-function getCurrentPositionWithinCap(onSettled: (settled: SettledLocation) => void) {
-    let settled = false;
-
-    const settleOnce = (settledLocation: SettledLocation) => {
-        if (settled) {
+    const settle: typeof onSettled = (gpsCoords, source) => {
+        if (isSettled) {
             return;
         }
-        settled = true;
-        onSettled(settledLocation);
+        isSettled = true;
+        onSettled(gpsCoords, source);
     };
 
-    const timeoutId = setTimeout(() => {
-        settleOnce({source: CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.TIMED_OUT});
-    }, CONST.GPS.SUBMIT_WAIT_TIMEOUT);
+    setTimeout(() => settle(undefined, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.TIMED_OUT), CONST.GPS.SUBMIT_WAIT_TIMEOUT);
 
     getCurrentPosition(
-        (position) => {
-            clearTimeout(timeoutId);
-            settleOnce({
-                gpsCoords: {lat: position.coords.latitude, long: position.coords.longitude},
-                source: CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.WAITED,
-            });
-        },
+        (position) => settle({lat: position.coords.latitude, long: position.coords.longitude}, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.WAITED),
         (error) => {
-            clearTimeout(timeoutId);
             Log.info('[getCurrentPositionWithinCap] getCurrentPosition failed', false, error);
-            settleOnce({source: CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE});
+            settle(undefined, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
         },
     );
 }
-
-export type {GpsCoords, LocationSource};
 
 export default getCurrentPositionWithinCap;

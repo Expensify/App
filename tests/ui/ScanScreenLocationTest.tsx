@@ -11,6 +11,7 @@ import IOURequestStepScan from '@pages/iou/request/step/IOURequestStepScan';
 import type {ScanRoute} from '@pages/iou/request/step/IOURequestStepScan/types';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, UserLocation} from '@src/types/onyx';
@@ -25,7 +26,7 @@ import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {getShowConfirmModalOption, mockShowConfirmModal, MockModalActions, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
+import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal} from '../utils/mockUseConfirmModal';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -145,44 +146,19 @@ async function renderScanScreen() {
     await waitForBatchedUpdatesWithAct();
 }
 
-describe('scan screen location snapshot', () => {
+describe('scan screen location permission prompt', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
         jest.clearAllMocks();
         resetMockConfirmModal();
-        mockLocationPermissionResult = 'granted';
-        jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
-            success({
-                coords: {
-                    latitude: 40.7128,
-                    longitude: -74.006,
-                    altitude: null,
-                    accuracy: null,
-                    altitudeAccuracy: null,
-                    heading: null,
-                    speed: null,
-                },
-                timestamp: 0,
-            });
-        });
     });
 
     afterEach(async () => {
         await Onyx.clear();
-    });
-
-    it('caches the position when the scan screen opens with location permission already granted', async () => {
-        // Given a device that has already granted location permission and answers a position read
-        // When the scan screen opens
-        await renderScanScreen();
-        await waitForBatchedUpdates();
-
-        // Then the screen has cached that position on its own, and asked the user for nothing
-        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
     it('asks for location permission instead of caching a position when permission is not granted', async () => {
@@ -214,24 +190,5 @@ describe('scan screen location snapshot', () => {
         // Then neither the prompt nor a location read happens, so the prompt window still protects the user
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(jest.mocked(getCurrentPosition)).not.toHaveBeenCalled();
-    });
-
-    it('caches the position once the user grants location permission from the scan screen prompt', async () => {
-        // Given a scan screen that has asked for location permission because the device denied it
-        mockLocationPermissionResult = 'denied';
-
-        // When the user grants permission from that prompt
-        await renderScanScreen();
-        await waitForBatchedUpdates();
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-
-        mockLocationPermissionResult = 'granted';
-        await act(async () => {
-            resolveShowConfirmModal({action: MockModalActions.CONFIRM});
-        });
-        await waitForBatchedUpdates();
-
-        // Then the grant fills the cache that the submit later reads, so that submit never waits on the device
-        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
     });
 });

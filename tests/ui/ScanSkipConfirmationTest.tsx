@@ -29,12 +29,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 type CreateTransactionArg = {optimisticTransactionIDs?: string[]; optimisticChatReportID?: string; gpsPoint?: {lat: number; long: number}};
 
-type CapturedCreateTransactionArg = CreateTransactionArg | undefined;
-
 // These mocks isolate the submit-orchestration boundary so we can assert *what ScanSkipConfirmation composes*
 // (optimistic-id threading + dismiss-first + cleanup) without exercising the real action/navigation stack.
 let triggerFileSelection: ((files: FileObject[]) => void) | null = null;
-let capturedCreateTransactionArg: CapturedCreateTransactionArg;
+let capturedCreateTransactionArg: CreateTransactionArg | undefined;
 const mockCreateTransaction = jest.fn((arg: CreateTransactionArg) => {
     capturedCreateTransactionArg = arg;
 });
@@ -52,11 +50,14 @@ const mockResolveOptimisticSplitChatReportID = jest.fn<ReturnType<ResolveOptimis
 // Read at render time, so the route-type switch has to be a mutable binding rather than a literal in the factory.
 let mockScanIouType = 'submit';
 
+// Read when the location permission is checked, so a test can put the device in either state.
+let mockLocationPermission = 'granted';
+
 jest.mock('react-native-permissions', () => ({
     RESULTS: {GRANTED: 'granted', DENIED: 'denied', UNAVAILABLE: 'unavailable', BLOCKED: 'blocked', LIMITED: 'limited'},
     PERMISSIONS: {IOS: {CAMERA: 'ios.permission.CAMERA'}, ANDROID: {CAMERA: 'android.permission.CAMERA'}},
-    check: jest.fn(() => Promise.resolve('granted')),
-    request: jest.fn(() => Promise.resolve('granted')),
+    check: jest.fn(async () => mockLocationPermission),
+    request: jest.fn(async () => mockLocationPermission),
     checkLocationAccuracy: jest.fn(() => 'full'),
     requestLocationAccuracy: jest.fn(() => 'full'),
     checkMultiple: jest.fn(() => Promise.resolve({})),
@@ -153,6 +154,70 @@ function createUntouchedScanFromReportEntry() {
     return transaction;
 }
 
+function mockPositionAnswer() {
+    jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
+        success({
+            coords: {
+                latitude: 40.7128,
+                longitude: -74.006,
+                altitude: null,
+                accuracy: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+            },
+            timestamp: 0,
+        });
+    });
+}
+
+async function renderSkipConfirmationScan() {
+    const transaction = createUntouchedScanFromReportEntry();
+    transaction.receipt = undefined;
+
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport());
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: 'Test', type: CONST.POLICY.TYPE.TEAM});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${TRANSACTION_ID}`, true);
+    });
+    await waitForBatchedUpdates();
+
+    render(
+        <OnyxListItemProvider>
+            <LocaleContextProvider>
+                <NavigationContainer>
+                    <IOURequestStepScan
+                        route={createMock<ScanRoute>({
+                            key: 'StepScanSkipLocation',
+                            name: SCREENS.MONEY_REQUEST.CREATE,
+                            params: {
+                                action: CONST.IOU.ACTION.CREATE,
+                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                reportID: REPORT_ID,
+                                transactionID: TRANSACTION_ID,
+                            },
+                        })}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']>({})}
+                    />
+                </NavigationContainer>
+            </LocaleContextProvider>
+        </OnyxListItemProvider>,
+    );
+
+    await waitForBatchedUpdatesWithAct();
+    expect(triggerFileSelection).not.toBeNull();
+}
+
+async function captureReceipt() {
+    const receiptFile = {name: 'receipt.png', type: 'image/png', size: 100, uri: 'file://receipt.png'} as FileObject;
+
+    await act(async () => {
+        triggerFileSelection?.([receiptFile]);
+    });
+    await waitForBatchedUpdates();
+}
+
 describe('ScanSkipConfirmation submit orchestration', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -162,6 +227,7 @@ describe('ScanSkipConfirmation submit orchestration', () => {
         triggerFileSelection = null;
         capturedCreateTransactionArg = undefined;
         mockScanIouType = CONST.IOU.TYPE.SUBMIT;
+        mockLocationPermission = 'granted';
     });
 
     afterEach(async () => {
@@ -233,73 +299,39 @@ describe('ScanSkipConfirmation submit orchestration', () => {
     });
 
     it('attaches the position the scan screen already cached and looks it up only once', async () => {
-        // Given a scan that submits without a confirmation screen, and a position the scan screen cached when it opened
-        jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
-            success({
-                coords: {
-                    latitude: 40.7128,
-                    longitude: -74.006,
-                    altitude: null,
-                    accuracy: null,
-                    altitudeAccuracy: null,
-                    heading: null,
-                    speed: null,
-                },
-                timestamp: 0,
-            });
-        });
+        // Given a scan that submits without a confirmation screen, on a device that answers a position read
+        mockPositionAnswer();
 
-        const transaction = createUntouchedScanFromReportEntry();
-        transaction.receipt = undefined;
+        // When the scan screen opens with location permission already granted
+        await renderSkipConfirmationScan();
 
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport());
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: 'Test', type: CONST.POLICY.TYPE.TEAM});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${TRANSACTION_ID}`, true);
-        });
-        await waitForBatchedUpdates();
-
-        render(
-            <OnyxListItemProvider>
-                <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStepScan
-                            route={createMock<ScanRoute>({
-                                key: 'StepScanSkipLocation',
-                                name: SCREENS.MONEY_REQUEST.CREATE,
-                                params: {
-                                    action: CONST.IOU.ACTION.CREATE,
-                                    iouType: CONST.IOU.TYPE.SUBMIT,
-                                    reportID: REPORT_ID,
-                                    transactionID: TRANSACTION_ID,
-                                },
-                            })}
-                            navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']>({})}
-                        />
-                    </NavigationContainer>
-                </LocaleContextProvider>
-            </OnyxListItemProvider>,
-        );
-
-        await waitForBatchedUpdatesWithAct();
-        expect(triggerFileSelection).not.toBeNull();
-
-        // When the screen opens, the only position read is the snapshot it takes before any receipt exists
+        // Then the only position read is the snapshot the screen takes before any receipt exists
         expect(getCurrentPosition).toHaveBeenCalledTimes(1);
 
-        const receiptFile = {name: 'receipt.png', type: 'image/png', size: 100, uri: 'file://receipt.png'} as FileObject;
-
         // And when the user captures a receipt, which submits it straight away
-        await act(async () => {
-            triggerFileSelection?.([receiptFile]);
-        });
-        await waitForBatchedUpdates();
+        await captureReceipt();
 
         // Then the expense carries the cached position, and the submit read the device no second time
         expect(mockCreateTransaction).toHaveBeenCalledTimes(1);
         expect(capturedCreateTransactionArg?.gpsPoint).toEqual({lat: 40.7128, long: -74.006});
         expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('submits a capture inside the prompt window without coordinates when location permission was never granted', async () => {
+        // Given a scan screen whose location prompt is inside the seven day window, on a device that never granted permission
+        mockLocationPermission = 'denied';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+        });
+
+        // When the user captures a receipt, which submits it straight away
+        await renderSkipConfirmationScan();
+        await captureReceipt();
+
+        // Then the expense is created without coordinates, and the capture read the device no further, so nothing waited and no permission dialog appeared at the shutter
+        expect(mockCreateTransaction).toHaveBeenCalledTimes(1);
+        expect(capturedCreateTransactionArg?.gpsPoint).toBeUndefined();
+        expect(getCurrentPosition).not.toHaveBeenCalled();
     });
 
     it('marks a skip-confirm split as the first of its batch so it creates the chat it navigates to', async () => {

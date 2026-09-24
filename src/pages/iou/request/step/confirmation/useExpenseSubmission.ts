@@ -22,7 +22,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
-import type {GpsCoords, LocationSource} from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, getReusableP2PReportID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -46,7 +45,6 @@ import {
 } from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
-import markSubmitExpenseLocationSource from '@libs/telemetry/markSubmitExpenseLocationSource';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
     getDefaultTaxCode,
@@ -64,8 +62,6 @@ import {
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
-import {getLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import isLocationPermissionGranted from '@pages/iou/request/step/IOURequestStepScan/LocationPermission/isGranted';
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
@@ -96,8 +92,10 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {isDraftReportSelector} from '@selectors/Report';
 import {useEffect, useRef, useState} from 'react';
 
-function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: GpsCoords, source?: LocationSource) => void) {
+function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
     const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+    parentSpan?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.WAITED);
+    markSubmitExpenseEnd();
 
     startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
         name: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
@@ -105,8 +103,9 @@ function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: GpsCoord
         parentSpan,
     });
 
-    getCurrentPositionWithinCap((settled) => {
-        onPosition(settled.gpsCoords, settled.source);
+    getCurrentPositionWithinCap((gpsCoords, source) => {
+        getSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, source);
+        onPosition(gpsCoords);
         endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
     });
 }
@@ -1016,31 +1015,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    function submitWithCachedOrCappedLocation(submit: (gpsPoint?: GpsCoords) => void) {
-        if (userLocation) {
-            markSubmitExpenseLocationSource(CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);
-            submit({lat: userLocation.latitude, long: userLocation.longitude});
-            return;
-        }
-
-        getLocationPermission().then((status) => {
-            if (!isLocationPermissionGranted(status)) {
-                markSubmitExpenseLocationSource(CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
-                submit();
-                return;
-            }
-
-            getCurrentPositionWithGeolocationSpan((gpsCoords, source) => {
-                if (source) {
-                    markSubmitExpenseLocationSource(source);
-                }
-                submit(gpsCoords);
-            });
-        });
-    }
-
-    function createTransaction(shouldHandleNavigation = true) {
-        markSubmitExpenseLocationSource(CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
+    function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+        getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.NONE);
 
         if (blockDistanceRequestIfNeeded()) {
             return;
@@ -1290,11 +1266,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!isPerDiemRequest && (isTrackExpense || isCategorizingTrackExpense || isSharingTrackExpense || isSelfDMDestination || isSubmittingExpenseToDraftWorkspace)) {
             if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace) {
-                    submitWithCachedOrCappedLocation((gpsPoint) => {
-                        trackExpense(shouldHandleNavigation, {gpsPoint});
+                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && !isSubmittingExpenseToDraftWorkspace && locationPermissionGranted) {
+                    if (userLocation) {
+                        getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);
+                        trackExpense(shouldHandleNavigation, {
+                            gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
+                        });
                         markSubmitExpenseEnd();
-                    });
+                        return;
+                    }
+
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(shouldHandleNavigation, {gpsPoint: gpsCoords}));
                     return;
                 }
 
@@ -1316,11 +1298,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         if (Object.values(receiptFiles).filter((receipt) => !!receipt).length && !!transaction) {
             // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense) {
-                submitWithCachedOrCappedLocation((gpsPoint) => {
-                    requestMoney(shouldHandleNavigation, gpsPoint);
+            if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                if (userLocation) {
+                    getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LOCATION_SOURCE, CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);
+                    requestMoney(shouldHandleNavigation, {
+                        lat: userLocation.latitude,
+                        long: userLocation.longitude,
+                    });
                     markSubmitExpenseEnd();
-                });
+                    return;
+                }
+
+                getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(shouldHandleNavigation, gpsCoords));
                 return;
             }
 

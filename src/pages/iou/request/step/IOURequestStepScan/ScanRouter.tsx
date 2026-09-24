@@ -1,7 +1,12 @@
+import LocationPermissionModal from '@components/LocationPermissionModal';
+
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
+import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
+
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -12,13 +17,13 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import React from 'react';
 
 import MultiScanGate from './components/MultiScanGate';
 import ScanEditReceipt from './components/ScanEditReceipt';
 import ScanFromReport from './components/ScanFromReport';
 import ScanGlobalCreate from './components/ScanGlobalCreate';
-import ScanLocationSnapshot from './components/ScanLocationSnapshot';
 import ScanSkipConfirmation from './components/ScanSkipConfirmation';
 
 type ScanRouterProps = {
@@ -119,6 +124,29 @@ function ScanNewReceipt({report, action, iouType, reportID, transactionID, trans
 ScanNewReceipt.displayName = 'ScanNewReceipt';
 
 /**
+ * Asks for location permission when the scan screen opens, and caches the position once it is granted.
+ */
+function ScanLocationPrompt({gpsRequired}: {gpsRequired: boolean}) {
+    const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {selector: shouldStartLocationPermissionFlowSelector});
+
+    return (
+        <LocationPermissionModal
+            startPermissionFlow={gpsRequired && !!shouldStartLocationPermissionFlow}
+            resetPermissionFlow={() => {}}
+            onGrant={snapshotUserLocation}
+            onDeny={(wasUserInitiated) => {
+                if (!wasUserInitiated) {
+                    return;
+                }
+                updateLastLocationPermissionPrompt();
+            }}
+        />
+    );
+}
+
+ScanLocationPrompt.displayName = 'ScanLocationPrompt';
+
+/**
  * ScanRouter — selects the appropriate scan variant based on route params and transaction state.
  *
  * Edit branch is a fast-path that subscribes to nothing extra. Non-edit branches go through MultiScanGate
@@ -140,20 +168,18 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
     }
 
     return (
-        <>
-            <ScanLocationSnapshot gpsRequired={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
-            <MultiScanGate>
-                <ScanNewReceipt
-                    report={report}
-                    action={action}
-                    iouType={iouType}
-                    reportID={reportID}
-                    transactionID={transactionID}
-                    transaction={transaction}
-                    backToReport={backToReport}
-                />
-            </MultiScanGate>
-        </>
+        <MultiScanGate>
+            <ScanLocationPrompt gpsRequired={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
+            <ScanNewReceipt
+                report={report}
+                action={action}
+                iouType={iouType}
+                reportID={reportID}
+                transactionID={transactionID}
+                transaction={transaction}
+                backToReport={backToReport}
+            />
+        </MultiScanGate>
     );
 }
 

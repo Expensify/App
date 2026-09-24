@@ -551,6 +551,11 @@ function SubmitDetailsPage({
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
         logReceiptCaptured({file: receipt, captureSource: 'share', receiptTraceId});
+        if (!locationPermissionGranted) {
+            finishRequestAndNavigate(receipt);
+            return;
+        }
+        // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
         if (userLocation) {
             finishRequestAndNavigate(receipt, {
                 lat: userLocation.latitude,
@@ -558,13 +563,7 @@ function SubmitDetailsPage({
             });
             return;
         }
-        if (!locationPermissionGranted) {
-            finishRequestAndNavigate(receipt);
-            return;
-        }
-        getCurrentPositionWithinCap((settled) => {
-            finishRequestAndNavigate(receipt, settled.gpsCoords);
-        });
+        getCurrentPositionWithinCap((gpsCoords) => finishRequestAndNavigate(receipt, gpsCoords));
     };
 
     // Separate helper so the permission-modal callbacks don't re-enter onConfirm (deadlocked when OS permission was pre-granted).

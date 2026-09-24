@@ -16,7 +16,6 @@ import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDism
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
-import markSubmitExpenseLocationSource from '@libs/telemetry/markSubmitExpenseLocationSource';
 
 import IOURequestStepConfirmationWithWritableReportOrNotFound, {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
 
@@ -151,7 +150,6 @@ jest.mock('@components/ParticipantPicker', () => {
 const {navigation: mockNavigation, emitScreenFocus, resetScreenFocusListeners} = createMockScreenNavigation();
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
-jest.mock('@libs/telemetry/markSubmitExpenseLocationSource');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -649,14 +647,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
 
         describe('location at submit', () => {
-            afterEach(() => {
-                jest.mocked(check).mockResolvedValue(RESULTS.GRANTED);
-                jest.mocked(getCurrentPosition).mockReset();
-            });
-
             it('creates the expense with the position the scan screen cached, without reading the device again', async () => {
-                // Given a scan on the confirm screen, a position the scan screen already cached, and a device that now reports no permission
-                jest.mocked(check).mockResolvedValue(RESULTS.DENIED);
+                // Given a scan on the confirm screen, location permission already granted, and a position the scan screen cached when it opened
+                jest.mocked(check).mockResolvedValue(RESULTS.GRANTED);
                 await act(async () => {
                     await Onyx.merge(ONYXKEYS.USER_LOCATION, {latitude: 40.7128, longitude: -74.006});
                 });
@@ -670,7 +663,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
                 expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
                 expect(getCurrentPosition).not.toHaveBeenCalled();
-                expect(markSubmitExpenseLocationSource).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);
             });
         });
     });

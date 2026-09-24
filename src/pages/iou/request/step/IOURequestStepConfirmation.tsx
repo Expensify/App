@@ -281,6 +281,7 @@ function IOURequestStepConfirmationContent({
     // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
     const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually))?.transactionID;
 
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
@@ -1153,6 +1154,7 @@ function IOURequestStepConfirmationContent({
                             isLookingAroundUser={isLookingAroundUser}
                             requestType={requestType}
                             canDismissFromSearch={canDismissFromSearch}
+                            gpsRequired={!!gpsRequired}
                             isDistanceRequest={isDistanceRequest}
                             isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
                             isUnreported={isUnreported}
