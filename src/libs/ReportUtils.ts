@@ -3159,7 +3159,7 @@ function canApproveIOU(
     policy: OnyxInputOrEntry<Policy>,
     reportMetadata: OnyxEntry<ReportMetadata>,
     currentUserAccountID: number,
-    iouTransactions?: Transaction[],
+    reportTransactions: Transaction[],
 ) {
     if (!isExpenseReport(iouReport)) {
         return false;
@@ -3199,8 +3199,6 @@ function canApproveIOU(
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
@@ -3368,7 +3366,7 @@ function getBadgeFromIOUReport(
     if (canBePaidElsewhere) {
         return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
-    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID)) {
+    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID, reportTransactions)) {
         return CONST.REPORT.ACTION_BADGE.APPROVE;
     }
     const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(

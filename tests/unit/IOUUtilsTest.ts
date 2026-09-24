@@ -854,7 +854,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [])).toBe(false);
     });
 });
 

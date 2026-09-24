@@ -3362,8 +3362,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
-            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
+            // Then canApproveIOU should return false for the transactions the report hook provides
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
             const [hookReport, hookTransactions] = result.current;
@@ -3419,8 +3418,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
-            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
+            // Then canApproveIOU should return false for the transactions the report hook provides
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
             const [hookReport, hookTransactions] = result.current;
@@ -3467,8 +3465,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
-            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
+            // Then canApproveIOU should return false for the transactions the report hook provides
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
             const [hookReport, hookTransactions] = result.current;
@@ -3521,8 +3518,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             await waitForBatchedUpdates();
 
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeTruthy();
-            // Then should return true when passing transactions directly as the fourth parameter instead of relying on Onyx data
+            // Then canApproveIOU should return true for the transactions the report hook provides
             const {result} = renderHook(() => useReportWithTransactionsAndViolations(reportID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdatesWithAct();
             const [hookReport, hookTransactions] = result.current;
@@ -3555,8 +3551,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
             // Then, canApproveIOU should return false since the report is closed
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
-            // Then should return false when passing transactions directly as the fourth parameter instead of relying on Onyx data
             expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeFalsy();
         });
 
@@ -3590,7 +3584,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Then canApproveIOU should return false so no "Approve" badge is surfaced for the submitter
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeFalsy();
             expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeFalsy();
         });
 
@@ -3624,7 +3617,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Then canApproveIOU should still return true for the real approver
-            expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID)).toBeTruthy();
             expect(canApproveIOU(fakeReport, fakePolicy, {}, RORY_ACCOUNT_ID, [fakeTransaction])).toBeTruthy();
         });
     });
