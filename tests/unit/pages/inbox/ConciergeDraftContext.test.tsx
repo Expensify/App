@@ -2,6 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
+import {getReportActionHtml} from '@libs/ReportActionMessageUtils';
 
 import {ConciergeDraftProvider, useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft} from '@pages/inbox/conciergeDraftState';
@@ -62,6 +63,8 @@ const PUSHER_DRAFT_PACE_INTERVAL_MS = 10;
 const SHORT_FINAL_RENDERED_HTML = '<comment>OK</comment>';
 const LONG_FINAL_RENDERED_TEXT = Array.from({length: 12}, (_, index) => `Streaming response ${index}`).join(' ');
 const LONG_FINAL_RENDERED_HTML = `<comment>${LONG_FINAL_RENDERED_TEXT}</comment>`;
+const FOLLOWUP_LIST_HTML =
+    '<followup-list source="concierge"><followup><followup-text>How do I get started?</followup-text><followup-response><p>Open your workspace settings.</p></followup-response></followup></followup-list>';
 const CANONICAL_FINAL_TEXT = `Here are the total expenses per month in Expenses - ${Array.from({length: 12}, (_, index) => `month ${index} total $${index}`).join(' ')}`;
 
 function getMockPusherSubscribe() {
@@ -669,5 +672,133 @@ describe('ConciergeDraftContext', () => {
         expect(result.current.isDraftPendingCompletion).toBe(false);
 
         unmount();
+    });
+
+    it.each([SHORT_FINAL_RENDERED_HTML, LONG_FINAL_RENDERED_HTML])('preserves canonical HTML when a reply finishes: %s', async (bodyHTML) => {
+        // Given HTML whose self-closing tags and entities change during reveal tokenization.
+        const html = `${bodyHTML}<br/><p>Jack &amp; Jill&#39;s expenses</p>`;
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
+        jest.useFakeTimers();
+
+        try {
+            // When the reply finishes revealing, its HTML must match the saved action so the list can retire the draft.
+            act(() => emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_STARTED, createDraftEvent('', {status: 'started', bodyMarkdown: undefined, finalRenderedHTML: html})));
+            act(() => jest.advanceTimersByTime(15_100));
+
+            // Then completion retains the exact server HTML, including its original serialization.
+            expect(result.current.isDraftPendingCompletion).toBe(false);
+            expect(getReportActionHtml(result.current.draftReportAction)).toBe(html);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
+    it('reveals complete followups only when the answer finishes', async () => {
+        // Given a reply with followups that contain a long hidden pregenerated answer.
+        const followups = FOLLOWUP_LIST_HTML.replace('Open your workspace settings.', LONG_FINAL_RENDERED_TEXT.repeat(10));
+        const html = `${LONG_FINAL_RENDERED_HTML}${followups}`;
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
+        jest.useFakeTimers();
+
+        try {
+            // When the answer is still revealing, its buttons must not expose partially revealed responses.
+            act(() => emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_STARTED, createDraftEvent('', {status: 'started', bodyMarkdown: undefined, finalRenderedHTML: html})));
+            act(() => jest.advanceTimersByTime(8_000));
+
+            // Then only the answer body is revealed until the full message can be displayed.
+            expect(result.current.isDraftPendingCompletion).toBe(true);
+            expect(getReportActionHtml(result.current.draftReportAction)).not.toContain('<followup-list');
+            act(() => jest.advanceTimersByTime(8_000));
+            expect(result.current.isDraftPendingCompletion).toBe(false);
+            expect(getReportActionHtml(result.current.draftReportAction)).toBe(html);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
+    it('retires a completed draft when a followup is selected and allows the next reply to stream', async () => {
+        // Given a completed cached reply, including HTML normalized by an older reveal implementation.
+        const html = `${LONG_FINAL_RENDERED_HTML}<br/>${FOLLOWUP_LIST_HTML}`;
+        setCachedDraft(
+            REPORT_ID,
+            applyConciergeDraftEvent(
+                null,
+                createDraftEvent('', {
+                    status: 'completed',
+                    bodyMarkdown: undefined,
+                    finalRenderedHTML: html.replace('<br/>', '<br>'),
+                }),
+                REPORT_ID,
+                false,
+            ),
+        );
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => ({state: useConciergeDraft(), actions: useConciergeDraftActions()}), {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
+        jest.useFakeTimers();
+
+        try {
+            // When selecting a followup changes only the saved message's followup markup.
+            const selectedHTML = html.replace('<followup-list source="concierge">', '<followup-list selected>');
+            act(() => result.current.actions.revealDraftFromReportAction(createReportAction(selectedHTML)));
+
+            // Then the list can use the saved answer immediately, without replaying the old draft.
+            expect(result.current.state.draftReportAction).toBeNull();
+            expect(result.current.state.isDraftPendingCompletion).toBe(false);
+            expect(getCachedDraft(REPORT_ID)).toBeNull();
+
+            // And a new answer still starts its own stream normally.
+            act(() =>
+                emitPusherEvent(
+                    Pusher.TYPE.CONCIERGE_DRAFT_STARTED,
+                    createDraftEvent('New answer', {
+                        status: 'started',
+                        reportActionID: '789',
+                        streamSessionID: 'next-stream',
+                    }),
+                ),
+            );
+            expect(result.current.state.draftReportAction?.reportActionID).toBe('789');
+            expect(result.current.state.isDraftPendingCompletion).toBe(true);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
+    it('appends followups to an already revealed body without restarting it', async () => {
+        // Given a fully visible body waiting for the saved message and its followups.
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(() => ({state: useConciergeDraft(), actions: useConciergeDraftActions()}), {wrapper});
+        await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
+        jest.useFakeTimers();
+
+        try {
+            act(() =>
+                result.current.actions.dispatchLocalDraftEvent(
+                    createDraftEvent('', {
+                        bodyMarkdown: undefined,
+                        finalRenderedHTML: LONG_FINAL_RENDERED_HTML,
+                    }),
+                ),
+            );
+
+            // When the saved message adds followups, no answer text remains to animate.
+            const html = `${LONG_FINAL_RENDERED_HTML}${FOLLOWUP_LIST_HTML}`;
+            act(() => result.current.actions.revealDraftFromReportAction(createReportAction(html)));
+
+            // Then followups appear immediately and the answer remains fully visible.
+            expect(getReportActionHtml(result.current.state.draftReportAction)).toBe(html);
+            expect(result.current.state.isDraftPendingCompletion).toBe(false);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
     });
 });
