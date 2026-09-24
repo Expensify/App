@@ -55,7 +55,7 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
     };
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(qboOnlineSelectorOptions, (expenseAccounts ?? []).length, saveSelectedAccount);
-    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>

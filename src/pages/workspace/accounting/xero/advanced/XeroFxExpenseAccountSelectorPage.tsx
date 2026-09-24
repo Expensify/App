@@ -48,7 +48,7 @@ function XeroFxExpenseAccountSelectorPage({policy}: WithPolicyConnectionsProps) 
     };
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(xeroSelectorOptions, expenseAccounts.length, saveSelectedAccount);
-    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
