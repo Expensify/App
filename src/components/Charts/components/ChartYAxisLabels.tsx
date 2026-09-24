@@ -27,18 +27,15 @@ type ChartYAxisLabelsProps = {
     /** Fill color for the label text. */
     labelColor: string;
 
-    /** Formats a tick value to its display string. Ignored when `labels` is provided. */
-    formatValue?: (value: number) => string;
-
-    /** Pre-formatted label for each tick, e.g. category names in a horizontal bar chart. */
-    labels?: string[];
+    /** Formats a tick value to its display string. */
+    formatValue: (value: number) => string;
 
     /** When true, labels are left-aligned starting at the left edge of the chart instead of right-aligned. */
     leftAlign?: boolean;
 };
 
-function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, labels, leftAlign = false}: ChartYAxisLabelsProps) {
-    const formattedLabels = labels ?? yTicks.map((tick) => formatValue?.(tick) ?? String(tick));
+function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
+    const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
     const paragraphs = useChartParagraphs(formattedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
     const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));

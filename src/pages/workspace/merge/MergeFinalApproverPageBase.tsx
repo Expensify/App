@@ -12,16 +12,19 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {Route} from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncProgress, PolicyFeatureName} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-type HRFinalApproverProviderConfig = {
+type MergeFinalApproverProviderConfig = {
     testID: string;
+    featureName: PolicyFeatureName;
+    backRoute: Route;
+    shouldBeBlocked?: boolean;
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     getCurrentFinalApprover: (policy: OnyxEntry<Policy>) => string | null;
     getHeaderTitle: (providerName: string) => string;
@@ -29,12 +32,12 @@ type HRFinalApproverProviderConfig = {
     handleSave: (params: {policyID: string; email: string; currentFinalApprover: string | null; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
 };
 
-type HRFinalApproverPageBaseProps = {
+type MergeFinalApproverPageBaseProps = {
     policyID: string;
-    config: HRFinalApproverProviderConfig;
+    config: MergeFinalApproverProviderConfig;
 };
 
-function HRFinalApproverPageBase({policyID, config}: HRFinalApproverPageBaseProps) {
+function MergeFinalApproverPageBase({policyID, config}: MergeFinalApproverPageBaseProps) {
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
@@ -45,8 +48,8 @@ function HRFinalApproverPageBase({policyID, config}: HRFinalApproverPageBaseProp
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED}
-            shouldBeBlocked={!!policy && !config.isConnected(policy)}
+            featureName={config.featureName}
+            shouldBeBlocked={!!config.shouldBeBlocked || (!!policy && !config.isConnected(policy))}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -56,14 +59,14 @@ function HRFinalApproverPageBase({policyID, config}: HRFinalApproverPageBaseProp
             >
                 <HeaderWithBackButton
                     title={config.getHeaderTitle(providerName)}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_HR.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(config.backRoute)}
                 />
                 <WorkspaceMembersSelectionList
                     policyID={policyID}
                     selectedApprover={finalApprover ?? ''}
                     setApprover={(email) => {
                         config.handleSave({policyID, email, currentFinalApprover: finalApprover, connectionSyncProgress});
-                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_HR.getRoute(policyID)));
+                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(config.backRoute));
                     }}
                 />
             </ScreenWrapper>
@@ -71,5 +74,5 @@ function HRFinalApproverPageBase({policyID, config}: HRFinalApproverPageBaseProp
     );
 }
 
-export type {HRFinalApproverProviderConfig};
-export default HRFinalApproverPageBase;
+export type {MergeFinalApproverProviderConfig};
+export default MergeFinalApproverPageBase;

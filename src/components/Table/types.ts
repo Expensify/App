@@ -200,6 +200,13 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
          */
         shouldEnableSelectionInNarrowPaneModal?: boolean;
 
+        /**
+         * Whether selection is always on, so checkboxes show from the start instead of being hidden behind a long
+         * press on small screens. Set this for a table whose only purpose is picking rows. Such a table also leaves
+         * the app wide selection mode untouched, so no other screen can clear its selection.
+         */
+        shouldAlwaysEnableSelection?: boolean;
+
         /** Whether the selection survives a change to the search string or the filters, e.g. when rows are confirmed in one batch. */
         shouldPreserveSelectionOnSearchAndFilter?: boolean;
 
