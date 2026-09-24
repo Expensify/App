@@ -46,7 +46,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
-import {addSeconds, format, subMinutes} from 'date-fns';
+import {addMinutes, addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -837,6 +837,14 @@ describe('actions/Report', () => {
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
+                // Each addComment call above left an optimistic action stamped with the clock at the moment it ran,
+                // a few milliseconds before this block. The actions injected below stand in for the server copies of
+                // those same comments, so every one of them has to sort after every optimistic action. Anchor them on
+                // a single timestamp one minute ahead of the clock and space them a second apart, so that the time the
+                // test itself takes to run can never reorder them.
+                const ONE_MINUTE_AHEAD = addMinutes(new Date(), 1);
+                reportActionCreatedDate = format(addSeconds(ONE_MINUTE_AHEAD, 3), CONST.DATE.FNS_DB_FORMAT_STRING);
+
                 const USER_1_BASE_ACTION = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID: USER_1_ACCOUNT_ID,
@@ -844,7 +852,7 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    created: DateUtils.getDBTime(Date.now() - 3),
+                    created: format(ONE_MINUTE_AHEAD, CONST.DATE.FNS_DB_FORMAT_STRING),
                     reportID: REPORT_ID,
                 };
 
@@ -855,33 +863,25 @@ describe('actions/Report', () => {
                         200: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
-                            created: DateUtils.getDBTime(Date.now() - 2),
+                            created: format(addSeconds(ONE_MINUTE_AHEAD, 1), CONST.DATE.FNS_DB_FORMAT_STRING),
                             reportActionID: '200',
                         },
 
                         300: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
-                            created: DateUtils.getDBTime(Date.now() - 1),
+                            created: format(addSeconds(ONE_MINUTE_AHEAD, 2), CONST.DATE.FNS_DB_FORMAT_STRING),
                             reportActionID: '300',
                         },
 
                         400: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
-                            created: DateUtils.getDBTime(),
+                            created: reportActionCreatedDate,
                             reportActionID: '400',
                         },
                     },
                 };
-
-                reportActionCreatedDate = DateUtils.getDBTime();
-
-                const optimisticReportActionsValue = optimisticReportActions.value;
-
-                if (optimisticReportActionsValue?.[400]) {
-                    optimisticReportActionsValue[400].created = reportActionCreatedDate;
-                }
 
                 // When we emit the events for these pending created actions to update them to not pending
                 PusherHelper.emitOnyxUpdate([
