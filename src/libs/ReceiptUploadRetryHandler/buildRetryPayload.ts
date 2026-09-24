@@ -1,3 +1,4 @@
+/** Decides whether a failed receipt upload can be retried and rebuilds its `RequestMoney` call from Onyx. */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';

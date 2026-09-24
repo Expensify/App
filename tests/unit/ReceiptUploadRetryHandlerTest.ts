@@ -1,5 +1,9 @@
+import retryReceiptUpload from '@libs/ReceiptUploadRetryHandler';
 import buildRetryPayload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler/buildRetryPayload';
+import resolveReceiptFile from '@libs/ReceiptUploadRetryHandler/resolveReceiptFile';
 import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
+
+import {requestMoney} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +14,9 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@libs/ReceiptUploadRetryHandler/resolveReceiptFile', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/IOU/TrackExpense'), requestMoney: jest.fn()}));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const TRANSACTION_ID = '7000000000000001';
@@ -113,5 +120,34 @@ describe('buildRetryPayload', () => {
 
     it('offers no retry once the receipt source is no longer a local file, so there is nothing left on the device to resend', () => {
         expect(canBuildRetryPayload(buildContext(buildFailedTransaction(), {source: 'https://example.com/receipt.jpg'}))).toBe(false);
+    });
+
+    describe('retryReceiptUpload', () => {
+        beforeEach(() => {
+            jest.mocked(resolveReceiptFile).mockResolvedValue(receiptFile);
+            jest.mocked(requestMoney).mockReset();
+        });
+
+        it('keeps the receipt error when the dispatch throws, so Try again and Save stay available', async () => {
+            jest.mocked(requestMoney).mockImplementation(() => {
+                throw new Error('dispatch failed');
+            });
+            const clearReceiptError = jest.fn(() => Promise.resolve());
+
+            const outcome = await retryReceiptUpload(buildContext(buildFailedTransaction()), clearReceiptError);
+
+            expect(outcome).toBe('dispatchFailed');
+            expect(clearReceiptError).not.toHaveBeenCalled();
+        });
+
+        it('clears the receipt error only after the retry is dispatched', async () => {
+            const clearReceiptError = jest.fn(() => Promise.resolve());
+
+            const outcome = await retryReceiptUpload(buildContext(buildFailedTransaction()), clearReceiptError);
+
+            expect(outcome).toBe('dispatched');
+            expect(clearReceiptError).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(requestMoney).mock.invocationCallOrder.at(0)).toBeLessThan(clearReceiptError.mock.invocationCallOrder.at(0) ?? 0);
+        });
     });
 });
