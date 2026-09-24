@@ -5681,6 +5681,67 @@ describe('actions/Report', () => {
         });
     });
 
+    it('only sends the cached policy lastModified when the policy was fully loaded', async () => {
+        // Given a report with a full policy snapshot and a report with only a policy summary
+        const policyID = 'cached-policy';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, isFromFullPolicy: true, lastModified: '12345'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}cached-report`, {reportID: 'cached-report', policyID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}summary-report`, {reportID: 'summary-report', policyID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}other-report`, {reportID: 'other-report', policyID: 'different-policy'});
+        await waitForBatchedUpdates();
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // When opening the report with the fully loaded policy
+        const fullPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        Report.openReport({
+            reportID: 'cached-report',
+            policy: fullPolicy,
+            introSelected: undefined,
+            betas: undefined,
+            hasReportActions: true,
+            currentUserAccountID: 1,
+            conciergeChat: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then its lastModified is passed to Auth
+        expect(PersistedRequests.getAll().at(-1)?.data?.policyLastModified).toBe('12345');
+
+        // A policy passed for a different report must not suppress the server's policy response.
+        Report.openReport({
+            reportID: 'other-report',
+            policy: fullPolicy,
+            introSelected: undefined,
+            betas: undefined,
+            hasReportActions: true,
+            currentUserAccountID: 1,
+            conciergeChat: undefined,
+        });
+        await waitForBatchedUpdates();
+        expect(PersistedRequests.getAll().at(-1)?.data?.policyLastModified).toBeUndefined();
+
+        // When the same policy is replaced by a summary, it no longer provides a completeness guarantee
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isFromFullPolicy: false});
+        await waitForBatchedUpdates();
+        const summaryPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        Report.openReport({
+            reportID: 'summary-report',
+            policy: summaryPolicy,
+            introSelected: undefined,
+            betas: undefined,
+            hasReportActions: true,
+            currentUserAccountID: 1,
+            conciergeChat: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then no version hint is sent
+        expect(PersistedRequests.getAll().at(-1)?.data?.policyLastModified).toBeUndefined();
+        setHasRadio(true);
+        await waitForBatchedUpdates();
+    });
+
     describe('setOptimisticTransactionThread', () => {
         it('should set optimistic transaction thread data with the provided parameters', async () => {
             const reportID = 'report12';

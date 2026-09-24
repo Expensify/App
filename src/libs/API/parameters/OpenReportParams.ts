@@ -2,6 +2,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 
 type OpenReportParams = {
     reportID: string;
+    policyLastModified?: string;
     reportActionID?: string;
     emailList?: string;
     accountIDList?: string;

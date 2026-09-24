@@ -375,7 +375,7 @@ function MoneyRequestReportPreview({
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                    openReport({reportID: iouReportID, policy, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 }
                 navigateToExpense(childReportID, routeAtPress);
                 return;
@@ -383,7 +383,7 @@ function MoneyRequestReportPreview({
 
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                openReport({reportID: iouReportID, policy, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
                 return;
             }
 
@@ -399,6 +399,7 @@ function MoneyRequestReportPreview({
             isOffline,
             navigateToExpense,
             openReportFromPreview,
+            policy,
             resolveChildReportID,
             transactions.length,
         ],

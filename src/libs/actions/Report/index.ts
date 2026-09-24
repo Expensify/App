@@ -327,6 +327,9 @@ type OpenReportActionParams = {
     reportID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
 
+    /** The cached policy for the report, when available to the caller. */
+    policy?: OnyxEntry<Policy>;
+
     /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
     reportActionID?: string;
 
@@ -1686,6 +1689,7 @@ function openReport(params: OpenReportActionParams) {
     const {
         reportID,
         introSelected,
+        policy,
         reportActionID,
         participants = [],
         newReportObject,
@@ -1842,6 +1846,11 @@ function openReport(params: OpenReportActionParams) {
         useLastUnreadReportAction: shouldMarkAsRead ? true : undefined,
         includeLockedBankAccounts: true,
     };
+
+    const cachedReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!isSelfDM(cachedReport) && cachedReport?.policyID && cachedReport.policyID === policy?.id && policy.isFromFullPolicy && policy.lastModified) {
+        parameters.policyLastModified = String(policy.lastModified);
+    }
 
     if (optimisticSelfDMReport) {
         optimisticData.push({

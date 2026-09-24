@@ -9,6 +9,7 @@ import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -116,6 +117,7 @@ function ReportFetchHandler() {
     const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const policy = usePolicy(reportOnyx?.policyID);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [isPreMountedDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportIDFromRoute}`);
@@ -234,6 +236,7 @@ function ReportFetchHandler() {
         const dmParticipants = getOneOnOneChatParticipants(report, personalDetails, currentUserAccountID);
         openReport({
             reportID: reportIDFromRoute,
+            policy,
             introSelected,
             conciergeChat,
             reportActionID: reportActionIDFromRoute,
