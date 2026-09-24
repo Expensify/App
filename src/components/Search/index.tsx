@@ -858,6 +858,13 @@ function Search({
     // dropped. Stays set until that page actually shows up in the snapshot.
     const wantedOffsetRef = useRef<number | undefined>(undefined);
 
+    // the list also reports an end whenever its rows rebuild, so a scroll is what tells a real end apart
+    const hasScrolledSinceLastEndRef = useRef(true);
+    const onListScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        hasScrolledSinceLastEndRef.current = true;
+        onSearchListScroll?.(event);
+    };
+
     const fetchMoreResults = useCallback(() => {
         // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
         // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
@@ -883,6 +890,13 @@ function Search({
         }
 
         if (!isFocused || shouldShowLoadingState) {
+            return;
+        }
+
+        const hasScrolledToEnd = hasScrolledSinceLastEndRef.current;
+        hasScrolledSinceLastEndRef.current = false;
+        // a failed page retries once per end the user scrolls to, not on every rebuild while they sit at the bottom
+        if (didLastLivePageFail && !hasScrolledToEnd) {
             return;
         }
 
@@ -1383,7 +1397,7 @@ function Search({
         tableHeaderVisible,
         contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
-        onScroll: onSearchListScroll,
+        onScroll: onListScroll,
         onEndReached: fetchMoreResults,
         ListFooterComponent: listFooterComponent,
         onLayout,

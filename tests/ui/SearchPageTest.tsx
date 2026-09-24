@@ -83,7 +83,7 @@ jest.mock('@react-navigation/core', () => ({
     useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
 }));
 
-type ListProps = {onEndReached?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
+type ListProps = {onEndReached?: () => void; onScroll?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
 
 // Captures the list's handlers, since FlashList never lays out in tests.
 const listProps: ListProps = {};
@@ -91,6 +91,7 @@ jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
     __esModule: true,
     default: (props: ListProps) => {
         listProps.onEndReached = props.onEndReached;
+        listProps.onScroll = props.onScroll;
         listProps.onSelectRow = props.onSelectRow;
         listProps.ListFooterComponent = props.ListFooterComponent;
         return null;
@@ -301,6 +302,7 @@ describe('SearchPageNarrow', () => {
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
         listProps.onEndReached = undefined;
+        listProps.onScroll = undefined;
         listProps.onSelectRow = undefined;
         listProps.ListFooterComponent = undefined;
         mockRenderWriteActions.mockReset();
@@ -908,6 +910,54 @@ describe('SearchPageNarrow', () => {
 
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
             expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE * 2)).toBe(false);
+        });
+
+        it('retries a failed page only on an end the user scrolled to, not on every rebuild of the rows', async () => {
+            // Given a to-do tab whose second page failed and keeps failing
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE * 2);
+            await seedTodoSnapshot(true, {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, responseJsonCode: 500});
+            searchWritesLoadingState();
+            const failTodoPage = () =>
+                act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${todoQueryJSON?.hash}`, {
+                        search: {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, responseJsonCode: 500},
+                    });
+                });
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            // When the list reaches its end and the retry fails too, then the list reports more ends without a scroll, as it does when a report in it changes
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await failTodoPage();
+            for (let i = 0; i < 2; i++) {
+                await act(async () => {
+                    listProps.onEndReached?.();
+                });
+                await act(async () => {
+                    jest.advanceTimersByTime(0);
+                });
+            }
+
+            // Then only the first end retries the page
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+
+            // When the user scrolls back to the end
+            await act(async () => {
+                listProps.onScroll?.();
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then that end retries the page again
+            expect(mockSearch).toHaveBeenCalledTimes(2);
+            expect(mockSearch).toHaveBeenLastCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
         });
 
         it('saves the page it has for report navigation to page on from', async () => {
