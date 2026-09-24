@@ -1917,10 +1917,13 @@ function getReportNotificationPreference(report: OnyxEntry<Report>, currentUserA
 
 /**
  * Returns the effective notification preference for the settings UI.
- * A known participant with an empty preference has access but is missing a legacy preference value, so use the report default
- * while keeping the global report/LHN helper's hidden fallback unchanged.
+ * Legacy admin rooms can have known participants with an empty preference, so use the report default for those participants.
  */
 function getReportNotificationPreferenceForSettings(report: OnyxEntry<Report>, currentUserAccountID?: number): ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE> {
+    if (!isAdminRoom(report)) {
+        return getReportNotificationPreference(report, currentUserAccountID);
+    }
+
     const accountID = currentUserAccountID ?? deprecatedCurrentUserAccountID;
     const participant = accountID ? report?.participants?.[accountID] : undefined;
 
