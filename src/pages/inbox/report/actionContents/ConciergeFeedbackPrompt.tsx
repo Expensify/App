@@ -62,14 +62,17 @@ type ConciergeFeedbackThumbProps = {
     /** The emoji this thumb reacts with */
     emoji: Emoji;
 
-    /** Tooltip and accessibility label */
+    /** Tooltip text */
     label: string;
+
+    /** Accessible name. A screen reader can reach the thumb without the prompt beside it, therefore this names the rating in full. */
+    accessibilityLabel: string;
 
     /** Called when the thumb is pressed */
     onPress: () => void;
 };
 
-function ConciergeFeedbackThumb({emoji, label, onPress}: ConciergeFeedbackThumbProps) {
+function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress}: ConciergeFeedbackThumbProps) {
     const styles = useThemeStyles();
 
     return (
@@ -79,7 +82,7 @@ function ConciergeFeedbackThumb({emoji, label, onPress}: ConciergeFeedbackThumbP
                 hoverStyle={styles.conciergeFeedbackThumbHovered}
                 pressStyle={styles.conciergeFeedbackThumbHovered}
                 onPress={onPress}
-                accessibilityLabel={label}
+                accessibilityLabel={accessibilityLabel}
                 role={CONST.ROLE.BUTTON}
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -139,12 +142,14 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             <View style={styles.flexRow}>
                 <ConciergeFeedbackThumb
                     emoji={thumbsUp}
-                    label={translate('concierge.feedback.useful')}
+                    label={translate('common.yes')}
+                    accessibilityLabel={translate('concierge.feedback.useful')}
                     onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
                 />
                 <ConciergeFeedbackThumb
                     emoji={thumbsDown}
-                    label={translate('concierge.feedback.notUseful')}
+                    label={translate('common.no')}
+                    accessibilityLabel={translate('concierge.feedback.notUseful')}
                     onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
                 />
             </View>
