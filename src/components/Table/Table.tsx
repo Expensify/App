@@ -274,6 +274,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
+    shouldAlwaysEnableSelection,
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
     onRowSelectionChange,
@@ -282,9 +283,18 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
-    const isMobileSelectionEnabled = useMobileSelectionMode();
+    const isGlobalMobileSelectionEnabled = useMobileSelectionMode();
+
+    // A table whose only purpose is picking rows is always in selection mode, so it shows its checkboxes from the
+    // start rather than hiding them behind a long press. It also leaves the app wide selection mode alone, which
+    // other screens write to and would otherwise clear the selection midway through.
+    const isMobileSelectionEnabled = !!shouldAlwaysEnableSelection || isGlobalMobileSelectionEnabled;
 
     const setMobileSelectionModeEnabled = (isEnabled: boolean) => {
+        if (shouldAlwaysEnableSelection) {
+            return;
+        }
+
         if (isEnabled) {
             turnOnMobileSelectionMode();
             return;
@@ -338,6 +348,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isSelectionModeEnabled: isMobileSelectionEnabled,
         setSelectionModeEnabled: setMobileSelectionModeEnabled,
         shouldPreserveSelectionOnSearchAndFilter,
+        shouldAlwaysEnableSelection,
     });
     const selectionData = selectionMiddleware(sortedData);
 
@@ -460,6 +471,9 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         setMobileSelectionModeEnabled(true);
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
+        // This should only run when the user confirms the selection, so setMobileSelectionModeEnabled is left out of
+        // the dependencies below. It is redefined on every render, which would otherwise run this again straight away.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
 
     useEffect(
