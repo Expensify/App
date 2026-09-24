@@ -265,13 +265,15 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
 /**
  * Creates a selector returning only the policies the given cards belong to.
  *
- * Cards are matched on `fundID`, which is the workspace's `policyAccountID`, so a card on a company's own domain
- * finds its workspace just like one on an `expensify-policy<ID>.exfy` domain does. Domains are still read as well,
- * to keep a card that arrives without a `fundID` resolving as it did before.
+ * A card's feed is what names its workspace, so `namedPolicyIDs` carries what the feeds point at. The fund and the
+ * domain name are matched as well, for a feed that names no workspace of its own.
  */
-const createPoliciesForAssignedCardsSelector = (cards: Array<Pick<Card, 'domainName' | 'fundID'>>) => {
+const createPoliciesForAssignedCardsSelector = (cards: Array<Pick<Card, 'domainName' | 'fundID'>>, namedPolicyIDs: string[] = []) => {
     const workspaceAccountIDs = new Set(cards.map((card) => Number(card.fundID)).filter((workspaceAccountID) => !!workspaceAccountID));
-    const policyIDs = new Set(cards.map((card) => (card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined)).filter((policyID): policyID is string => !!policyID));
+    const policyIDs = new Set([
+        ...namedPolicyIDs.map((policyID) => policyID.toUpperCase()),
+        ...cards.map((card) => (card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined)).filter((policyID): policyID is string => !!policyID),
+    ]);
 
     return (policies: OnyxCollection<Policy>) => {
         if (workspaceAccountIDs.size === 0 && policyIDs.size === 0) {

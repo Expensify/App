@@ -1,4 +1,11 @@
-import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy, getExpensifyCardFeedsForDisplay, getFeedInfo, getVisibleCompanyCardFeedsForSelector} from '@libs/CardFeedUtils';
+import {
+    getAssignedCardFeedAccess,
+    getCardFeedsForDisplay,
+    getCardFeedsForDisplayPerPolicy,
+    getExpensifyCardFeedsForDisplay,
+    getFeedInfo,
+    getVisibleCompanyCardFeedsForSelector,
+} from '@libs/CardFeedUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -493,5 +500,96 @@ describe('getVisibleCompanyCardFeedsForSelector', () => {
 
         expect(result).toHaveLength(1);
         expect(result.at(0)?.linkedPolicyIDs).toEqual(['WS', 'WS2', 'WS3']);
+    });
+});
+
+describe('getAssignedCardFeedAccess', () => {
+    const fundID = 1234;
+    const currentUserAccountID = 777;
+    const bank = cardFeedAmericaExpressMock;
+    const card = {bank, domainName: 'acme-corp.com', fundID: String(fundID)};
+
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
+            },
+        };
+    }
+
+    function createAdminDomain(accountID: number, adminAccountID: number): Domain {
+        const domain: Domain = {
+            validated: true,
+            accountID,
+            email: '+@company.com',
+            domain_defaultSecurityGroupID: '0',
+        };
+        // Set the prefixed admin-access key separately so the object literal isn't widened to a string index
+        // signature (which would force an unsafe `as unknown as Domain` assertion).
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`] = adminAccountID;
+        return domain;
+    }
+
+    // A domain feed's fundID is the domain's account ID, so the workspace can only come from the feed itself.
+    it('resolves the workspace a feed links to', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    it('falls back to the preferred policy when the feed links to none', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {preferredPolicy: 'WS'}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // The link is only worth offering on a workspace the cardholder can act in, so an administered one wins over
+    // one that would show them the same problem again.
+    it('prefers a linked workspace the user administers', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['MEMBER', 'ADMIN']}});
+        const policies: OnyxCollection<Policy> = {
+            policy_MEMBER: createTestPolicy({id: 'MEMBER', role: CONST.POLICY.ROLE.USER}),
+            policy_ADMIN: createTestPolicy({id: 'ADMIN'}),
+        };
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: 'ADMIN', isAdmin: true});
+    });
+
+    // Fixing a feed is a domain permission too, so a domain admin is offered the link even when the workspace the
+    // feed links to does not make them an admin of it.
+    it('treats a domain admin as able to fix the feed', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.USER})};
+        const domains: OnyxCollection<Domain> = {[`domain_${fundID}`]: createAdminDomain(fundID, currentUserAccountID)};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, domains, currentUserAccountID)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    it('does not treat a plain member of both the domain and the workspace as able to fix the feed', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.USER})};
+        const domains: OnyxCollection<Domain> = {[`domain_${fundID}`]: createAdminDomain(fundID, 999)};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, domains, currentUserAccountID)).toEqual({policyID: 'WS', isAdmin: false});
+    });
+
+    // An orphan feed names no workspace at all, so the fund is all that is left to go on.
+    it('falls back to the workspace backing the fund when the feed names none', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    it('returns nothing for a card without a fundID', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess({bank, domainName: '', fundID: undefined}, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: undefined, isAdmin: false});
     });
 });

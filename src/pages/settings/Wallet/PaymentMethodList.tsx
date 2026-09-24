@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBankAccountConnectionStatus, getBankAccountState, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
+import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
     getAssignedCardSortKey,
     getCardConnectionStatusDisplay,
@@ -40,7 +42,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getDescriptionForPolicyDomainCard, getPolicyForAssignedCard, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {getTravelBillingCard, isTravelCVVEligible} from '@libs/TravelBillingUtils';
 
 import colors from '@styles/theme/colors';
@@ -209,8 +211,11 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [allCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const cardsForPolicyLookup = shouldShowAssignedCards ? Object.values(isLoadingCardList ? {} : (cardList ?? {})).filter((card) => !!card.domainName || !!card.fundID) : [];
-    const policiesForAssignedCardsSelectorFactory = createPoliciesForAssignedCardsSelector(cardsForPolicyLookup);
+    const policiesForAssignedCardsSelectorFactory = createPoliciesForAssignedCardsSelector(cardsForPolicyLookup, getPolicyIDsNamedByCardFeeds(cardsForPolicyLookup, allCardFeeds));
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => policiesForAssignedCardsSelectorFactory(policies),
     });
@@ -266,9 +271,9 @@ function PaymentMethodList({
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
-                const policyForCard = shouldShowConnectionStatus ? getPolicyForAssignedCard(card, policiesForAssignedCards) : undefined;
-                const policyIDForCard = policyForCard?.id;
-                const isAdminForCardPolicy = isPolicyAdmin(policyForCard);
+                const {policyID: policyIDForCard, isAdmin: isAdminForCardPolicy} = shouldShowConnectionStatus
+                    ? getAssignedCardFeedAccess(card, allCardFeeds, policiesForAssignedCards, allDomains, currentUserAccountID)
+                    : {policyID: undefined, isAdmin: false};
 
                 let icon;
                 if (isUserPersonalCard && isCSVCard) {
