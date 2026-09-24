@@ -366,6 +366,51 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should finish the marked Join Workspace flow when the merged account has a different persisted intent', async () => {
+        // Given a merge resumed from a Join Workspace task while the target account still persists a different intent.
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                policyID: {
+                    policyID: 'policyID',
+                    policyName: 'Workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+
+        mockCreateJoinWorkspaceOnboardingContent.mockReturnValueOnce('join-task-report');
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+            shouldCreateJoinWorkspaceTaskOnExit: 'true',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user skips the workspace list after the merge.
+        fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
+
+        // Then the Join Workspace task is created/opened instead of returning to the intent-selection loop.
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
+            expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: 'join-task-report'});
+        });
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should create a Join workspace task when validation opens the workspace list before the onboarding update arrives', async () => {
         const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
         await TestHelper.signInWithTestUser();

@@ -68,6 +68,20 @@ describe('useOnboardingIntent', () => {
         expect(result.current).toBe(CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
     });
 
+    it('uses the marked task route intent when merged account state has a different persisted choice', async () => {
+        // Given a resumed Join Workspace task after auth switched to an account whose persisted intent is Something else.
+        await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+        await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+        await waitForBatchedUpdates();
+
+        // When intent is resolved with the explicit Join Workspace task marker.
+        const {result} = renderHook(() => useOnboardingIntent({isJoinWorkspaceTask: true}));
+
+        // Then the task's intent wins while the default resolver can continue honoring persisted intent elsewhere.
+        expect(result.current).toBe(CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+    });
+
     it('falls back to ONBOARDING_PURPOSE_SELECTED when NVP_INTRO_SELECTED has no choice field', async () => {
         // IntroSelected present but choice is undefined (e.g. invited user who never picked a purpose)
         await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE});
