@@ -11,6 +11,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,7 +61,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const totalMembersSelector = createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const totalMembersSelector = createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login, employeePersonalDetails);
     const [totalMembers = 0] = useAllPersonalDetails(totalMembersSelector);
     // The invoicing company details are provisioned per workspace, so they aren't copied over to the duplicate and shouldn't be advertised here.
     const invoiceConfigurationTextSelector = createInvoiceConfigurationTextSelector(translate, '');
@@ -222,6 +224,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             targetPolicyID: duplicateWorkspace.policyID,
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
             policyCategories: selectedItems.includes('categories') ? policyCategories : undefined,
+            personalDetailsByLogins: employeePersonalDetails,
             parts: {
                 people: selectedItems.includes('members'),
                 reports: selectedItems.includes('reports'),
