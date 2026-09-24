@@ -1018,6 +1018,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Opłać fakturę do ${date}, aby uniknąć przerwy w świadczeniu usługi`,
                 overdueTitle: 'Twoja płatność jest zaległa, zapłać proszę swoją fakturę',
             },
+            renewSubscription: {
+                title: 'Włącz automatyczne odnawianie, aby zachować obecną cenę',
+                subtitle: ({date}: {date: string}) => `Subskrypcja kończy się ${date}`,
+                cta: 'Zarządzaj',
+            },
         },
         discoverSection: {
             title: 'Odkryj',
@@ -1854,6 +1859,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Wybierz opcję, aby zmienić osobę zatwierdzającą ten raport. (Zaktualizuj swoje <a href="${workflowSettingLink}">ustawienia przestrzeni roboczej</a>, aby zmienić to na stałe dla wszystkich raportów).`,
             changedApproverMessage: (managerID: number) => `zmienił(a) akceptującego na <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `zmienił(a) ostatecznego akceptującego na <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ponownie przypisał(a) akceptującego do <mention-user accountID="${managerID}"/> w wyniku aktualizacji przepływu pracy`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8810,6 +8816,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noCompaniesFoundDescription: 'Dodaj proszę firmę w Dynamics 365 Business Central i zsynchronizuj połączenie ponownie',
             noVendorsFound: 'Nie znaleziono dostawców',
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Business Central i zsynchronizuj połączenie ponownie',
+            importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z Dynamics 365 Business Central.',
+            items: 'Pozycje',
+            enableNewCategories: 'Włącz nowo zaimportowane kategorie',
         },
     },
     getAssistancePage: {
@@ -10779,6 +10788,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             trialEnded: {
                 title: 'Twój bezpłatny okres próbny dobiegł końca',
                 subtitle: 'Dodaj kartę płatniczą, aby nadal korzystać ze wszystkich swoich ulubionych funkcji.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Twoja subskrypcja kończy się ${date}`,
+                subtitle: 'Włącz automatyczne odnawianie, aby zachować obecną cenę.',
+                manage: 'Zarządzaj',
             },
             earlyDiscount: {
                 claimOffer: 'Odbierz ofertę',

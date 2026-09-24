@@ -12,6 +12,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
@@ -220,6 +221,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         backToReport,
         onExpenseWriteWillStart,
     } = params;
+
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     // Localization
     const {translate, toLocaleDigit, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -911,6 +914,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
                 rules,
+                personalDetailsByLogins: employeePersonalDetails,
             });
         }
         performPostBatchCleanup({

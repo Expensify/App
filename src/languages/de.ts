@@ -1012,6 +1012,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Bezahlen Sie Ihre Rechnung bis zum ${date}, um eine Unterbrechung des Dienstes zu vermeiden`,
                 overdueTitle: 'Ihre Zahlung ist überfällig, bitte begleichen Sie Ihre Rechnung',
             },
+            renewSubscription: {
+                title: 'Aktivieren Sie die automatische Verlängerung, um Ihren aktuellen Preis zu behalten',
+                subtitle: ({date}: {date: string}) => `Abonnement endet am ${date}`,
+                cta: 'Verwalten',
+            },
         },
         discoverSection: {
             title: 'Entdecken',
@@ -1828,6 +1833,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Wähle eine Option, um die approvierende Person für diesen Bericht zu ändern. (Aktualisiere deine <a href="${workflowSettingLink}">Workspace-Einstellungen</a>, um dies dauerhaft für alle Berichte zu ändern.)`,
             changedApproverMessage: (managerID: number) => `Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
+            changedFinalApproverMessage: (managerID: number) => `Endgültigen Genehmigenden in <mention-user accountID="${managerID}"/> geändert`,
             reassignedApproverMessage: (managerID: number) => `hat den Genehmigenden über eine Workflow-Aktualisierung neu zu <mention-user accountID="${managerID}"/> zugewiesen`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8865,6 +8871,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noCompaniesFoundDescription: 'Bitte fügen Sie ein Unternehmen in Dynamics 365 Business Central hinzu und synchronisieren Sie die Verbindung erneut',
             noVendorsFound: 'Keine Anbieter gefunden',
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Business Central hinzu und synchronisieren Sie die Verbindung erneut',
+            importDescription: 'Wählen Sie, welche Buchungskonfigurationen aus Dynamics 365 Business Central importiert werden sollen.',
+            items: 'Artikel',
+            enableNewCategories: 'Neu importierte Kategorien aktivieren',
         },
     },
     getAssistancePage: {
@@ -10836,6 +10845,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             trialEnded: {
                 title: 'Ihre kostenlose Testversion ist abgelaufen',
                 subtitle: 'Füge eine Zahlungskarte hinzu, um alle deine Lieblingsfunktionen weiterhin nutzen zu können.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Ihr Abonnement endet am ${date}`,
+                subtitle: 'Aktivieren Sie die automatische Verlängerung, um Ihren aktuellen Preis zu behalten.',
+                manage: 'Verwalten',
             },
             earlyDiscount: {
                 claimOffer: 'Angebot einlösen',

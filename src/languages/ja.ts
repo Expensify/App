@@ -999,6 +999,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `サービス中断を防ぐため、${date}までに請求書をお支払いください`,
                 overdueTitle: 'お支払いの期限が過ぎています。請求書をお支払いください。',
             },
+            renewSubscription: {
+                title: '現在の料金を維持するには自動更新をオンにしてください',
+                subtitle: ({date}: {date: string}) => `サブスクリプションは${date}に終了`,
+                cta: '管理',
+            },
         },
         discoverSection: {
             title: '発見',
@@ -1806,6 +1811,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
+            changedFinalApproverMessage: (managerID: number) => `最終承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8698,6 +8704,9 @@ ${reportName}`,
             noCompaniesFoundDescription: 'Dynamics 365 Business Central に会社を追加して、接続をもう一度同期してください',
             noVendorsFound: '取引先が見つかりませんでした',
             noVendorsFoundDescription: 'Business Central に仕入先を追加してから、もう一度接続を同期してください',
+            importDescription: 'Dynamics 365 Business Central からインポートするコーディング構成を選択してください。',
+            items: 'アイテム',
+            enableNewCategories: '新しくインポートされたカテゴリを有効にする',
         },
     },
     getAssistancePage: {
@@ -10634,6 +10643,11 @@ ${reportName}`,
             trialEnded: {
                 title: '無料トライアル期間は終了しました',
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `サブスクリプションは${date}に終了します`,
+                subtitle: '現在の料金を維持するには、自動更新をオンにしてください。',
+                manage: '管理',
             },
             earlyDiscount: {
                 claimOffer: 'オファーを獲得',

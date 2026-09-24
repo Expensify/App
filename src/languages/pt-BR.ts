@@ -1011,6 +1011,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `Pague sua fatura até ${date} para evitar interrupção do serviço`,
                 overdueTitle: 'Seu pagamento está atrasado, por favor pague sua fatura',
             },
+            renewSubscription: {
+                title: 'Ative a renovação automática para manter seu preço atual',
+                subtitle: ({date}: {date: string}) => `A assinatura termina em ${date}`,
+                cta: 'Gerenciar',
+            },
         },
         discoverSection: {
             title: 'Descobrir',
@@ -1820,6 +1825,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Escolha uma opção para alterar o aprovador deste relatório. (Atualize as <a href="${workflowSettingLink}">configurações do espaço de trabalho</a> para alterar isso permanentemente para todos os relatórios.)`,
             changedApproverMessage: (managerID: number) => `alterou o aprovador para <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `alterou o aprovador final para <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reatribuiu o aprovador para <mention-user accountID="${managerID}"/> por meio de uma atualização do fluxo de trabalho`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -8793,6 +8799,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             noCompaniesFoundDescription: 'Adicione uma empresa no Dynamics 365 Business Central e sincronize a conexão novamente',
             noVendorsFound: 'Nenhum fornecedor encontrado',
             noVendorsFoundDescription: 'Adicione fornecedores no Business Central e sincronize a conexão novamente',
+            importDescription: 'Escolha quais configurações de codificação importar do Dynamics 365 Business Central.',
+            items: 'Itens',
+            enableNewCategories: 'Ativar novas categorias importadas',
         },
     },
     getAssistancePage: {
@@ -10749,6 +10758,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             trialEnded: {
                 title: 'Sua avaliação gratuita terminou',
                 subtitle: 'Adicione um cartão de pagamento para continuar usando todos os seus recursos favoritos.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Sua assinatura termina em ${date}`,
+                subtitle: 'Ative a renovação automática para manter seu preço atual.',
+                manage: 'Gerenciar',
             },
             earlyDiscount: {
                 claimOffer: 'Resgatar oferta',
