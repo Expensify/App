@@ -8,17 +8,23 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {createJoinWorkspaceOnboardingContent, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {createJoinWorkspaceOnboardingContent, setOnboardingAdminsChatReportID, setOnboardingPolicyID, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import Log from '@libs/Log';
+import {getEmailDomain} from '@libs/LoginUtils';
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {completeOnboarding} from '@userActions/Report';
 import {resendValidateCode} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -27,7 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
 import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -49,7 +55,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -57,6 +65,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const isValidated = isCurrentUserValidated(loginList, session?.email);
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const {joinWorkspaceMessages} = useOnboardingMessages();
+    const {isBetaEnabled} = usePermissions();
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
@@ -77,6 +94,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const isCompletingOnboarding = useRef(false);
+    const firstName = onboardingPersonalDetails?.firstName?.trim();
+    const lastName = onboardingPersonalDetails?.lastName?.trim() ?? '';
 
     const sendValidateCode = useCallback(() => {
         if (!email) {
@@ -106,6 +126,74 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         [isVsb, isSmb],
     );
 
+    const completeOnboardingWithSavedPersonalDetails = useCallback(async () => {
+        if (!firstName || !onboardingPurposeSelected || isCompletingOnboarding.current) {
+            return;
+        }
+
+        isCompletingOnboarding.current = true;
+        try {
+            let onboardingMessage = joinWorkspaceMessages.validateEmail;
+            if (isValidated) {
+                onboardingMessage = joinWorkspaceMessages.empty;
+            }
+            if (PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
+                onboardingMessage = joinWorkspaceMessages.addWorkEmail;
+            }
+
+            await completeOnboarding({
+                engagementChoice: onboardingPurposeSelected,
+                onboardingMessage,
+                firstName,
+                lastName,
+                adminsChatReportID: onboardingAdminsChatReportID,
+                onboardingPolicyID,
+                introSelected,
+                isSelfTourViewed,
+                conciergeChat,
+                companyDomain: getEmailDomain(email),
+                workEmail: email,
+                delegateAccountID,
+            });
+
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeReportID,
+                reportNameValuePairs,
+                onboardingPolicyID,
+                onboardingAdminsChatReportID,
+                false,
+            );
+        } catch (error) {
+            Log.warn('[BaseOnboardingPrivateDomain] Error completing onboarding with saved personal details', {error});
+            isCompletingOnboarding.current = false;
+        }
+    }, [
+        conciergeChat,
+        conciergeReportID,
+        delegateAccountID,
+        domain,
+        email,
+        introSelected,
+        isBetaEnabled,
+        firstName,
+        isCompletingOnboarding,
+        isSelfTourViewed,
+        isSmallScreenWidth,
+        isValidated,
+        joinWorkspaceMessages.addWorkEmail,
+        joinWorkspaceMessages.empty,
+        joinWorkspaceMessages.validateEmail,
+        onboardingAdminsChatReportID,
+        lastName,
+        onboardingPolicyID,
+        onboardingPurposeSelected,
+        reportNameValuePairs,
+    ]);
+
     // Reaching this screen from the join-workspace intent means there is no further onboarding step to route
     // back into: skipping or finding no joinable workspaces should complete onboarding (collecting a name first
     // if needed), or simply close when this screen was reopened from a Concierge task after onboarding finished.
@@ -116,12 +204,16 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     returnToOriginReport();
                     return;
                 }
+                if (firstName) {
+                    completeOnboardingWithSavedPersonalDetails();
+                    return;
+                }
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), options);
                 return;
             }
             navigateToNextOnboardingStep(backTo, options);
         },
-        [isJoiningCompanyWorkspace, isConciergeTaskFlow, navigateToNextOnboardingStep, returnToOriginReport],
+        [completeOnboardingWithSavedPersonalDetails, firstName, isJoiningCompanyWorkspace, isConciergeTaskFlow, navigateToNextOnboardingStep, returnToOriginReport],
     );
 
     const handleConciergeTaskExit = useCallback(() => {
