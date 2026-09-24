@@ -329,6 +329,7 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
  */
 const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevServer = false}: Environment): Promise<RsbuildConfig> => {
     const isDevelopment = file === '.env' || file === '.env.development';
+    const shouldCompressWithBrotli = !isDevelopment && file !== '.env.adhoc';
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
@@ -602,7 +603,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                     ...(process.env.ANALYZE_BUNDLE === 'true' ? [new RsdoctorRspackPlugin()] : []),
                     // Writes a Brotli 11 twin (`foo.js` -> `foo.js.br`) beside every deployable text/bytecode asset, so the CDN
                     // can serve it instead of compressing with gzip on the fly: 25-30% fewer bytes over the wire.
-                    ...(isDevelopment ? [] : [new BrotliCompressionPlugin({test: /\.(?:js|css|html|svg|wasm|ttf)$/})]),
+                    ...(shouldCompressWithBrotli ? [new BrotliCompressionPlugin({test: /\.(?:js|css|html|svg|wasm|ttf)$/})] : []),
                 );
 
                 return afterShared;
