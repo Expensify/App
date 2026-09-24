@@ -73,7 +73,7 @@ function WorkspaceCompanyCardTableRow({
 }: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -83,10 +83,12 @@ function WorkspaceCompanyCardTableRow({
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
 
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? formatPhoneNumber(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${formattedCardDetails}${formattedCustomCardNameSuffix}` : cardName;
 
-    const memberColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const cardholderDisplayName = cardholder?.displayName ?? '';
+    const formattedCardholderDisplayName = Str.isSMSLogin(cardholderDisplayName) ? formatPhoneNumber(cardholderDisplayName) : cardholderDisplayName;
+    const memberColumnTitle = isAssigned ? formattedCardholderDisplayName : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const memberCardSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;

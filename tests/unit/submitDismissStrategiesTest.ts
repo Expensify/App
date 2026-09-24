@@ -118,7 +118,7 @@ describe('submitDismissStrategies', () => {
                 }),
             );
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
             expect(Navigation.pop).toHaveBeenCalledWith('rhp-key');
@@ -130,7 +130,7 @@ describe('submitDismissStrategies', () => {
             mockIsMoneyRequestReport.mockReturnValue(true);
             mockGetIsNarrowLayout.mockReturnValue(true);
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, 'report-1');
             expect(Navigation.dismissModal).toHaveBeenCalled();
@@ -142,7 +142,7 @@ describe('submitDismissStrategies', () => {
             mockIsMoneyRequestReport.mockReturnValue(true);
             mockGetIsNarrowLayout.mockReturnValue(false);
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, 'report-1');
             expect(Navigation.dismissToPreviousRHP).toHaveBeenCalled();
@@ -158,7 +158,7 @@ describe('submitDismissStrategies', () => {
                 }),
             );
 
-            dismissRHPToReport('report-1', runAfterDismiss);
+            dismissRHPToReport('report-1', runAfterDismiss, {});
 
             expect(setPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, 'report-1');
             expect(Navigation.pop).toHaveBeenCalledWith('rhp-key-2');

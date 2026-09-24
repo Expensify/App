@@ -111,7 +111,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
     const submit = (assignee: ListItem) => {
         const personalDetail = employeePersonalDetails[assignee?.login ?? ''];
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
+        const assigneeLogin = personalDetail?.login ?? '';
+        const formattedAssigneeLogin = Str.isSMSLogin(assigneeLogin) ? formatPhoneNumber(assigneeLogin) : assigneeLogin;
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : formattedAssigneeLogin;
         const defaultCardName = getDefaultCardName(memberName);
         // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
         const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;

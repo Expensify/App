@@ -1022,12 +1022,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Ενεργοποίηση',
             },
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
                 subtitle: 'Κάρτα Expensify',
-                cta: 'Έλεγχος',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Ψηφιακό πορτοφόλι',
             },
             reviewCardFraud: {
                 title: 'Ελέγξτε πιθανή απάτη στην Κάρτα Expensify',
@@ -1059,6 +1054,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Έλεγχος',
                 dueSoonTitle: ({date}: {date: string}) => `Πληρώστε το τιμολόγιό σας έως ${date} για να αποφύγετε τη διακοπή της υπηρεσίας`,
                 overdueTitle: 'Η πληρωμή σας έχει λήξει, παρακαλούμε εξοφλήστε το τιμολόγιό σας',
+            },
+            renewSubscription: {
+                title: 'Ενεργοποιήστε την αυτόματη ανανέωση για να διατηρήσετε την τρέχουσα τιμή σας',
+                subtitle: ({date}: {date: string}) => `Η συνδρομή λήγει στις ${date}`,
+                cta: 'Διαχείριση',
             },
         },
         freeTrialSection: {
@@ -1888,6 +1888,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${newApproverID}"/>, παρέκαμψε τον/την <mention-user accountID="${previousApproverID}"/>`
+                    : `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${newApproverID}"/>`,
             delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
                 `Η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για εσάς (τον/την αναπληρωτή/τριά τους για διακοπές), επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
             delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
@@ -1905,6 +1909,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 addApproverSubtitle: 'Προσθέστε έναν επιπλέον εγκρίνοντα στην υπάρχουσα ροή έγκρισης.',
                 bypassApprovers: 'Παράκαμψη εγκριτών',
                 bypassApproversSubtitle: 'Ορίστε τον εαυτό σας ως τελικό εγκρίνοντα και παρακάμψτε τυχόν υπόλοιπους εγκρίνοντες.',
+                reassignApprover: 'Επανανάθεση εγκρίνοντα',
+                reassignApproverSubtitle: 'Παρακάμψτε τον τρέχοντα εγκρίνοντα και ορίστε νέο εγκρίνοντα.',
+                reassignApproverPageHeader: 'Επιλέξτε έναν αντικαταστάτη εγκρίνοντα και στη συνέχεια ακολουθήστε την υπόλοιπη ροή έγκρισης.',
             },
             addApprover: {
                 subtitle: 'Επιλέξτε έναν επιπλέον εγκρίνωντα για αυτήν την αναφορά πριν τη διοχετεύσουμε στο υπόλοιπο στάδιο έγκρισης.',
@@ -2838,6 +2845,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'ψηφιακό πορτοφόλι',
+        digitalWalletCapitalized: 'Ψηφιακό πορτοφόλι',
+        approvalNeeded: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
+        review: 'Έλεγχος',
         confirmHeading: 'Επιβεβαιώστε το αίτημά σας',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Θέλετε να προσθέσετε την Κάρτα Expensify (που λήγει σε ${lastFourDigits}) στο ${walletName} σας;`,
@@ -3995,8 +4005,12 @@ ${amount} για ${merchant} - ${date}`,
                 'Αυτός ο τραπεζικός λογαριασμός δεν μπορεί να διαγραφεί επειδή χρησιμοποιείται για πληρωμές με την Κάρτα Expensify. Αν εξακολουθείτε να θέλετε να διαγράψετε αυτόν τον λογαριασμό, παρακαλούμε επικοινωνήστε με το Concierge.',
             sameDepositAndWithdrawalAccount: 'Οι λογαριασμοί κατάθεσης και ανάληψης είναι οι ίδιοι.',
         },
+        unlockAlreadyRequestedTitle: 'Το αίτημα έχει ήδη υποβληθεί',
+        unlockAlreadyRequestedDescription:
+            'Το αίτημά σας για ξεκλείδωμα αυτού του τραπεζικού λογαριασμού έχει ήδη αποσταλεί. Το Concierge θα επικοινωνήσει μαζί σας αν χρειαστεί οτιδήποτε άλλο.',
     },
     addPersonalBankAccount: {
+        swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
         countrySelectionStepHeader: 'Πού βρίσκεται ο τραπεζικός σας λογαριασμός;',
         accountDetailsStepHeader: 'Ποια είναι τα στοιχεία του λογαριασμού σας;',
         accountTypeStepHeader: 'Τι τύπος λογαριασμού είναι αυτός;',
@@ -5557,6 +5571,11 @@ ${amount} για ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Αναθέσεις',
                 },
             },
+            fxExpenseAccount: 'Λογαριασμός προμήθειας μετατροπής συναλλάγματος',
+            fxExpenseAccountDescription:
+                'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή που έγινε στο εξωτερικό, θα προσθέσουμε αυτό το κόστος στο πληρωτέο τιμολόγιο ως γραμμή που κωδικοποιείται σε αυτόν τον λογαριασμό.',
+            noExpenseAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noExpenseAccountsFoundDescription: 'Παρακαλούμε συγχρονίστε ξανά τη σύνδεση αφού προστεθούν οι λογαριασμοί γενικής λογιστικής στο Certinia.',
         },
         netsuite: {
             subsidiary: 'Θυγατρική',
@@ -7645,10 +7664,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             providerFinalApprover: (providerName: string) => `τελικός εγκριτής ${providerName}`,
             syncing: 'Γίνεται συγχρονισμός υπαλλήλων',
             approvalModeDescription: (providerName: string) => `Τα μέλη και οι υπεύθυνοι έχουν ρυθμιστεί ώστε να συγχρονίζονται με το ${providerName}.`,
-            approvalModeWarningTitle: 'Αλλαγή λειτουργίας έγκρισης;',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
-            approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
             approvalModeDescriptions: {
                 basic: 'Όλοι οι χρήστες υποβάλλουν σε ένα μόνο άτομο για επεξεργασία και έγκριση.',
                 manager: (providerName: string) => `Οι υπάλληλοι υποβάλλουν αναφορές στον άμεσο προϊστάμενό τους που έχει ρυθμιστεί στο ${providerName}.`,
@@ -7716,6 +7731,17 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     other: (count: number) => `${count} υποψήφιοι`,
                 }),
             },
+            approverField: `Πρώτος εγκρίνων`,
+            finalApprover: `Τελική έγκριση`,
+            finalApproverOptional: 'Τελικός εγκρίτης (προαιρετικό)',
+            approvalModeDescription: (providerName: string) => `Ορίστε τον εγκριτή για τα νέα μέλη που εισάγονται από το ${providerName} στο Expensify.`,
+            approverFieldDescription: (providerName: string) =>
+                `Επιλέξτε τον πρώτο εγκρίνοντα για τους υποψηφίους σας: είτε τον υπεύθυνο προσλήψεών τους είτε τον συντονιστή τους που έχει οριστεί στο ${providerName}.`,
+            approvalModeDescriptions: {
+                basic: 'Επιλέξτε έναν μόνο εγκρίνοντα',
+                advanced: `Ο υπεύθυνος προσλήψεων ή ο συντονιστής της υποψηφιότητας γίνεται εγκρίνων των εξόδων τους`,
+                custom: 'Ορίστε χειροκίνητα εγκριτές στο Expensify',
+            },
         },
         merge: {
             connections: 'Συνδέσεις',
@@ -7741,6 +7767,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 custom: 'Προσαρμοσμένη έγκριση',
                 advanced: 'Προηγμένη έγκριση',
             },
+            approvalModeWarningTitle: 'Αλλαγή λειτουργίας έγκρισης;',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `Είστε βέβαιοι ότι θέλετε να αλλάξετε τη λειτουργία έγκρισης για αυτόν τον χώρο εργασίας; Μάθετε περισσότερα σχετικά με τις διαφορετικές λειτουργίες ροής εργασιών με ενεργοποιημένο το ${providerName} στον <a href="${helpSiteURL}">ιστότοπο βοήθειας</a> μας.`,
+            approvalModeWarningConfirm: 'Αλλαγή λειτουργίας έγκρισης',
             syncingModalTitle: 'Η σύνδεσή σας συγχρονίζεται',
             syncingModalDescription: 'Η πρώτη σύνδεση μπορεί να πάρει λίγο χρόνο. Θα ενημερωθείτε για τυχόν σφάλματα.',
             syncLimitReached: {
@@ -8963,6 +8993,25 @@ ${reportName}`,
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Campfire θα είναι διαθέσιμοι ως κατηγορίες.',
             dimensionsImport: 'Όλες οι διαστάσεις Campfire εισάγονται ως ετικέτες',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Campfire.',
+            exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {VENDOR_BILL: {label: 'Τιμολόγια προμηθευτών'}}},
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Campfire.',
+                values: {
+                    LAST_EXPENSE: {label: 'Ημερομηνία τελευταίας δαπάνης', description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.'},
+                    REPORT_EXPORTED: {label: 'Ημερομηνία εξαγωγής', description: 'Ημερομηνία εξαγωγής της αναφοράς στο Campfire.'},
+                    REPORT_SUBMITTED: {label: 'Ημερομηνία υποβολής', description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Εξαγωγή εταιρικών εξόδων κάρτας ως', values: {JOURNAL_ENTRY: {label: 'Λογιστικές εγγραφές'}}},
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Campfire για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Campfire και συγχρονίστε ξανά τη σύνδεση',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -8976,6 +9025,9 @@ ${reportName}`,
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
             noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Business Central και συγχρονίστε ξανά τη σύνδεση',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το Dynamics 365 Business Central.',
+            items: 'Στοιχεία',
+            enableNewCategories: 'Ενεργοποίηση νέων εισαγόμενων κατηγοριών',
         },
     },
     getAssistancePage: {
@@ -10997,6 +11049,11 @@ ${reportName}`,
             trialEnded: {
                 title: 'Η δωρεάν δοκιμή σας έληξε',
                 subtitle: 'Προσθέστε μια κάρτα πληρωμής για να συνεχίσετε να χρησιμοποιείτε όλες τις αγαπημένες σας δυνατότητες.',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `Η συνδρομή σας λήγει στις ${date}`,
+                subtitle: 'Ενεργοποιήστε την αυτόματη ανανέωση για να διατηρήσετε την τρέχουσα τιμή σας.',
+                manage: 'Διαχείριση',
             },
             earlyDiscount: {
                 claimOffer: 'Αποκτήστε την προσφορά',
