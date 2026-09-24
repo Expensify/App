@@ -77,3 +77,14 @@ Use an exclusive device lease on a persistent runner: Linux or macOS with an arm
 Run these steps for each staging or production release candidate before publication. Pin the compiler, SDK, dependencies, architecture, build settings, and automation version; retain them alongside the profile. The current runner records source revisions but does not validate binary provenance. The release pipeline must enforce that the training artifact and optimized build match, and keep simultaneous jobs from sharing a device or profile output directory. Store signing credentials separately from the fixture.
 
 This change supplies the journey and profile collection hook for local and CI execution. Connecting it to the store release workflows and measuring held-out interactive performance remain separate integration steps.
+
+## Held-out interaction benchmark
+
+The PGO workflow has a shorter, read-only benchmark that is separate from the six-minute profile-collection journey. Each sample relaunches the signed-in app, selects Spend → Expenses, returns to Inbox, then times a warm Inbox → Spend → Inbox switch. The app's existing first-paint, content-load, and Inbox navigation spans measure the UI work. One complete warm-up is discarded for each build, followed by the requested number of fresh-process samples. The benchmark checks the same approved account and #focus preference, but sends no messages.
+
+```bash
+scripts/pgo/pgo.ts android benchmark-journey 20 30 --device DEVICE_SERIAL --app-id APP_ID --fixture .pgo/journey-fixture.json
+scripts/pgo/pgo.ts ios benchmark-journey 20 30 --device DEVICE_UDID --app-id BUNDLE_ID --fixture .pgo/journey-fixture.json
+```
+
+Build both the release and optimized artifacts with the current span allowlist first. `build-optimized --profile /absolute/path/to/merged.profdata` selects an immutable archived profile; without `--profile`, it uses `newdot.profdata`. The output uses the existing startup benchmark's raw-sample and summary CSV format in a unique `.pgo/<platform>/benchmarks/journey/<batch>/` directory. The two phases run together, so a failed or repeated phase cannot silently pair with stale data. Compare each interactive span separately; adding their durations together does not give a full journey time because there is automation time between taps. Keep this benchmark out of the profile-training batch, and avoid using its result as a release gate until build-order drift and device temperature have been characterized.

@@ -145,6 +145,24 @@ async function showTab(device: JourneyDevice, tab: string): Promise<void> {
     throw new Error(`Cannot return to the ${tab} tab.`);
 }
 
+/** Wait for a mounted bottom tab without navigating away from a partially loaded screen. */
+async function waitForTab(device: Pick<JourneyDevice, 'snapshot'>, tab: string): Promise<void> {
+    const deadline = Date.now() + 30_000;
+    while (Date.now() < deadline) {
+        try {
+            if (findTabNode(device.snapshot(), tab)) {
+                return;
+            }
+        } catch (error) {
+            if (!(error instanceof Error) || !error.message.includes('insufficient foreground app content')) {
+                throw error;
+            }
+        }
+        await sleep(300);
+    }
+    throw new Error(`Timed out waiting for the ${tab} bottom tab to mount.`);
+}
+
 function selectAllInboxFilter(device: JourneyDevice): void {
     const tapPoint = allFilterTapPoint(device.snapshot());
     if (tapPoint) {
@@ -350,6 +368,9 @@ export {
     prepareJourney,
     runJourneyWorkload,
     scrollDistance,
+    selectSpendSection,
+    showTab,
     spendSectionTapPoint,
     verifyJourneyAccount,
+    waitForTab,
 };

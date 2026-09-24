@@ -1,8 +1,14 @@
 import {describe, expect, it} from 'bun:test';
 
+import {journeyBenchmarkPaths, sha256Artifact} from '@scripts/pgo/journeyBenchmark';
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
-import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, inAppBackTapPoint, scrollDistance, spendSectionTapPoint} from '@scripts/pgo/journeyWorkload';
+import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, inAppBackTapPoint, scrollDistance, spendSectionTapPoint, waitForTab} from '@scripts/pgo/journeyWorkload';
+import {BENCHMARK_SPANS_ENVIRONMENT, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME} from '@scripts/pgo/shared';
+
+import {mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 const fixture = {
     accountEmail: 'heavy@example.com',
@@ -13,6 +19,31 @@ const fixture = {
 };
 
 describe('PGO journey safeguards', () => {
+    it('logs the held-out navigation spans in both PGO builds without replacing startup samples', () => {
+        // Given release and optimized artifacts share one build-time benchmark allowlist.
+        const enabledSpans = BENCHMARK_SPANS_ENVIRONMENT.split('=').at(1)?.split(',');
+        // When / Then the startup span and every short-journey span remain available.
+        expect(enabledSpans).toEqual([STARTUP_SPAN_NAME, ...JOURNEY_SPAN_NAMES]);
+        expect(journeyBenchmarkPaths({benchmarkDirectory: '/pgo/ios/benchmarks'}, 'batch-1')).toEqual({
+            release: '/pgo/ios/benchmarks/journey/batch-1/release.csv',
+            optimized: '/pgo/ios/benchmarks/journey/batch-1/pgo-optimized.csv',
+        });
+    });
+
+    it('hashes iOS bundle resources as well as the app executable', async () => {
+        const app = mkdtempSync(join(tmpdir(), 'pgo-test-app-'));
+        try {
+            mkdirSync(join(app, 'Frameworks'));
+            writeFileSync(join(app, 'Expensify'), 'same executable');
+            writeFileSync(join(app, 'main.jsbundle'), 'first bundle');
+            const before = await sha256Artifact(app);
+            writeFileSync(join(app, 'main.jsbundle'), 'second bundle');
+            expect(await sha256Artifact(app)).not.toBe(before);
+        } finally {
+            rmSync(app, {recursive: true, force: true});
+        }
+    });
+
     it('requires explicit message approval in the fixture', () => {
         // Given account approval alone does not authorize a particular message destination.
         for (const allowMessages of [undefined, false, 'true']) {
@@ -149,6 +180,21 @@ describe('PGO journey safeguards', () => {
         );
         expect(findTabNode(nodes, 'Inbox')?.label).toBe('Inbox. Your review is required');
         expect(findTabNode(nodes, 'Account')?.label).toBe('Account, My settings. Your review is required.');
+    });
+
+    it('waits for a status-bearing iOS Account tab without requiring an exact label', async () => {
+        const nodes = parseJourneySnapshot(
+            {
+                appBundleId: 'test.app',
+                nodes: [
+                    {type: 'Application', rect: {width: 390, height: 844, y: 0}},
+                    {label: 'Account, My settings. Your review is required.', rect: {width: 78, height: 71, y: 749}},
+                ],
+            },
+            'test.app',
+        );
+        const device = {snapshot: () => nodes};
+        await expect(waitForTab(device, 'Account')).resolves.toBeUndefined();
     });
 
     it('accepts a duplicated Android navigation subtree but rejects distinct tab targets', () => {
