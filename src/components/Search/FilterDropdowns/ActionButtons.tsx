@@ -40,7 +40,7 @@ function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, shou
                 onPress={onApply}
                 sentryLabel={applySentryLabel}
             >
-                {shouldSubmitOnEnter && <Button.KeyboardShortcut />}
+                {!!shouldSubmitOnEnter && <Button.KeyboardShortcut />}
                 <Button.Text>{translate('common.apply')}</Button.Text>
             </Button>
         </View>
