@@ -491,6 +491,18 @@ describe('SearchSelectionFooter', () => {
 
             // Then the skeleton gives way to the figure
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: false, total: 12000}));
+
+            // And the wait is over for good: a later visit to that same search, with its snapshot not yet on screen,
+            // shows the figures it has rather than skeletoning on a request that was already answered.
+            rerender(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
         });
 
         it('leaves the total alone while a search the footer did not ask for runs, so it does not flicker', async () => {
@@ -597,6 +609,16 @@ describe('SearchSelectionFooter', () => {
 
             // The breakdown applies right away all the same, summed from the selected rows: one of the three is billable.
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: -100}));
+        });
+
+        it('counts a row with no reimbursable flag as reimbursable, the same as its own column renders it', async () => {
+            mockSelectedTransactions.current = {
+                flagless: buildFlaggedTransaction(100, {}),
+                nonReimbursable: buildFlaggedTransaction(200, {reimbursable: false}),
+            };
+
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE)).toEqual(expect.objectContaining({total: -100}));
+            expect(await renderWithTotal(CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE)).toEqual(expect.objectContaining({total: -200}));
         });
 
         it('shows zero when no selected expense matches the total, rather than hiding the option', async () => {

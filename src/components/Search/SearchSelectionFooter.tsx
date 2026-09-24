@@ -8,6 +8,7 @@ import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {isGroupEntry} from '@libs/SearchUIUtils';
+import {getReimbursable} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,16 +68,18 @@ function getTransactionCount(transactionKeys: string[], transactions: SelectedTr
 }
 
 // Whether a selected row belongs in the total the footer is showing. Reimbursable is the product default, so only an
-// explicit `false` makes an expense non-reimbursable. Billable works the other way round. A row with no transaction of
-// its own (an empty report group) has no expense to classify, so it counts towards no breakdown.
+// explicit `false` makes an expense non-reimbursable — read through `getReimbursable`, the same helper the row's own
+// Reimbursable column renders, so the breakdown and the column can never disagree about a row. Billable works the
+// other way round. A row with no transaction of its own (an empty report group) has no expense to classify, so it
+// counts towards no breakdown.
 function matchesFooterTotal(entry: SelectedTransactionInfo, totalType: SearchFooterTotal): boolean {
     const transaction = entry.transaction;
 
     switch (totalType) {
         case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
-            return !!transaction && transaction.reimbursable !== false;
+            return !!transaction && getReimbursable(transaction);
         case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
-            return !!transaction && transaction.reimbursable === false;
+            return !!transaction && !getReimbursable(transaction);
         case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
             return !!transaction && transaction.billable === true;
         case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
@@ -395,6 +398,15 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         hasCustomFooterCurrency &&
         (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || (hasExcludedExpenses && !areAllExcludedConverted));
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
+
+    // The search the footer asked for has answered, so stop waiting on it. Left set, it would skeleton the total
+    // again on any later visit to that hash whose snapshot has not landed yet.
+    useEffect(() => {
+        if (pendingTotalHash === undefined || metadata?.hash !== pendingTotalHash) {
+            return;
+        }
+        setPendingTotalHash(undefined);
+    }, [metadata?.hash, pendingTotalHash]);
 
     // Fetch converted figures whenever a custom currency is chosen and no request has covered what the footer needs.
     // Each request stamps the source figures it converts, so the requested checks keep this to one request per
