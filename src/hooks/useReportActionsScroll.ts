@@ -394,7 +394,10 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        // `animated` is passed explicitly because native's scrollToIndex defaults to an instant jump. The forward-scroll fires
+        // immediately on click, so without the animation native teleports to the next actionable preview and the user loses
+        // track of where the list moved. Animating matches web and keeps the movement readable on both platforms.
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
     const flushPendingScrollToBottom = () => {

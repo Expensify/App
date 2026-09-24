@@ -403,7 +403,21 @@ describe('useReportActionsScroll', () => {
                 result.current.scrollToActionBadgeTarget();
             });
 
-            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+
+        it('requests an animated scroll so native matches web instead of jumping instantly', async () => {
+            // Given a valid action badge target. Native's scrollToIndex defaults to animated: false, so the option has to be
+            // passed explicitly or the forward-scroll teleports on native and the user loses track of where the list moved.
+            const {result} = await renderScroll({actionBadgeTargetIndex: 3});
+
+            // When the list follows the badge to its next target.
+            act(() => {
+                result.current.scrollToActionBadgeTarget();
+            });
+
+            // Then the scroll is explicitly animated rather than relying on the per-platform default.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(3, expect.objectContaining({animated: true}));
         });
     });
 
