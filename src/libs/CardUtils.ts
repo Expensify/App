@@ -1731,6 +1731,11 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+/** The two states a card passes through before it can be spent on, whether or not the cardholder can act on them. */
+function isCardPendingIssueOrActivation(card?: Card) {
+    return isCardPendingIssue(card) || isCardPendingActivate(card);
+}
+
 /**
  * True when an Expensify Card is waiting to be issued or activated and so cannot be spent on yet.
  *
@@ -1739,7 +1744,7 @@ function isCardPendingActivate(card?: Card) {
  * `isExpensifyCardPendingAction` leaves virtual cards out as well.
  */
 function isExpensifyCardPending(card?: Card) {
-    return !card?.nameValuePairs?.isVirtual && (isCardPendingIssue(card) || isCardPendingActivate(card));
+    return !card?.nameValuePairs?.isVirtual && isCardPendingIssueOrActivation(card);
 }
 
 /** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */
@@ -1790,7 +1795,7 @@ function isCardWithPotentialFraud(card: Card): boolean {
 
 function isCardPendingReplace(card?: Card) {
     return (
-        (isCardPendingActivate(card) || isCardPendingIssue(card)) &&
+        isCardPendingIssueOrActivation(card) &&
         !!card?.nameValuePairs?.terminationReason &&
         card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
     );
@@ -1813,7 +1818,7 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
         !card.nameValuePairs?.isVirtual &&
-        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
+        (isCardPendingIssueOrActivation(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
         (!card.lastScrapeResult || CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult))
     );
 }
