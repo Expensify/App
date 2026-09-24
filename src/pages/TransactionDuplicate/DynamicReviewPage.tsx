@@ -67,7 +67,6 @@ function DynamicReviewPage() {
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -129,7 +128,6 @@ function DynamicReviewPage() {
             reportID: route.params.reportID,
             introSelected,
             conciergeChat,
-            betas,
             hasReportActions,
             currentUserAccountID: currentPersonalDetails.accountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -140,7 +138,6 @@ function DynamicReviewPage() {
         route.params.reportID,
         introSelected,
         conciergeChat,
-        betas,
         hasReportActions,
         currentPersonalDetails.accountID,
         guidedSetupAndTourStatus?.isSelfTourViewed,

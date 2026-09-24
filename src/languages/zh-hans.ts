@@ -959,7 +959,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
@@ -980,12 +979,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `订阅将于 ${date} 结束`,
                 cta: '管理',
             },
-        },
-        discoverSection: {
-            title: '发现',
-            menuItemTitleNonAdmin: '了解如何创建报销和提交报表。',
-            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司卡进行对账。',
-            menuItemDescription: '了解 Expensify 的强大功能，只需 2 分钟',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1771,6 +1764,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `已将最终审批人更改为 <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
