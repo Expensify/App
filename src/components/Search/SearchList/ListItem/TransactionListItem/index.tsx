@@ -34,6 +34,7 @@ import {
     showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
+import {syncTagOutOfPolicyViolation} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -196,7 +197,12 @@ function TransactionListItemInner<TItem extends ListItem>({
         rules,
     });
 
-    const onyxViolations = (transactionViolationsForRow ?? []).filter(
+    // Sync tagOutOfPolicy/missingTag with the current tag list before filtering. `transactionViolations_` is not
+    // re-pushed when an admin only changes the tags, so without this the row keeps rendering the stored violations
+    // until the next refetch. Prefer the live transaction, whose tag reflects an edit the snapshot may not hold yet.
+    const tagSyncedViolations = syncTagOutOfPolicyViolation(transactionViolationsForRow ?? [], transaction ?? transactionItem, policyTagLists, policyForViolations);
+
+    const onyxViolations = tagSyncedViolations.filter(
         (violation: TransactionViolation) =>
             !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, submitterLogin, policyForViolations) &&
             shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', currentUserDetails.accountID, false, transactionItem),

@@ -27,6 +27,7 @@ import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {syncTagOutOfPolicyViolation} from '@libs/Violations/ViolationsUtils';
 
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
@@ -105,7 +106,8 @@ type MoneyRequestReportTransactionListController = {
 const EMPTY_VIOLATIONS: OnyxTypes.TransactionViolations = [];
 
 /**
- * Looks up violations from the bulk collection and filters them via `getVisibleTransactionViolations`.
+ * Looks up violations from the bulk collection, re-derives the tag violations against the current tag list and
+ * filters the result via `getVisibleTransactionViolations`.
  * Returns the stable EMPTY_VIOLATIONS reference for the common no-violations case so the row's prop
  * identity stays stable across FlashList recycles.
  */
@@ -117,15 +119,19 @@ function filterTransactionViolations(
     report: OnyxTypes.Report,
     ownerLogin: string | undefined,
     policy: OnyxTypes.Policy | undefined,
+    policyTagLists: OnyxTypes.PolicyTagLists | undefined,
 ): OnyxTypes.TransactionViolations {
     if (!allViolations) {
         return EMPTY_VIOLATIONS;
     }
     const raw = allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-    if (!raw?.length) {
+    // A tag the admin just deleted has to be flagged even when nothing is stored for this transaction yet, so the
+    // empty case can only be short-circuited after the sync, not before it.
+    const synced = syncTagOutOfPolicyViolation(raw ?? [], transaction, policyTagLists, policy);
+    if (!synced.length) {
         return EMPTY_VIOLATIONS;
     }
-    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, ownerLogin, policy);
+    const filtered = getVisibleTransactionViolations(transaction, synced, email, accountID, report, ownerLogin, policy);
     return filtered.length === 0 ? EMPTY_VIOLATIONS : filtered;
 }
 
@@ -577,10 +583,13 @@ function MoneyRequestReportTransactionList({
         const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
         for (const transaction of resolvedTransactions) {
-            map.set(transaction.transactionID, filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined));
+            map.set(
+                transaction.transactionID,
+                filterTransactionViolations(transaction, allTransactionViolations, email, accountID, report, ownerLogin, policy ?? undefined, policyTagLists),
+            );
         }
         return map;
-    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, ownerLogin, policy]);
+    }, [resolvedTransactions, allTransactionViolations, currentUserDetails.email, currentUserDetails.accountID, report, ownerLogin, policy, policyTagLists]);
 
     const renderTransactionListItem = (item: TransactionListItemData, position: {isFirst: boolean; isLast: boolean}) => {
         const narrowSectionWrapperStyle = shouldUseNarrowLayout
