@@ -241,7 +241,7 @@ describe('AddPersonalBankAccountPage', () => {
         expect(updatePersonalBankAccountCurrentPage).toHaveBeenCalledWith(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS);
     });
 
-    it('resumes saved Plaid progress when the selected account has an access token', async () => {
+    it('resumes saved Plaid progress when Plaid stores the access token at the top level', async () => {
         shouldUseInitialSubPage = false;
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {
@@ -269,7 +269,7 @@ describe('AddPersonalBankAccountPage', () => {
                         plaidAccountID: 'plaid-account-1',
                         routingNumber: '123456789',
                         mask: '1234',
-                        plaidAccessToken: 'access-token',
+                        plaidAccessToken: '',
                         bankName: 'Plaid Bank',
                     },
                 ],

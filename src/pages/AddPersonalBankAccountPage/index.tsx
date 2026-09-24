@@ -167,7 +167,7 @@ function AddPersonalBankAccountPage() {
         setupPageName = SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT;
     }
     const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount.plaidAccountID === personalBankAccount?.selectedPlaidAccountID);
-    const hasCompletedPlaidConnection = !!selectedPlaidAccount?.plaidAccessToken;
+    const hasCompletedPlaidConnection = !!selectedPlaidAccount && (!!selectedPlaidAccount.plaidAccessToken || !!plaidData?.plaidAccessToken);
     const hasCompletedManualConnection = !!personalBankAccount?.routingNumber && !!personalBankAccount?.accountNumber;
     const savedPageIndex = pages.findIndex((page) => page.pageName === fullPersonalBankAccount?.currentPage && !skipPages.includes(page.pageName));
     const canResumeSavedPage = savedPageIndex >= 0 && (fullPersonalBankAccount?.currentPage === setupPageName || (isManual ? hasCompletedManualConnection : hasCompletedPlaidConnection));
