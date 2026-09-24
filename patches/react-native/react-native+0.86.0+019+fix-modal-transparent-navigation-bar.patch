@@ -1,25 +1,109 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
-index c711027..7255545 100644
+index f36a1e3..7edb8fe 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
-@@ -382,6 +382,20 @@ public class ReactModalHostView(context: ThemedReactContext) :
-         }
-       }
+@@ -18,6 +18,7 @@ import android.os.Build
+ import android.view.KeyEvent
+ import android.view.MotionEvent
+ import android.view.View
++import android.view.WindowInsetsController
+ import android.view.ViewGroup
+ import android.view.ViewStructure
+ import android.view.WindowManager
+@@ -343,6 +344,8 @@ public class ReactModalHostView(context: ThemedReactContext) :
+     if (currentActivity?.isFinishing == false) {
+       newDialog.show()
+       updateSystemAppearance()
++      // Activity and dialog insets can settle after attach; re-sync so nav icon style matches.
++      window.decorView.post { updateSystemAppearance() }
+       window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+       (context as ThemedReactContext).onExtraWindowCreate(window)
+     }
+@@ -392,7 +395,16 @@ public class ReactModalHostView(context: ThemedReactContext) :
  
-+      // If enforceNavigationBarContrast is explicitly set in the app theme (AppTheme),
-+      // we need to override the default behaviour for edge-to-edge mode in WindowUtils.setSystemBarsTranslucency.
-+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-+        val attrs = intArrayOf(android.R.attr.enforceNavigationBarContrast)
-+        val ta = context.obtainStyledAttributes(R.style.Theme_FullScreenDialog, attrs)
-+
-+        if (ta.length() == 1) {
-+          val enforceNavigationBarContrastStyleValue = ta.getBoolean(0, false)
-+          dialogWindow.isNavigationBarContrastEnforced = enforceNavigationBarContrastStyleValue
-+        }
-+
-+        ta.recycle()
-+      }
-+
        // Navigation bar cannot be translucent without status bar being translucent too
        if (navigationBarTranslucent) {
-         dialogWindow.enableEdgeToEdge()
+-        dialogWindow.enableEdgeToEdge()
++        // Do not set nav icon appearance from UI mode here; it overrides the activity and is
++        // re-applied every updateProperties() while the dialog is open without showOrUpdate().
++        dialogWindow.enableEdgeToEdge(applyNavigationBarIconAppearanceFromUiMode = false)
++        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++          dialogWindow.isStatusBarContrastEnforced = activityWindow.isStatusBarContrastEnforced
++          dialogWindow.isNavigationBarContrastEnforced =
++              activityWindow.isNavigationBarContrastEnforced
++        }
++        dialogWindow.statusBarColor = activityWindow.statusBarColor
++        dialogWindow.navigationBarColor = activityWindow.navigationBarColor
+       } else {
+         dialogWindow.disableEdgeToEdge()
+         dialogWindow.setStatusBarTranslucency(statusBarTranslucent)
+@@ -413,6 +425,10 @@ public class ReactModalHostView(context: ThemedReactContext) :
+       // window manager
+       FLog.e(TAG, "ReactModalHostView: error while setting window flags: ", e.message)
+     }
++
++    if (dialog.isShowing) {
++      updateSystemAppearance()
++    }
+   }
+ 
+   /**
+@@ -439,8 +455,21 @@ public class ReactModalHostView(context: ThemedReactContext) :
+             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+       }
+ 
+-      dialogWindowInsetsController.isAppearanceLightStatusBars =
+-          activityWindowInsetsController.isAppearanceLightStatusBars
++      val activityNativeInsetsController = activityWindow.insetsController
++      val dialogNativeInsetsController = dialogWindow.insetsController
++      if (activityNativeInsetsController != null && dialogNativeInsetsController != null) {
++        val appearanceMask =
++            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
++                WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
++        val activityAppearance =
++            activityNativeInsetsController.systemBarsAppearance and appearanceMask
++        dialogNativeInsetsController.setSystemBarsAppearance(activityAppearance, appearanceMask)
++      } else {
++        dialogWindowInsetsController.isAppearanceLightStatusBars =
++            activityWindowInsetsController.isAppearanceLightStatusBars
++        dialogWindowInsetsController.isAppearanceLightNavigationBars =
++            activityWindowInsetsController.isAppearanceLightNavigationBars
++      }
+ 
+       activityWindow.decorView.rootWindowInsets?.let { insets ->
+         val activityRootWindowInsets = WindowInsetsCompat.toWindowInsetsCompat(insets)
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
+index 400860c..93ddc15 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/WindowUtil.kt
+@@ -161,7 +161,9 @@ private fun Window.statusBarShow() {
+ }
+ 
+ @Suppress("DEPRECATION")
+-internal fun Window.enableEdgeToEdge() {
++internal fun Window.enableEdgeToEdge(
++    applyNavigationBarIconAppearanceFromUiMode: Boolean = true,
++) {
+   WindowCompat.setDecorFitsSystemWindows(this, false)
+ 
+   val insetsController = WindowInsetsControllerCompat(this, decorView)
+@@ -185,7 +187,7 @@ internal fun Window.enableEdgeToEdge() {
+     isStatusBarContrastEnforced = false
+     isNavigationBarContrastEnforced = enforceNavigationBarContrast
+ 
+-    if (enforceNavigationBarContrast) {
++    if (enforceNavigationBarContrast && applyNavigationBarIconAppearanceFromUiMode) {
+       insetsController.isAppearanceLightNavigationBars = !isDarkMode
+     }
+   } else {
+@@ -194,7 +196,9 @@ internal fun Window.enableEdgeToEdge() {
+ 
+     navigationBarColor =
+         if (isAppearanceLightNavigationBars) LightNavigationBarColor else DarkNavigationBarColor
+-    insetsController.isAppearanceLightNavigationBars = isAppearanceLightNavigationBars
++    if (applyNavigationBarIconAppearanceFromUiMode) {
++      insetsController.isAppearanceLightNavigationBars = isAppearanceLightNavigationBars
++    }
+   }
+ 
+   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

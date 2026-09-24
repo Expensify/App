@@ -15,16 +15,14 @@ const [PersonalDetailsProvider, , usePersonalDetails] = createOnyxContext(ONYXKE
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
 const [BetaConfigurationProvider, BetaConfigurationContext] = createOnyxContext(ONYXKEYS.BETA_CONFIGURATION);
+const [BetaOverridesProvider, BetaOverridesContext] = createOnyxContext(ONYXKEYS.BETA_OVERRIDES);
 const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
-const [PolicyCategoriesProvider, , usePolicyCategories] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_TAGS);
 const [ReportTransactionsAndViolationsProvider, , useAllReportsTransactionsAndViolations] = createOnyxContext(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
 const [CardListProvider, , useCardList] = createOnyxContext(ONYXKEYS.CARD_LIST);
 const [WorkspaceCardListProvider, , useWorkspaceCardList] = createOnyxContext(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 const [OnboardingValuesProvider, ,] = createOnyxContext(ONYXKEYS.NVP_ONBOARDING);
 
 type OnyxListItemProviderProps = {
-    /** Rendered child component */
     children: React.ReactNode;
 };
 
@@ -36,9 +34,8 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 BlockedFromConciergeProvider,
                 BetasProvider,
                 BetaConfigurationProvider,
+                BetaOverridesProvider,
                 SessionProvider,
-                PolicyCategoriesProvider,
-                PolicyTagsProvider,
                 ReportTransactionsAndViolationsProvider,
                 CardListProvider,
                 WorkspaceCardListProvider,
@@ -57,10 +54,9 @@ export {
     usePersonalDetails,
     BetasContext,
     BetaConfigurationContext,
+    BetaOverridesContext,
     useBlockedFromConcierge,
     useSession,
-    usePolicyCategories,
-    usePolicyTags,
     useAllReportsTransactionsAndViolations,
     useCardList,
     useWorkspaceCardList,

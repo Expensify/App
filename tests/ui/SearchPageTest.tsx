@@ -1,4 +1,3 @@
-import '@libs/Middleware/register';
 import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
@@ -14,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {search} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
+import registerMiddlewares from '@libs/Middleware/register';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -39,9 +39,13 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 
+registerMiddlewares();
+
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 const mockSearchQueryParam = jest.fn(() => 'type:chat category:abcd');
+// SearchFullscreenNavigator is nested inside TabNavigator in the real tree, and the Search root route is
+// resolved by walking down from the root through that tab navigator, so the mocked state has to keep that level.
 jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
     default: (selector: (state: unknown) => unknown) =>
@@ -49,13 +53,21 @@ jest.mock('@hooks/useRootNavigationState', () => ({
             index: 0,
             routes: [
                 {
-                    name: 'SearchFullscreenNavigator',
+                    name: 'TabNavigator',
                     state: {
                         index: 0,
                         routes: [
                             {
-                                name: 'Search_Root',
-                                params: {q: mockSearchQueryParam()},
+                                name: 'SearchFullscreenNavigator',
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: 'Search_Root',
+                                            params: {q: mockSearchQueryParam()},
+                                        },
+                                    ],
+                                },
                             },
                         ],
                     },
@@ -348,6 +360,39 @@ describe('SearchPageNarrow', () => {
         // Then no error view is shown, because leaving the stored failure in place is what turned one failed
         // request into a dead end only the Try again button could escape
         expect(screen.queryByText('Try again')).toBeNull();
+    });
+
+    it('shows the error page with a retry button when the server rejected the query with a code other than invalid query', async () => {
+        // Given the page already requested the query, so an error that lands afterwards is its own and is kept
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // When the server answers with a failure code that is not INVALID_SEARCH_QUERY
+        await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
+
+        // Then the request really failed, so the error copy shows rather than the stale-results copy
+        expect(screen.getByText('Oops... Something went wrong')).toBeTruthy();
+        expect(screen.getByText('Try again')).toBeTruthy();
+        expect(screen.queryByText('Refresh needed')).toBeNull();
+    });
+
+    it('shows the refresh copy when the request failed without a server response code', async () => {
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // When the request failed before the server could answer, which failureData records as NO_RESPONSE
+        await setFailedSnapshot(CONST.JSON_CODE.NO_RESPONSE);
+
+        // Then the results are only out of date, so the refresh copy shows
+        expect(screen.getByText('Refresh needed')).toBeTruthy();
+        expect(screen.getByText('Refresh')).toBeTruthy();
+        expect(screen.queryByText('Oops... Something went wrong')).toBeNull();
     });
 
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {

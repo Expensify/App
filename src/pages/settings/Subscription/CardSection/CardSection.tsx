@@ -23,6 +23,7 @@ import {
     isUserOnFreeTrial,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowSubscriptionExpiringSoonUI,
     shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
 
@@ -42,6 +43,7 @@ import type {BillingStatusResult} from './utils';
 import EarlyDiscountBanner from './BillingBanner/EarlyDiscountBanner';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
+import SubscriptionExpiringSoonBanner from './BillingBanner/SubscriptionExpiringSoonBanner';
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CancelSubscriptionMenuItem from './CancelSubscriptionMenuItem';
@@ -121,7 +123,7 @@ function CardSection() {
             ],
         });
 
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     };
 
     const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
@@ -220,6 +222,9 @@ function CardSection() {
         BillingBanner = <TrialStartedBillingBanner />;
     } else if (shouldShowTrialEndedUI(session?.accountID, lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
         BillingBanner = <TrialEndedBillingBanner />;
+    } else if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+        // A subscription with an end date is never on trial, so this can only ever be reached when the trial branches above miss
+        BillingBanner = <SubscriptionExpiringSoonBanner endDate={privateSubscription?.endDate} />;
     }
     if (billingStatus) {
         BillingBanner = (

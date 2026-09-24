@@ -12,7 +12,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 
 type MenuItemIconProps = {
-    /** Icon to display */
     src: IconAsset;
 };
 

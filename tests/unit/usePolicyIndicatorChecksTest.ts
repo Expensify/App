@@ -5,7 +5,7 @@ import usePolicyIndicatorChecks from '@hooks/usePolicyIndicatorChecks';
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Domain, Policy} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
@@ -332,6 +332,20 @@ describe('usePolicyIndicatorChecks', () => {
     });
 
     describe('domain error statuses', () => {
+        const requesterAccountID = 777;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+        const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}domain1` as const;
+
+        const createDomainFixture = (domainAdminRequesters: Domain['domain_adminRequesters']): Domain => ({
+            validated: true,
+            accountID: 1,
+            email: 'domain.com',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            domain_defaultSecurityGroupID: '',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            domain_adminRequesters: domainAdminRequesters,
+        });
+
         beforeEach(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -348,7 +362,128 @@ describe('usePolicyIndicatorChecks', () => {
             const {result} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.domainStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+            expect(result.current.domainErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+        });
+
+        it('returns HAS_DOMAIN_ERRORS for an adminship request error while that request is still pending', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [domainKey]: createDomainFixture({[requesterAccountID]: 'read'}),
+                    [domainErrorsKey]: {adminshipRequesterErrors: {[requesterAccountID]: {errors: {timestamp: 'Approve error'}}}},
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+        });
+
+        it('does not return HAS_DOMAIN_ERRORS once the request is gone, since no row is left to dismiss the error from', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [domainKey]: createDomainFixture({}),
+                    [domainErrorsKey]: {adminshipRequesterErrors: {[requesterAccountID]: {errors: {timestamp: 'Approve error'}}}},
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainErrorStatus).toBeUndefined();
+        });
+    });
+
+    describe('domain info statuses', () => {
+        const domainAdminAccountID = 555;
+        const requesterAccountID = 777;
+        const domainAccountID = 1;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+        const domainPendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}domain1` as const;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('returns HAS_PENDING_DOMAIN_ADMIN_REQUESTS when the current user is a domain admin with pending requests', async () => {
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: domainAccountID,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                    [domainKey]: domainWithAdmin,
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS);
+        });
+
+        it('does not return an indicator when the last pending request has been denied but the decline has not landed yet', async () => {
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: domainAccountID,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                    [domainKey]: domainWithAdmin,
+                    [domainPendingActionsKey]: {
+                        adminshipRequester: {[requesterAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                    },
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainInfoStatus).toBeUndefined();
+        });
+
+        it('does not return an indicator when the current user is only a requester, not a domain admin', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {accountID: requesterAccountID, email: otherUserID},
+                    [domainKey]: {
+                        validated: true,
+                        accountID: domainAccountID,
+                        email: 'domain.com',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        domain_defaultSecurityGroupID: '',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        domain_adminRequesters: {[requesterAccountID]: 'read'},
+                    },
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainInfoStatus).toBeUndefined();
         });
     });
 
@@ -380,7 +515,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBeUndefined();
-            expect(result.current.domainStatus).toBeUndefined();
+            expect(result.current.domainErrorStatus).toBeUndefined();
             expect(result.current.indicatorPolicyID).toBeUndefined();
         });
     });
@@ -397,7 +532,7 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyErrorStatus).toBeUndefined();
             expect(result.current.policyInfoStatus).toBeUndefined();
-            expect(result.current.domainStatus).toBeUndefined();
+            expect(result.current.domainErrorStatus).toBeUndefined();
             expect(result.current.indicatorPolicyID).toBeUndefined();
         });
     });
