@@ -1,5 +1,6 @@
 import calculateMaxSidePanelRHPShrink from '@libs/Navigation/helpers/calculateMaxSidePanelRHPShrink';
 
+// The offset is a react-native Animated node driven by the Side Panel and the value feeds react-navigation card styles.
 // eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 

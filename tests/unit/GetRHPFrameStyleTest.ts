@@ -3,6 +3,7 @@ import type GetRHPFrameStyle from '@libs/Navigation/AppNavigator/Navigators/getR
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 
+// The frame width is a react-native Animated node, so the test builds one the way navigation does.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
@@ -28,11 +29,12 @@ function buildAnimatedWidth() {
 }
 
 function getWidth(style: ReturnType<GetRHPFrameStyle>) {
+    // The style array mixes theme objects with the width entry, so the width has to be read through a cast.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return (style as Array<{width?: unknown}>).at(-1)?.width;
 }
 
-/** An animated node only exposes its current value through this internal getter. */
+// An animated node only exposes its current value through this internal getter, hence the cast and the underscored-name disables.
 function readAnimatedValue(width: unknown) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention, no-underscore-dangle
     return (width as {__getValue: () => number}).__getValue();
@@ -102,27 +104,29 @@ describe('getRHPFrameStyle', () => {
 
 // Regression for PR #101093: the two-factor security-code panel feeds the shared RHP width through getRHPFrameStyle, so it matches a normal RHP card.
 describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
-    const buildMfaPanelWidth = () => Animated.subtract(new Animated.Value(variables.rhpWidth), new Animated.Value(0));
+    // The panel never animates its width, so it hands the helper a plain number, as MultifactorAuthenticationModalNavigator does.
+    const mfaPanelWidth = variables.rhpWidth;
     const mfaParams = {styles, shouldUseNarrowLayout: false, shouldUseCenteredFrame: false} as const;
 
     it('floats the panel as a card on wide web', () => {
         // Given the two-factor security-code panel on web, which measured 65px narrower than the RHP cards beside it because it sized off the sidebar width instead of variables.rhpWidth
-        const params = {...mfaParams, animatedWidth: buildMfaPanelWidth()};
+        const params = {...mfaParams, animatedWidth: mfaPanelWidth};
 
         // When the frame style is built for it
         const style = getRHPFrameStyleWeb(params);
 
         // Then it floats like any other RHP card, border included, so it lines up with the skinny cards behind it instead of standing out as a narrower panel.
+        // The width stays a plain number, since a panel that never animates its width must not need an Animated component.
         expect(style).toContain(styles.RHPFloatingCard);
         expect(style).not.toContain(styles.r0);
         expect(style).not.toContain(styles.h100);
         expect(style).not.toContain(styles.RHPCenteredFrame);
-        expect(readAnimatedValue(getWidth(style))).toBe(variables.rhpWidth + 2 * variables.rhpFloatingCardBorderWidth);
+        expect(getWidth(style)).toBe(variables.rhpWidth + 2 * variables.rhpFloatingCardBorderWidth);
     });
 
     it('keeps the panel full-bleed on native', () => {
         // Given the same panel on native, where the RHP slides in over the whole screen
-        const animatedWidth = buildMfaPanelWidth();
+        const animatedWidth = mfaPanelWidth;
         const params = {...mfaParams, animatedWidth};
 
         // When the native frame style is built for it
@@ -137,7 +141,7 @@ describe('getRHPFrameStyle - two-factor (MFA) security-code panel', () => {
 
     it('keeps the panel full width on a narrow layout', () => {
         // Given the panel opened on a phone-width window, where it is the only thing on screen
-        const params = {...mfaParams, shouldUseNarrowLayout: true, animatedWidth: buildMfaPanelWidth()};
+        const params = {...mfaParams, shouldUseNarrowLayout: true, animatedWidth: mfaPanelWidth};
 
         // When the web frame style is built for it
         const style = getRHPFrameStyleWeb(params);

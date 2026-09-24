@@ -31,8 +31,7 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
 import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
 import React, {useEffect, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {Animated as RNAnimated, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
@@ -142,7 +141,7 @@ function MultifactorAuthenticationModalNavigator() {
         opacity: backdropProgress.get() * variables.overlayOpacity,
     }));
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth: RNAnimated.subtract(variables.rhpWidth, 0), shouldUseNarrowLayout, shouldUseCenteredFrame: false});
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
 
     if (phase === 'closed') {
         return null;
@@ -165,7 +164,7 @@ function MultifactorAuthenticationModalNavigator() {
                     />
                 </Animated.View>
             )}
-            <RNAnimated.View style={frameStyle}>
+            <View style={frameStyle}>
                 {isStackReadyToMount && (
                     <NavigationIndependentTree>
                         <BaseNavigationContainer
@@ -227,7 +226,7 @@ function MultifactorAuthenticationModalNavigator() {
                         </BaseNavigationContainer>
                     </NavigationIndependentTree>
                 )}
-            </RNAnimated.View>
+            </View>
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
                 onConfirm={confirmCancel}
