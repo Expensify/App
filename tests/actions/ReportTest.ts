@@ -46,7 +46,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
-import {addSeconds, format, subMinutes} from 'date-fns';
+import {addMinutes, addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -832,6 +832,14 @@ describe('actions/Report', () => {
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
+                // Each addComment call above left an optimistic action stamped with the clock at the moment it ran,
+                // a few milliseconds before this block. The actions injected below stand in for the server copies of
+                // those same comments, so every one of them has to sort after every optimistic action. Anchor them on
+                // a single timestamp one minute ahead of the clock and space them a second apart, so that the time the
+                // test itself takes to run can never reorder them.
+                const ONE_MINUTE_AHEAD = addMinutes(new Date(), 1);
+                reportActionCreatedDate = format(addSeconds(ONE_MINUTE_AHEAD, 3), CONST.DATE.FNS_DB_FORMAT_STRING);
+
                 const USER_1_BASE_ACTION = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID: USER_1_ACCOUNT_ID,
@@ -839,7 +847,7 @@ describe('actions/Report', () => {
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
-                    created: DateUtils.getDBTime(Date.now() - 3),
+                    created: format(ONE_MINUTE_AHEAD, CONST.DATE.FNS_DB_FORMAT_STRING),
                     reportID: REPORT_ID,
                 };
 
@@ -850,33 +858,25 @@ describe('actions/Report', () => {
                         200: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
-                            created: DateUtils.getDBTime(Date.now() - 2),
+                            created: format(addSeconds(ONE_MINUTE_AHEAD, 1), CONST.DATE.FNS_DB_FORMAT_STRING),
                             reportActionID: '200',
                         },
 
                         300: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 2', text: 'Current User Comment 2'}],
-                            created: DateUtils.getDBTime(Date.now() - 1),
+                            created: format(addSeconds(ONE_MINUTE_AHEAD, 2), CONST.DATE.FNS_DB_FORMAT_STRING),
                             reportActionID: '300',
                         },
 
                         400: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 3', text: 'Current User Comment 3'}],
-                            created: DateUtils.getDBTime(),
+                            created: reportActionCreatedDate,
                             reportActionID: '400',
                         },
                     },
                 };
-
-                reportActionCreatedDate = DateUtils.getDBTime();
-
-                const optimisticReportActionsValue = optimisticReportActions.value;
-
-                if (optimisticReportActionsValue?.[400]) {
-                    optimisticReportActionsValue[400].created = reportActionCreatedDate;
-                }
 
                 // When we emit the events for these pending created actions to update them to not pending
                 PusherHelper.emitOnyxUpdate([
@@ -3612,6 +3612,80 @@ describe('actions/Report', () => {
 
     describe('deleteAppReport', () => {
         const currentUserAccountID = 1;
+        it("should remove another owner's transaction threads instead of moving them to the current user's self DM", async () => {
+            // Given a workspace admin is deleting another member's draft expense report
+            const memberAccountID = 2;
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(31, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: memberAccountID,
+                policyID: 'workspacePolicy',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = {...createRandomTransaction(32), reportID: expenseReport.reportID};
+            const transactionThread: OnyxTypes.Report = {
+                ...createRandomReport(33, undefined),
+                parentReportID: expenseReport.reportID,
+                policyID: expenseReport.policyID,
+            };
+            const iouAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '34',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: transactionThread.reportID,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    IOUTransactionID: transaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const transactionThreadAction = createRandomReportAction(35);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`, {
+                [transactionThreadAction.reportActionID]: transactionThreadAction,
+            });
+
+            // When the admin deletes the member's report
+            Report.deleteAppReport({
+                report: expenseReport,
+                reportActions: {[iouAction.reportActionID]: iouAction},
+                parentReportAction: undefined,
+                selfDMReport: undefined,
+                currentUserEmailParam: 'admin@example.com',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                allTransactionViolations: {},
+                bankAccountList: {},
+                delegateAccountID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the admin's self DM remains untouched and App removes the transaction thread after Auth confirms the deletion
+            expect(ReportUtils.findSelfDMReportID()).toBeUndefined();
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_APP_REPORT,
+                expect.anything(),
+                expect.objectContaining({
+                    successData: expect.arrayContaining([
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                            value: null,
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                            value: null,
+                        },
+                    ]),
+                }),
+            );
+        });
+
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
             // Given an expense report with CREATE, TRACK, and PAY of IOU actions
             const reportID = '1';

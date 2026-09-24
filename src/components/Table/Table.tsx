@@ -319,6 +319,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
     const searchedData = searchMiddleware(filteredData);
 
+    const columnKeys = columns.map((column) => column.key);
+
     const {
         activeSorting,
         methods: sortMethods,
@@ -330,6 +332,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
         onSortingChange,
+        columnKeys,
     });
     const sortedData = sortMiddleware(searchedData);
 
@@ -539,6 +542,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                shouldUseDynamicColumns={shouldUseDynamicColumns}
                 scrollWidth={dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
