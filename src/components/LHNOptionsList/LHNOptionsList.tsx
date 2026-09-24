@@ -171,7 +171,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
                     extraData={extraData}
-                    showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
                     initialScrollIndex={initialScrollIndex}
