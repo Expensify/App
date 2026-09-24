@@ -403,10 +403,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     });
 
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
-    // A warm report already has its complete action page. Only an initial visit needs a cover
-    // while the first page finishes loading and LegendList positions it.
-    const [shouldCoverInitialViewport] = useState(!hasOnceLoadedReportActions);
-    const shouldShowInitialViewportSkeleton = !isOffline && shouldCoverInitialViewport && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
+    // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
+    const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
 
     const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
         onViewableItemsChanged(info);

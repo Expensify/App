@@ -556,7 +556,7 @@ describe('ReportActionsList (body)', () => {
         expect(onLoad).toHaveBeenCalledTimes(1);
     });
 
-    it('shows a previously hydrated report without replaying the loading cover', () => {
+    it('covers a previously hydrated report until LegendList finishes its initial layout', () => {
         // Given a report that was already loaded before this list mounted
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockShouldCallLegendListOnLoad = false;
@@ -564,8 +564,11 @@ describe('ReportActionsList (body)', () => {
         // When the user opens the report again
         renderReportActionsList();
 
-        // Then cached actions stay visible while LegendList completes its layout
+        // Then the cover hides LegendList's empty initial viewport until its actions are ready
         expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        act(() => getCapturedListProps()?.onLoad?.());
         expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });
 
