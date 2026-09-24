@@ -7250,11 +7250,11 @@ const translations = {
             findMember: 'Find member',
             workArrangement: 'Work arrangement',
             officeBased: 'Office-based',
-            noRegularWorkspace: 'No regular workspace',
+            noRegularWorkspace: 'Remote or mobile',
             workArrangementPage: {
                 title: 'Work arrangement',
                 optionOfficeBasedHelp: 'Member commutes to an office. Ordinary commutes are excluded from reimbursement.',
-                optionNoRegularWorkspaceHelp: 'Member works remotely or lacks a fixed workspace, so home-to-work commute rules don’t apply.',
+                optionNoRegularWorkspaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
                 futureOnlyNote: 'Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.',
             },
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',

@@ -6824,11 +6824,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             members: '成员',
             workArrangement: '工作安排',
             officeBased: '以办公室为基地',
-            noRegularWorkspace: '无常规工作区',
+            noRegularWorkspace: '远程或移动',
             workArrangementPage: {
                 title: '工作安排',
                 optionOfficeBasedHelp: '成员通勤前往办公室。日常通勤不予报销。',
-                optionNoRegularWorkspaceHelp: '成员远程办公或没有固定办公地点，因此家庭与工作地之间通勤的规定不适用。',
+                optionNoRegularWorkspaceHelp: '成员在家办公或在各地点之间出差，没有固定办公地点，因此通勤规则不适用。',
                 futureOnlyNote: '更改仅适用于未来的里程计算，现有的里程报销将不会重新计算。',
             },
         },

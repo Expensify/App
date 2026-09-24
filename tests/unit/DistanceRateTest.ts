@@ -21,7 +21,7 @@ const translate: LocalizedTranslate = (phrase, ...parameters) => {
         return 'Office-based';
     }
     if (phrase === 'workspace.people.noRegularWorkspace') {
-        return 'No regular workspace';
+        return 'Remote or mobile';
     }
     if (phrase === 'workspaceActions.updatedMemberWorkArrangement') {
         return `changed ${String(parameters[0])}'s work arrangement to ${String(parameters[1])} (previously ${String(parameters[2])})`;

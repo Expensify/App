@@ -7002,11 +7002,11 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             members: 'メンバー',
             workArrangement: '勤務形態',
             officeBased: 'オフィス勤務',
-            noRegularWorkspace: '通常のワークスペースがありません',
+            noRegularWorkspace: 'リモートまたはモバイル',
             workArrangementPage: {
                 title: '勤務形態',
                 optionOfficeBasedHelp: 'メンバーはオフィスへ通勤します。通常の通勤は払い戻しの対象外です。',
-                optionNoRegularWorkspaceHelp: 'メンバーはリモートワークをしているか、固定の勤務先がないため、自宅から勤務先までの通勤に関するルールは適用されません。',
+                optionNoRegularWorkspaceHelp: 'メンバーは在宅勤務、または決まったオフィスがなく拠点間を移動しているため、通勤規程は適用されません。',
                 futureOnlyNote: '変更は今後の走行距離計算にのみ適用されます。既存の走行距離経費は再計算されません。',
             },
         },
