@@ -98,6 +98,7 @@ import lodashClone from 'lodash/clone';
 import Onyx from 'react-native-onyx';
 
 import {getAllTransactions} from './IOU';
+import {getSearchOnyxUpdate} from './IOU/SearchUpdate';
 
 type SaveWaypointProps = {
     transactionID: string;
@@ -936,6 +937,7 @@ function getChangeTransactionsReportOnyxData({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
             | typeof ONYXKEYS.SELF_DM_REPORT_ID
         >
     > = [];
@@ -946,6 +948,7 @@ function getChangeTransactionsReportOnyxData({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
     const successData: Array<
@@ -955,6 +958,7 @@ function getChangeTransactionsReportOnyxData({
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -1727,6 +1731,51 @@ function getChangeTransactionsReportOnyxData({
             };
         } else {
             transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const searchTransaction = {
+            ...transactionForViolations,
+            reportID,
+            comment: isUnreported ? {...transactionForViolations.comment, hold: null} : transactionForViolations.comment,
+            originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : undefined,
+            originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : undefined,
+            reimbursable: transactionReimbursable,
+            ...(shouldClearAmount && {convertedAmount: null, convertedTaxAmount: null}),
+        } as Transaction;
+
+        const searchIOUAction = {
+            ...newIOUAction,
+            reportID: targetReportID ?? newIOUAction.reportID,
+            actorAccountID: newIOUAction.actorAccountID ?? accountID,
+        };
+        let previousActionReportID;
+        if (oldIOUAction) {
+            previousActionReportID = isUnreportedExpense ? selfDMReportID : oldReportID;
+        }
+        const searchUpdate = getSearchOnyxUpdate({
+            transaction: searchTransaction,
+            participant: {
+                accountID,
+                login: email,
+            },
+            iouReport: isUnreported ? undefined : newReport,
+            iouAction: searchIOUAction,
+            policy: isUnreported ? undefined : policy,
+            transactionThreadReportID,
+            previousMoneyRequestAction:
+                oldIOUAction && previousActionReportID && !skippedReportIDsSet.has(previousActionReportID)
+                    ? {
+                          reportID: previousActionReportID,
+                          reportActionID: oldIOUAction.reportActionID,
+                      }
+                    : undefined,
+        });
+        if (searchUpdate?.optimisticData) {
+            optimisticData.push(...searchUpdate.optimisticData);
+        }
+        if (searchUpdate?.successData) {
+            successData.push(...searchUpdate.successData);
         }
 
         // Build unhold report action only when moving to unreported (self DM) report

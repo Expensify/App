@@ -5,13 +5,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
-import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getSearchRootParamsFromRootState} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import {defaultExpensifyCardSelector} from '@src/selectors/Card';
 
 import type {NavigationState} from '@react-navigation/routers';
@@ -30,16 +28,11 @@ type SearchQueryProviderProps = {
 
 /** Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` while keeping the same hash. */
 function selectSearchQueryParams(state: NavigationState | undefined) {
-    const focused = getDeepestFocusedScreen(state);
-    if (focused?.name !== SCREENS.SEARCH.ROOT) {
+    const searchRootParams = getSearchRootParamsFromRootState(state);
+    if (!searchRootParams) {
         return undefined;
     }
-    const query = focused.params?.q;
-    if (typeof query !== 'string') {
-        return undefined;
-    }
-    const rawQuery = focused.params?.rawQuery;
-    return `${query}${CONST.SEARCH.QUERY_PARAMS_SEPARATOR}${typeof rawQuery === 'string' ? rawQuery : ''}`;
+    return `${searchRootParams.q}${CONST.SEARCH.QUERY_PARAMS_SEPARATOR}${searchRootParams.rawQuery ?? ''}`;
 }
 
 function splitSearchQueryParams(queryParams: string | undefined) {
@@ -56,8 +49,8 @@ function splitSearchQueryParams(queryParams: string | undefined) {
 
 function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const navigation = useNavigation();
-    // Extract only the primitive values we need from the focused screen to avoid
-    // re-renders from new object references returned by getDeepestFocusedScreen.
+    // Extract only the primitive values we need from the resolved Search root route to avoid
+    // re-renders from new object references returned by getSearchRootParamsFromRootState.
     const queryParams = useRootNavigationState((state) => selectSearchQueryParams(state ?? navigation.getState()));
     const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
     const definedQueryParam = queryParam ?? buildSearchQueryString();
