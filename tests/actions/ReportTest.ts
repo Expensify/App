@@ -3625,6 +3625,80 @@ describe('actions/Report', () => {
 
     describe('deleteAppReport', () => {
         const currentUserAccountID = 1;
+        it("should remove another owner's transaction threads instead of moving them to the current user's self DM", async () => {
+            // Given a workspace admin is deleting another member's draft expense report
+            const memberAccountID = 2;
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(31, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: memberAccountID,
+                policyID: 'workspacePolicy',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const transaction = {...createRandomTransaction(32), reportID: expenseReport.reportID};
+            const transactionThread: OnyxTypes.Report = {
+                ...createRandomReport(33, undefined),
+                parentReportID: expenseReport.reportID,
+                policyID: expenseReport.policyID,
+            };
+            const iouAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '34',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: transactionThread.reportID,
+                created: DateUtils.getDBTime(),
+                message: [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    IOUTransactionID: transaction.transactionID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const transactionThreadAction = createRandomReportAction(35);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`, {
+                [transactionThreadAction.reportActionID]: transactionThreadAction,
+            });
+
+            // When the admin deletes the member's report
+            Report.deleteAppReport({
+                report: expenseReport,
+                reportActions: {[iouAction.reportActionID]: iouAction},
+                parentReportAction: undefined,
+                selfDMReport: undefined,
+                currentUserEmailParam: 'admin@example.com',
+                currentUserAccountIDParam: currentUserAccountID,
+                reportTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                allTransactionViolations: {},
+                bankAccountList: {},
+                delegateAccountID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the admin's self DM remains untouched and App removes the transaction thread after Auth confirms the deletion
+            expect(ReportUtils.findSelfDMReportID()).toBeUndefined();
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_APP_REPORT,
+                expect.anything(),
+                expect.objectContaining({
+                    successData: expect.arrayContaining([
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
+                            value: null,
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+                            value: null,
+                        },
+                    ]),
+                }),
+            );
+        });
+
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
             // Given an expense report with CREATE, TRACK, and PAY of IOU actions
             const reportID = '1';
