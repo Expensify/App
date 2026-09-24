@@ -65,7 +65,7 @@ When you export, the file either downloads immediately or is prepared in the bac
 - **Immediate download** – **Basic export** and **Export current view**, when you export selected reports or use **Select all on this page**.
 - **Prepared in the background** – When you use **Select all** to export all matching reports, or select **All Data - expense level**, **All Data - report level**, or a **Custom template**.
 
-While an export is being prepared, either wait for it to download automatically or select **Send me the file when it's ready** to close the export window and receive the file later. When it's ready, Expensify delivers it through Concierge and by email. If the export can't be generated, an error appears in the export window, or is delivered through Concierge if **Send me the file when it's ready** was selected.
+While an export is being prepared, either wait for it to download automatically or select **Send me the file when it's ready**. Selecting it lets you close the export window and receive the file later: Expensify delivers it through Concierge and by email once it's ready. If you keep the export window open until the export finishes, the window switches to **Your file is ready!** so you can select **Download file** right away. If the export can't be generated, an error appears in the export window, or is delivered through Concierge if **Send me the file when it's ready** was selected.
 
 ## How to download a single report as a PDF
 
@@ -119,6 +119,10 @@ You can download the receipts on several reports at once in a single ZIP file.
 ## Where do I find the exported CSV file?
 
 **Basic export** and **Export current view** download directly to your device. Other templates — and any export started with **Select all** — are prepared in the background; the file then downloads automatically, or is delivered through Concierge and by email if you selected **Send me the file when it's ready**.
+
+## What happens if I keep the export window open after selecting Send me the file when it's ready?
+
+The window stays open and switches to **Your file is ready!** when the export finishes, so you can select **Download file** to save the file right away. Concierge also sends you the file in a chat message. To close the window instead of waiting, select **Dismiss**.
 
 ## What happens if some reports fail to download as PDFs?
 
