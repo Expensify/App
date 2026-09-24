@@ -3036,6 +3036,9 @@ ${amount} dla ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Członek jest już w procesie',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} jest już w procesie zatwierdzania, który przesyła do ${approverName}. Dodanie go tutaj przeniesie go do tego procesu.`,
+        moveEveryoneToNewWorkflowTitle: 'Przenieś wszystkich do nowego procesu',
+        moveEveryoneToNewWorkflowPrompt:
+            'Zamierzasz przenieść wszystkich do nowego procesu zatwierdzania. Spowoduje to usunięcie wszystkich istniejących procesów zatwierdzania i przeniesienie wszystkich do nowego. Tej akcji nie można cofnąć.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie udało się zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',

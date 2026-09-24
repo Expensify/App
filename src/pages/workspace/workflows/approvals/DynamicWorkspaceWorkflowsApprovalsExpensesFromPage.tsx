@@ -518,6 +518,26 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 setApprovalWorkflowMembers(workflowMembers);
             };
 
+            // Warn when selecting the last unselected workspace member of a new workflow: that moves everyone
+            // into it, which deletes every other workflow.
+            const selectedLogins = new Set(selectedMembers.map((member) => normalizeLogin(member.login)));
+            const unselectedLogins = liveAvailableMembers.map((member) => normalizeLogin(member.email)).filter((login) => !selectedLogins.has(login));
+            const isSelectingLastMember = unselectedLogins.length === 1 && members.some((member) => normalizeLogin(member.login) === unselectedLogins.at(0));
+            if (isCreateAction && isSelectingLastMember) {
+                showConfirmModal({
+                    title: translate('workflowsExpensesFromPage.moveEveryoneToNewWorkflowTitle'),
+                    prompt: translate('workflowsExpensesFromPage.moveEveryoneToNewWorkflowPrompt'),
+                    confirmText: translate('common.confirm'),
+                    cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    applySelection(members);
+                });
+                return;
+            }
+
             // Warn when adding a member who already belongs to another workflow. With the beta on this
             // applies to both create and edit (a submitter can only be in one workflow, so confirming
             // moves them); legacy keeps the create-only behavior.
@@ -566,6 +586,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             isMultipleApproversBetaEnabled,
             firstApprover,
             selectedMembers,
+            liveAvailableMembers,
             membersInExistingWorkflows,
             submitterToWorkflowKey,
             currentWorkflowKey,

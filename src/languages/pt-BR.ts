@@ -2995,6 +2995,9 @@ ${amount} para ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Membro já está em um fluxo de trabalho',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} já está em um fluxo de aprovação que envia para ${approverName}. Adicioná-lo aqui irá movê-lo para este fluxo de trabalho.`,
+        moveEveryoneToNewWorkflowTitle: 'Mover todos para um novo fluxo de trabalho',
+        moveEveryoneToNewWorkflowPrompt:
+            'Você está prestes a mover todos para um novo fluxo de aprovação. Isso excluirá todos os fluxos de aprovação existentes e moverá todos para o novo. Esta ação não pode ser desfeita.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
