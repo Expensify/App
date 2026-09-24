@@ -710,7 +710,10 @@ function getSystemMessageDisplayState(
     const reportActionIDToDisplayIndex = new Map<string, number>();
     const forcedExpandedIDs = new Set(forceExpandedReportActionIDs.filter(Boolean));
     // Build the same oldest-first, bounded runs for the ascending and inverted audit lists.
-    const isNewestFirst = (reportActions.at(0)?.created ?? '') > (reportActions.at(-1)?.created ?? '');
+    // CREATED is always logically oldest, even when its timestamp is later than other actions.
+    const firstAction = reportActions.at(0);
+    const lastAction = reportActions.at(-1);
+    const isNewestFirst = !!firstAction && !!lastAction && isNewerReportAction(firstAction, lastAction);
     const chronologicalActions = isNewestFirst ? reportActions.toReversed() : reportActions;
 
     const appendAction = (reportAction: ReportAction) => {

@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
-import {getSystemMessageDisplayState, isCollapsibleSystemMessageAction, isSystemMessageAction, withDEWRoutedActionsArray} from '../../src/libs/ReportActionsUtils';
+import {getSortedReportActions, getSystemMessageDisplayState, isCollapsibleSystemMessageAction, isSystemMessageAction, withDEWRoutedActionsArray} from '../../src/libs/ReportActionsUtils';
 
 function makeAction(reportActionID: string, actionName: ReportAction['actionName'], overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -197,6 +197,14 @@ describe('system message presentation', () => {
         const systemAction = (reportActionID: string, overrides: Partial<ReportAction> = {}) => makeAction(reportActionID, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, overrides);
         const chatAction = (reportActionID: string) => makeAction(reportActionID, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 
+        it('keeps an empty action list empty', () => {
+            const state = getSystemMessageDisplayState([], new Set());
+
+            expect(state.displayReportActions).toEqual([]);
+            expect(state.runsByAnchorReportActionID.size).toBe(0);
+            expect(state.reportActionIDToDisplayIndex.size).toBe(0);
+        });
+
         it('keeps a singleton system message expanded', () => {
             const action = systemAction('1');
             const state = getSystemMessageDisplayState([action], new Set());
@@ -335,6 +343,34 @@ describe('system message presentation', () => {
             ]);
             expect(state.runsByAnchorReportActionID.get(newestFirst ? '2' : '1')?.earliestReportAction).toBe(actions.at(0));
             expect(state.reportActionIDToDisplayIndex.get('1')).toBe(newestFirst ? 1 : 0);
+        });
+
+        it.each([false, true])('collapses updates when CREATED has a later timestamp (newest first: %s)', (newestFirst) => {
+            const createdAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, {created: '2026-07-30 10:02:00.000'});
+            const firstUpdate = systemAction('2', {created: '2026-07-30 10:00:00.000'});
+            const secondUpdate = systemAction('3', {created: '2026-07-30 10:01:00.000'});
+            const actions = getSortedReportActions([firstUpdate, createdAction, secondUpdate], newestFirst);
+            const anchorID = newestFirst ? '3' : '2';
+            const state = getSystemMessageDisplayState(actions, new Set());
+
+            expect(state.displayReportActions).toEqual(newestFirst ? [secondUpdate, createdAction] : [createdAction, firstUpdate]);
+            expect(state.runsByAnchorReportActionID.size).toBe(1);
+            expect(state.runsByAnchorReportActionID.get(anchorID)).toEqual({
+                reportActionIDs: ['2', '3'],
+                earliestReportAction: firstUpdate,
+                isExpanded: false,
+            });
+            expect(state.reportActionIDToDisplayIndex.get('1')).toBe(newestFirst ? 1 : 0);
+            expect(state.reportActionIDToDisplayIndex.get('2')).toBe(newestFirst ? 0 : 1);
+            expect(state.reportActionIDToDisplayIndex.get('3')).toBe(newestFirst ? 0 : 1);
+
+            const expandedState = getSystemMessageDisplayState(actions, new Set([anchorID]));
+
+            expect(expandedState.displayReportActions).toEqual(actions);
+            expect(expandedState.runsByAnchorReportActionID.get(anchorID)?.isExpanded).toBe(true);
+            for (const [index, action] of actions.entries()) {
+                expect(expandedState.reportActionIDToDisplayIndex.get(action.reportActionID)).toBe(index);
+            }
         });
 
         it.each([
