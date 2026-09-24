@@ -61,6 +61,7 @@ jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     deletePendingNewTransactionIDs: jest.fn(),
     isOneToTwoTransactionTransition: jest.fn(() => false),
 }));
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;

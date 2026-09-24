@@ -2347,6 +2347,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         accountantParams,
         currentUser,
         reportActionsList,
+        personalDetailsByLogins,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2404,7 +2405,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     const policyEmployeeList = policyParams?.policy?.employeeList;
     if (policyParams.policy && !policyEmployeeList?.[accountantEmail]) {
-        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, undefined, false, false));
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policyEmployeeList, personalDetailsByLogins, false, false));
         const {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
@@ -2505,6 +2506,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         getCurrencyDecimals,
         writeBarrier,
         rules,
+        personalDetailsByLogins,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2829,6 +2831,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 accountantParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
+                personalDetailsByLogins,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

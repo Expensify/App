@@ -140,6 +140,7 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -558,6 +559,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useAllPersonalDetails();
@@ -1021,7 +1023,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (groupBy) {
                 const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
-                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
+                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter(
+                    (column) => expensePermittedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR),
+                );
 
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
                 // Grouped export skips getColumnsToShow(), so inject Violations when the query asks for it
@@ -1040,6 +1044,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     fallbackPolicyID: policyForMovingExpensesID,
                     sortBy: queryJSON?.sortBy,
                     shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+                    isVendorColumnAvailable,
                 });
             }
 
@@ -1060,7 +1065,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportColumnLabels: JSON.stringify(exportColumnLabels),
             };
         },
-        [accountID, currentSearchKey, exportSearchData, exportSearchType, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
+        [accountID, currentSearchKey, exportSearchData, exportSearchType, isVendorColumnAvailable, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
     );
 
     const handleCSVExport = useCallback(
@@ -2315,8 +2320,54 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             onSelected: () => onBulkPaySelected(undefined),
         };
 
+        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+        const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Download,
+            text: translate('common.downloadReport', {count: selectedReportIDs.length}),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
+            shouldCloseModalOnSelect: true,
+            onSelected: async () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                // In "Select all" mode the matching reports aren't enumerated on the client (results are paged),
+                // so send the search query to the backend and let it resolve the reports. The searchKey changes what
+                // the backend query matches, so it must be sent exactly as search() does or the exported set differs from the viewed set.
+                if (areAllMatchingItemsSelected) {
+                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend({...queryJSON, searchKey: currentSearchKey}) : JSON.stringify(queryJSON);
+                    exportReportsToPDF([], serializedQuery);
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
+                    return;
+                }
+                if (selectedReportIDs.length === 1) {
+                    const reportIDForPDF = selectedReportIDs.at(0);
+                    if (!reportIDForPDF) {
+                        return;
+                    }
+                    await exportReportToPDF({reportID: reportIDForPDF});
+                    setPdfReportID(reportIDForPDF);
+                    setIsPdfModalVisible(true);
+                    return;
+                }
+                exportReportsToPDF(selectedReportIDs);
+
+                // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                selectAllMatchingItems(false);
+                clearSelectedTransactions(undefined, true);
+            },
+        };
+
         if (areAllMatchingItemsSelected) {
-            return buildResult(shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption]);
+            const selectAllOptions = shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption];
+            if (isExpenseReportSearch) {
+                selectAllOptions.push(downloadPDFOption);
+            }
+            return buildResult(selectAllOptions);
         }
 
         if (allSelectedAreDeleted) {
@@ -2354,7 +2405,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return buildResult(deletedTransactionOptions);
         }
 
-        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
@@ -2640,33 +2690,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         options.push(exportButtonOption);
 
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
-            options.push({
-                icon: expensifyIcons.Download,
-                text: translate('common.downloadReport', {count: selectedReportIDs.length}),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
-                shouldCloseModalOnSelect: true,
-                onSelected: async () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-                    if (selectedReportIDs.length === 1) {
-                        const reportIDForPDF = selectedReportIDs.at(0);
-                        if (!reportIDForPDF) {
-                            return;
-                        }
-                        await exportReportToPDF({reportID: reportIDForPDF});
-                        setPdfReportID(reportIDForPDF);
-                        setIsPdfModalVisible(true);
-                        return;
-                    }
-                    exportReportsToPDF(selectedReportIDs);
-
-                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
-                    selectAllMatchingItems(false);
-                    clearSelectedTransactions(undefined, true);
-                },
-            });
+            options.push(downloadPDFOption);
         }
 
         const selectedReportReceiptCount = Object.values(allTransactions ?? {}).filter(
@@ -2994,7 +3018,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectedTransactions,
         excludedTransactions,
-        queryJSON?.type,
+        queryJSON,
         expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
@@ -3073,7 +3097,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectAllMatchingItems,
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
-        queryJSON?.groupBy,
         currentUserPersonalDetails.accountID,
         delegateAccountID,
         currentSearchQueryJSON,

@@ -95,6 +95,7 @@ jest.mock('@react-navigation/native');
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;

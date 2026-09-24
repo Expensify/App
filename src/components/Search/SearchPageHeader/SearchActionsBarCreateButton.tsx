@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -44,7 +45,7 @@ function SearchActionsBarCreateButton() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
 
-    const createButtonRef = useRef<View>(null);
+    const createButtonRef = useRef<ComponentRef<typeof View>>(null);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();

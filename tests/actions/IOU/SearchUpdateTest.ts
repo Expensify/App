@@ -12,6 +12,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -362,6 +363,32 @@ describe('actions/IOU', () => {
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
         });
 
+        it('when the current hash includes a positive policyID filter and there is no iou report, it should return false', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const policyID = '12345';
+            const currentSearchQueryJSON = createMock<SearchQueryJSON>({
+                type: 'expense',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                filters: {operator: 'eq', left: 'policyID', right: policyID},
+                inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
+                flatFilters: [
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: policyID}],
+                    },
+                ],
+                hash: 591785023,
+                recentSearchHash: 714245045,
+                similarSearchHash: 1023624111,
+            });
+
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, undefined, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
         it('when the current hash includes a non-negated status filter it should only return true if the iou report matches the status', () => {
             const transaction = {
                 ...createRandomTransaction(1),
@@ -695,6 +722,124 @@ describe('actions/IOU', () => {
             const {update, transactionKey} = getSnapshotUpdateForModifiedMerchant('Edited Merchant');
             expect(update).toBeDefined();
             expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], 'Edited Merchant');
+        });
+
+        it('writes the money-request action under the self-DM chat when there is no iouReport', () => {
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            const selfDMReportID = 'self-dm-report';
+            const transaction = {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const iouAction = {
+                reportActionID: 'action-1',
+                reportID: selfDMReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: RORY_ACCOUNT_ID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, iouAction.reportActionID, 'actorAccountID'], RORY_ACCOUNT_ID);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', ONYXKEYS.PERSONAL_DETAILS_LIST, String(RORY_ACCOUNT_ID), 'displayName']);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
+
+        it('clears the previous money-request action IOUTransactionID in the snapshot when moving', () => {
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            const oldReportID = 'old-report';
+            const oldActionID = 'old-action';
+            const transaction = {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                previousMoneyRequestAction: {
+                    reportID: oldReportID,
+                    reportActionID: oldActionID,
+                },
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, oldActionID, 'originalMessage', 'IOUTransactionID'], null);
+        });
+
+        it('does not re-increment groupBy:from aggregates when the transaction is already in the snapshot', async () => {
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+
+            const groupHash = 424242;
+            const transaction = {...createRandomTransaction(1), amount: -5000, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(
+                createMock<SearchQueryJSON>({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    filters: undefined,
+                    inputQuery: 'type:expense groupBy:from',
+                    flatFilters: [],
+                    hash: groupHash,
+                    recentSearchHash: groupHash,
+                    similarSearchHash: groupHash,
+                }),
+            );
+
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`, {
+                search: {hash: groupHash, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hasResults: true},
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- fixture mixes transaction + group keys; TS widens computed keys into one signature
+                data: {
+                    [transactionKey]: transaction,
+                    [groupKey]: {
+                        accountID: RORY_ACCOUNT_ID,
+                        count: 3,
+                        total: -15000,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                } as unknown as SearchResultDataType,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getSearchOnyxUpdate({
+                transaction: {...transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}`);
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).not.toHaveProperty(['data', groupKey]);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', transactionKey, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
         });
     });
 

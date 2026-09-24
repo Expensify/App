@@ -131,7 +131,6 @@ import {
     buildTransactionThread,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     computeOptimisticReportName,
-    findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
@@ -4111,7 +4110,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: OnyxEntry<Policy>;
+    policy: Policy;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
@@ -5313,10 +5312,8 @@ function navigateToMostRecentReport(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    lastAccessedReportID?: string,
 ) {
-    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
-
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
         const topmostSuperWideRHP = Navigation.getTopmostSuperWideRHPReportID();
@@ -5354,9 +5351,7 @@ function getSearchThreadLeaveRoute(report: Report, activeRoute: string): Route |
     });
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
-    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 30 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-    const lastAccessedReportID = findLastAccessedReport(false, undefined, false, currentReport?.reportID)?.reportID;
+function getMostRecentReportID(conciergeReportID: string | undefined, lastAccessedReportID?: string) {
     return lastAccessedReportID ?? conciergeReportID;
 }
 
@@ -5382,6 +5377,7 @@ function leaveGroupChat(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    lastAccessedReportID?: string,
 ) {
     const reportID = report.reportID;
     // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
@@ -5432,7 +5428,7 @@ function leaveGroupChat(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
     } else {
-        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
+        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, lastAccessedReportID);
     }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
@@ -5446,6 +5442,7 @@ function leaveRoom(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
+    lastAccessedReportID?: string,
 ) {
     const reportID = report.reportID;
     const isChatThread = isChatThreadReportUtils(report);
@@ -5557,7 +5554,7 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, lastAccessedReportID);
 }
 
 function buildInviteToRoomOnyxData(
@@ -6119,6 +6116,8 @@ type CompleteOnboardingProps = {
     selfDMReport?: OnyxEntry<Report>;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
+    /** The account ID of the current user, used to build the onboarding Onyx data. */
+    currentUserAccountID: number;
     /** AccountID of the delegate acting on behalf of the current user */
     delegateAccountID: number | undefined;
 };
@@ -6146,6 +6145,7 @@ async function completeOnboarding({
     adminsChatReport,
     selfDMReport,
     shouldSkipConciergeOnboarding,
+    currentUserAccountID,
     delegateAccountID,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
@@ -6164,6 +6164,7 @@ async function completeOnboarding({
         adminsChatReport,
         selfDMReport,
         shouldSkipConciergeOnboarding,
+        currentUserAccountID,
         delegateAccountID,
     });
     if (!onboardingData) {

@@ -12,6 +12,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
@@ -84,7 +85,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
@@ -127,6 +128,9 @@ type UseExpenseSubmissionParams = {
     // Report data
     report: OnyxEntry<Report>;
     reportID: string;
+
+    /** Draft reports, needed to resolve chats that only exist in REPORT_DRAFT (e.g. a not-yet-created workspace chat) */
+    reportDrafts: OnyxCollection<Report>;
 
     // Policy data
     policy: OnyxEntry<Policy>;
@@ -192,6 +196,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         canEnterScanFieldsManually,
         report,
         reportID,
+        reportDrafts,
         policy,
         policyCategories,
         isDraftPolicy,
@@ -215,6 +220,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         backToReport,
         onExpenseWriteWillStart,
     } = params;
+
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     // Localization
     const {translate, toLocaleDigit, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -264,7 +271,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const reportTransactions = useReportTransactions(report?.reportID);
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = isMoneyRequestReport
+        ? getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {})
+        : report;
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     // A self-DM destination passes `undefined` as the chat to trackExpense, which then resolves the chat to the self-DM — a real report that is never a draft
     const destinationChatReportID = isSelfDMDestination ? undefined : currentChatReport?.reportID;
@@ -399,6 +408,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 report,
                 fallbackOptimisticChatReportID,
                 action,
+                participantReportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {},
             });
         // Move-from-track (SUBMIT/CATEGORIZE/SHARE) reuses the tracked transaction's ID — mirror the builder's `existingTransactionID ?? optimisticTransactionID`.
         const lastTransactionID = getExistingTransactionID(lastTransaction?.linkedTrackedExpenseReportAction) ?? lastOptimisticTransactionID;
@@ -698,9 +708,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             const isExpenseReport = isMoneyRequestReportReportUtils(report);
             let existingChatReport = report;
             if (isExpenseReport) {
-                existingChatReport = getReportOrDraftReport(report?.chatReportID);
+                existingChatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
             } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
-                existingChatReport = getReportOrDraftReport(participant.reportID);
+                existingChatReport = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {});
             }
             // The recipient can be swapped without this screen remounting, so `existingChatReport` above
             // can still be whoever was selected before. Use the ID confirmation committed for the current
@@ -907,6 +917,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
                 rules,
+                personalDetailsByLogins: employeePersonalDetails,
             });
         }
         performPostBatchCleanup({

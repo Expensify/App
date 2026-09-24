@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -57,6 +58,7 @@ type CreateTrackExpenseParams = {
     /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

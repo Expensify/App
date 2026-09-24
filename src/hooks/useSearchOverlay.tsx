@@ -17,6 +17,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 
+import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
@@ -67,6 +68,7 @@ function useSearchOverlay({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const [isSearchReady, setIsSearchReady] = useState(() => !hasPendingSearchWrite() && !Navigation.getIsFullscreenPreInsertedUnderRHP());
@@ -124,6 +126,7 @@ function useSearchOverlay({
             fallbackPolicyID: policyForMovingExpensesID,
             sortBy: queryJSON.sortBy,
             shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+            isVendorColumnAvailable,
         });
     })();
 
