@@ -989,7 +989,7 @@ function Search({
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                // A revealed wide pre-mount gains focus as the RHP slides out; a transition lets the slide paint during this re-render.
+                // A revealed wide pre-mount focuses mid RHP slide; a transition keeps the slide painting.
                 if (Navigation.getIsRevealingPreMountedFullscreen()) {
                     startTransition(() => {
                         rearmTracking();
@@ -1071,6 +1071,37 @@ function Search({
                       shouldShowTaxAmountInWideColumn: false,
                   },
         [searchResults?.data],
+    );
+
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
+
+    // Column widths come from search-wide flags, not the loaded rows, so every row agrees with the header.
+    // Depending on the booleans keeps the identity stable, or SearchColumnWidthsContext re-renders every row.
+    const columnSizeOptions = useMemo<GetReportTableColumnStylesParams>(
+        () => ({
+            isActionColumnWide: isTask || hasDeletedTransaction,
+            isDateColumnWide: shouldShowYearCreated,
+            isSubmittedColumnWide: shouldShowYearSubmitted,
+            isApprovedColumnWide: shouldShowYearApproved,
+            isPostedColumnWide: shouldShowYearPosted,
+            isExportedColumnWide: shouldShowYearExported,
+            isWithdrawnColumnWide: shouldShowYearWithdrawn,
+            isAmountColumnWide: shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+        }),
+        [
+            isTask,
+            hasDeletedTransaction,
+            shouldShowYearCreated,
+            shouldShowYearSubmitted,
+            shouldShowYearApproved,
+            shouldShowYearPosted,
+            shouldShowYearExported,
+            shouldShowYearWithdrawn,
+            shouldShowAmountInWideColumn,
+            shouldShowTaxAmountInWideColumn,
+        ],
     );
 
     const onSortPress = useCallback(
@@ -1202,8 +1233,6 @@ function Search({
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
@@ -1299,20 +1328,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
-    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide: isTask || hasDeletedTransaction,
-        isDateColumnWide: shouldShowYearCreated,
-        isSubmittedColumnWide: shouldShowYearSubmitted,
-        isApprovedColumnWide: shouldShowYearApproved,
-        isPostedColumnWide: shouldShowYearPosted,
-        isExportedColumnWide: shouldShowYearExported,
-        isWithdrawnColumnWide: shouldShowYearWithdrawn,
-        isAmountColumnWide: shouldShowAmountInWideColumn,
-        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-    };
 
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
