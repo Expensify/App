@@ -2,6 +2,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +25,9 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 
 type RateFieldProps = {
     distanceRateName: string | undefined;
@@ -52,6 +56,7 @@ function RateField({
     shouldSelectPolicy,
     shouldShowRateAutoUpdatedTooltip,
 }: RateFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isPolicyExpenseChat} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, dateFnsLocale} = useLocalize();
@@ -90,46 +95,77 @@ function RateField({
         shouldMountMileageRateTooltip,
     );
 
+    // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
+    // confirmation screen where a rate violation is not applicable yet.
+    const rateTitle = DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, distanceRateCurrency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+    const rateErrorText = shouldDisplayDistanceRateError ? translate('iou.error.invalidRate') : rateOutOfDateRangeErrorText;
+
+    const openRatePage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                        upgradeBackTo: Navigation.getActiveRoute(),
+                        shouldSubmitExpense: !isTrackExpense,
+                    }),
+                ),
+            );
+        } else if (!policy && shouldSelectPolicy && isTrackExpense) {
+            Navigation.navigate(
+                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID))),
+            );
+        } else {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+        }
+    };
+
+    if (shouldUseDropdownRows) {
+        // `MenuItem` wraps itself in this tooltip; the bordered row has no tooltip of its own, so the anchor is
+        // put around it here with the same alignment and offsets.
+        return (
+            <EducationalTooltip
+                shouldRender={shouldMountMileageRateTooltip}
+                shouldDisplayTooltip={shouldShowProductTrainingTooltip}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                renderTooltipContent={renderProductTrainingTooltip}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+                shiftHorizontal={variables.mileageRateTooltipShiftHorizontal}
+                shiftVertical={variables.mileageRateTooltipShiftVertical}
+                onTooltipPress={hideProductTrainingTooltip}
+                shouldHideOnScroll
+            >
+                <ExpenseFieldRow
+                    name={translate('common.rate')}
+                    value={rateTitle}
+                    errorText={rateErrorText}
+                    onPress={openRatePage}
+                    isDisabled={didConfirm}
+                    isInteractive={isRateInteractive}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
+                />
+            </EducationalTooltip>
+        );
+    }
+
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={isRateInteractive}
-            // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
-            // confirmation screen where a rate violation is not applicable yet.
-            title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, distanceRateCurrency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
+            title={rateTitle}
             description={translate('common.rate')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
-                    Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action,
-                                iouType,
-                                transactionID,
-                                reportID,
-                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
-                                upgradeBackTo: Navigation.getActiveRoute(),
-                                shouldSubmitExpense: !isTrackExpense,
-                            }),
-                        ),
-                    );
-                } else if (!policy && shouldSelectPolicy && isTrackExpense) {
-                    Navigation.navigate(
-                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID)),
-                        ),
-                    );
-                } else {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
-                }
-            }}
+            onPress={openRatePage}
             brickRoadIndicator={shouldDisplayDistanceRateError || isRateOutOfDateRange ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={shouldDisplayDistanceRateError ? translate('iou.error.invalidRate') : rateOutOfDateRangeErrorText}
+            errorText={rateErrorText}
             disabled={didConfirm}
             interactive={isRateInteractive}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}

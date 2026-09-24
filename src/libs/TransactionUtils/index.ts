@@ -3597,6 +3597,12 @@ function getEligibleTransactionsToAdd({
 }
 
 function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fieldType: 'amount' | 'merchant' | 'date' | 'category'): boolean {
+    // Categorization runs on a manually created expense just as it does on a scanned one, so the category makes the
+    // same "Automatic" promise in either flow. Everything else here is read off the receipt, so it stays scan-only.
+    if (fieldType === 'category' && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+        return true;
+    }
+
     if (!transaction?.receipt) {
         return false;
     }

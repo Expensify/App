@@ -153,7 +153,8 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     };
 
     // Only ever rendered in place of the editable amount field, so the row is never interactive and never opens
-    // the tax-amount page. It reads the amount out for a user who cannot change it.
+    // the tax-amount page: it reads the amount out for a user who cannot change it. Being non-interactive, the
+    // dropdown-row form renders it as a borderless push row rather than as one of its bordered fields.
     const readOnlyTaxAmountRow = shouldUseDropdownRows ? (
         <ExpenseFieldRow
             name={translate('iou.taxAmount')}

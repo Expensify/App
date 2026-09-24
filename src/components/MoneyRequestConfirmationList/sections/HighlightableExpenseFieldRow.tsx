@@ -17,8 +17,9 @@ type HighlightableExpenseFieldRowProps = Omit<ExpenseFieldRowProps, 'backgroundS
 /**
  * An `ExpenseFieldRow` that flashes once when it appears, for a field the form only just started asking for.
  *
- * The flash drives the row's fill rather than its own wrapper, since the row draws its background over anything
- * behind it.
+ * The flash drives the `Animated.View` the row is wrapped in rather than the row itself, since the row draws its
+ * own background over anything behind it. Being the row's parent, the fade carries the row's content with it, the
+ * same way `HighlightableMenuItemWithTopDescription` does through its outer wrapper.
  */
 function HighlightableExpenseFieldRow({shouldHighlight = false, ...props}: HighlightableExpenseFieldRowProps) {
     const theme = useTheme();

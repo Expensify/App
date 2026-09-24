@@ -68,9 +68,8 @@ function AmountField({
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
-    // The form that borders its selectable rows also wants the flip and currency buttons to read as part of the
-    // field rather than as controls stacked on top of it, and is the one that fills the trailing slot.
-    const {shouldUseDropdownRows, amountTrailingAction} = useExpenseFormLayout();
+    // Only the manual form fills the trailing slot beside the field, with its compact add-receipt button.
+    const {amountTrailingAction} = useExpenseFormLayout();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
     // to reach the rest of the expense, so focusing the amount would push them towards entering it manually.
     const shouldAutoFocusOnMount = !canUseTouchScreen() && !canEnterScanFieldsManually;
@@ -336,7 +335,9 @@ function AmountField({
                                 setIsAmountInputFocused(false);
                             }}
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
-                            shouldUseBorderlessButtons={shouldUseDropdownRows}
+                            // Borderless on every confirmation form, not only the one that borders its rows, so
+                            // the flip and currency buttons read the same way in Manual, Scan and the rest.
+                            shouldUseBorderlessButtons
                             disabled={isAmountFieldDisabled}
                         />
                     </View>

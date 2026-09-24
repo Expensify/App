@@ -1911,7 +1911,6 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Eliminar etiqueta',
         },
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `se han actualizado las tarifas de kilometraje para el nuevo espacio de trabajo: ${policyName}`,
-        expenseDetails: 'Detalles del gasto',
     },
     transactionMerge: {
         listPage: {

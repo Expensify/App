@@ -1913,7 +1913,6 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Label verwijderen',
         },
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
-        expenseDetails: 'Declaratiedetails',
     },
     transactionMerge: {
         listPage: {

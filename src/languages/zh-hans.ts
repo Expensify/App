@@ -1838,7 +1838,6 @@ const translations: TranslationDeepObject<typeof en> = {
         categoryDisabledAlert: {title: '类别已禁用', prompt: '在工作区中启用类别，以编辑报销详情或从此报销中删除该类别。', confirmText: '删除类别'},
         tagDisabledAlert: {title: '标签已停用', prompt: '请在工作区中启用标签，以便编辑该报销的详细信息或从此报销中删除该标签。', confirmText: '删除标签'},
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `已为新工作区更新里程报销标准 - ${policyName}`,
-        expenseDetails: '费用详情',
     },
     transactionMerge: {
         listPage: {

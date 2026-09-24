@@ -21,8 +21,15 @@ type ExpenseFormLayoutContextValue = {
     amountTrailingAction?: ReactNode;
 };
 
-/** Push rows and no trailing action: what every footer other than the manual one renders. */
+/** Push rows and no trailing action: what a footer that asks for nothing renders. */
 const defaultExpenseFormLayout: ExpenseFormLayoutContextValue = {shouldUseDropdownRows: false};
+
+/**
+ * The bordered-row presentation, shared by every footer that wants it and nothing more. A module-level constant
+ * rather than a literal per render, so providing it never re-renders the whole field tree for a new identity. The
+ * manual footer builds its own value instead, since it also fills the amount field's trailing slot.
+ */
+const dropdownRowsExpenseFormLayout: ExpenseFormLayoutContextValue = {shouldUseDropdownRows: true};
 
 const ExpenseFormLayoutContext = createContext<ExpenseFormLayoutContextValue>(defaultExpenseFormLayout);
 
@@ -31,4 +38,4 @@ function useExpenseFormLayout(): ExpenseFormLayoutContextValue {
 }
 
 export default ExpenseFormLayoutContext;
-export {useExpenseFormLayout};
+export {dropdownRowsExpenseFormLayout, useExpenseFormLayout};

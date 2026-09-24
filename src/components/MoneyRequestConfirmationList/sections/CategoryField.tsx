@@ -62,6 +62,7 @@ function CategoryField({
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
     const willAutoFill = categoryState?.willAutoFill ?? false;
+    const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
 
     const getCategoryRightLabelIcon = () => (willAutoFill ? icons.Sparkles : undefined);
@@ -138,8 +139,10 @@ function CategoryField({
                 numberOfLinesValue={2}
                 rightLabel={getCategoryRightLabel()}
                 rightLabelIcon={getCategoryRightLabelIcon()}
-                // `Automatic` describes the category Concierge picked, so it has to outlive the field being filled in.
-                shouldKeepRightLabelWhenFilled={willAutoFill}
+                // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
+                // being filled in. On a manual expense it only promises a category for a field that is still
+                // empty, so there it goes the moment the field holds one, the same way `Required` does.
+                shouldKeepRightLabelWhenFilled={willAutoFill && isAutoFillFromReceipt}
                 errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
                 onPress={openCategoryPage}
                 isDisabled={didConfirm}

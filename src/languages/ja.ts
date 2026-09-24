@@ -1897,7 +1897,6 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'タグを削除',
         },
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
-        expenseDetails: '経費の詳細',
     },
     transactionMerge: {
         listPage: {

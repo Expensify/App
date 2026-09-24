@@ -5,9 +5,7 @@ import ConfirmationFieldList from '@components/MoneyRequestConfirmationListFoote
 import ManualDetailsFields from '@components/MoneyRequestConfirmationListFooter/fieldGroups/detailsFields/ManualDetailsFields';
 import ReceiptSection from '@components/MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 import type {ManualFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
-import Text from '@components/Text';
 
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
@@ -25,14 +23,13 @@ import {View} from 'react-native';
  */
 function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, requiredFlags, visibilityFlags, errorState, toggleHandlers = {}, receiptOptions}: ManualFooterProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {action, iouType, isPerDiemRequest, isReadOnly} = useConfirmationFields();
 
-    // The header copy, the add-receipt button and the spacing around the preview all key off whether the section
-    // shows a receipt. This is a close approximation of what `ReceiptSection` resolves for itself rather than the
-    // same decision: it reads the raw receipt path where the section reads the thumbnail it resolves from the
-    // transaction, and it does not know about the distance-map case that hides the receipt area outright. Neither
-    // gap is reachable from this footer today, since a manual expense carries no distance data.
+    // The add-receipt button and the spacing around the preview both key off whether the section shows a receipt.
+    // This is a close approximation of what `ReceiptSection` resolves for itself rather than the same decision: it
+    // reads the raw receipt path where the section reads the thumbnail it resolves from the transaction, and it
+    // does not know about the distance-map case that hides the receipt area outright. Neither gap is reachable
+    // from this footer today, since a manual expense carries no distance data.
     const hasReceipt = (!!receiptOptions.receiptPath && !!receiptOptions.receiptFilename) || !!receiptOptions.isLoadingReceipt;
     const canAddReceipt = !isReadOnly && shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
@@ -46,11 +43,7 @@ function ManualFooter({policy, policyTags, selectedParticipants, amountDisplay, 
                 */}
                 {visibilityFlags.hasParticipantSection && <View style={[styles.dividerLine, styles.mv2]} />}
 
-                <View style={[styles.mv2, styles.justifyContentCenter]}>
-                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{hasReceipt ? translate('common.receipt') : translate('iou.expenseDetails')}</Text>
-                </View>
-
-                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the header
+                {/* The receipt preview carries no margin of its own, so the 8px that keeps it clear of the divider
                     above and of the first field below it goes here. */}
                 <View style={hasReceipt ? styles.mv2 : undefined}>
                     <ReceiptSection

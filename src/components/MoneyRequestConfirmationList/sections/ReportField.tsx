@@ -124,9 +124,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
     };
 
-    // A report the user cannot change is not a field to pick, so it keeps the borderless push row even on the form
-    // that borders everything else: a border here reads as an input waiting to be typed into.
-    if (shouldUseDropdownRows && shouldReportBeEditable) {
+    if (shouldUseDropdownRows) {
         return (
             <ExpenseFieldRow
                 name={translate('common.report')}
@@ -134,6 +132,9 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
                 // flattened first. Plain names pass through unchanged, with their entities decoded.
                 value={Parser.htmlToText(reportName)}
                 onPress={openReportPage}
+                // A report the user cannot change drops to the borderless push row, the same as every other locked
+                // field on this form: the row itself owns that rule.
+                isInteractive={shouldReportBeEditable}
                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
             />
         );
