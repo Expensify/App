@@ -108,8 +108,7 @@ function DistanceRequestController({
         }
 
         // Moving the expense back to the self DM (or to a P2P recipient) leaves no workspace to validate against, so a
-        // rate error raised for the workspace it just left no longer applies. It has to be cleared here: every branch
-        // below is workspace-specific, so nothing else would ever take the message off the screen.
+        // rate error raised for the workspace it just left no longer applies.
         if (!isPolicyExpenseChat) {
             clearFormErrors([errorKey]);
             return;
@@ -141,7 +140,6 @@ function DistanceRequestController({
 
         // The workspace's custom units can still be loading at this point: selecting a participant resolves the new
         // policy before Onyx has its rates, so validating now would flash an error that clears itself a moment later.
-        // With no rates to compare against we cannot tell whether the selected rate is valid - wait for the next run.
         if (isEmptyObject(policyRates)) {
             return;
         }
