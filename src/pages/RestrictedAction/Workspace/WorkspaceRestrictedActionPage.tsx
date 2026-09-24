@@ -51,21 +51,26 @@ function WorkspaceRestrictedActionPage({
         gracePeriodsRef.current = userBillingGracePeriods;
     }, [userBillingGracePeriods]);
 
-    const {isOffline} = useNetwork({
-        onReconnect: () => openSubscriptionPage(gracePeriodsRef.current),
-    });
+    const {isOffline} = useNetwork();
 
-    // Fetch fresh billing NVPs from the server on mount.
-    // The cached billing data may be stale, causing the restriction to persist
-    // even after the workspace owner has resolved their billing issue.
-    // Skip when offline since the API call won't go through and the optimistic
-    // clear would incorrectly lift the restriction.
+    // Fetch fresh billing NVPs from the server on mount, and again whenever this screen regains focus or the
+    // device reconnects. The cached billing data may be stale, causing the restriction to persist even after
+    // the workspace owner has resolved their billing issue.
+    //
+    // Skip when offline since the API call won't go through and the optimistic clear would incorrectly lift
+    // the restriction. Skip while unfocused too: this screen stays mounted underneath the Subscription page,
+    // which runs the same fetch itself, so firing ours as well would duplicate the request and flip the
+    // shared `isLoadingSubscriptionData` flag out from under the focused page.
+    //
+    // A `useNetwork({onReconnect})` callback is deliberately not used here. `isOffline` flipping back to
+    // false already re-runs this effect on reconnect, so the callback only fired the same request a second
+    // time — and it fired outside this focus guard.
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || !isFocused) {
             return;
         }
         openSubscriptionPage(gracePeriodsRef.current);
-    }, [isOffline]);
+    }, [isOffline, isFocused]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
     // Only do this while focused, since this screen stays mounted underneath the Subscription page.
