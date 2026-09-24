@@ -536,7 +536,8 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
  *   - "fixedDistance" - subtracts a fixed distance per claim. `fixedDistance` (> 0) and `fixedDistanceUnit`
  *                       (mirrors the policy's distance custom unit) are required.
  *   - "homeAndOffice" - subtracts each member's home-to-office distance, computed per-claim from the
- *                       member's saved addresses. No client-side distance/unit needed.
+ *                       member's saved addresses. No client-side distance/unit needed. `isOffice` sets the
+ *                       default work arrangement in the same request.
  *
  * Callers should pass the policy's current `commuterExclusions` so the failure path can restore
  * the prior state.
@@ -547,10 +548,15 @@ function setPolicyCommuterExclusions(
     fixedDistance: number | undefined,
     fixedDistanceUnit: string | undefined,
     previousCommuterExclusions: CommuterExclusions | undefined,
+    isOffice?: boolean,
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const isFixedDistance = method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE;
+    const isSettingWorkArrangement = !isFixedDistance && isOffice !== undefined;
 
-    const optimisticCommuterExclusions: CommuterExclusions = method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {method, fixedDistance, fixedDistanceUnit} : {method};
+    const optimisticCommuterExclusions: CommuterExclusions = isFixedDistance
+        ? {method, fixedDistance, fixedDistanceUnit}
+        : {method, ...(isSettingWorkArrangement ? {isOfficeWorkArrangement: isOffice} : {})};
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -578,7 +584,11 @@ function setPolicyCommuterExclusions(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: policyKey,
                 value: {
-                    commuterExclusions: previousCommuterExclusions ?? null,
+                    // Merging the previous object back would keep an arrangement it never had, so that field is restored explicitly
+                    commuterExclusions:
+                        previousCommuterExclusions && isSettingWorkArrangement
+                            ? {...previousCommuterExclusions, isOfficeWorkArrangement: previousCommuterExclusions.isOfficeWorkArrangement ?? null}
+                            : (previousCommuterExclusions ?? null),
                     pendingFields: {commuterExclusions: null},
                     errorFields: {commuterExclusions: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
@@ -587,8 +597,9 @@ function setPolicyCommuterExclusions(
     };
 
     // Only send distance when the server actually needs it. HomeAndOffice ignores the field.
-    const parameters: SetPolicyCommuterExclusionsParams =
-        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {policyID, commuterExclusionMethod: method, distance: fixedDistance} : {policyID, commuterExclusionMethod: method};
+    const parameters: SetPolicyCommuterExclusionsParams = isFixedDistance
+        ? {policyID, commuterExclusionMethod: method, distance: fixedDistance}
+        : {policyID, commuterExclusionMethod: method, ...(isSettingWorkArrangement ? {isOffice} : {})};
     API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 

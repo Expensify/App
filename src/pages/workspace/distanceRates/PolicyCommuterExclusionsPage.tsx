@@ -28,7 +28,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {clearPolicyCommuterExclusionsErrors, disablePolicyCommuterExclusions, setPolicyCommuterExclusions, setPolicyWorkArrangement} from '@userActions/Policy/DistanceRate';
+import {clearPolicyCommuterExclusionsErrors, disablePolicyCommuterExclusions, setPolicyCommuterExclusions} from '@userActions/Policy/DistanceRate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -128,8 +128,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                     onApply: (isOffice: boolean) => {
                         setSelectedKey(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE);
                         setInlineError('');
-                        setPolicyCommuterExclusions(policyID, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, undefined, existingCommuterExclusions);
-                        setPolicyWorkArrangement(policyID, isOffice, existingCommuterExclusions?.isOfficeWorkArrangement);
+                        setPolicyCommuterExclusions(policyID, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, undefined, existingCommuterExclusions, isOffice);
                     },
                 },
             });

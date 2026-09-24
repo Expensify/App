@@ -1,4 +1,5 @@
-import {setPolicyWorkArrangement} from '@libs/actions/Policy/DistanceRate';
+import {setPolicyCommuterExclusions, setPolicyWorkArrangement} from '@libs/actions/Policy/DistanceRate';
+import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -108,6 +109,65 @@ describe('actions/Policy/DistanceRate', () => {
             // Then the arrangement the workspace was on is restored, not left on the failed value
             const policy = await getPolicy(fakePolicy.id);
             expect(policy?.commuterExclusions?.isOfficeWorkArrangement).toBe(true);
+            expect(policy?.errorFields?.commuterExclusions).toBeTruthy();
+        });
+    });
+
+    describe('setPolicyCommuterExclusions', () => {
+        it('switches to home and office with the chosen work arrangement in a single request', async () => {
+            // Given a workspace on the fixed distance method
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 5, fixedDistanceUnit: 'mi'},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the admin switches it to home and office as office-based and the request is still in flight
+            mockFetch?.pause?.();
+            setPolicyCommuterExclusions(fakePolicy.id, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, undefined, fakePolicy.commuterExclusions, true);
+            await waitForBatchedUpdates();
+
+            // Then the method and the arrangement both show immediately, marked pending
+            const optimisticPolicy = await getPolicy(fakePolicy.id);
+            expect(optimisticPolicy?.commuterExclusions?.method).toBe(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE);
+            expect(optimisticPolicy?.commuterExclusions?.isOfficeWorkArrangement).toBe(true);
+            expect(optimisticPolicy?.pendingFields?.commuterExclusions).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // And the arrangement travels with SetPolicyCommuterExclusions instead of a second command
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, 1);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_WORK_ARRANGEMENT, 0);
+
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS).at(0)?.[1]?.body;
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected SetPolicyCommuterExclusions request body to be FormData');
+            }
+            const params = Object.fromEntries(body);
+            expect(params.commuterExclusionMethod).toBe(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE);
+            expect(params.isOffice).toBe('true');
+        });
+
+        it('restores the previous method without leaving the new arrangement behind on failure', async () => {
+            // Given a workspace on the fixed distance method that never had an arrangement
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 5, fixedDistanceUnit: 'mi'},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When switching it to home and office as office-based fails
+            mockFetch?.pause?.();
+            setPolicyCommuterExclusions(fakePolicy.id, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, undefined, fakePolicy.commuterExclusions, true);
+            await waitForBatchedUpdates();
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the workspace is back on fixed distance with no arrangement it never saved
+            const policy = await getPolicy(fakePolicy.id);
+            expect(policy?.commuterExclusions?.method).toBe(CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE);
+            expect(policy?.commuterExclusions?.isOfficeWorkArrangement).toBeUndefined();
             expect(policy?.errorFields?.commuterExclusions).toBeTruthy();
         });
     });
