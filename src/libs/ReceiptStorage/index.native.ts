@@ -262,6 +262,22 @@ const locate: ReceiptStorage['locate'] = async (source) => {
     return uri;
 };
 
+const recheckAfterSwap: ReceiptStorage['recheckAfterSwap'] = async (source) => {
+    const uri = resolve(source);
+    if (!uri || !isLocalFile(uri)) {
+        return false;
+    }
+
+    const target = fileURIToPath(uri);
+    try {
+        await swapsInFlight.get(target)?.catch(() => {});
+        return await restoreInterruptedSwap(target);
+    } catch (error) {
+        Log.warn('[ReceiptStorage] could not recheck a receipt after a failed read', {error: error instanceof Error ? error.message : String(error)});
+        return false;
+    }
+};
+
 const sweepLeftovers: ReceiptStorage['sweepLeftovers'] = async () => {
     try {
         const dir = getReceiptsUploadFolderPath();
@@ -278,6 +294,6 @@ const sweepLeftovers: ReceiptStorage['sweepLeftovers'] = async () => {
     }
 };
 
-const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, settle, toLocalUri, resolve, sweepLeftovers};
+const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, settle, recheckAfterSwap, toLocalUri, resolve, sweepLeftovers};
 
 export default receiptStorage;

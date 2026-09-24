@@ -1,3 +1,7 @@
+/**
+ * Captures a full-resolution photo alongside the fast snapshot and, once a receipt exists, swaps the
+ * higher-quality photo in behind it. Owns capture deadlines, rotation, and upgrade telemetry.
+ */
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {finish as finishUpgrade, isClaimedForRead as wasReceiptClaimed, recordUpgrade, start as startUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
@@ -115,7 +119,7 @@ function usePhotoUpgrade() {
 
         // Abandoning a capture does not stop it: `discard` only marks the result for deletion, and
         // vision-camera cannot cancel a `takePhoto`. A second one started over a capture still running
-        // makes them contend, and the next `takeSnapshot` pays for it — 6.6s measured against an 80ms
+        // makes them contend, and the next `takeSnapshot` pays for it. 6.6s measured against an 80ms
         // baseline. A receipt keeping its snapshot is the cheaper loss.
         if (photosInFlightRef.current > 0) {
             Log.info('[PhotoUpgrade] a full-resolution capture is still running, so this receipt keeps its snapshot');

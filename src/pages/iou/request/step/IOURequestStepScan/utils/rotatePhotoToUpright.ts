@@ -1,3 +1,7 @@
+/**
+ * Rotates a captured still so the receipt reads upright, reconciling the decoded frame's orientation
+ * with VisionCamera's display orientation. Returns undefined when the photo is already upright.
+ */
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import Log from '@libs/Log';

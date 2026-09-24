@@ -60,6 +60,7 @@ type CameraViewportProps = {
     /** Whether a photo has been captured (forces camera inactive) */
     didCapturePhoto: boolean;
 
+    /** Whether a full-resolution capture is still running; keeps the camera session active even after didCapturePhoto so the capture is not cancelled */
     hasPendingPhotoCapture?: boolean;
 
     /** Callback fired when the camera finishes initializing */

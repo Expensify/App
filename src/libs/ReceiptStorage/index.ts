@@ -7,6 +7,7 @@ const receiptStorage: ReceiptStorage = {
     discard: () => Promise.resolve(),
     locate: (source) => Promise.resolve(typeof source === 'string' ? source : undefined),
     settle: () => Promise.resolve(),
+    recheckAfterSwap: () => Promise.resolve(false),
     toLocalUri: (durableName) => durableName,
     resolve: (source) => (typeof source === 'string' ? source : undefined),
     sweepLeftovers: () => Promise.resolve(),

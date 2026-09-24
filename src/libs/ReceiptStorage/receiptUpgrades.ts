@@ -1,3 +1,7 @@
+/**
+ * Tracks in-flight receipt upgrades and how many times each receipt has been replaced, so views can
+ * re-decode a file whose bytes changed under an unchanged path and uploads can claim a receipt.
+ */
 import Log from '@libs/Log';
 
 const MAX_TRACKED_UPGRADE_COUNTS = 50;

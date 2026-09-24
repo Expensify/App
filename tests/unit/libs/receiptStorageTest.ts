@@ -564,6 +564,162 @@ describe('ReceiptStorage', () => {
         });
     });
 
+    describe('recheckAfterSwap', () => {
+        const RECEIPT_URI = `file://${FOLDER}/CAM-1.jpg`;
+        const RECEIPT_PATH = `${FOLDER}/CAM-1.jpg`;
+
+        const flushPendingWork = () =>
+            new Promise<void>((resolve) => {
+                setImmediate(resolve);
+            });
+
+        function holdSwapWithReceiptMissing() {
+            const existing = new Set([RECEIPT_PATH]);
+            let release: () => void = () => {};
+            const receiptMissing = new Promise<void>((resolve) => {
+                mockMv.mockImplementation((from: string, to: string) => {
+                    existing.delete(from);
+                    if (from === `${RECEIPT_PATH}.staged` && to === RECEIPT_PATH) {
+                        resolve();
+                        return new Promise<void>((settle) => {
+                            release = () => {
+                                existing.add(to);
+                                settle();
+                            };
+                        });
+                    }
+                    existing.add(to);
+                    return Promise.resolve();
+                });
+            });
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            return {existing, receiptMissing, release: () => release()};
+        }
+
+        it('confirms a receipt that is where it should be', async () => {
+            // Given a receipt on disk with nothing swapping it
+            mockExists.mockResolvedValue(true);
+
+            // When a reader that failed rechecks it
+            const isPresent = await ReceiptStorage.recheckAfterSwap(RECEIPT_URI);
+
+            // Then the receipt counts as present and nothing is moved
+            expect(isPresent).toBe(true);
+            expect(mockMv).not.toHaveBeenCalled();
+        });
+
+        it('waits for a swap caught between its two renames, then confirms the receipt', async () => {
+            // Given a swap that has moved the receipt aside and not yet moved the upgraded file in
+            const {existing, receiptMissing, release} = holdSwapWithReceiptMissing();
+            const swap = ReceiptStorage.overwrite('CAM-1.jpg', '/var/mobile/tmp/still.jpg');
+            await receiptMissing;
+
+            // When a reader that failed in that gap rechecks the receipt
+            let hasAnswered = false;
+            const recheck = ReceiptStorage.recheckAfterSwap(RECEIPT_URI).then((isPresent) => {
+                hasAnswered = true;
+                return isPresent;
+            });
+            await flushPendingWork();
+
+            // Then it answers only once the swap is done, and the receipt is there
+            expect(hasAnswered).toBe(false);
+            release();
+            await swap;
+            await expect(recheck).resolves.toBe(true);
+            expect(existing.has(RECEIPT_PATH)).toBe(true);
+        });
+
+        it('waits for a swap that is still staging, so the retried read cannot land in its gap', async () => {
+            // Given a swap still staging its new file, with the receipt still at its own path
+            const existing = new Set([RECEIPT_PATH]);
+            let finishStaging: () => void = () => {};
+            const stagingStarted = new Promise<void>((resolve) => {
+                mockMv.mockImplementation((from: string, to: string) => {
+                    const move = () => {
+                        existing.delete(from);
+                        existing.add(to);
+                    };
+                    if (to === `${RECEIPT_PATH}.staged`) {
+                        resolve();
+                        return new Promise<void>((settle) => {
+                            finishStaging = () => {
+                                move();
+                                settle();
+                            };
+                        });
+                    }
+                    move();
+                    return Promise.resolve();
+                });
+            });
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            const swap = ReceiptStorage.overwrite('CAM-1.jpg', '/var/mobile/tmp/still.jpg');
+            await stagingStarted;
+
+            // When a reader whose read failed for another reason rechecks the receipt
+            let hasAnswered = false;
+            const recheck = ReceiptStorage.recheckAfterSwap(RECEIPT_URI).then((isPresent) => {
+                hasAnswered = true;
+                return isPresent;
+            });
+            await flushPendingWork();
+
+            // Then it does not answer while the swap can still rename the receipt, and answers once the swap is done
+            expect(hasAnswered).toBe(false);
+            finishStaging();
+            await swap;
+            await expect(recheck).resolves.toBe(true);
+        });
+
+        it('leaves a registered upgrade alone, since a reader rechecking the receipt is not an upload claiming it', async () => {
+            // Given an upgrade that is still capturing
+            startUpgrade('CAM-1.jpg');
+
+            // When a reader rechecks the receipt
+            await ReceiptStorage.recheckAfterSwap(RECEIPT_URI);
+
+            // Then the upgrade is not claimed, so it can still swap the better photo in. `locate` would call it off.
+            expect(isClaimedForRead('CAM-1.jpg')).toBe(false);
+
+            finishUpgrade('CAM-1.jpg');
+        });
+
+        it('puts back a receipt stranded under the backup name by an interrupted swap', async () => {
+            // Given a swap the app died in, with the receipt left under its backup name
+            mockExists.mockImplementation((path: string) => Promise.resolve(path === `${RECEIPT_PATH}.backup`));
+
+            // When a reader rechecks the receipt
+            await expect(ReceiptStorage.recheckAfterSwap(RECEIPT_URI)).resolves.toBe(true);
+
+            // Then the backup is moved back, so the retried read finds the receipt
+            expect(mockMv).toHaveBeenCalledWith(`${RECEIPT_PATH}.backup`, RECEIPT_PATH);
+        });
+
+        it('reports a receipt that is gone and has no backup, so the reader can fail for real', async () => {
+            // Given a receipt that is missing with no swap and no backup
+            mockExists.mockResolvedValue(false);
+
+            // When a reader rechecks it
+            const isPresent = await ReceiptStorage.recheckAfterSwap(RECEIPT_URI);
+
+            // Then it is reported gone
+            expect(isPresent).toBe(false);
+        });
+
+        it('reports a remote source as gone without touching the filesystem', async () => {
+            // Given a remote receipt whose read failed
+            const remoteSource = 'https://www.expensify.com/receipts/w_9.jpg';
+
+            // When the reader rechecks it
+            const isPresent = await ReceiptStorage.recheckAfterSwap(remoteSource);
+
+            // Then there is no local swap to wait for, so the failure stands
+            expect(isPresent).toBe(false);
+            expect(mockExists).not.toHaveBeenCalled();
+        });
+    });
+
     describe('discard', () => {
         it('deletes a temporary file', async () => {
             await ReceiptStorage.discard('file:///var/mobile/tmp/still.jpg');

@@ -11,6 +11,8 @@ type ReceiptStorage = {
 
     settle: (durableName: string) => Promise<void>;
 
+    recheckAfterSwap: (source: ReceiptSource | null | undefined) => Promise<boolean>;
+
     toLocalUri: (durableName: string) => string;
 
     resolve: (source: ReceiptSource | null | undefined) => string | undefined;
