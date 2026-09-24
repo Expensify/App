@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 const STEP_INDEXES = CONST.COLLECT_DEPOSIT_ACCOUNT.INDEXES.MAPPING;
 
@@ -31,9 +31,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
     const lastRejectedDetails = useRef('');
     const submittedDetails = [INPUT_IDS.BANK_COUNTRY, INPUT_IDS.BANK_CURRENCY, ...Object.keys(fieldsMap)].map((fieldName) => `${fieldName}:${formValues[fieldName] ?? ''}`).join('/');
 
-    const onSubmit = useCallback(() => {
+    const onSubmit = () => {
         createCollectOnlyDepositAccount(getSubmitParameters(formValues, fieldsMap, fieldsType, lastRejectedDetails.current === submittedDetails));
-    }, [fieldsMap, fieldsType, formValues, submittedDetails]);
+    };
 
     useEffect(() => {
         if (!personalBankAccount?.errors) {
@@ -58,8 +58,8 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
         };
     }, []);
 
-    const editCountry = useCallback(() => onMove(STEP_INDEXES.COUNTRY_SELECTOR, true), [onMove]);
-    const editDetails = useCallback(() => onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS, true), [onMove]);
+    const editCountry = () => onMove(STEP_INDEXES.COUNTRY_SELECTOR, true);
+    const editDetails = () => onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS, true);
 
     return (
         <FormProvider

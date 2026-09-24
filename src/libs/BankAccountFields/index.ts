@@ -16,7 +16,7 @@ const DEFAULT_KEY = 'default';
 
 /**
  * Returns the fields to collect for a country and currency, or an empty map when the country is not mapped.
- * The local mapping is keyed by currency because a country can hold accounts in several; the international one is not.
+ * The local mapping is keyed by currency because a country can hold accounts in several. The international one is not.
  */
 function getBankAccountFields(countryISO: string, currency: string, fieldsType: string): BankAccountFieldsMap {
     if (fieldsType === CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL) {

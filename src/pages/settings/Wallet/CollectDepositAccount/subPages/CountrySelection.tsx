@@ -9,13 +9,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 function CountrySelection({isEditing, onNext, onMove, formValues}: CustomSubPageProps) {
     const previousCountry = formValues[INPUT_IDS.BANK_COUNTRY] || '';
     const [selectedCountry, setSelectedCountry] = useState(previousCountry);
 
-    const onCountrySelected = useCallback(() => {
+    const confirmCountry = () => {
         const hasCountryChanged = selectedCountry !== previousCountry;
         // Countries with a single currency have nothing to pick, so default it and let the details step move on.
         const [firstCurrency] = getLocalCurrencies(selectedCountry);
@@ -31,9 +31,9 @@ function CountrySelection({isEditing, onNext, onMove, formValues}: CustomSubPage
             return;
         }
         onNext();
-    }, [formValues, onMove, onNext, previousCountry, selectedCountry]);
+    };
 
-    const countries = useMemo(() => Object.keys(CONST.ALL_COUNTRIES), []);
+    const countries = Object.keys(CONST.ALL_COUNTRIES);
 
     return (
         <CountrySelectionList
@@ -41,7 +41,7 @@ function CountrySelection({isEditing, onNext, onMove, formValues}: CustomSubPage
             selectedCountry={selectedCountry}
             countries={countries}
             onCountrySelected={setSelectedCountry}
-            onConfirm={onCountrySelected}
+            onConfirm={confirmCountry}
         />
     );
 }

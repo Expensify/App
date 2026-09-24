@@ -23,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsType}: CustomSubPageProps) {
@@ -51,11 +51,11 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
         shouldSaveDraft: true,
     });
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM> =>
-            getValidationErrors(values, fieldsMap, translate),
-        [fieldsMap, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM> =>
+        getValidationErrors(values, fieldsMap, translate);
+
+    // Takes no arguments and returns the same object every time, so it is resolved once rather than per field.
+    const autocorrectProps = getTextInputAutocorrectProps();
 
     const currencyHeaderContent = (
         <View style={styles.ph5}>
@@ -112,7 +112,7 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
                                     placeholder={field.placeholder}
                                     shouldSaveDraft={!isEditing}
                                     forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    {...getTextInputAutocorrectProps()}
+                                    {...autocorrectProps}
                                 />
                             )}
                         </View>

@@ -39,7 +39,7 @@ function getValidationErrors(values: CollectDepositAccountForm, fieldsMap: BankA
     return errors;
 }
 
-/** Account and routing numbers go top level; the rest, plus country, currency and fields type, in additionalData. */
+/** Account and routing numbers go top level. The rest, plus country, currency and fields type, go in additionalData. */
 function getSubmitParameters(values: CollectDepositAccountForm, fieldsMap: BankAccountFieldsMap, fieldsType: string, shouldConfirm = false) {
     const additionalData: Record<string, string> = {
         country: values[INPUT_IDS.BANK_COUNTRY] ?? '',
