@@ -7820,7 +7820,7 @@ const translations = {
                 },
                 offices: {
                     title: 'Office',
-                    toggleTitle: 'Offices (optional)',
+                    toggleTitle: 'Offices',
                     description: 'Choose the offices of candidates you would like to sync with this workspace',
                     allSelected: 'All offices',
                 },
