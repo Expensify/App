@@ -75,18 +75,24 @@ function createDefaultProps() {
  * a way to press the button again and to unmount the host.
  */
 function renderFlow(useFlow: typeof useAndroidBackgroundLocationPermissionsFlow, props: ReturnType<typeof createDefaultProps>) {
-    let startPermissionsFlow: () => void = () => {};
+    // Held in an object rather than a plain `let` because React Compiler rejects a component reassigning a variable declared outside of it
+    const latestStartPermissionsFlow: {current: () => void} = {current: () => {}};
 
     function FlowHost() {
-        startPermissionsFlow = useFlow({
+        const startPermissionsFlow = useFlow({
             onDeny: props.onDeny,
             onError: props.onError,
             onGrant: props.onGrant,
         });
 
         useEffect(() => {
+            latestStartPermissionsFlow.current = startPermissionsFlow;
+        });
+
+        useEffect(() => {
             // The flow must only be started once, like a single button press
             startPermissionsFlow();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         return null;
@@ -94,7 +100,7 @@ function renderFlow(useFlow: typeof useAndroidBackgroundLocationPermissionsFlow,
 
     const {unmount} = render(<FlowHost />);
 
-    return {startAgain: () => startPermissionsFlow(), unmount};
+    return {startAgain: () => latestStartPermissionsFlow.current(), unmount};
 }
 
 describe('BackgroundLocationPermissionsFlow', () => {
