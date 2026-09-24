@@ -109,7 +109,7 @@ async function ensureFocusDisabled(device: JourneyDevice, allowChange: boolean):
     device.waitLabel('Priority mode, Most recent');
 }
 
-async function openReport(device: JourneyDevice, report: JourneyReport, isPersonalChat = false): Promise<void> {
+async function openReport(device: JourneyDevice, report: JourneyReport, isPersonalChat = false, beforePress?: () => void): Promise<void> {
     await showTab(device, 'Inbox');
     device.press(idSelector('searchButton'));
     device.fill('search-autocomplete-text-input', report.query);
@@ -124,6 +124,7 @@ async function openReport(device: JourneyDevice, report: JourneyReport, isPerson
     if (!resultLabel) {
         throw new Error(`No search result matched ${report.resultLabelPrefix}.`);
     }
+    beforePress?.();
     device.pressLabel(resultLabel);
     device.wait(idSelector('composer'));
     if (!device.hasLabel(report.title)) {
@@ -284,15 +285,15 @@ function findTabNode(nodes: JourneyNode[], tab: string): JourneyNode | undefined
     return first;
 }
 
-async function scrollBothWays(device: JourneyDevice, count: number, requireMovement: boolean, firstDirection: 'up' | 'down' = 'down'): Promise<void> {
+async function scrollBothWays(device: JourneyDevice, count: number, requireMovement: boolean, firstDirection: 'up' | 'down' = 'down', fast = false): Promise<void> {
     const initialNodes = device.snapshot();
-    const pixels = scrollDistance(initialNodes);
+    const pixels = scrollDistance(initialNodes, fast);
     let previous = contentSignature(initialNodes);
     let changed = 0;
     for (const direction of [firstDirection, firstDirection === 'up' ? 'down' : 'up']) {
         let stationary = 0;
         for (let scroll = 0; scroll < count; scroll += 1) {
-            device.command('scroll', direction, '--pixels', String(pixels), '--settle');
+            device.command('scroll', direction, '--pixels', String(pixels), ...(fast ? ['--duration-ms', '120'] : []), '--settle');
             const current = contentSignature(device.snapshot());
             if (current !== previous) {
                 changed += 1;
@@ -335,13 +336,13 @@ function contentSignature(nodes: JourneyNode[]): string {
 }
 
 /** Keep both ends of the gesture inside the center of portrait lists, below Spend's fixed header. */
-function scrollDistance(nodes: JourneyNode[]): number {
+function scrollDistance(nodes: JourneyNode[], fast = false): number {
     const scrollAreas = nodes.filter((node) => /ScrollView|RecyclerView|ScrollArea/i.test(node.type) && node.width > 0 && node.height > 0);
     const viewport = scrollAreas.toSorted((left, right) => right.width * right.height - left.width * left.height).at(0);
     if (!viewport) {
         throw new Error('Cannot determine scroll bounds on this device.');
     }
-    return Math.round(Math.min(viewport.height * 0.25, viewport.width * 0.6));
+    return Math.round(Math.min(viewport.height * (fast ? 0.65 : 0.25), viewport.width * (fast ? 1.5 : 0.6)));
 }
 
 /** Match stable report identity while allowing the last-message preview to change. */
@@ -365,8 +366,10 @@ export {
     findReportResult,
     findTabNode,
     inAppBackTapPoint,
+    openReport,
     prepareJourney,
     runJourneyWorkload,
+    scrollBothWays,
     scrollDistance,
     selectSpendSection,
     showTab,

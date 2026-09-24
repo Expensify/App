@@ -4,7 +4,8 @@ import type {PlatformName} from '../lib/nativeAppBenchmark';
 
 const STARTUP_SPAN_NAME = 'ManualAppStartup';
 const JOURNEY_SPAN_NAMES = ['ManualNavigateToReportsFirstPaint', 'ManualNavigateToReportsContentLoad', 'ManualNavigateToInboxTab'] as const;
-const BENCHMARK_SPANS_ENVIRONMENT = `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS=${[STARTUP_SPAN_NAME, ...JOURNEY_SPAN_NAMES].join(',')}`;
+const HEAVY_JOURNEY_SPAN_NAMES = ['/r/*'] as const;
+const BENCHMARK_SPANS_ENVIRONMENT = `EXPO_PUBLIC_BENCHMARK_SENTRY_SPANS=${[STARTUP_SPAN_NAME, ...JOURNEY_SPAN_NAMES, ...HEAVY_JOURNEY_SPAN_NAMES].join(',')}`;
 
 type BuildKind = 'release' | 'instrumented' | 'optimized';
 type BenchmarkKind = Extract<BuildKind, 'release' | 'optimized'>;
@@ -30,5 +31,5 @@ type PlatformAdapter = {
     llvmTool: (name: string) => string;
 };
 
-export {BENCHMARK_SPANS_ENVIRONMENT, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME};
+export {BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME};
 export type {BenchmarkKind, BuildArtifactPaths, BuildKind, PgoMode, PlatformAdapter};

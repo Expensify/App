@@ -4,7 +4,7 @@ import {journeyBenchmarkPaths, sha256Artifact} from '@scripts/pgo/journeyBenchma
 import {parseJourneyFixture} from '@scripts/pgo/journeyConfig';
 import {assertSignedIn, normalizeLabel, parseJourneySnapshot} from '@scripts/pgo/journeyDevice';
 import {allFilterTapPoint, contentSignature, findReportResult, findTabNode, inAppBackTapPoint, scrollDistance, spendSectionTapPoint, waitForTab} from '@scripts/pgo/journeyWorkload';
-import {BENCHMARK_SPANS_ENVIRONMENT, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME} from '@scripts/pgo/shared';
+import {BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME} from '@scripts/pgo/shared';
 
 import {mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -23,10 +23,14 @@ describe('PGO journey safeguards', () => {
         // Given release and optimized artifacts share one build-time benchmark allowlist.
         const enabledSpans = BENCHMARK_SPANS_ENVIRONMENT.split('=').at(1)?.split(',');
         // When / Then the startup span and every short-journey span remain available.
-        expect(enabledSpans).toEqual([STARTUP_SPAN_NAME, ...JOURNEY_SPAN_NAMES]);
+        expect(enabledSpans).toEqual([STARTUP_SPAN_NAME, ...JOURNEY_SPAN_NAMES, ...HEAVY_JOURNEY_SPAN_NAMES]);
         expect(journeyBenchmarkPaths({benchmarkDirectory: '/pgo/ios/benchmarks'}, 'batch-1')).toEqual({
             release: '/pgo/ios/benchmarks/journey/batch-1/release.csv',
             optimized: '/pgo/ios/benchmarks/journey/batch-1/pgo-optimized.csv',
+        });
+        expect(journeyBenchmarkPaths({benchmarkDirectory: '/pgo/ios/benchmarks'}, 'batch-1', 'heavy-journey')).toEqual({
+            release: '/pgo/ios/benchmarks/heavy-journey/batch-1/release.csv',
+            optimized: '/pgo/ios/benchmarks/heavy-journey/batch-1/pgo-optimized.csv',
         });
     });
 
@@ -159,6 +163,7 @@ describe('PGO journey safeguards', () => {
             const distance = scrollDistance(nodes);
             expect(distance).toBeGreaterThan(0);
             expect(distance).toBeLessThanOrEqual((height ?? 0) / 2);
+            expect(scrollDistance(nodes, true)).toBeGreaterThan(distance);
         }
         // Then missing viewport information must fail instead of falling back to a screen-edge gesture.
         expect(() => scrollDistance([])).toThrow('scroll bounds');

@@ -112,6 +112,8 @@ scripts/pgo/pgo.ts ios benchmark-journey 20 30 --device DEVICE_UDID --app-id com
 
 Each variant gets one discarded warm-up and 20 measured fresh-process journeys. Before each sample, the runner selects Spend → Expenses and returns to Inbox; it then times a warm Inbox → Spend → Inbox tab switch. Expenses can restore the account's saved query and filters, so keep that state fixed across both phases. The CSVs under a unique `.pgo/<platform>/benchmarks/journey/<batch>/` directory contain `ManualNavigateToReportsFirstPaint`, `ManualNavigateToReportsContentLoad`, and `ManualNavigateToInboxTab` samples, alongside a run manifest with artifact hashes. These are app-defined tap-to-paint timings, so automation overhead is outside the measurement. The journey sends no messages and leaves account data unchanged. Both phases run in one command and are compared only within that batch. Rebuild both archived variants with this version of the tooling before benchmarking; older PGO builds only logged startup.
 
+For a populated-chat, fast-scroll benchmark, use `benchmark-heavy-journey` with the same arguments. It records the app's report-open span on both platforms and Android's rendered/missed scroll frames in a separate CSV. iOS scroll-frame measurement is not currently reliable on the connected phone; the runner verifies that scrolling moves through real content but does not report a scroll performance number. See [JOURNEY.md](./JOURNEY.md) for the exact measured interval, setup, and limitations. Both variants must be rebuilt to include the additional report-open marker.
+
 The stages can also run independently:
 
 ```bash

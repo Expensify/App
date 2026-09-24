@@ -10,6 +10,7 @@ import {resolve} from 'node:path';
 
 import type {BenchmarkStats} from '../lib/benchmarkStatistics';
 import type {NativeAppBenchmarkAdapter, PlatformName} from '../lib/nativeAppBenchmark';
+import type {BenchmarkOrder} from './journeyBenchmark';
 import type {BenchmarkKind, PlatformAdapter} from './shared';
 
 import {benchmarkStartups as runBenchmarkStartups} from '../lib/benchmarkAppStartup';
@@ -18,12 +19,13 @@ import {PLATFORM_NAMES, createNativeAppBenchmarkAdapter} from '../lib/nativeAppB
 import {capture, fail, findFiles, parseChoice, parsePositiveInteger, requirePositiveInteger, rootDirectory, run} from '../lib/scriptUtils';
 import createAndroidPgoAdapter from './android';
 import createIOSPgoAdapter from './ios';
-import {benchmarkJourneyAll} from './journeyBenchmark';
+import {benchmarkHeavyJourneyAll, benchmarkJourneyAll} from './journeyBenchmark';
 import {parseJourneyFixture} from './journeyConfig';
 import {STARTUP_SPAN_NAME} from './shared';
 
 const DEFAULT_STARTUP_RUNS = 10;
 const DEFAULT_STARTUP_WAIT_SECONDS = 30;
+const BENCHMARK_ORDERS = ['release-first', 'optimized-first'] as const;
 const WORKFLOW_COMMANDS = [
     'build-release',
     'build-instrumented',
@@ -38,6 +40,7 @@ const WORKFLOW_COMMANDS = [
     'benchmark',
     'compare-benchmarks',
     'benchmark-journey',
+    'benchmark-heavy-journey',
     'dump',
     'pull',
     'merge',
@@ -86,6 +89,10 @@ async function main(): Promise<void> {
                 description: 'Approved account fixture for journey benchmarks',
                 required: false,
             },
+            'benchmark-order': {
+                description: 'Journey phase order; alternate it across paired batches to check build-order drift',
+                required: false,
+            },
             profile: {
                 description: 'Immutable merged profile to use when building the optimized app',
                 required: false,
@@ -104,6 +111,7 @@ async function main(): Promise<void> {
         cli.namedArgs.device,
         cli.namedArgs.fixture,
         cli.namedArgs.profile,
+        cli.namedArgs['benchmark-order'],
     );
 }
 
@@ -116,6 +124,7 @@ async function runWorkflow(
     deviceIdentifier?: string,
     fixturePath?: string,
     profilePath?: string,
+    benchmarkOrder?: string,
 ): Promise<void> {
     const adapter = getAdapter(platformName, appID, deviceIdentifier);
 
@@ -160,7 +169,12 @@ async function runWorkflow(
             return;
         case 'benchmark-journey': {
             const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
-            await benchmarkJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds);
+            await benchmarkJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
+            return;
+        }
+        case 'benchmark-heavy-journey': {
+            const benchmarkAdapter = await createBenchmarkAdapter(adapter, deviceIdentifier);
+            await benchmarkHeavyJourneyAll(adapter, benchmarkAdapter.deviceIdentifier, readJourneyFixture(fixturePath), runs, timeoutSeconds, readBenchmarkOrder(benchmarkOrder));
             return;
         }
         case 'dump':
@@ -175,6 +189,10 @@ async function runWorkflow(
         default:
             fail('Unsupported workflow.');
     }
+}
+
+function readBenchmarkOrder(value?: string): BenchmarkOrder {
+    return value ? parseChoice(value, BENCHMARK_ORDERS, 'Journey benchmark order') : 'release-first';
 }
 
 function readJourneyFixture(fixturePath?: string): ReturnType<typeof parseJourneyFixture> {
