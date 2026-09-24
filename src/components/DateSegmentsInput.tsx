@@ -52,9 +52,6 @@ const SIZED_TO_CONTENT = {flexGrow: 0, flexShrink: 0, flexBasis: 'auto', width: 
  */
 const SEGMENT_MAIN_AXIS = {flexDirection: 'row'} as const;
 
-/** Holds a copy of a segment's text purely to be measured, so it must not take part in the layout it is measuring */
-const MEASURED_OFF_LAYOUT = {position: 'absolute', opacity: 0} as const;
-
 /**
  * The selection sits behind the date rather than around it, so that drawing it cannot change where anything ends up.
  * It is the first child so the segments, which are positioned too, paint over it.
@@ -189,9 +186,16 @@ function DateSegmentsInput({
                     return (
                         <React.Fragment key={part.name}>
                             <Text
-                                style={[style, NO_HORIZONTAL_PADDING, SIZED_TO_CONTENT, MEASURED_OFF_LAYOUT]}
+                                style={[style, NO_HORIZONTAL_PADDING, SIZED_TO_CONTENT, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden]}
+                                accessible={false}
+                                accessibilityElementsHidden
+                                importantForAccessibility="no"
+                                aria-hidden
                                 onLayout={(event) => {
                                     const layoutWidth = event.nativeEvent.layout.width;
+                                    if (!layoutWidth) {
+                                        return;
+                                    }
 
                                     setMeasuredWidths((previous) => (previous[part.name] === layoutWidth ? previous : {...previous, [part.name]: layoutWidth}));
                                 }}
@@ -242,14 +246,26 @@ function DateSegmentsInput({
                                 {/* The digits already typed are repeated invisibly so the text flow puts the remaining mask
                             letters exactly where the input's own text ends, without measuring anything. */}
                                 {!!remainder && (
-                                    <Text style={[style, NO_HORIZONTAL_PADDING, REMAINDER_OVERLAY, styles.pointerEventsNone]}>
+                                    <Text
+                                        style={[style, NO_HORIZONTAL_PADDING, REMAINDER_OVERLAY, styles.pointerEventsNone]}
+                                        accessible={false}
+                                        accessibilityElementsHidden
+                                        importantForAccessibility="no"
+                                        aria-hidden
+                                    >
                                         <Text style={styles.opacity0}>{segmentProps.value}</Text>
                                         <Text style={{color: placeholderTextColor}}>{remainder}</Text>
                                     </Text>
                                 )}
                             </View>
                             {!!part.separator && (
-                                <Text style={[style, NO_HORIZONTAL_PADDING, styles.pointerEventsNone, SIZED_TO_CONTENT, isAnyMaskShowing && {color: placeholderTextColor}]}>
+                                <Text
+                                    style={[style, NO_HORIZONTAL_PADDING, styles.pointerEventsNone, SIZED_TO_CONTENT, isAnyMaskShowing && {color: placeholderTextColor}]}
+                                    accessible={false}
+                                    accessibilityElementsHidden
+                                    importantForAccessibility="no"
+                                    aria-hidden
+                                >
                                     {part.separator}
                                 </Text>
                             )}

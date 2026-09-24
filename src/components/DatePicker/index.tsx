@@ -350,7 +350,7 @@ function DatePicker({
                 shouldCloseOnWheel={!shouldAllowTyping}
                 viewDate={segmentInput.viewDate}
                 viewDateVersion={segmentInput.viewDateVersion}
-                onMonthOrYearSelected={commitDate}
+                onMonthOrYearSelected={shouldAllowTyping ? commitDate : undefined}
             />
         </>
     );
