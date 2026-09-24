@@ -1506,6 +1506,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte bancaire ${last4Digits}` : `payé avec le compte bancaire ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `payé ${amount ? `${amount} ` : ''} avec le compte bancaire ${last4Digits} via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles d’espace de travail</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Compte personnel • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Compte professionnel • ${lastFour}`,
         nextStep: 'Étapes suivantes',
