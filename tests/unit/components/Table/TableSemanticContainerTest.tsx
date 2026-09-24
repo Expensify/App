@@ -9,6 +9,14 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
+// Jest resolves the native implementation, which cannot measure text, so dynamic columns would be inert. The remount
+// these tests guard against only happens where measurement is possible.
+jest.mock('@libs/measureTextWidth', () => ({
+    __esModule: true,
+    default: () => null,
+    canMeasureText: () => true,
+}));
+
 // `TableSemanticContainer` only reads styles from the theme hook, so stub it to a plain object (no provider needed).
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
