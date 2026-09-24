@@ -48,9 +48,10 @@ function registerBackgroundFlushListener() {
     }
     hasRegisteredBackgroundFlushListener = true;
 
-    // Only `background` (not the transient `inactive`) is the last event before the OS can suspend the process.
+    // Flush on `inactive` as well as `background`: killing the app from the iOS app switcher may not deliver a
+    // `background` event to JS in time, so `inactive` can be the last chance to persist the write to the queue.
     AppState.addEventListener('change', (nextState) => {
-        if (nextState !== CONST.APP_STATE.BACKGROUND || pendingWrites.size === 0) {
+        if ((nextState !== CONST.APP_STATE.BACKGROUND && nextState !== CONST.APP_STATE.INACTIVE) || pendingWrites.size === 0) {
             return;
         }
         Log.info(`[API] App going to "${nextState}" - flushing ${pendingWrites.size} pending writeWhenReady write(s)`, false);
@@ -127,7 +128,7 @@ function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransit
  * Caution:
  *   - The default barrier waits for any transition (~2s worst case if none starts). Pass
  *     `createTransitionBarrier('navigation')` to gate on a screen transition only, or a custom barrier.
- *   - We best-effort flush pending writes when the app backgrounds, but there's no flush on a hard
+ *   - We best-effort flush pending writes when the app goes inactive or to the background, but there's no flush on a hard
  *     kill or crash - a deferred write can simply be lost. Don't defer writes where losing one would
  *     leave something unrecoverable or hard to reconcile; losing one that's merely annoying to redo
  *     is an acceptable risk.
@@ -215,8 +216,8 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
         registerBackgroundFlushListener();
         flushOnBackground = () => execute('appBackground');
 
-        // The AppState listener only catches new transitions, so an app already in the background when the write is queued must flush here directly.
-        if (AppState.currentState === CONST.APP_STATE.BACKGROUND) {
+        // The AppState listener only catches new transitions, so an app already inactive or backgrounded when the write is queued must flush here directly.
+        if (AppState.currentState === CONST.APP_STATE.BACKGROUND || AppState.currentState === CONST.APP_STATE.INACTIVE) {
             execute('appBackground');
             return;
         }

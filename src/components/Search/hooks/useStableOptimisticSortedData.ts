@@ -11,7 +11,7 @@ import type {OnyxKey} from 'react-native-onyx';
 import {useEffect, useState} from 'react';
 
 /**
- * Resolves the optimistic watch key from the deferred write channel and
+ * Looks up the Onyx key of the optimistic item created by the pending Search write and
  * synchronizes the mutable ref + React state via requestAnimationFrame.
  *
  * Returns a cleanup function (to cancel the rAF) when a key is found, or
