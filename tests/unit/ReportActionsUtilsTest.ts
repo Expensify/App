@@ -1382,7 +1382,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getExportIntegrationActionFragments', () => {
-        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[]): ExportedToIntegrationAction {
+        function buildExportedToIntegrationAction(label: string, nonReimbursableUrls: string[], reimbursableUrls: string[] = []): ExportedToIntegrationAction {
             const action: ExportedToIntegrationAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
                 reportActionID: '1',
@@ -1394,6 +1394,7 @@ describe('ReportActionsUtils', () => {
                 label,
                 lastModified: '2026-05-15 10:00:00.000',
                 nonReimbursableUrls,
+                reimbursableUrls,
             };
             // The OldDot map intersects this payload with an action wrapper, so keep the mismatch at this fixture boundary.
             Object.assign(action, {originalMessage});
@@ -1440,6 +1441,30 @@ describe('ReportActionsUtils', () => {
                 {text: 'and successfully created a record for', url: ''},
                 {text: 'company card expenses', url: 'https://qbo.intuit.com/app/expenses'},
             ]);
+        });
+
+        it('ends a single out-of-pocket expense link with a period by default', () => {
+            // Given an export action whose only link is a single reimbursable expense URL
+            const action = buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, [], ['https://system.netsuite.com/1']);
+
+            // When the fragments are built with default options
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then the link text owns the sentence-ending period, because nothing else follows it
+            expect(fragments.at(-1)).toEqual({text: 'out-of-pocket expenses.', url: 'https://system.netsuite.com/1'});
+        });
+
+        it('omits the trailing period when the caller appends its own punctuation', () => {
+            // Given the same single out-of-pocket export action
+            const action = buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, [], ['https://system.netsuite.com/1']);
+
+            // When the HTML is built with shouldOmitTrailingPeriod set, as ExportIntegration does before appending the "Explain" link
+            const html = ReportActionsUtils.getExportIntegrationMessageHTML(translateLocal, action, undefined, true);
+
+            // Then no period is baked into the link, so prefixing `AskToExplain` cannot produce a double period
+            expect(html).toBe(
+                `exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite} and successfully created a record for <a href="https://system.netsuite.com/1">out-of-pocket expenses</a>`,
+            );
         });
     });
 
@@ -2229,6 +2254,72 @@ describe('ReportActionsUtils', () => {
             const report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
 
             expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
+        });
+    });
+    describe('getChangedApproverActionMessage', () => {
+        const buildReassignApproverAction = (originalMessage: Record<string, unknown>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
+                reportActionID: 'reassign-approver-1',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage,
+            }) as ReportAction;
+
+        it('names the workflow update for a reassignment a workflow change made', () => {
+            const reportAction = buildReassignApproverAction({newApproverID: 2, previousApproverID: 3, actorAccountID: 1, reasoning: 'admin@test.com changed the approval workflow'});
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('reassigned the approver to <mention-user accountID="2"/> via a workflow update');
+        });
+
+        it('returns an empty message when the new approver is missing', () => {
+            const reportAction = buildReassignApproverAction({previousApproverID: 3});
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('');
+        });
+
+        it('names the mentioned approver for a reroute an admin asked for', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-1',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 3},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="2"/>');
+        });
+
+        it('names the skipped approver for a reroute that reassigned approval', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-2',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 3, isReassignment: true},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe(
+                'changed the approver to <mention-user accountID="2"/>, skipped <mention-user accountID="3"/>',
+            );
+        });
+
+        it('omits the skipped approver for a reassignment on a report that had no approver', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REROUTE,
+                reportActionID: 'reroute-3',
+                actorAccountID: 1,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 0, isReassignment: true},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="2"/>');
+        });
+
+        it('falls back to the actor for a take control action with no mentioned accounts', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: 'take-control-1',
+                actorAccountID: 4,
+                created: '2024-01-01 00:00:00.000',
+                originalMessage: {},
+            } as ReportAction;
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="4"/>');
         });
     });
 

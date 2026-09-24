@@ -1486,6 +1486,63 @@ describe('ReportUtils', () => {
         it('should recognize inboxAdminsBespoke as a valid onboarding RHP variant', () => {
             expect(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE).toBe('inboxAdminsBespoke');
         });
+
+        it('should restore the correct last visible action if onboarding fails', async () => {
+            const EXPLICIT_ACCOUNT_ID = 42;
+            const OTHER_ACCOUNT_ID = 99;
+            const CONCIERGE_CHAT_REPORT_ID = '7777';
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test+test@example.com', accountID: OTHER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const existingAction = {
+                ...createRandomReportAction(200),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '200',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2024-01-15 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'existing message', text: 'existing message'}],
+                originalMessage: {html: 'existing message', lastModified: '2024-01-15 12:00:00.000'},
+            };
+
+            const chatReport: Report = {
+                reportID: CONCIERGE_CHAT_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [EXPLICIT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_CHAT_REPORT_ID}`, {
+                [existingAction.reportActionID]: existingAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {message: 'test', tasks: []},
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                conciergeChat: chatReport,
+                currentUserAccountID: EXPLICIT_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            expect(result).toBeTruthy();
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx update value needs narrowing for test assertions
+            const failureReport = result?.failureData.find((d) => d.key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`)?.value as Partial<Report> | undefined;
+
+            expect(failureReport?.lastVisibleActionCreated).toBe(existingAction.created);
+            expect(failureReport?.lastActorAccountID).toBe(existingAction.actorAccountID);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_CHAT_REPORT_ID}`, null);
+            await waitForBatchedUpdates();
+        });
     });
 
     describe('getIconsForParticipants', () => {
@@ -5262,6 +5319,39 @@ describe('ReportUtils', () => {
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
             });
         });
+
+        describe('invoice rooms use the passed policy (not module-level allPolicies)', () => {
+            const invoiceRoomParticipants = [currentUserAccountID, participantsAccountIDs.at(0) ?? 0];
+            const invoiceRoom = {
+                ...LHNTestUtils.getFakeReport(invoiceRoomParticipants),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+
+            it('offers the INVOICE option when the passed policy is admin and has invoices enabled', () => {
+                const adminInvoicePolicy: Policy = {
+                    ...createRandomPolicy(700, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areInvoicesEnabled: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, adminInvoicePolicy, invoiceRoomParticipants, [CONST.BETAS.ALL], undefined);
+
+                expect(moneyRequestOptions).toContain(CONST.IOU.TYPE.INVOICE);
+            });
+
+            it('does not offer the INVOICE option when the passed policy is not an admin', () => {
+                const memberInvoicePolicy: Policy = {
+                    ...createRandomPolicy(701, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    areInvoicesEnabled: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, memberInvoicePolicy, invoiceRoomParticipants, [CONST.BETAS.ALL], undefined);
+
+                expect(moneyRequestOptions).not.toContain(CONST.IOU.TYPE.INVOICE);
+            });
+        });
     });
 
     describe('canCreateRequest', () => {
@@ -6176,8 +6266,28 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteMoneyRequestReport', () => {
+        /** Builds the IOU action that `canDeleteMoneyRequestReport` looks up to decide who owns a transaction. */
+        function buildIOUActionForTransaction(reportID: string, transactionID: string, actorAccountID: number): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+            return {
+                reportActionID: `${transactionID}-action`,
+                reportID,
+                actorAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-03-05 16:34:27',
+                message: [],
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    amount: 530,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+        }
+
         it('should allow deletion if the report is open invoice report', async () => {
             const invoiceReport = {...createInvoiceReport(343), ownerAccountID: currentUserAccountID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const transaction = {...createRandomTransaction(343), reportID: invoiceReport.reportID, managedCard: false};
+            const iouAction = buildIOUActionForTransaction(invoiceReport.reportID, transaction.transactionID, currentUserAccountID);
             // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
             // since it relies on the session subscription for currentUserAccountID.
             await new Promise<void>((resolve) => {
@@ -6189,7 +6299,61 @@ describe('ReportUtils', () => {
                     },
                 });
             });
-            expect(canDeleteMoneyRequestReport(invoiceReport, [], [], currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined)).toBe(true);
+        });
+
+        describe('draft reports', () => {
+            const draftReport: Report = {
+                reportID: '9001',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 777,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '9001-policy',
+            };
+            const adminPolicy: Policy = {...createRandomPolicy(1), id: '9001-policy', role: CONST.POLICY.ROLE.ADMIN};
+            const memberPolicy: Policy = {...createRandomPolicy(2), id: '9001-policy', role: CONST.POLICY.ROLE.USER};
+
+            it('should allow an admin to delete a draft report they do not own', () => {
+                const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+            });
+
+            it('should not allow an admin to delete a single expense on a draft report they do not own', () => {
+                const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy)).toBe(false);
+            });
+
+            it('should allow the submitter to delete their own draft report', () => {
+                const ownDraftReport = {...draftReport, ownerAccountID: currentUserAccountID};
+                const transaction = {...createRandomTransaction(902), reportID: ownDraftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(true);
+            });
+
+            it('should not allow a non-admin who does not own the transaction to delete a draft report', () => {
+                const transaction = {...createRandomTransaction(903), reportID: draftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(false);
+            });
+
+            it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
+                const transaction = {
+                    ...createRandomTransaction(904),
+                    reportID: draftReport.reportID,
+                    managedCard: true,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+            });
         });
 
         it('should allow deletion if the expense report is submitted but not yet approved by anyone', async () => {
@@ -8615,26 +8779,56 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
-        it('should return false when the report does not have participants', () => {
-            const report = LHNTestUtils.getFakeReport([]);
+        it('should return false when a DM does not have participants', () => {
+            // Given a DM with no participants, which takes its name and avatar from `participants` alone
+            const report: Report = {...LHNTestUtils.getFakeReport(), participants: undefined};
             const currentReportId = '';
-            const isInFocusMode = true;
-            expect(
-                shouldReportBeInOptionList({
-                    report,
-                    chatReport: mockedChatReport,
-                    currentReportId,
-                    isInFocusMode,
-                    isDefaultRoomsBetaEnabled: true,
-                    doesReportHaveViolations: false,
-                    excludeEmptyChats: false,
-                    draftComment: '',
-                    isReportArchived: undefined,
-                    hasGuidesEmails: false,
-                    conciergeReportID: undefined,
-                    derivedIsEmptyReport: undefined,
-                }),
-            ).toBeFalsy();
+
+            // When it is evaluated outside focus mode, so only the participants check can exclude it
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is excluded, because there would be nothing to render in the option item
+            expect(result).toBeFalsy();
+        });
+
+        it('should return true when a policy expense chat does not have participants', () => {
+            // Given a policy expense chat with no participants, as SearchForTodos returns it to keep its payload small
+            const report: Report = {...LHNTestUtils.getFakeReportWithPolicy(), participants: undefined};
+            const currentReportId = '';
+
+            // When it is evaluated for the option list
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is kept, because a workspace chat renders its name and icon from its policy
+            expect(result).toBeTruthy();
         });
 
         it('should return false when the report is the report that the user cannot access due to policy restrictions', () => {
@@ -10022,6 +10216,30 @@ describe('ReportUtils', () => {
 
             // Then the owner cannot delete it because the card transaction's liability type restricts deletion
             expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
+        });
+
+        it('should let an admin delete a draft report they did not submit from its report preview', async () => {
+            // Given an open (draft) expense report submitted by someone else, on a policy the current user administers
+            const draftReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID + 1,
+                policyID: '9002-policy',
+            };
+            const reportPreviewAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actorAccountID: currentUserAccountID + 1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: draftReport.reportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}9002-policy`, {...createRandomPolicy(1), id: '9002-policy', role: CONST.POLICY.ROLE.ADMIN});
+
+            // Then the admin can delete it, because deleting a preview deletes the whole report
+            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined)).toBe(true);
         });
 
         it('should return true for demo transaction', () => {
@@ -17459,7 +17677,7 @@ describe('ReportUtils', () => {
                 formatPhoneNumber,
                 accountID: hiddenAccountID,
                 personalDetailsData: personalDetailsWithHidden,
-                translate: translateLocal,
+                hiddenTranslation: translateLocal('common.hidden'),
             });
 
             expect(result).toBe(translateLocal('common.hidden'));
@@ -17486,23 +17704,21 @@ describe('ReportUtils', () => {
                 accountID: hiddenAccountID,
                 shouldUseShortForm: true,
                 personalDetailsData: personalDetailsWithHidden,
-                translate: translateLocal,
+                hiddenTranslation: translateLocal('common.hidden'),
             });
 
             expect(result).toBe(translateLocal('common.hidden'));
             expect(result).not.toBe('ShortName');
         });
 
-        it('resolves the hidden participant fallback through the provided translate function', () => {
+        it('resolves the hidden participant fallback through the provided hiddenTranslation string', () => {
             const hiddenAccountID = 909090;
-            // A known participant with no displayName/login resolves to the hidden label, which must come from the provided translate function.
-            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
-
+            // A known participant with no displayName/login resolves to the hidden label, which must come from the provided hiddenTranslation string.
             const displayName = getDisplayNameForParticipant({
                 accountID: hiddenAccountID,
                 formatPhoneNumber,
                 personalDetailsData: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
-                translate: translateWithHiddenMarker,
+                hiddenTranslation: 'HiddenMarker',
             });
 
             expect(displayName).toBe('HiddenMarker');
