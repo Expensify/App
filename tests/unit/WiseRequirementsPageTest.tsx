@@ -140,7 +140,7 @@ describe('Wise KYC requirements pages', () => {
         expect(screen.getAllByText('wiseKYC.state.NOT_PROVIDED')).toHaveLength(3);
     });
 
-    it('renders a form for a requirement with fields and submits the draft', async () => {
+    it('renders a form for a requirement with fields and submits it from the page, with no confirmation for a one-page form', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM_DRAFT, {accountPurpose: 'PAYING_BILLS'});
         });
@@ -149,18 +149,10 @@ describe('Wise KYC requirements pages', () => {
 
         expect(screen.getByText('Paying bills')).toBeOnTheScreen();
 
-        fireEvent.press(screen.getByText('common.next'));
-        await waitForBatchedUpdatesWithAct();
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM.getRoute(BANK_ACCOUNT_ID, 'ACCOUNT_PURPOSE', 'confirm'));
-
-        screen.unmount();
-        mockRouteParams.subPage = 'confirm';
-        await renderRequirementFormPage('ACCOUNT_PURPOSE');
-        expect(screen.getByText('wiseKYC.requirement.ACCOUNT_PURPOSE')).toBeOnTheScreen();
-        expect(screen.getByText('Paying bills')).toBeOnTheScreen();
-
+        expect(screen.queryByText('common.next')).not.toBeOnTheScreen();
         fireEvent.press(screen.getByText('common.confirm'));
         await waitForBatchedUpdatesWithAct();
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM.getRoute(BANK_ACCOUNT_ID, 'ACCOUNT_PURPOSE', 'confirm'));
 
         expect(submitWiseKYCRequirement).toHaveBeenCalledTimes(1);
         expect(submitWiseKYCRequirement).toHaveBeenCalledWith(BANK_ACCOUNT_ID, 'ACCOUNT_PURPOSE', expect.objectContaining({accountPurpose: 'PAYING_BILLS'}));
