@@ -15,6 +15,7 @@ import {
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
     isPolicyAdmin,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -66,15 +67,9 @@ const createOwnedPaidPoliciesCountsSelector =
         };
     };
 
-/**
- * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
- * subscribers don't re-render when anything else on the policy collection changes. Targets are
- * limited to paid group workspaces (Collect/Control) the user administers - copy-settings carries
- * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
- * are never valid targets.
- */
 /** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
-const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled);
+const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean =>
+    Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
 
 /**
  * Whether a collecting workspace banks in this country, which decides local vs international details.
@@ -85,6 +80,13 @@ const createBanksInCountrySelector =
     (policies: OnyxCollection<Policy>): boolean =>
         Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && countryISO in (policy.reimbursement?.countries ?? {}));
 
+/**
+ * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
+ * subscribers don't re-render when anything else on the policy collection changes. Targets are
+ * limited to paid group workspaces (Collect/Control) the user administers - copy-settings carries
+ * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
+ * are never valid targets.
+ */
 const createCopySettingsEligibleTargetsSelector =
     (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): string[] =>

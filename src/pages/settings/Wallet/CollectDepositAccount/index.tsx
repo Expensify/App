@@ -16,9 +16,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {createBanksInCountrySelector} from '@selectors/Policy';
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import type CustomSubPageProps from './types';
 
@@ -73,6 +74,17 @@ function CollectDepositAccount() {
         nextPage();
     };
 
+    // A country with no field mapping renders nothing to fill in, so later steps would submit an empty account.
+    // Success is exempt because the draft is cleared once the account exists.
+    const shouldReturnToCountryStep = isEmptyObject(fieldsMap) && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR && pageIndex !== STEP_INDEXES.SUCCESS;
+
+    useEffect(() => {
+        if (!shouldReturnToCountryStep) {
+            return;
+        }
+        moveTo(STEP_INDEXES.COUNTRY_SELECTOR, false);
+    }, [shouldReturnToCountryStep, moveTo]);
+
     const handleBackButtonPress = () => {
         if (isEditing) {
             goBackToConfirmPage();
@@ -100,7 +112,7 @@ function CollectDepositAccount() {
                 title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            {isRedirecting || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
+            {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <CurrentPage

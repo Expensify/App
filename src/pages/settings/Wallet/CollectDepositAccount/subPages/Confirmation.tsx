@@ -29,7 +29,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
 
     // Bank verification warns once about details it cannot confirm, so resubmitting the same ones accepts the warning.
     const lastRejectedDetails = useRef('');
-    const submittedDetails = `${formValues.routingNumber}/${formValues.accountNumber}/${formValues.firstName}/${formValues.lastName}`;
+    const submittedDetails = Object.keys(fieldsMap)
+        .map((fieldName) => `${fieldName}:${formValues[fieldName] ?? ''}`)
+        .join('/');
 
     const onSubmit = useCallback(() => {
         createCollectOnlyDepositAccount(getSubmitParameters(formValues, fieldsMap, fieldsType, lastRejectedDetails.current === submittedDetails));

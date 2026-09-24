@@ -6,6 +6,7 @@ import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useStepFormSubmit from '@hooks/useStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +33,12 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap}: CustomSu
     const bankCountry = formValues[INPUT_IDS.BANK_COUNTRY] ?? '';
 
     // Only a handful of countries hold accounts in more than one currency, so the rest have nothing to pick.
-    const hasCurrencyChoice = getLocalCurrencies(bankCountry).length > 1;
+    const localCurrencies = getLocalCurrencies(bankCountry);
+    const hasCurrencyChoice = localCurrencies.length > 1;
+
+    // The picker only offers an exclude list, so everything the country has no mapping for is excluded.
+    const {currencyList} = useCurrencyListState();
+    const excludedCurrencies = Object.keys(currencyList).filter((currencyCode) => !localCurrencies.includes(currencyCode));
 
     // Editing holds the new values back until submit, so the draft is written here rather than on every keystroke.
     const handleSubmit = useStepFormSubmit<typeof ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM>({
@@ -75,6 +81,7 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap}: CustomSu
                                 setDraftValues(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM, {[INPUT_IDS.BANK_CURRENCY]: value});
                             }}
                             headerContent={currencyHeaderContent}
+                            excludeCurrencies={excludedCurrencies}
                             shouldShowFullPageOfflineView
                         />
                     </View>
