@@ -1,17 +1,12 @@
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useOnyx from '@hooks/useOnyx';
 import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
-
-import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {isUserValidatedSelector} from '@selectors/Account';
 import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
-import {emailSelector} from '@selectors/Session';
 import React from 'react';
 
 import useBrokenDirectCompanyCardFeedsForAdmin from './hooks/useBrokenDirectCompanyCardFeedsForAdmin';
@@ -40,7 +35,6 @@ import PayOverdueInvoice from './items/PayOverdueInvoice';
 import RenewSubscription from './items/RenewSubscription';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
-import ValidateAccount from './items/ValidateAccount';
 
 type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
@@ -53,7 +47,6 @@ type BrokenPersonalCardConnection = {
  */
 function useTimeSensitiveItems(): React.ReactNode[] {
     const {login} = useCurrentUserPersonalDetails();
-    const isAnonymous = useIsAnonymousUser();
 
     // Use custom hooks for offers and cards (Release 3)
     const {shouldShowAddPaymentCard} = useTimeSensitiveAddPaymentCard();
@@ -84,11 +77,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     });
     const adminPolicies = adminPoliciesData?.policies;
     const brokenPolicyConnections = adminPoliciesData?.brokenConnections ?? CONST.EMPTY_ARRAY;
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: isUserValidatedSelector,
-    });
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
     const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
@@ -107,9 +95,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         }
     }
 
-    const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
-    const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
-
     // Priority order. Urgent RBR error rows come first, then GBR setup nudges. The subscription renewal
     // nudge is the one deliberate exception to that. It ranks above the connection errors because the
     // owner silently loses their rate on the end date, so burying it costs more than keeping every error
@@ -122,15 +107,14 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 6. Broken bank connections (personal cards)
     // 7. Locked bank accounts (workspace VBAs and personal)
     // 8. Broken policy connections (accounting + HR)
-    // 9. Validate account
-    // 10. Add home address (commuter exclusions, homeAndOffice method)
-    // 11. Add payment card (trial ended, no payment card)
-    // 12. Add bank account for a queued reimbursement
-    // 13. Enter signer info for global bank accounts
-    // 14. Expensify card shipping
-    // 15. Expensify card activation
-    // 16. Virtual Expensify card needs personal details
-    // 17. Digital wallet addition needs confirming
+    // 9. Add home address (commuter exclusions, homeAndOffice method)
+    // 10. Add payment card (trial ended, no payment card)
+    // 11. Add bank account for a queued reimbursement
+    // 12. Enter signer info for global bank accounts
+    // 13. Expensify card shipping
+    // 14. Expensify card activation
+    // 15. Virtual Expensify card needs personal details
+    // 16. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -220,23 +204,19 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 9: Validate account
-    if (shouldShowValidateAccount) {
-        items.push(<ValidateAccount key="validate-account" />);
-    }
-    // Priority 10: Add home address (commuter exclusions, homeAndOffice method)
+    // Priority 9: Add home address (commuter exclusions, homeAndOffice method)
     if (shouldShowAddHomeAddress) {
         items.push(<AddHomeAddress key="add-home-address" />);
     }
-    // Priority 11: Add payment card (trial ended, no payment card)
+    // Priority 10: Add payment card (trial ended, no payment card)
     if (shouldShowAddPaymentCard) {
         items.push(<AddPaymentCard key="add-payment-card" />);
     }
-    // Priority 12: Add bank account for a queued reimbursement
+    // Priority 11: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
     }
-    // Priority 13: Enter signer info for global bank accounts
+    // Priority 12: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -247,7 +227,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 14: Expensify card shipping
+    // Priority 13: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -258,7 +238,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 15: Expensify card activation
+    // Priority 14: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -269,7 +249,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 16: Virtual Expensify card needs personal details before reveal
+    // Priority 15: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
@@ -280,7 +260,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 17: Confirm a digital wallet addition
+    // Priority 16: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(
