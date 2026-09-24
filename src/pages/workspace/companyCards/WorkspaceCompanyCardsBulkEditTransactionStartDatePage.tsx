@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import Growl from '@libs/Growl';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
@@ -21,7 +22,7 @@ import Navigation from '@navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {updateCardTransactionStartDate} from '@userActions/CompanyCards';
+import {bulkUpdateCardTransactionStartDate} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -74,10 +75,17 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
         }
 
         const newStartDate = dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate;
-        for (const cardID of cardIDs) {
-            updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, allBankCards?.[cardID]?.scrapeMinDate);
-        }
+        bulkUpdateCardTransactionStartDate(
+            domainOrWorkspaceAccountID,
+            bank,
+            cardIDs.map((cardID) => ({
+                cardID,
+                oldStartDate: allBankCards?.[cardID]?.scrapeMinDate,
+            })),
+            newStartDate,
+        );
         goBackToCompanyCards();
+        Growl.success(translate('workspace.companyCards.bulkStartDateUpdated'));
     };
 
     const dateOptions = [
@@ -110,7 +118,7 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
                     title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
                     onBackButtonPress={goBackToCompanyCards}
                 />
-                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.editStartDateDescription')}</Text>
+                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.bulkEditStartDateDescription')}</Text>
                 <View style={styles.flex1}>
                     <SelectionList
                         ListItem={SingleSelectListItem}

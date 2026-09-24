@@ -6026,6 +6026,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             chooseTransactionStartDate: '选择交易开始日期',
             startDateDescription: '选择导入起始日期。我们会从该日期起同步所有交易。',
             editStartDateDescription: '选择新的交易起始日期。我们会从该日期开始同步所有交易，但不包括已经导入的交易。',
+            bulkEditStartDateDescription: '为所有选中的卡片选择交易起始日期。我们会从该日期开始同步交易，但不包括已经导入的交易。',
+            bulkStartDateUpdated: '交易起始日期已更新',
             fromTheBeginning: '从头开始',
             customStartDate: '自定义开始日期',
             customCloseDate: '自定义关闭日期',

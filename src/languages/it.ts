@@ -6238,6 +6238,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseTransactionStartDate: 'Scegli una data di inizio transazione',
             startDateDescription: 'Scegli la data di inizio per l’importazione. Sincronizzeremo tutte le transazioni da questa data in poi.',
             editStartDateDescription: 'Scegli una nuova data di inizio transazione. Sincronizzeremo tutte le transazioni da quella data in poi, escludendo quelle già importate.',
+            bulkEditStartDateDescription:
+                'Scegli una data di inizio transazione per tutte le carte selezionate. Sincronizzeremo le transazioni da quella data in poi, escludendo quelle già importate.',
+            bulkStartDateUpdated: 'Data di inizio transazione aggiornata',
             fromTheBeginning: "Dall'inizio",
             customStartDate: 'Data di inizio personalizzata',
             customCloseDate: 'Data di chiusura personalizzata',

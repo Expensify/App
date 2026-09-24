@@ -5,6 +5,7 @@ import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import * as API from '@libs/API';
 import type {
     AssignCompanyCardParams,
+    BulkUpdateCardTransactionStartDateParams,
     GetExpensifyCardStatementPDFParams,
     ImportCSVCompanyCardsParams,
     OpenPolicyAddCardFeedPageParams,
@@ -905,6 +906,52 @@ function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, card
     });
 }
 
+function bulkUpdateCardTransactionStartDate(
+    domainOrWorkspaceAccountID: number,
+    bankName: CompanyCardFeedWithNumber,
+    cards: Array<{cardID: string; oldStartDate?: string}>,
+    newStartDate: string,
+) {
+    const optimisticCards: Record<string, NullishDeep<Card>> = {};
+    const finallyCards: Record<string, NullishDeep<Card>> = {};
+    const failureCards: Record<string, NullishDeep<Card>> = {};
+    for (const {cardID, oldStartDate} of cards) {
+        optimisticCards[cardID] = {
+            scrapeMinDate: newStartDate,
+            pendingFields: {
+                scrapeMinDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            errorFields: {scrapeMinDate: null},
+        };
+        finallyCards[cardID] = {
+            pendingFields: {scrapeMinDate: null},
+        };
+        failureCards[cardID] = {
+            scrapeMinDate: oldStartDate,
+            pendingFields: {scrapeMinDate: null},
+            errorFields: {
+                scrapeMinDate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        };
+    }
+
+    const key = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}` as const;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: optimisticCards}];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: finallyCards}];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [{onyxMethod: Onyx.METHOD.MERGE, key, value: failureCards}];
+
+    const parameters: BulkUpdateCardTransactionStartDateParams = {
+        cardIDs: JSON.stringify(cards.map(({cardID}) => Number(cardID))),
+        startDate: newStartDate,
+    };
+
+    API.write(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, parameters, {
+        optimisticData,
+        finallyData,
+        failureData,
+    });
+}
+
 function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bank: CompanyCardFeedWithNumber) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
@@ -1486,6 +1533,7 @@ export {
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
     updateCardTransactionStartDate,
+    bulkUpdateCardTransactionStartDate,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,
