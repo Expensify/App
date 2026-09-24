@@ -48,7 +48,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -93,7 +92,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -107,6 +105,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,
@@ -118,7 +117,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 activePolicy,
                 policy,
                 chatReportPolicy,
-                betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
                 amountOwed,
