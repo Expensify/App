@@ -127,6 +127,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
                     : undefined
             }
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
+            testID="menu-item-Report"
         >
             <MenuItem.Row>
                 <MenuItemField.Content name={translate('common.report')}>
