@@ -206,6 +206,18 @@ const restrictedPaidGroupPolicyImportPatterns = [
     },
 ];
 
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`). Existing
+// call-sites are grandfathered via the seatbelt baseline. This only flags NEW imports so migration
+// doesn't regress while it's in progress. Matches both the `@components/...` alias and relative imports
+// of the same file. The `/types` submodule is intentionally left unrestricted since the new composed
+// `HeaderWithBackButton` still reuses that type shape during the transition.
+const restrictedHeaderImportPatterns = [
+    {
+        group: ['**/HeaderWithBackButton'],
+        message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.',
+    },
+];
+
 // Headless email chart CLI cannot use useTheme; charts always render with the light theme.
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((restriction) => restriction.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = [
@@ -704,7 +716,7 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedImportPaths,
-                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
+                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns, ...restrictedHeaderImportPatterns],
                 },
             ],
         },

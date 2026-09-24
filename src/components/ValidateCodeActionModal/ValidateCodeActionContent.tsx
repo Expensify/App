@@ -1,4 +1,5 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import HeaderThreeDotsMenu from '@components/Header/primitives/HeaderThreeDotsMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -75,14 +76,18 @@ function ValidateCodeActionContent({
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
+            <HeaderWithBackButtonAndTitle
                 title={title}
                 onBackButtonPress={hide}
-                threeDotsMenuItems={threeDotsMenuItems}
-                shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
-                shouldOverlayDots
-                onThreeDotsButtonPress={onThreeDotsButtonPress}
-            />
+            >
+                {threeDotsMenuItems.length > 0 && (
+                    <HeaderThreeDotsMenu
+                        items={threeDotsMenuItems}
+                        onIconPress={onThreeDotsButtonPress}
+                        shouldOverlay
+                    />
+                )}
+            </HeaderWithBackButtonAndTitle>
 
             <ScrollView
                 style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}

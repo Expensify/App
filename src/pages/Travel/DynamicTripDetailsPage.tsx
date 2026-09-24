@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -101,20 +101,26 @@ function DynamicTripDetailsPage({route}: DynamicTripDetailsPageProps) {
                 shouldForceFullScreen
                 shouldShow={!reservation || (!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel)}
             >
-                <HeaderWithBackButton
-                    title={formatCancelledDescription(
-                        translate('iou.canceled'),
-                        reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details'),
-                        isCancelled,
-                    )}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(backPath)}
-                    icon={reservationIcon}
-                    iconHeight={20}
-                    iconWidth={20}
-                    iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
-                    iconFill={theme.icon}
-                />
+                <Header>
+                    <Header.BackButton
+                        onPress={() => Navigation.goBack(backPath)}
+                        iconFill={theme.icon}
+                    />
+                    <Header.Icon
+                        src={reservationIcon}
+                        width={20}
+                        height={20}
+                        style={[StyleUtils.getTripReservationIconContainer(false), styles.mr3]}
+                        iconFill={theme.icon}
+                    />
+                    <Header.Title
+                        title={formatCancelledDescription(
+                            translate('iou.canceled'),
+                            reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details'),
+                            isCancelled,
+                        )}
+                    />
+                </Header>
                 <ScrollView>
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails

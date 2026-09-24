@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -441,7 +441,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton
+                <HeaderWithBackButtonAndTitle
                     title={translate('workspace.rules.merchantRules.importRulesTitle')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_MERCHANT_IMPORT.getRoute(policyID))}
                 />
