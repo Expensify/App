@@ -160,6 +160,58 @@ describe('BankAccountPurpose CountrySelection', () => {
         expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
     });
 
+    it('resumes the exact Wallet business account after its transient state was cleared', async () => {
+        // Given dismissal preserved the exact Wallet account ID while clearing the transient reimbursement account
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.BANK_ACCOUNT_LIST) {
+                return [
+                    {
+                        789: {
+                            bankCountry: 'LT',
+                            bankCurrency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT,
+                            accountData: {
+                                bankAccountID: 789,
+                                created: '2026-09-25',
+                                state: CONST.BANK_ACCOUNT.STATE.SETUP,
+                                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                            },
+                        },
+                    },
+                    {status: 'loaded'},
+                ];
+            }
+            if (key === ONYXKEYS.REIMBURSEMENT_ACCOUNT) {
+                return [CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT) {
+                return [{bankAccountID: 456, country: 'LT', currency: CONST.BBA_COUNTRY_CURRENCY_MAP.LT, source: CONST.BANK_ACCOUNT.SOURCE.WALLET}, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        render(
+            <NavigationContainer>
+                <Stack.Navigator>
+                    <Stack.Screen
+                        name={SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE}
+                        component={CountrySelection}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>,
+        );
+
+        // When Make payments confirms the preselected country
+        await act(async () => {
+            mockedCountrySelectionList.mock.lastCall?.[0]?.onConfirm();
+            jest.runOnlyPendingTimers();
+        });
+
+        // Then it reopens the exact saved account rather than a newer account with the same country and currency
+        expect(mockedClearReimbursementAccount).not.toHaveBeenCalled();
+        expect(mockedClearReimbursementAccountDraft).not.toHaveBeenCalled();
+        expect(mockedNavigateToBankAccountRoute).toHaveBeenCalledWith({bankAccountID: 456, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+    });
+
     it('keeps the child list mounted while persisting the selected country and navigating', async () => {
         render(
             <NavigationContainer>

@@ -123,6 +123,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const hasShownConnectedBankAccountRef = useRef(false);
     const shouldPreserveWalletSetupRef = useRef(isWalletSetup);
     const reimbursementAccountDraftRef = useRef(reimbursementAccountDraft);
+    const walletResumeBankAccountIDRef = useRef(reimbursementAccount?.achData?.bankAccountID ?? (bankAccountIDParam ? Number(bankAccountIDParam) : undefined));
     // Latches the pending-USD redirect below so the effect dispatches the navigation at most once per mount, even
     // though its dependencies change again while the transition is in flight.
     const hasRedirectedToPendingValidationRef = useRef(false);
@@ -200,6 +201,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }, [reimbursementAccountDraft]);
 
     useEffect(() => {
+        const bankAccountID = achData?.bankAccountID ?? (bankAccountIDParam ? Number(bankAccountIDParam) : undefined);
+        if (bankAccountID) {
+            walletResumeBankAccountIDRef.current = bankAccountID;
+        }
+    }, [achData?.bankAccountID, bankAccountIDParam]);
+
+    useEffect(() => {
         const isChangingBankAccountInstance = isChangingBankAccountRef.current;
         return () => {
             const isNavigatingToPendingValidation = isNavigatingToPendingValidationRef.current;
@@ -209,6 +217,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 const walletResumeDraft = reimbursementAccountDraftRef.current;
                 clearReimbursementAccountDraft();
                 setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+                    bankAccountID: walletResumeBankAccountIDRef.current,
                     country: walletResumeDraft?.country,
                     currency: walletResumeDraft?.currency,
                     source: walletResumeDraft?.source,

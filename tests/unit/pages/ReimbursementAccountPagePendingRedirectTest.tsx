@@ -291,6 +291,7 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
             expect(draft?.country).toBe(CONST.COUNTRY.US);
             expect(draft?.currency).toBe(CONST.CURRENCY.USD);
             expect(draft?.source).toBe(CONST.BANK_ACCOUNT.SOURCE.WALLET);
+            expect(draft?.bankAccountID).toBe(PENDING_ACCOUNT.achData?.bankAccountID);
             expect(draft?.amount1).toBeUndefined();
             expect(draft?.amount2).toBeUndefined();
             expect(draft?.amount3).toBeUndefined();

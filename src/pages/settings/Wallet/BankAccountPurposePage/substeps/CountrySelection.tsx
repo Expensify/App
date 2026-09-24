@@ -104,7 +104,7 @@ function CountrySelection() {
             }
 
             const policyID = shouldResume ? reimbursementAccount?.achData?.policyID : undefined;
-            const bankAccountID = shouldResume ? reimbursementAccount?.achData?.bankAccountID : undefined;
+            const bankAccountID = shouldResume ? (reimbursementAccount?.achData?.bankAccountID ?? reimbursementAccountDraft?.bankAccountID) : undefined;
             navigateToBankAccountRoute({
                 ...(policyID ? {policyID} : {}),
                 ...(bankAccountID ? {bankAccountID} : {}),
