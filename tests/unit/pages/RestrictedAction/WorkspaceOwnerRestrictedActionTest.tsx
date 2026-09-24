@@ -159,12 +159,12 @@ describe('WorkspaceOwnerRestrictedAction', () => {
         mockGetActiveRoute.mockReturnValue('settings/subscription?backTo=r%2F123');
         render(<WorkspaceOwnerRestrictedActionNative />);
 
-        // When the user swipes back — re-focusing this screen — and taps "Go to Subscription" again
+        // When the user swipes back, re-focusing this screen, and taps "Go to Subscription" again
         mockGetActiveRoute.mockReturnValue('r/123');
         fireEvent.press(screen.getByText('workspace.restrictedAction.goToSubscription'));
 
         // Then backTo must be the restricted-action route, not Subscription. A mount-time snapshot of the
-        // active route could be captured while Subscription was on top, making backTo self-referential;
+        // active route could be captured while Subscription was on top, making backTo self-referential.
         // `linkTo` discards such a navigation as a no-op and the button silently stops working.
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_SUBSCRIPTION.getRoute('r/123'));

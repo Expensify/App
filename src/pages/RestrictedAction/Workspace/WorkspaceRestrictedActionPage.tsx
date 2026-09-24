@@ -64,7 +64,7 @@ function WorkspaceRestrictedActionPage({
     //
     // A `useNetwork({onReconnect})` callback is deliberately not used here. `isOffline` flipping back to
     // false already re-runs this effect on reconnect, so the callback only fired the same request a second
-    // time — and it fired outside this focus guard.
+    // time. It also fired outside this focus guard.
     useEffect(() => {
         if (isOffline || !isFocused) {
             return;
