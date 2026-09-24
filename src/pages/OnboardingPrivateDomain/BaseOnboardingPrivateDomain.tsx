@@ -77,9 +77,10 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
-    const onboardingIntent = useOnboardingIntent();
+    const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
+    const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: isJoinWorkspaceTaskRoute});
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
-    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow && route.params?.isJoinWorkspaceTask === 'true';
+    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow && isJoinWorkspaceTaskRoute;
 
     const {
         taskReport: validateEmailTaskReport,

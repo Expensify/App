@@ -81,8 +81,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         selector: expensifyLoginsSelector,
     });
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountSelector});
-    const onboardingIntent = useOnboardingIntent();
     const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
+    const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: isJoinWorkspaceTaskRoute});
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const returnToOriginReport = useReturnToOriginReport();

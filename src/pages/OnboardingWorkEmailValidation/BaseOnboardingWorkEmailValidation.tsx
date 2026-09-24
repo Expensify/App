@@ -52,9 +52,9 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const onboardingIntent = useOnboardingIntent();
-    const isConciergeTaskFlow =
-        onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues) && route.params?.isJoinWorkspaceTask === 'true';
+    const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
+    const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: isJoinWorkspaceTaskRoute});
+    const isConciergeTaskFlow = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues) && isJoinWorkspaceTaskRoute;
     const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, session?.email) || (!!account?.validated && !loginList?.[session?.email ?? '']);
     const returnToOriginReport = useReturnToOriginReport();
     const {taskReport: validateEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);

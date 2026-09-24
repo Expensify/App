@@ -100,7 +100,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-    const onboardingIntent = useOnboardingIntent();
+    const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: route.params?.isJoinWorkspaceTask === 'true'});
     const isEmployerWithSubmit = onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const isConciergeTaskFlow = route.params?.isJoinWorkspaceTask === 'true';
