@@ -2792,6 +2792,26 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.shouldShowViolation(expenseReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(false);
         });
+
+        it('should return false for duplicated transaction violation on an IOU report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const policy: Policy = createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL);
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.DUPLICATED_TRANSACTION, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(false);
+        });
+
+        it('should return true for duplicated transaction violation on an expense report', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policy: Policy = createRandomPolicy(3, CONST.POLICY.TYPE.TEAM);
+
+            expect(TransactionUtils.shouldShowViolation(expenseReport, policy, CONST.VIOLATIONS.DUPLICATED_TRANSACTION, CURRENT_USER_EMAIL, CURRENT_USER_ID)).toBe(true);
+        });
     });
 
     describe('getReportOwnerAsAttendee', () => {
