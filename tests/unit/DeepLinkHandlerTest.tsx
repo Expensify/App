@@ -182,7 +182,7 @@ describe('DeepLinkHandler', () => {
             urlChangeHandler?.({url: `new-expensify://r/${PUBLIC_ROOM_ID}`});
         });
 
-        expect(jest.mocked(openReportFromDeepLink).mock.calls.at(-1)?.[8]).toEqual({
+        expect(jest.mocked(openReportFromDeepLink).mock.calls.at(-1)?.[9]).toEqual({
             [reportNameValuePairsKey]: {private_isArchived: archivedAt},
         });
         addEventListenerSpy.mockRestore();

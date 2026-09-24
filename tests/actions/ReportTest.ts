@@ -5744,6 +5744,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
             });
@@ -5762,6 +5763,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: true,
             });
@@ -5784,6 +5786,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     betas: undefined,
                     shouldDismissModal: false,
                 });
@@ -5800,6 +5803,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: true,
                 reportActionID,
@@ -5823,6 +5827,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
                 linkToOptions,
@@ -5845,6 +5850,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
@@ -5868,6 +5874,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     betas: undefined,
                     shouldDismissModal: false,
                 });
@@ -5885,6 +5892,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     betas: undefined,
                     shouldDismissModal: false,
                 });
@@ -5904,6 +5912,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: true,
                 checkIfCurrentPageActive,
@@ -5931,6 +5940,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
             });
@@ -5962,6 +5972,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: testBetas,
                 shouldDismissModal: false,
             });
@@ -5980,6 +5991,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: true,
+                    hasCompletedGuidedSetupFlow: undefined,
                     betas: undefined,
                     shouldDismissModal: false,
                 });
@@ -5991,6 +6003,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
                     betas: undefined,
                     shouldDismissModal: false,
                 });
@@ -6002,6 +6015,7 @@ describe('actions/Report', () => {
                     introSelected: testIntroSelected,
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     isSelfTourViewed: undefined,
+                    hasCompletedGuidedSetupFlow: undefined,
                     betas: undefined,
                     shouldDismissModal: false,
                 });
@@ -6016,6 +6030,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
@@ -6037,6 +6052,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
                 checkIfCurrentPageActive,
@@ -6057,6 +6073,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
             });
@@ -6076,6 +6093,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: false,
             });
@@ -6095,6 +6113,7 @@ describe('actions/Report', () => {
                 introSelected: testIntroSelected,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
                 betas: undefined,
                 shouldDismissModal: true,
             });
@@ -8753,7 +8772,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             // No error should be thrown, function should return early
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, undefined, undefined, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -8761,7 +8780,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, 'invalidType', undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, 'invalidType', undefined);
             }).not.toThrow();
         });
 
@@ -8772,7 +8791,7 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const TEST_USER_ACCOUNT_ID = 1;
 
-            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+            handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
 
             await waitForBatchedUpdates();
 
@@ -8783,7 +8802,7 @@ describe('actions/Report', () => {
         it('should not throw with undefined introSelected', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             expect(() => {
-                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', undefined, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
 
@@ -8804,7 +8823,16 @@ describe('actions/Report', () => {
             const isSelfTourViewed = true;
 
             expect(() => {
-                localHandleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                localHandleWalletStatementNavigation(
+                    '123',
+                    testIntroSelected,
+                    TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed,
+                    undefined,
+                    undefined,
+                    CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE,
+                    undefined,
+                );
             }).not.toThrow();
         });
 
@@ -8814,7 +8842,7 @@ describe('actions/Report', () => {
             const isSelfTourViewed = false;
 
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
     });

@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
 import type {ValueOf} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -27,7 +27,9 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const webViewRef = useRef<WebView>(null);
@@ -51,7 +53,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         if (!webViewRef.current || !parsedData) {
             return;
         }
-        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, parsedData.type, parsedData.url);
+        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, parsedData.type, parsedData.url);
     };
 
     return (
