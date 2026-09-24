@@ -7,16 +7,16 @@ title: Keep Onyx reads off the render path and out of a written tick
 
 ### Reasoning
 
-`await Onyx.get()` reads a key once and never subscribes. `no-unsafe-onyx-read` catches most misuse, so this rule covers only what lint can't see.
+`await Onyx.get()` reads a key once and never subscribes. `Onyx.multiGet()` does the same for each key in an array, so everything below about `Onyx.get` applies to it too. `no-unsafe-onyx-read` catches most misuse, so this rule covers only what lint can't see.
 
 Do not re-check these:
 
 | Enforced | By |
 |---|---|
-| `Onyx.get` outside `src/components`, `src/pages`, `src/hooks` and `tests` | `no-unsafe-onyx-read` |
+| `Onyx.get` or `Onyx.multiGet` outside `src/components`, `src/pages`, `src/hooks` and `tests` | `no-unsafe-onyx-read` |
 | A read during render or at module scope | `no-unsafe-onyx-read` |
 | A read inside an effect, or in a same-file function an effect calls | `no-unsafe-onyx-read` |
-| A Search snapshot key, or a key lint can't resolve | `no-unsafe-onyx-read` |
+| A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-unsafe-onyx-read` |
 | A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
 | An inline `eslint-disable` of the rule | `scripts/checkOnyxConnectBypass.ts` |
 | A missing `await` whose value is then used | `tsc` |
@@ -142,8 +142,8 @@ return <Text>Current theme: {theme}</Text>;
 
 - A1. The diff adds a read to a function that some caller reaches from render: a component or hook body, a `useMemo` callback, a `useOnyx` selector, a lazy initializer, an IIFE or array callback in the body, or a local function the body calls. Grep `src/` for the function's name, ignoring imports. A plain-function caller isn't a verdict, so repeat on its name. Comment on the read, naming the calling file and line.
 - A2. The function holding the read returns JSX from any branch, or is passed as `renderItem`, `ListHeaderComponent`, or any `render*` or `*Component` prop. Flag the read.
-- A3. The diff adds a call at a render position in a component or hook, the call's value is discarded or the callee returns `void`, and the callee's file contains `Onyx.get`. Comment on the call.
-- A4. The diff passes a function that reads, or whose file contains `Onyx.get`, as a prop, and the receiver calls that prop from render. Open the receiver's file and Grep the prop's name followed by `(`; follow forwarded props. If the receiver can't be resolved (a spread, or a component held in a variable), ask the author to confirm nothing calls it during render.
+- A3. The diff adds a call at a render position in a component or hook, the call's value is discarded or the callee returns `void`, and the callee's file contains `Onyx.get` or `Onyx.multiGet`. Comment on the call.
+- A4. The diff passes a function that reads, or whose file contains `Onyx.get` or `Onyx.multiGet`, as a prop, and the receiver calls that prop from render. Open the receiver's file and Grep the prop's name followed by `(`; follow forwarded props. If the receiver can't be resolved (a spread, or a component held in a variable), ask the author to confirm nothing calls it during render.
 
 #### B. Tick
 
@@ -152,7 +152,7 @@ return <Text>Current theme: {theme}</Text>;
 
 #### C. Effect in another file
 
-- C1. The diff passes a function that reads, or whose file contains `Onyx.get`, to another component or hook, or turns a function already passed that way into one that reads. Open the receiver, Grep the prop's name followed by `(`, and flag when a call sits inside a `useEffect`, `useLayoutEffect` or `useFocusEffect` callback, directly or through a local function. Follow forwarded props. Comment on the prop, naming the receiver's effect.
+- C1. The diff passes a function that reads, or whose file contains `Onyx.get` or `Onyx.multiGet`, to another component or hook, or turns a function already passed that way into one that reads. Open the receiver, Grep the prop's name followed by `(`, and flag when a call sits inside a `useEffect`, `useLayoutEffect` or `useFocusEffect` callback, directly or through a local function. Follow forwarded props. Comment on the prop, naming the receiver's effect.
 
 #### D. Output
 
@@ -167,13 +167,13 @@ return <Text>Current theme: {theme}</Text>;
 - The removed `useOnyx` value appears nowhere in the diff except the converted call's arguments
 - The value is meant as a snapshot of the event, and nothing downstream expects it to update
 - The write is awaited, or the read runs in its `.then`, and the read key isn't derived from the written one
-- The read sits in a deliberate deferral: a `.then`, a timer, `runAfterTransitions`, `runAfterInteractions`, or a callback passed to an async API. Don't suggest hoisting it above the deferral, since that pins the value to the moment before the wait
+- (B only) The read sits in a deliberate deferral: a `.then`, a timer, `runAfterTransitions`, `runAfterInteractions`, or a callback passed to an async API. Don't suggest hoisting it above the deferral, since that pins the value to the moment before the wait. A `.then` chained on the read itself is not a deferral, and a deferral never excuses an A, C or D finding
 - The write and the read are in exclusive branches, or the write's branch returns first
 - The keys differ and the read key isn't derived from the written one
 
 **Search Patterns** (hints for reviewers):
 
-- `Onyx.get(`
+- `Onyx.get(`, `Onyx.multiGet(`
 - `Onyx.merge(`, `Onyx.update(`, `Onyx.set(`, `Onyx.mergeCollection(`
 - `ONYXKEYS.DERIVED`
 - removed `useOnyx(` lines in the diff, then that variable's name in the rest of the diff
