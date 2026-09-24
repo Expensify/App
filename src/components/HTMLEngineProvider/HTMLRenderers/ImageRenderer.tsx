@@ -1,5 +1,4 @@
 import {AttachmentContext} from '@components/AttachmentContext';
-import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
@@ -133,7 +132,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                     }}
                     isNested
                     shouldUseHapticsOnLongPress
-                    role={getButtonRole(true)}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
                 >

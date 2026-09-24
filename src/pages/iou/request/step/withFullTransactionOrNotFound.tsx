@@ -28,7 +28,6 @@ type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
     transaction: OnyxEntry<Transaction>;
 
-    /** Indicates whether the transaction data is loading */
     isLoadingTransaction?: boolean;
 };
 

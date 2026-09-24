@@ -39,14 +39,13 @@ import type {CartesianChartProps, ChartDataPoint} from '..';
 const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 type BarChartProps = CartesianChartProps & {
-    /** Callback when a bar is pressed */
     onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
 
-    /** When true, all bars use the same color. When false (default), each bar uses a different color from the palette. */
-    useSingleColor?: boolean;
+    /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
+    color?: string;
 };
 
-function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', useSingleColor = false, onBarPress}: BarChartProps) {
+function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left', color, onBarPress}: BarChartProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const fontManager = useChartFontManager();
@@ -54,7 +53,6 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const [barAreaWidth, setBarAreaWidth] = useState(0);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
-    const defaultBarColor = VictoryTheme.colors.default;
 
     const chartData = data.map((point, index) => ({
         x: index,
@@ -174,7 +172,7 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
         const dataIndex = point.xValue as number;
         const dataPoint = data.at(dataIndex);
-        const barColor = useSingleColor ? defaultBarColor : VictoryTheme.colors.getColor(dataIndex);
+        const barColor = color ?? VictoryTheme.colors.getColor(dataIndex);
 
         return (
             <Bar
@@ -246,7 +244,10 @@ function BarChartContentBody({data, isLoading, yAxisUnit, yAxisUnitPosition = 'l
     }
 
     return (
-        <GestureDetector gesture={customGestures}>
+        <GestureDetector
+            gesture={customGestures}
+            touchAction="pan-y"
+        >
             <Animated.View
                 style={[styles.chartContent, dynamicChartStyle, cursorStyle]}
                 onLayout={handleLayout}

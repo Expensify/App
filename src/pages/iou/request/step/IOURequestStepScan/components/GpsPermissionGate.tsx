@@ -13,7 +13,6 @@ type GpsPermissionGateProps = {
     /** Receipt files awaiting confirmation */
     receiptFiles: ReceiptFile[];
 
-    /** Resets the permission flow state */
     resetPermissionFlow: () => void;
 
     /** Called when GPS permission is granted or denied, with the receipt files and grant status */

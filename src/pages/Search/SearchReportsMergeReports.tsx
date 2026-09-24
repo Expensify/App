@@ -47,10 +47,13 @@ function SearchMergeReports() {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
 
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isReportMergeBetaEnabled = isBetaEnabled(CONST.BETAS.REPORT_MERGE);
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const personalPolicy = usePersonalPolicy();
@@ -148,7 +151,7 @@ function SearchMergeReports() {
         !!destinationReportID &&
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
-        canMergeReports(reportItems, currentUserPersonalDetails.accountID);
+        canMergeReports(reportItems, currentUserPersonalDetails.accountID, rules);
 
     const mergeSelectedReports = () => {
         if (!destinationReportID || !destinationReport || !isValidForMerge) {
@@ -158,6 +161,7 @@ function SearchMergeReports() {
         const policyID = destinationReport.policyID;
 
         mergeReports({
+            isVendorMatchingBetaEnabled,
             destinationReportID,
             sourceReportIDs,
             isASAPSubmitBetaEnabled,
@@ -171,6 +175,7 @@ function SearchMergeReports() {
             allReportActions,
             allReportsTransactions,
             bankAccountList,
+            rules,
             hash: currentSearchHash,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
@@ -196,6 +201,10 @@ function SearchMergeReports() {
     const onSelection = (item: ListItem) => {
         setDestinationReportID(item.reportID);
     };
+
+    if (!isReportMergeBetaEnabled) {
+        return null;
+    }
 
     return (
         <StepScreenWrapper

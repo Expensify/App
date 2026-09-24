@@ -62,7 +62,6 @@ type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 /** Model of transaction comment */
 type Comment = {
-    /** Selected attendees */
     attendees?: Attendee[];
 
     /** Content of the transaction comment */
@@ -80,7 +79,6 @@ type Comment = {
     /** Whether the transaction comment is a demo transaction */
     isDemoTransaction?: boolean;
 
-    /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
     /** Contains information pertaining to time tracking */
@@ -101,28 +99,22 @@ type Comment = {
     /** Source of the transaction which when specified matches `split` */
     source?: string;
 
-    /** ID of the original transaction */
     originalTransactionID?: string;
 
     /** In split transactions this is a collection of participant split data */
     splits?: Split[];
 
-    /** Collection of split expenses */
     splitExpenses?: SplitExpense[];
 
     /** Total that the user currently owes for splitExpenses */
     splitExpensesTotal?: number;
 
-    /** Start date for splits */
     splitsStartDate?: string;
-
-    /** End date for splits */
     splitsEndDate?: string;
 
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
-    /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
     /**
@@ -171,16 +163,12 @@ type TransactionCustomUnit = {
         };
     };
 
-    /** ID of the custom unit */
     customUnitID?: string;
-
-    /** ID of the custom unit rate */
     customUnitRateID?: string;
 
     /** Custom unit amount */
     quantity?: number | null;
 
-    /** Name of the custom unit */
     name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
 
     /** Default rate for custom unit */
@@ -222,11 +210,29 @@ type TransactionCustomUnit = {
     /** Reimbursable distance after commuter exclusion: max(0, quantity - commuterExclusion) */
     reimbursableDistance?: number;
 
-    /** The kind of commute the exclusion represents (R3 — currently unused) */
+    /** The kind of commute the exclusion represents (not populated yet) */
     commuterExclusionType?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_TYPE>;
 
-    /** How the exclusion was configured on the policy (R1: fixedDistance; R2: homeAndOffice) */
+    /** How the exclusion was configured on the policy */
     commuterExclusionMethod?: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
+};
+
+/**
+ * How much of a trip a workspace that excludes commutes by home and office takes off it. Matching a trip against
+ * the member's home and the workspace address needs geocoding, so only the server can decide it.
+ */
+type CommuterExclusionPreview = {
+    /** The workspace the preview was computed for, so one left behind by another workspace is ignored */
+    policyID: string;
+
+    /** Whether the trip starts or ends at the member's home, and so has a commute to take off it */
+    hasExclusion: boolean;
+
+    /** Whether the trip runs straight between home and the office, which makes all of it the commute */
+    isWholeTripExcluded: boolean;
+
+    /** The member's usual one-way commute, to take off a trip that only starts or ends at home */
+    commuteDistanceMeters: number;
 };
 
 /** Types of geometry */
@@ -261,6 +267,9 @@ type Receipt = {
     /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
     localSource?: string | null;
 
+    /** When the receipt upload reached the write queue */
+    receiptEnqueuedAt?: number;
+
     /** Name of receipt file */
     filename?: string;
 
@@ -270,16 +279,12 @@ type Receipt = {
     /** Type of the receipt file */
     type?: string;
 
-    /** Collection of reservations */
     reservationList?: Reservation[];
 
     /** Number of pages in a receipt stored as a PDF. Absent for images, for PDFs uploaded before the backend reported a count, and null while a replacement receipt is pending. */
     pageCount?: number | null;
 
-    /** Whether this is a test receipt */
     isTestReceipt?: true;
-
-    /** Receipt is Test Drive testing receipt */
     isTestDriveReceipt?: true;
 
     /** Local thumbnail URI for fast preview on confirmation page */
@@ -287,6 +292,12 @@ type Receipt = {
 
     /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
+
+    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
+    hotelReservationStartDate?: string;
+
+    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
+    hotelReservationEndDate?: string;
 };
 
 /** Model of route */
@@ -315,7 +326,6 @@ type ReceiptError = {
     /** Parameters required to retry the failed action */
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
 
-    /** The type of receipt error */
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
 
@@ -333,16 +343,9 @@ type TravelerPersonalDetails = {
 
 /** Model of reservation */
 type Reservation = {
-    /** ID of the reservation */
     reservationID?: string;
-
-    /** Details about the start of the reservation */
     start: ReservationTimeDetails;
-
-    /** Details about the end of the reservation */
     end: ReservationTimeDetails;
-
-    /** Type of reservation */
     type: ReservationType;
 
     /** In flight reservations, this represents the details of the airline company */
@@ -393,10 +396,7 @@ type Reservation = {
     /** Payment type of the reservation */
     paymentType?: string;
 
-    /** Departure gate details */
     departureGate?: Gate;
-
-    /** Arrival gate details */
     arrivalGate?: Gate;
 
     /** Coach number for rail */
@@ -405,22 +405,17 @@ type Reservation = {
     /** Seat number for rail */
     seatNumber?: string;
 
-    /** This represents the details of the traveler */
     travelerPersonalInfo?: TravelerPersonalDetails;
 
     /** Type or category of purchased fare */
     fareType?: string;
 
-    /** leg id */
     legId?: number;
 };
 
 /** Model of gate for flight reservation */
 type Gate = {
-    /** Terminal number */
     terminal: string;
-
-    /** Specific gate number */
     gate: string;
 };
 
@@ -441,10 +436,7 @@ type ReservationTimeDetails = {
     /** In flight reservations, this is the short name of the airport */
     shortName?: string;
 
-    /** Timezone offset */
     timezoneOffset?: string;
-
-    /** City name */
     cityName?: string;
 };
 
@@ -474,7 +466,6 @@ type CarInfo = {
     /** Name of the car */
     name?: string;
 
-    /** Engine type */
     engine?: string;
 };
 
@@ -511,7 +502,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
-        /** Selected accountant */
         accountant?: Accountant;
 
         /** The transaction converted amount in report's currency */
@@ -538,7 +528,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the expense is billable */
         billable?: boolean;
 
-        /** The category name */
         category?: string;
 
         /** The comment object on the transaction */
@@ -579,6 +568,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the merchant has been explicitly set by the user */
         isMerchantSet?: boolean;
 
+        /** Whether the date has been explicitly picked by the user */
+        isCreatedSet?: boolean;
+
         /** The original merchant name */
         merchant: string;
 
@@ -606,7 +598,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
          */
         participantsAutoAssigned?: boolean;
 
-        /** Selected participants */
         participants?: Participant[];
 
         /** The receipt object associated with the transaction */
@@ -618,13 +609,19 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
+        /**
+         * The report a failed reject was attempted from.
+         */
+        rejectFailedFromReportID?: string;
+
         /** The name of iouReport associated with the transaction */
         reportName?: string;
 
-        /** Existing routes */
         routes?: Routes;
 
-        /** The transaction id */
+        /** Server preview of whether this trip is a commute the workspace excludes, for the confirmation screen */
+        commuterExclusionPreview?: CommuterExclusionPreview | null;
+
         transactionID: string;
 
         /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
@@ -651,7 +648,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Card Transactions */
 
-        /** The parent transaction id */
         parentTransactionID?: string;
 
         /** Whether the expense is reimbursable or not */
@@ -672,7 +668,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The MCC Group for this transaction */
         mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
-        /** Modified MCC Group */
         modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
         /** If the transaction was made in a foreign currency, we send the original amount and currency */
@@ -693,10 +688,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
 
-        /** The linked reportAction id for the tracked expense */
         linkedTrackedExpenseReportAction?: ReportAction;
-
-        /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
 
         /** The bank of the purchaser card, if any */
@@ -723,7 +715,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The inserted time of the transaction */
         inserted?: string;
 
-        /** Transaction type */
         transactionType?: string;
     },
     keyof Comment | keyof TransactionCustomUnit | 'attendees'
@@ -734,22 +725,14 @@ type TransactionPendingFieldsKey = KeysOfUnion<Transaction['pendingFields']>;
 
 /** Additional transaction changes data */
 type AdditionalTransactionChanges = {
-    /** Content of modified comment */
     comment?: string;
-
-    /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
-
-    /** Collection of modified attendees */
     attendees?: Attendee[];
 
     /** The ID of the distance rate */
     customUnitRateID?: string;
 
-    /** Previous amount before changes */
     oldAmount?: number;
-
-    /** Previous currency before changes */
     oldCurrency?: string;
 
     /** Previous distance before changes */

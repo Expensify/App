@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 
 import React, {useContext, useMemo} from 'react';
@@ -35,20 +35,11 @@ type TextProps = RNTextProps &
          */
         fontSize?: number;
 
-        /** The alignment of the text */
         textAlign?: TextStyle['textAlign'];
-
-        /** Any children to display */
         children: React.ReactNode;
-
-        /** The family of the font to use */
         family?: keyof FontUtilsType['fontFamily']['platform'];
-
-        /** Should apply default line height */
         shouldUseDefaultLineHeight?: boolean;
-
-        /** Reference to the outer element */
-        ref?: ForwardedRef<RNText>;
+        ref?: ForwardedRef<ComponentRef<typeof RNText>>;
     };
 
 function Text({
