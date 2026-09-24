@@ -1,7 +1,7 @@
 ---
 title: Create-and-Submit-Reports.md
 description: Learn how to use New Expensify’s report-first flow to create, edit, submit, and retract expense reports.
-keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report]
+keywords: [New Expensify, create report, submit report, retract report, add expenses, fix report, admin create report, create report on behalf, move expenses to new report, pending card transactions, unable to submit report, default workspace, choose a workspace, preferred workspace]
 internalScope: Audience is members and Workspace Admins. Covers creating, submitting, editing, and retracting expense reports, including admin-created reports. Does not cover approvals, reimbursements, or exports.
 ---
 
@@ -13,7 +13,9 @@ Follow these steps to build an expense report manually.
 
 1. In the navigation tabs (on the left on Web, on the bottom on Mobile), select **+ Create**.
 2. Select **Create report** to open a draft report on your default workspace.
-  - Reports are opened on your default workspace. To switch workspaces select **More > Change workspace**.
+  - If your domain group has **Preferred Workspace** turned on, the report opens on that workspace instead of your default workspace.
+  - If you belong to more than one workspace and you have not set a default workspace, you are asked to **Choose a workspace for this report.** Select the workspace you want to use.
+  - To move the report to another workspace after it opens, select **More > Change workspace**.
 3. Select **Add expense** to add the first expense. You can create a new expense or add an existing expense.
  
 **Note:** To add additional expenses to an existing report, select **More > Add** expense. 
@@ -168,6 +170,28 @@ Examples:
 ---
 
 # FAQ
+
+## Which workspace does a new expense report open on?
+
+Expensify picks the workspace for you in this order:
+
+1. The **Preferred Workspace** set on your domain group, if your Domain Admin turned that setting on.
+2. Your default workspace, if you set one.
+3. Your only workspace, if you belong to just one workspace that can hold reports.
+
+If none of these apply, you are asked to choose a workspace.
+
+## Why am I asked to choose a workspace when I create a report?
+
+You see **Choose a workspace for this report.** when you belong to more than one workspace and Expensify cannot tell which one to use. This usually means you have not set a default workspace yet.
+
+To stop being asked, set a default workspace:
+
+1. In the navigation tabs (on the left on Web, on the bottom on Mobile), select **Workspaces**.
+2. Select the three dots **(⋮)** next to the workspace you want to use.
+3. Select **Set as default workspace**.
+
+New reports then open on that workspace, even if you belong to several other workspaces.
 
 ## How can an Admin take these actions for another member?
 

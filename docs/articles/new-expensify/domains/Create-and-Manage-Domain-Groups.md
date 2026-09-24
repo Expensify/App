@@ -88,6 +88,8 @@ Enable this to prevent members from creating or removing workspaces. **Restrict 
 
 Set a **Preferred Workspace** to automatically route a group’s expenses and reports to a specific workspace. This is helpful if different members use different workspaces and you want to reduce manual workspace selection. If you have multiple workspaces, use this to route a group’s expenses to the right workspace by default.
 
+The preferred workspace takes precedence over each member’s own default workspace. Members in the group are not asked to choose a workspace when they select **Create report**.
+
 ## What Expensify Card preferred workspace does
 
 If a **Preferred Workspace** is set, enable this option to automatically post **Expensify Card** transactions to that workspace instead. This ensures transactions are routed correctly and reconciliation is simplified. Your domain must have Expensify Cards set up before you can enable it.
@@ -111,6 +113,10 @@ New domain members are automatically assigned to that group, ensuring they recei
 ## Does Preferred Workspace move existing expenses?
 
 No. **Preferred Workspace** applies to new expenses and reports going forward.
+
+## Which workspace do new reports open on when Preferred Workspace is turned on?
+
+The preferred workspace. When a member of the group selects **Create report**, the report is created on the preferred workspace and the workspace list is skipped, even if the member set a different default workspace for themselves.
 
 ## Why don’t I see a Search field on the Preferred Workspace page?
 
