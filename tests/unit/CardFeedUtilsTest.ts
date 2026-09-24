@@ -541,6 +541,15 @@ describe('getAssignedCardFeedAccess', () => {
         expect(getAssignedCardFeedAccess(card, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: 'WS', isAdmin: true});
     });
 
+    // A feed's policy IDs come from the back end in whatever case it sent them, while the Onyx key is upper case.
+    // Missing the workspace here reads as the cardholder not being an admin, which is the bug this resolves.
+    it('resolves a workspace the feed names in a different case', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['ws']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, {}, currentUserAccountID)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
     it('falls back to the preferred policy when the feed links to none', () => {
         const cardFeeds = createCompanyCardFeeds({[bank]: {preferredPolicy: 'WS'}});
         const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};

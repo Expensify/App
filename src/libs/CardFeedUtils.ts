@@ -333,13 +333,17 @@ function getAssignedCardFeedAccess(
     const feedSettings = getFeedSettingsForCard(card, allCardFeeds);
     const linkedPolicyIDs = feedSettings?.linkedPolicyIDs?.filter(Boolean) ?? [];
     const namedPolicyIDs = linkedPolicyIDs.length ? linkedPolicyIDs : [feedSettings?.preferredPolicy].filter((policyID): policyID is string => !!policyID);
-    const namedPolicies = namedPolicyIDs.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).filter((policy) => !!policy);
+    // A feed spells its policy IDs however the back end sent them, while the Onyx key is upper case, so the ID is
+    // normalized here as it is wherever else a feed's workspace is looked up.
+    const namedPolicies = namedPolicyIDs.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`]).filter((policy) => !!policy);
 
     // A feed can name more than one workspace. Prefer one the cardholder administers, so the link lands somewhere
     // they can act rather than on a workspace that would only show them the same problem again.
     const policyForCard = namedPolicies.find((policy) => isPolicyAdmin(policy)) ?? namedPolicies.at(0) ?? getPolicyForAssignedCard(card, policies);
 
-    return {policyID: policyForCard?.id, isAdmin: isAdminSelector(currentUserAccountID)(getDomainByFundID(domains, fundID)) || isPolicyAdmin(policyForCard)};
+    // The workspace role is already to hand, while finding the fund's domain can mean scanning every domain, so the
+    // cheaper check goes first and the scan only happens for someone who is not an admin of the workspace.
+    return {policyID: policyForCard?.id, isAdmin: isPolicyAdmin(policyForCard) || isAdminSelector(currentUserAccountID)(getDomainByFundID(domains, fundID))};
 }
 
 /**
