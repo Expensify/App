@@ -1,5 +1,5 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 function CountrySelection() {
     const [country, countryMetadata] = useOnyx(ONYXKEYS.COUNTRY);
@@ -113,7 +114,11 @@ function CountrySelection() {
     };
 
     if (isLoadingOnyxValue(countryMetadata, reimbursementAccountMetadata, reimbursementAccountDraftMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        );
     }
 
     return (

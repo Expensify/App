@@ -126,7 +126,7 @@ function ChooseTransferAccountPage() {
     };
 
     if (isLoadingOnyxValue(walletTransferResult) || walletPersonalBankAccountSetup.isLoading) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

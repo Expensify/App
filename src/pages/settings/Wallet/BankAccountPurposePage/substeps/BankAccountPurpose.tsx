@@ -1,5 +1,5 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
 
@@ -11,6 +11,8 @@ import useWalletPersonalBankAccountSetup from '@hooks/useWalletPersonalBankAccou
 import variables from '@styles/variables';
 
 import {openWalletPersonalBankAccountSetup} from '@userActions/BankAccounts';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -27,7 +29,11 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
     const walletPersonalBankAccountSetup = useWalletPersonalBankAccountSetup();
 
     if (walletPersonalBankAccountSetup.isLoading) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        );
     }
 
     const openPersonalSetup = () => {

@@ -61,6 +61,14 @@ describe('AddressPageTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
     });
+
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, null);
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should not reset state', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
@@ -83,8 +91,10 @@ describe('AddressPageTest', () => {
         await waitForBatchedUpdatesWithAct();
         const stateInput = screen.getByLabelText('State / Province');
         expect(stateInput.props.value).toEqual('Test');
-        Navigation.setParams({
-            country: 'VN',
+        act(() => {
+            Navigation.setParams({
+                country: 'VN',
+            });
         });
         await waitForBatchedUpdatesWithAct();
         const stateInputAfterParams = screen.getByLabelText('State / Province');

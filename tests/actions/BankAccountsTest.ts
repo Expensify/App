@@ -54,6 +54,7 @@ describe('actions/BankAccounts', () => {
     });
 
     beforeEach(() => {
+        jest.clearAllMocks();
         mockFetch = TestHelper.createGlobalFetchMock();
         global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
@@ -219,6 +220,7 @@ describe('actions/BankAccounts', () => {
 
     describe('openWalletPersonalBankAccountSetup', () => {
         test('opens the base US route when resuming US progress so the page can validate the destination', async () => {
+            // Given an unfinished manual US setup owned by Wallet
             const personalBankAccount = {
                 source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
                 currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
@@ -231,17 +233,22 @@ describe('actions/BankAccounts', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
             await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalDraft);
 
+            // When the Wallet setup is reopened
             openWalletPersonalBankAccountSetup({
                 personalBankAccount,
                 personalDraft,
                 internationalDraft: undefined,
             });
+            await waitForBatchedUpdates();
 
+            // Then navigation waits for the resume marker and opens the base route for page validation
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
             expect(await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(personalDraft);
         });
 
         test('keeps the US resume path through verification and replaces stale entry metadata', async () => {
+            // Given Plaid progress with stale context from another entry point
             const personalBankAccount = {
                 source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
                 currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
@@ -252,6 +259,7 @@ describe('actions/BankAccounts', () => {
             const personalDraft = {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID} as const;
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
 
+            // When an unvalidated user reopens the Wallet setup
             openWalletPersonalBankAccountSetup({
                 personalBankAccount,
                 personalDraft,
@@ -260,14 +268,17 @@ describe('actions/BankAccounts', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then stale context is removed before navigation continues through verification
             expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({
                 source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
                 currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
             });
+            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
             expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true)));
         });
 
         test('starts a fresh flow when the completed setup was dismissed from the Success page', async () => {
+            // Given completed US progress that should not be resumed
             const personalBankAccount = {
                 source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
                 currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.CONFIRMATION,
@@ -281,7 +292,7 @@ describe('actions/BankAccounts', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
             await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalDraft);
 
-            jest.mocked(Navigation.navigate).mockClear();
+            // When Add bank account is opened again
             openWalletPersonalBankAccountSetup({
                 personalBankAccount,
                 personalDraft,
@@ -289,15 +300,15 @@ describe('actions/BankAccounts', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the completed draft is cleared and a fresh flow starts
             expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
             const clearedPersonalDraft = await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
-            expect(clearedPersonalDraft?.setupType).not.toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            expect(clearedPersonalDraft?.routingNumber).toBeUndefined();
-            expect(clearedPersonalDraft?.accountNumber).toBeUndefined();
+            expect(clearedPersonalDraft).toBeFalsy();
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
         });
 
         test('preserves cached Corpay fields and an international Wallet draft until compatibility is checked', async () => {
+            // Given unfinished international progress and cached fields from an incompatible Corpay request
             const personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET};
             const internationalDraft = {bankCountry: 'DE', bankCurrency: 'EUR', accountNumber: '12345678'};
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
@@ -326,16 +337,18 @@ describe('actions/BankAccounts', () => {
                 isBusinessBankAccount: true,
             });
 
-            jest.mocked(Navigation.navigate).mockClear();
+            // When the Wallet setup is reopened
             openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft: undefined, internationalDraft});
             await waitForBatchedUpdates();
 
+            // Then the destination can validate compatibility without losing either persisted value
             expect(await getOnyxValue(ONYXKEYS.CORPAY_FIELDS)).toEqual(expect.objectContaining({isWithdrawal: true, isBusinessBankAccount: true}));
             expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(internationalDraft);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
         });
 
         test('starts a fresh flow when a completed international setup was dismissed from the Success page', async () => {
+            // Given an international setup whose successful action cleared its draft
             const personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET};
             const internationalDraft = {bankCountry: 'DE', bankCurrency: 'EUR'};
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
@@ -347,7 +360,7 @@ describe('actions/BankAccounts', () => {
             const completedInternationalDraft = await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
             expect(completedInternationalDraft).toBeFalsy();
 
-            jest.mocked(Navigation.navigate).mockClear();
+            // When Add bank account is opened again
             openWalletPersonalBankAccountSetup({
                 personalBankAccount,
                 personalDraft: undefined,
@@ -355,19 +368,23 @@ describe('actions/BankAccounts', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then it starts a fresh Wallet flow instead of resuming completed progress
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
         });
 
         test('preserves international values when Corpay fields are refreshed for resume', async () => {
+            // Given an international draft containing user-entered bank details
             await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {
                 bankCountry: 'GB',
                 bankCurrency: 'GBP',
                 accountNumber: '12345678',
             });
 
+            // When Corpay fields are refreshed for resume
             fetchCorpayFields('GB', 'GBP', false, false, {preserveExistingDraft: true});
             await waitForBatchedUpdates();
 
+            // Then the refresh keeps the existing user-entered values
             expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(
                 expect.objectContaining({bankCountry: 'GB', bankCurrency: 'GBP', accountNumber: '12345678'}),
             );

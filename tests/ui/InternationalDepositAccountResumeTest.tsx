@@ -83,15 +83,16 @@ describe('InternationalDepositAccount resume fields', () => {
         jest.clearAllMocks();
         personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET, isLoading: false, corpayFieldsError: null};
         corpayFields = undefined;
-        mockedUseOnyx.mockImplementation((key) => {
+        mockedUseOnyx.mockImplementation((key, options) => {
+            const applySelector = <TValue,>(value: TValue) => (options?.selector ? options.selector(value) : value);
             if (key === ONYXKEYS.PERSONAL_BANK_ACCOUNT) {
-                return [personalBankAccount, {status: 'loaded'}];
+                return [applySelector(personalBankAccount), {status: 'loaded'}];
             }
             if (key === ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT) {
-                return [draftValues, {status: 'loaded'}];
+                return [applySelector(draftValues), {status: 'loaded'}];
             }
             if (key === ONYXKEYS.CORPAY_FIELDS) {
-                return [corpayFields, {status: 'loaded'}];
+                return [applySelector(corpayFields), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });

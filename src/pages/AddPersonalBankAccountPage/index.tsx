@@ -293,7 +293,7 @@ function AddPersonalBankAccountPage() {
     }, [error]);
 
     if (isRedirecting || isResumeStateLoading || !isURLSubPageValid) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

@@ -190,17 +190,16 @@ function openWalletPersonalBankAccountSetup({personalBankAccount, personalDraft,
     });
 
     if (!isUserValidated) {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, hasPersonalProgress)));
+        setPersonalBankAccount.then(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, hasPersonalProgress))));
         return;
     }
 
     if (personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL || personalDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+        setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute()));
         return;
     }
 
     const backTo = Navigation.getActiveRoute();
-    // Wait until the Wallet setup state is saved so the destination page reads the updated account data on its first render.
     setPersonalBankAccount.then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(backTo)));
 }
 

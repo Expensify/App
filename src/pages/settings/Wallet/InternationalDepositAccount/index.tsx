@@ -18,13 +18,21 @@ import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalBankAccount} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef} from 'react';
 
 import InternationalDepositAccountContent from './InternationalDepositAccountContent';
 
 type InternationalDepositAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>;
+
+const personalBankAccountSourceSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.source;
+const personalBankAccountIsLoadingSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.isLoading;
+const personalBankAccountCorpayFieldsErrorSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.corpayFieldsError;
+const personalBankAccountCurrentPageSelector = (personalBankAccount: OnyxEntry<PersonalBankAccount>) => personalBankAccount?.currentPage;
 
 function InternationalDepositAccount({route}: InternationalDepositAccountProps) {
     const {translate} = useLocalize();
@@ -33,7 +41,10 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [country, countryMetadata] = useOnyx(ONYXKEYS.COUNTRY);
-    const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalBankAccountSource, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountSourceSelector});
+    const [isPersonalBankAccountLoading] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountIsLoadingSelector});
+    const [corpayFieldsError] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCorpayFieldsErrorSelector});
+    const [savedPage] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: personalBankAccountCurrentPageSelector});
     const backTo = route.params?.backTo;
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, personalBankAccountMetadata);
@@ -45,10 +56,10 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
         !!corpayFields?.formFields?.length;
     const resumeFieldsKey = `${draftValues?.bankCountry ?? ''}:${draftValues?.bankCurrency ?? ''}`;
     const requestedResumeFieldsKeyRef = useRef('');
-    const shouldResumeWithRefreshedFields = personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET && !!draftValues?.bankCountry && !hasMatchingCorpayFields;
-    const hasResumeFieldsError = shouldResumeWithRefreshedFields && !!personalBankAccount?.corpayFieldsError;
+    const shouldResumeWithRefreshedFields = personalBankAccountSource === CONST.BANK_ACCOUNT.SOURCE.WALLET && !!draftValues?.bankCountry && !hasMatchingCorpayFields;
+    const hasResumeFieldsError = shouldResumeWithRefreshedFields && !!corpayFieldsError;
     const shouldWaitForResumeFields = shouldResumeWithRefreshedFields && !hasResumeFieldsError;
-    const shouldRefreshResumeFields = shouldWaitForResumeFields && !personalBankAccount?.isLoading;
+    const shouldRefreshResumeFields = shouldWaitForResumeFields && !isPersonalBankAccountLoading;
 
     useEffect(() => {
         if (isLoading || !shouldRefreshResumeFields || requestedResumeFieldsKeyRef.current === resumeFieldsKey || !draftValues?.bankCountry) {
@@ -98,12 +109,15 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
                         <FullPageErrorView
                             shouldShow
                             title={translate('errorPage.title', {isBreakLine: false})}
-                            subtitle={translate(personalBankAccount?.corpayFieldsError ?? 'common.genericErrorMessage')}
+                            subtitle={translate(corpayFieldsError ?? 'common.genericErrorMessage')}
                             buttonTranslationKey="common.tryAgain"
                             onButtonPress={retryFetchCorpayFields}
                         />
                     ) : (
-                        <FullScreenLoadingIndicator />
+                        <FullScreenLoadingIndicator
+                            shouldUseGoBackButton
+                            onGoBack={handleLoadingBackButtonPress}
+                        />
                     )}
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
@@ -117,9 +131,9 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
             bankAccountList={bankAccountList}
             draftValues={draftValues}
             country={country}
-            isAccountLoading={personalBankAccount?.isLoading ?? false}
-            isWalletSetup={personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET}
-            savedPage={personalBankAccount?.currentPage}
+            isAccountLoading={isPersonalBankAccountLoading ?? false}
+            isWalletSetup={personalBankAccountSource === CONST.BANK_ACCOUNT.SOURCE.WALLET}
+            savedPage={savedPage}
             backTo={backTo}
         />
     );
