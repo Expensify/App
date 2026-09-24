@@ -20,22 +20,24 @@ function clearUserLocation() {
 }
 
 function snapshotUserLocation() {
-    getLocationPermission().then((status) => {
-        if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
-            return;
-        }
+    getLocationPermission()
+        .then((status) => {
+            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                return;
+            }
 
-        clearUserLocation();
-        getCurrentPosition(
-            (successData) => {
-                setUserLocation({
-                    longitude: successData.coords.longitude,
-                    latitude: successData.coords.latitude,
-                });
-            },
-            () => {},
-        );
-    });
+            clearUserLocation();
+            getCurrentPosition(
+                (successData) => {
+                    setUserLocation({
+                        longitude: successData.coords.longitude,
+                        latitude: successData.coords.latitude,
+                    });
+                },
+                () => {},
+            );
+        })
+        .catch(() => {});
 }
 
 export {setUserLocation, clearUserLocation, snapshotUserLocation};

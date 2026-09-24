@@ -23,6 +23,7 @@ import type {Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {check} from 'react-native-permissions';
 
 import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
 
@@ -617,6 +618,22 @@ describe('SubmitDetailsPage', () => {
         expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
         expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
         expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('caches nothing and raises nothing when the permission check fails on open', async () => {
+        // Given a device whose location permission check fails outright
+        jest.mocked(check).mockRejectedValueOnce(new Error('permission check failed'));
+        const unhandledRejection = jest.fn();
+        process.on('unhandledRejection', unhandledRejection);
+
+        // When the share screen opens
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        process.off('unhandledRejection', unhandledRejection);
+
+        // Then the screen cached no position, and the failed check never surfaced as an unhandled rejection
+        expect(await getUserLocationFromOnyx()).toBeUndefined();
+        expect(unhandledRejection).not.toHaveBeenCalled();
     });
 
     // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.
