@@ -7,7 +7,7 @@ import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility, SPEND_INSIGHT_KEYS} from '@libs/SearchUIUtils';
 
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
-import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
@@ -52,7 +52,7 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
 
 /**
  * Builds the configs for the Home insights the current user should see, in display order.
- * Uses the same visibility rules as the Spend menu. With the Insights page beta, the charts match the Insights Spend dashboard.
+ * With the Insights page beta, the charts and their visibility match the Insights Spend dashboard, otherwise the Spend menu.
  */
 function useHomeInsightConfigs(): HomeInsightConfig[] {
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -63,9 +63,8 @@ function useHomeInsightConfigs(): HomeInsightConfig[] {
     const {isBetaEnabled} = usePermissions();
     const {filters, isResolved: areFiltersResolved} = useInsightsFilters();
 
-    const {visibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(session?.email, cardFeedsByPolicy, policies, defaultExpensifyCard, false, !!isTrackIntentUser);
-
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+        const {visibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(session?.email, cardFeedsByPolicy, policies, defaultExpensifyCard, false, !!isTrackIntentUser);
         const suggestedSearches = getSuggestedSearches(session?.accountID, (defaultCardFeed ?? defaultExpensifyCard)?.id, shouldShowExpensifyCard);
         return SPEND_INSIGHT_KEYS.filter((key) => visibility[key]).map((key) => suggestedSearches[key]);
     }
@@ -74,7 +73,7 @@ function useHomeInsightConfigs(): HomeInsightConfig[] {
         return [];
     }
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    return [headlineChart, ...supportingCharts].filter((chart) => visibility[chart.graphKey]).map((chart) => buildInsightConfigFromChart(chart, filters));
+    return getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
 }
 
 export type {HomeInsightConfig};
