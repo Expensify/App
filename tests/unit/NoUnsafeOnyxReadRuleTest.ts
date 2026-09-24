@@ -444,3 +444,45 @@ describe('no-unsafe-onyx-read allowed paths', () => {
         ],
     });
 });
+
+describe('no-unsafe-onyx-read multiGet', () => {
+    ruleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            `${ONYX_IMPORT} function Row() { const onPress = async () => { const [session, account] = await Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT]); submit(session, account); }; return <View onPress={onPress} />; }`,
+            `${ONYX_IMPORT} export function submit(id) { return Onyx.multiGet([ONYXKEYS.SESSION, \`\${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}\${id}\`]); }`,
+            `${ONYX_IMPORT} export function submit() { const keys = [ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT]; return Onyx.multiGet(keys); }`,
+            `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([]); }`,
+
+            'const Onyx = {multiGet: () => []}; function Row() { const value = Onyx.multiGet([ONYXKEYS.SESSION]); return <View value={value} />; }',
+        ],
+        invalid: [
+            {code: `${ONYX_IMPORT} function Row() { const values = use(Onyx.multiGet([ONYXKEYS.SESSION])); return <View values={values} />; }`, errors: RENDER_ERRORS},
+
+            {code: `${ONYX_IMPORT} const {multiGet} = Onyx; const initialValues = multiGet([ONYXKEYS.SESSION]);`, errors: MODULE_SCOPE_ERRORS},
+            {code: `${ONYX_IMPORT} const readMany = Onyx.multiGet; function Row() { const values = readMany([ONYXKEYS.SESSION]); return <View values={values} />; }`, errors: RENDER_ERRORS},
+
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT]); }`, errors: RESTRICTED_ERRORS},
+            {
+                code: `${ONYX_IMPORT} export function submit(reportID) { return Onyx.multiGet([ONYXKEYS.PERSONAL_DETAILS_LIST, \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`]); }`,
+                errors: [{messageId: 'noRestrictedOnyxKey'}, {messageId: 'noRestrictedOnyxKey'}],
+            },
+            {code: `${ONYX_IMPORT} export function submit() { const keys = [ONYXKEYS.COLLECTION.REPORT]; return Onyx.multiGet(keys); }`, errors: RESTRICTED_ERRORS},
+            {code: `${ONYX_IMPORT} const {multiGet} = Onyx; export function submit() { return multiGet([ONYXKEYS.COLLECTION.REPORT]); }`, errors: RESTRICTED_ERRORS},
+
+            {code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet(keys); }`, errors: UNRESOLVABLE_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit(key) { return Onyx.multiGet([ONYXKEYS.SESSION, key]); }`, errors: UNRESOLVABLE_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit(keys) { return Onyx.multiGet([ONYXKEYS.SESSION, ...keys]); }`, errors: UNRESOLVABLE_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit(ids) { return Onyx.multiGet(ids.map((id) => \`\${ONYXKEYS.COLLECTION.POLICY_TAGS}\${id}\`)); }`, errors: UNRESOLVABLE_ERRORS},
+        ],
+    });
+});
+
+describe('no-unsafe-onyx-read multiGet under the TypeScript parser', () => {
+    tsRuleTester.run(ruleModule.name, ruleModule, {
+        valid: [
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT] as const); }`},
+            {code: `${ONYX_IMPORT} export function submit() { const keys = [ONYXKEYS.SESSION, ONYXKEYS.ACCOUNT] as const; return Onyx.multiGet(keys); }`},
+        ],
+        invalid: [{code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT] as const); }`, errors: RESTRICTED_ERRORS}],
+    });
+});

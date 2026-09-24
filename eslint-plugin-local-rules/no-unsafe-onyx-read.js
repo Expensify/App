@@ -52,6 +52,10 @@ const RESTRICTED_KEY_PATHS = resolveRestrictedKeyPaths();
 
 const READ_METHOD = 'get';
 
+const MULTI_READ_METHOD = 'multiGet';
+
+const READ_METHODS = new Set([READ_METHOD, MULTI_READ_METHOD]);
+
 const READ_ALLOWED_DIRECTORIES = ['src/components/', 'src/pages/', 'src/hooks/', 'tests/'];
 
 const READ_ALLOWED_FILES = new Set([]);
@@ -90,25 +94,26 @@ const EFFECT = 'effect';
 const meta = {
     type: 'problem',
     docs: {
-        description: 'Disallow unsafe Onyx reads: Onyx.get outside components, pages, hooks and tests, during render, inside effects, at module scope or on Search snapshot keys.',
+        description:
+            'Disallow unsafe Onyx reads: Onyx.get or Onyx.multiGet outside components, pages, hooks and tests, during render, inside effects, at module scope or on Search snapshot keys.',
         recommended: 'error',
     },
     schema: [],
     messages: {
         noOnyxGetInRender:
-            'Do not read Onyx during render. Onyx.get() is a one-shot read that never subscribes, so a value obtained while rendering does not re-render the component when that key changes and the UI can show stale data indefinitely. A component cannot await it either, so reaching it from render means use() or .then(), both of which read without subscribing.\n\n' +
-            'Use useOnyx() for anything the component renders. Reserve Onyx.get() for code that runs on an event: event handlers and useCallback bodies.',
+            'Do not read Onyx during render. Onyx.get() and Onyx.multiGet() are one-shot reads that never subscribes, so a value they return while rendering does not re-render the component when that key changes and the UI can show stale data indefinitely. A component cannot await it either, so reaching it from render means use() or .then(), both of which read without subscribing.\n\n' +
+            'Use useOnyx() for anything the component renders. Reserve Onyx.get() and Onyx.multiGet() for code that runs on an event: event handlers and useCallback bodies.',
         noOnyxReadAtModuleScope:
             'Do not read Onyx at module scope. A module body runs at import time and cannot await, so the value can only be parked in a module variable through .then(), where it is a one-shot snapshot that never updates when the key changes.\n\n' +
             'Move the read inside the function that needs it, so it runs at event time and reads the current value. If the module genuinely needs to track a key, subscribe with Onyx.connectWithoutView() instead of caching one read.',
         noUnresolvableOnyxKey:
             'Do not read Onyx with a key this rule cannot resolve. The read surface is restricted to keys that are provably not Search snapshot keys, and a key built at runtime cannot be checked, so a caller can route a snapshot key here without anything failing.\n\n' +
-            'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. If the key cannot be static, keep the useOnyx subscription or take the value as a parameter. An inline eslint-disable of this rule fails the lint run.',
+            'Write the key as an ONYXKEYS access, such as ONYXKEYS.SESSION, or as a template literal that starts with an ONYXKEYS collection prefix. For Onyx.multiGet(), pass an array literal, or a const bound to one, whose every element is written that way. If the key cannot be static, keep the useOnyx subscription or take the value as a parameter. An inline eslint-disable of this rule fails the lint run.',
         noRestrictedOnyxKey:
             'Do not read {{keyPath}} with a one-shot Onyx read. src/hooks/useOnyx.ts rewrites this key to snapshot_<hash> inside a SearchScopeProvider subtree, so a component subscribed to it may never have been reading the global key at all. A read here returns live data where the component saw the snapshot, and nothing at the call site can tell the two apart.\n\n' +
             'Take the value as a parameter from the component, which knows whether it is inside a Search scope, or keep the useOnyx subscription.',
         noOnyxReadOutsideAllowedPath:
-            'Onyx.get() is only allowed in src/components, src/pages, src/hooks and tests.\n\n' +
+            'Onyx.get() and Onyx.multiGet() are only allowed in src/components, src/pages, src/hooks and tests.\n\n' +
             'Elsewhere, take the value as a parameter or keep the Onyx.connectWithoutView() subscription. A file joins READ_ALLOWED_FILES only in a PR that removes an Onyx.connectWithoutView() from it.',
         noOnyxReadInEffect:
             'Do not read Onyx inside an effect, or in a function an effect calls. When the value was in the effect dependency array, the useOnyx subscription is what re-runs the effect, and a one-shot read stops that.\n\n' +
@@ -562,6 +567,27 @@ function classifyPosition(ancestors, sourceCode) {
     return MODULE_SCOPE;
 }
 
+function getKeyListElements(node, scope, seen = new Set()) {
+    let current = node;
+
+    while (current && TYPE_ONLY_EXPRESSIONS.has(current.type)) {
+        current = current.expression;
+    }
+
+    if (current?.type === 'Identifier') {
+        if (seen.has(current)) {
+            return null;
+        }
+
+        seen.add(current);
+        const initializer = getConstInitializer(current, scope);
+
+        return initializer ? getKeyListElements(initializer, scope, seen) : null;
+    }
+
+    return current?.type === 'ArrayExpression' ? current.elements : null;
+}
+
 function findRestrictedKey(keyArgument, scope) {
     const keyPath = getOnyxKeyPath(keyArgument, scope);
 
@@ -572,33 +598,83 @@ function findRestrictedKey(keyArgument, scope) {
     return RESTRICTED_KEY_PATHS.has(keyPath) ? {keyPath} : null;
 }
 
+function findRestrictedKeys(readMethod, call, scope) {
+    const keyArgument = call.arguments.at(0);
+
+    if (readMethod !== MULTI_READ_METHOD) {
+        const finding = findRestrictedKey(keyArgument, scope);
+
+        return finding ? [{node: call, ...finding}] : [];
+    }
+
+    const elements = keyArgument?.type === 'SpreadElement' ? null : getKeyListElements(keyArgument, scope);
+
+    if (!elements) {
+        return [{node: call, keyPath: null}];
+    }
+
+    return elements.flatMap((element) => {
+        if (!element || element.type === 'SpreadElement') {
+            return [{node: element ?? call, keyPath: null}];
+        }
+
+        const finding = findRestrictedKey(element, scope);
+
+        return finding ? [{node: element, ...finding}] : [];
+    });
+}
+
 function create(context) {
     const sourceCode = context.sourceCode ?? context.getSourceCode();
     const filename = context.filename ?? context.getFilename();
     const onyxImportBindings = new WeakSet();
-    const readAliases = new WeakSet();
+    const readAliases = new WeakMap();
 
-    function trackBinding(node, bindingName, bindings) {
-        const variable = sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
-
-        if (variable) {
-            bindings.add(variable);
-        }
-
-        return variable;
+    function getDeclaredVariable(node, bindingName) {
+        return sourceCode.getDeclaredVariables(node).find((declaredVariable) => declaredVariable.name === bindingName);
     }
 
-    function isOnyxRead(node, scope) {
+    function trackImportBinding(node, bindingName) {
+        const variable = getDeclaredVariable(node, bindingName);
+
+        if (variable) {
+            onyxImportBindings.add(variable);
+        }
+    }
+
+    function trackReadAlias(node, bindingName, readMethod) {
+        const variable = getDeclaredVariable(node, bindingName);
+
+        if (variable) {
+            readAliases.set(variable, readMethod);
+        }
+    }
+
+    function getOnyxReadMethod(node, scope) {
         if (node?.type !== 'MemberExpression' || node.object.type !== 'Identifier') {
-            return false;
+            return null;
         }
 
-        if (getStaticPropertyName(node) !== READ_METHOD) {
-            return false;
+        const propertyName = getStaticPropertyName(node);
+
+        if (!READ_METHODS.has(propertyName)) {
+            return null;
         }
 
         const objectVariable = getVariableByName(scope, node.object.name);
-        return !!objectVariable && onyxImportBindings.has(objectVariable);
+        return !!objectVariable && onyxImportBindings.has(objectVariable) ? propertyName : null;
+    }
+
+    function getCalledReadMethod(callee, scope) {
+        const readMethod = getOnyxReadMethod(callee, scope);
+
+        if (readMethod) {
+            return readMethod;
+        }
+
+        const calleeVariable = callee.type === 'Identifier' ? getVariableByName(scope, callee.name) : null;
+
+        return calleeVariable ? (readAliases.get(calleeVariable) ?? null) : null;
     }
 
     return {
@@ -609,7 +685,7 @@ function create(context) {
 
             for (const specifier of node.specifiers) {
                 if (specifier.type === 'ImportDefaultSpecifier' || specifier.type === 'ImportNamespaceSpecifier') {
-                    trackBinding(node, specifier.local.name, onyxImportBindings);
+                    trackImportBinding(node, specifier.local.name);
                 }
             }
         },
@@ -630,8 +706,8 @@ function create(context) {
 
                     const keyName = getStaticName(property.key, property.computed);
 
-                    if (keyName === READ_METHOD) {
-                        trackBinding(node, property.value.name, readAliases);
+                    if (READ_METHODS.has(keyName)) {
+                        trackReadAlias(node, property.value.name, keyName);
                     }
                 }
                 return;
@@ -645,19 +721,21 @@ function create(context) {
                 const aliasedVariable = getVariableByName(scope, node.init.name);
 
                 if (aliasedVariable && onyxImportBindings.has(aliasedVariable)) {
-                    trackBinding(node, node.id.name, onyxImportBindings);
+                    trackImportBinding(node, node.id.name);
                 }
             }
 
-            if (isOnyxRead(node.init, scope)) {
-                trackBinding(node, node.id.name, readAliases);
+            const readMethod = getOnyxReadMethod(node.init, scope);
+
+            if (readMethod) {
+                trackReadAlias(node, node.id.name, readMethod);
             }
         },
         CallExpression(node) {
             const scope = sourceCode.getScope(node);
-            const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
+            const readMethod = getCalledReadMethod(node.callee, scope);
 
-            if (!isOnyxRead(node.callee, scope) && !(!!calleeVariable && readAliases.has(calleeVariable))) {
+            if (!readMethod) {
                 return;
             }
 
@@ -683,11 +761,11 @@ function create(context) {
                 return;
             }
 
-            const finding = findRestrictedKey(node.arguments.at(0), scope);
-
-            if (finding) {
+            for (const finding of findRestrictedKeys(readMethod, node, scope)) {
                 context.report(
-                    finding.keyPath ? {node, messageId: 'noRestrictedOnyxKey', data: {keyPath: `${ONYXKEYS_ROOT}.${finding.keyPath}`}} : {node, messageId: 'noUnresolvableOnyxKey'},
+                    finding.keyPath
+                        ? {node: finding.node, messageId: 'noRestrictedOnyxKey', data: {keyPath: `${ONYXKEYS_ROOT}.${finding.keyPath}`}}
+                        : {node: finding.node, messageId: 'noUnresolvableOnyxKey'},
                 );
             }
         },
