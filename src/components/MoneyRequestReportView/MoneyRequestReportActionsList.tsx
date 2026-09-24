@@ -277,9 +277,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         recordTimeToMeasureItemLayout();
     };
 
-    // `.length === 0` instead of lodash isEmpty: the compiler must treat an external call as possibly
-    // mutating its argument, which extends these arrays' mutable ranges and blocks memoization of
-    // `renderReportAction` (and everything else created between here and their creation).
     const isReportEmpty = visibleReportActions.length === 0 && transactions.length === 0 && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
 
