@@ -31,4 +31,4 @@ type BankAccountCountry = {
 /** Country field mappings, keyed by country ISO */
 type BankAccountCountries = Record<string, BankAccountCountry>;
 
-export type {BankAccountField, BankAccountFieldsMap, BankAccountCountry, BankAccountCountries};
+export type {BankAccountFieldsMap, BankAccountCountries};

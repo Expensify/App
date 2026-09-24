@@ -95,7 +95,7 @@ describe('CollectDepositAccountUtils', () => {
 
         it('sends the country, currency and fields type the API validates against', () => {
             // Given a DE account, which the employer cannot pay domestically
-            const values = {bankCountry: 'DE', bankCurrency: 'EUR', routingNumber: 'ABCDDEFF', accountNumber: 'DE89370400440532013000'} as CollectDepositAccountForm;
+            const values = {bankCountry: 'DE', bankCurrency: 'EUR', routingNumber: 'BANK12DE', accountNumber: 'DE89370400440532013000'} as CollectDepositAccountForm;
             const fieldsMap = getBankAccountFields('DE', 'EUR', CONST.BANK_ACCOUNT.FIELDS_TYPE.INTERNATIONAL);
 
             // When building the request
