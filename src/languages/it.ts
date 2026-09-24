@@ -2753,6 +2753,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Correggi questa connessione in <a href="${companyCardsRoute}">carte aziendali</a>`,
             askAdminToFixConnection: 'Chiedi a un amministratore di correggere questa connessione',
             reconnectBank: 'La connessione con la tua banca deve essere nuovamente autenticata',
+            pending: 'In sospeso',
         },
         bankAccountStatus: {
             active: 'Attiva',
