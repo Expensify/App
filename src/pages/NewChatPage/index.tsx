@@ -48,6 +48,7 @@ import reject from 'lodash/reject';
 import React, {startTransition, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
+import AddToGroupButton from './AddToGroupButton';
 import useGroupChatDraftParticipantSync from './useGroupChatDraftParticipantSync';
 
 const excludedGroupEmails = new Set<string>(CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE));
@@ -324,9 +325,9 @@ function NewChatPage({ref}: NewChatPageProps) {
         });
     };
 
-    const itemRightSideComponent = (item: OptionWithKey, isFocused?: boolean) => {
+    const getRowActionElement = (item: OptionWithKey) => {
         if (item.isSelfDM) {
-            return null;
+            return undefined;
         }
 
         if (item.isSelected) {
@@ -345,22 +346,21 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         // "Add to group" only makes sense for eligible (login-bearing, non-excluded) users
         if (!item.login || excludedGroupEmails.has(item.login)) {
-            return null;
+            return undefined;
         }
 
-        const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
         return (
-            <Button
-                onPress={() => toggleOption(item)}
-                style={[styles.pl2]}
-                accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
-                innerStyles={buttonInnerStyles}
-                size={CONST.BUTTON_SIZE.SMALL}
-            >
-                <Button.Text>{translate('newChatPage.addToGroup')}</Button.Text>
-            </Button>
+            <AddToGroupButton
+                item={item}
+                onPress={toggleOption}
+            />
         );
     };
+
+    const sectionsWithRowActions = sections.map((section) => ({
+        ...section,
+        data: section.data.map((option) => ({...option, actionElement: getRowActionElement(option)})),
+    }));
 
     const createGroup = () => {
         const latestSelectedOptions = latestSelectedOptionsRef.current;
@@ -422,7 +422,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             <SelectionListWithSections<OptionWithKey>
                 ref={selectionListRef}
                 ListItem={BareUserListItem}
-                sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionWithKey>>()}
+                sections={areOptionsInitialized ? sectionsWithRowActions : getEmptyArray<Section<OptionWithKey>>()}
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
@@ -435,7 +435,6 @@ function NewChatPage({ref}: NewChatPageProps) {
                     onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                     isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
-                rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 
 import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -65,13 +66,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         spacersIndexes,
     } = useEmojiPickerMenu();
 
-    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const headerRefs = useRef<Record<number, React.RefObject<ComponentRef<typeof View> | null>>>({});
     const pendingHeaderFocusIndexRef = useRef<number | null>(null);
     const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
 
     const getHeaderRef = useCallback((index: number) => {
         if (!headerRefs.current[index]) {
-            headerRefs.current[index] = React.createRef<View>();
+            headerRefs.current[index] = React.createRef<ComponentRef<typeof View>>();
         }
         return headerRefs.current[index];
     }, []);

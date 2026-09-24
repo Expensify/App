@@ -168,6 +168,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
         /** cardID of the card waiting to be added to a digital wallet */
         cardID: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
         cardID: string;
@@ -1287,6 +1289,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_FX_EXPENSE_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_TAGS_MAPPING]: {
         policyID: string;
     };
@@ -1423,6 +1428,21 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_VENDOR_BILL_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {
         policyID: string;
     };
@@ -1430,6 +1450,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_IMPORT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -1719,6 +1742,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_HR_SYNC_RESULTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RECRUITING_SYNC_RESULTS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: {
@@ -2920,6 +2946,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: NavigatorScreenParams<SearchReportActionsParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL]: NavigatorScreenParams<MergeATSApprovalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: undefined;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
@@ -3511,6 +3538,7 @@ type SearchReportActionsParamList = {
     };
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: undefined;
 };
 
 type SearchFullscreenNavigatorParamList = {
@@ -3523,10 +3551,23 @@ type SearchFullscreenNavigatorParamList = {
     };
 };
 
+type MergeATSApprovalNavigatorParamList = {
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: {
+        policyID: string;
+    };
+};
+
 type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: {
         filterKey: string;
+        applyDirectly?: string;
     };
 };
 
@@ -3611,6 +3652,9 @@ type ReportChangeApproverParamList = {
         reportID: string;
     };
     [SCREENS.REPORT_CHANGE_APPROVER.ADD_APPROVER]: {
+        reportID: string;
+    };
+    [SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER]: {
         reportID: string;
     };
 };
@@ -3709,6 +3753,7 @@ export type {
     AvatarCropNavigatorParamList,
     RoomMembersNavigatorParamList,
     RootNavigatorParamList,
+    MergeATSApprovalNavigatorParamList,
     SearchAdvancedFiltersParamList,
     SearchReportActionsParamList,
     SearchSavedSearchParamList,

@@ -550,14 +550,20 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
-function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+/**
+ * Sizes the camera viewfinder.
+ *
+ * When `shouldFillPortraitViewport` is true (the default), a portrait viewfinder with a known aspect ratio overflows the
+ * container so the preview fills the screen and is cropped. Pass false to keep the preview fully visible instead.
+ */
+function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean, shouldFillPortraitViewport = true): ViewStyle {
     if (isInLandscapeMode && aspectRatio) {
         return {aspectRatio, height: '100%', maxWidth: '100%'};
     }
-    if (aspectRatio) {
+    if (aspectRatio && shouldFillPortraitViewport) {
         return {aspectRatio, minWidth: '100%', minHeight: '100%'};
     }
-    return {flex: 1};
+    return {flex: 1, alignSelf: 'stretch'};
 }
 
 /**
@@ -1111,7 +1117,7 @@ function getTransformScaleStyle(scaleValue: AnimatableNumericValue): ViewStyle {
  * Scales a view about its top-left corner, e.g. to display high-resolution content
  * at a smaller size inside a clipping box without re-rendering it.
  */
-function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
+function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle & {transformOrigin?: string} {
     return {
         transform: [{scale: scaleValue}],
         transformOrigin: 'top left',
@@ -1125,7 +1131,7 @@ function getTopLeftTransformScaleStyle(scaleValue: number): ViewStyle {
  */
 function getDirectionStyle(direction: ValueOf<typeof CONST.DIRECTION>): ViewStyle {
     if (direction === CONST.DIRECTION.LEFT) {
-        return {transform: 'rotate(180deg)'};
+        return {transform: [{rotate: '180deg'}]};
     }
 
     return {};

@@ -3879,6 +3879,72 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
     });
 
+    it("keeps SPLIT and DELETE separate when an admin can delete another submitter's draft report", async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
+        const originalTransaction = createMock<Transaction>({
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: ADMIN_EMAIL,
+            currentUserAccountID: ADMIN_ACCOUNT_ID,
+            submitterLogin: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
     it('includes DELETE option for invoice report submitter when total is zero', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,

@@ -875,6 +875,7 @@ function completePaymentOnboarding(
         introSelected,
         isSelfTourViewed,
         conciergeChat,
+        currentUserAccountID,
         delegateAccountID,
     });
 }

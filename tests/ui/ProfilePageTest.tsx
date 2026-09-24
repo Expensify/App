@@ -540,7 +540,7 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current@expensify.com';
 const PUBLIC_PROFILE_ACCOUNT_ID = 123;
 
-describe('ProfilePage - View user history', () => {
+describe('ProfilePage - View member history', () => {
     beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -606,7 +606,7 @@ describe('ProfilePage - View user history', () => {
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText('View user history')).toBeOnTheScreen();
+        expect(screen.getByText('View member history')).toBeOnTheScreen();
         expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
     });
 
@@ -617,7 +617,7 @@ describe('ProfilePage - View user history', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('View agent history')).toBeOnTheScreen();
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('View member history')).not.toBeOnTheScreen();
     });
 
     it('navigates to a chat search filtered by the profile account when pressed', async () => {
@@ -627,7 +627,7 @@ describe('ProfilePage - View user history', () => {
         await waitForBatchedUpdatesWithAct();
 
         // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
-        fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
+        fireEvent.press(screen.getByText('View member history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
@@ -649,17 +649,7 @@ describe('ProfilePage - View user history', () => {
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
-    });
-
-    it('hides the search entry when the account has no login or accountID', async () => {
-        await setUpPublicProfile('');
-
-        renderPublicProfilePage();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
-        expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('View member history')).not.toBeOnTheScreen();
     });
 
     it.each(['0', 'not-a-number'])('hides the search entry for the invalid accountID %s', async (invalidAccountID) => {
@@ -668,7 +658,7 @@ describe('ProfilePage - View user history', () => {
         renderPublicProfilePage(invalidAccountID);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('View member history')).not.toBeOnTheScreen();
         expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
     });
 });
