@@ -78,6 +78,8 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 
 App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
 
+Every test case must be documented with `// Given`, `// When` and `// Then` comments explaining **why** the test does what it does — see [tests/README.md](tests/README.md#documenting-tests).
+
 ## Special Considerations
 
 ### Offline-First Architecture

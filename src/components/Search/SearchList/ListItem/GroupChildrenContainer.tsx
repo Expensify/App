@@ -1,7 +1,6 @@
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
-import useTheme from '@hooks/useTheme';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -34,7 +33,6 @@ function GroupChildrenContainer({
     isLastItem,
     newTransactionID,
 }: GroupChildrenContainerProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
     const hasBorder = !isFirstItem;
@@ -45,10 +43,9 @@ function GroupChildrenContainer({
     // Only the rows this container holds decide its background, so a group still waiting for its first page is not painted as selected.
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && isSelectAllChecked);
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
+        isSelected,
         shouldApplyOtherStyles: false,
     });
 
@@ -58,15 +55,7 @@ function GroupChildrenContainer({
     }
 
     return (
-        <Animated.View
-            style={[
-                pageGutterMargin,
-                {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
-                animatedHighlightStyle,
-                isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
-                hasBorder && styles.tableBorder,
-            ]}
-        >
+        <Animated.View style={[pageGutterMargin, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}>
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View

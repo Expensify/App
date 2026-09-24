@@ -138,7 +138,6 @@ jest.mock('@hooks/usePaymentContext', () => ({
     __esModule: true,
     default: () => ({
         introSelected: undefined,
-        betas: undefined,
         isSelfTourViewed: false,
         activePolicyID: undefined,
         activePolicy: undefined,

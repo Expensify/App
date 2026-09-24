@@ -60,9 +60,16 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
         return null;
     }
 
+    // A column with no measured text and no extraWidth genuinely never shows anything, so it needs 0px. A column with
+    // extraWidth still has non-text content to fit (e.g. an icon with no accompanying text on some rows), so its width
+    // is not skipped just because no row's text happened to measure wider than the others.
+    if (widestContentWidth === 0 && !dynamicSizing.extraWidth) {
+        return 0;
+    }
+
     // Rounded up because the widths end up as whole px grid tracks. Rounding a fraction down would leave a column
     // narrower than the text it was sized to hold, and the browser would put an ellipsis on text that fits.
-    return widestContentWidth === 0 ? 0 : Math.ceil(widestContentWidth + (dynamicSizing.extraWidth ?? 0));
+    return Math.ceil(widestContentWidth + (dynamicSizing.extraWidth ?? 0));
 }
 
 /**
@@ -133,8 +140,9 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
     const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
     const rowChromeWidth = (values.pageGutter + styles.ph3.paddingHorizontal) * 2;
-    const availableWidth = tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth;
-
+    // Floored because the tracks are whole px. A fractional budget leaves a fraction over once they are rounded, and
+    // handing it to a column would put a sub-pixel track in the row. Rounding down keeps the columns inside the table.
+    const availableWidth = Math.floor(tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth);
     if (availableWidth <= 0) {
         return noDynamicWidths;
     }
@@ -171,7 +179,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     }
 
     const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
-
     // The columns fit equally, which is exactly what the static `1fr` tracks already do.
     if (widths.length === 0) {
         return noDynamicWidths;

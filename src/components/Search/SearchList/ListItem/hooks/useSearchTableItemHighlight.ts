@@ -1,8 +1,7 @@
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -19,21 +18,18 @@ type UseSearchTableItemHighlightParams = {
 };
 
 /**
- * Search-table flavor of `useListItemHighlight`: bundles the highlight animation with the pressable
- * styles a table row needs (table row paddings, bottom radius on the last wide-screen row).
+ * Highlight animation plus the pressable styles a search-table row needs: row paddings, bottom radius on the last wide row.
+ * `isSelected` is not forwarded to the animation: selection is painted on the pressable, not the animated wrapper.
  */
 function useSearchTableItemHighlight({shouldHighlight = false, isSelected = false, isLastItem = false}: UseSearchTableItemHighlightParams = {}) {
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
+    const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 

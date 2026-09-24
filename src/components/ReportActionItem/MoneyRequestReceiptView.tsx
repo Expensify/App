@@ -82,6 +82,7 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -152,7 +153,6 @@ function MoneyRequestReceiptView({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(chatReport?.ownerAccountID)});
@@ -208,8 +208,8 @@ function MoneyRequestReceiptView({
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
     const {isOffline} = useNetwork();
-    const receiptContainerRef = useRef<View | null>(null);
-    const addButtonRef = useRef<View | null>(null);
+    const receiptContainerRef = useRef<ComponentRef<typeof View> | null>(null);
+    const addButtonRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
@@ -473,7 +473,6 @@ function MoneyRequestReceiptView({
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed,
-                    betas,
                     chatReportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
@@ -495,6 +494,7 @@ function MoneyRequestReceiptView({
                     isChatIOUReportArchived,
                     originalReportID,
                     getCurrencyDecimals,
+                    isOffline,
                     isSingleTransactionView: true,
                     policy,
                 });
@@ -507,7 +507,7 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -515,7 +515,7 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID);
+            clearAllRelatedReportActionErrors(report.reportID, parentReportAction, originalReportID, isOffline);
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {
@@ -527,7 +527,6 @@ function MoneyRequestReceiptView({
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed,
-                betas,
                 reportOwnerPersonalDetail,
                 currentUserPersonalDetail,
                 conciergePersonalDetail,
