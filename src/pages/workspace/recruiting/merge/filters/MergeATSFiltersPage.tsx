@@ -24,6 +24,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -45,7 +46,7 @@ function MergeATSFiltersPage({
     const policy = usePolicy(policyID);
     const mergeATS = policy?.connections?.merge_ats;
     const savedFilters = mergeATS?.config?.filters;
-    const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
+    const [errorKey, setErrorKey] = useState<TranslationPaths>();
 
     const filters = useMergeATSFiltersDraftState(policyID);
     const {setFilter} = useMergeATSFiltersDraftActions();
@@ -73,12 +74,15 @@ function MergeATSFiltersPage({
     const hasRequiredFilter = !!filters.tags?.length || !!filters.stages?.length;
 
     const toggleFilter = (filterType: MergeATSFilterType, isEnabled: boolean) => {
+        if (errorKey && isEnabled && filterType !== CONST.MERGE.ATS_FILTER_TYPE.OFFICES) {
+            setErrorKey(undefined);
+        }
         setFilter(filterType, isEnabled ? getMergeATSFilterValues(filterType, mergeATS?.data) : []);
     };
 
     const handleSave = () => {
         if (!hasRequiredFilter) {
-            setHasAttemptedSave(true);
+            setErrorKey('workspace.recruiting.filters.enableJobStagesOrTags');
             return;
         }
 
@@ -130,10 +134,10 @@ function MergeATSFiltersPage({
                     </OfflineWithFeedback>
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
-                    {!hasRequiredFilter && hasAttemptedSave && (
+                    {errorKey && (
                         <FormHelpMessage
                             isError
-                            message={translate('workspace.recruiting.filters.enableJobStagesOrTags')}
+                            message={translate(errorKey)}
                             style={styles.mb3}
                         />
                     )}
