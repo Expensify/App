@@ -20,7 +20,7 @@ import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {canCreateRequest, getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
@@ -75,6 +75,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
     const policyChatForActivePolicy = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? policyChats.at(0) : undefined;
+    const isPolicyChatForActivePolicyArchived = useReportIsArchived(policyChatForActivePolicy?.reportID);
 
     const derivedNames = useDerivedReportNamesByReportIDs([quickActionReport?.reportID, policyChatForActivePolicy?.reportID]);
     const derivedQuickActionReportName = getReportNameFromNames(derivedNames, quickActionReport?.reportID);
@@ -94,7 +95,17 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         (quickAction?.action && quickActionReport
             ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, rules, isRestrictedToPreferredPolicy)
             : false) ||
-        (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
+        (!quickAction?.action &&
+            !isEmptyObject(policyChatForActivePolicy) &&
+            canCreateRequest(
+                policyChatForActivePolicy,
+                policyChatForActivePolicyPolicy,
+                CONST.IOU.TYPE.SUBMIT,
+                isPolicyChatForActivePolicyArchived,
+                allBetas,
+                rules,
+                isRestrictedToPreferredPolicy,
+            ));
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
