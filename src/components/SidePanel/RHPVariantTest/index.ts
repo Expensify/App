@@ -50,7 +50,8 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
     const isMicroCompany =
         onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL ||
         onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM ||
-        onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
+        onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM ||
+        onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO;
     const isRHPConciergeDM = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
     const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;

@@ -48,7 +48,6 @@ import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirs
 import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
-import Permissions from './Permissions';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
@@ -103,8 +102,7 @@ type SubmitAmountArgs = {
     duplicateTransactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
+    isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     onboarding: OnyxEntry<OnyxTypes.Onboarding>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -117,6 +115,7 @@ type SubmitAmountArgs = {
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /**
@@ -182,6 +181,7 @@ type SubmitAmountContext = {
     existingTransactionID: string | undefined;
     isASAPSubmitBetaEnabled: boolean;
     newAmount: number;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function navigateToConfirmationAfterAssigningParticipants(
@@ -223,7 +223,7 @@ function navigateToParticipantPageDeferred(iouType: IOUType, transactionID: stri
 }
 
 function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
-    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, betas, betaConfiguration, amount} = args;
+    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, isASAPSubmitBetaEnabled, amount} = args;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
     const isSubmitAction = action === CONST.IOU.ACTION.SUBMIT;
@@ -231,6 +231,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     return {
+        isVendorMatchingBetaEnabled: args.isVendorMatchingBetaEnabled,
         isEditing,
         isCreateAction,
         isSubmitAction,
@@ -243,7 +244,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
         currentUserAccountID: currentUserPersonalDetails.accountID,
         currentUserEmail: currentUserPersonalDetails.login ?? '',
         existingTransactionID: getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction),
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas, betaConfiguration),
+        isASAPSubmitBetaEnabled,
         newAmount: convertToBackendAmount(Number.parseFloat(amount)),
     };
 }
@@ -349,7 +350,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         introSelected,
         isOffline,
         recentWaypoints,
-        betas,
         transactionViolations,
         transactionDrafts,
         storedTransaction,
@@ -403,7 +403,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 conciergeChat,
                 quickAction,
                 recentWaypoints,
-                betas,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
                 optimisticChatReportID,
@@ -416,8 +415,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
             requestMoney({
+                isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
                 report,
-                betas,
                 participantParams: {
                     participant: participant ?? {},
                     payeeEmail: currentUserEmail,
@@ -677,6 +676,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
+        isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
         transactionThreadReport: report,
         parentReport,

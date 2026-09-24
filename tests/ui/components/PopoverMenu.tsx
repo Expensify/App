@@ -3,13 +3,14 @@ import {act, fireEvent, render, renderHook, screen, waitFor} from '@testing-libr
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
 import useNoopPopoverMenuFocusManagement from '@components/PopoverMenu/usePopoverMenuFocusManagement/noop';
+import ScrollView from '@components/ScrollView';
 
 import getPlatform from '@libs/getPlatform';
 import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 
-import type {PropsWithChildren} from 'react';
+import type {ComponentRef, PropsWithChildren} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 
 import React from 'react';
@@ -20,6 +21,8 @@ type MockMeasuredPopoverProps = PropsWithChildren<{
     onModalHide?: () => void;
     restoreFocusType?: string;
     shouldEnableNewFocusManagement?: boolean;
+    avoidKeyboard?: boolean;
+    outerStyle?: unknown;
 }>;
 
 type RestoreFocusType = PopoverMenuProps['restoreFocusType'];
@@ -209,7 +212,7 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
         {text: 'Item C', key: 'C'},
     ];
 
-    const anchorRef = React.createRef<View>();
+    const anchorRef = React.createRef<ComponentRef<typeof View>>();
     const anchorPosition = {horizontal: 0, vertical: 0};
 
     const renderPopover = (menuItems: PopoverMenuItem[]) =>
@@ -358,8 +361,53 @@ describe('PopoverMenu integration — submenu open/close behaviors', () => {
     });
 });
 
+describe('PopoverMenu integration — optional search', () => {
+    const anchorRef = React.createRef<ComponentRef<typeof View>>();
+    const anchorPosition = {horizontal: 0, vertical: 0};
+
+    beforeEach(() => {
+        mockPopoverWithMeasuredContent.mockClear();
+    });
+
+    it('keeps existing popovers keyboard-neutral when search is disabled', () => {
+        const renderResult = render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Item'}]}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        expect(mockPopoverWithMeasuredContent.mock.calls.at(-1)?.[0].avoidKeyboard).toBe(false);
+        expect(renderResult.UNSAFE_getByType(ScrollView).props.keyboardShouldPersistTaps).toBeUndefined();
+        expect(renderResult.UNSAFE_getByType(ScrollView).props.scrollEventThrottle).toBeUndefined();
+    });
+
+    it('enables keyboard avoidance and persistent first-tap handling only for searchable popovers', () => {
+        const renderResult = render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Item'}]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        expect(screen.getByLabelText('Find a member')).toBeOnTheScreen();
+        expect(mockPopoverWithMeasuredContent.mock.calls.at(-1)?.[0].avoidKeyboard).toBe(true);
+        expect(renderResult.UNSAFE_getByType(ScrollView).props.keyboardShouldPersistTaps).toBe('always');
+        expect(renderResult.UNSAFE_getByType(ScrollView).props.scrollEventThrottle).toBe(16);
+    });
+});
+
 describe('PopoverMenu integration — focus policy and close lifecycle', () => {
-    const anchorRef = React.createRef<View>();
+    const anchorRef = React.createRef<ComponentRef<typeof View>>();
     const anchorPosition = {horizontal: 0, vertical: 0};
 
     beforeEach(() => {

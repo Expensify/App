@@ -1,7 +1,7 @@
 ---
 title: Expense and Report Actions
 description: Learn what actions (Submit, Approve, Pay, Export, Hold) are available on reports based on role and report status.
-keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, report status actions, approver permissions]
+keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, who can cancel payment, report status actions, approver permissions]
 internalScope: Audience is all members. High level overview of what report actions are available based on role and report status. Does not cover step-by-step instructions for performing each action.
 ---
 
@@ -61,7 +61,7 @@ Use this guide to understand:
 - Mark as exported
 
 **Paid or Done reports**
-- Download
+- Download report
 - Print
 - Mark as exported
 
@@ -86,12 +86,32 @@ Use this guide to understand:
 - Pay reports
 - Cancel payment (before processing)
 
+**Payments admin**
+- Pay reports on a workspace that tracks payments made elsewhere
+- Cancel payment on a workspace that tracks payments made elsewhere
+
 **Workspace Admin**
 - Export reports
 - Mark reports as exported
 - Change approver
 - Bypass approvers
 - Change workspace (before export)
+
+---
+
+## Who can cancel a payment on a report
+
+**Cancel payment** is offered to anyone who could have paid the report:
+
+- The **Payer** listed in the **Payments** section of **Workflows**
+- On a workspace that tracks payments made elsewhere, any member with edit access to the **Payments** section of **Workflows**, such as the workspace owner, a **Workspace admin**, or a **Payments admin**
+
+You do not have to be a **Workspace admin** to cancel a payment. On a workspace that pays through a business bank account, you must be the **Payer** — no other role can cancel that payment.
+
+How long **Cancel payment** stays available depends on how the report was paid:
+
+- Payments recorded with **Mark as paid** can be cancelled at any time
+- Payments sent with **Pay with business account** can be cancelled after the payment is initiated and before it has been processed
 
 ---
 
@@ -126,12 +146,12 @@ Use this guide to understand:
 | **Export to accounting system** | When accounting integration is enabled | Workspace Admin | Sends data externally |
 | **Duplicate expense** | Non-card expenses | Submitter | Creates a copy of an expense |
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
-| **Download** | Any report | All roles | Downloads a PDF copy |
+| **Download report** | Any report | All roles | Downloads a PDF copy |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
 | **View details** | Any report | All roles | Opens report details |
-| **Cancel payment** | Before payment processing | Payer | Cancels a pending payment |
+| **Cancel payment** | Before payment processing | Payer, or a Payments admin on a workspace that tracks payments made elsewhere | Cancels a pending payment |
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
@@ -142,14 +162,14 @@ Use this guide to understand:
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
 | **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense on your primary workspace with the same details. Date is set to today and receipts are not copied |
 | **Duplicate report** | On reports the submitter owns, in any state | Submitter | Creates a copy of the report and its non-card expenses. Date is set to today and receipts are not copied |
-| **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
+| **Download report** | Any report state | All roles | Downloads a copy of the report as a PDF |
 | **Print** | Any report status except Draft | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
 | **Reject** | On Outstanding reports | Assigned approver | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Received payment** | On approved, closed, or reimbursed expense reports where no bank payment has been initiated | Submitter | Confirms that payment was received outside of Expensify and marks the report as paid |
-| **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer | Cancels pending payment |
+| **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer, or a Payments admin on a workspace that tracks payments made elsewhere | Cancels pending payment |
 
 ---
 
