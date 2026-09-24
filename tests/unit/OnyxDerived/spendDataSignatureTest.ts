@@ -223,6 +223,27 @@ describe('spendDataSignature', () => {
         expect(result).toEqual({expenses: 0, cardExpenses: 0});
     });
 
+    it('builds the baseline on the first compute even when the card list is what triggered it', () => {
+        // Given a fresh session with no baseline yet
+        spendDataSignatureConfig.onReset?.();
+        const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};
+
+        // When the first compute names only the card list, which is what happens whenever CARD_LIST is the
+        // dependency that connects last: the earlier recomputes returned before recording what triggered them
+        spendDataSignatureConfig.compute([stored, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST]),
+        });
+
+        // Then the baseline was built anyway, so writing the same expense back still counts as no change
+        // rather than every first write looking new for the rest of the session
+        const result = spendDataSignatureConfig.compute([stored, cardList], {
+            currentValue: {expenses: 0, cardExpenses: 0},
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION]: stored},
+        });
+        expect(result).toEqual({expenses: 0, cardExpenses: 0});
+    });
+
     it('drops its baseline when Onyx is cleared', () => {
         // Given a stored expense the derived value has already seen
         const stored: OnyxCollection<Transaction> = {[transactionKey('1')]: makeTransaction('1', CARD_ID)};

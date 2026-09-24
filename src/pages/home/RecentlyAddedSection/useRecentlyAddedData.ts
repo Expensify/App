@@ -113,9 +113,9 @@ function useRecentlyAddedData(): RecentlyAddedData {
     const hash = queryJSON?.hash;
 
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
-    // Read by key only, never iterated: the collection holds tens of thousands of entries.
     const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
+    // Read by key only, never iterated: the collection holds tens of thousands of entries.
     const [localTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [pendingTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: pendingTransactionIDsSelector});
 

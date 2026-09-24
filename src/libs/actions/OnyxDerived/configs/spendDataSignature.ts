@@ -21,6 +21,8 @@ type SeenTransaction = {
 // The map stays out of Onyx: it is not data, and it would write tens of thousands of entries to disk.
 let lastSeenTransactions: Record<string, SeenTransaction> = {};
 
+let hasBaseline = false;
+
 /** Fields the Home cards count or total. Edits land in the `modified` versions, so both are read. */
 function getFingerprint(transaction: Transaction | undefined): string {
     if (!transaction) {
@@ -40,6 +42,7 @@ function getFingerprint(transaction: Transaction | undefined): string {
 
 function rebuildBaseline(transactions: OnyxCollection<Transaction> | undefined) {
     lastSeenTransactions = {};
+    hasBaseline = true;
     for (const [key, transaction] of Object.entries(transactions ?? {})) {
         lastSeenTransactions[key] = {fingerprint: getFingerprint(transaction), cardID: transaction?.cardID};
     }
@@ -54,7 +57,10 @@ export default createOnyxDerivedValueConfig({
         if (!transactionUpdates) {
             // Rebuilding reads every transaction, so only do it when transactions changed but we got no
             // delta: the first load, or a restore from disk. A card write leaves the old map valid.
-            if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, triggeredKeys)) {
+            // `!hasBaseline` forces the first build: before all connections are set a recompute returns early
+            // without recording what triggered it, so the first flush names only the dependency that connected
+            // last. If that is the card list, waiting on a TRANSACTION trigger leaves the map empty all session.
+            if (!hasBaseline || hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.TRANSACTION, triggeredKeys)) {
                 rebuildBaseline(transactions);
             }
             return currentValue ?? EMPTY_SIGNATURE;
@@ -103,5 +109,6 @@ export default createOnyxDerivedValueConfig({
     },
     onReset: () => {
         lastSeenTransactions = {};
+        hasBaseline = false;
     },
 });
