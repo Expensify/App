@@ -855,26 +855,23 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules);
 
     const nameSectionFurtherDetailsContent = (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={false}
-            interactive={false}
-            titleComponent={
-                <ParentNavigationSubtitle
-                    parentNavigationSubtitleData={parentNavigationSubtitleData}
-                    reportID={report?.reportID}
-                    parentReportID={report?.parentReportID}
-                    parentReportActionID={report?.parentReportActionID}
-                    pressableStyles={[styles.mt1, styles.mw100]}
-                    textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
-                    subtitleNumberOfLines={2}
-                    shouldShowFromPrefix={false}
-                    openParentReportInCurrentTab
-                />
-            }
-            description={translate('threads.from')}
-            descriptionTextStyle={[styles.mutedNormalTextLabel, styles.mb1]}
-            shouldCheckActionAllowedOnPress={false}
-        />
+        <MenuItem.Root>
+            <MenuItem.Row>
+                <MenuItemField.Content name={translate('threads.from')}>
+                    <ParentNavigationSubtitle
+                        parentNavigationSubtitleData={parentNavigationSubtitleData}
+                        reportID={report?.reportID}
+                        parentReportID={report?.parentReportID}
+                        parentReportActionID={report?.parentReportActionID}
+                        pressableStyles={[styles.mt1, styles.mw100]}
+                        textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
+                        subtitleNumberOfLines={2}
+                        shouldShowFromPrefix={false}
+                        openParentReportInCurrentTab
+                    />
+                </MenuItemField.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 
     const nameSectionTitleField = (

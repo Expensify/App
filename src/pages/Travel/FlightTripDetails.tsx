@@ -1,3 +1,4 @@
+import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -46,6 +47,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
 
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), dateFnsLocale);
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), dateFnsLocale);
+    const takeOffLocation = `${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`;
+    const landingLocation = `${reservation.end.longName} (${reservation.end.shortName})`;
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
@@ -87,25 +90,37 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 <MenuItem.Copy value={startDate.date} />
             </MenuItemField>
 
-            <MenuItemWithTopDescription
-                description={translate('travel.flightDetails.takeOff')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>}
-                helperText={`${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
-                copyValue={`${startDate.hour} ${reservation.start.longName} (${reservation.start.shortName})${reservation.arrivalGate?.terminal ? `, ${reservation.arrivalGate?.terminal}` : ''}`}
-                copyable
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.flightDetails.takeOff')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>
+                    </MenuItemField.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.Copy value={`${startDate.hour} ${takeOffLocation}`} />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={takeOffLocation}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
-            <MenuItemWithTopDescription
-                description={translate('travel.flightDetails.landing')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>}
-                helperText={`${reservation.end.longName} (${reservation.end.shortName})`}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
-                copyValue={`${endDate.hour} ${reservation.end.longName} (${reservation.end.shortName})`}
-                copyable
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.flightDetails.landing')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>
+                    </MenuItemField.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.Copy value={`${endDate.hour} ${landingLocation}`} />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={landingLocation}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
@@ -142,24 +157,22 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 )}
             </View>
             {!!displayName && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.flightDetails.passenger')}
-                    descriptionTextStyle={styles.fontSizeLabel}
-                    interactive={false}
-                    accessibilityLabel={`${translate('travel.flightDetails.passenger')} ${displayName}`}
-                    titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
-                    }
-                />
+                <MenuItem.Root accessibilityLabel={`${translate('travel.flightDetails.passenger')} ${displayName}`}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('travel.flightDetails.passenger')}>
+                            <UserPills
+                                users={[
+                                    {
+                                        avatar: personalDetails?.avatar,
+                                        displayName,
+                                        accountID: personalDetails?.accountID,
+                                        email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                    },
+                                ]}
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );
