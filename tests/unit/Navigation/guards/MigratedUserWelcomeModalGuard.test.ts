@@ -131,6 +131,23 @@ describe('MigratedUserWelcomeModalGuard', () => {
         expect(result.type).toBe('ALLOW');
     });
 
+    it('should allow during a copilot session even when eligible for the migrated user welcome modal', async () => {
+        // Given the delegator account is in the nudge migration and has not dismissed the modal
+        await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            nudgeMigration: {
+                timestamp: new Date(),
+                cohort: 'test',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // When a navigation is evaluated during a copilot session
+        const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, {...defaultContext, isDelegateSession: true});
+
+        // Then the guard allows it, because the modal belongs to the delegator and a copilot must not see or dismiss it
+        expect(result.type).toBe('ALLOW');
+    });
+
     it('should allow when modal has been dismissed', async () => {
         await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
             nudgeMigration: {
