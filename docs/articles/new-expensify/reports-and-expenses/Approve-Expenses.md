@@ -67,12 +67,14 @@ The approver you added is now the current approver, and the original workflow wi
 
 ## How to bypass an approver on a report
 
-Workspace admins can bypass the approval workflow on a report to final approve it themselves.
+Workspace admins can bypass the approval workflow on a report to final approve it themselves. This works whether the report is waiting on someone else or already waiting on you, so you can skip the remaining approvers even when you are the report's current approver.
 
 1. From the Report, choose **More**. 
 2. Select **Change approver**.
 3. Select **Bypass approvers**.
 4. You are now the final approver, and the prescribed workflow has been bypassed.
+
+The report history records the change as *changed the final approver to* followed by your name.
 
 **Note:** Only Workspace admins can bypass the prescribed approval workflow.
 
@@ -171,7 +173,7 @@ The outdated row is removed from the report. The expense itself is not deleted �
 Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
 
 ## Why can’t I see Bypass approvers?
-Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 
+Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. Being the report's current approver does not hide the option — a Workspace admin still sees **Bypass approvers** on a report that is waiting on them. 
 
 ## What’s the difference between rejecting a report and rejecting an expense?
 
