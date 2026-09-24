@@ -14,7 +14,7 @@ import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canMemberWrite, isMemberInHomeAndOfficeWorkspace} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -54,6 +54,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const canAccessWorkArrangementPage = canWriteMembers && isWorkArrangementBetaEnabled && isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
 
     // The member-level setting wins; otherwise fall back to the workspace default, then to no regular workspace.
     const currentIsOffice = member?.hasOfficeWorkArrangement ?? policy?.commuterExclusions?.isOfficeWorkArrangement ?? false;
@@ -63,7 +64,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     };
 
     const changeWorkArrangement = ({value}: WorkArrangementOption) => {
-        if (value === currentIsOffice || !canWriteMembers) {
+        if (value === currentIsOffice || !canAccessWorkArrangementPage) {
             return;
         }
         setEmployeeWorkArrangement(policy, [accountID], value, personalDetails, translate);
@@ -92,7 +93,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canWriteMembers || !isWorkArrangementBetaEnabled}
+            shouldBeBlocked={!canAccessWorkArrangementPage}
         >
             <ScreenWrapper
                 testID="WorkArrangementPage"
