@@ -506,7 +506,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -528,7 +527,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -547,7 +545,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -568,7 +565,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -588,7 +584,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -608,7 +603,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -628,7 +622,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -648,7 +641,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -668,7 +660,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -688,7 +679,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -708,7 +698,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -728,7 +717,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -748,7 +736,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -768,7 +755,6 @@ PODS:
     - React-jsinspectorcdp
     - React-jsitooling
     - React-perflogger
-    - React-rendererconsistency
     - React-runtimeexecutor
     - React-runtimescheduler
     - React-utils
@@ -4021,7 +4007,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: 3eaed17dbddb0b989208b062ea14c44d412b9780
   React: 2574546f2d017abd14d0c9b48cf2b6a0547c2591
   React-callinvoker: 03cd4b931d1d583d87aae99b8f7b6fe26bf571ee
-  React-Core: c89de4458bd868093d796fef3f4589ff4798df61
+  React-Core: 1c824d9c7dd8aa760b5f1b50d5a54c2a3f598f87
   React-Core-prebuilt: df2215d5387f03898c940262af212a63f190c9fe
   React-CoreModules: 2f9ed75bca7f6dea2b70e8a1f4a5ca9b6be52d76
   React-cxxreact: 7103d5ba69848c039e11079e74ceede05efe795e
@@ -4074,7 +4060,7 @@ SPEC CHECKSUMS:
   React-NativeModulesApple: a092d89b58f635ebfab88048b0eda9fb516819fd
   React-networking: ee8e1504d7c1c73a3655bf545ca1184bebae4c7f
   React-oscompat: 0b72a7e926954a0415ccd83e0748b6561fe45367
-  React-perflogger: 2498c798fb4209483cab9ee8ffa334b72a3b6f1e
+  React-perflogger: 865984e492514aa6e5279fc3e663132cfa4d5022
   React-performancecdpmetrics: 88a3c32833d5d50bd35be98577298253f0404a34
   React-performancetimeline: 74b781fef76a2e8d461cc899760e9a52b6323d8c
   React-RCTActionSheet: 902c79deec52f99cc48b1051b59bcbe86787d339
@@ -4090,7 +4076,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: b97727ec8c55c35bd284457a647c938c040b942b
   React-RCTText: 4d1b88f6d3e1a43afe46706d956ec6664c87b984
   React-RCTVibration: 415d14d6a1a64bf947fcef6b193915a494431168
-  React-rendererconsistency: c13799138f5208bbaad0afad6b9595357af8fbfb
+  React-rendererconsistency: 98a2cc5c4fdae126d9446afa5edd061e5a7eb105
   React-renderercss: cd4e8a7a9e41d02a0bc968c64182bbfe2e29cb8d
   React-rendererdebug: 31560fc7e22ca8cca17382767d9a1bf31311f915
   React-RuntimeApple: d879aefebf1067ad37de2fdd886b47a62cda9896
@@ -4106,7 +4092,7 @@ SPEC CHECKSUMS:
   ReactCodegen: cd296de5e1c422deebafff34134d1721b5c29704
   ReactCommon: d5c1bb4427bf51c443de5926aac332c89ddd9363
   ReactNativeBiometrics: 1fb6ad206cfd39900e952b1abcdcdba22bdd6fd9
-  ReactNativeDependencies: 4227659c64db3eab64c6ea87b5695fd329922798
+  ReactNativeDependencies: fa0a54b3f5319ae0e3b9aff32bfee7a424b88e66
   ReactNativeHybridApp: a35e7f25b54a370ada94c01309ccb1ff0954b949
   RNAppleAuthentication: 9027af8aa92b4719ef1b6030a8e954d37079473a
   RNCClipboard: 7a7d4557bfd3370b35c99dfecd92ae7b9fc4948a
