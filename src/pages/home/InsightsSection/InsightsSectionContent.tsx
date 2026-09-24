@@ -111,6 +111,7 @@ function InsightsSectionContent() {
                         groupBy={groupBy}
                         data={sortedData ?? []}
                         isLoading={state === INSIGHT_STATE.LOADING}
+                        color={config.color}
                     />
                 </View>
             )}
