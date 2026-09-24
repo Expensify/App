@@ -228,6 +228,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -268,6 +269,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -318,6 +320,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -369,6 +372,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -429,6 +433,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -506,6 +511,7 @@ describe('Transaction', () => {
             });
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -556,6 +562,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -613,6 +620,7 @@ describe('Transaction', () => {
 
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -667,6 +675,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: true,
                 accountID: CURRENT_USER_ID,
@@ -712,6 +721,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: customAccountID,
@@ -763,6 +773,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -814,6 +825,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -872,6 +884,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -930,6 +943,7 @@ describe('Transaction', () => {
 
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -983,6 +997,7 @@ describe('Transaction', () => {
             };
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1038,6 +1053,7 @@ describe('Transaction', () => {
             };
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1107,6 +1123,7 @@ describe('Transaction', () => {
             };
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1203,6 +1220,7 @@ describe('Transaction', () => {
 
                 await loadReports();
                 changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
                     transactionIDs: [usdTransaction.transactionID, movedBgnTransaction.transactionID],
                     isASAPSubmitBetaEnabled: false,
                     accountID: CURRENT_USER_ID,
@@ -1269,6 +1287,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1323,6 +1342,7 @@ describe('Transaction', () => {
 
             await loadReports();
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1382,6 +1402,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction1.transactionID, transaction2.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1424,6 +1445,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1461,6 +1483,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1477,6 +1500,85 @@ describe('Transaction', () => {
 
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
             expect(updatedViolations).toBeFalsy();
+        });
+
+        it('should optimistically update search snapshots when moving a transaction to unreported', async () => {
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CURRENT_USER_ID]: {
+                    accountID: CURRENT_USER_ID,
+                    displayName: 'Current User',
+                    login: 'test@example.com',
+                },
+            });
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, FAKE_SELF_DM_REPORT_ID);
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: undefined,
+                policy: undefined,
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                },
+                policyTagList: undefined,
+                reports,
+                transactionViolations: {},
+                isTrackIntentUser: false,
+                isVendorMatchingBetaEnabled: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockAPIWrite).toHaveBeenCalled();
+            const onyxData = mockAPIWrite.mock.calls.at(0)?.at(2);
+            expect(isCapturedOnyxData(onyxData)).toBe(true);
+            if (!isCapturedOnyxData(onyxData)) {
+                throw new Error('Expected changeTransactionsReport Onyx data');
+            }
+
+            const snapshotUpdates = onyxData.optimisticData?.filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)) ?? [];
+            expect(snapshotUpdates.length).toBeGreaterThan(0);
+
+            const hasPersonalDetails = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const personalDetails = value?.data?.[ONYXKEYS.PERSONAL_DETAILS_LIST] as Record<string, {displayName?: string}> | undefined;
+                return personalDetails?.[CURRENT_USER_ID]?.displayName === 'Current User';
+            });
+            expect(hasPersonalDetails).toBe(true);
+
+            const hasSelfDMAction = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const reportActions = value?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`] as Record<string, {actorAccountID?: number}> | undefined;
+                return Object.values(reportActions ?? {}).some((action) => action?.actorAccountID === CURRENT_USER_ID);
+            });
+            expect(hasSelfDMAction).toBe(true);
+
+            const hasClearedOldAction = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const reportActions = value?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`] as
+                    | Record<string, {originalMessage?: {IOUTransactionID?: string | null}}>
+                    | undefined;
+                return reportActions?.[oldIOUAction.reportActionID]?.originalMessage?.IOUTransactionID === null;
+            });
+            expect(hasClearedOldAction).toBe(true);
+
+            mockAPIWrite.mockRestore();
         });
 
         it('should clear convertedAmount on transaction when moving between workspaces with different currencies', async () => {
@@ -1511,6 +1613,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1573,6 +1676,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1621,6 +1725,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1685,6 +1790,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1735,6 +1841,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1812,6 +1919,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1899,6 +2007,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -1977,6 +2086,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -2056,6 +2166,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -2098,6 +2209,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -2151,6 +2263,7 @@ describe('Transaction', () => {
             };
 
             changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
@@ -2289,6 +2402,25 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+
+        it('should clear the commuter exclusion preview, which was decided for the trip being replaced', async () => {
+            const transactionID = 'txn-commuter-preview';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Clear Commuter Preview',
+                lat: 11,
+                lng: 12,
+            };
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.commuterExclusionPreview = {policyID: 'policy1', hasExclusion: true, isWholeTripExcluded: true, commuteDistanceMeters: 0};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList: []});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.commuterExclusionPreview ?? null).toBeNull();
         });
 
         it('should clear the selected route key so it does not point at a route that no longer exists', async () => {

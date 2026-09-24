@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {MergeHRProviderSlug} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type {Policy} from '@src/types/onyx';
+import type {MergeApprovalMode} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -161,7 +162,7 @@ function isAnyHRReadOnlyWorkflowMode(policy?: OnyxEntry<Policy>): boolean {
 function getHRApprovalMode(
     policy?: OnyxEntry<Policy>,
     connectionName?: HRConnectionName,
-): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null {
+): ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | MergeApprovalMode | null {
     if (!connectionName || !policy?.connections) {
         return null;
     }
@@ -201,7 +202,7 @@ function getHRAdvancedModeFinalApprover(policy?: OnyxEntry<Policy>): string | nu
 }
 
 /** Returns the finalApprover from whichever HR provider (Gusto, Zenefits, or Merge HR) is configured in basic or advanced (manager) approval mode, or null if none are. */
-function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | null {
+function getHRFinalApprover(policy?: OnyxEntry<Policy>): string | undefined {
     const gustoMode = policy?.connections?.gusto?.config?.approvalMode;
     if ((gustoMode === CONST.GUSTO.APPROVAL_MODE.BASIC || gustoMode === CONST.GUSTO.APPROVAL_MODE.MANAGER) && policy?.connections?.gusto?.config?.finalApprover) {
         return policy.connections.gusto.config.finalApprover;

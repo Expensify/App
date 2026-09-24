@@ -48,13 +48,13 @@ function hasMergeSyncError(policy: OnyxEntry<Policy>, connectionName: MergeConne
 }
 
 /** Returns the given Merge connection's finalApprover when it is in basic or advanced (manager) approval mode, or null otherwise. */
-function getMergeFinalApprover(policy: OnyxEntry<Policy>, connectionName: MergeConnectionName): string | null {
+function getMergeFinalApprover(policy: OnyxEntry<Policy>, connectionName: MergeConnectionName): string | undefined {
     const config = policy?.connections?.[connectionName]?.config;
-    if ((config?.approvalMode === CONST.MERGE.APPROVAL_MODE.BASIC || config?.approvalMode === CONST.MERGE.APPROVAL_MODE.MANAGER) && config?.finalApprover) {
-        return config.finalApprover;
+    if (config?.approvalMode === CONST.MERGE.APPROVAL_MODE.CUSTOM || !config?.finalApprover) {
+        return;
     }
 
-    return null;
+    return config.finalApprover;
 }
 
 function getMergeFinalApproverDisplayName(

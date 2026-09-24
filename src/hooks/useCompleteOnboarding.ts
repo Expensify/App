@@ -18,6 +18,7 @@ import {useState} from 'react';
 
 import useActivePolicy from './useActivePolicy';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
 import useHasOwnedPaidPolicy from './useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
@@ -40,6 +41,7 @@ function useCompleteOnboarding() {
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -53,7 +55,6 @@ function useCompleteOnboarding() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
@@ -61,7 +62,7 @@ function useCompleteOnboarding() {
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [isLoading, setIsLoading] = useState(false);
 
-    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.email));
 
     const completeOnboardingFlow = async ({featuresMap, userReportedIntegration, userReportedIntegrationName}: CompleteOnboardingParams) => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
@@ -81,7 +82,7 @@ function useCompleteOnboarding() {
                 ? createWorkspace({
                       policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName),
+                      policyName: generateDefaultWorkspaceName(email, currentUserPersonalDetails.displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                       currency: currentUserPersonalDetails?.localCurrencyCode ?? '',
@@ -101,6 +102,7 @@ function useCompleteOnboarding() {
                       hasActiveAdminPolicies,
                       hasOwnedPaidPolicy,
                       conciergeChat,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -125,6 +127,8 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                delegateAccountID,
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
 
@@ -143,7 +147,7 @@ function useCompleteOnboarding() {
                 reportNameValuePairs,
                 policyID,
                 adminsChatReportID,
-                (session?.email ?? '').includes('+'),
+                (currentUserPersonalDetails.email ?? '').includes('+'),
                 {
                     variantOverride: rhpVariant,
                 },

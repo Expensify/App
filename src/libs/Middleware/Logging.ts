@@ -150,6 +150,9 @@ const Logging: Middleware = (response, request) => {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
                 Log.hmmm('[Network] API request error: Expensify service interrupted or timed out', logParams);
+            } else if (error.message === CONST.ERROR.SERVICE_UNAVAILABLE) {
+                // The server is shedding writes during instability and asked us to retry, so this is expected and handled.
+                Log.hmmm('[Network] API request error: Expensify API is temporarily unavailable', logParams);
             } else if (error.message === CONST.ERROR.THROTTLED) {
                 Log.hmmm('[Network] API request error: Expensify API throttled the request', logParams);
             } else if (error.message === CONST.ERROR.DUPLICATE_RECORD) {
