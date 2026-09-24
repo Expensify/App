@@ -83,9 +83,10 @@ function WorkspaceCompanyCardsBulkEditTransactionStartDatePage({route}: Workspac
                 oldStartDate: allBankCards?.[cardID]?.scrapeMinDate,
             })),
             newStartDate,
-        );
+        ).then(() => {
+            Growl.success(translate('workspace.companyCards.bulkStartDateUpdated'), {position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+        });
         goBackToCompanyCards();
-        Growl.success(translate('workspace.companyCards.bulkStartDateUpdated'));
     };
 
     const dateOptions = [

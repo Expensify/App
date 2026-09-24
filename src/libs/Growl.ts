@@ -1,5 +1,7 @@
 import CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 
 type GrowlAction = {
@@ -9,9 +11,16 @@ type GrowlAction = {
 
 /** The set of growl variants the notification UI knows how to render. */
 type GrowlType = typeof CONST.GROWL.SUCCESS | typeof CONST.GROWL.ERROR | typeof CONST.GROWL.WARNING;
+type GrowlPosition = ValueOf<typeof CONST.GROWL.POSITION>;
+
+type GrowlOptions = {
+    duration?: number;
+    action?: GrowlAction;
+    position?: GrowlPosition;
+};
 
 type GrowlRef = {
-    show?: (bodyText: string, type: GrowlType, duration: number, action?: GrowlAction) => void;
+    show?: (bodyText: string, type: GrowlType, duration: number, action?: GrowlAction, position?: GrowlPosition) => void;
 };
 
 const growlRef = React.createRef<GrowlRef>();
@@ -30,29 +39,38 @@ function setIsReady() {
 /**
  * Show the growl notification
  */
-function show(bodyText: string, type: GrowlType, duration?: number, action?: GrowlAction) {
+function show(bodyText: string, type: GrowlType, duration?: number, action?: GrowlAction, position?: GrowlPosition) {
     // Default to a longer duration when there's an action button so users have time to tap it.
     const resolvedDuration = duration ?? (action ? CONST.GROWL.DURATION_WITH_ACTION : CONST.GROWL.DURATION);
     isReadyPromise.then(() => {
         if (!growlRef?.current?.show) {
             return;
         }
-        growlRef.current.show(bodyText, type, resolvedDuration, action);
+        growlRef.current.show(bodyText, type, resolvedDuration, action, position);
     });
+}
+
+function showWithOptions(bodyText: string, type: GrowlType, durationOrOptions?: number | GrowlOptions, legacyAction?: GrowlAction) {
+    if (typeof durationOrOptions === 'number' || durationOrOptions === undefined) {
+        show(bodyText, type, durationOrOptions, legacyAction);
+        return;
+    }
+
+    show(bodyText, type, durationOrOptions.duration, durationOrOptions.action, durationOrOptions.position);
 }
 
 /**
  * Show error growl
  */
-function error(bodyText: string, duration?: number, action?: GrowlAction) {
-    show(bodyText, CONST.GROWL.ERROR, duration, action);
+function error(bodyText: string, durationOrOptions?: number | GrowlOptions, action?: GrowlAction) {
+    showWithOptions(bodyText, CONST.GROWL.ERROR, durationOrOptions, action);
 }
 
 /**
  * Show success growl
  */
-function success(bodyText: string, duration?: number, action?: GrowlAction) {
-    show(bodyText, CONST.GROWL.SUCCESS, duration, action);
+function success(bodyText: string, durationOrOptions?: number | GrowlOptions, action?: GrowlAction) {
+    showWithOptions(bodyText, CONST.GROWL.SUCCESS, durationOrOptions, action);
 }
 
 export default {
@@ -61,6 +79,6 @@ export default {
     success,
 };
 
-export type {GrowlRef, GrowlAction, GrowlType};
+export type {GrowlRef, GrowlAction, GrowlOptions, GrowlPosition, GrowlType};
 
 export {growlRef, setIsReady};

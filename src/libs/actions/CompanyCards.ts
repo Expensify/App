@@ -945,7 +945,7 @@ function bulkUpdateCardTransactionStartDate(
         startDate: newStartDate,
     };
 
-    API.write(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, parameters, {
+    return API.write(WRITE_COMMANDS.BULK_UPDATE_CARD_TRANSACTION_START_DATE, parameters, {
         optimisticData,
         finallyData,
         failureData,
