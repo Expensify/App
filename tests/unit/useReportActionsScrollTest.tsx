@@ -278,12 +278,25 @@ describe('useReportActionsScroll', () => {
             expect(result.current.shouldBeAlignedToTop).toBe(true);
         });
 
-        it('positions a linked report action at chronological index zero', async () => {
+        it('bottom-aligns a linked report action when it is the final item', async () => {
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
 
             const linkedAction = makeAction(LINKED_ACTION_ID);
             const {result} = await renderScroll({sortedVisibleReportActions: [linkedAction], renderedVisibleReportActions: [linkedAction]});
 
+            expect(result.current.initialScrollIndex).toBe(0);
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 1, viewOffset: 0});
+        });
+
+        it('top-aligns a linked report action when later actions follow it', async () => {
+            // Given a linked action followed by another action in chronological order.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
+            const actions = [makeAction(LINKED_ACTION_ID), makeAction('999')];
+
+            // When the list chooses its initial position.
+            const {result} = await renderScroll({sortedVisibleReportActions: actions.toReversed(), renderedVisibleReportActions: actions});
+
+            // Then the linked action is aligned below the header.
             expect(result.current.initialScrollIndex).toBe(0);
             expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
@@ -329,6 +342,17 @@ describe('useReportActionsScroll', () => {
             const {result} = await renderScroll();
 
             expect(result.current.shouldBeAlignedToTop).toBe(true);
+        });
+
+        it('does not clear the latest route parameter when it was never set', async () => {
+            // Given an ordinary report open without the X Replies flag.
+            mockRouteParams = {};
+
+            // When its scroll hook mounts.
+            await renderScroll();
+
+            // Then it leaves unrelated route parameters alone.
+            expect(mockSetParams).not.toHaveBeenCalledWith({shouldScrollToLatest: undefined});
         });
     });
 

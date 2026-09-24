@@ -345,7 +345,10 @@ function useReportActionsScroll({
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex >= 0) {
         initialScrollIndex = targetIndex;
-        initialScrollIndexParams = {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
+        // The final action can be taller than the viewport. Aligning its top can leave the
+        // highlighted content below the screen; at the tail, show the action's end instead.
+        initialScrollIndexParams =
+            targetIndex === renderedVisibleReportActions.length - 1 ? {viewPosition: 1, viewOffset: 0} : {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = 0;
     }
