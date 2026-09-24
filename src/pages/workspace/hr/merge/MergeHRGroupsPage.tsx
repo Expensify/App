@@ -1,3 +1,4 @@
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,12 +8,13 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMergeHRGroups} from '@libs/actions/connections/merge/HR';
-import {getSelectableMergeHRGroupIDs} from '@libs/merge/HRUtils';
+import {getNonRenderableMergeHRGroupIDs, getSelectableMergeHRGroupIDs} from '@libs/merge/HRUtils';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,10 +23,12 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type MergeHRGroupsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.HR_MERGE_GROUPS>;
@@ -41,6 +45,7 @@ function MergeHRGroupsPage({
 }: MergeHRGroupsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policy = usePolicy(policyID);
     const availableGroups = policy?.connections?.merge_hris?.data?.groups ?? [];
@@ -86,9 +91,26 @@ function MergeHRGroupsPage({
     };
 
     const handleSave = () => {
-        updateMergeHRGroups(policyID, [...selectedIds], currentGroups);
+        // Groups the HR system still has but that can't render a row (missing a name/type) never got a
+        // checkbox to toggle, so they're carried over as-is instead of being dropped by the save.
+        const preservedGroupIDs = getNonRenderableMergeHRGroupIDs(policy);
+        updateMergeHRGroups(policyID, [...selectedIds, ...preservedGroupIDs], currentGroups);
         Navigation.goBack();
     };
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={illustrations.Telescope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.hr.mergeHR.groups.noGroupsFound')}
+                subtitle={translate('workspace.hr.mergeHR.groups.noGroupsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [illustrations.Telescope, translate, styles.pb10],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -111,6 +133,7 @@ function MergeHRGroupsPage({
                         canSelectMultiple
                         onSelectRow={toggleItem}
                         onSelectAll={toggleSelectAll}
+                        listEmptyContent={listEmptyContent}
                         textInputOptions={{
                             label: translate('common.search'),
                             value: searchText,
@@ -127,7 +150,6 @@ function MergeHRGroupsPage({
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSave}
-                            isDisabled={selectedIds.size === 0}
                         >
                             <Button.Text>{translate('common.save')}</Button.Text>
                         </Button>

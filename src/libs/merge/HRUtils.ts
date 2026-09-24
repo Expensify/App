@@ -66,19 +66,46 @@ function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * The admin's group selection, minus any group the cached list no longer has. Those have no row to uncheck and the API
- * rejects them, so keeping them would leave the selector unable to save. A cache that has never synced is left untouched.
+ * The admin's group selection, minus any group that no longer exists anywhere in the HR system. Compares
+ * against allGroupIDs (the same source hasStaleMergeHRGroups uses), falling back to data.groups when
+ * allGroupIDs hasn't synced yet. A cache that has never synced is left untouched.
  */
-function getSelectableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
+function getValidMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
     const mergeHR = policy?.connections?.merge_hris;
     const selectedGroupIDs = mergeHR?.config?.groups ?? [];
-    const availableGroups = mergeHR?.data?.groups;
-    // data.groups is explicitly [] once a sync has actually run and found zero renderable groups, so
-    // only undefined (cache never loaded) means the selection should be left untouched.
-    if (!availableGroups) {
+    const availableGroupIDs = mergeHR?.data?.allGroupIDs ?? mergeHR?.data?.groups?.map((group) => group.id);
+    if (!availableGroupIDs) {
         return [...selectedGroupIDs];
     }
-    return selectedGroupIDs.filter((groupID) => availableGroups.some((group) => group.id === groupID));
+    return selectedGroupIDs.filter((groupID) => availableGroupIDs.includes(groupID));
+}
+
+/**
+ * The subset of getValidMergeHRGroupIDs that also has a renderable row in data.groups, so the admin can see
+ * and uncheck it. Used to seed the group selector's checkbox state — a group missing a name/type has no row
+ * to check, and the API rejects a selection carrying an ID with no row, so it is excluded here even though
+ * it's still valid.
+ */
+function getSelectableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
+    const availableGroups = policy?.connections?.merge_hris?.data?.groups;
+    const validGroupIDs = getValidMergeHRGroupIDs(policy);
+    if (!availableGroups) {
+        return validGroupIDs;
+    }
+    return validGroupIDs.filter((groupID) => availableGroups.some((group) => group.id === groupID));
+}
+
+/**
+ * The subset of getValidMergeHRGroupIDs with no renderable row — a group the HR system still has, but that
+ * Merge sent back without a name or type. The selector has nothing to show or uncheck for these, so they
+ * must ride along unchanged on save instead of being silently dropped from config.groups.
+ */
+function getNonRenderableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
+    const availableGroups = policy?.connections?.merge_hris?.data?.groups;
+    if (!availableGroups) {
+        return [];
+    }
+    return getValidMergeHRGroupIDs(policy).filter((groupID) => !availableGroups.some((group) => group.id === groupID));
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
@@ -210,6 +237,7 @@ export {
     getHRApprovalMode,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
+    getNonRenderableMergeHRGroupIDs,
     getSelectableMergeHRGroupIDs,
     hasStaleMergeHRGroups,
     isAnyHRConnected,

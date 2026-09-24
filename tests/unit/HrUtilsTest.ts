@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {
     getConnectedHRProvider,
     getHRApprovalMode,
+    getNonRenderableMergeHRGroupIDs,
     getSelectableMergeHRGroupIDs,
     hasStaleMergeHRGroups,
     isAnyHRConnected,
@@ -457,6 +458,67 @@ describe('HRUtils', () => {
                 connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {groups: []}})},
             });
             expect(getSelectableMergeHRGroupIDs(policy)).toEqual([]);
+        });
+    });
+
+    describe('getNonRenderableMergeHRGroupIDs', () => {
+        it('returns an empty list when the admin has not chosen groups yet', () => {
+            expect(getNonRenderableMergeHRGroupIDs(makePolicy())).toEqual([]);
+        });
+
+        it('returns an empty list when every selected group has a renderable row', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1']},
+                        data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1']},
+                    }),
+                },
+            });
+            expect(getNonRenderableMergeHRGroupIDs(policy)).toEqual([]);
+        });
+
+        it('keeps a selected group that still exists upstream but has no renderable row', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g2']},
+                        data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1', 'g2']},
+                    }),
+                },
+            });
+            expect(getNonRenderableMergeHRGroupIDs(policy)).toEqual(['g2']);
+        });
+
+        it('drops a selected group that no longer exists anywhere upstream', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g-deleted']},
+                        data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1']},
+                    }),
+                },
+            });
+            expect(getNonRenderableMergeHRGroupIDs(policy)).toEqual([]);
+        });
+
+        it('falls back to data.groups for validity when allGroupIDs has not synced yet', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1', 'g-deleted']},
+                        data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                    }),
+                },
+            });
+            expect(getNonRenderableMergeHRGroupIDs(policy)).toEqual([]);
+        });
+
+        it('leaves the selection alone when the cache has never synced', () => {
+            const policy = makePolicy({
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {}})},
+            });
+            expect(getNonRenderableMergeHRGroupIDs(policy)).toEqual([]);
         });
     });
 
