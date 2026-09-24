@@ -1,7 +1,8 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import, multiple approval paths, multiple approvers, shared approver, audit team approver, forward to different approver, approval path per submitter, edit approvals in Expensify Classic]
+internalScope: Audience is Workspace Admins and People Admins, covers enabling approvals and building default, custom, and multi-path approval workflows in New Expensify, does not cover Category and Tag approver setup or connecting a bank account.
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -61,6 +62,33 @@ Set up default or custom approval workflows to route expenses through one or mor
 9. Click **Add workflow** to save.
 
 **Note:** Custom workflows are only available on the Control plan. To enable custom workflows, upgrade to the Control plan in Settings > Billing & Subscriptions.
+
+## Send one approver's reports to different next approvers
+
+An approver can forward to a different next approver depending on who submitted the report. This lets a shared reviewer — an audit team or an office manager, for example — sit in the middle of several approval paths without sending every report they approve down the same route.
+
+For example, you can set up both of these approval paths on the same workspace:
+
+- Employee A → Audit team → Manager A
+- Employee C → Audit team → Manager C
+
+The Audit team approves both reports, but each report continues to a different next approver.
+
+To set this up, create a separate approval workflow for each submitter and give each one its own next approver after the shared approver:
+
+1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
+2. On the **Approvals** tab, click **Add approval workflow**.
+3. On the **Expenses from** page, choose the member whose expenses should follow this path.
+4. Click **Next**.
+5. Select the shared approver as the first approver.
+6. Click **Next**.
+7. Use **Additional approver** to add the next approver for this submitter.
+8. Click **Add workflow** to save.
+9. Repeat these steps for each submitter who routes through the same shared approver to a different next approver.
+
+Editing one of these workflows changes only that workflow. The other workflows that use the same approver keep their own next approvers.
+
+**Note:** Multiple approval paths through the same approver require the Control plan, and they can only be created and edited in New Expensify.
 
 ---
 
@@ -149,21 +177,25 @@ No. Each employee can only be assigned one approval workflow per workspace.
 
 ## Why did adding an approver to one workflow change other members' workflows?
 
-Approval routing is built from per-approver relationships, not separate paths for each submitter. When you place someone *after* an approver in a workflow, you're defining who that approver forwards their approvals to — and that applies to **every** report they approve, not just one submitter's.
+Each approval workflow keeps its own approvers, so adding or changing an approver in one workflow doesn't change another workflow that uses the same approver. A shared approver can forward to a different next approver in each workflow they belong to.
 
-For example, if Joe is the first approver for several members and you set up a workflow of **John → Joe → Jane**, you're telling Expensify that "Joe forwards to Jane." Because Joe also approves for other members, their reports will now route to Jane after Joe approves them too.
-
-This is why you may see the following warning when editing a workflow:
+You'll see the message below only on workspaces whose approvals are still routed by per-approver relationships rather than by separate paths for each submitter:
 
 > This member already belongs to another approval workflow. Any updates here will reflect there too.
 
-Deleting and recreating the workflow won't change this, because the limitation is tied to the shared approver's forwarding rather than to any one submitter's workflow.
+On those workspaces, placing someone *after* an approver defines who that approver forwards to for **every** report they approve. For example, if Joe is the first approver for several members and you set up **John → Joe → Jane**, other members' reports also route to Jane after Joe approves them. Deleting and recreating the workflow won't change that, because the behavior is tied to the shared approver's forwarding rather than to any one submitter's workflow.
 
-To keep a second-level approver limited to a single submitter, that submitter's first approver must be unique to their chain — that is, not shared as an approver for any other member. If your goal is instead to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
+If your goal is to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
 
 ## How can I assign custom approval workflows to specific members?
 
 You’ll need to be on the Control plan, as this feature isn’t available on Collect.
+
+## Why can't I see or edit approval settings in Expensify Classic?
+
+Expensify Classic can't represent a workspace where one approver forwards to different next approvers. On those workspaces, Classic hides the approval fields on the **Members** page and in the member settings, and shows a banner linking you to New Expensify. Make your approval changes in New Expensify instead.
+
+If you later remove the extra paths so that every approver forwards to a single next approver, the banner disappears and the approval fields return in Classic.
 
 ## What happens to pending reports when I change an approver?
 
