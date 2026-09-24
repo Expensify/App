@@ -103,9 +103,10 @@ type SubmitExpenseOrchestratorProps = {
 };
 
 /**
- * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle, dismiss animation coordination and
- * deferred writes. Exposes `onConfirm` and `isConfirming` via a render prop so the parent only needs to wire them to
- * `MoneyRequestConfirmationList`.
+ * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle,
+ * dismiss animation coordination and deferred writes.
+ * Exposes `onConfirm` and `isConfirming` via a render prop so the parent only
+ * needs to wire them to `MoneyRequestConfirmationList`.
  *
  * The decision tree (which handler to invoke) is extracted into the pure
  * `getSubmitHandler()` function (see getSubmitHandler.ts) for isolated

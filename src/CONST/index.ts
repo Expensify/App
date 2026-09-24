@@ -531,7 +531,6 @@ const CONST = {
         // 15 seconds, don't wait too long because the server can always fall back to using the IP address
         TIMEOUT: 15000,
 
-        // expo-location cannot bound a position read itself, so the submit paths race one against this cap and create the expense without coordinates once it expires
         SUBMIT_WAIT_TIMEOUT: 3000,
     },
 
@@ -2463,7 +2462,6 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
-        /** Sentry span attribute: how the expense got its coordinates (e.g. cached, waited, timed_out, none). */
         ATTRIBUTE_LOCATION_SOURCE: 'location_source',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',

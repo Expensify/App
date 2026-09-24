@@ -102,14 +102,17 @@ function getUserLocationFromOnyx(): Promise<OnyxEntry<UserLocation>> {
     });
 }
 
-// The scan screen opened from the report (+) entry, which is the variant that lands on the confirmation page.
-async function renderScanScreen() {
+function createUntouchedScanFromReportEntry() {
     const transaction = createRandomTransaction(1);
     transaction.reportID = REPORT_ID;
     transaction.transactionID = TRANSACTION_ID;
     transaction.isFromGlobalCreate = false;
-    // An untouched scan carries no amount, which is what makes its submit want coordinates.
     transaction.amount = 0;
+    return transaction;
+}
+
+async function renderScanScreen() {
+    const transaction = createUntouchedScanFromReportEntry();
 
     await act(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport());

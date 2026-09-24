@@ -15,15 +15,6 @@ type SettledLocation = {
     source: LocationSource;
 };
 
-/**
- * Reads the device position once, and settles the callback exactly once within `CONST.GPS.SUBMIT_WAIT_TIMEOUT`.
- *
- * expo-location has no timeout option on any platform, so a device that never answers would hold a submit open
- * indefinitely. When the cap expires first the callback settles with no coordinates and `timed_out`, and the position
- * the device eventually returns is dropped rather than replayed into an already-created expense.
- *
- * @param onSettled runs once, with coordinates only when the device answered inside the cap
- */
 function getCurrentPositionWithinCap(onSettled: (settled: SettledLocation) => void) {
     let settled = false;
 

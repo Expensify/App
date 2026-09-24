@@ -551,7 +551,6 @@ function SubmitDetailsPage({
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
         logReceiptCaptured({file: receipt, captureSource: 'share', receiptTraceId});
-        // A position the share screen already cached goes straight in, so the submit never waits on the device for a point we already hold.
         if (userLocation) {
             finishRequestAndNavigate(receipt, {
                 lat: userLocation.latitude,

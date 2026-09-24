@@ -1016,11 +1016,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
-    /**
-     * Gives a scan submit the coordinates it wants without ever making the tap wait on a permission answer or on a slow
-     * device: the position the scan screen cached goes straight in, and only an empty cache reads the device, capped at
-     * `CONST.GPS.SUBMIT_WAIT_TIMEOUT` and then submitted without coordinates.
-     */
     function submitWithCachedOrCappedLocation(submit: (gpsPoint?: GpsCoords) => void) {
         if (userLocation) {
             markSubmitExpenseLocationSource(CONST.TELEMETRY.SUBMIT_EXPENSE_LOCATION_SOURCE.CACHED);

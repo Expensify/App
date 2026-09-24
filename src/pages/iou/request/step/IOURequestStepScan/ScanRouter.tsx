@@ -124,9 +124,6 @@ ScanNewReceipt.displayName = 'ScanNewReceipt';
  * Edit branch is a fast-path that subscribes to nothing extra. Non-edit branches go through MultiScanGate
  * and the layered ScanNewReceipt/ScanNonGlobalCreate components, which scope their subscriptions to the
  * narrowest variant that needs them.
- *
- * The location snapshot sits above every new-receipt variant, so camera, gallery, report attachment and multi-scan all
- * warm the same cache from the moment the screen opens, whichever variant the route lands on.
  */
 function ScanRouter({report, action, iouType, reportID, transactionID, transaction, backTo, backToReport}: ScanRouterProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -144,7 +141,7 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
 
     return (
         <>
-            <ScanLocationSnapshot shouldAttachLocation={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
+            <ScanLocationSnapshot gpsRequired={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
             <MultiScanGate>
                 <ScanNewReceipt
                     report={report}

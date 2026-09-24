@@ -238,7 +238,6 @@ async function renderAndConfirm() {
     await waitForBatchedUpdatesWithAct();
 }
 
-/** Makes the mocked device answer a position read with the coordinates the share tests assert on. */
 function mockPositionAnswer() {
     jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
         success({

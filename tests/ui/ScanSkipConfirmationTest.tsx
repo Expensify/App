@@ -144,6 +144,15 @@ function createMinimalReport(): Report {
     };
 }
 
+function createUntouchedScanFromReportEntry() {
+    const transaction = createRandomTransaction(1);
+    transaction.reportID = REPORT_ID;
+    transaction.transactionID = TRANSACTION_ID;
+    transaction.isFromGlobalCreate = false;
+    transaction.amount = 0;
+    return transaction;
+}
+
 describe('ScanSkipConfirmation submit orchestration', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -240,12 +249,7 @@ describe('ScanSkipConfirmation submit orchestration', () => {
             });
         });
 
-        const transaction = createRandomTransaction(1);
-        transaction.reportID = REPORT_ID;
-        transaction.transactionID = TRANSACTION_ID;
-        transaction.isFromGlobalCreate = false;
-        // An untouched scan keeps the GPS branch of the submit live.
-        transaction.amount = 0;
+        const transaction = createUntouchedScanFromReportEntry();
         transaction.receipt = undefined;
 
         await act(async () => {

@@ -12,23 +12,15 @@ import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermis
 import React, {useEffect, useState} from 'react';
 
 type ScanLocationSnapshotProps = {
-    /** Whether a receipt captured on this screen submits without an amount, which is the case that wants coordinates attached. */
-    shouldAttachLocation: boolean;
+    gpsRequired: boolean;
 };
 
-/**
- * Warms the location cache the moment the scan screen opens, and asks for location permission here while the prompt
- * window allows it, so neither the capture nor the submit has to wait on a permission answer or on the device.
- *
- * The position read is never awaited: a slow device leaves the cache empty and the submit falls back to its own capped
- * read, rather than slowing the shutter down.
- */
-function ScanLocationSnapshot({shouldAttachLocation}: ScanLocationSnapshotProps) {
+function ScanLocationSnapshot({gpsRequired}: ScanLocationSnapshotProps) {
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {selector: shouldStartLocationPermissionFlowSelector});
     const [startPermissionFlow, setStartPermissionFlow] = useState(false);
 
     useEffect(() => {
-        if (!shouldAttachLocation) {
+        if (!gpsRequired) {
             return;
         }
 
@@ -43,7 +35,7 @@ function ScanLocationSnapshot({shouldAttachLocation}: ScanLocationSnapshotProps)
         return () => {
             stale = true;
         };
-    }, [shouldAttachLocation, shouldStartLocationPermissionFlow]);
+    }, [gpsRequired, shouldStartLocationPermissionFlow]);
 
     if (!startPermissionFlow) {
         return null;

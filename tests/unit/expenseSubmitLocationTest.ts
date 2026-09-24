@@ -58,7 +58,6 @@ function position(latitude: number, longitude: number): LocationObject {
     } as LocationObject;
 }
 
-/** Drives the one read the cap wrapper makes, and hands back what it settled with. */
 function readOnce(): jest.Mock<void, [Settled]> {
     const onSettled = jest.fn<void, [Settled]>();
     getCurrentPositionWithinCap(onSettled);

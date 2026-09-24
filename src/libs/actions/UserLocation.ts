@@ -19,14 +19,6 @@ function clearUserLocation() {
     Onyx.set(ONYXKEYS.USER_LOCATION, null);
 }
 
-/**
- * Reads the device position in the background and caches it for the submits that follow, so a submit that finds the
- * key filled never has to wait on the device. The read is deliberately not awaited by callers: nothing in the
- * capture or submit chain may block on it.
- *
- * @param ignoreFlag reads the position until this returns true, so a screen that unmounts mid-read stops writing
- * @returns whether permission was already granted, which is when the read was started
- */
 async function snapshotUserLocation(isStale: () => boolean = () => false): Promise<boolean> {
     const status = await getLocationPermission();
     if (isStale() || !isLocationPermissionGranted(status)) {
