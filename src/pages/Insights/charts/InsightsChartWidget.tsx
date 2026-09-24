@@ -41,7 +41,7 @@ type InsightsChartWidgetProps = {
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
-    /** Lets the reader change the time bucket the chart aggregates into. Only the headline chart offers it. */
+    /** Shows a group-by control in the chart's header when set */
     onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
 
     containerStyles?: StyleProp<ViewStyle>;

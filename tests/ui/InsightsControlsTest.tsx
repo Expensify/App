@@ -87,7 +87,7 @@ describe('Insights controls', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then each pill reads the selection it owns, so the reader sees what the charts are narrowed by
+        // Then each pill shows the selection it owns, so the user sees what the charts are narrowed by
         expect(screen.getByText(/Date: /)).toBeOnTheScreen();
         expect(screen.getByText(new RegExp(`: ${POLICY_NAME}$`))).toBeOnTheScreen();
         expect(screen.getByText(/: USD$/)).toBeOnTheScreen();
@@ -104,7 +104,7 @@ describe('Insights controls', () => {
             />,
         );
 
-        // When the reader opens the control and resets it
+        // When the user opens the control and resets it
         await openPill(/: USD$/);
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();
@@ -113,7 +113,7 @@ describe('Insights controls', () => {
         expect(onChange).toHaveBeenCalledWith('PLN');
     });
 
-    it('applies the time bucket the reader picks for the headline chart', async () => {
+    it('applies the grouping the user picks', async () => {
         // Given the headline chart grouped by month
         const onChange = jest.fn();
         renderWithProviders(
@@ -123,7 +123,7 @@ describe('Insights controls', () => {
             />,
         );
 
-        // When the reader picks Quarter and applies it
+        // When the user picks Quarter and applies it
         await openPill(/: Month$/);
         fireEvent.press(screen.getByText(/^(Quarter|search\.filters\.groupBy\.quarter)$/));
         fireEvent.press(screen.getByText(APPLY));
@@ -133,7 +133,7 @@ describe('Insights controls', () => {
         expect(onChange).toHaveBeenCalledWith(CONST.SEARCH.GROUP_BY.QUARTER);
     });
 
-    it('resets the time bucket to month', async () => {
+    it('resets the grouping to month', async () => {
         // Given the headline chart grouped by quarter
         const onChange = jest.fn();
         renderWithProviders(
@@ -143,7 +143,7 @@ describe('Insights controls', () => {
             />,
         );
 
-        // When the reader resets the control
+        // When the user resets the control
         await openPill(/: Quarter$/);
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();
@@ -163,7 +163,7 @@ describe('Insights controls', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // When the reader resets the control
+        // When the user resets the control
         await openPill(new RegExp(`: ${POLICY_NAME}$`));
         fireEvent.press(screen.getByText(RESET));
         await waitForBatchedUpdatesWithAct();

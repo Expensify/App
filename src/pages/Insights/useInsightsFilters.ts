@@ -15,7 +15,7 @@ import {parseInsightsFilters} from './insightsFilterParsing';
 import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
 import {buildInsightsQueryString} from './insightsQueries';
 
-type UseInsightsFilters = {
+type UseInsightsFiltersResult = {
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
 
@@ -29,7 +29,7 @@ type UseInsightsFilters = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFilters {
+function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersResult {
     const {searchKey} = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy, activePolicyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDOrDefault(activePolicyID)}`);
