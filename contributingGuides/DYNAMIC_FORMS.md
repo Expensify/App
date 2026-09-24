@@ -56,7 +56,7 @@ The `adapters/` folder holds prop mappers that give existing components the `val
 
 ## Building a flow
 
-`DynamicFormFlow` turns a schema into a whole flow: one sub page per group through `useSubPage`, a step indicator once there are three or more pages, page titles, per-page validation against the whole draft, a draft-load gate, and a confirmation page listing every answer with edit rows. Give it the fields, a form key, a header title, a route builder and `onSubmit`.
+`DynamicFormFlow` turns a schema into a whole flow: one sub page per group through `useSubPage`, a step indicator once there are three or more pages, page titles, per-page validation against the whole draft, a draft-load gate, and, for longer forms, a confirmation page listing every answer with edit rows. Give it the fields, a form key, a header title, a route builder and `onSubmit`.
 
 ```tsx
 <DynamicFormFlow
@@ -77,7 +77,18 @@ Inside the flow a list edits its items on their own page (route `<listKey>~<item
 
 Pass `onPageSubmit` to persist each page as the ACH flow does. It receives the page and that page's answers before the flow moves on, so the consumer's action can call its API command per group; the page's own button shows the form key's `isLoading` and `errors` without further wiring.
 
-The step indicator appears at three or more pages by default. Pass `shouldShowStepIndicator` to force it on for a shorter flow or off for a longer one; single-screen forms never get one.
+Design thinks about a form in two layers, and the props follow that model:
+
+| Design's question | Where it lives |
+|---|---|
+| Single page, several pages, or several pages with a stepper? | `layout`: `auto` shows the step indicator at three or more pages, `stepper` always, `pages` never |
+| Confirmation screen? | `hasConfirmation`: by default only a form with more than five pages gets one, otherwise the last page submits |
+| Task-list form? | Not yet; tracked as the overview layout |
+| One input, one group, or several groups on a page? | One `group` is one page. A lone field renders as the page (see the registry table). Several headed groups on one page are not supported yet |
+| Header and titles | `groupLabelKey` per page, `headerTitle` for the header |
+| Saving and validation | Drafts on every keystroke, `onPageSubmit` for the server, resume at the first incomplete page, validation from the schema per page |
+
+The confirmation page counts as a step in the indicator.
 
 ## Fixtures are the server contract
 

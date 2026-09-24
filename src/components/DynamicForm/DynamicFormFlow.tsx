@@ -57,8 +57,11 @@ type DynamicFormFlowProps = {
 
     submitError?: string;
 
-    /** Overrides the step indicator's page-count default: true always shows it, false never does */
-    shouldShowStepIndicator?: boolean;
+    /** How the pages present: `auto` shows a step indicator at three or more pages, `stepper` always, `pages` never */
+    layout?: DynamicFormLayout;
+
+    /** Whether a confirmation page follows the last group; by default only forms with more than five pages get one */
+    hasConfirmation?: boolean;
 
     /** Called with a page and its answers before the flow moves on, for flows that persist each page to the API */
     onPageSubmit?: (page: DynamicFormPageSchema, values: DynamicFormValues) => void;
@@ -76,6 +79,9 @@ function isCarriedOutsideDraft(field: DynamicFormField): boolean {
 }
 
 const LIST_ITEM_FORM_ID = ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM;
+const CONFIRMATION_MIN_PAGES = 5;
+
+type DynamicFormLayout = 'auto' | 'pages' | 'stepper';
 const ITEM_EDITOR_SEPARATOR = '~';
 const NEW_ITEM_ID = 'new';
 
@@ -105,16 +111,19 @@ function DynamicFormFlow({
     confirmationTitle,
     isSubmitting = false,
     submitError,
-    shouldShowStepIndicator,
+    layout = 'auto',
+    hasConfirmation,
     onPageSubmit,
 }: DynamicFormFlowProps) {
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
     const [carriedAnswers, setCarriedAnswers] = useState<DynamicFormValues>(() => carriedAnswersByForm.get(formID) ?? {});
     const groupPages = groupFieldsIntoPages(fields);
-    const pages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), {pageName: CONFIRM_PAGE_SLUG, component: EmptyPage}];
     const draftValues: DynamicFormValues = {...draft, ...carriedAnswers};
     const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues));
+    const visibleGroupPages = groupPages.filter(hasVisibleField);
+    const shouldConfirm = hasConfirmation ?? visibleGroupPages.length > CONFIRMATION_MIN_PAGES;
+    const pages = [...groupPages.map((page) => ({pageName: page.slug, component: EmptyPage})), ...(shouldConfirm ? [{pageName: CONFIRM_PAGE_SLUG, component: EmptyPage}] : [])];
     const skipPages = groupPages.filter((page) => !hasVisibleField(page)).map((page) => page.slug);
 
     const isDraftLoading = isLoadingOnyxValue(draftMetadata);
@@ -267,8 +276,7 @@ function DynamicFormFlow({
     };
 
     const isConfirmationPage = currentPageName === CONFIRM_PAGE_SLUG;
-    const visibleGroupPages = groupPages.filter(hasVisibleField);
-    const stepNames = visibleGroupPages.map((page) => getPageTitle(page, translate));
+    const stepNames = [...visibleGroupPages.map((page) => getPageTitle(page, translate)), ...(shouldConfirm ? [translate('common.confirm')] : [])];
     const stepGroup = currentGroupPage ?? editorGroup;
     const stepIndex = stepGroup ? Math.max(0, visibleGroupPages.indexOf(stepGroup)) : stepNames.length - 1;
 
@@ -360,7 +368,7 @@ function DynamicFormFlow({
             stepNames={stepNames}
             stepIndex={Math.min(stepIndex, Math.max(stepNames.length - 1, 0))}
             onBackButtonPress={handleBackButtonPress}
-            shouldShowStepIndicator={shouldShowStepIndicator}
+            shouldShowStepIndicator={layout === 'auto' ? undefined : layout === 'stepper'}
         >
             {content}
         </DynamicFormShell>
