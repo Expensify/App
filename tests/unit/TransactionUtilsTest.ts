@@ -379,9 +379,81 @@ describe('TransactionUtils', () => {
             expect(categoryTaxValue).toBe('10%');
         });
 
+        describe('distance expenses', () => {
+            const distanceRateID = 'DISTANCE_RATE_ID';
+
+            function buildDistancePolicy(category: string, taxEnabled: boolean, rateTaxRateExternalID?: string): Policy {
+                return {
+                    ...createRandomPolicy(0),
+                    taxRates: CONST.DEFAULT_TAX,
+                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+                    customUnits: {
+                        DISTANCE_CUSTOM_UNIT: {
+                            attributes: {taxEnabled, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            customUnitID: 'DISTANCE_CUSTOM_UNIT',
+                            enabled: true,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            rates: {
+                                [distanceRateID]: {
+                                    attributes: {taxRateExternalID: rateTaxRateExternalID},
+                                    currency: 'USD',
+                                    customUnitRateID: distanceRateID,
+                                    enabled: true,
+                                    name: 'Test rate',
+                                    rate: 67,
+                                    subRates: [],
+                                },
+                            },
+                        },
+                    },
+                };
+            }
+
+            function buildDistanceTransaction(): Transaction {
+                const transaction = generateTransaction();
+                return {
+                    ...transaction,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    comment: {...transaction.comment, customUnit: {customUnitRateID: distanceRateID}},
+                };
+            }
+
+            it('should apply the category rule when distance tax tracking is on and the rate has no tax rate of its own', () => {
+                // Given a policy whose distance rates track tax, where the selected rate has no tax rate of its own
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true);
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the category rule fills the slot the rate left empty, rather than the workspace default
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+                expect(categoryTaxValue).toBe('5%');
+            });
+
+            it('should keep the rate tax rate when distance tax tracking is on and the rate has its own tax rate', () => {
+                // Given a policy whose distance rates track tax, where the selected rate carries its own tax rate
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2');
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(
+                    category,
+                    buildDistanceTransaction(),
+                    fakePolicy,
+                    getCurrencyDecimalsLocal,
+                );
+
+                // Then the category rule is skipped, because the rate's own tax rate takes precedence over it
+                expect(categoryTaxCode).toBe(undefined);
+                expect(categoryTaxAmount).toBe(undefined);
+                expect(categoryTaxValue).toBe(undefined);
+            });
+        });
+
         describe('should return undefined tax', () => {
-            it('if the transaction type is distance', () => {
-                // Given a policy with tax expense rules associated with a category
+            it('if the transaction type is distance and distance tax tracking is disabled', () => {
+                // Given a policy with tax expense rules associated with a category, and no distance rates tracking tax
                 const category = 'Advertising';
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(0),
