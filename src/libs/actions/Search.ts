@@ -1249,9 +1249,10 @@ function search({
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
-     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Tells the backend whether this query was submitted by the user, so it may be saved to the recent searches NVP.
      * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
-     * refreshes) must not evict the user's real recent searches.
+     * refreshes) must not evict the user's real recent searches. Always serialized, even when false, because the
+     * backend treats a missing flag as true for backwards compatibility with older clients.
      */
     shouldSaveRecentSearch?: boolean;
     /**
@@ -1308,7 +1309,9 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
+        // Always send the flag, including when it is false. The backend defaults a missing flag to true so that
+        // older clients keep saving recent searches, so omitting it on a programmatic search saves that query.
+        shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
