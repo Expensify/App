@@ -5295,14 +5295,6 @@ ${amount} voor ${merchant} - ${date}`,
                         label: 'Ingediend op datum',
                         description: 'Datum waarop het rapport ter goedkeuring is ingediend.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
-                        label: 'Exportdatum',
-                        description: 'Datum waarop het rapport is geëxporteerd naar Sage Intacct.',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
-                        label: 'Ingediend op datum',
-                        description: 'Datum waarop het rapport ter goedkeuring is ingediend.',
-                    },
                 },
             },
             reimbursableExpenses: {

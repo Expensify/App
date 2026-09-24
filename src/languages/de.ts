@@ -5332,14 +5332,6 @@ ${amount} für ${merchant} – ${date}`,
                         label: 'Eingereichtes Datum',
                         description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
-                        label: 'Exportdatum',
-                        description: 'Datum, an dem der Bericht nach Sage Intacct exportiert wurde.',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
-                        label: 'Eingereichtes Datum',
-                        description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.',
-                    },
                 },
             },
             reimbursableExpenses: {

@@ -5251,14 +5251,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         label: '提出日',
                         description: 'レポートが承認申請として提出された日付。',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
-                        label: 'エクスポート日',
-                        description: 'レポートが Sage Intacct にエクスポートされた日付。',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
-                        label: '提出日',
-                        description: 'レポートが承認申請として提出された日付。',
-                    },
                 },
             },
             reimbursableExpenses: {

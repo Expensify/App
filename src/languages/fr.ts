@@ -5339,14 +5339,6 @@ ${amount} pour ${merchant} - ${date}`,
                         label: 'Date de soumission',
                         description: 'Date à laquelle la note de frais a été soumise pour approbation.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
-                        label: 'Date d’exportation',
-                        description: 'Date à laquelle la note de frais a été exportée vers Sage Intacct.',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
-                        label: 'Date de soumission',
-                        description: 'Date à laquelle la note de frais a été soumise pour approbation.',
-                    },
                 },
             },
             reimbursableExpenses: {

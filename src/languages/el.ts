@@ -5410,14 +5410,6 @@ ${amount} για ${merchant} - ${date}`,
                         label: 'Ημερομηνία υποβολής',
                         description: 'Ημερομηνία υποβολής της αναφοράς για έγκριση.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
-                        label: 'Ημερομηνία εξαγωγής',
-                        description: 'Ημερομηνία εξαγωγής της αναφοράς στο Sage Intacct.',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
-                        label: 'Ημερομηνία υποβολής',
-                        description: 'Ημερομηνία υποβολής της αναφοράς για έγκριση.',
-                    },
                 },
             },
             reimbursableExpenses: {

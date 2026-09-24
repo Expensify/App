@@ -1330,9 +1330,15 @@ type SageIntacctSyncConfig = {
     syncReimbursedReports: boolean | string;
 };
 
+/**
+ * Date a Sage Intacct export is stamped with. Includes the legacy values NewDot wrote before the constant was aligned
+ * with the backend, since a workspace configured back then still holds one of them.
+ */
+type SageIntacctExportDate = ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE> | ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY>;
+
 /** Sage Intacct export configs */
 type SageIntacctExportConfig = {
-    exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+    exportDate: SageIntacctExportDate;
 
     /** The e-mail of the exporter */
     exporter?: string;
@@ -3751,6 +3757,7 @@ export type {
     Account,
     QBONonReimbursableExportAccountType,
     QBDNonReimbursableExportAccountType,
+    SageIntacctExportDate,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     IntuitEnterpriseSuiteEntity,

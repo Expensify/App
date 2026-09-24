@@ -5290,14 +5290,6 @@ ${amount} para ${merchant} - ${date}`,
                         label: 'Data de envio',
                         description: 'Data em que o relatório foi enviado para aprovação.',
                     },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.EXPORTED]: {
-                        label: 'Data de exportação',
-                        description: 'Data em que o relatório foi exportado para o Sage Intacct.',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE_LEGACY.SUBMITTED]: {
-                        label: 'Data de envio',
-                        description: 'Data em que o relatório foi enviado para aprovação.',
-                    },
                 },
             },
             reimbursableExpenses: {
