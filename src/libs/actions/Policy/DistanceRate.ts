@@ -708,7 +708,7 @@ function setEmployeeWorkArrangement(
         employeeListSuccessUpdate[update.email] = {pendingAction: null};
         employeeListFailureUpdate[update.email] = {
             ...(policy?.employeeList?.[update.email] ?? {}),
-            pendingAction: null,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
         };
     }

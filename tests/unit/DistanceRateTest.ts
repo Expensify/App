@@ -544,7 +544,7 @@ describe('DistanceRate', () => {
             // When the member's work arrangement is updated
             setEmployeeWorkArrangement(policy, [member1AccountID], true, personalDetails, translate);
 
-            // Then failure data restores the member value, clears its pending state, and removes the changelog action
+            // Then failure data restores the member value, retains UPDATE so dismissing the error preserves the member, and removes the changelog action
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
             expect(onyxData?.failureData?.[0]).toMatchObject({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -553,7 +553,7 @@ describe('DistanceRate', () => {
                     employeeList: {
                         [member1Email]: {
                             email: member1Email,
-                            pendingAction: null,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
                     },
                 },
