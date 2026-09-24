@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import * as API from '@libs/API';
 import type {
     CreatePolicyDistanceRateParams,
@@ -655,14 +657,15 @@ type WorkArrangementMemberUpdate = {
  * affected accountID, and one optimistic member work arrangement changelog action is
  * created per member in the workspace admins room.
  */
-function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], isOffice: boolean) {
+function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountIDList: number[], isOffice: boolean, translate: LocalizedTranslate) {
     const policyID = policy?.id;
     if (!policyID) {
         return;
     }
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const newLabel = isOffice ? 'office-based' : 'no regular workspace';
+    const getWorkArrangementLabel = (isOfficeBased: boolean) => translate(isOfficeBased ? 'workspace.people.officeBased' : 'workspace.people.noRegularWorkspace');
+    const newLabel = getWorkArrangementLabel(isOffice);
     const updates: WorkArrangementMemberUpdate[] = [];
     for (const accountID of employeeAccountIDList) {
         const personalDetail = getPersonalDetail(accountID);
@@ -734,8 +737,8 @@ function setEmployeeWorkArrangement(policy: OnyxEntry<Policy>, employeeAccountID
         const successReportActions: Record<string, Pick<ReportAction, 'pendingAction'>> = {};
         const failureReportActions: Record<string, null> = {};
         for (const update of updates) {
-            const previousLabel = update.previousHasOfficeWorkArrangement ? 'office-based' : 'no regular workspace';
-            const text = `changed ${update.name}'s work arrangement to ${newLabel} (previously ${previousLabel})`;
+            const previousLabel = getWorkArrangementLabel(update.previousHasOfficeWorkArrangement ?? false);
+            const text = translate('workspaceActions.updatedMemberWorkArrangement', update.name, newLabel, previousLabel);
             optimisticReportActions[update.optimisticReportActionID] = {
                 reportActionID: update.optimisticReportActionID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,

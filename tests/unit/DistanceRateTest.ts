@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {deletePolicyDistanceRates, enablePolicyDistanceRates, setEmployeeWorkArrangement, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
 import * as API from '@libs/API';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
@@ -13,6 +15,19 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const translate: LocalizedTranslate = (phrase, ...parameters) => {
+    if (phrase === 'workspace.people.officeBased') {
+        return 'Office-based';
+    }
+    if (phrase === 'workspace.people.noRegularWorkspace') {
+        return 'No regular workspace';
+    }
+    if (phrase === 'workspaceActions.updatedMemberWorkArrangement') {
+        return `changed ${String(parameters[0])}'s work arrangement to ${String(parameters[1])} (previously ${String(parameters[2])})`;
+    }
+    return String(phrase);
+};
 
 describe('DistanceRate', () => {
     beforeAll(() => {
@@ -439,7 +454,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When both members are assigned the office-based arrangement
-            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true);
+            setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true, translate);
             await waitForBatchedUpdates();
 
             // Then only the changed member and one pending changelog entry are updated
@@ -454,6 +469,16 @@ describe('DistanceRate', () => {
             expect(actions.at(0)).toMatchObject({
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                message: [
+                    {
+                        text: translate(
+                            'workspaceActions.updatedMemberWorkArrangement',
+                            'Member One',
+                            translate('workspace.people.officeBased'),
+                            translate('workspace.people.noRegularWorkspace'),
+                        ),
+                    },
+                ],
                 originalMessage: {accountID: member1AccountID, email: member1Email, name: 'Member One', newValue: true, oldValue: false},
             });
 
@@ -470,7 +495,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the matching member and an unknown account are passed
-            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false);
+            setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false, translate);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog entry is changed
@@ -493,7 +518,7 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, translate);
 
             // Then success updates clear the pending state for both the member and changelog action
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
@@ -516,7 +541,7 @@ describe('DistanceRate', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, translate);
 
             // Then failure data restores the member value, clears its pending state, and removes the changelog action
             const onyxData = writeSpy.mock.calls.at(0)?.[2];
@@ -559,7 +584,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member's work arrangement is updated
-            setEmployeeWorkArrangement(policy, [member1AccountID], true);
+            setEmployeeWorkArrangement(policy, [member1AccountID], true, translate);
             await waitForBatchedUpdates();
 
             // Then the member is updated without creating a changelog action
@@ -589,7 +614,7 @@ describe('DistanceRate', () => {
             });
             await waitForBatchedUpdates();
             // When the member missing from the policy employee list is passed
-            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true);
+            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, translate);
             await waitForBatchedUpdates();
 
             // Then no member data or changelog action is created
@@ -612,7 +637,7 @@ describe('DistanceRate', () => {
 
             pause();
             // When the member is assigned an arrangement without a policy ID
-            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true);
+            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true, translate);
             await waitForBatchedUpdates();
 
             // Then neither the policy nor the admins room changelog is changed
