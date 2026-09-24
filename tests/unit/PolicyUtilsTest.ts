@@ -4792,7 +4792,12 @@ describe('PolicyUtils', () => {
                 });
 
             it('requires a configured FFA connection and the matching beta', () => {
+                // Given a workspace configured with Certinia FFA
                 const policy = buildCertiniaPolicy(vendors);
+
+                // When checking vendor matching availability
+
+                // Then matching is active, but the feature requires the vendor matching beta
                 expect(isCertiniaVendorMatchingActive(policy)).toBe(true);
                 expect(hasVendorFeature(policy, true)).toBe(true);
                 expect(hasVendorFeature(policy, false)).toBe(false);
@@ -4800,20 +4805,33 @@ describe('PolicyUtils', () => {
             });
 
             it('excludes PSA and unconfigured connections, treats missing hasPSA as FFA', () => {
-                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true}))).toBe(false);
-                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: false, hasPSA: false}))).toBe(false);
-                expect(hasVendorFeature(buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true}), true)).toBe(false);
+                // Given Certinia connections that are PSA, unconfigured, or omitting hasPSA
+                const psaPolicy = buildCertiniaPolicy(vendors, {isConfigured: true, hasPSA: true});
+                const unconfiguredPolicy = buildCertiniaPolicy(vendors, {isConfigured: false, hasPSA: false});
+                const defaultFfaPolicy = buildCertiniaPolicy(vendors, {isConfigured: true});
+
+                // When checking vendor matching availability
+
+                // Then PSA and unconfigured connections are inactive, while missing hasPSA defaults to FFA
+                expect(isCertiniaVendorMatchingActive(psaPolicy)).toBe(false);
+                expect(isCertiniaVendorMatchingActive(unconfiguredPolicy)).toBe(false);
+                expect(hasVendorFeature(psaPolicy, true)).toBe(false);
 
                 // The OAuth callback persists null when Salesforce omits hasPSA, and the rest of the product reads that as FFA
-                expect(isCertiniaVendorMatchingActive(buildCertiniaPolicy(vendors, {isConfigured: true}))).toBe(true);
+                expect(isCertiniaVendorMatchingActive(defaultFfaPolicy)).toBe(true);
             });
 
             it('normalizes synced vendors and resolves them by ID', () => {
+                // Given a workspace with synced Certinia FFA vendors
                 const policy = buildCertiniaPolicy(vendors);
                 const expected = [
                     {id: 'certinia-1', name: 'Acme Supplies', currency: '', email: ''},
                     {id: 'certinia-2', name: 'Globex', currency: '', email: ''},
                 ];
+
+                // When reading matching vendors and querying them by ID
+
+                // Then vendors are normalized to standard vendor shapes and resolvable by ID
                 expect(getMatchingVendors(policy)).toEqual(expected);
                 expect(getCertiniaVendors(policy)).toEqual(expected);
                 expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
@@ -4822,25 +4840,43 @@ describe('PolicyUtils', () => {
             });
 
             it('distinguishes an unloaded list from a loaded-empty list', () => {
-                expect(isMatchingVendorListLoaded(buildCertiniaPolicy(undefined))).toBe(false);
-                expect(isMatchingVendorListLoaded(buildCertiniaPolicy([]))).toBe(true);
-                expect(getMatchingVendors(buildCertiniaPolicy(undefined))).toEqual([]);
+                // Given an unloaded vendor list and a loaded empty vendor list
+                const unloadedPolicy = buildCertiniaPolicy(undefined);
+                const emptyPolicy = buildCertiniaPolicy([]);
+
+                // When checking list load status and reading matching vendors
+
+                // Then the unloaded list returns empty without being marked loaded, while an empty array is marked loaded
+                expect(isMatchingVendorListLoaded(unloadedPolicy)).toBe(false);
+                expect(isMatchingVendorListLoaded(emptyPolicy)).toBe(true);
+                expect(getMatchingVendors(unloadedPolicy)).toEqual([]);
             });
 
             it('stays last in precedence behind DualEntry', () => {
+                // Given a workspace configured with both Certinia FFA and DualEntry connections
                 const policy = buildCertiniaPolicy(vendors);
                 policy.connections = {
                     ...policy.connections,
                     dualEntry: {config: {isConfigured: true, subsidiaryID: '10', enableNewCategories: false}, data: {vendors: [{id: '1', name: 'DualEntry vendor', isActive: true}]}},
                 };
+
+                // When resolving the active vendor matching integration and vendor lists
+
+                // Then DualEntry takes precedence for matching while Certinia vendors remain accessible directly
                 expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY);
                 expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['1']);
                 expect(getCertiniaVendors(policy).map((vendor) => vendor.id)).toEqual(['certinia-1', 'certinia-2']);
             });
 
             it('uses the existing Certinia empty state', () => {
+                // Given a Certinia workspace with an empty vendor list and the localizer
+                const policy = buildCertiniaPolicy([]);
                 const translate = TestHelper.translateLocal;
-                expect(getVendorEmptyState(buildCertiniaPolicy([]), translate)).toEqual({
+
+                // When retrieving the vendor empty state
+
+                // Then localized messages specific to Certinia are returned
+                expect(getVendorEmptyState(policy, translate)).toEqual({
                     title: translate('workspace.certinia.noVendorsFound'),
                     subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
                 });

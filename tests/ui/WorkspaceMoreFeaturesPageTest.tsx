@@ -534,17 +534,35 @@ describe('WorkspaceMoreFeaturesPage', () => {
 
         // Certinia FFA is beta-gated, so the row follows the vendorMatching beta.
         it('shows the Vendors row for a configured Certinia FFA connection when the beta is enabled', async () => {
-            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}}, true);
+            // Given a configured Certinia FFA connection and vendor matching beta enabled
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}};
+
+            // When the More features page renders
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row should be visible
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
         it('hides the Vendors row for a configured Certinia FFA connection when the beta is disabled', async () => {
-            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}}, false);
+            // Given a configured Certinia FFA connection with vendor matching beta disabled
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: false}}};
+
+            // When the More features page renders
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row should be hidden
             expect(vendorsSwitchQuery()).toBeNull();
         });
 
         it('hides the Vendors row for a Certinia PSA connection even when the beta is enabled', async () => {
-            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: true}}}, true);
+            // Given a Certinia PSA connection with vendor matching beta enabled
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {config: {isConfigured: true, hasPSA: true}}};
+
+            // When the More features page renders
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row should be hidden because PSA does not support vendor matching
             expect(vendorsSwitchQuery()).toBeNull();
         });
     });
