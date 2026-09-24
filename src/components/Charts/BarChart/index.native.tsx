@@ -1,7 +1,4 @@
-import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
-import CONST from '@src/CONST';
+import useBarChartOrientation from '@hooks/useBarChartOrientation';
 
 import React from 'react';
 
@@ -11,9 +8,7 @@ import BarChartContent from './BarChartContent';
 
 function BarChart(props: BarChartProps) {
     // Horizontal bars on wide layouts, vertical on narrow (mobile/RHP).
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isHorizontal = !shouldUseNarrowLayout && isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
+    const {isHorizontal} = useBarChartOrientation();
 
     return (
         <BarChartContent

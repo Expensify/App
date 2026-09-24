@@ -1,9 +1,6 @@
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
 
-import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
-import CONST from '@src/CONST';
+import useBarChartOrientation from '@hooks/useBarChartOrientation';
 
 import React from 'react';
 
@@ -12,9 +9,7 @@ import type {BarChartProps} from './types';
 const getBarChartContent = () => import('./BarChartContent');
 function BarChart(props: BarChartProps) {
     // Horizontal bars on wide layouts, vertical on narrow (mobile/RHP). A single lazy module receives orientation as a prop.
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isHorizontal = !shouldUseNarrowLayout && isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
+    const {isHorizontal} = useBarChartOrientation();
 
     return (
         <SkiaWebChart
