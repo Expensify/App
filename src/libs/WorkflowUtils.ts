@@ -30,7 +30,6 @@ import {Str} from 'expensify-common';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './merge/HRUtils';
 import {rand64} from './NumberUtils';
-import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -755,12 +754,9 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
  * workflow empty, so it is the only workflow left and has to be the default one.
  */
 function includesEveryWorkspaceMember(memberEmails: Array<string | null | undefined>, employeeList: PolicyEmployeeList | undefined): boolean {
-    // The workspace keys phone members by their SMS login, which a phone number picked in the member list doesn't carry yet.
-    const memberLogins = new Set(memberEmails.map((email) => addSMSDomainIfPhoneNumber(email ?? '')));
-    const workspaceMemberLogins = Object.values(employeeList ?? {})
-        .filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .map((employee) => addSMSDomainIfPhoneNumber(employee.email));
-    return workspaceMemberLogins.length > 0 && workspaceMemberLogins.every((login) => memberLogins.has(login));
+    const memberEmailSet = new Set(memberEmails);
+    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return workspaceMembers.length > 0 && workspaceMembers.every((employee) => memberEmailSet.has(employee.email));
 }
 
 type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;

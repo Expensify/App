@@ -73,8 +73,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         }
 
         // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
-        const isDefault = approvalWorkflow.isDefault || includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList);
-        const workflowToCreate = {...approvalWorkflow, isDefault};
+        const workflowToCreate = {...approvalWorkflow, isDefault: includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList)};
 
         startWithLoading(() => {
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {

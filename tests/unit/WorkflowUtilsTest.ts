@@ -905,16 +905,6 @@ describe('WorkflowUtils', () => {
             expect(includesEveryWorkspaceMember(['1@example.com'], employeeList)).toBe(false);
         });
 
-        it('matches a phone number against the SMS login the workspace keys that member by', () => {
-            // Given a workspace whose only member joined by phone number
-            const phoneNumber = '+14155550123';
-            const smsLogin = `${phoneNumber}${CONST.SMS.DOMAIN}`;
-
-            // When checking a workflow that lists that member by the bare phone number
-            // Then it has everyone, because both refer to the same member
-            expect(includesEveryWorkspaceMember([phoneNumber], {[smsLogin]: {email: smsLogin}})).toBe(true);
-        });
-
         it('is false when the workspace has no members', () => {
             // Given a workspace whose member list hasn't loaded
             // When checking any workflow
