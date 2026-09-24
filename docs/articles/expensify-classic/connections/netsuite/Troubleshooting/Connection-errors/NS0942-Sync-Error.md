@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0942 Sync Error: 'Parent Company' not found for subsidiaries"
 title: NS0942 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0942 sync error in NetSuite when subsidiaries are not imported after moving to a OneWorld account.
 keywords: NS0942, NetSuite OneWorld sync error, parent company not found subsidiaries, disconnect reconnect NetSuite, Expensify NetSuite sync error, Workspace Admin

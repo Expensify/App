@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0061 Export Error: NetSuite subsidiary requires tax tracking"
 title: NS0061 Export Error in NetSuite Integration
 description: Learn how to fix the NS0061 export error in NetSuite when the subsidiary requires tax tracking and tax is not enabled in Expensify.
 keywords: NS0061, NetSuite subsidiary requires tax tracking, enable tax import Expensify, apply tax codes to expenses, NetSuite tax export error, Expensify NetSuite export error, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0012 Export Error: Currency does not exist in NetSuite"
 title: NS0012 Export Error in NetSuite Integration
 description: Learn what the NS0012 export error means and how to enable or sync currencies between the Workspace and NetSuite subsidiaries.
 keywords: NS0012, NetSuite currency does not exist, currency not available in subsidiary NetSuite, enable Multiple Currencies NetSuite, OneWorld currency error, Expensify NetSuite integration, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0068 Export Error: You do not have permission to set value for element — 'Created From'"
 title: NS0068 Export Error in NetSuite Integration
 description: Learn how to fix the NS0068 export error in NetSuite when the Created From field is not visible on the preferred transaction form.
 keywords: NS0068, NetSuite Created From field not visible, permission to set value Created From, NetSuite transaction form visibility, Expensify Card journal entry error, Expensify NetSuite export error, Workspace Admin

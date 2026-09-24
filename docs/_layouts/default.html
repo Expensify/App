@@ -91,7 +91,11 @@
             {% if page.url contains "/articles/" %}
             <div class="title-platform-tabs">
                 <h1 class="title">
+                    {% if page.displayTitle %}
+                    {{ page.displayTitle }}
+                    {% else %}
                     {{ page.name | remove: '.md' | split: "-" |  join: " " }}
+                    {% endif %}
                 </h1>
                 <div id="platform-tabs">
                 </div>

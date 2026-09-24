@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0196 Sync Error: Could not mark expense reports as paid"
 title: NS0196 Sync Error in NetSuite Integration
 description: Learn what the NS0196 sync error means and how to fix required field and payment configuration issues in NetSuite that prevent expense reports from being marked as paid.
 keywords: NS0196, NetSuite mark expense report as paid error, could not mark expense reports as paid NetSuite, Bill Payment form NetSuite required fields, payment account configuration NetSuite, Expensify NetSuite sync error, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0176 Export Error: Issue with ‘Advance to Apply’ amount"
 title: NS0176 Export Error in NetSuite Integration
 description: Learn what the NS0176 export error means and how to resolve cash advance or prepaid expense settings on employee records in NetSuite.
 keywords: NS0176, NetSuite advance to apply error, cash advance NetSuite employee record, prepaid expense NetSuite employee, Advance to Apply amount NetSuite, Expensify NetSuite integration, Workspace Admin

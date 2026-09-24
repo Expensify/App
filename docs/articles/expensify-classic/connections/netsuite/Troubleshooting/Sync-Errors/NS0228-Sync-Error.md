@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0228 Sync Error: Permission error querying NetSuite for 'ExpenseCategory'"
 title: NS0228 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0228 sync error in NetSuite when the Expensify Integration Role is not properly assigned to a user.
 keywords: NS0228, NetSuite expense category permission error, Expensify Integration Role not assigned, NetSuite token user role mismatch, permission error querying ExpenseCategory, Expensify NetSuite sync error, Workspace Admin

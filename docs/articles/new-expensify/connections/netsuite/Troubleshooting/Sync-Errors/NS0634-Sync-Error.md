@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0634 Sync Error: Permission error querying NetSuite for 'Employee'"
 title: NS0634 Sync Error in NetSuite Integration
 description: Learn what the NS0634 sync error means and how to update the Expensify Integration role to allow access to Employee records in NetSuite.
 keywords: NS0634, NetSuite Employee permission error, Expensify Integration role Employees permission, NetSuite sync error Employee, Employee record permission NetSuite, Expensify NetSuite integration, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0994 Export Error: Enter value for 'entity'"
 title: NS0994 Export Error in NetSuite Integration
 description: Learn what the NS0994 export error means and how to update company card export settings to use a valid vendor instead of Default.
 keywords: NS0994, NetSuite enter value for entity, company card export vendor error, Default card vendor not accepted NetSuite, Domain Company Cards export error, Expensify NetSuite integration, Domain Admin

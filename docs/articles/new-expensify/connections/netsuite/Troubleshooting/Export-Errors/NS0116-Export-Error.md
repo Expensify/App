@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0116 Export Error: The account [XXX] isn’t valid for subsidiary/entity [YYY]"
 title: NS0116 Export Error in NetSuite Integration
 description: Learn what the NS0116 export error means and how to use Internal IDs in NetSuite to correct invalid account mappings by subsidiary.
 keywords: NS0116, NetSuite account not valid for subsidiary, Show Internal IDs NetSuite, invalid account subsidiary error, update export account Workspace, Expensify NetSuite integration, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0045 Export Error: The expense category isn’t linked to an active NetSuite account"
 title: NS0045 Export Error in NetSuite Integration
 description: Learn what the NS0045 export error means and how to activate or correct expense category settings in NetSuite before exporting.
 keywords: NS0045, NetSuite expense category not active, category not linked to account NetSuite, expense category export error, Expensify NetSuite integration, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0318 Sync Error: Could not import items due to permissions error"
 title: NS0318 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0318 sync error in NetSuite when the Expensify Connect bundle is out of date or missing permissions.
 keywords: NS0318, NetSuite permissions error, could not import items NetSuite, Expensify Connect bundle update, SuiteBundler update NetSuite, Expensify NetSuite sync error, Workspace Admin

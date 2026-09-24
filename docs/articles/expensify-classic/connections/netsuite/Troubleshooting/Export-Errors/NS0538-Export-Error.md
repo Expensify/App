@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0538 Export Error: The next approver is invalid"
 title: NS0538 Export Error in NetSuite Integration
 description: Learn how to fix the NS0538 export error in NetSuite when the Supervisor field on an employee record is invalid.
 keywords: NS0538, NetSuite next approver invalid, invalid supervisor NetSuite employee, supervisor field error NetSuite, Expensify NetSuite export error, Workspace Admin

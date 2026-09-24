@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0898 Sync Error: Incorrect approval settings"
 title: NS0898 Sync Error in NetSuite Integration
 description: Learn what the NS0898 sync error means and how to align approval level settings between the Workspace and NetSuite.
 keywords: NS0898, NetSuite approval settings error, incorrect approval level NetSuite, adjust approval level Workspace Accounting Advanced, NetSuite approval mismatch export error, Expensify NetSuite integration, Workspace Admin

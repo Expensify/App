@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0320 Export Error: The transaction falls in a closed accounting period"
 title: NS0320 Export Error in NetSuite Integration
 description: Learn how to fix the NS0320 export error in NetSuite when a transaction falls within a closed accounting period.
 keywords: NS0320, NetSuite closed accounting period error, transaction falls in closed period NetSuite, export to next open period Expensify, change export date Expensify, Expensify NetSuite export error, Workspace Admin

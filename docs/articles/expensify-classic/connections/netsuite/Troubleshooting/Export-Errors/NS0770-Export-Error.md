@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0770 Export Error: Project [X] is not active and can’t accept expenses"
 title: NS0770 Export Error in NetSuite Integration
 description: Learn how to fix the NS0770 export error in NetSuite when a selected project is inactive and cannot accept expenses.
 keywords: NS0770, NetSuite project not active, project cannot accept expenses NetSuite, inactive project export error, update project tag Expensify, Expensify NetSuite export error, Workspace Admin

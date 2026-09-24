@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0783 Sync Error: Incorrect ScriptID format for CustomRecord"
 title: NS0783 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0783 sync error in NetSuite when a Custom Record ScriptID is in the incorrect format.
 keywords: NS0783, NetSuite incorrect ScriptID format, CustomRecord ScriptID error, custcol format NetSuite, Custom Record ID format NetSuite, Expensify NetSuite sync error, Workspace Admin

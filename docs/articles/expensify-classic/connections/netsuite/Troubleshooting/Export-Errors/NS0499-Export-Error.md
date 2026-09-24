@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0499 Export Error: NetSuite category [X] isn’t available to the report submitter"
 title: NS0499 Export Error in NetSuite Integration
 description: Learn how to fix the NS0499 export error in NetSuite when an expense category is not available to the report submitter’s subsidiary.
 keywords: NS0499, NetSuite category not available to submitter, expense category subsidiary mismatch, employee subsidiary mismatch NetSuite, Expensify NetSuite export error, Workspace Admin

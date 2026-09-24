@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0430 Sync Error: Permission error querying NetSuite for 'Job'"
 title: NS0430 Sync Error in NetSuite Integration
 description: Learn what the NS0430 sync error means and how to enable Projects (Jobs) in the Workspace to restore NetSuite syncing.
 keywords: NS0430, NetSuite Job permission error, enable Projects Jobs Workspace, Jobs not enabled NetSuite sync, Projects Jobs toggle Workspace, Expensify NetSuite integration, Workspace Admin

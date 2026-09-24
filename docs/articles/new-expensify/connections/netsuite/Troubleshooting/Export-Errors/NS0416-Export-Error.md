@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0416 Export Error: Error creating vendor"
 title: NS0416 Export Error in NetSuite Integration
 description: Learn what the NS0416 export error means and how to make the Email field visible on the preferred NetSuite transaction form to allow vendor creation.
 keywords: NS0416, NetSuite error creating vendor, Email field not visible NetSuite, vendor creation error NetSuite, transaction form Email field NetSuite, Expensify NetSuite integration, Workspace Admin

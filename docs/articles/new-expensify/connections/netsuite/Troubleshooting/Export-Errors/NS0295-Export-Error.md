@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0295 Export Error: NetSuite couldn’t find an employee or vendor record with the email [XXXX]"
 title: NS0295 Export Error in NetSuite Integration
 description: Learn what the NS0295 export error means and how to match employee or vendor email addresses between NetSuite and the Workspace.
 keywords: NS0295, NetSuite employee not found by email, NetSuite vendor not found by email, email mismatch NetSuite Workspace, employee record email error NetSuite, vendor record email error NetSuite, Expensify NetSuite integration, Workspace Admin

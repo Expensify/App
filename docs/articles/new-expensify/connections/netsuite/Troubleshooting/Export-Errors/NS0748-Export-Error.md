@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0748 Export Error: The selected expense category requires a rate in NetSuite"
 title: NS0748 Export Error in NetSuite Integration
 description: Learn what the NS0748 export error means and how to disable the Require Rate setting on NetSuite expense categories before exporting.
 keywords: NS0748, NetSuite expense category Require Rate error, Rate is Required NetSuite expense category, expense category rate required NetSuite, Expensify NetSuite integration, Workspace Admin

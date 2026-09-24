@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0005 Export Error: Please enter value(s) for 'department', 'location', or 'class' and attempt to export again"
 title: NS0005 Export Error in NetSuite Integration
 description: Learn how to fix the NS0005 export error in NetSuite when required classification fields like Department, Location, or Class are missing.
 keywords: NS0005, NetSuite required department location class, vendor bill classification error, journal entry classification error, default department NetSuite employee, Expensify NetSuite export error, Workspace Admin

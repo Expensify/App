@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0722 Export Error: The report was exported to an invalid payable account (ID [XXX])"
 title: NS0722 Export Error in NetSuite Integration
 description: Learn what the NS0722 export error means and how to set a valid Default Payable Account for expense reports or corporate card expenses in NetSuite.
 keywords: NS0722, NetSuite invalid payable account, Default Payable Account for Expense Reports NetSuite, Default Account for Corporate Card Expenses NetSuite, subsidiary payable account NetSuite, Expensify NetSuite integration, Workspace Admin

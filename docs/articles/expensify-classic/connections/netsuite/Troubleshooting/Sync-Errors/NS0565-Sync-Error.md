@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0565 Sync Error: The role linked to your NetSuite access token doesn’t have permission to access Account records"
 title: NS0565 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0565 sync error in NetSuite when the access token role does not have permission to access Account records.
 keywords: NS0565, NetSuite access token role error, role does not have permission to access Account records, Expensify Integration role NetSuite, update NetSuite token role, Web Services permission override, Expensify NetSuite sync error, Workspace Admin

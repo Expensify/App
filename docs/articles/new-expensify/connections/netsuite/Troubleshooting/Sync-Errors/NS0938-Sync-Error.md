@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0938 Sync Error: Permission error querying NetSuite for 'CustomRecord'"
 title: NS0938 Sync Error in NetSuite Integration
 description: Learn what the NS0938 sync error means and how to update the Expensify Integration role to allow access to Custom Records in NetSuite.
 keywords: NS0938, NetSuite CustomRecord permission error, Expensify Integration role Custom Record access, NetSuite role permissions Custom Record, NetSuite sync error CustomRecord, Expensify NetSuite integration, Workspace Admin

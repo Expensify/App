@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0831 Export Error: Invalid or missing classification"
 title: NS0831 Export Error in NetSuite Integration
 description: Learn how to fix the NS0831 export error in NetSuite when a classification is invalid or the employee lacks access.
 keywords: NS0831, NetSuite invalid classification, missing class NetSuite, employee access class NetSuite, cross-subsidiary customers projects, show projects only time and expenses, Expensify NetSuite export error, Workspace Admin

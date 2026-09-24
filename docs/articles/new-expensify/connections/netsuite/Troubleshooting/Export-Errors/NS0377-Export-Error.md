@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0377 Export Error: Your NetSuite role doesn’t have sufficient Expense Report permissions"
 title: NS0377 Export Error in NetSuite Integration
 description: Learn what the NS0377 export error means and how to update the Expensify Integration role permissions in NetSuite to restore expense report exports.
 keywords: NS0377, NetSuite expense report permission error, insufficient expense report permissions NetSuite, Expensify Integration role Vendors Full permission, NetSuite role permissions error, Expensify NetSuite integration, Workspace Admin

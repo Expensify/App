@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0988 Export Error: The 'CA-Zero' tax group is missing or renamed in NetSuite"
 title: NS0988 Export Error in NetSuite Integration
 description: Learn what the NS0988 export error means and how to restore or reactivate the CA-Zero tax group in NetSuite for mileage and per diem exports.
 keywords: NS0988, CA-Zero tax group NetSuite, mileage tax export error NetSuite, per diem tax export error NetSuite, missing tax group NetSuite, Expensify NetSuite integration, Workspace Admin

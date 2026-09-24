@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0085 Export Error: Expenses do not have appropriate permissions for setting an exchange rate in NetSuite"
 title: NS0085 Export Error in NetSuite Integration
 description: Learn how to fix the NS0085 export error in NetSuite when the Exchange Rate field is not visible on the preferred transaction form.
 keywords: NS0085, NetSuite exchange rate permission error, cannot set exchange rate NetSuite, exchange rate field not visible NetSuite, NetSuite transaction form visibility, Expensify NetSuite export error, Workspace Admin

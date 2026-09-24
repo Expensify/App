@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0728 Export Error: Invalid customer reference key [XXX] for subsidiary [YYY]"
 title: NS0728 Export Error in NetSuite Integration
 description: Learn how to fix the NS0728 export error in NetSuite when a customer is not associated with the selected subsidiary.
 keywords: NS0728, NetSuite invalid customer reference key, customer not listed under subsidiary, cross-subsidiary customer NetSuite, enable intercompany time and expense NetSuite, Expensify NetSuite export error, Workspace Admin

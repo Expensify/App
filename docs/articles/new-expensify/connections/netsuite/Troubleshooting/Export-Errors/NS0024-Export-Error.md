@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0024 Export Error: Invalid 'customer' or 'project' tag"
 title: NS0024 Export Error in NetSuite Integration
 description: Learn what the NS0024 export error means and how to add the employee as a resource on the related customer or project in NetSuite before exporting.
 keywords: NS0024, NetSuite invalid customer tag, invalid project tag NetSuite, employee not listed as resource NetSuite, customer project export error, Expensify NetSuite integration, Workspace Admin

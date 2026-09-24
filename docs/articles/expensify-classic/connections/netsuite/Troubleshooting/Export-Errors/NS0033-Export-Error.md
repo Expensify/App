@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0033 Export Error: One or more recipients are not valid"
 title: NS0033 Export Error in NetSuite Integration
 description: Learn what the NS0033 export error means in NetSuite when one or more recipients are not valid.
 keywords: NS0033, NetSuite invalid recipient error, one or more recipients not valid NetSuite, NetSuite export error recipient, Expensify NetSuite export error, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0384 Sync Error: Permission error encountered when querying NetSuite for 'Classification'"
 title: NS0384 Sync Error in NetSuite Integration
 description: Learn what the NS0384 sync error means and how to update NetSuite role and token permissions for Classifications to restore syncing.
 keywords: NS0384, NetSuite Classification permission error, Expensify Integration role permissions, NetSuite access token permissions, Class Department Location sync error NetSuite, Expensify NetSuite integration, Workspace Admin

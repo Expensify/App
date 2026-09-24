@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0469 Sync Error: Unable to query NetSuite for 'Currency'"
 title: NS0469 Sync Error in NetSuite Integration
 description: Learn what the NS0469 sync error means and how to enable Multi-Currency and update role permissions in NetSuite to restore syncing.
 keywords: NS0469, NetSuite currency sync error, enable Multi-Currency NetSuite OneWorld, Expensify Integration role Currency permission, NetSuite sync error Currency, Expensify NetSuite integration, Workspace Admin

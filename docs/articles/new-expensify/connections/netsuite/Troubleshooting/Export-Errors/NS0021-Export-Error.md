@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0021 Export Error: Invalid tax code reference"
 title: NS0021 Export Error in NetSuite Integration
 description: Learn what the NS0021 export error means and how to correct invalid tax group mappings in NetSuite before exporting.
 keywords: NS0021, NetSuite invalid tax code reference, GST mapping NetSuite, tax group mapping error, NCT-AU, TS-AU, NCF-AU, TFS-AU, Expensify NetSuite integration, Workspace Admin

@@ -199,6 +199,17 @@ image: (Optional) URL to an image associated with the post, page, or document (e
 
 Just update the content for each variable accordingly or remove it if the information is not available. More details [here](https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md#usage).
 
+## Override the displayed article title
+
+By default, the title shown at the top of an article and in the navigation is generated from the file name (e.g. `NS0079-Export-Error.md` becomes `NS0079 Export Error`). To show a different title without renaming the file (and changing its URL), add an optional `displayTitle` to the front matter:
+
+```
+---
+displayTitle: "NS0079 Export Error: The transaction date is outside the posting period"
+title: NS0079 Export Error in NetSuite Integration
+---
+```
+
 # How to rename an article
 Assume that we want to rename the article `The Free Plan` to `Freemium Features` for the hub `billing and plan types` in New Expensify platform.
 1. Go to `docs/articles/new-expensify/billing-and-plan-types`

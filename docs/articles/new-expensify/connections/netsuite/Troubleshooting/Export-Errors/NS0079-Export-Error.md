@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0079 Export Error: The transaction date is outside the posting period"
 title: NS0079 Export Error in NetSuite Integration
 description: Learn what the NS0079 export error means and how to allow posting outside the period in NetSuite and enable Export to Next Open Period in the Workspace.
 keywords: NS0079, NetSuite posting period error, transaction date outside posting period NetSuite, allow transaction date outside posting period NetSuite, Export to Next Open Period Workspace, closed accounting period NetSuite, Workspace Admin

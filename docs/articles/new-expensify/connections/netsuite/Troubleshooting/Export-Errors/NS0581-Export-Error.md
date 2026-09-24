@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0581 Export Error: NetSuite couldn’t find an invoice item"
 title: NS0581 Export Error in NetSuite Integration
 description: Learn what the NS0581 export error means and how to create a Non-Inventory Sales Item in NetSuite or correct the report type before exporting.
 keywords: NS0581, NetSuite invoice item not found, Non-Inventory Sales Item NetSuite, Expensify invoice export error, change report type to Expense report, Expensify NetSuite integration, Workspace Admin

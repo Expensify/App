@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0994 Export Error: Enter value for 'entity'"
 title: NS0994 Export Error in NetSuite Integration
 description: Learn how to fix the NS0994 export error in NetSuite when the entity (vendor) field is missing or the default company card vendor is not valid.
 keywords: NS0994, NetSuite enter value for entity, vendor name field missing NetSuite, default company card vendor error, map company card vendor Expensify, Expensify NetSuite export error, Workspace Admin

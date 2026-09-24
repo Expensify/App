@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0756 Export Error: The transaction nexus isn’t valid for the selected subsidiary"
 title: NS0756 Export Error in NetSuite Integration
 description: Learn how to fix the NS0756 export error in NetSuite when the transaction nexus is not valid for the selected subsidiary.
 keywords: NS0756, NetSuite transaction nexus invalid, nexus not valid subsidiary NetSuite, Expensify Integration role subsidiary access, NetSuite role subsidiary permissions, Expensify NetSuite export error, Workspace Admin

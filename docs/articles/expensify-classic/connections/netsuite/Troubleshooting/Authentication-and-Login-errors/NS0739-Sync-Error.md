@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0739 Sync Error: Unexpected error when logging in with tokens"
 title: NS0739 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0739 sync error in NetSuite when access tokens are created with incorrect permissions or formatting.
 keywords: NS0739, NetSuite token login error, unexpected error logging in with tokens, SOAP Web Services permission, NetSuite Sandbox token format, Expensify NetSuite sync error, Workspace Admin

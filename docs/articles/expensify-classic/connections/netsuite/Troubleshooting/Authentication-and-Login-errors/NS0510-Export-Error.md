@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0510 Export Error: Your NetSuite role doesn’t have access to this record"
 title: NS0510 Export Error in NetSuite Integration
 description: Learn how to fix the NS0510 export error in NetSuite when your role lacks access to required records or token permissions.
 keywords: NS0510, NetSuite role access error, Expensify Connect bundle update, NetSuite token permissions, Access Token Management permission, User Access Tokens permission, multi-currency NetSuite restriction, Expensify NetSuite export error, Workspace Admin

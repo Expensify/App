@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0521 Sync Error: Permission error querying NetSuite for 'Subsidiary'"
 title: NS0521 Sync Error in NetSuite Integration
 description: Learn what the NS0521 sync error means and how to fix subsidiary permission issues in OneWorld and Non-OneWorld NetSuite accounts.
 keywords: NS0521, NetSuite subsidiary permission error, OneWorld NetSuite subsidiary access, Non-OneWorld Expensify Connect bundle issue, Expensify Integration role subsidiary permissions, NetSuite sync error Subsidiary, Expensify NetSuite integration, Workspace Admin

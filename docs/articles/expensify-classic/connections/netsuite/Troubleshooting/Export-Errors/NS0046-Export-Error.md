@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0046 Export Error: Billable expenses not coded with a NetSuite 'customer' or billable 'project'"
 title: NS0046 Export Error in NetSuite Integration
 description: Learn how to fix the NS0046 export error in NetSuite when billable expenses are missing a required customer or project.
 keywords: NS0046, NetSuite billable expenses error, missing customer project NetSuite, inactive project NetSuite, billable export error NetSuite, Expensify NetSuite export error, Workspace Admin

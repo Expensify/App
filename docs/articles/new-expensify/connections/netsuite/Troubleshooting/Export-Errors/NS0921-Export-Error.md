@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0921 Export Error: Invalid subsidiary reference [X]"
 title: NS0921 Export Error in NetSuite Integration
 description: Learn what the NS0921 export error means and how to align subsidiaries across reports, users, accounts, tags, and categories in NetSuite.
 keywords: NS0921, NetSuite invalid subsidiary reference, subsidiary mismatch NetSuite export, category subsidiary mismatch NetSuite, export account subsidiary error, Expensify NetSuite integration, Workspace Admin

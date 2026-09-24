@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0159 Export Error: Your NetSuite role doesn’t have sufficient Bills permissions"
 title: NS0159 Export Error in NetSuite Integration
 description: Learn how to fix the NS0159 export error in NetSuite when the Expensify Integration role does not have sufficient Pay Bills permissions.
 keywords: NS0159, NetSuite insufficient bills permissions, Pay Bills full access NetSuite, Expensify Integration role permissions, NetSuite vendor bill permission error, Expensify NetSuite export error, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0023 Export Error: Employee does not exist in NetSuite"
 title: NS0023 Export Error in NetSuite Integration
 description: Learn what the NS0023 export error means and how to match employee subsidiary and email settings between NetSuite and Expensify.
 keywords: NS0023, NetSuite employee does not exist, employee subsidiary mismatch NetSuite, employee email mismatch NetSuite, Expensify NetSuite export error, Workspace Admin

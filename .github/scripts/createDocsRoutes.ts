@@ -82,15 +82,20 @@ function toTitleCase(str: string): string {
         .join(' ');
 }
 
+type ArticleFrontMatter = {
+    order?: number;
+    displayTitle?: string;
+};
+
 /**
  * @param filename - The name of the file
- * @param order - Optional order from front matter
+ * @param frontMatter - Optional order and displayTitle from front matter
  */
-function getArticleObj(filename: string, order?: number): Article {
+function getArticleObj(filename: string, {order, displayTitle}: ArticleFrontMatter): Article {
     const href = filename.replace('.md', '');
     return {
         href,
-        title: toTitleCase(href.replaceAll('-', ' ')),
+        title: displayTitle ?? toTitleCase(href.replaceAll('-', ' ')),
         order,
     };
 }
@@ -117,19 +122,22 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
     }
 }
 
-function getOrderFromArticleFrontMatter(path: string): number | undefined {
+function getArticleFrontMatter(path: string): ArticleFrontMatter {
     try {
         const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
         if (!frontmatter) {
-            return undefined;
+            return {};
         }
         const frontmatterObject = yaml.load(frontmatter);
         if (!isRecord(frontmatterObject)) {
-            return undefined;
+            return {};
         }
-        return getOptionalNumber(frontmatterObject.order);
+        return {
+            order: getOptionalNumber(frontmatterObject.order),
+            displayTitle: getOptionalString(frontmatterObject.displayTitle),
+        };
     } catch {
-        return undefined;
+        return {};
     }
 }
 
@@ -174,8 +182,7 @@ function buildSection(platformName: string, hub: string, sectionPath: string, pa
 
         const entryPath = `${fullPath}/${entry}`;
         if (entry.endsWith('.md')) {
-            const order = getOrderFromArticleFrontMatter(entryPath);
-            articles.push(getArticleObj(entry, order));
+            articles.push(getArticleObj(entry, getArticleFrontMatter(entryPath)));
         } else if (fs.statSync(entryPath).isDirectory()) {
             childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
         }
@@ -224,8 +231,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
         for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
                 const entryPath = `${basePath}/${fileOrFolder}`;
-                const order = getOrderFromArticleFrontMatter(entryPath);
-                const articleObj = getArticleObj(fileOrFolder, order);
+                const articleObj = getArticleObj(fileOrFolder, getArticleFrontMatter(entryPath));
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }

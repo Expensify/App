@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0445 Export Error: Your NetSuite role is missing Invoice permissions"
 title: NS0445 Export Error in NetSuite Integration
 description: Learn how to fix the NS0445 export error in NetSuite when the Expensify Integration role is missing Invoice permissions.
 keywords: NS0445, NetSuite missing invoice permissions, Expensify Integration role invoice access, Transactions invoice full permission NetSuite, NetSuite role permissions export error, Expensify NetSuite export error, Workspace Admin

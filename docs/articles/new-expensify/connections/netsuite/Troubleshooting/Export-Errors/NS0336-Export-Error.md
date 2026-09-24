@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0336 Export Error: NetSuite encountered an unexpected error, Error ID [XXXXXXXXX]"
 title: NS0336 Export Error in NetSuite Integration
 description: Learn what the NS0336 export error means and how to resolve unexpected NetSuite errors caused by special characters in merchant names.
 keywords: NS0336, NetSuite unexpected error, NetSuite Error ID, special characters merchant name NetSuite, export error NetSuite, Expensify NetSuite integration, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0864 Export Error: The report isn’t fully approved"
 title: NS0864 Export Error in NetSuite Integration
 description: Learn how to fix the NS0864 export error in NetSuite when a report is not fully approved before export.
 keywords: NS0864, NetSuite report not fully approved, supervisor and accounting approval Expensify, approved for posting NetSuite, export approval level Expensify, Expensify NetSuite export error, Workspace Admin

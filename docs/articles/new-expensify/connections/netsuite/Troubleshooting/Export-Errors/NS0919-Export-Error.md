@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0919 Export Error: NetSuite couldn’t find an approver with a sufficient expense limit"
 title: NS0919 Export Error in NetSuite Integration
 description: Learn what the NS0919 export error means and how to update the supervisor’s Expense Limit in NetSuite to allow report approval.
 keywords: NS0919, NetSuite approver expense limit, insufficient expense limit NetSuite, supervisor Expense Limit blank NetSuite, approval limit NetSuite export error, Expensify NetSuite integration, Workspace Admin

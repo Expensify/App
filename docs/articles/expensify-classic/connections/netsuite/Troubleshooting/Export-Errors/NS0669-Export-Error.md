@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0669 Export Error: NetSuite’s default vendor '-Accountant-' (ID -3) cannot be used for exports"
 title: NS0669 Export Error in NetSuite Integration
 description: Learn how to fix the NS0669 export error in NetSuite when the default '-Accountant-' vendor is selected in Expensify.
 keywords: NS0669, NetSuite default Accountant vendor error, vendor ID -3 NetSuite, change default vendor Expensify, Expensify NetSuite export error, Workspace Admin

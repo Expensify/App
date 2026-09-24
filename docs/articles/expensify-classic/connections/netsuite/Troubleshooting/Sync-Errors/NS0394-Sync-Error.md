@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0394 Sync Error: Expensify couldn’t mark NetSuite Expense Report ID [XXXXX] as paid because the A/P approval account isn’t set"
 title: NS0394 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0394 sync error in NetSuite when the Accounts Payable approval account is not configured in Expensify.
 keywords: NS0394, NetSuite could not mark expense report as paid, AP approval account not set, Sync Reimbursed Reports AP account, create Accounts Payable account NetSuite, Expensify NetSuite sync error, Workspace Admin

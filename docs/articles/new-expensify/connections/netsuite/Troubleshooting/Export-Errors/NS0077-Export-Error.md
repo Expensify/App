@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0077 Export Error: Could not create 'employee.' Your current role does not have permission to access this record in NetSuite"
 title: NS0077 Export Error in NetSuite Integration
 description: Learn what the NS0077 export error means and how to sync your Workspace or contact Concierge to resolve employee creation permission issues in NetSuite.
 keywords: NS0077, NetSuite could not create employee, employee record permission error NetSuite, Expensify NetSuite export error, sync Workspace NetSuite, Workspace Admin

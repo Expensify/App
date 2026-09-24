@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0029 Export Error: Unable to export this report due to an error"
 title: NS0029 Export Error in NetSuite Integration
 description: Learn what the NS0029 export error means in NetSuite and how to resolve connection-related issues.
 keywords: NS0029, NetSuite export error, unable to export report NetSuite, NetSuite connection issue, Expensify NetSuite export error, Workspace Admin

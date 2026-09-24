@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0995 Export Error: The employee with email 'user@example.com' is deactivated in NetSuite"
 title: NS0995 Export Error in NetSuite Integration
 description: Learn how to fix the NS0995 export error in NetSuite when the report submitter's employee record is deactivated.
 keywords: NS0995, NetSuite employee deactivated, inactive employee NetSuite, reactivate employee NetSuite, Expensify NetSuite export error, Workspace Admin

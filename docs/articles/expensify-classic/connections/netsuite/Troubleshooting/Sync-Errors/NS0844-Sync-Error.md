@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0844 Sync Error: Permission error querying NetSuite for 'Vendor'"
 title: NS0844 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0844 sync error in NetSuite when the Expensify Integration role does not have permission to access Vendor records.
 keywords: NS0844, NetSuite permission error querying Vendor, Expensify Integration role vendor permission, NetSuite access token role mismatch, vendor record permission error, Expensify NetSuite sync error, Workspace Admin

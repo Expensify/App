@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0042 Export Error: Vendor already exists in NetSuite"
 title: NS0042 Export Error in NetSuite Integration
 description: Learn how to fix the NS0042 export error in NetSuite when a vendor already exists but cannot be matched during export.
 keywords: NS0042, NetSuite vendor already exists, vendor email mismatch NetSuite, vendor subsidiary mismatch NetSuite, duplicate vendor error NetSuite, Expensify NetSuite export error, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0019 Export Error: The payable account doesn’t exist in NetSuite"
 title: NS0019 Export Error in NetSuite Integration
 description: Learn what the NS0019 export error means and how to map company cards to a valid NetSuite account instead of Default Card.
 keywords: NS0019, NetSuite payable account does not exist, Default Card export error, company card mapping NetSuite, journal entry export error, Expensify Domain Company Cards, Workspace Admin, Domain Admin

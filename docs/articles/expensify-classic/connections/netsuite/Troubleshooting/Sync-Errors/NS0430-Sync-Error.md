@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0430 Sync Error: Permission error querying NetSuite for 'Job'"
 title: NS0430 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0430 sync error in NetSuite when Projects or Jobs are not enabled in Expensify.
 keywords: NS0430, NetSuite permission error querying Job, enable Projects Jobs Expensify, NetSuite projects not enabled, Expensify NetSuite sync error, Workspace Admin

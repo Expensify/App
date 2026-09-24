@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0034 Export Error: This record already exists"
 title: NS0034 Export Error in NetSuite Integration
 description: Learn what the NS0034 export error means and how to delete duplicate records in NetSuite before reexporting from the Workspace.
 keywords: NS0034, NetSuite record already exists, duplicate export NetSuite, report exported twice NetSuite, delete duplicate NetSuite record, Expensify NetSuite export error, Workspace Admin

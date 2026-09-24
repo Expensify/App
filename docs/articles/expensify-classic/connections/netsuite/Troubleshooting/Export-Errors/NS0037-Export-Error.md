@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0037 Export Error: You do not have permission to set value for element — 'Receipt URL'"
 title: NS0037 Export Error in NetSuite Integration
 description: Learn how to fix the NS0037 export error in NetSuite when the Receipt URL field is not visible on the preferred transaction form.
 keywords: NS0037, NetSuite receipt URL field not visible, permission to set value receipt URL, NetSuite transaction form visibility, Expensify NetSuite export error, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0056 Export Error: You do not have permissions to set a value for element [X]"
 title: NS0056 Export Error in NetSuite Integration
 description: Learn what the NS0056 export error means and how to update NetSuite form settings and role permissions to resolve element-specific permission errors.
 keywords: NS0056, NetSuite element permission error, journal entry form error NetSuite, vendor bill form error NetSuite, approvalstatus permission NetSuite, entityid error NetSuite, expense foreign amount error NetSuite, Expensify NetSuite integration, Workspace Admin

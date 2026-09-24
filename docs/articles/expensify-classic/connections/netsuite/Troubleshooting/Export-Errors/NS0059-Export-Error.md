@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0059 Export Error: No credit card account is set for corporate card expenses"
 title: NS0059 Export Error in NetSuite Integration
 description: Learn how to fix the NS0059 export error in NetSuite when no default corporate card account is set for a subsidiary.
 keywords: NS0059, NetSuite no credit card account set, default corporate card account NetSuite, subsidiary corporate card settings, Expensify NetSuite export error, Workspace Admin

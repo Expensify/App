@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0593 Sync Error: There are too many open connections to the NetSuite company at this moment"
 title: NS0593 Sync Error in NetSuite Integration
 description: Learn what the NS0593 sync error means and how to resolve NetSuite concurrency limits when syncing from the Workspace.
 keywords: NS0593, NetSuite concurrency limit error, too many open connections NetSuite, NetSuite sync error concurrency, NetSuite connection limit 5 connections, Expensify NetSuite integration, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0655 Export Error: NetSuite can’t save the report because the employee’s default department is inactive"
 title: NS0655 Export Error in NetSuite Integration
 description: Learn what the NS0655 export error means and how to assign an active default department on the employee record in NetSuite before exporting.
 keywords: NS0655, NetSuite default department inactive, employee department inactive NetSuite, export error department inactive NetSuite, Expensify NetSuite integration, Workspace Admin

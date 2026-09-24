@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0123 Sync Error: The Expensify integration is not enabled in NetSuite"
 title: NS0123 Sync Error in NetSuite Integration
 description: Learn how to fix the NS0123 sync error in NetSuite when the Expensify integration is not enabled.
 keywords: NS0123, NetSuite integration not enabled, enable Expensify integration NetSuite, manage integrations NetSuite, Expensify NetSuite sync error, Workspace Admin

@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0055 Export Error: The vendor doesn’t have access to the transaction currency"
 title: NS0055 Export Error in NetSuite Integration
 description: Learn what the NS0055 export error means and how to add the correct currency to the vendor’s Financial tab in NetSuite before exporting.
 keywords: NS0055, NetSuite vendor currency error, vendor does not have access to currency NetSuite, add currency to vendor Financial tab NetSuite, transaction currency error NetSuite, Expensify NetSuite integration, Workspace Admin

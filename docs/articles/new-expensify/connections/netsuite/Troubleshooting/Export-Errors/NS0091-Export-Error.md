@@ -1,4 +1,5 @@
 ---
+displayTitle: "NS0091 Export Error: Could not find default Tax ID in Expensify"
 title: NS0091 Export Error in NetSuite Integration
 description: Learn what the NS0091 export error means and how to enable tax import in the Workspace to restore NetSuite exports.
 keywords: NS0091, default Tax ID not found, enable tax import Workspace, NetSuite Tax ID error, tax configuration Workspace, Expensify NetSuite integration, Workspace Admin
