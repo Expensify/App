@@ -1834,6 +1834,9 @@ type AddReportApproverOptions = {
 
     /** Locale-aware formatter used for optimistic approver display names. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** Whether the new approver replaces the report's current approver instead of being added to the workflow. */
+    isReassignment?: boolean;
 };
 
 function addReportApprover({
@@ -1848,8 +1851,9 @@ function addReportApprover({
     isASAPSubmitBetaEnabled,
     isTrackIntentUser,
     formatPhoneNumber,
+    isReassignment = false,
 }: AddReportApproverOptions) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber, isReassignment, report.managerID);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
@@ -1902,6 +1906,7 @@ function addReportApprover({
                 value: {
                     [takeControlReportAction.reportActionID]: {
                         pendingAction: null,
+                        isOptimisticAction: null,
                         errors: null,
                     },
                 },
@@ -1926,6 +1931,7 @@ function addReportApprover({
         reportID: report.reportID,
         reportActionID: takeControlReportAction.reportActionID,
         newApproverEmail,
+        isReassignment,
     };
 
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
