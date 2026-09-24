@@ -118,7 +118,7 @@ describe('AddressPageTest', () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, {
-                addressLine2: 'BANKTEST123',
+                addressLine2: 'Bank test 123',
             });
             await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
                 addresses: [
@@ -138,7 +138,7 @@ describe('AddressPageTest', () => {
 
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
-        expect(screen.queryByDisplayValue('BANKTEST123')).toBeNull();
+        expect(screen.queryByDisplayValue('Bank test 123')).toBeNull();
     });
 
     it('should prefill address line 2 from legacy newline when street2 is missing', async () => {
