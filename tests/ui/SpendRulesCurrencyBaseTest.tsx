@@ -58,8 +58,8 @@ jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListState: jest.fn(() => ({currencyList: {}})),
     useCurrencyListActions: jest.fn(() => ({getCurrencySymbol: () => '$'})),
 }));
-// useSearchResults returns [inputValue, setInputValue, filteredData]; filter the pre-pinned list by value substring,
-// preserving order so the test can exercise the search path.
+// useSearchResults returns [inputValue, setInputValue, filteredData]. Filter the pre-pinned list by value
+// substring, preserving order so the test can exercise the search path.
 jest.mock('@hooks/useSearchResults', () =>
     jest.fn((data: Array<{value?: string}>) => {
         const [input, setInput] = mockUseState('');
@@ -121,7 +121,7 @@ describe('SpendRulesCurrencyBase', () => {
     it('keeps a pinned currency at the top of the search results', () => {
         renderPage(['C12']);
 
-        // "1" matches C01/C10-C14; C01 sorts first, so C12 leading proves the pin held.
+        // "1" matches C01 and C10-C14. C01 sorts first, so C12 leading proves the pin held.
         act(() => {
             getSelectionListProps()?.textInputOptions?.onChangeText?.('1');
         });
@@ -144,7 +144,7 @@ describe('SpendRulesCurrencyBase', () => {
         });
 
         const props = getSelectionListProps();
-        // Then only the saved currency stays pinned; the unsaved pick keeps its sorted position
+        // Then only the saved currency stays pinned. The unsaved pick keeps its sorted position
         expect(props?.data.at(0)?.value).toBe('C07');
         expect(props?.data.at(0)?.value).not.toBe('C03');
         // The unsaved currency is still checked (live selection), just not pinned to the top
