@@ -25,6 +25,7 @@ import {
     getFilterFormValues,
     getFilterFromQuery,
     getFooterSelectionFromQuery,
+    getQueryHashWithoutFooterSelections,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     getDateFilterRange,
@@ -2448,14 +2449,26 @@ describe('SearchQueryUtils', () => {
             expect(expenses?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
         });
 
-        it('leaves every hash alone for the footer total, which the footer refreshes into the snapshot on screen', () => {
+        it('moves the primary hash for the footer total, which is the one selection the backend answers differently', () => {
             const noSelection = buildSearchQueryJSON('type:expense');
             const total = buildSearchQueryJSON('type:expense footerTotal:total');
             const reimbursable = buildSearchQueryJSON('type:expense footerTotal:reimbursable');
 
-            // A new hash would mean a new snapshot, so the search would re-run and take the selection with it.
-            expect(total?.hash).toEqual(reimbursable?.hash);
-            expect(total?.hash).toEqual(noSelection?.hash);
+            // Each breakdown is its own snapshot, so the aggregate the backend sends back is cached per breakdown.
+            expect(total?.hash).not.toEqual(reimbursable?.hash);
+            expect(reimbursable?.hash).not.toEqual(noSelection?.hash);
+            // ...but it is the same search in the recent list, and still matches the same saved search.
+            expect(reimbursable?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
+            expect(reimbursable?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
+        });
+
+        it('gives every breakdown of one search the same footerless hash, which is what keeps a selection across it', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
+            const billable = buildSearchQueryJSON('type:expense footerTotal:billable');
+            const otherSearch = buildSearchQueryJSON('type:expense footerTotal:billable sortBy:amount');
+
+            expect(getQueryHashWithoutFooterSelections(billable)).toEqual(getQueryHashWithoutFooterSelections(noSelection));
+            expect(getQueryHashWithoutFooterSelections(otherSearch)).not.toEqual(getQueryHashWithoutFooterSelections(billable));
         });
 
         it('leaves every hash alone for the footer currency, which Search ignores and a separate command converts', () => {

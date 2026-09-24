@@ -4,6 +4,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {getQueryHashWithoutFooterSelections} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -59,9 +60,17 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Hashes this page requested, so an error can be traced to the attempt that produced it.
     const requestedHashesRef = useRef<Set<number>>(new Set());
 
+    // The Spend footer's total is part of the hash, since the backend answers a different aggregate for it, but it
+    // is the same search with the same rows. Telling the two apart keeps a selection alive across a footer switch.
+    const hashWithoutFooterSelections = queryJSON ? getQueryHashWithoutFooterSelections(queryJSON) : undefined;
+    const prevHashWithoutFooterSelections = usePrevious(hashWithoutFooterSelections);
+
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
         if (hash === undefined) {
+            return;
+        }
+        if (hashWithoutFooterSelections !== undefined && hashWithoutFooterSelections === prevHashWithoutFooterSelections) {
             return;
         }
         clearSelectedTransactions(hash);

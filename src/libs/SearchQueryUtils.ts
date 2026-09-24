@@ -975,9 +975,26 @@ function getQueryHashes(query: SearchQueryJSON) {
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
     }
+
+    // The total the footer asks for changes the aggregate the backend answers with, so it is part of the primary
+    // hash — the snapshot key. It joins here, after the recent and similar hashes are taken, so switching the
+    // breakdown is still the same search in the recent list and still matches the same saved search.
+    const {footerTotal} = getFooterSelectionFromQuery(query);
+    if (footerTotal) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${footerTotal}`;
+    }
+
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
+}
+
+/**
+ * The primary hash a query would have with the Spend footer's selections taken out. Two queries sharing it are the
+ * same search with a different footer selection, which is what lets a selection survive a footer-driven re-run.
+ */
+function getQueryHashWithoutFooterSelections(query: SearchQueryJSON | Readonly<SearchQueryJSON>): number {
+    return getQueryHashes({...query, flatFilters: query.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))}).primaryHash;
 }
 
 function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
@@ -3037,6 +3054,7 @@ export {
     getQueryHashes,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
+    getQueryHashWithoutFooterSelections,
     hasFiltersChangedFromDefault,
     withExactMatchFilterKeys,
     isSearchDatePreset,

@@ -10,6 +10,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
+const mockClearSelectedTransactions = jest.fn<void, [number | boolean | undefined, boolean | undefined]>();
 const mockOpenSearch = jest.fn<void, [unknown, number | undefined]>();
 const mockSearch = jest.fn<void, unknown[]>();
 let mockSearchResults: SearchResults | undefined;
@@ -49,7 +50,7 @@ jest.mock('@hooks/useSearchShouldCalculateTotals', () => () => false);
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsContext: () => ({shouldUseLiveData: false, currentSearchResults: mockSearchResults}),
     useSearchQueryContext: () => ({currentSearchKey: mockSearchKey}),
-    useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
+    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));
 
@@ -83,6 +84,7 @@ function getClearedHashes() {
 
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
+        mockClearSelectedTransactions.mockClear();
         mockOpenSearch.mockClear();
         mockSearch.mockClear();
         mockSearchResults = undefined;
@@ -114,6 +116,29 @@ describe('useSearchPageSetup', () => {
 
         // Then the error is dropped, because errored and terminal reads as resolved and nothing would request again
         expect(getClearedHashes()).toEqual([queryJSON?.hash]);
+    });
+
+    it('keeps the selection when only the Spend footer total changes, which is the same search', () => {
+        // Given a search with rows selected
+        const {rerender} = renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
+        mockClearSelectedTransactions.mockClear();
+
+        // When the footer asks for a different total, which moves the hash because the backend answers differently
+        const withBreakdown = buildSearchQueryJSON(`${QUERY} footerTotal:billable`);
+        expect(withBreakdown?.hash).not.toBe(queryJSON?.hash);
+        rerender({queryJSON: withBreakdown});
+
+        // Then the selection the footer is describing survives it
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+    });
+
+    it('clears the selection when the search itself changes', () => {
+        const {rerender} = renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
+        mockClearSelectedTransactions.mockClear();
+
+        rerender({queryJSON: queryJSONB});
+
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(queryJSONB?.hash);
     });
 
     it('does not clear the same hash twice when the failure comes straight back', () => {

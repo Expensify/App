@@ -6,7 +6,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -548,17 +548,19 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     };
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
-        // A hand-picked selection is summed from its own rows, so it shows the new breakdown straight away and waits on
-        // nothing. Every other case needs the figure from the backend, which the query change below fetches, so that is
-        // the search the skeleton waits on.
+        // A hand-picked selection is summed from its own rows, so it shows the new breakdown straight away and waits
+        // on nothing. Every other case needs the figure from the backend, so the skeleton waits on the hash the query
+        // is moving to — `footerTotal` is part of the hash, since it changes the aggregate that comes back.
         if (hasPartialSelection) {
             setFooterTotalState({searchHash: currentSearchHash, selectedTotal: nextTotalType});
-        } else {
-            setPendingTotalHash(currentSearchHash);
+        } else if (currentSearchQueryJSON) {
+            setPendingTotalHash(buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash);
         }
 
-        // Written in both cases, so the choice is saved against this search and restored on the next visit.
-        applyFooterSelection({footerTotal: nextTotalType});
+        // Written in both cases, so the choice is saved against this search and restored on the next visit. The page
+        // is told first so the rows stay on screen while the new hash loads, and the selection rides it out:
+        // `useSearchPageSetup` keeps a selection across a query change that is only a footer selection.
+        applyFooterSelection({footerTotal: nextTotalType}, true);
     };
 
     const handleFooterCountChange = (nextCountType: SearchFooterCount) => {

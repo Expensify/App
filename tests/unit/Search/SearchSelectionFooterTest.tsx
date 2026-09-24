@@ -412,7 +412,7 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
         });
 
-        it('refreshes the figures in place when a total is applied, without moving the search hash', async () => {
+        it('moves the search hash when a total is applied, keeping the rows on screen while the new one loads', async () => {
             setSearchQuery('type:expense');
             mockSelectedTransactions.current = {};
             const beforeHash = mockSearchQueryContext.current.currentSearchQueryJSON?.hash;
@@ -436,9 +436,10 @@ describe('SearchSelectionFooter', () => {
             // The choice goes into the query, which is what saves it for the next visit...
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
             expect(nextQuery).toContain('footerTotal:reimbursable');
-            // ...and the hash holds, which is what keeps the rows, the scroll position and the selection in place.
-            expect(buildSearchQueryJSON(nextQuery)?.hash).toBe(beforeHash);
-            expect(mockOnDisplayChange).not.toHaveBeenCalled();
+            // ...and the hash moves with it, since the backend answers a different aggregate for each breakdown.
+            expect(buildSearchQueryJSON(nextQuery)?.hash).not.toBe(beforeHash);
+            // The page is told first, so the current rows stay on screen while the new snapshot loads.
+            expect(mockOnDisplayChange).toHaveBeenCalled();
         });
 
         it("skeletons the total after applying one while another search's results are still on screen, leaving the count alone", async () => {
@@ -457,11 +458,21 @@ describe('SearchSelectionFooter', () => {
             // Then nothing is waited on until the footer asks for something
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
 
-            // When a different total is applied
+            // When a different total is applied, which moves the query onto its own hash
             await act(async () => {
                 mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.BILLABLE);
                 await waitForBatchedUpdates();
             });
+            const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
+            const nextHash = buildSearchQueryJSON(nextQuery)?.hash ?? 0;
+            setSearchQuery(nextQuery, nextHash);
+            rerender(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
 
             // Then the skeleton stands in for the figure it cannot describe yet, and the count holds its value
             expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
@@ -469,7 +480,7 @@ describe('SearchSelectionFooter', () => {
 
             // When this search's own results arrive
             const nextResults = buildSearchResults(CONST.CURRENCY.USD, 10, 12000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4);
-            nextResults.search.hash = 2;
+            nextResults.search.hash = nextHash;
             rerender(
                 <SearchSelectionFooter
                     searchResults={nextResults}
@@ -565,7 +576,7 @@ describe('SearchSelectionFooter', () => {
 
         it('stores a total applied over a selection in the query too, so it is restored on the next visit', async () => {
             setSearchQuery('type:expense');
-            const {rerender} = render(
+            render(
                 <SearchSelectionFooter
                     searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
                     onDisplayChange={mockOnDisplayChange}
@@ -578,21 +589,13 @@ describe('SearchSelectionFooter', () => {
                 await waitForBatchedUpdates();
             });
 
-            // The choice is written into the query, and since the total is not part of the hash the selected rows stay.
+            // The choice goes into the query like any other, so it survives a reload and a saved search. The hash it
+            // moves is a footer-only change, which `useSearchPageSetup` keeps the selection across.
             const nextQuery = mockSetParams.mock.calls.at(0)?.at(0)?.q ?? '';
             expect(nextQuery).toContain('footerTotal:billable');
-            expect(mockOnDisplayChange).not.toHaveBeenCalled();
+            expect(mockOnDisplayChange).toHaveBeenCalled();
 
-            // Replaying the query the app is now on: the breakdown covers only the billable expense of the three.
-            setSearchQuery(nextQuery);
-            rerender(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
-            await waitForBatchedUpdates();
-
+            // The breakdown applies right away all the same, summed from the selected rows: one of the three is billable.
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.BILLABLE, total: -100}));
         });
 
