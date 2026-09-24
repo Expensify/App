@@ -127,12 +127,14 @@ function HeaderWithBackButton({
                 dialogLabel={title}
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             >
-                <HeaderTitle.Text
-                    numberOfLines={numberOfTitleLines}
-                    style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
-                >
-                    {title}
-                </HeaderTitle.Text>
+                {!!title && (
+                    <HeaderTitle.Text
+                        numberOfLines={numberOfTitleLines}
+                        style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                    >
+                        {title}
+                    </HeaderTitle.Text>
+                )}
                 {!!resolvedSubtitle && <HeaderTitle.Subtitle>{resolvedSubtitle}</HeaderTitle.Subtitle>}
                 {!!subTitleLink && <HeaderTitle.SubtitleLink>{subTitleLink}</HeaderTitle.SubtitleLink>}
             </HeaderTitle>
