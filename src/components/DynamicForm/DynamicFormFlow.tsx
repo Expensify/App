@@ -327,7 +327,7 @@ function DynamicFormFlow({
                 formID={formID}
                 draft={draftValues}
                 currency={currency}
-                submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                submitButtonText={translate(isEditing || pageIndex === pages.length - 1 ? 'common.confirm' : 'common.next')}
                 onSubmit={handleNext}
                 onOpenListItemEditor={(fieldKey, itemID) => openListItemEditor(fieldKey, itemID, isEditing ? 'edit' : undefined)}
             />
