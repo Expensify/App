@@ -22,6 +22,7 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getConnectedIntegration,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -60,6 +61,7 @@ import {
     getTagGLCode,
     isTagInPolicy,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
@@ -1868,6 +1870,42 @@ describe('PolicyUtils', () => {
             const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
             expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
             expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
+        });
+    });
+
+    describe('matchesParentTagsFilter', () => {
+        it('matches an escaped literal filter against the exact parent tag path', () => {
+            // Given literal filters with escaped characters, as the backend writes them
+            const filter = '^TW Strategic Initiative \\- AI Workforce Design$';
+            const colonFilter = '^Sales\\\\:EMEA$';
+
+            // When matching them against parent tag paths
+            // Then only the unescaped path matches, not a prefix or a longer path
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design')).toBe(true);
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative')).toBe(false);
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design:Team')).toBe(false);
+            expect(matchesParentTagsFilter(colonFilter, 'Sales\\:EMEA')).toBe(true);
+            expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
+        });
+
+        it('unescapes an escaped line terminator like RegExp does', () => {
+            // Given a literal filter with a backslash before a newline, which RegExp reads as a literal newline
+            const filter = '^Line\\\nBreak$';
+
+            // When matching it against a parent tag path containing that newline
+            // Then the literal fast path agrees with RegExp
+            expect(new RegExp(filter).test('Line\nBreak')).toBe(true);
+            expect(matchesParentTagsFilter(filter, 'Line\nBreak')).toBe(true);
+        });
+
+        it('evaluates filters with regex operators as regular expressions', () => {
+            // Given filters that are not plain anchored literals
+            // When matching them against parent tag paths
+            // Then they keep regex semantics - character classes, alternation and unanchored matches
+            expect(matchesParentTagsFilter('^Region\\d$', 'Region7')).toBe(true);
+            expect(matchesParentTagsFilter('^Region\\d$', 'RegionX')).toBe(false);
+            expect(matchesParentTagsFilter('^(Sales|Marketing)$', 'Marketing')).toBe(true);
+            expect(matchesParentTagsFilter('Sales', 'EMEA Sales')).toBe(true);
         });
     });
 
@@ -4035,6 +4073,43 @@ describe('PolicyUtils', () => {
             });
             expect(hasDependentTags(policy, policyTagList)).toBe(true);
         });
+
+        it('returns true when a later tag list has a dependent tag', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            const policyTagList: PolicyTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0, tags: {acme: {name: 'Acme Corp', enabled: true}}},
+                Department: {name: 'Department', required: false, orderWeight: 1, tags: {admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}}}},
+            };
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('skips a tag list left as null or without tags by an Onyx merge', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            // An Onyx merge leaves a deleted tag list as null, and an empty one without the `tags` key
+            const mergedTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0},
+                Department: null,
+                GLCode: {name: 'GL code', required: false, orderWeight: 2, tags: {gl100: {name: 'GL-100', enabled: true, parentTagsFilter: '^Acme Corp:Admin$'}}},
+            };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns false when every tag list is empty or missing its tags', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            // A tag list arrives without the `tags` key when it holds no tags
+            const mergedTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0, tags: {}},
+                Department: {name: 'Department', required: false, orderWeight: 1},
+            };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
     });
 
     describe('hasIndependentTags', () => {
@@ -4768,8 +4843,12 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Rillet is connected because Rillet is still pre-GA', () => {
-                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(false);
+            it('returns true when beta is disabled and Rillet is connected because Rillet is generally available', () => {
+                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
+                expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
@@ -5921,6 +6000,23 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('getConnectedIntegration', () => {
+    it('returns the connected accounting integration when present on the policy', () => {
+        const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+        expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('returns undefined when there is no connected integration', () => {
+        expect(getConnectedIntegration(undefined)).toBeUndefined();
+        expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
+    });
+
+    it('ignores non-accounting connections (e.g. HR integrations)', () => {
+        const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
+        expect(getConnectedIntegration(policy)).toBeUndefined();
     });
 });
 

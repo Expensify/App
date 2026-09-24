@@ -27,6 +27,7 @@ import {
     doesCardConnectionNeedReauthentication,
     isCardFrozen,
     isCardInactive,
+    isCardPendingDigitalWalletApproval,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
@@ -320,12 +321,10 @@ function PaymentMethodList({
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
                     policyID: policyIDForCard,
                 });
-                // The connection message is the row's one line about a card we cannot import from, so it stands in for
-                // every error the card carries. The server's own connection error says the same thing in words we do
-                // not control and without a way to fix it, and nothing tells it apart from an error a user action left
-                // behind, so both wait until the connection is working again.
-                const cardErrors = cardConnectionStatusDisplay?.messageKey ? undefined : card.errors;
-                const shouldShowCardErrorMessages = !isEmptyObject(cardErrors);
+                const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
+                // A row showing a connection message doesn't repeat the card's own errors, unless the card has a pending action.
+                // A pending wallet approval hides them too, because that flow shows its errors on its own confirmation screen.
+                const shouldShowCardErrorMessages = (!shouldShowCardConnectionMessage && !isCardPendingDigitalWalletApproval(card)) || !!card.pendingAction;
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
@@ -421,7 +420,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard,
-                        errors: isUserPersonalCard ? undefined : cardErrors,
+                        errors: isUserPersonalCard ? undefined : card.errors,
                         shouldShowErrorMessages: !isUserPersonalCard && shouldShowCardErrorMessages,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
@@ -458,6 +457,12 @@ function PaymentMethodList({
                             Object.keys(assignedCardsGroupedItem.errors).length > 0
                         ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        }
+                        // The domain gets one row, so a pending approval on any of its cards has to surface there.
+                        // The CTA needs the pending card's own ID, which the group row doesn't carry.
+                        if (isCardPendingDigitalWalletApproval(card) && !assignedCardsGroupedItem.digitalWalletApprovalCardID) {
+                            assignedCardsGroupedItem.digitalWalletApprovalCardID = card.cardID;
+                            assignedCardsGroupedItem.digitalWalletProvider = card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider;
                         }
                     }
                     continue;
@@ -499,7 +504,7 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
-                    errors: cardErrors,
+                    errors: card.errors,
                     shouldShowErrorMessages: shouldShowCardErrorMessages,
                     canDismissError: true,
                     pendingAction: card.pendingAction,
@@ -511,6 +516,8 @@ function PaymentMethodList({
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                     shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
+                    digitalWalletApprovalCardID: isCardPendingDigitalWalletApproval(card) ? card.cardID : undefined,
+                    digitalWalletProvider: card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider,
                 });
             }
 
