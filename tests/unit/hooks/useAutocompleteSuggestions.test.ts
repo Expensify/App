@@ -425,13 +425,13 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     });
 
-    it('suggests date presets after any-approval:', () => {
+    it('suggests date presets after anyApproval:', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, value: ''},
             ranges: [],
         });
 
-        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'any-approval:'}));
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'anyApproval:'}));
 
         expect(result.current.length).toBeGreaterThan(0);
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);

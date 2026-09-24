@@ -7966,7 +7966,7 @@ const CONST = {
             IN: 'in',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
-            ANY_APPROVAL: 'any-approval',
+            ANY_APPROVAL: 'anyApproval',
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',

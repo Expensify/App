@@ -728,6 +728,20 @@ const tests = [
         },
     },
     {
+        query: 'type:expense anyApproval:last-month',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
+    {
         query: 'type:expense any-approval:last-month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -742,7 +756,7 @@ const tests = [
         },
     },
     {
-        query: 'type:expense any-approval>2026-04-01',
+        query: 'type:expense anyApproval>2026-04-01',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -756,7 +770,7 @@ const tests = [
         },
     },
     {
-        query: 'type:expense any-approval<2026-04-30',
+        query: 'type:expense anyApproval<2026-04-30',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -770,7 +784,7 @@ const tests = [
         },
     },
     {
-        query: 'type:expense any-approval>=2026-04-01 any-approval<=2026-04-30',
+        query: 'type:expense anyApproval>=2026-04-01 anyApproval<=2026-04-30',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -792,7 +806,7 @@ const tests = [
         },
     },
     {
-        query: 'type:expense -any-approval:last-month',
+        query: 'type:expense -anyApproval:last-month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,

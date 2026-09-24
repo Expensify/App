@@ -240,8 +240,8 @@ function peg$parse(input, options) {
   var peg$c53 = "workspace";
   var peg$c54 = "submitted";
   var peg$c55 = "approved";
-  var peg$c56 = "any-approval";
-  var peg$c57 = "anyapproval";
+  var peg$c56 = "anyapproval";
+  var peg$c57 = "any-approval";
   var peg$c58 = "paid";
   var peg$c59 = "exported";
   var peg$c60 = "posted";
@@ -390,8 +390,8 @@ function peg$parse(input, options) {
   var peg$e58 = peg$literalExpectation("workspace", true);
   var peg$e59 = peg$literalExpectation("submitted", true);
   var peg$e60 = peg$literalExpectation("approved", true);
-  var peg$e61 = peg$literalExpectation("any-approval", true);
-  var peg$e62 = peg$literalExpectation("anyApproval", true);
+  var peg$e61 = peg$literalExpectation("anyApproval", true);
+  var peg$e62 = peg$literalExpectation("any-approval", true);
   var peg$e63 = peg$literalExpectation("paid", true);
   var peg$e64 = peg$literalExpectation("exported", true);
   var peg$e65 = peg$literalExpectation("posted", true);
@@ -601,8 +601,8 @@ function peg$parse(input, options) {
   var peg$f41 = function() { return "policyID"; };
   var peg$f42 = function() { return "submitted"; };
   var peg$f43 = function() { return "approved"; };
-  var peg$f44 = function() { return "any-approval"; };
-  var peg$f45 = function() { return "any-approval"; };
+  var peg$f44 = function() { return "anyApproval"; };
+  var peg$f45 = function() { return "anyApproval"; };
   var peg$f46 = function() { return "paid"; };
   var peg$f47 = function() { return "exported"; };
   var peg$f48 = function() { return "posted"; };
@@ -2402,9 +2402,9 @@ function peg$parse(input, options) {
     var s0, s1;
 
     s0 = peg$currPos;
-    s1 = input.substr(peg$currPos, 12);
+    s1 = input.substr(peg$currPos, 11);
     if (s1.toLowerCase() === peg$c56) {
-      peg$currPos += 12;
+      peg$currPos += 11;
     } else {
       s1 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$e61); }
@@ -2416,9 +2416,9 @@ function peg$parse(input, options) {
     s0 = s1;
     if (s0 === peg$FAILED) {
       s0 = peg$currPos;
-      s1 = input.substr(peg$currPos, 11);
+      s1 = input.substr(peg$currPos, 12);
       if (s1.toLowerCase() === peg$c57) {
-        peg$currPos += 11;
+        peg$currPos += 12;
       } else {
         s1 = peg$FAILED;
         if (peg$silentFails === 0) { peg$fail(peg$e62); }

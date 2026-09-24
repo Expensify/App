@@ -100,11 +100,11 @@ const FILTER_KEYS = {
     APPROVED_BEFORE: 'approvedBefore',
     APPROVED_RANGE: 'approvedRange',
 
-    ANY_APPROVAL_NOT: 'any-approvalNot',
-    ANY_APPROVAL_ON: 'any-approvalOn',
-    ANY_APPROVAL_AFTER: 'any-approvalAfter',
-    ANY_APPROVAL_BEFORE: 'any-approvalBefore',
-    ANY_APPROVAL_RANGE: 'any-approvalRange',
+    ANY_APPROVAL_NOT: 'anyApprovalNot',
+    ANY_APPROVAL_ON: 'anyApprovalOn',
+    ANY_APPROVAL_AFTER: 'anyApprovalAfter',
+    ANY_APPROVAL_BEFORE: 'anyApprovalBefore',
+    ANY_APPROVAL_RANGE: 'anyApprovalRange',
 
     PAID_NOT: 'paidNot',
     PAID_ON: 'paidOn',

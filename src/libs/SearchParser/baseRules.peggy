@@ -83,8 +83,8 @@ policyID
 submitted = "submitted"i { return "submitted"; }
 approved = "approved"i { return "approved"; }
 anyApproval
-  = "any-approval"i { return "any-approval"; }
-  / "anyApproval"i { return "any-approval"; }
+  = "anyApproval"i { return "anyApproval"; }
+  / "any-approval"i { return "anyApproval"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }

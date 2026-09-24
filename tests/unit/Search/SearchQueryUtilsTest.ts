@@ -2100,7 +2100,7 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('any-approval date filter', () => {
+    describe('anyApproval date filter', () => {
         test('round-trips the ON form', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
