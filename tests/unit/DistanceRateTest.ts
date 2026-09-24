@@ -1,4 +1,5 @@
 import {deletePolicyDistanceRates, enablePolicyDistanceRates, setEmployeeWorkArrangement, setWorkspaceDistanceAutoUpdate} from '@libs/actions/Policy/DistanceRate';
+import * as API from '@libs/API';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import {isGovernmentRateUnmodified} from '@libs/PolicyDistanceRatesUtils';
 
@@ -372,6 +373,10 @@ describe('DistanceRate', () => {
         const member1Email = 'member1@test.com';
         const member2Email = 'member2@test.com';
 
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         function getPolicyFromOnyx(policyID: string): Promise<Policy> {
             return new Promise<Policy>((resolve) => {
                 const connection = Onyx.connect({
@@ -402,6 +407,14 @@ describe('DistanceRate', () => {
             });
         }
 
+        function getSingleUpdateValue(value: unknown): unknown {
+            if (typeof value !== 'object' || value === null) {
+                return undefined;
+            }
+            const values = Object.values(value);
+            return values.length === 1 ? values.at(0) : undefined;
+        }
+
         async function seedWorkArrangementPolicy(policy: Policy) {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -414,6 +427,7 @@ describe('DistanceRate', () => {
         }
 
         it('should optimistically update the member and create one changelog action with pending ADD', async () => {
+            // Given two members in the policy and only one needs an arrangement change
             const policy: Policy = {
                 ...createRandomPolicy(20),
                 employeeList: {
@@ -424,9 +438,11 @@ describe('DistanceRate', () => {
             await seedWorkArrangementPolicy(policy);
 
             pause();
+            // When both members are assigned the office-based arrangement
             setEmployeeWorkArrangement(policy, [member1AccountID, member2AccountID], true);
             await waitForBatchedUpdates();
 
+            // Then only the changed member and one pending changelog entry are updated
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
             // Member2 already matches, so it is skipped without any optimistic footprint
@@ -445,6 +461,7 @@ describe('DistanceRate', () => {
         });
 
         it('should do nothing when every member already matches the requested arrangement', async () => {
+            // Given all eligible members already have the requested arrangement
             const policy: Policy = {
                 ...createRandomPolicy(21),
                 employeeList: {[member1Email]: {email: member1Email, hasOfficeWorkArrangement: false}},
@@ -452,9 +469,153 @@ describe('DistanceRate', () => {
             await seedWorkArrangementPolicy(policy);
 
             pause();
+            // When the matching member and an unknown account are passed
             setEmployeeWorkArrangement(policy, [member1AccountID, 999999001], false);
             await waitForBatchedUpdates();
 
+            // Then no member data or changelog entry is changed
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: false});
+
+            const reportActions = await getReportActionsFromOnyx('1');
+            expect(reportActions).toEqual({});
+
+            resetQueue();
+        });
+
+        it('should clear pending states on success', async () => {
+            // Given the member and admins room are in Onyx
+            const policy: Policy = {
+                ...createRandomPolicy(22),
+                employeeList: {[member1Email]: {email: member1Email}},
+            };
+            await seedWorkArrangementPolicy(policy);
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When the member's work arrangement is updated
+            setEmployeeWorkArrangement(policy, [member1AccountID], true);
+
+            // Then success updates clear the pending state for both the member and changelog action
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.successData?.[0]).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {employeeList: {[member1Email]: {pendingAction: null}}},
+            });
+            expect(getSingleUpdateValue(onyxData?.successData?.[1]?.value)).toEqual({pendingAction: null});
+        });
+
+        it('should revert the member and drop the changelog entry on failure', async () => {
+            // Given the member and admins room are in Onyx
+            const policy: Policy = {
+                ...createRandomPolicy(23),
+                employeeList: {[member1Email]: {email: member1Email}},
+            };
+            await seedWorkArrangementPolicy(policy);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- The API spy captures the action updates without sending a request.
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When the member's work arrangement is updated
+            setEmployeeWorkArrangement(policy, [member1AccountID], true);
+
+            // Then failure data restores the member value, clears its pending state, and removes the changelog action
+            const onyxData = writeSpy.mock.calls.at(0)?.[2];
+            expect(onyxData?.failureData?.[0]).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                value: {
+                    employeeList: {
+                        [member1Email]: {
+                            email: member1Email,
+                            pendingAction: null,
+                        },
+                    },
+                },
+            });
+            const failureValue = onyxData?.failureData?.[0]?.value;
+            const failureEmployeeList = typeof failureValue === 'object' && failureValue !== null && 'employeeList' in failureValue ? failureValue.employeeList : undefined;
+            const failureMember =
+                typeof failureEmployeeList === 'object' && failureEmployeeList !== null && member1Email in failureEmployeeList ? failureEmployeeList[member1Email] : undefined;
+            expect(typeof failureMember === 'object' && failureMember !== null && 'errors' in failureMember && failureMember.errors).toBeTruthy();
+            expect(onyxData?.failureData?.[1]).toMatchObject({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`,
+            });
+            expect(getSingleUpdateValue(onyxData?.failureData?.[1]?.value)).toBeNull();
+        });
+
+        it('should update members without changelog actions when there is no admins room', async () => {
+            // Given the member is in the policy but the admins room is unavailable
+            const policy: Policy = {
+                ...createRandomPolicy(24),
+                employeeList: {[member1Email]: {email: member1Email}},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {});
+            await waitForBatchedUpdates();
+
+            pause();
+            // When the member's work arrangement is updated
+            setEmployeeWorkArrangement(policy, [member1AccountID], true);
+            await waitForBatchedUpdates();
+
+            // Then the member is updated without creating a changelog action
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toMatchObject({email: member1Email, hasOfficeWorkArrangement: true});
+
+            const reportActions = await getReportActionsFromOnyx('1');
+            expect(reportActions).toEqual({});
+
+            resetQueue();
+        });
+
+        it('should skip members missing from the employee list', async () => {
+            // Given one account is missing from the policy employee list
+            const missingMemberAccountID = 999999002;
+            const policy: Policy = {
+                ...createRandomPolicy(25),
+                employeeList: {[member1Email]: {email: member1Email, hasOfficeWorkArrangement: false}},
+            };
+            await seedWorkArrangementPolicy(policy);
+
+            pause();
+            // The missing account has personal details but no employeeList entry
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
+                [missingMemberAccountID]: {accountID: missingMemberAccountID, login: 'ghost@test.com', displayName: 'Ghost'},
+            });
+            await waitForBatchedUpdates();
+            // When the member missing from the policy employee list is passed
+            setEmployeeWorkArrangement(policy, [missingMemberAccountID], true);
+            await waitForBatchedUpdates();
+
+            // Then no member data or changelog action is created
+            const onyxPolicy = await getPolicyFromOnyx(policy.id);
+            expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: false});
+
+            const reportActions = await getReportActionsFromOnyx('1');
+            expect(reportActions).toEqual({});
+
+            resetQueue();
+        });
+
+        it('should do nothing without a policy ID', async () => {
+            // Given a valid member and a policy without an ID
+            const policy: Policy = {
+                ...createRandomPolicy(26),
+                employeeList: {[member1Email]: {email: member1Email, hasOfficeWorkArrangement: false}},
+            };
+            await seedWorkArrangementPolicy(policy);
+
+            pause();
+            // When the member is assigned an arrangement without a policy ID
+            setEmployeeWorkArrangement({...policy, id: ''}, [member1AccountID], true);
+            await waitForBatchedUpdates();
+
+            // Then neither the policy nor the admins room changelog is changed
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.employeeList?.[member1Email]).toEqual({email: member1Email, hasOfficeWorkArrangement: false});
 
