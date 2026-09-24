@@ -78,7 +78,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
-    Beta,
     BillingGraceEndPeriod,
     ExportTemplate,
     IntroSelected,
@@ -270,7 +269,6 @@ type HandleActionButtonPressParams = {
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -313,7 +311,6 @@ function handleActionButtonPress({
     consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -366,7 +363,6 @@ function handleActionButtonPress({
                 currentUserAccountID,
                 currentUserLogin,
                 introSelected,
-                betas,
                 isASAPSubmitBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
@@ -609,7 +605,6 @@ type GetPayActionCallbackParams = {
     currentUserAccountID?: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -640,7 +635,6 @@ function getPayActionCallback({
     currentUserAccountID,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -695,7 +689,6 @@ function getPayActionCallback({
         activePolicy,
         policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
