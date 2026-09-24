@@ -7360,6 +7360,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                     staleSelectionError: (providerName: string) =>
                         `Algunos de los grupos que seleccionaste ya no existen en ${providerName}, por lo que sus empleados han dejado de sincronizarse.`,
                     updateSelectionLink: 'Actualiza tus grupos.',
+                    noGroupsFound: 'No se encontraron grupos',
+                    noGroupsFoundDescription:
+                        'No hay grupos para seleccionar en este momento. Guarda sin ningún grupo seleccionado para sincronizar a todos los empleados o sincroniza la conexión de nuevo cuando existan nuevos grupos.',
                 },
             },
         },

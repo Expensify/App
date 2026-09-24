@@ -8648,8 +8648,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     title: 'Groupes',
                     description: 'Choisissez les groupes d’employés que vous souhaitez synchroniser avec cet espace de travail',
                     staleSelectionError: (providerName: string) =>
-                        `Certains des groupes que vous avez sélectionnés n'existent plus dans ${providerName}, de sorte que leurs employés ont cessé de se synchroniser.`,
+                        `Certains des groupes que vous avez sélectionnés n'existent plus dans ${providerName}, et leurs employés ont donc cessé de se synchroniser.`,
                     updateSelectionLink: 'Mettez à jour vos groupes.',
+                    noGroupsFound: 'Aucun groupe trouvé',
+                    noGroupsFoundDescription:
+                        'Il n’y a aucun groupe à sélectionner pour le moment. Enregistrez sans sélectionner de groupe pour synchroniser tous les employés, ou synchronisez à nouveau la connexion une fois que de nouveaux groupes existent.',
                 },
             },
         },
