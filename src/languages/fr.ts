@@ -8770,25 +8770,24 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 description: (providerName: string) =>
                     `Sélectionnez quels membres sont importés depuis ${providerName}. Vous pouvez choisir selon les étapes de poste, les tags et les bureaux.`,
                 stages: {
-                    title: 'Étape du poste',
-                    description: 'Choisissez l’étape de recrutement des candidats que vous souhaitez synchroniser avec cet espace de travail',
-                    toggleTitle: 'Étapes de la tâche d’importation',
-                    allSelected: 'Tous les stades du poste',
-                    emptySelectionError: 'Veuillez sélectionner au moins une étape de travail',
+                    title: 'Étape de recrutement',
+                    description: 'Choisissez l’étape du poste des candidat·es que vous souhaitez synchroniser avec cet espace de travail',
+                    toggleTitle: 'Étapes du poste',
+                    allSelected: 'Toutes les étapes du poste',
                 },
                 tags: {
                     title: 'Tag',
                     description: 'Choisissez les tags de candidats que vous souhaitez synchroniser avec cet espace de travail',
-                    toggleTitle: 'Importer des tags',
+                    toggleTitle: 'Tags',
                     allSelected: 'Tous les tags',
-                    emptySelectionError: 'Veuillez sélectionner au moins un tag',
                 },
                 offices: {
                     title: 'Bureau',
                     description: 'Choisissez les bureaux des candidats que vous souhaitez synchroniser avec cet espace de travail',
-                    toggleTitle: 'Importer des bureaux (facultatif)',
+                    toggleTitle: 'Bureaux',
                     allSelected: 'Tous les bureaux',
                 },
+                enableJobStagesOrTags: 'Activez les étapes de mission ou les Tags pour continuer',
             },
             subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
             syncResults: {

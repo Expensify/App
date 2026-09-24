@@ -7809,14 +7809,12 @@ const translations = {
                     toggleTitle: 'Job stages',
                     description: 'Choose the job stage of candidates you would like to sync with this workspace',
                     allSelected: 'All job stages',
-                    emptySelectionError: 'Please select at least one job stage',
                 },
                 tags: {
                     title: 'Tag',
                     toggleTitle: 'Tags',
                     description: 'Choose the tags of candidates you would like to sync with this workspace',
                     allSelected: 'All tags',
-                    emptySelectionError: 'Please select at least one tag',
                 },
                 offices: {
                     title: 'Office',
