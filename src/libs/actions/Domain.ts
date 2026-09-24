@@ -27,6 +27,8 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarName} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
 
@@ -700,13 +702,13 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.DOMAIN
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.DOMAIN
+              | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+              | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+          >
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -745,22 +747,20 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     ];
 
     if (isOptimisticAccount) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
-            value: {
+        optimisticData.push(
+            buildPersonalDetailsUpdate({
                 [accountID]: {
                     accountID,
                     login: targetEmail,
                     displayName: targetEmail,
                     isOptimisticPersonalDetail: true,
                 },
-            },
-        });
+            }),
+        );
     }
 
     const successData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -814,13 +814,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     ];
 
     if (isOptimisticAccount) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
-            value: {
-                [accountID]: null,
-            },
-        });
+        successData.push(buildPersonalDetailsUpdate({[accountID]: null}));
     }
 
     const params: AddAdminToDomainParams = {
@@ -983,9 +977,7 @@ function clearAdminError(domainAccountID: number, accountID: number, isOptimisti
 
     // The account only ever existed to carry the failed add, so dismissing it takes the placeholder details with it.
     if (isOptimisticAccount) {
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [accountID]: null,
-        });
+        Onyx.update([buildPersonalDetailsUpdate({[accountID]: null})]);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
@@ -1269,13 +1261,13 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
     const optimisticAccountID = generateAccountID(email);
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.DOMAIN
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+              | typeof ONYXKEYS.COLLECTION.DOMAIN
+              | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+          >
+        | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1288,18 +1280,14 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 },
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
-            value: {
-                [optimisticAccountID]: {
-                    accountID: optimisticAccountID,
-                    login: email,
-                    avatar: USER_AVATARS.getURL(getDefaultAvatarName({accountID: optimisticAccountID, accountEmail: email})) ?? '',
-                    isOptimisticPersonalDetail: true,
-                },
+        buildPersonalDetailsUpdate({
+            [optimisticAccountID]: {
+                accountID: optimisticAccountID,
+                login: email,
+                avatar: USER_AVATARS.getURL(getDefaultAvatarName({accountID: optimisticAccountID, accountEmail: email})) ?? '',
+                isOptimisticPersonalDetail: true,
             },
-        },
+        }),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -1330,7 +1318,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
     ];
 
     const successData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.DOMAIN>
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN> | PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1354,13 +1342,7 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
-            value: {
-                [optimisticAccountID]: null,
-            },
-        },
+        buildPersonalDetailsUpdate({[optimisticAccountID]: null}),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
@@ -1430,9 +1412,7 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
             } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
         }
 
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [accountID]: null,
-        });
+        Onyx.update([buildPersonalDetailsUpdate({[accountID]: null})]);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
