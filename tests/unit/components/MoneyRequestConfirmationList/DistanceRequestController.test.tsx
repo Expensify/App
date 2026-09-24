@@ -161,33 +161,39 @@ describe('DistanceRequestController', () => {
             clearFormErrors: jest.Mock;
         }) =>
             render(
-                <DistanceRequestController
-                    transactionID="txn1"
-                    transaction={transaction}
-                    policy={policy}
-                    isDistanceRequest
-                    isManualDistanceRequest={false}
-                    isPolicyExpenseChat={isPolicyExpenseChat}
-                    isMovingTransactionFromTrackExpense={false}
-                    isReadOnly={false}
-                    isTypeSplit={false}
-                    customUnitRateID="rateFromAnotherWorkspace"
-                    mileageRate={{rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: CONST.CURRENCY.USD}}
-                    rate={67}
-                    unit={CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}
-                    currency={CONST.CURRENCY.USD}
-                    distance={DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
-                    distanceRequestAmount={201}
-                    shouldCalculateDistanceAmount={false}
-                    currentUserAccountID={1}
-                    isDistanceRequestWithPendingRoute={false}
-                    hasRoute
-                    defaultMileageRateCustomUnitRateID={undefined}
-                    selectedParticipants={[]}
-                    selectedParticipantsProp={[]}
-                    setFormError={setFormError}
-                    clearFormErrors={clearFormErrors}
-                />,
+                <ConfirmationDataContext.Provider
+                    value={createMock<ConfirmationData>({
+                        transactionID: 'txn1',
+                        transaction,
+                        policy,
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat,
+                        isMovingTransactionFromTrackExpense: false,
+                        isReadOnly: false,
+                        isTypeSplit: false,
+                        customUnitRateID: 'rateFromAnotherWorkspace',
+                        currentUserAccountID: 1,
+                        selectedParticipants: [],
+                        selectedParticipantsProp: [],
+                        setFormError,
+                        clearFormErrors,
+                    })}
+                >
+                    <DistanceRequestController
+                        distanceState={createMock<ReturnType<typeof useDistanceRequestState>>({
+                            mileageRate: {rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: CONST.CURRENCY.USD},
+                            rate: 67,
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            currency: CONST.CURRENCY.USD,
+                            distance: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
+                            distanceRequestAmount: 201,
+                            shouldCalculateDistanceAmount: false,
+                            isDistanceRequestWithPendingRoute: false,
+                            hasRoute: true,
+                            defaultRate: undefined,
+                        })}
+                    />
+                </ConfirmationDataContext.Provider>,
             );
 
         it('does not flag the rate while the newly selected workspace still has no rates loaded', () => {
