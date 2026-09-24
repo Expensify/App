@@ -337,6 +337,7 @@ function MoneyRequestView({
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
         convertedAmount: transactionConvertedAmount,
+        convertedTaxAmount: transactionConvertedTaxAmount,
     } = getTransactionDetails(displayTransaction, undefined, undefined, allowNegativeAmount, false) ?? {};
     const transactionAttendees = useAttendees(transaction);
     const isEmptyMerchant = isInvalidMerchantValue(transactionMerchant);
@@ -368,12 +369,11 @@ function MoneyRequestView({
     const shouldShowCard = isFromCardImport && cardProgramName;
 
     const taxRates = policy?.taxRates;
-    const formattedTaxAmount =
-        updatedTransaction?.taxAmount !== undefined
-            ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), actualCurrency)
-            : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
+    // `transactionTaxAmount` is already `getTaxAmount()` of `displayTransaction`, which resolves `updatedTransaction ?? transaction`,
+    // so it carries the correct sign for negative expenses (refunds) in every flow, including merge and duplicate resolution.
+    const formattedTaxAmount = convertToDisplayString(transactionTaxAmount ?? 0, actualCurrency);
     // Skip a zero converted tax (e.g. tax exempt) so we don't render a redundant "Converted 0.00".
-    const formattedConvertedTaxAmount = transaction?.convertedTaxAmount ? convertToDisplayString(Math.abs(transaction.convertedTaxAmount), moneyRequestReport?.currency) : '';
+    const formattedConvertedTaxAmount = transactionConvertedTaxAmount ? convertToDisplayString(transactionConvertedTaxAmount, moneyRequestReport?.currency) : '';
 
     const taxRatesDescription = taxRates?.name;
 
