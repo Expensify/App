@@ -76,5 +76,4 @@ function useHomeInsightConfigs(): HomeInsightConfig[] {
     return getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
 }
 
-export type {HomeInsightConfig};
 export default useHomeInsightConfigs;
