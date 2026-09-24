@@ -2411,6 +2411,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
         },
     },
+    SETTINGS_COLLECT_DEPOSIT_ACCOUNT: {
+        route: 'settings/wallet/collect-deposit-account/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `settings/wallet/collect-deposit-account${subPagePart}${actionPart}` as const;
+        },
+    },
     SETTINGS_ADD_US_BANK_ACCOUNT: {
         route: 'settings/wallet/add-us-bank-account/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {

@@ -73,6 +73,18 @@ const createOwnedPaidPoliciesCountsSelector =
  * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
  * are never valid targets.
  */
+/** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
+const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled);
+
+/**
+ * Whether a collecting workspace banks in this country, which decides local vs international details.
+ * Both conditions must hold on the same policy - a country only counts if that same policy collects.
+ */
+const createBanksInCountrySelector =
+    (countryISO: string) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && countryISO in (policy.reimbursement?.countries ?? {}));
+
 const createCopySettingsEligibleTargetsSelector =
     (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): string[] =>
@@ -578,5 +590,7 @@ export {
     policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
+    isCollectingDepositAccountsSelector,
+    createBanksInCountrySelector,
 };
 export type {ReusablePolicyConnectionName};

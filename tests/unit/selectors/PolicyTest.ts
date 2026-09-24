@@ -5,6 +5,8 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {
+    isCollectingDepositAccountsSelector,
+    createBanksInCountrySelector,
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
@@ -573,5 +575,62 @@ describe('createHasWorkspaceToSubmitToSelector', () => {
         };
 
         expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+});
+
+describe('isCollectingDepositAccountsSelector', () => {
+    it('is true when any policy collects, even if others do not', () => {
+        // Given one workspace that collects deposit accounts and one that does not
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it does, because the collecting workspace still wants their details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(true);
+    });
+
+    it('is false when no policy collects', () => {
+        // Given only workspaces that do not collect deposit accounts
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it does not
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+});
+
+describe('createBanksInCountrySelector', () => {
+    const collectingGB: OnyxCollection<Policy> = {
+        policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+    };
+
+    it('is true when a collecting workspace banks in that country', () => {
+        // Given a collecting workspace with a GB bank account
+        // When the user adds a GB account
+        // Then the employer can pay domestically
+        expect(createBanksInCountrySelector('GB')(collectingGB)).toBe(true);
+    });
+
+    it('is false when no collecting workspace banks in that country', () => {
+        // Given a collecting workspace that only banks in GB
+        // When the user adds a DE account
+        // Then the money has to arrive from abroad
+        expect(createBanksInCountrySelector('DE')(collectingGB)).toBe(false);
+    });
+
+    it('ignores reimbursement countries on workspaces that do not collect', () => {
+        // Given a GB bank account on a workspace that does not collect deposit accounts
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false, reimbursement: {countries: {GB: {}}}}),
+        };
+
+        // When the user adds a GB account
+        // Then that workspace says nothing about how this account is paid
+        expect(createBanksInCountrySelector('GB')(policies)).toBe(false);
     });
 });

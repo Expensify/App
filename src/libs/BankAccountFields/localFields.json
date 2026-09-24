@@ -1,0 +1,3724 @@
+{
+    "US": {
+        "countryISO": "US",
+        "countryName": "United States",
+        "currenciesFields": {
+            "USD": {
+                "routingNumber": {
+                    "label": "Routing Number",
+                    "validator": "[0-9]{9}",
+                    "placeholder": "9 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[A-Za-z0-9 -]+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".*",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".*",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "companyName": {
+                    "label": "Company Name",
+                    "validator": ".*",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressZipCode": {
+                    "label": "Zip Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressState": {
+                    "label": "State",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "companyPhone": {
+                    "label": "Phone Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "AR": {
+        "countryISO": "AR",
+        "countryName": "Argentina",
+        "currenciesFields": {
+            "ARS": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "taxID": {
+                    "label": "CUIL",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "AU": {
+        "countryISO": "AU",
+        "countryName": "Australia",
+        "currenciesFields": {
+            "AUD": {
+                "routingNumber": {
+                    "label": "BSB Number",
+                    "validator": "[0-9]{3}-[0-9]{3}",
+                    "placeholder": "6 digits, xxx-xxx",
+                    "errorMessage": "BSB Number should be 6 digits and should follow format xxx-xxx."
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{5,9}",
+                    "placeholder": "5-9 digits",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "AT": {
+        "countryISO": "AT",
+        "countryName": "Austria",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "BD": {
+        "countryISO": "BD",
+        "countryName": "Bangladesh",
+        "currenciesFields": {
+            "BDT": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "BE": {
+        "countryISO": "BE",
+        "countryName": "Belgium",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "BT": {
+        "countryISO": "BT",
+        "countryName": "Bhutan",
+        "currenciesFields": {
+            "BTN": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "BR": {
+        "countryISO": "BR",
+        "countryName": "Brazil",
+        "currenciesFields": {
+            "BRL": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Agency number",
+                    "validator": "[0-9]{6}|[0-9]{5}-[0-9]{1}",
+                    "placeholder": "6 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{8,13}|[0-9]{11}-[0-9]{2}",
+                    "placeholder": "8 to 13 digits",
+                    "errorMessage": "Account Number should have from 8 to 13 digits. If your account number has less than 8 digits, add leading zeros."
+                },
+                "governmentID": {
+                    "label": "Government issued CPF",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "phone": {
+                    "label": "Phone Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressZipCode": {
+                    "label": "Zip Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "IO": {
+        "countryISO": "IO",
+        "countryName": "British Indian Ocean Territory",
+        "currenciesFields": {
+            "USD": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            },
+            "GBP": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "KH": {
+        "countryISO": "KH",
+        "countryName": "Cambodia",
+        "currenciesFields": {
+            "KHR": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "CA": {
+        "countryISO": "CA",
+        "countryName": "Canada",
+        "currenciesFields": {
+            "CAD": {
+                "routingNumber": {
+                    "label": "Branch code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[A-Za-z0-9 -]+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Transit Number",
+                    "validator": "[0-9]{5}",
+                    "placeholder": "5 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            },
+            "USD": {
+                "routingNumber": {
+                    "label": "Branch code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[A-Za-z0-9 -]+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Transit Number",
+                    "validator": "[0-9]{5}",
+                    "placeholder": "5 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "KY": {
+        "countryISO": "KY",
+        "countryName": "Cayman Islands",
+        "currenciesFields": {
+            "KYD": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            },
+            "USD": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "CN": {
+        "countryISO": "CN",
+        "countryName": "China",
+        "currenciesFields": {
+            "CNY": {
+                "routingNumber": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{6,35}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankAddressStreet": {
+                    "label": "Bank Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankAddressCity": {
+                    "label": "Bank City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankAddressState": {
+                    "label": "Bank State",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "HR": {
+        "countryISO": "HR",
+        "countryName": "Croatia",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "CY": {
+        "countryISO": "CY",
+        "countryName": "Cyprus",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "CZ": {
+        "countryISO": "CZ",
+        "countryName": "Czechia",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "DK": {
+        "countryISO": "DK",
+        "countryName": "Denmark",
+        "currenciesFields": {
+            "DKK": {
+                "routingNumber": {
+                    "label": "Branch Sorting Code",
+                    "validator": "[0-9]{4}",
+                    "placeholder": "4 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{7,11}",
+                    "placeholder": "Between 7 to 11 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "DO": {
+        "countryISO": "DO",
+        "countryName": "Dominican Republic",
+        "currenciesFields": {
+            "DOP": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "EE": {
+        "countryISO": "EE",
+        "countryName": "Estonia",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "FJ": {
+        "countryISO": "FJ",
+        "countryName": "Fiji",
+        "currenciesFields": {
+            "FJD": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "FI": {
+        "countryISO": "FI",
+        "countryName": "Finland",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "FR": {
+        "countryISO": "FR",
+        "countryName": "France",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "DE": {
+        "countryISO": "DE",
+        "countryName": "Germany",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "GR": {
+        "countryISO": "GR",
+        "countryName": "Greece",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "HK": {
+        "countryISO": "HK",
+        "countryName": "Hong Kong SAR China",
+        "currenciesFields": {
+            "HKD": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{6,9}",
+                    "placeholder": "Between 6 and 9 digits",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "HU": {
+        "countryISO": "HU",
+        "countryName": "Hungary",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "IN": {
+        "countryISO": "IN",
+        "countryName": "India",
+        "currenciesFields": {
+            "INR": {
+                "routingNumber": {
+                    "label": "IFSC Code",
+                    "validator": "[A-Za-z0-9]{11}",
+                    "placeholder": "11 characters",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{7,16}",
+                    "placeholder": "Between 7 and 16 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressZipCode": {
+                    "label": "Zip Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressState": {
+                    "label": "State",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "ID": {
+        "countryISO": "ID",
+        "countryName": "Indonesia",
+        "currenciesFields": {
+            "IDR": {
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{16}",
+                    "placeholder": "Account number must be 16 numeric digits.",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{7}",
+                    "placeholder": "Branch Code must be 7 numeric digits.",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "IE": {
+        "countryISO": "IE",
+        "countryName": "Ireland",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "IL": {
+        "countryISO": "IL",
+        "countryName": "Israel",
+        "currenciesFields": {
+            "ILS": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{2}",
+                    "placeholder": "2 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{9}",
+                    "placeholder": "9 digits",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "governmentID": {
+                    "label": "Government ID",
+                    "validator": "[0-9]{9}",
+                    "placeholder": "9 digits",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "IT": {
+        "countryISO": "IT",
+        "countryName": "Italy",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "JP": {
+        "countryISO": "JP",
+        "countryName": "Japan",
+        "currenciesFields": {
+            "JPY": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{7}",
+                    "placeholder": "7 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "LA": {
+        "countryISO": "LA",
+        "countryName": "Laos",
+        "currenciesFields": {
+            "LAK": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "LV": {
+        "countryISO": "LV",
+        "countryName": "Latvia",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "LT": {
+        "countryISO": "LT",
+        "countryName": "Lithuania",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "LU": {
+        "countryISO": "LU",
+        "countryName": "Luxembourg",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MO": {
+        "countryISO": "MO",
+        "countryName": "Macau SAR China",
+        "currenciesFields": {
+            "MOP": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MY": {
+        "countryISO": "MY",
+        "countryName": "Malaysia",
+        "currenciesFields": {
+            "MYR": {
+                "routingNumber": {
+                    "label": "Swift Code",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Bank Account Number",
+                    "validator": "[A-Za-z0-9]{1,20}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MV": {
+        "countryISO": "MV",
+        "countryName": "Maldives",
+        "currenciesFields": {
+            "MVR": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MT": {
+        "countryISO": "MT",
+        "countryName": "Malta",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MX": {
+        "countryISO": "MX",
+        "countryName": "Mexico",
+        "currenciesFields": {
+            "MXN": {
+                "routingNumber": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "CLABE Number",
+                    "validator": "[0-9]{18}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MN": {
+        "countryISO": "MN",
+        "countryName": "Mongolia",
+        "currenciesFields": {
+            "MNT": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "MM": {
+        "countryISO": "MM",
+        "countryName": "Myanmar (Burma)",
+        "currenciesFields": {
+            "MMK": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "NP": {
+        "countryISO": "NP",
+        "countryName": "Nepal",
+        "currenciesFields": {
+            "NPR": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "NL": {
+        "countryISO": "NL",
+        "countryName": "Netherlands",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "NZ": {
+        "countryISO": "NZ",
+        "countryName": "New Zealand",
+        "currenciesFields": {
+            "NZD": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{2}",
+                    "placeholder": "2 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{10}",
+                    "placeholder": "10 digits",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{4}",
+                    "placeholder": "4 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "NG": {
+        "countryISO": "NG",
+        "countryName": "Nigeria",
+        "currenciesFields": {
+            "NGN": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "Bank Code must be 3 numeric digits.",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Bank Account Number",
+                    "validator": "[A-Za-z0-9]{1,20}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "NO": {
+        "countryISO": "NO",
+        "countryName": "Norway",
+        "currenciesFields": {
+            "NOK": {
+                "routingNumber": {
+                    "label": "Branch Sorting Code",
+                    "validator": "[0-9]{4}",
+                    "placeholder": "4 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{7,11}",
+                    "placeholder": "Between 7 to 11 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "PK": {
+        "countryISO": "PK",
+        "countryName": "Pakistan",
+        "currenciesFields": {
+            "PKR": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "PH": {
+        "countryISO": "PH",
+        "countryName": "Philippines",
+        "currenciesFields": {
+            "PHP": {
+                "routingNumber": {
+                    "label": "Swift Code",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "Between 8 and 11 characters",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Bank Account Number",
+                    "validator": "[A-Za-z0-9]{1,20}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            },
+            "USD": {
+                "routingNumber": {
+                    "label": "Swift Code",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "Between 8 and 11 characters",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Bank Account Number",
+                    "validator": "[A-Za-z0-9]{1,20}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "PL": {
+        "countryISO": "PL",
+        "countryName": "Poland",
+        "currenciesFields": {
+            "PLN": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "PT": {
+        "countryISO": "PT",
+        "countryName": "Portugal",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "RU": {
+        "countryISO": "RU",
+        "countryName": "Russia",
+        "currenciesFields": {
+            "RUB": {
+                "routingNumber": {
+                    "label": "Russian Bank Identifier",
+                    "validator": "[0-9]{9}",
+                    "placeholder": "9 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{20}",
+                    "placeholder": "20 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "SG": {
+        "countryISO": "SG",
+        "countryName": "Singapore",
+        "currenciesFields": {
+            "SGD": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{4}",
+                    "placeholder": "4 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "SK": {
+        "countryISO": "SK",
+        "countryName": "Slovakia",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "SI": {
+        "countryISO": "SI",
+        "countryName": "Slovenia",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "ZA": {
+        "countryISO": "ZA",
+        "countryName": "South Africa",
+        "currenciesFields": {
+            "ZAR": {
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{9,11}",
+                    "placeholder": "9 or 11 digits",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{6}",
+                    "placeholder": "6 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "KR": {
+        "countryISO": "KR",
+        "countryName": "South Korea",
+        "currenciesFields": {
+            "KRW": {
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "branchID": {
+                    "label": "Branch Code",
+                    "validator": "[0-9]{3}",
+                    "placeholder": "3 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "ES": {
+        "countryISO": "ES",
+        "countryName": "Spain",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "LK": {
+        "countryISO": "LK",
+        "countryName": "Sri Lanka",
+        "currenciesFields": {
+            "LKR": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "SE": {
+        "countryISO": "SE",
+        "countryName": "Sweden",
+        "currenciesFields": {
+            "SEK": {
+                "routingNumber": {
+                    "label": "Branch Sorting Code",
+                    "validator": "[0-9]{4,5}",
+                    "placeholder": "4 or 5 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{7,11}",
+                    "placeholder": "Between 7 to 11 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            },
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "CH": {
+        "countryISO": "CH",
+        "countryName": "Switzerland",
+        "currenciesFields": {
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "TW": {
+        "countryISO": "TW",
+        "countryName": "Taiwan",
+        "currenciesFields": {
+            "TWD": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "TR": {
+        "countryISO": "TR",
+        "countryName": "Turkey",
+        "currenciesFields": {
+            "TRY": {
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "routingNumber": {
+                    "label": "Bank Code",
+                    "validator": "[0-9]{5}",
+                    "placeholder": "5 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[A-Za-z0-9 -]{17}",
+                    "placeholder": "17 characters",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "AE": {
+        "countryISO": "AE",
+        "countryName": "United Arab Emirates",
+        "currenciesFields": {
+            "AED": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "GB": {
+        "countryISO": "GB",
+        "countryName": "United Kingdom",
+        "currenciesFields": {
+            "GBP": {
+                "routingNumber": {
+                    "label": "Branch Sorting Code",
+                    "validator": "[0-9]{6}",
+                    "placeholder": "6 digits",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[0-9]{8}",
+                    "placeholder": "8 digits",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            },
+            "EUR": {
+                "routingNumber": {
+                    "label": "Swift/BIC",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "IBAN",
+                    "validator": "[A-Za-z0-9]{12,30}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    },
+    "VN": {
+        "countryISO": "VN",
+        "countryName": "Vietnam",
+        "currenciesFields": {
+            "VND": {
+                "routingNumber": {
+                    "label": "Swift Code",
+                    "validator": "[A-Za-z0-9]{8,11}",
+                    "placeholder": "Between 8 and 11 characters",
+                    "errorMessage": ""
+                },
+                "accountNumber": {
+                    "label": "Account Number",
+                    "validator": "[A-Za-z0-9]{1,34}",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "bankName": {
+                    "label": "Bank Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "firstName": {
+                    "label": "First Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "lastName": {
+                    "label": "Last Name",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressStreet": {
+                    "label": "Billing Address",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                },
+                "addressCity": {
+                    "label": "City",
+                    "validator": ".+",
+                    "placeholder": "",
+                    "errorMessage": ""
+                }
+            }
+        }
+    }
+}

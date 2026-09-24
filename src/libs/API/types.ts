@@ -123,6 +123,7 @@ const WRITE_COMMANDS = {
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
     CONNECT_BANK_ACCOUNT_WITH_PLAID: 'ConnectBankAccountWithPlaid',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
+    CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT: 'CreateCollectOnlyDepositAccount',
     UPDATE_PERSONAL_BANK_ACCOUNT_INFO: 'UpdatePersonalBankAccountInfo',
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
@@ -832,6 +833,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
+    [WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT]: Parameters.CreateCollectOnlyDepositAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK]: Parameters.InitiateBankAccountUnlockParams;
@@ -1495,6 +1497,7 @@ const READ_COMMANDS = {
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
+    OPEN_DEPOSIT_ACCOUNT_SETUP: 'OpenDepositAccountSetup',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
     GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL: 'GetExpensifyCardPendingWalletApproval',
     OPEN_BANK_ACCOUNT_SHARE_PAGE: 'OpenBankAccountSharePage',
@@ -1611,6 +1614,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
+    [READ_COMMANDS.OPEN_DEPOSIT_ACCOUNT_SETUP]: null;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: Parameters.OpenPaymentsPageParams | null;
     [READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL]: null;
     [READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE]: null;
