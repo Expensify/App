@@ -41,9 +41,11 @@ You can start the request from **Home**, **Wallet**, or a workspace’s **Workfl
 1. Do one of the following:
    - On **Home**, click **Fix** on the locked bank account alert in the **Time sensitive** section, then skip to step 3.
    - Go to **Settings > Wallet** and find the account in the **Bank accounts** section.
-   - Go to **Workspaces > [Workspace Name] > Workflows** and click the **Payments** tab. **Workflows** opens on the **Submissions** tab, so the bank account isn’t shown until you switch to **Payments**.
+   - Go to **Workspaces > [Workspace Name] > Workflows** and click the **Payments** tab. The bank account is only shown on the **Payments** tab.
 2. In **Wallet** or **Payments**, click the bank account with the **Locked** badge, or click **Unlock** next to it.
 3. Review the request Expensify posts in your Concierge chat.
+
+**Note:** **Workflows** remembers the last tab you used. The first time you open it, it starts on **Submissions**, so you need to click **Payments**. After that, returning to **Workflows** takes you straight back to **Payments** and you can skip that click.
 
 There is no extra confirmation step. Expensify sends the request to Concierge as soon as you click and takes you straight to your Concierge chat, where the request appears as a message — you don’t need to write anything. Concierge will walk you through the next steps to unlock the account, or confirm when your account is ready to use.
 
