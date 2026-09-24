@@ -35,9 +35,9 @@ type MenuItemRootProps = PropsWithChildren &
         isDisabled?: boolean;
 
         /**
-         * Pre-computed accessibility label. When provided, `Root` uses it directly instead of
-         * deriving the label from registered `Title`/`Description` children. Presets that know
-         * their text statically should pass it.
+         * Pre-computed accessibility label. When provided, `Root` uses it instead of deriving the label
+         * from the text leaves. Announcements such as "opens in a new tab" are still appended.
+         * Presets that know their text statically should pass it.
          */
         accessibilityLabel?: string;
     };
@@ -50,7 +50,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
 
-    const {accessibilityLabel: derivedAccessibilityLabel, accessibilityHint, accessibilityActions} = useMenuItemAccessibility();
+    const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
@@ -101,7 +101,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         disabled={isDisabled}
                         ref={pressableRef}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
-                        accessibilityLabel={accessibilityLabel ?? derivedAccessibilityLabel}
+                        accessibilityLabel={rowAccessibilityLabel}
                         accessibilityHint={accessibilityHint}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
@@ -109,7 +109,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         testID={testID}
                     >
                         {({pressed}) => (
-                            <MenuItemAccessibilityContext.Provider value={accessibilityLabel === undefined ? accessibilityActions : undefined}>
+                            <MenuItemAccessibilityContext.Provider value={accessibilityRegistries}>
                                 <MenuItemSecondaryInteractionContext.Provider value={registerSecondaryInteraction}>
                                     <MenuItemInteractionContext.Provider
                                         value={{
