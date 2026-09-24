@@ -165,14 +165,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
         ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
         : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
-    // Typing scrolls the focused search input back into view, which crosses the point where the sticky header
-    // releases. The overlay copy only unmounts once a scroll event has made the round trip through JS, so it would
-    // otherwise still be on screen next to the real header row. Dropping it for the same commit avoids that pairing.
-    const searchScrollCorrection = Platform.OS === 'android' ? activeSearchString : '';
-    const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader, searchScrollCorrection};
+    const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader};
     const [previousListState, setPreviousListState] = useState(currentListState);
     const shouldResetListLoad = previousListState.shouldRenderFlashList !== shouldRenderFlashList;
-    const shouldResetStickyHeader = previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader || previousListState.searchScrollCorrection !== searchScrollCorrection;
+    const shouldResetStickyHeader = previousListState.shouldRenderStickyHeader !== shouldRenderStickyHeader;
 
     if (shouldResetListLoad || shouldResetStickyHeader) {
         setPreviousListState(currentListState);
@@ -184,6 +180,23 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         if (shouldResetStickyHeader) {
             setHasActivatedStickyHeader(false);
             setActiveStickyHeaderIndex(-1);
+        }
+    }
+
+    // Typing scrolls the focused search input back into view, and that scroll crosses the point where the sticky
+    // header releases. FlashList unmounts its overlay copy only once a scroll event has made the round trip through
+    // JS, so the overlay would still be on screen beside the real header row. Hide it until the correction lands.
+    // A sticky header on screen means the page header holding the input is scrolled away, so a correction is coming
+    // and its scroll event is what clears this again.
+    const searchQueryKey = Platform.OS === 'android' ? activeSearchString : '';
+    const [previousSearchQueryKey, setPreviousSearchQueryKey] = useState(searchQueryKey);
+    const [isAwaitingSearchScroll, setIsAwaitingSearchScroll] = useState(false);
+
+    if (previousSearchQueryKey !== searchQueryKey) {
+        setPreviousSearchQueryKey(searchQueryKey);
+
+        if (activeStickyHeaderIndex !== -1) {
+            setIsAwaitingSearchScroll(true);
         }
     }
 
@@ -315,7 +328,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // A truly empty table still uses the standalone centered layout above.
     const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
-    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader);
+    const canRenderStickyHeader = !tableListMetadata.shouldRenderStickyHeader || (isListLoaded && hasActivatedStickyHeader && !isAwaitingSearchScroll);
     const isTableHeaderSticky = activeStickyHeaderIndex === tableListMetadata.stickyTableHeaderIndex;
     const shouldRenderEmptyStateInList = !hasRows && tableListMetadata.hasPageHeader;
 
@@ -423,6 +436,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 viewabilityConfigCallbackPairs={hasRows ? viewabilityConfigCallbackPairsForList : undefined}
                 onScroll={(event) => {
                     trackScrollOffset(event);
+                    setIsAwaitingSearchScroll(false);
                     onScroll?.(event);
                 }}
                 {...restListProps}
