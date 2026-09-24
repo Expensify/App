@@ -9846,6 +9846,7 @@ const translations = {
                 after: (date?: string) => `After ${date ?? ''}`,
                 on: (date?: string) => `On ${date ?? ''}`,
                 customDate: 'Custom date',
+                customDay: 'Custom day',
                 customRange: 'Custom range',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
