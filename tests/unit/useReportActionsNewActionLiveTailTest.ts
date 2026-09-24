@@ -13,7 +13,7 @@ const mockNavigationSetParams = jest.fn();
 const mockGlobalSetParams = jest.fn();
 const mockOpenReport = jest.fn();
 const mockLogAlert = jest.fn();
-let newActionHandler: ((isFromCurrentUser: boolean, action?: ReportAction) => void) | undefined;
+let newActionHandler: ((isFromCurrentUser: boolean, action: ReportAction | undefined, source: 'local' | 'realtime') => void) | undefined;
 
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -73,7 +73,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Report/reportActionSubscribers', () => ({
-    subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action?: ReportAction) => void) => {
+    subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action: ReportAction | undefined, source: 'local' | 'realtime') => void) => {
         newActionHandler = callback;
         return jest.fn();
     },
@@ -130,7 +130,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         });
 
         act(() => {
-            newActionHandler?.(true, action);
+            newActionHandler?.(true, action, 'local');
         });
 
         expect(result.current.isScrollToBottomEnabled).toBe(false);
@@ -145,11 +145,46 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true})));
 
         act(() => {
-            newActionHandler?.(true, undefined);
+            newActionHandler?.(true, undefined, 'realtime');
         });
 
         expect(result.current.isScrollToBottomEnabled).toBe(false);
         expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it('keeps the live-tail jump for a local action without a report action payload', () => {
+        // Given a report showing an older page
+        renderHook(() => useReportActionsNewActionLiveTail(buildParams()));
+
+        // When a local money request sends a payload-less notification
+        act(() => {
+            newActionHandler?.(true, undefined, 'local');
+        });
+
+        // Then the report opens its latest page
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+    });
+
+    it('expires a sent-comment scroll request when the action never enters the list', () => {
+        // Given a sent action that is filtered out or fails to appear
+        jest.useFakeTimers();
+        const action = getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {
+            initialProps: buildParams({hasNewerActions: false, hasNewestReportAction: true}),
+        });
+        act(() => {
+            newActionHandler?.(true, action, 'local');
+        });
+
+        // When the action finally appears well after the send attempt
+        act(() => {
+            jest.advanceTimersByTime(10000);
+        });
+        rerender(buildParams({hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [action]}));
+
+        // Then the stale request does not pull the reader to the bottom
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        jest.useRealTimers();
     });
 
     it('does not queue a bottom scroll that would compete with a report-preview target', () => {
@@ -157,7 +192,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {result} = renderHook(() => useReportActionsNewActionLiveTail(buildParams({hasNewerActions: false, hasNewestReportAction: true, renderedVisibleReportActions: [preview]})));
 
         act(() => {
-            newActionHandler?.(true, preview);
+            newActionHandler?.(true, preview, 'local');
         });
 
         expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
@@ -169,7 +204,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
 
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
@@ -179,7 +214,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({isSelfTourViewed: true, hasCompletedGuidedSetupFlow: false})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
 
         // The onboarding flags are threaded straight through so guided-setup optimistic data is derived from real Onyx
@@ -191,7 +226,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams()});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
 
         expect(mockOpenReport).toHaveBeenCalledTimes(1);
@@ -214,7 +249,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({setTreatAsNoPaginationAnchor})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
 
         expect(() =>
@@ -236,7 +271,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({setTreatAsNoPaginationAnchor})});
 
         act(() => {
-            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}));
+            newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
 
         rerender(

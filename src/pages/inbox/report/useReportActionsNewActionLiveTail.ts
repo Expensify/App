@@ -5,6 +5,7 @@ import type useReportScrollManager from '@hooks/useReportScrollManager';
 import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
 import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
+import type {ActionEventSource} from '@libs/actions/Report/reportActionSubscribers';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -60,6 +61,7 @@ type UseReportActionsNewActionLiveTailParams = {
 };
 
 type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune';
+const PENDING_SENT_ACTION_TIMEOUT_MS = 5000;
 
 /**
  * Owns subscribe-to-new-action scrolling, live-tail jump (openReport → scroll → prune), and the
@@ -105,7 +107,18 @@ function useReportActionsNewActionLiveTail({
 
     const isPendingScrollActionRendered = !!pendingScrollActionID && renderedVisibleReportActions.some((item) => item.reportActionID === pendingScrollActionID);
 
-    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
+    useEffect(() => {
+        if (!pendingScrollActionID) {
+            return;
+        }
+
+        // The optimistic row normally arrives immediately. A filtered or failed row must not
+        // scroll the reader much later when pagination or reconnecting makes it visible.
+        const timeout = setTimeout(() => setPendingScrollActionID(undefined), PENDING_SENT_ACTION_TIMEOUT_MS);
+        return () => clearTimeout(timeout);
+    }, [pendingScrollActionID]);
+
+    const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action: OnyxTypes.ReportAction | undefined, source: ActionEventSource) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -113,9 +126,9 @@ function useReportActionsNewActionLiveTail({
                 if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
-                // Pusher echoes omit the action payload and can represent edits or deletions. Local sends
-                // notify with the optimistic action, which lets us wait until that exact row is rendered.
-                if (!action) {
+                // A realtime echo can represent an edit or deletion, whereas local payload-less
+                // notifications from money requests still need the usual live-tail behavior.
+                if (!action && source === 'realtime') {
                     return;
                 }
                 if (!hasNewestReportAction && !isFromCurrentUser) {
@@ -163,7 +176,11 @@ function useReportActionsNewActionLiveTail({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    setPendingScrollActionID(action.reportActionID);
+                    if (action?.reportActionID) {
+                        setPendingScrollActionID(action.reportActionID);
+                    } else {
+                        setShouldScrollToBottom(true);
+                    }
                 }
             },
         });
