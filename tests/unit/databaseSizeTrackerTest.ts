@@ -11,6 +11,7 @@ import {getGlobalSpanAttributes} from '@libs/telemetry/globalSpanAttributes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -18,6 +19,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@libs/telemetry/databaseSize', () => ({
     __esModule: true,
     default: jest.fn(),
+}));
+
+jest.mock('@sentry/react-native', () => ({
+    setTag: jest.fn(),
 }));
 
 Onyx.init({keys: ONYXKEYS});
@@ -36,6 +41,8 @@ describe('databaseSizeTracker', () => {
 
         expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(123);
         expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_SOURCE]).toBe(CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE);
+        // The tier is tagged from the persisted value too, so the startup span carries it before this session measures anything
+        expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.DB_SIZE, CONST.TELEMETRY.SIZE_TIER.SMALL);
     });
 
     it('ignores re-measurement requests before the initial measurement ran', async () => {
@@ -60,6 +67,7 @@ describe('databaseSizeTracker', () => {
         expect(mockMeasureDatabaseSize).toHaveBeenCalledTimes(1);
         expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(5000);
         expect(setSpy).toHaveBeenCalledWith(ONYXKEYS.LAST_MEASURED_DATABASE_SIZE, {bytes: 5000, source: CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE});
+        expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.DB_SIZE, CONST.TELEMETRY.SIZE_TIER.SMALL);
         setSpy.mockRestore();
     });
 
@@ -76,7 +84,7 @@ describe('databaseSizeTracker', () => {
     it('debounces re-measurements once the initial measurement exists', async () => {
         jest.useFakeTimers();
         mockMeasureDatabaseSize.mockClear();
-        mockMeasureDatabaseSize.mockResolvedValue({bytes: 6000, source: CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE});
+        mockMeasureDatabaseSize.mockResolvedValue({bytes: 21_000_000, source: CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE});
 
         requestDatabaseSizeRemeasurement(1);
         requestDatabaseSizeRemeasurement(1);
@@ -85,7 +93,9 @@ describe('databaseSizeTracker', () => {
         await jest.advanceTimersByTimeAsync(REMEASURE_DEBOUNCE_TIME_MS * 2);
 
         expect(mockMeasureDatabaseSize).toHaveBeenCalledTimes(1);
-        expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(6000);
+        expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(21_000_000);
+        // A live re-measurement that crosses the 20 MB border moves the tag, so a growing database changes cohort without a restart
+        expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.DB_SIZE, CONST.TELEMETRY.SIZE_TIER.LARGE);
     });
 
     it('keeps the last good measurement when a re-measurement fails', async () => {
@@ -98,7 +108,7 @@ describe('databaseSizeTracker', () => {
         await jest.advanceTimersByTimeAsync(REMEASURE_DEBOUNCE_TIME_MS * 2);
 
         expect(mockMeasureDatabaseSize).toHaveBeenCalledTimes(1);
-        expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(6000);
+        expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_BYTES]).toBe(21_000_000);
         expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_DB_SIZE_SOURCE]).toBe(CONST.TELEMETRY.DB_SIZE_SOURCE.SQLITE);
         expect(setSpy).not.toHaveBeenCalledWith(ONYXKEYS.LAST_MEASURED_DATABASE_SIZE, {source: CONST.TELEMETRY.DB_SIZE_SOURCE.UNAVAILABLE});
         setSpy.mockRestore();
