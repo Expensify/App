@@ -11,6 +11,7 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -24,6 +25,7 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getGroupChatName} from '@libs/ReportNameUtils';
 import {canInviteMembersToReport, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
@@ -31,7 +33,7 @@ import {canInviteMembersToReport, getParticipantsAccountIDsForDisplay} from '@li
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
+import {newAccountIDsAndLoginsSelector} from '@src/selectors/PersonalDetails';
 import {accountIDSelector} from '@src/selectors/Session';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -51,9 +53,8 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [participantLogins = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true)),
-    });
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
+    const [participantLogins = getEmptyArray<string>()] = usePersonalDetailsByIDs(participantAccountIDs, (personalDetails) => getLoginsByAccountIDs(participantAccountIDs, personalDetails));
     const [pendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingDeleteMemberAccountIDsSelector});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path);
@@ -138,7 +139,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         acc[login] = accountID;
         return acc;
     }, {} as InvitedEmailsToAccountIDs);
-    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs)});
+    const [newAccountIDsAndLogins] = useAllPersonalDetails(newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs));
 
     const inviteUsers = () => {
         if (selectedOptions.length === 0) {
