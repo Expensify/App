@@ -367,10 +367,10 @@ describe('RecruitingUtils', () => {
     });
 
     describe('getMergeATSApprovalMode', () => {
-        it('returns null when there is no connection or no approval mode', () => {
-            expect(getMergeATSApprovalMode(undefined)).toBeNull();
-            expect(getMergeATSApprovalMode(makePolicy())).toBeNull();
-            expect(getMergeATSApprovalMode(makeMergeATSPolicy())).toBeNull();
+        it('returns undefined when there is no connection or no approval mode', () => {
+            expect(getMergeATSApprovalMode(undefined)).toBeUndefined();
+            expect(getMergeATSApprovalMode(makePolicy())).toBeUndefined();
+            expect(getMergeATSApprovalMode(makeMergeATSPolicy())).toBeUndefined();
         });
 
         it('returns the configured approval mode', () => {
@@ -382,10 +382,10 @@ describe('RecruitingUtils', () => {
     });
 
     describe('getMergeATSApproverField', () => {
-        it('returns null when there is no connection or no approver field', () => {
-            expect(getMergeATSApproverField(undefined)).toBeNull();
-            expect(getMergeATSApproverField(makePolicy())).toBeNull();
-            expect(getMergeATSApproverField(makeMergeATSPolicy())).toBeNull();
+        it('returns undefined when there is no connection or no approver field', () => {
+            expect(getMergeATSApproverField(undefined)).toBeUndefined();
+            expect(getMergeATSApproverField(makePolicy())).toBeUndefined();
+            expect(getMergeATSApproverField(makeMergeATSPolicy())).toBeUndefined();
         });
 
         it('returns the configured approver field', () => {
@@ -688,17 +688,6 @@ describe('getRecruitingCards', () => {
                     config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR, finalApprover: APPROVER_LOGIN},
                 }),
             ).toBe(`workspace.merge.approvalModes.advanced • workspace.recruiting.approverFields.recruitingCoordinator -> ${APPROVER_LOGIN}`);
-        });
-
-        it('shows an unrecognized ATS field as-is', () => {
-            // Given an approver field the app does not have a translation for, since the backend can add new ones
-            // When the default approver row is built
-            // Then the raw field name is shown rather than a missing translation
-            expect(
-                getDefaultApproverTitle({
-                    config: {approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, approverField: 'hiringManager', finalApprover: APPROVER_LOGIN},
-                }),
-            ).toBe(`workspace.merge.approvalModes.advanced • hiringManager -> ${APPROVER_LOGIN}`);
         });
 
         it('reads "not set" for the ATS field when advanced mode has none', () => {

@@ -77,6 +77,7 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         isBetaEnabled: (beta: string) => beta === 'bulkSubmitApprovePay',
+        isBetaEnabledOrUnknown: (beta: string) => beta === 'bulkSubmitApprovePay',
     })),
 }));
 
