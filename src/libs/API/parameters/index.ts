@@ -84,6 +84,10 @@ export type {default as UpdateCampfireSubsidiaryParams} from './UpdateCampfireSu
 export type {default as UpdateCampfireFieldMappingParams} from './UpdateCampfireFieldMappingParams';
 export type {default as UpdateCampfireEnableNewCategoriesParams} from './UpdateCampfireEnableNewCategoriesParams';
 export type {default as UpdateCampfireSyncTaxRatesParams} from './UpdateCampfireSyncTaxRatesParams';
+export type {default as UpdateCampfireExporterParams} from './UpdateCampfireExporterParams';
+export type {default as UpdateCampfireExportDateParams} from './UpdateCampfireExportDateParams';
+export type {default as UpdateCampfireDefaultVendorParams} from './UpdateCampfireDefaultVendorParams';
+export type {default as UpdateCampfireCreditCardAccountParams} from './UpdateCampfireCreditCardAccountParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
@@ -130,6 +134,7 @@ export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompan
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as OpenPolicyHRPageParams} from './OpenPolicyHRPageParams';
 export type {default as OpenPolicyRecruitingPageParams} from './OpenPolicyRecruitingPageParams';
+export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
 export type {default as AddPersonalPlaidCardParams} from './AddPersonalPlaidCardParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
@@ -327,7 +332,6 @@ export type {default as UpdateMergeApprovalModeParams} from './UpdateMergeApprov
 export type {default as UpdateMergeFinalApproverParams} from './UpdateMergeFinalApproverParams';
 export type {default as UpdateMergeGroupsParams} from './UpdateMergeGroupsParams';
 export type {default as UpdateMergeATSFiltersParams} from './UpdateMergeATSFiltersParams';
-export type {default as UpdateMergeATSApproverFieldParams} from './UpdateMergeATSApproverFieldParams';
 export type {default as UpdateZenefitsApprovalModeParams} from './UpdateZenefitsApprovalModeParams';
 export type {default as UpdateZenefitsFinalApproverParams} from './UpdateZenefitsFinalApproverParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
@@ -603,6 +607,8 @@ export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredPara
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as GetInsightsParams} from './GetInsightsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
+export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
+export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';

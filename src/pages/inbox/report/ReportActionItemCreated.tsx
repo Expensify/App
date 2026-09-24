@@ -43,7 +43,6 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
@@ -74,7 +73,6 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     conciergeReportID,
                     introSelected,
                     currentUserAccountID,
-                    betas,
                     isSelfTourViewed,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,

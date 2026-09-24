@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy, isCreatedDateType} from '@libs/SearchUIUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -141,7 +141,7 @@ function SearchStaticList({
 
         if (!item.reportAction?.childReportID) {
             const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            // betas, introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
+            // introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
             // They're only used for guided-setup onboarding data, which is gated behind introSelected/onboarding checks
             // that won't apply here - the user has already completed onboarding if they're submitting expenses.
             createAndOpenSearchTransactionThread({
@@ -152,7 +152,6 @@ function SearchStaticList({
                 backTo,
                 currentUserLogin: email ?? '',
                 currentUserAccountID: accountID,
-                betas: undefined,
                 personalDetails,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
@@ -297,6 +296,7 @@ function SearchStaticList({
                         shouldShowCheckbox={canSelectMultiple}
                         shouldShowErrors
                         violations={item.violations}
+                        isDateColumnCreated={isCreatedDateType(type)}
                         dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                         taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
