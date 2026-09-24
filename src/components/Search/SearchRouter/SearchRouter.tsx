@@ -324,7 +324,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             transactionThreadIDs,
             lastActions,
-            currentUserAccountID,
             currentUserPersonalDetails.login,
             contextualReportNVP,
             contextualReportPolicy,
