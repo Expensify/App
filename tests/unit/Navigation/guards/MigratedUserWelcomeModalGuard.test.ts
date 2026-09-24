@@ -439,6 +439,24 @@ describe('MigratedUserWelcomeModalGuard', () => {
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
+        it('should not navigate during a copilot session', async () => {
+            // Given the delegator account is in the nudge migration and has not dismissed the modal
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            // When the app finishes loading in a copilot session
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123, authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}, false);
+
+            // Then the modal is not opened, because it belongs to the delegator and a copilot must not see or dismiss it
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
         it('should not navigate when there is no session', async () => {
             await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
                 nudgeMigration: {
