@@ -6444,7 +6444,7 @@ describe('OptionsListUtils', () => {
             expect(doesMatch).toBe(true);
         });
 
-        // cspell:ignore 김민수 山田太郎 Ирина Смирнова Νίκος Παπαδόπουλος Nguyễn
+        // cspell:ignore 김민수 山田太郎 Ирина Смирнова Νίκος Παπαδόπουλος Nguyễn Minh
         it.each([
             {writingSystem: 'Korean', displayName: '김민수'},
             {writingSystem: 'Japanese', displayName: '山田太郎'},
