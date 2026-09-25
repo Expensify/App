@@ -44,12 +44,6 @@ Once the values are confirmed, your business bank account is fully connected and
 
 ![Account > Wallet > bank account with a Pending badge > expose validation pane]({{site.url}}/assets/images/ExpensifyHelp-BetterBusinessBankAccount_03.png){:width="100%"}
 
-<!-- SCREENSHOT:
-Suggestion: Replace ExpensifyHelp-BetterBusinessBankAccount_02.png and _03.png with captures showing the Pending badge and the Please confirm test transactions message
-Location: Replacing the two images above
-Purpose: The current images still show the retired Action required badge, so members looking for that badge won't find it in the product
--->
-
 ---
 
 ## What to do if test transactions don't arrive
