@@ -1,12 +1,13 @@
 import {renderHook} from '@testing-library/react-native';
 
+import useMoneyRequestReportActiveTransactionIDs from '@components/MoneyRequestReportView/useMoneyRequestReportActiveTransactionIDs';
+
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
 import SCREENS from '@src/SCREENS';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import {useEffect, useMemo} from 'react';
 
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
@@ -33,39 +34,7 @@ jest.mock('@react-navigation/native', () => ({
     useFocusEffect: jest.fn(),
 }));
 
-/**
- * This hook replicates the active transaction IDs logic from MoneyRequestReportTransactionList
- * to allow isolated testing of the useEffect behavior.
- */
-function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
-    const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
-
-    useEffect(() => {
-        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
-            return;
-        }
-        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
-        if (activeDescriptors) {
-            return;
-        }
-        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
-            const activeIDSet = new Set(activeIDs);
-            if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
-                return;
-            }
-        }
-        setActiveTransactionIDs(visualOrderTransactionIDs);
-        return () => {
-            clearActiveTransactionIDs();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array
-    }, [visualOrderTransactionIDsKey]);
-
-    return {visualOrderTransactionIDsKey};
-}
-
-describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', () => {
+describe('useMoneyRequestReportActiveTransactionIDs', () => {
     const mockSetActiveTransactionIDs = jest.mocked(setActiveTransactionIDs);
     const mockClearActiveTransactionIDs = jest.mocked(clearActiveTransactionIDs);
     const mockGetActiveTransactionIDs = jest.mocked(getActiveTransactionIDs);
@@ -85,7 +54,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered
-        renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         // Then setActiveTransactionIDs should be called with the transaction IDs
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs);
@@ -98,7 +67,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered
-        renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         // Then setActiveTransactionIDs should NOT be called
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
@@ -111,7 +80,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1'];
 
         // When the hook is rendered
-        renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         // Then setActiveTransactionIDs should NOT be called
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
@@ -124,7 +93,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
 
@@ -141,7 +110,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         unmount();
 
@@ -156,7 +125,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const initialTransactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered
-        const {rerender} = renderHook(({ids}) => useActiveTransactionIDsEffect(ids), {
+        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids), {
             initialProps: {ids: initialTransactionIDs},
         });
 
@@ -172,6 +141,22 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(newTransactionIDs);
     });
 
+    it('should clear the previous seed before re-seeding when the rows change', () => {
+        // Given the focused route is SEARCH_REPORT and the hook seeded the carousel
+        mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
+        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids), {
+            initialProps: {ids: ['trans1', 'trans2']},
+        });
+
+        // When the rows change
+        rerender({ids: ['trans1']});
+
+        // Then the old seed is cleared by the effect cleanup before the new one is written
+        expect(mockClearActiveTransactionIDs).toHaveBeenCalledTimes(1);
+        expect(mockClearActiveTransactionIDs.mock.invocationCallOrder.at(0)).toBeLessThan(mockSetActiveTransactionIDs.mock.invocationCallOrder.at(1) ?? 0);
+        expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(['trans1']);
+    });
+
     it('should NOT re-fire when array reference changes but content is the same', () => {
         // Given the focused route is SEARCH_REPORT
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
@@ -179,7 +164,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const initialTransactionIDs = ['trans1', 'trans2'];
 
         // When the hook is rendered
-        const {rerender} = renderHook(({ids}) => useActiveTransactionIDsEffect(ids), {
+        const {rerender} = renderHook(({ids}) => useMoneyRequestReportActiveTransactionIDs(ids), {
             initialProps: {ids: initialTransactionIDs},
         });
 
@@ -206,7 +191,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         // Then it should neither overwrite nor clear the existing carousel context
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
@@ -224,7 +209,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered and then unmounted
-        const {unmount} = renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        const {unmount} = renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         // Then it should neither overwrite the carousel order nor clear it
         expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
@@ -242,7 +227,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const transactionIDs = ['trans1', 'trans2', 'trans3'];
 
         // When the hook is rendered
-        renderHook(() => useActiveTransactionIDsEffect(transactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(transactionIDs));
 
         // Then setActiveTransactionIDs should be called with the visual order
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(transactionIDs);
@@ -255,7 +240,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const emptyTransactionIDs: string[] = [];
 
         // When the hook is rendered with empty array
-        renderHook(() => useActiveTransactionIDsEffect(emptyTransactionIDs));
+        renderHook(() => useMoneyRequestReportActiveTransactionIDs(emptyTransactionIDs));
 
         // Then setActiveTransactionIDs should be called with empty array
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith([]);
