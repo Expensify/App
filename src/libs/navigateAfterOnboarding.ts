@@ -93,6 +93,17 @@ function navigateAfterOnboarding(
     const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
     const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
+
+    // The homePageNoRHP arm of the onboarding experiment lands on Home with the side panel closed, at every company size,
+    // so it is handled before the variants that are limited to micro companies or that open the side panel.
+    if (variant === CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP) {
+        SidePanelActions.dismissSidePanel();
+        if (!isReportTopmostSplitNavigator()) {
+            Navigation.navigate(ROUTES.HOME, navigationOptions);
+        }
+        return;
+    }
+
     if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
         return;

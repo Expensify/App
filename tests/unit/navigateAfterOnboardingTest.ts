@@ -10,6 +10,7 @@ import ROUTES from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ONBOARDING_ADMINS_CHAT_REPORT_ID = '1';
@@ -187,5 +188,66 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         navigateAfterOnboarding(false, true, '', {}, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE});
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    it('should land on Home instead of the admin room for the homePageNoRHP variant', () => {
+        // Given an admin whose #admins room exists, which the control and inboxAdminsBespoke arms open after onboarding
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
+        // When onboarding finishes with the homePageNoRHP arm of the experiment
+        navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
+
+        // Then the user starts on Home, so Home's Getting started is the only onboarding surface they see
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
+    });
+
+    it.each([CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL, CONST.ONBOARDING_COMPANY_SIZE.SMALL, CONST.ONBOARDING_COMPANY_SIZE.LARGE])(
+        'should land on Home with the side panel closed at company size %s for the homePageNoRHP variant',
+        async (companySize) => {
+            // Given a company size that decides whether the older RHP arms open the side panel, and a side panel left open
+            const navigate = jest.spyOn(Navigation, 'navigate');
+            await Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, companySize);
+            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
+
+            // When onboarding finishes with the homePageNoRHP arm
+            navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
+            await waitForBatchedUpdates();
+
+            // Then the arm behaves the same at every company size: Home, with the side panel closed on every layout
+            expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+            const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+            expect(sidePanel?.open).toBe(false);
+            expect(sidePanel?.openNarrowScreen).toBe(false);
+        },
+    );
+
+    it('should keep a report that is already on top for the homePageNoRHP variant', async () => {
+        // Given a report is already showing, which the other paths that end on Home also leave in place
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+        await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true});
+
+        // When onboarding finishes with the homePageNoRHP arm
+        navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
+        await waitForBatchedUpdates();
+
+        // Then the report stays where it is, and the side panel is still closed
+        expect(navigate).not.toHaveBeenCalled();
+        const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
+        expect(sidePanel?.open).toBe(false);
+    });
+
+    it('should use the stored homePageNoRHP variant when the onboarding response does not carry one', async () => {
+        // Given the variant was saved to Onyx earlier and the completion response has no variant of its own
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP);
+
+        // When onboarding finishes without a variant override
+        navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+
+        // Then the stored variant still applies and the user lands on Home rather than the admin room
+        expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID), undefined);
     });
 });

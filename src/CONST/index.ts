@@ -7116,6 +7116,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         INBOX_ADMINS_BESPOKE: 'inboxAdminsBespoke',
+        HOME_PAGE_NO_RHP: 'homePageNoRHP',
     },
     ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
