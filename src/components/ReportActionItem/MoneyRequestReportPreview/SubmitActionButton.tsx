@@ -2,7 +2,7 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -18,16 +18,9 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {
-    getTransactionViolations,
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
-import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,22 +84,7 @@ function SubmitActionButtonContent() {
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(
-        transactions,
-        transactionViolations,
-        currentUserEmail,
-        currentUserAccountID,
-        iouReport,
-        submitterLogin,
-        policy,
-    );
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
-
-    const handleMarkPendingRTERTransactionsAsCash = () => {
-        markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
-    };
-
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     // The header's gate receives violations pre-filtered by useTransactionsAndViolationsForReport, which drops dismissals
     // that are only detectable with report/owner/policy context (e.g. RTER violations dismissed under instant submit). The
@@ -120,6 +98,8 @@ function SubmitActionButtonContent() {
         filteredTransactionViolations[transactionViolationKey] =
             getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
     }
+
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, filteredTransactionViolations, Object.values(reportActions ?? {}), iouReport);
 
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
@@ -158,12 +138,12 @@ function SubmitActionButtonContent() {
             return;
         }
 
-        confirmPendingRTERAndProceed(() => {
-            if (isSubmitPolicy(policy) && iouReportID) {
-                openReportSubmitToPopover();
-                return;
-            }
+        if (isSubmitPolicy(policy) && iouReportID) {
+            openReportSubmitToPopover();
+            return;
+        }
 
+        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: iouReport,
@@ -175,6 +155,7 @@ function SubmitActionButtonContent() {
                 isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                shouldResolveAcknowledgedViolations,
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
                 delegateEmail,

@@ -92,6 +92,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Seleção múltipla',
         saveChanges: 'Salvar alterações',
         submit: 'Enviar',
+        submitAnyway: 'Enviar mesmo assim',
         markAsDone: 'Marcar como concluído',
         submitted: 'Enviado',
         markedAsDoneStatus: 'Marcado como concluído',
@@ -1413,8 +1414,13 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondência pendente',
         pendingMatchWithCreditCardDescription: 'Recibo aguardando correspondência com transação do cartão. Marque como dinheiro para cancelar.',
         markAsCash: 'Marcar como dinheiro',
-        pendingMatchSubmitTitle: 'Enviar relatório',
-        pendingMatchSubmitDescription: 'Algumas despesas estão pendentes de correspondência com uma transação de cartão de crédito. Deseja marcá-las como dinheiro?',
+        confirmSubmitReportViolations: {
+            title: 'Enviar relatório?',
+            description: 'Este relatório tem violações de política. Tem certeza de que deseja enviá-lo sem fazer alterações?',
+            rejectedExpense: 'Despesa rejeitada não marcada como resolvida',
+            reportRejected: 'Relatório rejeitado anteriormente',
+            pendingCardMatch: 'Despesa aguardando uma possível correspondência com uma transação de cartão',
+        },
         routePending: 'Rota pendente...',
         automaticallyEnterExpenseDetails: 'O Concierge vai preencher os detalhes para você.',
         receiptScanning: () => ({

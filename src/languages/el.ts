@@ -95,6 +95,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Πολλαπλή επιλογή',
         saveChanges: 'Αποθήκευση αλλαγών',
         submit: 'Υποβολή',
+        submitAnyway: 'Υποβολή ούτως ή άλλως',
         markAsDone: 'Σήμανση ως ολοκληρωμένο',
         submitted: 'Υποβλήθηκε',
         markedAsDoneStatus: 'Έχει σημανθεί ως ολοκληρωμένο',
@@ -1460,8 +1461,13 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
-        pendingMatchSubmitTitle: 'Υποβολή αναφοράς',
-        pendingMatchSubmitDescription: 'Κάποιες δαπάνες αναμένουν αντιστοίχιση με συναλλαγή πιστωτικής κάρτας. Θέλετε να τις σημάνετε ως μετρητά;',
+        confirmSubmitReportViolations: {
+            title: 'Υποβολή αναφοράς;',
+            description: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς αλλαγές;',
+            rejectedExpense: 'Απορριφθέν έξοδο δεν έχει επισημανθεί ως επιλυμένο',
+            reportRejected: 'Η αναφορά απορρίφθηκε προηγουμένως',
+            pendingCardMatch: 'Έξοδο σε αναμονή πιθανής αντιστοίχισης με συναλλαγή κάρτας',
+        },
         routePending: 'Εκκρεμεί προώθηση διαδρομής...',
         automaticallyEnterExpenseDetails: 'Το Concierge θα συμπληρώσει τις λεπτομέρειες για εσάς.',
         receiptScanning: () => ({

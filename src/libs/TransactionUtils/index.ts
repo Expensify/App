@@ -1,6 +1,3 @@
-/* eslint-disable max-lines */
-// TransactionUtils aggregates the shared transaction helpers, so its length grows with the number of utilities it collects rather than with any one
-// of them. Splitting it is a repo-wide refactor, so the rule is suppressed here the same way it is in ReportUtils, ReportActionsUtils and SearchUIUtils.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
@@ -2087,24 +2084,6 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 }
 
 /**
- * Check if any of the given transactions have a pending RTER violation that has not been dismissed (e.g. via mark-as-cash).
- */
-function hasAnyPendingRTERViolation(
-    transactions: Array<OnyxEntry<Transaction>>,
-    allTransactionViolations: OnyxCollection<TransactionViolations>,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    report: OnyxEntry<Report>,
-    reportOwnerLogin: string | undefined,
-    policy: OnyxEntry<Policy>,
-): boolean {
-    return transactions.some((t) => {
-        const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
-        return hasPendingRTERViolation(filteredViolations);
-    });
-}
-
-/**
  * Check if there is a custom unit out of policy violation in transactionViolations.
  */
 function hasCustomUnitOutOfPolicyViolation(transactionViolations?: TransactionViolations | null): boolean {
@@ -3910,7 +3889,6 @@ export {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     getUnsuppressibleBrokenConnectionTransactionID,
-    hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
     allHavePendingRTERViolation,

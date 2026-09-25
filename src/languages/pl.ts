@@ -96,6 +96,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Wielokrotny wybór',
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
+        submitAnyway: 'Wyślij mimo to',
         markAsDone: 'Oznacz jako wykonane',
         submitted: 'Przesłano',
         markedAsDoneStatus: 'Oznaczone jako ukończone',
@@ -1447,8 +1448,13 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Oczekuje na dopasowanie paragonu do transakcji kartą. Oznacz jako gotówkę, aby anulować.',
         markAsCash: 'Oznacz jako gotówkę',
-        pendingMatchSubmitTitle: 'Wyślij raport',
-        pendingMatchSubmitDescription: 'Niektóre wydatki oczekują na dopasowanie z transakcją kartą kredytową. Czy chcesz oznaczyć je jako gotówkę?',
+        confirmSubmitReportViolations: {
+            title: 'Wysłać raport?',
+            description: 'Ten raport zawiera naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',
+            rejectedExpense: 'Odrzucony wydatek nie oznaczony jako rozwiązany',
+            reportRejected: 'Raport wcześniej odrzucony',
+            pendingCardMatch: 'Wydatek czeka na możliwe dopasowanie z transakcją kartą',
+        },
         routePending: 'Trasa w toku…',
         automaticallyEnterExpenseDetails: 'Concierge uzupełni szczegóły za ciebie.',
         receiptScanning: () => ({

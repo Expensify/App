@@ -14,8 +14,10 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLiveReportActionsForViolations from '@hooks/useLiveReportActionsForViolations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
@@ -24,6 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -279,6 +282,15 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const liveReportActionsForViolations = useLiveReportActionsForViolations(snapshotReport?.reportID ?? reportItem.reportID);
+    const {transactions: reportListHeaderTransactions, violations: reportListHeaderViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
+    const reportListHeaderTransactionsArray = useMemo(() => Object.values(reportListHeaderTransactions), [reportListHeaderTransactions]);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(
+        reportListHeaderTransactionsArray,
+        reportListHeaderViolations,
+        liveReportActionsForViolations,
+        parentReport ?? snapshotReport,
+    );
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
@@ -335,6 +347,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            confirmSubmitReportViolations,
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,

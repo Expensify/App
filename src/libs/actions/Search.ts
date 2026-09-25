@@ -262,6 +262,8 @@ type HandleActionButtonPressParams = {
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
+    /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
+    confirmSubmitReportViolations: (onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -305,6 +307,7 @@ function handleActionButtonPress({
     amountOwed,
     onUndelete,
     onAllHeldExpensesBlock,
+    confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -435,7 +438,7 @@ function handleActionButtonPress({
             const policyForSubmit = policy ?? snapshotPolicy;
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
                 openReportSubmitToPopover({
-                    onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
+                    onSubmitWithManagerEmail: (managerEmail, managerAccountID, shouldResolveAcknowledgedViolations) => {
                         submitMoneyRequestOnSearch(
                             hash,
                             [snapshotReport],
@@ -448,24 +451,28 @@ function handleActionButtonPress({
                             managerAccountID,
                             currentUserAccountID,
                             delegateEmail,
+                            shouldResolveAcknowledgedViolations,
                         );
                     },
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(
-                hash,
-                [snapshotReport],
-                [policyForSubmit],
-                submitterLogin,
-                getCurrencyDecimals,
-                rules,
-                currentSearchKey,
-                undefined,
-                undefined,
-                currentUserAccountID,
-                delegateEmail,
-            );
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+                submitMoneyRequestOnSearch(
+                    hash,
+                    [snapshotReport],
+                    [policyForSubmit],
+                    submitterLogin,
+                    getCurrencyDecimals,
+                    rules,
+                    currentSearchKey,
+                    undefined,
+                    undefined,
+                    currentUserAccountID,
+                    delegateEmail,
+                    shouldResolveAcknowledgedViolations,
+                );
+            });
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -1532,6 +1539,7 @@ function submitMoneyRequestOnSearch(
     managerAccountID?: number,
     currentUserAccountID?: number,
     delegateEmail?: string,
+    shouldResolveAcknowledgedViolations?: boolean,
 ) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
@@ -1649,6 +1657,7 @@ function submitMoneyRequestOnSearch(
         reportActionID: optimisticSubmittedReportAction.reportActionID,
         ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.

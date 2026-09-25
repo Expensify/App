@@ -92,6 +92,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Mehrfachauswahl',
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
+        submitAnyway: 'Trotzdem senden',
         markAsDone: 'Als erledigt markieren',
         submitted: 'Übermittelt',
         markedAsDoneStatus: 'Als erledigt markiert',
@@ -1415,8 +1416,13 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
-        pendingMatchSubmitTitle: 'Bericht einreichen',
-        pendingMatchSubmitDescription: 'Einige Ausgaben warten auf die Zuordnung mit einer Kreditkartentransaktion. Möchten Sie sie als Bar markieren?',
+        confirmSubmitReportViolations: {
+            title: 'Bericht einreichen?',
+            description: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen einreichen?',
+            rejectedExpense: 'Abgelehnte Ausgabe nicht als gelöst markiert',
+            reportRejected: 'Bericht zuvor abgelehnt',
+            pendingCardMatch: 'Ausgabe wartet auf mögliche Zuordnung zu einer Kartentransaktion',
+        },
         routePending: 'Routing ausstehend ...',
         automaticallyEnterExpenseDetails: 'Concierge füllt die Details für Sie aus.',
         receiptScanning: () => ({

@@ -108,6 +108,7 @@ const translations = {
         selectMultiple: 'Select multiple',
         saveChanges: 'Save changes',
         submit: 'Submit',
+        submitAnyway: 'Submit anyway',
         markAsDone: 'Mark as done',
         // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         submitted: 'Submitted',
@@ -1506,8 +1507,13 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
-        pendingMatchSubmitTitle: 'Submit report',
-        pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
+        confirmSubmitReportViolations: {
+            title: 'Submit report?',
+            description: 'This report has policy violations. Are you sure you want to submit it without making changes?',
+            rejectedExpense: 'Rejected expense not marked as resolved',
+            reportRejected: 'Report previously rejected',
+            pendingCardMatch: 'Expense awaiting a potential match with a card transaction',
+        },
         routePending: 'Route pending...',
         automaticallyEnterExpenseDetails: 'Concierge will fill in the details for you.',
         receiptScanning: () => ({

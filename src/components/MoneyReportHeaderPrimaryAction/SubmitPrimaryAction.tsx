@@ -7,7 +7,7 @@ import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@compon
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -28,10 +28,9 @@ import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
-import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,13 +98,9 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
-    const handleMarkPendingRTERTransactionsAsCash = () => {
-        markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
-    };
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations(transactions, violations, reportActions, moneyRequestReport);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -153,14 +148,14 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
             return;
         }
 
-        confirmPendingRTERAndProceed(() => {
-            if (!shouldExportToPDF && isSubmitPolicy(policy) && reportID) {
-                // On a Submit workspace, vanilla Submit prompts for the approver's email via the submit-to popover,
-                // which runs the submit itself once an approver is chosen.
-                openReportSubmitToPopover();
-                return;
-            }
+        if (!shouldExportToPDF && isSubmitPolicy(policy) && reportID) {
+            // On a Submit workspace, vanilla Submit prompts for the approver's email via the submit-to popover,
+            // which runs the submit itself once an approver is chosen. ReportSubmitToContent gates violations itself.
+            openReportSubmitToPopover();
+            return;
+        }
 
+        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
@@ -172,6 +167,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 isASAPSubmitBetaEnabled,
                 userBillingGracePeriodEnds,
                 amountOwed,
+                shouldResolveAcknowledgedViolations,
                 // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
                 // billing-restriction guard), so a restricted account that bails out early doesn't leave the modal stuck.
                 onSubmitted: () => {

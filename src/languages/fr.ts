@@ -92,6 +92,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Sélection multiple',
         saveChanges: 'Enregistrer les modifications',
         submit: 'Soumettre',
+        submitAnyway: 'Soumettre quand même',
         markAsDone: 'Marquer comme terminé',
         submitted: 'Soumis',
         markedAsDoneStatus: 'Marqué comme terminé',
@@ -1421,8 +1422,13 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Correspondance en attente',
         pendingMatchWithCreditCardDescription: 'Reçu en attente de rapprochement avec une transaction par carte. Marquez comme paiement en espèces pour annuler.',
         markAsCash: 'Marquer comme espèces',
-        pendingMatchSubmitTitle: 'Soumettre le rapport',
-        pendingMatchSubmitDescription: 'Certaines dépenses sont en attente de rapprochement avec une transaction par carte de crédit. Voulez-vous les marquer comme espèces ?',
+        confirmSubmitReportViolations: {
+            title: 'Soumettre le rapport ?',
+            description: 'Ce rapport contient des violations de politique. Voulez-vous vraiment le soumettre sans apporter de modifications ?',
+            rejectedExpense: 'Dépense rejetée non marquée comme résolue',
+            reportRejected: 'Rapport précédemment rejeté',
+            pendingCardMatch: 'Dépense en attente d’une correspondance potentielle avec une transaction par carte',
+        },
         routePending: 'Acheminement en attente...',
         automaticallyEnterExpenseDetails: 'Concierge remplira les détails pour vous.',
         receiptScanning: () => ({

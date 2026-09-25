@@ -92,6 +92,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Meerdere selecteren',
         saveChanges: 'Wijzigingen opslaan',
         submit: 'Verzenden',
+        submitAnyway: 'Toch verzenden',
         markAsDone: 'Markeren als voltooid',
         submitted: 'Ingediend',
         markedAsDoneStatus: 'Als voltooid gemarkeerd',
@@ -1413,8 +1414,13 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
-        pendingMatchSubmitTitle: 'Rapport indienen',
-        pendingMatchSubmitDescription: 'Sommige uitgaven wachten op koppeling met een creditcardtransactie. Wilt u ze als contant markeren?',
+        confirmSubmitReportViolations: {
+            title: 'Rapport verzenden?',
+            description: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het wilt verzenden zonder wijzigingen aan te brengen?',
+            rejectedExpense: 'Afgewezen uitgave niet als opgelost gemarkeerd',
+            reportRejected: 'Rapport eerder afgewezen',
+            pendingCardMatch: 'Uitgave wacht op mogelijke koppeling met een kaarttransactie',
+        },
         routePending: 'Routeren in behandeling...',
         automaticallyEnterExpenseDetails: 'Concierge vult de gegevens voor je in.',
         receiptScanning: () => ({
