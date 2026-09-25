@@ -225,7 +225,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView
-                contentContainerStyle={[styles.pb5, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}
+                contentContainerStyle={[styles.pb5, shouldUseNarrowLayout ? [styles.ph5, styles.workspaceSectionMobile] : [styles.mh5, styles.workspaceSection]]}
                 addBottomSafeAreaPadding
                 keyboardShouldPersistTaps="handled"
             >
@@ -241,6 +241,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                                 tabs={tabs}
                                 activeTabKey={activeTab}
                                 onTabPress={setActiveTab}
+                                contentContainerStyles={styles.ph0}
                             />
                         </TabSelectorContextProvider>
                     </View>
