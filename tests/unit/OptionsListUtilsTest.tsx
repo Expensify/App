@@ -1424,6 +1424,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             expect(filteredOptions.personalDetails).toEqual([expect.objectContaining({login: 'contact1003@example.com'})]);
@@ -1989,6 +1990,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then the report must survive both filtering stages
@@ -3319,6 +3321,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then all options should be returned
@@ -3362,6 +3365,7 @@ describe('OptionsListUtils', () => {
                     sortByReportTypeInSearch: true,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then we expect all options to be part of the recentReports list and reports should be first:
@@ -3411,6 +3415,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only one report should be returned
@@ -3473,6 +3478,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only one report should be returned
@@ -3533,6 +3539,7 @@ describe('OptionsListUtils', () => {
                     sortByReportTypeInSearch: true,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only one report should be returned
@@ -3576,6 +3583,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only one report should be returned
@@ -3619,6 +3627,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only one report should be returned
@@ -3672,6 +3681,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only two reports should be returned
@@ -3715,6 +3725,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only three reports should be returned
@@ -3760,6 +3771,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then the user to invite should be returned
@@ -3797,6 +3809,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no personal details should be returned
@@ -3839,6 +3852,7 @@ describe('OptionsListUtils', () => {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then the user to invite should be returned
@@ -3881,6 +3895,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportsToShow: 2,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only two reports should be returned
@@ -3903,6 +3918,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportsToShow: 0,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no reports should be returned
@@ -3944,6 +3960,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then there should be one matching result
@@ -4005,6 +4022,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports should be returned
@@ -4069,6 +4087,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then one recent report should be returned
@@ -4133,6 +4152,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports should be returned
@@ -4168,6 +4188,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports should be returned
@@ -4505,6 +4526,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then the report should still be found by its reportName even if participantsList is empty
@@ -4541,6 +4563,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports or personal details should be returned
@@ -4579,6 +4602,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports or personal details should be returned
@@ -4617,6 +4641,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports should be returned
@@ -4654,6 +4679,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then one personalDetails with accent mark should be returned
@@ -4689,6 +4715,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports or personal details should be returned
@@ -4729,6 +4756,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports or personal details should be returned
@@ -4769,6 +4797,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports or personal details should be returned
@@ -4809,6 +4838,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no recent reports or personal details should be returned
@@ -4849,6 +4879,7 @@ describe('OptionsListUtils', () => {
                     shouldAcceptName: false,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then userToInvite should be null since plain names are not accepted by default
@@ -4886,6 +4917,7 @@ describe('OptionsListUtils', () => {
                     shouldAcceptName: true,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then userToInvite should be returned for the plain name
@@ -4921,6 +4953,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then no personal details should be returned
@@ -4957,6 +4990,7 @@ describe('OptionsListUtils', () => {
                     sortByReportTypeInSearch: true,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then one recent report should be returned
@@ -4997,6 +5031,7 @@ describe('OptionsListUtils', () => {
                     maxRecentReportsToShow: 5,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then there should be 4 matching personal details
@@ -5043,6 +5078,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then one personal detail should be returned
@@ -5084,6 +5120,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then only three reports should be returned
@@ -5139,6 +5176,7 @@ describe('OptionsListUtils', () => {
                         PERSONAL_DETAILS_WITH_PERIODS,
                         {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
                         undefined,
+                        activePolicyID,
                     );
 
                     // Then only one report should be returned
@@ -5187,6 +5225,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
 
@@ -5246,6 +5285,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then the self dm should be on top.
@@ -5285,6 +5325,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
             const spaceSeparatedQueryResults = filterAndOrderOptions(
                 options,
@@ -5300,6 +5341,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             expect(multiSpaceQueryResults.recentReports.map((option) => option.reportID)).toEqual(spaceSeparatedQueryResults.recentReports.map((option) => option.reportID));
@@ -9720,6 +9762,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             expect(filteredOptions.userToInvite).not.toBeNull();
@@ -9755,6 +9798,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             expect(filteredOptions.userToInvite).not.toBeNull();
@@ -9789,6 +9833,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             expect(filteredOptions.userToInvite).toBeNull();
@@ -9847,6 +9892,7 @@ describe('OptionsListUtils', () => {
                     convertToDisplayString,
                 },
                 undefined,
+                activePolicyID,
             );
 
             // Then the function should complete without errors and return valid results
