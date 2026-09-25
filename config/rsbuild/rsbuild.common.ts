@@ -248,13 +248,12 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 };
 
                 addRules([
-                    // We are importing this worker as a string by using asset/source otherwise it will
-                    // default to loading via an HTTPS request later. This causes issues if we have gone
-                    // offline before the pdfjs web worker is set up as we won't be able to load it from
-                    // the server.
+                    // Emit the PDF.js worker as its own content-hashed file rather than inlining its ~1.2 MB source as a
+                    // string in the importing chunk. Offline is covered by the GenerateSW precache below, which
+                    // includes every emitted asset under its size cap. @libs/pdfWorker points pdfjs at the URL.
                     {
                         test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
-                        type: 'asset/source' as const,
+                        type: 'asset/resource' as const,
                     },
                     {
                         test: /\.lottie$/,

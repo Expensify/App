@@ -2,6 +2,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import '@libs/pdfWorker';
 
 import variables from '@styles/variables';
 
