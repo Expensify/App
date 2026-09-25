@@ -2971,6 +2971,9 @@ ${date} の ${merchant} への ${amount}`,
         memberAlreadyInWorkflowTitle: 'メンバーはすでにワークフローに属しています',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName}はすでに${approverName}に提出する承認ワークフローに属しています。ここに追加すると、このワークフローに移動します。`,
+        moveEveryoneToThisWorkflowTitle: '全員をこのワークフローに移動する',
+        moveEveryoneToThisWorkflowPrompt:
+            'すべてのメンバーをこの承認ワークフローに移動しようとしています。他のすべての承認ワークフローは削除され、全員がこのワークフローに移行されます。この操作は元に戻せません。',
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',

@@ -16,6 +16,7 @@ import {
     getOverLimitForwardsToDisplayName,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
+    includesEveryWorkspaceMember,
     mergeWorkflowMembersWithAvailableMembers,
     reconcileApprovalWorkflowRulesForCreate,
     reconcileApprovalWorkflowRulesForEdit,
@@ -880,6 +881,35 @@ describe('WorkflowUtils', () => {
 
             expect(result).toHaveLength(2);
             expect(result.map((m) => m.email)).toEqual(['1@example.com', '2@example.com']);
+        });
+    });
+
+    describe('includesEveryWorkspaceMember', () => {
+        const employeeList: PolicyEmployeeList = {
+            '1@example.com': buildPolicyEmployee(1),
+            '2@example.com': buildPolicyEmployee(2),
+            '3@example.com': buildPolicyEmployee(3, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        it('is true when every member is included, leaving out members being removed from the workspace', () => {
+            // Given a workspace where member 3 is being removed
+            // When checking a workflow with every other member
+            // Then it has everyone, because member 3 won't be in any workflow once removed
+            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeList)).toBe(true);
+        });
+
+        it('is false while a workspace member is missing', () => {
+            // Given a workspace with members 1 and 2
+            // When checking a workflow with only member 1
+            // Then it doesn't have everyone, because member 2 stays in their current workflow
+            expect(includesEveryWorkspaceMember(['1@example.com'], employeeList)).toBe(false);
+        });
+
+        it('is false when the workspace has no members', () => {
+            // Given a workspace whose member list hasn't loaded
+            // When checking any workflow
+            // Then it doesn't have everyone, so no workflow is made the default by mistake
+            expect(includesEveryWorkspaceMember(['1@example.com'], {})).toBe(false);
         });
     });
 

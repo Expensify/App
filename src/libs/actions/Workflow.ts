@@ -65,10 +65,15 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
 
     const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const previousApprovalMode = policy.approvalMode;
+    const previousDefaultApprover = getDefaultApprover(policy);
+    const firstApprover = approvalWorkflow.approvers.at(0)?.email;
+
+    // A default workflow's first approver is the policy's default approver, which only needs sending when it changes
+    const newDefaultApprover = approvalWorkflow.isDefault && firstApprover !== previousDefaultApprover ? firstApprover : undefined;
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.CREATE});
 
-    // If there are no changes to the employees list, we can exit early
-    if (isEmptyObject(updatedEmployees)) {
+    // If there are no changes to the employees list or the default approver, we can exit early
+    if (isEmptyObject(updatedEmployees) && !newDefaultApprover) {
         return;
     }
 
@@ -84,6 +89,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
             value: {
                 employeeList: updatedEmployees,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                ...(newDefaultApprover ? {approver: newDefaultApprover} : {}),
             },
         },
     ];
@@ -95,6 +101,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
             value: {
                 employeeList: previousEmployeeList,
                 approvalMode: previousApprovalMode,
+                ...(newDefaultApprover ? {approver: previousDefaultApprover} : {}),
             },
         },
     ];
@@ -109,7 +116,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
         },
     ];
 
-    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
+    const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees)), defaultApprover: newDefaultApprover};
     write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 
     if (
@@ -378,6 +385,7 @@ function createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprov
     const rulesDiff = {...removeDiff, ...createDiff};
 
     setApprovalWorkflowRules({policyID: policy.id, rulesDiff, previousRules: rules});
+    updatePolicyDefaultApprover(approvalWorkflow, policy);
 
     if (
         addExpenseApprovalsTaskReport &&
