@@ -22,10 +22,10 @@ type GroupSelectionState = {
 };
 
 type UseMoneyRequestReportTransactionSelectionParams = {
-    /** ID of the report the transactions belong to — selection is cleared when it changes */
+    /** ID of the report the transactions belong to. Selection is cleared when it changes. */
     reportID: string | undefined;
 
-    /** Transactions bucketed by the current group-by attribute; empty when grouping is off */
+    /** Transactions bucketed by the current group-by attribute. Empty when grouping is off. */
     groupedTransactions: OnyxTypes.GroupedTransactions[];
 };
 

@@ -15,7 +15,7 @@ import {useRef, useState} from 'react';
  * and dismissed when the optimistic transaction appears. If the deferred write is delayed
  * (up to 5s safety timeout), the skeleton may linger - this is acceptable as a visual
  * hint that the expense is being processed. The transaction count comparison is a
- * heuristic; simultaneous add+remove is rare enough not to warrant a dedicated signal.
+ * heuristic. Simultaneous add+remove is rare enough not to warrant a dedicated signal.
  */
 function useMoneyRequestReportPendingExpense(reportID: string | undefined, transactions: OnyxTypes.Transaction[]): boolean {
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(false);

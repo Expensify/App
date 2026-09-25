@@ -168,7 +168,7 @@ type MoneyRequestReportTransactionListProps = {
  * The data/behavior concerns live in dedicated hooks (`useMoneyRequestReportSortedTransactions` /
  * `useMoneyRequestReportGroupedTransactions` / `useMoneyRequestReportTransactionSelection` /
  * `useMoneyRequestReportLayout` / `useMoneyRequestReportColumns`) so React Compiler can memoize each
- * derivation chain; this component just wires their outputs into the controller the unified list renders.
+ * derivation chain. This component just wires their outputs into the controller the unified list renders.
  */
 function MoneyRequestReportTransactionList({
     report,
