@@ -1,8 +1,8 @@
 ---
 title: Edit Expenses
 description: Learn how to edit individual expenses, and edit multiple expenses at once.
-keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit multi-level tags, edit one tag level]
-internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk. Does not cover creating, submitting or reopening reports, or configuring tags. 
+keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit multi-level tags, edit one tag level, edit expenses on approved reports, edit expenses on paid reports, edit finalized expenses, recode approved expenses]
+internalScope: Audience is all members, with Workspace Admin specific behavior for Approved and Paid reports. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk and which fields a Workspace Admin can still edit on Approved and Paid reports. Does not cover creating, submitting or reopening reports, or configuring tags. 
 ---
 
 # Edit Expenses 
@@ -15,9 +15,9 @@ You can edit a single expense from within a report, or update multiple expenses 
 - **Current approver**: Can edit expenses on the submitter's Draft reports and on Outstanding reports pending their approval.
 - **Workspace Admin**: Can edit expenses on any Draft or Outstanding report on the Workspace.
 
-Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid and Done reports cannot be edited. 
+On Approved and Paid reports, most fields are locked. A Workspace Admin, and the approver the report is currently with, can still update the coding fields — **Category**, **Tag**, **Description**, **Tax**, and **Attendees** — without unapproving the report. Everyone else needs the report unapproved first. Expenses on Done reports cannot be edited.
 
-The one exception is receipts: a Workspace Admin can attach or replace a receipt on an expense in an Approved report without unapproving it. [Learn how to attach or replace a receipt on an Approved report](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses).
+Receipts work the same way: a Workspace Admin can attach or replace a receipt on an expense in an Approved report without unapproving it. [Learn how to attach or replace a receipt on an Approved report](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses).
 
 ---
 
@@ -46,6 +46,31 @@ Use edit multiple to update the same field across several expenses simultaneousl
 7. Click **Save**.
 
 **Note:** If editing is not allowed on a field for any of the selected expenses, that field will not be available for editing. 
+
+---
+
+## How to edit multiple expenses on Approved and Paid reports
+
+A Workspace Admin can include expenses from Approved and Paid reports in an **Edit multiple** selection. This is useful when a Category or Tag has been renamed in your accounting system and expenses still coded to the old name have to be recoded before they can export.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Expenses**.
+2. Select 2 or more expenses using the checkboxes. The selection can mix expenses on Approved or Paid reports with expenses on Draft or Outstanding reports.
+3. Click **Selected**.
+4. Choose **Edit multiple**.
+5. Select the coding field you want to update, such as **Category** or **Tag**.
+6. Enter the new value.
+7. Click **Save**.
+8. On the **Edit finalized expenses?** confirmation, click **Yes, continue**.
+
+The confirmation names how many of the selected expenses sit on an Approved or Paid report, so you can check the count before the edit is applied. It only appears when your selection includes at least one of those expenses.
+
+**Note:** **Amount**, **Merchant**, **Date**, **Billable**, and **Reimbursable** are disabled whenever the selection includes an expense on an Approved or Paid report, because those fields are locked once a report is finalized.
+
+<!-- SCREENSHOT:
+Suggestion: The Edit finalized expenses? confirmation open over the Edit multiple expenses panel, with the count sentence and both the Cancel and Yes, continue buttons visible.
+Location: Immediately after step 8 of How to edit multiple expenses on Approved and Paid reports.
+Purpose: Members who have been told Approved reports are locked will hesitate at this confirmation and abandon the edit. Showing the count sentence and the Yes, continue button confirms the prompt is expected and tells them which button completes the edit.
+-->
 
 ---
 
@@ -81,7 +106,15 @@ On Draft and Outstanding reports, you can edit:
  - Date
  - Other fields like Category, Tag and Attendees
 
-**Note:** Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid or Done reports cannot be edited. [Learn how to unapprove a report](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
+On Approved and Paid reports, a Workspace Admin can edit only:
+
+ - Category
+ - Tag
+ - Description
+ - Tax
+ - Attendees
+
+**Note:** Amount, Currency, Merchant, Date, Billable, and Reimbursable stay locked on Approved and Paid reports. To change one of those, the report has to be unapproved first. Expenses on Done reports cannot be edited. [Learn how to unapprove a report](/articles/new-expensify/reports-and-expenses/Approve-Expenses).
 
 ---
 
@@ -101,11 +134,11 @@ Yes, expenses on Draft and Outstanding reports can still be edited.
 
 ## Can I edit expenses on Approved reports? 
 
-Yes. However, the report submitter will need to ask the approver to unapprove the report before the expenses can be edited again. A Workspace Admin can attach or replace a receipt on an Approved report without unapproving it.
+Yes, with limits. A Workspace Admin can update **Category**, **Tag**, **Description**, **Tax**, and **Attendees** on an Approved report, one expense at a time or with **Edit multiple**, without unapproving it. To change **Amount**, **Merchant**, or **Date**, the report submitter will need to ask the approver to unapprove the report first. A Workspace Admin can also attach or replace a receipt on an Approved report without unapproving it.
 
 ## Can I edit expenses on Paid and Done reports? 
 
-No, expenses on Paid and Done reports are locked and cannot be reopened for editing. 
+Paid reports work the same way as Approved reports: a Workspace Admin can still update **Category**, **Tag**, **Description**, **Tax**, and **Attendees**, and every other field is locked. Expenses on Done reports are locked and cannot be reopened for editing. 
 
 ## Why are some fields not editable in the Edit multiple panel?
 
@@ -121,7 +154,11 @@ No. The attendees you select replace the ones already on selected expense.
 
 ## Why can't I see the Edit multiple option?
 
-**Edit multiple** only appears when you select 2 or more Unreported, Draft, or Outstanding expenses that have at least one editable field.
+**Edit multiple** appears when you select 2 or more expenses that each still have at least one field you can edit. Expenses on Approved and Paid reports count toward that, as long as you are a Workspace Admin and the coding fields are still editable. It does not appear if you select whole reports instead of individual expenses.
+
+## Why do I see the Edit finalized expenses confirmation?
+
+Your selection includes at least one expense on an Approved or Paid report. The confirmation names how many, so you can check the count before the edit is applied. Click **Yes, continue** to apply it, or **Cancel** to return to the **Edit multiple expenses** panel with your changes still in place.
 
 ## Does editing one tag level clear the other tag levels on my expenses?
 
