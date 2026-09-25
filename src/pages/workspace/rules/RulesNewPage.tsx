@@ -74,13 +74,13 @@ function seedDraftAndNavigate(rule: GeneratedRule, policyID: string, policyCateg
 
     if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS) {
         setDraftRequireFieldsRule(draft);
-        Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID, undefined, true));
+        Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID));
         return;
     }
 
     if (rule.ruleType === CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW) {
         setDraftFlagForReviewRule(draft);
-        Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, undefined, true));
+        Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID));
         return;
     }
 

@@ -50,6 +50,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -64,12 +65,10 @@ type RequireFieldsRulePageBaseProps = {
     initialCategoryName?: string;
     /** When true, the category field is non-interactive (category-scoped create/edit). */
     isCategoryLocked?: boolean;
-    /** Whether the draft is already seeded */
-    isPrefilled?: boolean;
     testID: string;
 };
 
-function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, isPrefilled = false, testID}: RequireFieldsRulePageBaseProps) {
+function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -173,7 +172,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                if (isPrefilled) {
+                if (!isEmptyObject(form)) {
                     // eslint-disable-next-line react-hooks/set-state-in-effect -- seeds local selection state from the seeded draft
                     setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => form?.[fieldKey] !== undefined)));
                 } else {
@@ -208,7 +207,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             [INPUT_IDS.CATEGORY]: categoryName,
             ...getRequireFieldsFormFromCategory(category),
         });
-    }, [category, categoryName, form, initialCategoryName, isEditing, isPrefilled]);
+    }, [category, categoryName, form, initialCategoryName, isEditing]);
 
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {

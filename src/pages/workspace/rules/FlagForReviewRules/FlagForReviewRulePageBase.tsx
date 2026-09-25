@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -49,8 +50,6 @@ type FlagForReviewRulePageBaseProps = {
     isCategoryLocked?: boolean;
     /** When true, nested create pages use category dynamic routes (keeps Categories underlay). */
     isCategoryScopedFlow?: boolean;
-    /** Whether the draft is already seeded */
-    isPrefilled?: boolean;
     testID: string;
 };
 
@@ -68,7 +67,6 @@ function FlagForReviewRulePageBase({
     initialCategoryName,
     isCategoryLocked: isCategoryLockedProp,
     isCategoryScopedFlow = false,
-    isPrefilled = false,
     testID,
 }: FlagForReviewRulePageBaseProps) {
     const {translate} = useLocalize();
@@ -88,6 +86,7 @@ function FlagForReviewRulePageBase({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
+    const hasDraft = !isEmptyObject(form);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
@@ -103,7 +102,7 @@ function FlagForReviewRulePageBase({
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                if (!isPrefilled) {
+                if (!hasDraft) {
                     setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
                 }
             }
@@ -129,7 +128,7 @@ function FlagForReviewRulePageBase({
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, isPrefilled, policyCurrency, selectedCategoryName]);
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, hasDraft, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
