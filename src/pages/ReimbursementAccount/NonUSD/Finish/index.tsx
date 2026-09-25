@@ -34,14 +34,13 @@ function Finish() {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: true});
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
@@ -93,7 +92,7 @@ function Finish() {
                                     <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
                                 </MenuItem.Content>
                                 <MenuItem.Trailing>
-                                    <MenuItem.NewWindowIcon />
+                                    <MenuItem.Chevron />
                                 </MenuItem.Trailing>
                             </MenuItem.Row>
                         </MenuItem.Root>

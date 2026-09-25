@@ -1,21 +1,22 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import ChartEmptyState from '@components/Search/ChartEmptyState';
+import ChartErrorState from '@components/Search/ChartErrorState';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
+import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SearchKey} from '@libs/SearchUIUtils';
-
-import WidgetHeaderMenu from '@pages/home/common/WidgetHeaderMenu/WidgetHeaderMenu';
-import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 
 import variables from '@styles/variables';
 
@@ -35,8 +36,9 @@ function InsightsSectionContent() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
-    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'Chart']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
+    const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
     const insightConfigs = useHomeInsightConfigs();
     const [selectedKey] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
@@ -74,7 +76,12 @@ function InsightsSectionContent() {
                             {
                                 text: translate('common.view'),
                                 icon: icons.Expand,
-                                onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key})),
+                                onSelected: () =>
+                                    Navigation.navigate(
+                                        isInsightsPageEnabled
+                                            ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)
+                                            : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
+                                    ),
                                 shouldCallAfterModalHide: true,
                             },
                         ]}
@@ -94,30 +101,8 @@ function InsightsSectionContent() {
                     containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
                 />
             )}
-            {state === INSIGHT_STATE.EMPTY && (
-                <HomeSectionEmptyState
-                    testID="insightsSectionEmptyState"
-                    illustration={illustrations.Chart}
-                    title={translate('homePage.insightsSection.chartUnavailable')}
-                    description={translate('homePage.insightsSection.notEnoughData')}
-                />
-            )}
-            {state === INSIGHT_STATE.ERROR && (
-                <BlockingView
-                    icon={illustrations.BrokenMagnifyingGlass}
-                    iconHeight={variables.iconSizeMegaLarge}
-                    title={translate('errorPage.title', {
-                        isBreakLine: shouldUseNarrowLayout,
-                    })}
-                    titleStyles={[styles.mt0, styles.mb2]}
-                    subtitle={translate('errorPage.subtitle')}
-                    subtitleStyle={styles.textSupporting}
-                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5, styles.pb5]}
-                    contentFitImage="contain"
-                    buttonTranslationKey="common.tryAgain"
-                    onButtonPress={retry}
-                />
-            )}
+            {state === INSIGHT_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
+            {state === INSIGHT_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
                 <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
                     <SearchChartView

@@ -411,6 +411,7 @@ type CleanUpMoneyRequestParams = {
     isChatIOUReportArchived: boolean | undefined;
     originalReportID: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isOffline: boolean;
     isSingleTransactionView?: boolean;
     policy?: OnyxEntry<OnyxTypes.Policy>;
 };
@@ -426,6 +427,7 @@ function cleanUpMoneyRequest({
     isChatIOUReportArchived,
     originalReportID,
     getCurrencyDecimals,
+    isOffline,
     isSingleTransactionView = false,
     policy,
 }: CleanUpMoneyRequestParams) {
@@ -608,7 +610,7 @@ function cleanUpMoneyRequest({
     }
 
     if (!shouldDeleteIOUReport) {
-        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+        clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
     }
 
     // First, update the reportActions to ensure related actions are not displayed.
@@ -616,7 +618,7 @@ function cleanUpMoneyRequest({
         Navigation.goBack(urlToNavigateBack, {
             afterTransition: () => {
                 if (shouldDeleteIOUReport) {
-                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);
+                    clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID, isOffline);
                 }
                 Onyx.update(onyxUpdates);
             },
