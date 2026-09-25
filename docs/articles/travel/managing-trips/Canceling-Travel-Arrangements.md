@@ -69,6 +69,9 @@ Yes. If you rebook on the same trip, no new trip fee applies.
 ## What if the cancel option is unavailable?
 Some bookings must be canceled through or directly with the travel provider. If this applies, you’ll be prompted.
 
+## Where does a canceled booking go on Home?
+A canceled booking is removed from the **Upcoming travel** section on Home, which only lists travel you’re still expected to take. The booking stays in the trip, labeled **Canceled**. Learn more about [what the Home page shows](/articles/new-expensify/getting-started/Expensify-Home-Overview).
+
 ## Will I receive a refund or a credit?
 If the booking is refundable, you’ll receive a refund to your original payment method. If it’s non-refundable, you may receive a travel credit, depending on the provider’s terms.
 

@@ -1,4 +1,5 @@
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
+import {isReportActionVisible} from '@libs/ReportActionsUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import * as OnyxDerivedUtils from '@userActions/OnyxDerived/utils';
@@ -32,6 +33,132 @@ describe('OnyxDerived', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
+    });
+
+    describe('visibleReportActions', () => {
+        it.each([
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+            CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+            CONST.REPORT.ACTIONS.TYPE.REOPENED,
+            CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+        ])('keeps a later reimbursement visible after %s even when the earlier PAY was cached', async (actionName) => {
+            const reportID = `reportWithHistoricalPay-${actionName}`;
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            const markedReimbursed = getFakeReportAction(1, {
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                created: '2025-01-01 00:00:00.000',
+                originalMessage: {},
+            });
+            const pay = getFakeReportAction(2, {
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-01-01 00:00:01.000',
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            });
+            await Onyx.set(reportActionsKey, {[markedReimbursed.reportActionID]: markedReimbursed, [pay.reportActionID]: pay});
+            await waitForBatchedUpdates();
+
+            const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(markedReimbursed, reportID, true, initialVisibility)).toBe(false);
+
+            const cancellation = getFakeReportAction(3, {reportID, actionName, created: '2025-01-02 00:00:00.000'});
+            const laterReimbursement = {...markedReimbursed, reportActionID: '4', created: '2025-01-03 00:00:00.000'};
+            // History can arrive out of order: initially the earlier payment appears to cover this action too.
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[laterReimbursement.reportActionID]: laterReimbursement}});
+            await waitForBatchedUpdates();
+            const incompleteVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(laterReimbursement, reportID, true, incompleteVisibility)).toBe(false);
+
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                [reportActionsKey]: {[cancellation.reportActionID]: cancellation},
+            });
+            await waitForBatchedUpdates();
+
+            const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(laterReimbursement, reportID, true, updatedVisibility)).toBe(true);
+            expect(isReportActionVisible(markedReimbursed, reportID, true, updatedVisibility)).toBe(false);
+
+            // A PAY belonging to the new payment attempt should still hide its duplicate when it arrives later.
+            const laterPay = {...pay, reportActionID: '5', created: '2025-01-03 00:00:01.000'};
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[laterPay.reportActionID]: laterPay}});
+            await waitForBatchedUpdates();
+
+            const finalVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(laterReimbursement, reportID, true, finalVisibility)).toBe(false);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.RETRACTED, CONST.REPORT.ACTIONS.TYPE.REOPENED, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED])(
+            'does not retroactively hide a standalone reimbursement when PAY arrives after %s',
+            async (actionName) => {
+                const reportID = `reportWithFuturePay-${actionName}`;
+                const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+                const markedReimbursed = getFakeReportAction(1, {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                    created: '2025-01-01 00:00:00.000',
+                    originalMessage: {},
+                });
+                await Onyx.set(reportActionsKey, {[markedReimbursed.reportActionID]: markedReimbursed});
+                await waitForBatchedUpdates();
+                const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(markedReimbursed, reportID, true, initialVisibility)).toBe(true);
+
+                const boundary = getFakeReportAction(2, {actionName, created: '2025-02-01 00:00:00.000'});
+                const pay = getFakeReportAction(3, {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2025-06-01 00:00:00.000',
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+                });
+                const laterReimbursement = {...markedReimbursed, reportActionID: '4', created: '2025-06-01 00:00:01.000'};
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                    [reportActionsKey]: {[boundary.reportActionID]: boundary, [pay.reportActionID]: pay, [laterReimbursement.reportActionID]: laterReimbursement},
+                });
+                await waitForBatchedUpdates();
+
+                const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(markedReimbursed, reportID, true, updatedVisibility)).toBe(true);
+                expect(isReportActionVisible(laterReimbursement, reportID, true, updatedVisibility)).toBe(false);
+            },
+        );
+
+        it('uses the collection reportID to hide MARKED_REIMBURSED when its sibling PAY arrives later', async () => {
+            const reportID = 'reportWithLatePaySibling';
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+
+            await Onyx.set(reportActionsKey, {[markedReimbursedAction.reportActionID]: markedReimbursedAction});
+            await waitForBatchedUpdates();
+
+            const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(initialVisibility?.[reportID]).toBeDefined();
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, initialVisibility)).toBe(true);
+
+            // Only PAY is included in this update, so derived visibility must not retain a stale result for its sibling.
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[payAction.reportActionID]: payAction}});
+            await waitForBatchedUpdates();
+
+            const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(updatedVisibility?.[reportID]?.[payAction.reportActionID]).toBe(true);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, updatedVisibility)).toBe(false);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true)).toBe(false);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, {})).toBe(false);
+            expect(isReportActionVisible({...markedReimbursedAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, reportID, true, updatedVisibility)).toBe(false);
+        });
     });
 
     describe('reportAttributes', () => {
@@ -192,11 +319,45 @@ describe('OnyxDerived', () => {
 
             // When the report attributes are recomputed with both report and transaction updates
             reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
                 {},
             );
             const reportAttributesComputedValue = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
                 {
                     sourceValues: {
                         [ONYXKEYS.COLLECTION.REPORT]: {
@@ -310,17 +471,68 @@ describe('OnyxDerived', () => {
 
             // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
             reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    personalDetails,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
                 {},
             );
             // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
             const initial = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, personalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    personalDetails,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
                 personalDetailsSource,
             );
             // Changing only account 2's display name should recompute just its report, carrying the other by reference.
             const afterChange = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, changedPersonalDetails, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    changedPersonalDetails,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
                 {...personalDetailsSource, currentValue: initial},
             );
 

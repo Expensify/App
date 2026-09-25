@@ -11,7 +11,7 @@ import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackC
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {search} from '@libs/actions/Search';
+import {clearPageRequestedSearch, consumePageRequestedSearch, markPageRequestedSearch, search} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 import registerMiddlewares from '@libs/Middleware/register';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
@@ -44,6 +44,8 @@ registerMiddlewares();
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 const mockSearchQueryParam = jest.fn(() => 'type:chat category:abcd');
+// SearchFullscreenNavigator is nested inside TabNavigator in the real tree, and the Search root route is
+// resolved by walking down from the root through that tab navigator, so the mocked state has to keep that level.
 jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
     default: (selector: (state: unknown) => unknown) =>
@@ -51,13 +53,21 @@ jest.mock('@hooks/useRootNavigationState', () => ({
             index: 0,
             routes: [
                 {
-                    name: 'SearchFullscreenNavigator',
+                    name: 'TabNavigator',
                     state: {
                         index: 0,
                         routes: [
                             {
-                                name: 'Search_Root',
-                                params: {q: mockSearchQueryParam()},
+                                name: 'SearchFullscreenNavigator',
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: 'Search_Root',
+                                            params: {q: mockSearchQueryParam()},
+                                        },
+                                    ],
+                                },
                             },
                         ],
                     },
@@ -352,6 +362,39 @@ describe('SearchPageNarrow', () => {
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
+    it('shows the error page with a retry button when the server rejected the query with a code other than invalid query', async () => {
+        // Given the page already requested the query, so an error that lands afterwards is its own and is kept
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // When the server answers with a failure code that is not INVALID_SEARCH_QUERY
+        await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
+
+        // Then the request really failed, so the error copy shows rather than the stale-results copy
+        expect(screen.getByText('Oops... Something went wrong')).toBeTruthy();
+        expect(screen.getByText('Try again')).toBeTruthy();
+        expect(screen.queryByText('Refresh needed')).toBeNull();
+    });
+
+    it('shows the refresh copy when the request failed without a server response code', async () => {
+        renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // When the request failed before the server could answer, which failureData records as NO_RESPONSE
+        await setFailedSnapshot(CONST.JSON_CODE.NO_RESPONSE);
+
+        // Then the results are only out of date, so the refresh copy shows
+        expect(screen.getByText('Refresh needed')).toBeTruthy();
+        expect(screen.getByText('Refresh')).toBeTruthy();
+        expect(screen.queryByText('Oops... Something went wrong')).toBeNull();
+    });
+
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
@@ -400,6 +443,141 @@ describe('SearchPageNarrow', () => {
 
         expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
     });
+    it('does not repeat the first page the page-level setup already requested', async () => {
+        // Given a query with no snapshot yet, so the page-level setup owns the first request
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+
+        // When the page renders and only the loading skeleton is up
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then exactly one request went out, for the first page
+        const firstPageCallCount = () => mockSearch.mock.calls.filter(([params]) => params?.offset === 0).length;
+        expect(firstPageCallCount()).toBe(1);
+
+        // When that request lands and Search mounts behind the skeleton
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the mount does not ask for the same first page again
+        expect(firstPageCallCount()).toBe(1);
+    });
+    it('refreshes the first page on every return to a cached query', async () => {
+        // Given a query whose results are already cached, so Search mounts right away with no skeleton
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        const firstPageCallCount = () => mockSearch.mock.calls.filter(([params]) => params?.offset === 0).length;
+
+        // When the user visits it and the mount refresh goes out, which makes the page send its own flagged request too
+        const firstVisit = renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}});
+        });
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED}});
+        });
+        const callsAfterFirstVisit = firstPageCallCount();
+        expect(callsAfterFirstVisit).toBeGreaterThan(0);
+
+        // When the user leaves and comes back to the same query
+        firstVisit.unmount();
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then the return refreshes it again, because the page's request on the first visit must not leave a claim that silences this mount
+        expect(firstPageCallCount()).toBeGreaterThan(callsAfterFirstVisit);
+    });
+    it('still refreshes on reconnect even though the page claimed the first request', async () => {
+        // Given a claim on the first page that no mount has read yet
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        markPageRequestedSearch(expenseQueryJSON?.hash ?? 0, false);
+        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        const firstPageCallCount = () => mockSearch.mock.calls.filter(([params]) => params?.offset === 0).length;
+        const callsWhileOffline = firstPageCallCount();
+
+        // When the app comes back online with nothing to show
+        mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {
+                search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, hash: expenseQueryJSON?.hash, offset: 0, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED},
+            });
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the refresh goes out anyway: the claim stops a duplicate mount request, not the one that recovers an empty page
+        expect(firstPageCallCount()).toBeGreaterThan(callsWhileOffline);
+    });
+
+    it('does not let a later page consume the first-page claim', async () => {
+        // Given a query on screen and a claim on its first page that no mount has read
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        markPageRequestedSearch(expenseQueryJSON?.hash ?? 0, false);
+
+        // When the list reaches its end and the next page is requested
+        await act(async () => {
+            listProps.onEndReached?.();
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the later page went out and the claim survives, since it only covers the first page
+        expect(mockSearch.mock.calls.some(([params]) => params?.offset === CONST.SEARCH.RESULTS_PAGE_SIZE)).toBe(true);
+        expect(consumePageRequestedSearch(expenseQueryJSON?.hash ?? 0, false)).toBe(true);
+    });
+
+    it('does not re-request the first page when a query with no claim finishes loading', async () => {
+        // Given a query loading on screen with no claim for this mount to read
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        clearPageRequestedSearch();
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(true));
+        });
+        renderPage(EXPENSE_QUERY);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+        const firstPageCallCount = () => mockSearch.mock.calls.filter(([params]) => params?.offset === 0).length;
+        const callsWhileLoading = firstPageCallCount();
+
+        // When that in-flight request finishes, which flips the loaded flag the effect now depends on
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {search: {isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED}});
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then it is not asked for again, which the in-flight dedupe could not catch: the response already landed
+        expect(firstPageCallCount()).toBe(callsWhileLoading);
+    });
+
     it('loads the next page after a request that was in flight when the list hit its end resolves', async () => {
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
         await act(async () => {

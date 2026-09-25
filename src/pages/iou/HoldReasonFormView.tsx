@@ -20,10 +20,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type HoldReasonFormViewProps = {
-    /** Submit function for submitting form */
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => void;
-
-    /** Submit function for validating form */
     validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => Partial<Record<'comment', string | undefined>>;
 
     /** Link to previous page */

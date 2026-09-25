@@ -51,14 +51,14 @@ function useNavigateToTransactionThread() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     return ({transactionID, reportActions, report, transaction, siblingTransactionIDs, backTo}: NavigateToTransactionThreadParams) => {
         const iouAction = getIOUActionForTransactionID(reportActions, transactionID);
-        const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
+        const routeAtPress = Navigation.getActiveRoute();
+        const resolvedBackTo = backTo ?? routeAtPress;
         let reportIDToNavigate = iouAction?.childReportID;
 
         const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string} = {
@@ -74,7 +74,6 @@ function useNavigateToTransactionThread() {
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 currentUserLogin: currentUserDetails.email ?? '',
                 currentUserAccountID: currentUserDetails.accountID,
-                betas,
                 iouReport: report,
                 iouReportAction: iouAction,
                 transaction,
@@ -91,6 +90,10 @@ function useNavigateToTransactionThread() {
         // Single transaction report opens in RHP. We seed every sibling transaction ID so the RHP can
         // display prev/next arrows for navigation between expenses.
         setActiveTransactionIDs(siblingTransactionIDs).then(() => {
+            // A second press made before this resolves would stack its expense on top of the first.
+            if (Navigation.getActiveRoute() !== routeAtPress) {
+                return;
+            }
             if (reportIDToNavigate) {
                 markReportRHPWidth(reportIDToNavigate, 'wide');
             }

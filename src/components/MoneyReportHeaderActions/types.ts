@@ -6,7 +6,7 @@ import type {Route} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>;
+type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuHeaderText'>;
 
 type MoneyReportHeaderActionsProps = {
     reportID: string | undefined;

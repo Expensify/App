@@ -51,6 +51,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const selectedTransactionsList = Object.values(selectedTransactions);
     const isSubmitter = report ? report.ownerAccountID === currentUserAccountID : selectedTransactionsList.some((t) => t.ownerAccountID === currentUserAccountID);
@@ -75,7 +76,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     selectedTransactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
-                    ancestors,
+                    {rules, ancestors},
                 );
                 clearSelectedTransactions(true);
             } else {
@@ -93,7 +94,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                         transactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
-                        ancestors,
+                        {rules, ancestors},
                     );
                 }
                 clearSelectedTransactions();
@@ -116,6 +117,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             selectedTransactionViolations,
             isTrackIntentUser,
             delegateAccountID,
+            rules,
         ],
     );
 

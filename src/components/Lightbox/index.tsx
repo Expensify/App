@@ -53,7 +53,6 @@ type LightboxProps = Pick<Attachment, 'attachmentID'> & {
     /** Handles errors while displaying the image */
     onError?: () => void;
 
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
