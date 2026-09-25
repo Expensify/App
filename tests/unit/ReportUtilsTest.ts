@@ -182,6 +182,7 @@ import {
     isCurrentUserSubmitter,
     isCurrentUserTheOnlyParticipant,
     isDeprecatedGroupDM,
+    isEmptyReport,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
@@ -347,6 +348,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
             },
         })),
     },
+}));
+
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'mock-route'),
 }));
 
 jest.mock('@libs/PolicyUtils', () => {
@@ -968,7 +974,7 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
             // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
@@ -1151,7 +1157,7 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID,
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
             // Tasks sent to server via guidedSetupData; no optimistic task actions added.
@@ -1171,7 +1177,7 @@ describe('ReportUtils', () => {
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false}],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
 
@@ -1191,7 +1197,7 @@ describe('ReportUtils', () => {
                     tasks: [],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
 
@@ -1209,7 +1215,7 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
             await waitForBatchedUpdates();
 
-            const mergeSpy = jest.spyOn(Onyx, 'merge');
+            const updateSpy = jest.spyOn(Onyx, 'update');
 
             prepareOnboardingOnyxData({
                 conciergeChat: conciergeChatReport,
@@ -1220,15 +1226,17 @@ describe('ReportUtils', () => {
                     tasks: [],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
 
-            const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
-            if (!personalDetailsCall || typeof personalDetailsCall[1] !== 'object' || personalDetailsCall[1] === null) {
+            const personalDetailsCall = updateSpy.mock.calls
+                .flatMap((call) => (Array.isArray(call[0]) ? call[0] : []))
+                .find((update) => typeof update === 'object' && update !== null && 'key' in update && update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+            if (!personalDetailsCall || typeof personalDetailsCall.value !== 'object' || personalDetailsCall.value === null) {
                 throw new Error('Expected personal details merge call');
             }
-            const personalDetailsData = personalDetailsCall[1];
+            const personalDetailsData = personalDetailsCall.value;
             const accountExecutiveDetail = Object.values<unknown>(personalDetailsData).at(0);
             if (
                 typeof accountExecutiveDetail !== 'object' ||
@@ -1247,7 +1255,7 @@ describe('ReportUtils', () => {
             expect(accountExecutiveDetail.avatar).toBeDefined();
             expect(accountExecutiveDetail.avatar).toContain('images/avatars/');
 
-            mergeSpy.mockRestore();
+            updateSpy.mockRestore();
         });
 
         it('passes company size to onboarding task parameters', () => {
@@ -1297,7 +1305,7 @@ describe('ReportUtils', () => {
                     tasks: [],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
 
@@ -1314,7 +1322,7 @@ describe('ReportUtils', () => {
                     tasks: [],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
 
@@ -1337,7 +1345,7 @@ describe('ReportUtils', () => {
                     tasks: [],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO,
                 delegateAccountID: undefined,
             });
 
@@ -1477,6 +1485,63 @@ describe('ReportUtils', () => {
 
         it('should recognize inboxAdminsBespoke as a valid onboarding RHP variant', () => {
             expect(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE).toBe('inboxAdminsBespoke');
+        });
+
+        it('should restore the correct last visible action if onboarding fails', async () => {
+            const EXPLICIT_ACCOUNT_ID = 42;
+            const OTHER_ACCOUNT_ID = 99;
+            const CONCIERGE_CHAT_REPORT_ID = '7777';
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test+test@example.com', accountID: OTHER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const existingAction = {
+                ...createRandomReportAction(200),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '200',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2024-01-15 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'existing message', text: 'existing message'}],
+                originalMessage: {html: 'existing message', lastModified: '2024-01-15 12:00:00.000'},
+            };
+
+            const chatReport: Report = {
+                reportID: CONCIERGE_CHAT_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [EXPLICIT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_CHAT_REPORT_ID}`, {
+                [existingAction.reportActionID]: existingAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {message: 'test', tasks: []},
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                conciergeChat: chatReport,
+                currentUserAccountID: EXPLICIT_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            expect(result).toBeTruthy();
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx update value needs narrowing for test assertions
+            const failureReport = result?.failureData.find((d) => d.key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`)?.value as Partial<Report> | undefined;
+
+            expect(failureReport?.lastVisibleActionCreated).toBe(existingAction.created);
+            expect(failureReport?.lastActorAccountID).toBe(existingAction.actorAccountID);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_CHAT_REPORT_ID}`, null);
+            await waitForBatchedUpdates();
         });
     });
 
@@ -4257,6 +4322,129 @@ describe('ReportUtils', () => {
             });
         });
 
+        describe('when an older sibling expense report is all on hold', () => {
+            const chatReportID = '7300';
+            const heldExpenseReportID = '7301';
+            const approvableExpenseReportID = '7302';
+            const heldTransactionThreadReportID = '7303';
+            const otherUserAccountID = 99;
+
+            // Seeds a policy expense chat with two submitted child reports awaiting the current user's approval: an
+            // older one whose only expense the submitter put on hold, and a newer one that is still approvable.
+            const seedTwoChildExpenses = async () => {
+                const buildExpenseReport = (reportID: string): Report => ({
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID,
+                    chatReportID,
+                    policyID: '1',
+                    ownerAccountID: otherUserAccountID,
+                    managerID: currentUserAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+
+                const policyExpenseChat = {
+                    ...createPolicyExpenseChat(7300, false),
+                    reportID: chatReportID,
+                    policyID: '1',
+                    ownerAccountID: otherUserAccountID,
+                    hasOutstandingChildRequest: true,
+                    // The chat points at the held report, so the fallback path can't rescue the newer sibling either.
+                    iouReportID: heldExpenseReportID,
+                };
+
+                const buildReportPreview = (reportActionID: string, childReportID: string, created: string): ReportAction => ({
+                    reportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    created,
+                    actorAccountID: otherUserAccountID,
+                    childReportID,
+                    childManagerAccountID: currentUserAccountID,
+                    shouldShow: true,
+                    message: [{type: 'COMMENT', html: 'Expense report', text: 'Expense report'}],
+                    originalMessage: {linkedReportID: childReportID},
+                });
+
+                const heldTransaction = {
+                    ...createRandomTransaction(7301),
+                    transactionID: '7301',
+                    reportID: heldExpenseReportID,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    comment: {hold: 'hold_7301'},
+                };
+
+                const buildApprovableTransaction = (transactionID: string) => ({
+                    ...createRandomTransaction(Number(transactionID)),
+                    transactionID,
+                    reportID: approvableExpenseReportID,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    comment: {},
+                });
+
+                const heldMoneyRequestAction: ReportAction = {
+                    reportActionID: 'mr_7301',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: otherUserAccountID,
+                    childReportID: heldTransactionThreadReportID,
+                    originalMessage: {
+                        IOUTransactionID: '7301',
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                };
+
+                const holdAction: ReportAction = {
+                    reportActionID: 'hold_7301',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: otherUserAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {
+                    id: '1',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, policyExpenseChat);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${heldExpenseReportID}`, buildExpenseReport(heldExpenseReportID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${approvableExpenseReportID}`, buildExpenseReport(approvableExpenseReportID));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}7301`, heldTransaction);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}7302`, buildApprovableTransaction('7302'));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}7304`, buildApprovableTransaction('7304'));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
+                    // The held report was submitted first, so its preview is the oldest candidate.
+                    preview_7301: buildReportPreview('preview_7301', heldExpenseReportID, '2024-01-01 00:00:00.000'),
+                    preview_7302: buildReportPreview('preview_7302', approvableExpenseReportID, '2024-01-02 00:00:00.000'),
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${heldExpenseReportID}`, {mr_7301: heldMoneyRequestAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${heldTransactionThreadReportID}`, {hold_7301: holdAction});
+                await waitForBatchedUpdates();
+
+                return policyExpenseChat;
+            };
+
+            it('still requires attention because the newer sibling is approvable', async () => {
+                const policyExpenseChat = await seedTwoChildExpenses();
+
+                // The all-held report can't move to its next state, but it must not hide the sibling that can.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            });
+
+            it('surfaces the approvable sibling as the badge action instead of the all-held report', async () => {
+                const policyExpenseChat = await seedTwoChildExpenses();
+
+                const {reportAction, actionBadge} = getReasonAndReportActionThatRequiresAttention(policyExpenseChat, currentUserEmail, currentUserAccountID) ?? {};
+
+                expect(reportAction?.childReportID).toBe(approvableExpenseReportID);
+                expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+            });
+        });
+
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -4483,7 +4671,7 @@ describe('ReportUtils', () => {
         describe('return empty iou options if', () => {
             it('participants array contains excluded expensify iou emails', () => {
                 const allEmpty = CONST.EXPENSIFY_ACCOUNT_IDS.every((accountID) => {
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(undefined, undefined, [currentUserAccountID, accountID], [CONST.BETAS.ALL], undefined);
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(undefined, undefined, [currentUserAccountID, accountID], undefined);
                     return moneyRequestOptions.length === 0;
                 });
                 expect(allEmpty).toBe(true);
@@ -4494,7 +4682,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4504,7 +4692,7 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: false,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4514,7 +4702,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4525,7 +4713,7 @@ describe('ReportUtils', () => {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4535,7 +4723,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined, true);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined, true);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4545,7 +4733,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4555,7 +4743,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4569,7 +4757,7 @@ describe('ReportUtils', () => {
                         parentReportID: '100',
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
@@ -4579,7 +4767,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
             it('the current user is an invited user of the iou report', () => {
@@ -4589,42 +4777,8 @@ describe('ReportUtils', () => {
                     ownerAccountID: 20,
                     managerID: 21,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20, 21], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20, 21], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
-            });
-        });
-
-        describe('betas parameter handling', () => {
-            it('passes betas to getMoneyRequestOptions which affects canCreateRequest result', () => {
-                const report: Report = {
-                    ...LHNTestUtils.getFakeReport([currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]),
-                    type: CONST.REPORT.TYPE.CHAT,
-                };
-
-                // Both calls should work with explicitly passed betas
-                const withAllBetas = canCreateRequest(report, undefined, CONST.IOU.TYPE.SUBMIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withEmptyBetas = canCreateRequest(report, undefined, CONST.IOU.TYPE.SUBMIT, false, [], undefined, false);
-
-                // With BETAS.ALL, SUBMIT should be allowed in a 1:1 DM
-                expect(withAllBetas).toBe(true);
-                // With empty betas, behavior depends on whether betas are required for the action
-                expect(typeof withEmptyBetas).toBe('boolean');
-            });
-
-            it('temporary_getMoneyRequestOptions returns different results based on passed betas', () => {
-                const report: Report = {
-                    ...LHNTestUtils.getFakeReport([currentUserAccountID]),
-                    type: CONST.REPORT.TYPE.CHAT,
-                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                };
-
-                // Self DM should return TRACK option regardless of betas
-                const withBetas = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined, false, false);
-                const withoutBetas = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [], undefined, false, false);
-
-                // Both should include TRACK for self DM
-                expect(withBetas).toContain(CONST.IOU.TYPE.TRACK);
-                expect(withoutBetas).toContain(CONST.IOU.TYPE.TRACK);
             });
         });
 
@@ -4639,7 +4793,6 @@ describe('ReportUtils', () => {
                         report,
                         undefined,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
@@ -4652,7 +4805,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
@@ -4662,7 +4815,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
@@ -4673,7 +4826,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     participantsAccountIDs: [currentUserAccountID, ...participantsAccountIDs],
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs.map(Number)], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs.map(Number)], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
@@ -4688,13 +4841,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4707,13 +4854,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4733,7 +4874,7 @@ describe('ReportUtils', () => {
                         ownerAccountID: currentUserAccountID,
                     };
                     mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -4767,7 +4908,6 @@ describe('ReportUtils', () => {
                         report,
                         paidPolicy,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     expect(moneyRequestOptions.length).toBe(2);
@@ -4785,13 +4925,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4804,13 +4938,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4856,7 +4984,6 @@ describe('ReportUtils', () => {
                         report,
                         paidPolicy,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     expect(moneyRequestOptions.length).toBe(2);
@@ -4873,13 +5000,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(3);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -4918,7 +5039,6 @@ describe('ReportUtils', () => {
                         report,
                         paidPolicy,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     expect(moneyRequestOptions.length).toBe(2);
@@ -4934,7 +5054,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], undefined);
                 expect(moneyRequestOptions.length).toBe(2);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -4954,13 +5074,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
 
                 // Should not include SUBMIT (Create Expense) or TRACK (Track distance) — members can only split
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
@@ -4978,13 +5092,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
 
                 // Should include SUBMIT (Create Expense)
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -5009,7 +5117,6 @@ describe('ReportUtils', () => {
                     expenseReport,
                     undefined,
                     [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
                     undefined,
                 );
 
@@ -5031,8 +5138,8 @@ describe('ReportUtils', () => {
                 };
                 const selfDMParticipants = [currentUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -5051,8 +5158,8 @@ describe('ReportUtils', () => {
                 };
                 const dmParticipants = [currentUserAccountID, otherUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
@@ -5070,8 +5177,8 @@ describe('ReportUtils', () => {
                 };
                 const dmParticipants = [currentUserAccountID, otherUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, true);
 
                 if (withoutRestrictionsResult.includes(CONST.IOU.TYPE.PAY)) {
                     expect(withRestrictionsResult.includes(CONST.IOU.TYPE.PAY)).toBe(false);
@@ -5090,8 +5197,8 @@ describe('ReportUtils', () => {
                 };
                 const dmParticipants = [currentUserAccountID, otherUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
@@ -5107,8 +5214,8 @@ describe('ReportUtils', () => {
                     chatType: undefined,
                 };
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
@@ -5124,11 +5231,44 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
+            });
+        });
+
+        describe('invoice rooms use the passed policy (not module-level allPolicies)', () => {
+            const invoiceRoomParticipants = [currentUserAccountID, participantsAccountIDs.at(0) ?? 0];
+            const invoiceRoom = {
+                ...LHNTestUtils.getFakeReport(invoiceRoomParticipants),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+
+            it('offers the INVOICE option when the passed policy is admin and has invoices enabled', () => {
+                const adminInvoicePolicy: Policy = {
+                    ...createRandomPolicy(700, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areInvoicesEnabled: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, adminInvoicePolicy, invoiceRoomParticipants, undefined);
+
+                expect(moneyRequestOptions).toContain(CONST.IOU.TYPE.INVOICE);
+            });
+
+            it('does not offer the INVOICE option when the passed policy is not an admin', () => {
+                const memberInvoicePolicy: Policy = {
+                    ...createRandomPolicy(701, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    areInvoicesEnabled: true,
+                };
+
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, memberInvoicePolicy, invoiceRoomParticipants, undefined);
+
+                expect(moneyRequestOptions).not.toContain(CONST.IOU.TYPE.INVOICE);
             });
         });
     });
@@ -5148,8 +5288,8 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(true);
@@ -5168,8 +5308,8 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -5180,8 +5320,8 @@ describe('ReportUtils', () => {
             it('should restrict SPLIT requests for group chats', () => {
                 const groupChat = LHNTestUtils.getFakeReport([currentUserAccountID, ...participantsAccountIDs.slice(0, 3)]);
 
-                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -5195,8 +5335,8 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -6045,8 +6185,28 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteMoneyRequestReport', () => {
+        /** Builds the IOU action that `canDeleteMoneyRequestReport` looks up to decide who owns a transaction. */
+        function buildIOUActionForTransaction(reportID: string, transactionID: string, actorAccountID: number): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+            return {
+                reportActionID: `${transactionID}-action`,
+                reportID,
+                actorAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-03-05 16:34:27',
+                message: [],
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    amount: 530,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+        }
+
         it('should allow deletion if the report is open invoice report', async () => {
             const invoiceReport = {...createInvoiceReport(343), ownerAccountID: currentUserAccountID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+            const transaction = {...createRandomTransaction(343), reportID: invoiceReport.reportID, managedCard: false};
+            const iouAction = buildIOUActionForTransaction(invoiceReport.reportID, transaction.transactionID, currentUserAccountID);
             // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
             // since it relies on the session subscription for currentUserAccountID.
             await new Promise<void>((resolve) => {
@@ -6058,7 +6218,61 @@ describe('ReportUtils', () => {
                     },
                 });
             });
-            expect(canDeleteMoneyRequestReport(invoiceReport, [], [], currentUserAccountID, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(invoiceReport, [transaction], [iouAction], currentUserAccountID, undefined)).toBe(true);
+        });
+
+        describe('draft reports', () => {
+            const draftReport: Report = {
+                reportID: '9001',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 777,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: '9001-policy',
+            };
+            const adminPolicy: Policy = {...createRandomPolicy(1), id: '9001-policy', role: CONST.POLICY.ROLE.ADMIN};
+            const memberPolicy: Policy = {...createRandomPolicy(2), id: '9001-policy', role: CONST.POLICY.ROLE.USER};
+
+            it('should allow an admin to delete a draft report they do not own', () => {
+                const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+            });
+
+            it('should not allow an admin to delete a single expense on a draft report they do not own', () => {
+                const transaction = {...createRandomTransaction(901), reportID: draftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy)).toBe(false);
+            });
+
+            it('should allow the submitter to delete their own draft report', () => {
+                const ownDraftReport = {...draftReport, ownerAccountID: currentUserAccountID};
+                const transaction = {...createRandomTransaction(902), reportID: ownDraftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(ownDraftReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(ownDraftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(true);
+            });
+
+            it('should not allow a non-admin who does not own the transaction to delete a draft report', () => {
+                const transaction = {...createRandomTransaction(903), reportID: draftReport.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, 777);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(false);
+            });
+
+            it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
+                const transaction = {
+                    ...createRandomTransaction(904),
+                    reportID: draftReport.reportID,
+                    managedCard: true,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
+
+                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+            });
         });
 
         it('should allow deletion if the expense report is submitted but not yet approved by anyone', async () => {
@@ -8119,6 +8333,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8144,6 +8359,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8174,6 +8390,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8239,6 +8456,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8263,6 +8481,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8287,6 +8506,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8311,6 +8531,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8348,6 +8569,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8380,6 +8602,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8412,6 +8635,7 @@ describe('ReportUtils', () => {
                     draftComment: '',
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8438,6 +8662,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -8466,29 +8691,61 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
 
-        it('should return false when the report does not have participants', () => {
-            const report = LHNTestUtils.getFakeReport([]);
+        it('should return false when a DM does not have participants', () => {
+            // Given a DM with no participants, which takes its name and avatar from `participants` alone
+            const report: Report = {...LHNTestUtils.getFakeReport(), participants: undefined};
             const currentReportId = '';
-            const isInFocusMode = true;
-            expect(
-                shouldReportBeInOptionList({
-                    report,
-                    chatReport: mockedChatReport,
-                    currentReportId,
-                    isInFocusMode,
-                    isDefaultRoomsBetaEnabled: true,
-                    doesReportHaveViolations: false,
-                    excludeEmptyChats: false,
-                    draftComment: '',
-                    isReportArchived: undefined,
-                    hasGuidesEmails: false,
-                    conciergeReportID: undefined,
-                }),
-            ).toBeFalsy();
+
+            // When it is evaluated outside focus mode, so only the participants check can exclude it
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is excluded, because there would be nothing to render in the option item
+            expect(result).toBeFalsy();
+        });
+
+        it('should return true when a policy expense chat does not have participants', () => {
+            // Given a policy expense chat with no participants, as SearchForTodos returns it to keep its payload small
+            const report: Report = {...LHNTestUtils.getFakeReportWithPolicy(), participants: undefined};
+            const currentReportId = '';
+
+            // When it is evaluated for the option list
+            const isInFocusMode = false;
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId,
+                isInFocusMode,
+                isDefaultRoomsBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then it is kept, because a workspace chat renders its name and icon from its policy
+            expect(result).toBeTruthy();
         });
 
         it('should return false when the report is the report that the user cannot access due to policy restrictions', () => {
@@ -8511,6 +8768,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8565,6 +8823,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8586,6 +8845,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8615,6 +8875,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -8643,6 +8904,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     conciergeReportID,
                     hasGuidesEmails: false,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -8670,6 +8932,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     conciergeReportID: 'some-other-report-id',
                     hasGuidesEmails: false,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeNull();
         });
@@ -8691,13 +8954,13 @@ describe('ReportUtils', () => {
                 chatReport: mockedChatReport,
                 currentReportId: '',
                 isInFocusMode: false,
-                betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: true,
                 draftComment: '',
                 isReportArchived: undefined,
                 isDefaultRoomsBetaEnabled: false,
                 hasGuidesEmails: false,
+                derivedIsEmptyReport: undefined,
             };
 
             // When the param identifies this report as Concierge, the empty chat is kept in the option list...
@@ -8725,6 +8988,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8772,6 +9036,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8793,6 +9058,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8829,6 +9095,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8862,6 +9129,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -8893,6 +9161,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -8917,6 +9186,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -8963,6 +9233,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9016,6 +9287,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -9040,6 +9312,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeNull();
         });
@@ -9063,6 +9336,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -9086,6 +9360,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9109,6 +9384,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9132,6 +9408,7 @@ describe('ReportUtils', () => {
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9144,13 +9421,13 @@ describe('ReportUtils', () => {
                     chatReport: mockedChatReport,
                     currentReportId: '',
                     isInFocusMode: false,
-                    betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
                     isReportArchived: undefined,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    derivedIsEmptyReport: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -9220,6 +9497,7 @@ describe('ReportUtils', () => {
                 isReportArchived: undefined,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -9855,6 +10133,30 @@ describe('ReportUtils', () => {
             expect(canDeleteReportAction(moneyRequestAction, expenseReport.reportID, transaction, undefined, undefined, currentUserAccountID, undefined)).toBe(false);
         });
 
+        it('should let an admin delete a draft report they did not submit from its report preview', async () => {
+            // Given an open (draft) expense report submitted by someone else, on a policy the current user administers
+            const draftReport = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID + 1,
+                policyID: '9002-policy',
+            };
+            const reportPreviewAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actorAccountID: currentUserAccountID + 1,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: draftReport.reportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`, draftReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}9002-policy`, {...createRandomPolicy(1), id: '9002-policy', role: CONST.POLICY.ROLE.ADMIN});
+
+            // Then the admin can delete it, because deleting a preview deletes the whole report
+            expect(canDeleteReportAction(reportPreviewAction, draftReport.reportID, undefined, undefined, undefined, currentUserAccountID, undefined)).toBe(true);
+        });
+
         it('should return true for demo transaction', () => {
             const transaction = {
                 ...createRandomTransaction(1),
@@ -9989,7 +10291,74 @@ describe('ReportUtils', () => {
                 lastVisibleActionCreated: '2024-03-01 12:00:00.000',
             };
 
-            expect(isUnread(report, transactionThreadReport, false)).toBe(false);
+            expect(isUnread(report, transactionThreadReport, false, undefined)).toBe(false);
+        });
+
+        it('returns false when derivedIsEmptyReport is true (empty report is never unread)', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+            };
+
+            expect(isUnread(report, undefined, false, true)).toBe(false);
+        });
+
+        it('does not short-circuit when derivedIsEmptyReport is false', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+            };
+
+            // derivedIsEmptyReport=false means report is not empty, so isUnread proceeds to check lastReadTime
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
+        it('falls through to generateIsEmptyReport when derivedIsEmptyReport is undefined', () => {
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+            };
+
+            // report has lastMessageText so generateIsEmptyReport returns false, isUnread proceeds
+            expect(isUnread(report, undefined, false, undefined)).toBe(true);
+            expect(isUnread(report, undefined, false, undefined)).toBe(true);
+        });
+    });
+
+    describe('isEmptyReport', () => {
+        const report = {
+            ...LHNTestUtils.getFakeReport(),
+            reportID: '1',
+            lastMessageText: 'Hello',
+        };
+
+        it('returns the passed value when derivedIsEmptyReport is true', () => {
+            expect(isEmptyReport(report, false, true)).toBe(true);
+        });
+
+        it('returns the passed value when derivedIsEmptyReport is false', () => {
+            // Verifies ?? (not ||) — false is a valid cache hit, must NOT fall through
+            expect(isEmptyReport(report, false, false)).toBe(false);
+        });
+
+        it('falls through to generateIsEmptyReport when derivedIsEmptyReport is undefined', () => {
+            // report has lastMessageText so generateIsEmptyReport returns false
+            expect(isEmptyReport(report, false, undefined)).toBe(false);
+            expect(isEmptyReport(report, false, undefined)).toBe(false);
+        });
+
+        it('returns true when report is undefined', () => {
+            expect(isEmptyReport(undefined, false, false)).toBe(true);
+            expect(isEmptyReport(undefined, false, true)).toBe(true);
         });
     });
 
@@ -10960,26 +11329,26 @@ describe('ReportUtils', () => {
 
         it('excludes the current user from the report title', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: currentUserAccountID + 2});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(result).not.toContain('CURRENT');
         });
 
         it('limits to a maximum of 5 participants in the title', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: 10});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(result.split(',').length).toBeLessThanOrEqual(5);
         });
 
         it('returns full name if only one participant is present (excluding current user)', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({count: 1});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             const {displayName} = fakePersonalDetails[1] ?? {};
             expect(result).toEqual(displayName);
         });
 
         it('returns an empty string if there are no participants or all are excluded', () => {
             const {report, personalDetails: testPersonalDetails} = generateFakeReportAndParticipantsPersonalDetails({start: currentUserAccountID - 1, count: 1});
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: testPersonalDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             expect(result).toEqual('');
         });
 
@@ -10990,7 +11359,7 @@ describe('ReportUtils', () => {
             const fourthUser = fakePersonalDetails[4];
 
             const incompleteDetails = {2: secondUser, 4: fourthUser};
-            const result = buildReportNameFromParticipantNames({report, personalDetailsList: incompleteDetails, currentUserAccountID, translate: translateLocal});
+            const result = buildReportNameFromParticipantNames({report, personalDetailsList: incompleteDetails, currentUserAccountID, translate: translateLocal, formatPhoneNumber});
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
@@ -17051,6 +17420,7 @@ describe('ReportUtils', () => {
 
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -17112,6 +17482,7 @@ describe('ReportUtils', () => {
 
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -17221,7 +17592,7 @@ describe('ReportUtils', () => {
                 formatPhoneNumber,
                 accountID: hiddenAccountID,
                 personalDetailsData: personalDetailsWithHidden,
-                translate: translateLocal,
+                hiddenTranslation: translateLocal('common.hidden'),
             });
 
             expect(result).toBe(translateLocal('common.hidden'));
@@ -17248,23 +17619,21 @@ describe('ReportUtils', () => {
                 accountID: hiddenAccountID,
                 shouldUseShortForm: true,
                 personalDetailsData: personalDetailsWithHidden,
-                translate: translateLocal,
+                hiddenTranslation: translateLocal('common.hidden'),
             });
 
             expect(result).toBe(translateLocal('common.hidden'));
             expect(result).not.toBe('ShortName');
         });
 
-        it('resolves the hidden participant fallback through the provided translate function', () => {
+        it('resolves the hidden participant fallback through the provided hiddenTranslation string', () => {
             const hiddenAccountID = 909090;
-            // A known participant with no displayName/login resolves to the hidden label, which must come from the provided translate function.
-            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
-
+            // A known participant with no displayName/login resolves to the hidden label, which must come from the provided hiddenTranslation string.
             const displayName = getDisplayNameForParticipant({
                 accountID: hiddenAccountID,
                 formatPhoneNumber,
                 personalDetailsData: {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}},
-                translate: translateWithHiddenMarker,
+                hiddenTranslation: 'HiddenMarker',
             });
 
             expect(displayName).toBe('HiddenMarker');
@@ -17306,6 +17675,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -17352,6 +17722,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -18475,6 +18846,7 @@ describe('ReportUtils', () => {
 
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
             currentUserAccountID: adminAccountID,
         });
 
@@ -18659,6 +19031,7 @@ describe('ReportUtils', () => {
             isReportArchived: undefined,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -18855,6 +19228,7 @@ describe('ReportUtils', () => {
             isReportArchived: archiveState.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -18879,6 +19253,7 @@ describe('ReportUtils', () => {
             isReportArchived: archiveState.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -18981,6 +19356,7 @@ describe('ReportUtils', () => {
             isReportArchived: isReportArchivedBefore.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -19023,6 +19399,7 @@ describe('ReportUtils', () => {
             isReportArchived: isReportArchivedAfter.current,
             hasGuidesEmails: false,
             conciergeReportID: undefined,
+            derivedIsEmptyReport: undefined,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -20203,6 +20580,7 @@ describe('ReportUtils', () => {
                 draftComment: '',
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -20258,6 +20636,7 @@ describe('ReportUtils', () => {
                 draftComment: '',
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
 
@@ -20592,7 +20971,7 @@ describe('ReportUtils', () => {
                 currentUserEmail,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
@@ -20636,7 +21015,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -20676,7 +21055,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should navigate to the restricted action page
@@ -20720,7 +21099,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should navigate to the category step
@@ -20774,7 +21153,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 1,
-                    firstPolicyID: ownPolicy.id,
+                    firstPolicy: ownPolicy,
                 });
 
                 // Then it should automatically pick the available policy and navigate to the category step
@@ -20815,7 +21194,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
@@ -20871,7 +21250,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 2,
-                    firstPolicyID: policy1.id,
+                    firstPolicy: policy1,
                 });
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
@@ -20923,7 +21302,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should log a warning and not navigate
@@ -20973,7 +21352,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should NOT navigate to restricted action page, but to category step
@@ -21023,7 +21402,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should navigate to restricted action page
@@ -21066,7 +21445,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 1,
-                    firstPolicyID: policyFromParam.id,
+                    firstPolicy: policyFromParam,
                 });
 
                 // Then it should pick the policy from the policies param and navigate to the category step
@@ -21113,7 +21492,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 1,
-                    firstPolicyID: policyFromParam.id,
+                    firstPolicy: policyFromParam,
                 });
 
                 // Then it should navigate to the participant selector step
@@ -21153,7 +21532,7 @@ describe('ReportUtils', () => {
                     currentUserEmail,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 0,
-                    firstPolicyID: undefined,
+                    firstPolicy: undefined,
                 });
 
                 // Then it should still navigate to participant selector since action is SUBMIT (SUBMIT always goes to participants)
@@ -22063,7 +22442,7 @@ describe('ReportUtils', () => {
     describe('getOriginalReportID', () => {
         it('should return undefined when reportID is undefined', () => {
             const reportAction = createRandomReportAction(1);
-            const result = getOriginalReportID(undefined, reportAction, undefined);
+            const result = getOriginalReportID(undefined, reportAction, undefined, false);
             expect(result).toBeUndefined();
         });
 
@@ -22074,7 +22453,7 @@ describe('ReportUtils', () => {
                 [reportAction.reportActionID]: reportAction,
             };
 
-            const result = getOriginalReportID(reportID, reportAction, reportActions);
+            const result = getOriginalReportID(reportID, reportAction, reportActions, false);
             expect(result).toBe(reportID);
         });
 
@@ -22085,7 +22464,7 @@ describe('ReportUtils', () => {
                 reportActionID: undefined,
             });
 
-            const result = getOriginalReportID(reportID, reportAction, undefined);
+            const result = getOriginalReportID(reportID, reportAction, undefined, false);
             expect(result).toBe(reportID);
         });
 
@@ -22093,7 +22472,7 @@ describe('ReportUtils', () => {
             const reportID = '123';
             const reportAction = createRandomReportAction(1);
 
-            const result = getOriginalReportID(reportID, reportAction, {});
+            const result = getOriginalReportID(reportID, reportAction, {}, false);
             expect(result).toBe(reportID);
         });
 
@@ -22106,7 +22485,7 @@ describe('ReportUtils', () => {
             // The action is the thread's parent message: its childReportID points back to the thread and it is not present in the thread's own actions,
             // so getOriginalReportID must resolve to the parent report using only the passed reportActions (no module-level Onyx.connect fallback).
             const reportAction = {...createRandomReportAction(1), childReportID: reportID};
-            expect(getOriginalReportID(reportID, reportAction, {})).toBe(parentReportID);
+            expect(getOriginalReportID(reportID, reportAction, {}, false)).toBe(parentReportID);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
             await waitForBatchedUpdates();
@@ -22134,7 +22513,59 @@ describe('ReportUtils', () => {
             // The queried action is not part of the passed reportActions and is not a thread parent action
             const reportAction = {...createRandomReportAction(22), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, childReportID: undefined};
 
-            expect(getOriginalReportID(reportID, reportAction, {[iouAction.reportActionID]: iouAction})).toBe(transactionThreadReportID);
+            expect(getOriginalReportID(reportID, reportAction, {[iouAction.reportActionID]: iouAction}, false)).toBe(transactionThreadReportID);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should thread isOffline into the one-transaction thread lookup', async () => {
+            const reportID = 'getOriginalReportID-offline';
+            const transactionThreadReportID = 'getOriginalReportID-offline-thread';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await waitForBatchedUpdates();
+
+            const liveIOUAction: ReportAction = {
+                ...createRandomReportAction(31),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: transactionThreadReportID,
+                originalMessage: {
+                    IOUReportID: reportID,
+                    IOUTransactionID: 'txn-offline-live',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                },
+            };
+
+            // A second IOU action that was deleted while offline, so it is still pending deletion
+            const pendingDeleteIOUAction: ReportAction = {
+                ...createRandomReportAction(32),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {
+                    IOUReportID: reportID,
+                    IOUTransactionID: 'txn-offline-deleted',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                },
+            };
+
+            const reportActions = {
+                [liveIOUAction.reportActionID]: liveIOUAction,
+                [pendingDeleteIOUAction.reportActionID]: pendingDeleteIOUAction,
+            };
+            // The queried action is not part of the passed reportActions and is not a thread parent action
+            const reportAction = {...createRandomReportAction(33), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, childReportID: undefined};
+
+            // Online: the pending-delete action is ignored, so the live action makes this a one-transaction report
+            expect(getOriginalReportID(reportID, reportAction, reportActions, false)).toBe(transactionThreadReportID);
+
+            // Offline: the pending-delete action still counts, so there are two IOU actions and this is no longer
+            // a one-transaction report. Proves isOffline reaches getOneTransactionThreadReportID.
+            expect(getOriginalReportID(reportID, reportAction, reportActions, true)).toBe(reportID);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
             await waitForBatchedUpdates();
@@ -22589,6 +23020,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -22661,6 +23093,7 @@ describe('ReportUtils', () => {
 
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 

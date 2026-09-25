@@ -4,6 +4,7 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -21,6 +22,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -125,14 +127,14 @@ function IOURequestStepDistanceOdometer({
     const userHasUnsavedTypingRef = useRef(false);
 
     const isArchived = useReportIsArchived(report?.reportID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const reportAttributesDerived = useReportAttributes();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
@@ -146,7 +148,6 @@ function IOURequestStepDistanceOdometer({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
@@ -168,6 +169,16 @@ function IOURequestStepDistanceOdometer({
     if (getPlatform() === CONST.PLATFORM.ANDROID) {
         keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
     }
+    // The remount above also resets the ScrollView's scroll position (e.g. after returning from the camera). These refs
+    // live outside the remounted subtree, so they survive it and can restore the offset once the fresh ScrollView mounts.
+    const scrollOffsetRef = useRef(0);
+    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    useEffect(() => {
+        if (scrollOffsetRef.current === 0) {
+            return;
+        }
+        scrollViewRef.current?.scrollTo({y: scrollOffsetRef.current, animated: false});
+    }, [keyboardAvoidingViewInstanceKey]);
     const {keyboardVerticalOffset, onLayout: measureOwnLayout} = useOdometerKeyboardVerticalOffset();
 
     const shouldUseDefaultExpensePolicy = useMemo(
@@ -265,7 +276,6 @@ function IOURequestStepDistanceOdometer({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        betas,
         recentWaypoints,
         introSelected,
         personalOutputCurrency: personalPolicy?.outputCurrency,
@@ -648,9 +658,15 @@ function IOURequestStepDistanceOdometer({
                 shouldOffsetBottomSafeAreaPadding
                 onLayout={measureOwnLayout}
             >
-                <View
+                <ScrollView
+                    ref={scrollViewRef}
                     testID="odometerContentContainer"
-                    style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+                    onScroll={(e) => {
+                        scrollOffsetRef.current = e.nativeEvent.contentOffset.y;
+                    }}
+                    scrollEventThrottle={16}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
                 >
                     <View>
                         {/* Start Reading */}
@@ -786,7 +802,7 @@ function IOURequestStepDistanceOdometer({
                             <Button.Text>{buttonText}</Button.Text>
                         </Button>
                     </View>
-                </View>
+                </ScrollView>
             </KeyboardAvoidingView>
         </StepScreenWrapper>
     );

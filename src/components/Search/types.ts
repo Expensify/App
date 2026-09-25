@@ -1,4 +1,4 @@
-import type {UnitPosition, UnitWithFallback} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
@@ -20,6 +20,7 @@ import type {
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -186,6 +187,7 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.DAY>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
@@ -446,34 +448,21 @@ type GroupedItem =
     | TransactionCategoryGroupListItemType
     | TransactionMerchantGroupListItemType
     | TransactionTagGroupListItemType
+    | TransactionDayGroupListItemType
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
-type SearchChartProps = {
-    /** Grouped transaction data from search results */
-    data: GroupedItem[];
+type SearchChartDataRow = {
+    /** The point plotted on the chart */
+    point: ChartDataPoint;
 
-    /** Function to extract label from grouped item */
-    getLabel: (item: GroupedItem) => string;
+    /** The grouped search result the point was built from */
+    item: GroupedItem;
 
-    /** Function to extract the compact axis label from grouped item. When it returns undefined, `getLabel` is used. */
-    getShortLabel?: (item: GroupedItem) => string | undefined;
-
-    /** Function to build filter query from grouped item */
-    getFilterQuery: (item: GroupedItem) => string;
-
-    /** Callback when a chart item is pressed - receives the filter query to apply */
-    onItemPress?: (filterQuery: string) => void;
-
-    isLoading?: boolean;
-
-    /** Currency unit with font fallback support */
-    unit?: UnitWithFallback;
-
-    /** Position of currency symbol relative to value */
-    unitPosition?: UnitPosition;
+    /** Palette color the chart assigns this group */
+    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -542,6 +531,6 @@ export type {
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,
-    SearchChartProps,
+    SearchChartDataRow,
     SearchFilterCommonProps,
 };
