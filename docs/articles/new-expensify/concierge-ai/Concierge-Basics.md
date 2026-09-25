@@ -44,6 +44,10 @@ Here are a few examples you can type:
 
 **Tip:** The more specific you are, the better the response.
 
+When you ask from your **Expensify Concierge** chat, Concierge answers each question in its own chat thread and names the thread after a short summary of your question, so questions stay separate and earlier answers are easy to find again.
+
+[Learn how Concierge organizes each question into its own chat thread](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do#how-concierge-organizes-each-question-into-its-own-chat-thread).
+
 # What can Concierge do?
 
 Concierge can help you:
