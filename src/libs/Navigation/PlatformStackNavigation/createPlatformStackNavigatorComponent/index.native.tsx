@@ -54,6 +54,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         state: originalState,
         descriptors,
         describe,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- core 7.22.0 deprecated NavigationContent in favour of a render callback (https://github.com/react-navigation/react-navigation/issues/13238), migrating our navigator is a separate change
         NavigationContent,
     } = useNavigationBuilder<
         PlatformStackNavigationState<ParamListBase>,

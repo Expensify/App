@@ -5,6 +5,8 @@ type MemoryHistory = {
     push: (options: {path: string; state: NavigationState}) => void;
     go: (distance: number) => Promise<void> | undefined;
     listen: (listener: () => void) => () => void;
+    // Exposed by our `initial` patch on @react-navigation/native
+    items: Array<{path: string; state: NavigationState; id: string}>;
 };
 
 const {
@@ -47,6 +49,10 @@ describe('createMemoryHistory', () => {
         const stopListening = history.listen(listener);
 
         const navigation = history.go(-1);
+        // `history.go` is mocked, so nothing moves the browser entry on its own. Point the browser
+        // state at the entry we asked to land on, the way a real traversal would, otherwise the
+        // library treats the traversal as failed (see `targetId` in createMemoryHistory).
+        window.history.replaceState({id: history.items.at(0)?.id}, '', '/r/1');
         jest.advanceTimersByTime(900);
         window.dispatchEvent(new PopStateEvent('popstate'));
 
@@ -61,17 +67,23 @@ describe('createMemoryHistory', () => {
         const listener = jest.fn();
         const stopListening = history.listen(listener);
         const resolved = jest.fn();
+        const rejected = jest.fn();
 
         const navigation = history.go(-1);
-        navigation?.then(resolved);
+        navigation?.then(resolved, rejected);
 
         jest.advanceTimersByTime(999);
         await Promise.resolve();
         expect(resolved).not.toHaveBeenCalled();
+        expect(rejected).not.toHaveBeenCalled();
 
+        // The traversal never happened, so the library reports it as a failed navigation instead of
+        // pretending it succeeded. That is intentional: resolving here would let callers write history
+        // for an entry the browser never landed on.
         jest.advanceTimersByTime(1);
-        await expect(navigation).resolves.toBeUndefined();
-        expect(resolved).toHaveBeenCalledTimes(1);
+        await expect(navigation).rejects.toThrow('History was changed during navigation.');
+        expect(resolved).not.toHaveBeenCalled();
+        expect(rejected).toHaveBeenCalledTimes(1);
 
         window.dispatchEvent(new PopStateEvent('popstate'));
         expect(listener).toHaveBeenCalledTimes(1);

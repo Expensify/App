@@ -57,7 +57,7 @@ index dfd9de7..0d14027 100644
      // @ts-expect-error: we check for function but TS still complains
      typeof curr !== 'function' ? curr : curr({
 diff --git a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
-index 2ed8725..8147d8f 100644
+index f01bdd6..6427dab 100644
 --- a/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
 +++ b/node_modules/@react-navigation/core/lib/module/useNavigationBuilder.js
 @@ -167,7 +167,7 @@ const getStateFromParams = (params, type) => {
@@ -79,7 +79,7 @@ index 2ed8725..8147d8f 100644
      state,
      navigation,
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
-index 0b4f4c2..4dc5941 100644
+index 23af668..feb6f47 100644
 --- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
 +++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
 @@ -109,7 +109,16 @@ declare global {
@@ -161,7 +161,7 @@ index 5e37fe4..f0129f1 100644
          dispatch(action: Readonly<{
              type: string;
 diff --git a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
-index 36566fb..fc4eb26 100644
+index ab8f81e..1819ea3 100644
 --- a/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
 +++ b/node_modules/@react-navigation/core/lib/typescript/src/useNavigationBuilder.d.ts
 @@ -1,6 +1,6 @@
@@ -182,7 +182,7 @@ index 36566fb..fc4eb26 100644
      navigation: {
          dispatch(action: Readonly<{
 diff --git a/node_modules/@react-navigation/core/src/types.tsx b/node_modules/@react-navigation/core/src/types.tsx
-index 68e52ae..4eb998a 100644
+index 580f300..f3c6ca9 100644
 --- a/node_modules/@react-navigation/core/src/types.tsx
 +++ b/node_modules/@react-navigation/core/src/types.tsx
 @@ -157,6 +157,29 @@ declare global {
@@ -362,7 +362,7 @@ index 320efcf..e78fa6d 100644
      return optionsList.reduce<ScreenOptions>(
        (acc, curr) =>
 diff --git a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
-index 9f0d412..bc976eb 100644
+index 16e44a5..2ad3322 100644
 --- a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
 +++ b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
 @@ -27,6 +27,7 @@ import { NavigationStateContext } from './NavigationStateContext';
