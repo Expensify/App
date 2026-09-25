@@ -656,7 +656,8 @@ function SearchAutocompleteList({
                 });
             }
         } else {
-            // Active search: keep locally available rows fixed while server-only rows arrive separately.
+            // Active search uses one shared 20-row budget: preserve locally matched rows first, then fill remaining
+            // slots with Auth-ranked server results. Auth orders the server section; it does not evict local rows.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
             const serverResultReportIDs = new Set(searchResultReportIDs ?? []);
