@@ -167,6 +167,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         report,
         hasOnceLoadedReportActions,
         isInitialReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
         hasOlderActions,
         hasNewerActions,
         oldestReportActionID,
@@ -264,10 +266,18 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     const shouldRestoreTailAfterHistoryRevealRef = useRef(false);
+    const oldestLoadedActionID = allReportActionIDs.at(-1);
+    const oldestLoadedActionIDAtHistoryRevealRef = useRef<string | undefined>(undefined);
+    const distanceFromBottomRef = useRef(getScrollOffset());
+    const shouldFollowEndOnResizeRef = useRef(false);
     const onShowPreviousMessages = () => {
-        // A short Concierge session has no scrollable range. Revealing its older actions makes
-        // the list scrollable, so preserve the tail the reader was looking at before the reveal.
-        shouldRestoreTailAfterHistoryRevealRef.current = !hasScrolledOverThreshold && !hasNewerActions;
+        // Revealing older actions can make a short session scrollable before the requested history page arrives.
+        // Follow the tail only when the reader was actually there; the action-visible threshold is much wider.
+        shouldRestoreTailAfterHistoryRevealRef.current = distanceFromBottomRef.current <= 1 && !hasNewerActions;
+        oldestLoadedActionIDAtHistoryRevealRef.current = shouldRestoreTailAfterHistoryRevealRef.current && hasOlderActions ? oldestLoadedActionID : undefined;
+        if (shouldRestoreTailAfterHistoryRevealRef.current) {
+            shouldFollowEndOnResizeRef.current = true;
+        }
         handleShowPreviousMessages();
     };
 
@@ -337,15 +347,22 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const listData = reportActionsToRender.toReversed();
 
     useEffect(() => {
-        if (!showFullHistory || !shouldRestoreTailAfterHistoryRevealRef.current) {
+        if (!showFullHistory) {
+            shouldRestoreTailAfterHistoryRevealRef.current = false;
+            return;
+        }
+        if (!shouldRestoreTailAfterHistoryRevealRef.current) {
             return;
         }
         const animationFrame = requestAnimationFrame(() => {
             legendListRef.current?.scrollToEnd({animated: false});
-            shouldRestoreTailAfterHistoryRevealRef.current = false;
+            const hasReceivedHistoryPage = oldestLoadedActionID !== oldestLoadedActionIDAtHistoryRevealRef.current || !hasOlderActions;
+            if (!oldestLoadedActionIDAtHistoryRevealRef.current || (!isLoadingOlderReportActions && (hasReceivedHistoryPage || hasLoadingOlderReportActionsError))) {
+                shouldRestoreTailAfterHistoryRevealRef.current = false;
+            }
         });
         return () => cancelAnimationFrame(animationFrame);
-    }, [showFullHistory, listData.length]);
+    }, [showFullHistory, listData.length, oldestLoadedActionID, hasOlderActions, isLoadingOlderReportActions, hasLoadingOlderReportActionsError]);
 
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
@@ -407,7 +424,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
     const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
     const readyEndListIDRef = useRef<string | undefined>(undefined);
-    const shouldFollowEndOnResizeRef = useRef(false);
     const lastScrollMetricsRef = useRef<{offset: number; contentHeight: number; viewportHeight: number} | undefined>(undefined);
     const endCorrectionFrameRef = useRef<number | undefined>(undefined);
 
@@ -475,10 +491,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
         const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
+        distanceFromBottomRef.current = distanceFromBottom;
         const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
         const previousMetrics = lastScrollMetricsRef.current;
         if (readyEndListIDRef.current === listID && !hasNewerActions) {
-            if (distanceFromBottom <= layoutMeasurement.height * MAINTAIN_SCROLL_AT_END_THRESHOLD) {
+            if (shouldRestoreTailAfterHistoryRevealRef.current || distanceFromBottom <= layoutMeasurement.height * MAINTAIN_SCROLL_AT_END_THRESHOLD) {
                 shouldFollowEndOnResizeRef.current = true;
             } else if (
                 (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||

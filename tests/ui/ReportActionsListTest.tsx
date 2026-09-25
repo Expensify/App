@@ -1737,6 +1737,148 @@ describe('ReportActionsList (body)', () => {
             }
         });
 
+        it('keeps the latest Concierge messages visible when an older history page arrives after Show History', () => {
+            // Given a Concierge session with more history to load after the initially revealed actions.
+            setupMainDMConciergeMocks();
+            let isShowingFullHistory = false;
+            mockUseConciergeSessionState.mockImplementation(() => ({sessionStartTime: SESSION_START, showFullHistory: isShowingFullHistory, hadMessagesAtSessionStart: false}));
+            mockUseConciergeSessionActions.mockReturnValue({
+                startSession: jest.fn(),
+                setShowFullHistory: (show: boolean) => {
+                    isShowingFullHistory = show;
+                },
+                setHadMessagesAtSessionStart: jest.fn(),
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: oldReportActions, hasOlderActions: true});
+            const animationFrames: FrameRequestCallback[] = [];
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrames.push(callback);
+                return animationFrames.length;
+            });
+            const flushAnimationFrames = () => {
+                act(() => {
+                    for (const callback of animationFrames.splice(0)) {
+                        callback(0);
+                    }
+                });
+            };
+
+            try {
+                const view = renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+                const actions = getCapturedVisibleActions();
+                const createdIndex = actions?.findIndex((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? -1;
+                const createdAction = actions?.at(createdIndex);
+                if (!createdAction) {
+                    throw new Error('Expected the Concierge created action');
+                }
+
+                // When Show History reveals the loaded actions and an older page arrives afterward.
+                act(() => getShowHistoryPress(createdAction, createdIndex)?.());
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                flushAnimationFrames();
+                mockLegendScrollToEnd.mockClear();
+
+                const oldUserAction = oldReportActions.at(1);
+                if (!oldUserAction) {
+                    throw new Error('Expected the older Concierge action');
+                }
+                const olderAction = {...oldUserAction, reportActionID: 'older-user-msg', created: '2022-06-15 10:00:00.000'};
+                mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [...oldReportActions, olderAction], hasOlderActions: false});
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                flushAnimationFrames();
+
+                // Then the added page remains available without moving the reader away from the latest messages.
+                expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === 'older-user-msg')).toBe(true);
+                expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
+            } finally {
+                requestAnimationFrameSpy.mockRestore();
+            }
+        });
+
+        it('does not pull a slightly scrolled Concierge chat to the bottom when Show History is pressed', () => {
+            // Given the reader is above the latest message but still within the generic action-visible threshold.
+            setupMainDMConciergeMocks();
+            let isShowingFullHistory = false;
+            mockUseConciergeSessionState.mockImplementation(() => ({sessionStartTime: SESSION_START, showFullHistory: isShowingFullHistory, hadMessagesAtSessionStart: false}));
+            mockUseConciergeSessionActions.mockReturnValue({
+                startSession: jest.fn(),
+                setShowFullHistory: (show: boolean) => {
+                    isShowingFullHistory = show;
+                },
+                setHadMessagesAtSessionStart: jest.fn(),
+            });
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: oldReportActions, hasOlderActions: false});
+            const animationFrames: FrameRequestCallback[] = [];
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                animationFrames.push(callback);
+                return animationFrames.length;
+            });
+
+            try {
+                const view = renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+                act(() => {
+                    for (const callback of animationFrames.splice(0)) {
+                        callback(0);
+                    }
+                });
+                mockLegendScrollToEnd.mockClear();
+                act(() => {
+                    getCapturedListProps()?.onScroll?.({
+                        nativeEvent: {
+                            contentOffset: {x: 0, y: 500},
+                            contentSize: {height: 1000, width: 300},
+                            layoutMeasurement: {height: 500, width: 300},
+                        },
+                    });
+                    getCapturedListProps()?.onScroll?.({
+                        nativeEvent: {
+                            contentOffset: {x: 0, y: 400},
+                            contentSize: {height: 1000, width: 300},
+                            layoutMeasurement: {height: 500, width: 300},
+                        },
+                    });
+                });
+                const actions = getCapturedVisibleActions();
+                const createdIndex = actions?.findIndex((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) ?? -1;
+                const createdAction = actions?.at(createdIndex);
+                if (!createdAction) {
+                    throw new Error('Expected the Concierge created action');
+                }
+
+                // When the reader reveals older history.
+                act(() => getShowHistoryPress(createdAction, createdIndex)?.());
+                view.rerender(
+                    <ReportActionsList
+                        reportID={CONCIERGE_REPORT_ID}
+                        conciergeChat={undefined}
+                        onLayout={jest.fn()}
+                    />,
+                );
+                act(() => {
+                    for (const callback of animationFrames.splice(0)) {
+                        callback(0);
+                    }
+                });
+
+                // Then the reader's offset is left to LegendList's visible-content preservation.
+                expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
+            } finally {
+                requestAnimationFrameSpy.mockRestore();
+            }
+        });
+
         it('should show all actions unfiltered when user sends a message in current session', () => {
             setupMainDMConciergeMocks();
 
