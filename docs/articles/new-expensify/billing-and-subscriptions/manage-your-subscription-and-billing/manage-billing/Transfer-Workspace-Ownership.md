@@ -47,8 +47,7 @@ When the transfer is complete, you'll see a confirmation message that you're now
 - Your payment card is used for future subscription charges.
 - You can manage the workspace's billing settings.
 - You'll receive billing notifications and receipts for that workspace.
-- If the previous Workspace owner was the **Payer** and the workspace has no business bank account connected, you become the **Payer** in **Workflows > Payments**.
-- If the workspace has a business bank account connected, the previous Workspace owner stays the **Payer** until you assign a new one.
+- If the previous Workspace owner is also the **Payer** in **Workflows > Payments**, transferring ownership may also change who is assigned as the **Payer**.
 
 Depending on the workspace's status and subscription, you may also see one of the following messages:
 
@@ -94,12 +93,10 @@ You can take over an Annual subscription only if you're a Workspace Admin on eve
 
 ## Why can't I remove the previous Workspace owner after transferring ownership?
 
-You can't remove a member who is still set as the workspace's **Payer**. If you see a message asking you to set a new reimburser before removing them, the previous Workspace owner is still the **Payer**.
+If the previous Workspace owner was also the **Payer**, they may remain the **Payer** after ownership is transferred. A member who is still the **Payer** can't be removed from the workspace.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name] > Workflows**.
-2. Open **Payments**.
-3. Under **Payer**, select a different Workspace Admin.
-4. Go to **Members**, select the previous Workspace owner, and click **Remove from workspace**.
+[Learn how to change the authorized Payer](
+/articles/new-expensify/workspaces/Workspace-Workflows#how-to-choose-an-authorized-payer-without-a-connected-bank-account).
 
 ## Why can't I see billing history from the previous Workspace owner?
 
