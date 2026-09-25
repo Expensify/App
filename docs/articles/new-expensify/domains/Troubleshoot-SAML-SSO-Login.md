@@ -1,6 +1,8 @@
 ---
 title: Troubleshoot SAML SSO login
-description: Diagnose and resolve SAML SSO login issues in New Expensify, including domain-wide login failures, member-specific issues, expired certificates, and Identity Provider errors. keywords: [New Expensify, SAML SSO, SSO login failed, Require SAML login, domain locked out, expired certificate, identity provider, IdP, metadata, troubleshooting, session expired, signed out while working, re-authentication] internalScope: Audience is domain admins and IT admins. Covers troubleshooting SAML SSO login failures, common SAML errors, domain admin lockouts, and expected SAML re-authentication behavior. Does not cover initial SAML configuration or general login troubleshooting.
+description: Diagnose and resolve SAML SSO login issues in New Expensify, including domain-wide login failures, member-specific issues, expired certificates, and Identity Provider errors.
+keywords: [New Expensify, SAML SSO, SSO login failed, Require SAML login, domain locked out, expired certificate, identity provider, IdP, metadata, troubleshooting, session expired, signed out while working, re-authentication]
+internalScope: Audience is domain admins and IT admins. Covers troubleshooting SAML SSO login failures, common SAML errors, domain admin lockouts, and expected SAML re-authentication behavior. Does not cover initial SAML configuration or general login troubleshooting.
 ---
 
 # Troubleshoot SAML SSO Login
@@ -11,18 +13,20 @@ If members are having trouble signing in with SAML Single Sign-On (SSO) in New E
 
 ## Who can troubleshoot SAML SSO login
 
-Domain admins can review and update the domain's SAML SSO configuration on the web. AML SSO settings are not available on mobile.
+Domain admins can review and update the domain's SAML SSO configuration on the web. This feature is not available on mobile.
 
-# Where to find SAML SSO settings in New Expensify
+---
+
+## Where to find SAML SSO settings in New Expensify
 
 1. In the navigation tabs on the left, select **Workspaces**.
 2. Select **Domains > [domain name]**.
-3. Select **SAML**
+3. Select **SAML**.
 
 From this page, domain admins can: 
 
 - Enable SAML SSO login for the domain 
-- View and update your Identity Provider (IdP) metadata
+- View and update the Identity Provider (IdP) metadata
 - Disable or enable **Require SAML login**
 
 ---
@@ -96,7 +100,7 @@ Confirm that the NameID sent by your IdP exactly matches the member's email addr
 
 ## How to fix a bad XML metadata error
 
-This error can occur when the metadata contains formatting problems, including errors introduced when copying the x.509 certificate.
+This error can occur when the metadata contains formatting problems, including errors introduced when copying the X.509 certificate.
 
 Check that the certificate contains the complete `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` block and that the metadata doesn't contain formatting errors.
 
@@ -144,17 +148,17 @@ If **Require SAML login** was temporarily disabled while troubleshooting, confir
 
 ## What should I do before making changes to my domain's SAML SSO setup?
 
-Before making changes to your Identity Provider setup — like rotating certificates or updating endpoints — we recommend **temporarily disabling Require SAML login** in Expensify.
+Before making changes to your Identity Provider setup — like rotating certificates or updating endpoints — we recommend temporarily disabling **Require SAML login** in Expensify.
 
-This ensures domain admins can still sign in with email and password if the new configuration doesn’t work. Once you’ve uploaded the new metadata and confirmed login is working, you can safely re-enable Require SAML login.
+This ensures domain admins can still sign in with email and security code if the new configuration doesn’t work. Once you’ve uploaded the new metadata and confirmed login is working, you can safely re-enable **Require SAML login**.
 
 ## Can I make SAML login optional for some members?
 
-No. SAML settings apply to the entire domain. If **Require SAML login** is enabled, **all members** must authenticate via SAML — there’s no way to allow some members to log in with email and password while others use SAML.
+No. SAML settings apply to the entire domain. If **Require SAML login** is enabled, **all members** must authenticate via SAML — there’s no way to allow some members to log in with email and security code while others use SAML.
 
 ## Can I test a new SAML setup without locking members out?
 
-Yes. You can disable **Require SAML login** while testing or updating your SAML settings. This allows members to log in with email/password if needed. Once you're confident the new metadata works, re-enable SAML enforcement.
+Yes. You can disable **Require SAML login** while testing or updating your SAML settings. This allows members to log in with email and security code if needed. Once you're confident the new metadata works, re-enable SAML enforcement.
 
 ## Do I lose my place when SAML SSO signs me back in?
 
