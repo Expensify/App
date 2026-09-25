@@ -14,6 +14,7 @@ Managing expenses in reports helps you keep everything organized and ready for a
 - **Remove expenses from a report**: Only the member who created the report.
 - **Move expenses to a new report**: The member who created the report, and Workspace Admins (Admins can create new reports on behalf of employees by moving expenses).
 - **Delete an expense**: Only the member who created that specific expense.
+- **Delete a Draft report**: The member who created the report, and Workspace Admins. When a Workspace Admin deletes another member’s Draft report, the expenses on it become Unreported rather than deleted.
 
 To edit expenses in Approved or Paid reports, a Workspace Admin will need to unapprove the report first. The one exception is receipts: a Workspace Admin can attach or replace a receipt on an expense in an Approved report without unapproving it. [Learn how to attach or replace a receipt on an Approved report](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses).
 
