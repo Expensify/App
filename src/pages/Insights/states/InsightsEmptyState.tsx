@@ -19,6 +19,7 @@ function InsightsEmptyState() {
             headerContentStyles={[styles.insightsEmptyStateIllustration]}
             title={translate('insightsPage.emptyState.title')}
             subtitle={translate('insightsPage.emptyState.subtitle')}
+            minModalHeight={0}
         />
     );
 }

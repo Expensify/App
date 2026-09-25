@@ -894,10 +894,17 @@ function getSearchValueForPhoneOrEmail(searchTerm: string, countryCode: number) 
 }
 
 /**
+ * Verifies that a single option (category or tag) is enabled and not pending deletion
+ */
+function isOptionEnabled(option?: PolicyTag | PolicyCategory): boolean {
+    return !!option?.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+/**
  * Verifies that there is at least one enabled option
  */
 function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
-    return Object.values(options).some((option: PolicyTag | PolicyCategory) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return Object.values(options).some(isOptionEnabled);
 }
 
 /**
@@ -3193,6 +3200,7 @@ export {
     isDisablingOrDeletingLastEnabledCategory,
     isDisablingOrDeletingLastEnabledTag,
     isMakingLastRequiredTagListOptional,
+    isOptionEnabled,
     isPersonalDetailsReady,
     optionsOrderAndGroupBy,
     optionsOrderBy,

@@ -25,7 +25,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
-    Beta,
     GuideAccountIDsDerivedValue,
     IntroSelected,
     OnyxInputOrEntry,
@@ -2491,13 +2490,21 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
     return lodashMaxBy(filteredReports, (a) => [(a?.reportID && lastVisitTimes?.[a.reportID]) ?? '', a?.lastReadTime ?? '']);
 }
 
+/** Fields of a Report that `findLastAccessedReport` callers consume. */
+type LastAccessedReport = Pick<Report, 'reportID' | 'policyID' | 'chatType'>;
+
+function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | undefined {
+    if (!report?.reportID) {
+        return undefined;
+    }
+    return {reportID: report.reportID, policyID: report.policyID, chatType: report.chatType};
+}
+
 /**
- * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
- * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
- *
- * Callers that need to react to the report data arriving (rather than reading whatever the module-scoped
- * copy happens to hold at call time) can pass their own subscribed collections through `reportNameValuePairs`
- * and `reports`. Both fall back to the module-scoped copies when omitted.
+ * Finds the last accessed report for navigation fallbacks using the module-scoped
+ * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
+ * `reports` let a caller pass its own subscribed collections and fall back to the
+ * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
@@ -2506,17 +2513,14 @@ function findLastAccessedReport(
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
-): OnyxEntry<Report> {
+): LastAccessedReport | undefined {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     let reportsValues = Object.values(reports ?? deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
-        const adminReport = reportsValues.find((report) => {
-            const chatType = getChatType(report);
-            return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-        });
+        const adminReport = reportsValues.find((report) => getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
         if (adminReport) {
-            return adminReport;
+            return toLastAccessedReport(adminReport);
         }
     }
 
@@ -2556,11 +2560,11 @@ function findLastAccessedReport(
         const visibleReports = reportsValues.filter((report) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUserSession()));
         const ownedReports = visibleReports.filter((report) => report?.ownerAccountID === deprecatedCurrentUserAccountID);
         if (ownedReports.length > 0) {
-            return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
+            return toLastAccessedReport(lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? ''));
         }
-        return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
+        return toLastAccessedReport(lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? ''));
     }
-    return getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes);
+    return toLastAccessedReport(getMostRecentlyVisitedReport(reportsValues, allReportLastVisitTimes));
 }
 
 /**
@@ -3220,13 +3224,21 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
+/**
+ * Both the report-level and the transaction-level delete flows pass the money request report here, so they are
+ * indistinguishable from the arguments alone. `isReportLevelDelete` tells them apart, and defaults to the
+ * restrictive case so a caller that omits it never widens who can delete.
+ */
 function canDeleteMoneyRequestReport(
     report: OnyxEntry<Report>,
     reportTransactions: Transaction[],
     reportActions: ReportAction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    policy?: Policy,
+    isReportLevelDelete = false,
 ): boolean {
+    const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
@@ -3241,6 +3253,13 @@ function canDeleteMoneyRequestReport(
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
+    }
+
+    // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
+    // Card liability does not apply here: deleting a draft report leaves its expenses unreported rather than deleting them.
+    const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
+    if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
+        return true;
     }
 
     if (isInvoiceReport(report)) {
@@ -3313,6 +3332,8 @@ function canDeleteReportAction(
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
             rules,
+            policy ?? undefined,
+            true,
         );
     }
 
@@ -5311,12 +5332,11 @@ function canEditMultipleTransactions(
         const report = reports?.[reportKey] ?? (searchSnapshotData?.[reportKey] as OnyxEntry<Report>);
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
-        const isApproved = isReportApproved({report});
-
-        if (isApproved || isSettled(report)) {
-            return false;
-        }
-
+        // Expenses on approved and paid reports are intentionally allowed here. Per-field permission is what decides
+        // what can actually change: canEditFieldOfMoneyRequest blocks the restricted fields (amount, merchant, date,
+        // billable, reimbursable, ...) on a finalized report and keeps the coding fields (category, tag, description,
+        // tax, attendees) editable, and canEditMoneyRequest only grants those to policy admins and the report manager.
+        // That mirrors the single-expense edit flow, which admins can already use on an approved or paid expense.
         const fieldsToCheck = [
             CONST.EDIT_REQUEST_FIELD.AMOUNT,
             CONST.EDIT_REQUEST_FIELD.MERCHANT,
@@ -9238,12 +9258,32 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
     };
 }
 
+/**
+ * Builds the report action for a change of approver. Pass isReassignment when the new approver replaces the
+ * report's current one instead of being added to the workflow, so the message names the skipped approver.
+ * Pass isFinalApprover when the new approver bypasses the remaining approvers in the chain, so the message
+ * calls them the final approver.
+ */
 function buildOptimisticChangeApproverReportAction(
     managerID: number,
     actorAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    isReassignment = false,
+    previousApproverID?: number,
+    isFinalApprover?: boolean,
 ): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
+    const newApproverName = getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber});
+    let text = `changed the ${isFinalApprover ? 'final ' : ''}approver to ${newApproverName}`;
+    let html = `changed the ${isFinalApprover ? 'final ' : ''}approver to <mention-user accountID="${managerID}"/>`;
+    if (isReassignment && previousApproverID) {
+        text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
+        html += `, skipped <mention-user accountID="${previousApproverID}"/>`;
+    }
+    const mentionedAccountIDs = [managerID];
+    if (isReassignment && previousApproverID && previousApproverID !== managerID) {
+        mentionedAccountIDs.push(previousApproverID);
+    }
     return {
         actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,
         actorAccountID,
@@ -9252,8 +9292,8 @@ function buildOptimisticChangeApproverReportAction(
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: `changed the approver to ${getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber})}`,
-                html: `changed the approver to <mention-user accountID="${managerID}"/>`,
+                text,
+                html,
             },
         ],
         person: [
@@ -9265,7 +9305,9 @@ function buildOptimisticChangeApproverReportAction(
         ],
         originalMessage: {
             lastModified: created,
-            mentionedAccountIDs: [managerID],
+            mentionedAccountIDs,
+            isFinalApprover,
+            ...(isReassignment ? {isReassignment: true, previousApproverID} : {}),
         },
         shouldShow: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -10842,7 +10884,6 @@ function getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    betas: OnyxEntry<Beta[]>,
     rules: OnyxCollection<Rule>,
     filterDeprecatedTypes = false,
     isReportArchived = false,
@@ -10947,13 +10988,12 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    betas: OnyxEntry<Beta[]>,
     rules: OnyxCollection<Rule>,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
     currentUserAccountID?: number,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, betas, rules, true, isReportArchived, isRestrictedToPreferredPolicy, currentUserAccountID) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, rules, true, isReportArchived, isRestrictedToPreferredPolicy, currentUserAccountID) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -11210,7 +11250,6 @@ function canCreateRequest(
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     isReportArchived: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
     rules: OnyxCollection<Rule>,
     isRestrictedToPreferredPolicy = false,
 ): boolean {
@@ -11220,7 +11259,7 @@ function canCreateRequest(
         return false;
     }
 
-    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, betas, rules, false, isReportArchived, isRestrictedToPreferredPolicy);
+    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, rules, false, isReportArchived, isRestrictedToPreferredPolicy);
     requestOptions.push(CONST.IOU.TYPE.CREATE);
 
     return requestOptions.includes(iouType);
@@ -14762,4 +14801,5 @@ export type {
     SelfDMParameters,
     OptimisticReportAction,
     ActionErrorsByTransaction,
+    LastAccessedReport,
 };

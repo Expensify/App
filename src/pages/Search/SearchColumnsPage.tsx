@@ -4,12 +4,11 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {SearchCustomColumnIds} from '@components/Search/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {hasVendorFeatureOnAnyPolicy} from '@libs/PolicyUtils';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter, isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getCustomColumnDefault, getCustomColumns, getValidGroupBy, insertColumnBeforeTotalAmount} from '@libs/SearchUIUtils';
 
@@ -17,11 +16,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {Policy} from '@src/types/onyx';
 
-import type {OnyxCollection} from 'react-native-onyx';
-
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -33,13 +29,7 @@ function SearchColumnsPage() {
     const searchDataType = useSearchDataType(displayedSearchResults);
     const {accountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const {isBetaEnabled} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const isVendorColumnAvailableSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled),
-        [isVendorMatchingBetaEnabled],
-    );
-    const [isVendorColumnAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorColumnAvailableSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -112,6 +102,7 @@ function SearchColumnsPage() {
             fallbackPolicyID: policyForMovingExpensesID,
             sortBy: currentSearchQueryJSON?.sortBy,
             shouldShowViolationsColumn: queryHasViolationFilter(currentSearchQueryJSON),
+            isVendorColumnAvailable,
         }).filter((column): column is SearchCustomColumnIds => selectableColumns.has(column));
     })();
 
