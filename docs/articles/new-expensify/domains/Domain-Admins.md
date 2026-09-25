@@ -5,13 +5,14 @@ internalScope: Audience is Domain Admins. Covers adding and removing Domain Admi
 keywords: [New Expensify, domain admins, domain control, domain settings, domain management]
 ---
 
+# Domain Admins 
+
 Domain Admins manage your company’s domain settings in Expensify. They can claim domains, verify domain ownership, manage domain members, and configure domain-level security settings (like [SAML SSO](https://help.expensify.com/new-expensify/hubs/domains/)).
 
 ---
 
 ## How to add a Domain Admin
 
-**To add a Domain Admin:**
 1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Select **Domain admins**.
@@ -19,13 +20,23 @@ Domain Admins manage your company’s domain settings in Expensify. They can cla
 
 **Note:** A Domain Admin does not need an email address on the company domain. For example, an external bookkeeper can be a Domain Admin.
 
-Someone who tried to set up your domain themselves can ask for access instead of waiting for you to add them. [Learn how to approve or deny a Domain Admin request](/articles/new-expensify/domains/Review-Domain-Admin-Requests) when that happens.
+---
+
+## How to review an admin access request 
+
+Members can request admin access to a domain instead of waiting for a Domain Admin to add them. When a request is pending, a green dot appears next to **Domain admins**.
+
+To action the request:
+1. Select **Domain admins**.
+2. Find the pending request under **Requests**.
+3. Choose **Approve** to grant admin access or **Deny** to reject the request.
+
+![Domains tab showing a green dot indicator with an admin access request]({{site.url}}/assets/images/Domain_Domain-Admins_Access-Request.png){:width="100%"}
 
 ---
 
 ## How to remove a Domain Admin
 
-**To remove a Domain Admin:**
 1. Go to **Workspaces**, then select the **Domains** tab.
 2. Select your domain.
 3. Open **Domain admins**.
