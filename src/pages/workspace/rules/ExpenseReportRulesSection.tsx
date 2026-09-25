@@ -6,6 +6,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,6 +32,7 @@ type ExpenseReportRulesSectionProps = {
 function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayments, withApprovalsReadOnlyFallback, withPaymentsReadOnlyFallback}: ExpenseReportRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
@@ -67,7 +69,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval);
+                setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval, getReviewWorkspaceSettingsTaskCompletion());
             },
         },
         {
@@ -91,7 +93,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 }
 
                 const effectiveIsActive = !!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit ?? 0) > 0;
-                enableAutoApprovalOptions(policyID, isEnabled, effectiveIsActive, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
+                enableAutoApprovalOptions(policyID, isEnabled, effectiveIsActive, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate, getReviewWorkspaceSettingsTaskCompletion());
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -139,7 +141,13 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
+                enablePolicyAutoReimbursementLimit(
+                    policyID,
+                    isEnabled,
+                    policy?.shouldShowAutoReimbursementLimitOption,
+                    policy?.autoReimbursement?.limit,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
             },
             disabled: autoPayApprovedReportsUnavailable || !canWritePayments,
             disabledAction: withPaymentsReadOnlyFallback(),

@@ -231,13 +231,26 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         switch (feature.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
-                setPolicyPreventSelfApproval(policyID, true, policy?.preventSelfApproval);
+                setPolicyPreventSelfApproval(policyID, true, policy?.preventSelfApproval, getReviewWorkspaceSettingsTaskCompletion());
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
-                enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
+                enableAutoApprovalOptions(
+                    policyID,
+                    true,
+                    policy?.shouldShowAutoApprovalOptions,
+                    policy?.autoApproval?.limit,
+                    policy?.autoApproval?.auditRate,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
-                enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
+                enablePolicyAutoReimbursementLimit(
+                    policyID,
+                    true,
+                    policy?.shouldShowAutoReimbursementLimitOption,
+                    policy?.autoReimbursement?.limit,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {

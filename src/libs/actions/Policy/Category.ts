@@ -20,6 +20,7 @@ import type {
     SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
+    SetWorkspaceRequiresCategoryParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -35,7 +36,8 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import {pushTransactionAutoSelectionsOnyxData, pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
+import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1237,7 +1239,13 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
 }
 
 /** Pass shouldRecomputeViolations = false when tag Required changes in the same save: each recompute SETs violations from the pre-save snapshot, so two overwrite each other. */
-function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean, isVendorMatchingBetaEnabled: boolean | undefined, shouldRecomputeViolations = true) {
+function setWorkspaceRequiresCategory(
+    policyData: PolicyData,
+    requiresCategory: boolean,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    shouldRecomputeViolations = true,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresCategory,
@@ -1290,12 +1298,13 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
         pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, policyOptimisticData);
     }
 
-    const parameters = {
+    const parameters: SetWorkspaceRequiresCategoryParams = {
         policyID,
         requiresCategory,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {

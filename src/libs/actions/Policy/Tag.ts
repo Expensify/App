@@ -16,6 +16,7 @@ import type {
     SetPolicyTagsRequired,
     SetPolicyShowTagGLCodesParams,
     UpdatePolicyTagGLCodeParams,
+    SetPolicyRequiresTag,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -32,7 +33,8 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
+import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -980,7 +982,13 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
 }
 
 /** extraPolicyUpdate folds a caller's same-save requiresCategory change into this action's single violation recompute. */
-function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean, isVendorMatchingBetaEnabled: boolean | undefined, extraPolicyUpdate: Partial<Policy> = {}) {
+function setPolicyRequiresTag(
+    policyData: PolicyData,
+    requiresTag: boolean,
+    isVendorMatchingBetaEnabled: boolean | undefined,
+    extraPolicyUpdate: Partial<Policy> = {},
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const policyID = policyData.policy?.id;
 
     const policyOptimisticData: Partial<Policy> = {
@@ -1052,12 +1060,13 @@ function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean, isVe
     onyxData.successData?.push(getUpdatedTagsOnyxData(requiresTag));
 
     pushTransactionViolationsOnyxData(onyxData, policyData, isVendorMatchingBetaEnabled, policyOptimisticData, {}, getUpdatedTagsData(requiresTag));
-    const parameters = {
+    const parameters: SetPolicyRequiresTag = {
         policyID,
         requiresTag,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function setPolicyShowTagGLCodes(policyID: string | undefined, showTagGLCodes: boolean, currentShowTagGLCodes: boolean | undefined) {

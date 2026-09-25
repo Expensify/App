@@ -58,6 +58,7 @@ import type {
     SetPolicyProhibitedExpensesParams,
     SetPolicyRulesEnabledParams,
     SetWorkspaceApprovalModeParams,
+    SetPolicyExpenseMaxAmountNoItemizedReceipt,
     SetWorkspaceAutoHarvestingParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetGlobalReimbursementFXPreferenceParams,
@@ -112,7 +113,7 @@ import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
-import {buildTaskData} from '@userActions/Task';
+import {buildTaskData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
 import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
@@ -164,7 +165,7 @@ import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -739,7 +740,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 /* Set the auto harvesting on a workspace. This goes in tandem with auto reporting. so when you enable/disable
  * harvesting, you are enabling/disabling auto reporting too.
  */
-function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
+function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
     const policyID = policy.id;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -791,8 +792,8 @@ function setWorkspaceAutoHarvesting(policy: Policy, enabled: boolean) {
         },
     ];
 
-    const params: SetWorkspaceAutoHarvestingParams = {policyID, enabled};
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING, params, {optimisticData, failureData, successData});
+    const params: SetWorkspaceAutoHarvestingParams = {policyID, enabled, completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING, params, withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData));
 }
 
 function setWorkspaceAutoReportingFrequency(
@@ -2266,23 +2267,6 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
     }
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS, params, withReviewWorkspaceSettingsTaskData({optimisticData, finallyData, failureData}, reviewWorkspaceSettingsTaskData));
-}
-
-/**
- * Merge the optimistic "Review your workspace settings" onboarding-task completion data (built in the calling
- * component via getReviewWorkspaceSettingsTaskCompletionData) into a workspace-settings command's onyxData.
- */
-function withReviewWorkspaceSettingsTaskData<TKey extends OnyxKey>(
-    onyxData: OnyxData<TKey>,
-    reviewWorkspaceSettingsTaskData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>,
-) {
-    const merged = {
-        ...onyxData,
-        optimisticData: [...(onyxData.optimisticData ?? []), ...(reviewWorkspaceSettingsTaskData.optimisticData ?? [])],
-        successData: [...(onyxData.successData ?? []), ...(reviewWorkspaceSettingsTaskData.successData ?? [])],
-        failureData: [...(onyxData.failureData ?? []), ...(reviewWorkspaceSettingsTaskData.failureData ?? [])],
-    };
-    return merged;
 }
 
 function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string | undefined, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
@@ -6526,7 +6510,12 @@ function setPolicyMaxExpenseAmountNoReceipt(
  * @param policyID - id of the policy to set the itemized receipt required amount
  * @param maxExpenseAmountNoItemizedReceipt - new value of the itemized receipt required amount
  */
-function setPolicyMaxExpenseAmountNoItemizedReceipt(policyID: string, maxExpenseAmountNoItemizedReceipt: string, currentMaxExpenseAmountNoItemizedReceipt: number | undefined) {
+function setPolicyMaxExpenseAmountNoItemizedReceipt(
+    policyID: string,
+    maxExpenseAmountNoItemizedReceipt: string,
+    currentMaxExpenseAmountNoItemizedReceipt: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const parsedMaxExpenseAmountNoItemizedReceipt =
         maxExpenseAmountNoItemizedReceipt === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAmountNoItemizedReceipt));
 
@@ -6566,12 +6555,13 @@ function setPolicyMaxExpenseAmountNoItemizedReceipt(policyID: string, maxExpense
         ],
     };
 
-    const parameters = {
+    const parameters: SetPolicyExpenseMaxAmountNoItemizedReceipt = {
         policyID,
         maxExpenseAmountNoItemizedReceipt: parsedMaxExpenseAmountNoItemizedReceipt,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AMOUNT_NO_ITEMIZED_RECEIPT, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 /**
@@ -7398,7 +7388,12 @@ function setPolicyPreventMemberCreatedTitle(
  * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
  * @param currentPreventSelfApproval - current value of preventSelfApproval
  */
-function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean, currentPreventSelfApproval: boolean | undefined) {
+function setPolicyPreventSelfApproval(
+    policyID: string,
+    preventSelfApproval: boolean,
+    currentPreventSelfApproval: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     if (preventSelfApproval === currentPreventSelfApproval) {
         return;
     }
@@ -7448,13 +7443,10 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
     const parameters: SetPolicyPreventSelfApprovalParams = {
         preventSelfApproval,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_SELF_APPROVAL, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.SET_POLICY_PREVENT_SELF_APPROVAL, parameters, withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData));
 }
 
 /**
@@ -7463,7 +7455,12 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
  * @param limit - max amount for auto-approval of the reports in the given policy
  * @param currentAutoApprovalLimit - current value of autoApproval.limit
  */
-function setPolicyAutomaticApprovalLimit(policyID: string, limit: string, currentAutoApprovalLimit: number | undefined) {
+function setPolicyAutomaticApprovalLimit(
+    policyID: string,
+    limit: string,
+    currentAutoApprovalLimit: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
@@ -7520,13 +7517,14 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string, curren
     const parameters: SetPolicyAutomaticApprovalLimitParams = {
         limit: parsedLimit,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_LIMIT, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_LIMIT,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 /**
@@ -7535,7 +7533,12 @@ function setPolicyAutomaticApprovalLimit(policyID: string, limit: string, curren
  * @param auditRate - percentage of the reports to be qualified for a random audit
  * @param currentAutoApprovalAuditRate - current value of autoApproval.auditRate
  */
-function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string, currentAutoApprovalAuditRate: number | undefined) {
+function setPolicyAutomaticApprovalRate(
+    policyID: string,
+    auditRate: string,
+    currentAutoApprovalAuditRate: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const fallbackAuditRate = auditRate === '' ? '0' : auditRate;
     const parsedAuditRate = parseInt(fallbackAuditRate, 10) / 100;
 
@@ -7595,13 +7598,14 @@ function setPolicyAutomaticApprovalRate(policyID: string, auditRate: string, cur
     const parameters: SetPolicyAutomaticApprovalRateParams = {
         auditRate: parsedAuditRate,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_RATE, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.SET_POLICY_AUTOMATIC_APPROVAL_RATE,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 /**
@@ -7615,6 +7619,7 @@ function enableAutoApprovalOptions(
     currentShouldShowAutoApprovalOptions: boolean | undefined,
     currentAutoApprovalLimit: number | undefined,
     currentAutoApprovalAuditRate: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     if (enabled === currentShouldShowAutoApprovalOptions) {
         return;
@@ -7675,13 +7680,14 @@ function enableAutoApprovalOptions(
     const parameters: EnablePolicyAutoApprovalOptionsParams = {
         enabled,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 /**
@@ -7689,7 +7695,12 @@ function enableAutoApprovalOptions(
  * @param policyID - id of the policy to apply the limit to
  * @param limit - max amount for auto-payment for the reports in the given policy
  */
-function setPolicyAutoReimbursementLimit(policyID: string, limit: string, currentAutoReimbursementLimit: number | undefined) {
+function setPolicyAutoReimbursementLimit(
+    policyID: string,
+    limit: string,
+    currentAutoReimbursementLimit: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+) {
     const fallbackLimit = limit === '' ? '0' : limit;
     const parsedLimit = CurrencyUtils.convertToBackendAmount(parseFloat(fallbackLimit));
 
@@ -7744,13 +7755,14 @@ function setPolicyAutoReimbursementLimit(policyID: string, limit: string, curren
     const parameters: SetPolicyAutoReimbursementLimitParams = {
         limit: parsedLimit,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_AUTO_REIMBURSEMENT_LIMIT, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.SET_POLICY_AUTO_REIMBURSEMENT_LIMIT,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 /**
@@ -7764,6 +7776,7 @@ function enablePolicyAutoReimbursementLimit(
     enabled: boolean,
     currentShouldShowAutoReimbursementLimitOption: boolean | undefined,
     currentAutoReimbursementLimit: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     if (enabled === currentShouldShowAutoReimbursementLimitOption) {
         return;
@@ -7821,13 +7834,14 @@ function enablePolicyAutoReimbursementLimit(
     const parameters: EnablePolicyAutoReimbursementLimitParams = {
         enabled,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 function updateInvoiceCompanyName(policyID: string, companyName: string, currentCompanyName: string | undefined) {
