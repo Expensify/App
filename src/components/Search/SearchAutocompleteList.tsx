@@ -322,7 +322,8 @@ function SearchAutocompleteList({
             isDefaultRoomsBetaEnabled,
             isUsedInChatFinder: true,
             includeReadOnly: true,
-            searchQuery: autocompleteQueryValue,
+            // Auth has already matched these report IDs; only apply the normal display/visibility gates here.
+            searchQuery: '',
             maxResults: orderedReportIDs.length,
             includeUserToInvite: false,
             includeRecentReports: true,
@@ -352,7 +353,6 @@ function SearchAutocompleteList({
         convertToDisplayString,
         draftComments,
         isDefaultRoomsBetaEnabled,
-        autocompleteQueryValue,
         countryCode,
         loginList,
         visibleReportActionsData,
