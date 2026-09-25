@@ -150,8 +150,9 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         selectedTotal: undefined,
     });
     // The hash the footer is waiting on after asking for a different total, which is the only search whose result
-    // changes the figure on display.
-    const [pendingTotalHash, setPendingTotalHash] = useState<number | undefined>(undefined);
+    // changes the figure on display, stamped with the snapshot hash the request was made from. The stamp ends the wait
+    // on its own once the snapshot moves off it, so a later visit to that hash never skeletons the total again.
+    const [pendingTotal, setPendingTotal] = useState<{hash: number | undefined; fromHash: number | undefined}>();
     const footerSelection = getFooterSelectionFromQuery(currentSearchQueryJSON);
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
@@ -399,15 +400,6 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         (shouldUseClientTotal ? hasConvertibleSelection && !areAllSelectedConverted : !isSearchTotalFresh || (hasExcludedExpenses && !areAllExcludedConverted));
     const shouldShowFooter = (!areAllMatchingItemsSelected && selectedTransactionsKeys.length > 0) || (shouldAllowFooterTotals && !!metadata?.count);
 
-    // The search the footer asked for has answered, so stop waiting on it. Left set, it would skeleton the total
-    // again on any later visit to that hash whose snapshot has not landed yet.
-    useEffect(() => {
-        if (pendingTotalHash === undefined || metadata?.hash !== pendingTotalHash) {
-            return;
-        }
-        setPendingTotalHash(undefined);
-    }, [metadata?.hash, pendingTotalHash]);
-
     // Fetch converted figures whenever a custom currency is chosen and no request has covered what the footer needs.
     // Each request stamps the source figures it converts, so the requested checks keep this to one request per
     // out-of-coverage change (or per edit) rather than one per checkbox or render.
@@ -566,7 +558,7 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         if (hasPartialSelection) {
             setFooterTotalState({searchHash: currentSearchHash, selectedTotal: nextTotalType});
         } else if (currentSearchQueryJSON) {
-            setPendingTotalHash(buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash);
+            setPendingTotal({hash: buildSearchQueryJSON(getQueryWithFooterSelection(currentSearchQueryJSON, {footerTotal: nextTotalType}))?.hash, fromHash: metadata?.hash});
         }
 
         // Written in both cases, so the choice is saved against this search and restored on the next visit. The page
@@ -687,7 +679,8 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         return null;
     }
 
-    const isAwaitingFooterTotal = pendingTotalHash !== undefined && pendingTotalHash === currentSearchHash && metadata?.hash !== currentSearchHash;
+    const isAwaitingFooterTotal =
+        pendingTotal?.hash !== undefined && pendingTotal.hash === currentSearchHash && metadata?.hash !== currentSearchHash && metadata?.hash === pendingTotal.fromHash;
 
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && isAwaitingFooterTotal);
