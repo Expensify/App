@@ -33,8 +33,10 @@ You can add expenses in two ways:
 1. Open the draft report.
 2. Click **More** > **Add expense** > **Add existing expense**.
 3. (Optional) Use the **Status** filter to show only **Unreported** or **Draft** expenses.
-3. Click one or more expenses.
-4. Click **Add to report**.
+4. Select the checkbox next to each expense you want to add. You can also click or tap anywhere on a row to select it.
+5. Click **Add to report**.
+
+**Note:** On mobile, the checkboxes on the **Add existing expense** list appear as soon as the list opens, and a single tap selects an expense. Unlike other lists in New Expensify, you do not long-press a row and tap **Select** to start selecting here.
 
 ---
 
