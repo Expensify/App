@@ -6788,9 +6788,9 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
-function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate, reportTransactions: Transaction[]) {
     let reportIDParam = reportID;
-    const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const allReportTransactions = reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
     if (allTransactionIDs.length !== transactionIDList.length) {
         reportIDParam = '-1';
@@ -7907,6 +7907,7 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction,
     isTrackIntentUser,
     getCurrencyDecimals,
+    reportTransactions,
     rules,
     delegateAccountID,
 }: {
@@ -7924,6 +7925,7 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
 }) {
@@ -8274,9 +8276,8 @@ function buildOptimisticChangePolicyData({
     // Only clear for transactions that don't match the destination currency - matching transactions can keep their values
     const sourceCurrency = report.currency;
     const destinationCurrency = policy.outputCurrency;
-    const transactions = getReportTransactions(reportID);
 
-    for (const transaction of transactions) {
+    for (const transaction of reportTransactions) {
         if (!shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency)) {
             continue;
         }
@@ -8315,7 +8316,7 @@ function buildOptimisticChangePolicyData({
         let newReimbursableTotal = 0;
         let newUnheldReimbursableTotal = 0;
 
-        for (const transaction of transactions) {
+        for (const transaction of reportTransactions) {
             const transactionCurrency = getCurrency(transaction);
 
             // Only include transactions that match the destination currency
@@ -8447,6 +8448,7 @@ function changeReportPolicy({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        reportTransactions,
         rules,
         delegateAccountID,
     });
@@ -8567,6 +8569,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        reportTransactions,
         rules,
         delegateAccountID,
     });

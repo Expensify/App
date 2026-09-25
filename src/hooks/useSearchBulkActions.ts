@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
@@ -565,6 +566,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         delegateEmail,
     } = usePaymentContext();
     const allTransactions = useAllTransactions();
+    const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -1152,6 +1154,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     setIsDownloadErrorModalVisible(true);
                 },
                 translate,
+                allReportsTransactionsAndViolations,
             );
             if (!didFail) {
                 clearSelectedTransactions(undefined, true);
@@ -1177,6 +1180,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             currentSearchResults?.data,
             getCSVExportParameters,
+            allReportsTransactionsAndViolations,
         ],
     );
 

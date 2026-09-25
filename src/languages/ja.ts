@@ -1607,7 +1607,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>領収書のアップロード中にエラーが発生しました。後で再度お試しいただくために、<a href="download">領収書を保存</a>してから、時間をおいて<a href="retry">もう一度お試しください</a>。</rbr>',
             receiptFailureMessageShort: 'レシートのアップロード中にエラーが発生しました。',
-            receiptUploadFailedMessage: 'レシートのアップロードに失敗しました。レシートを保存するか、経費を削除して失うかを選択してください。',
+            receiptUploadFailedMessage: 'アップロードに失敗しました。もう一度お試しいただくか、あとで保存してください。',
             saveReceipt: '領収書を保存',
             genericDeleteFailureMessage: 'この経費の削除中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
@@ -1637,6 +1637,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reportsNotMarkedAsDoneDescription: 'これらのレポートを完了済みにできませんでした。経費が保留中や未処理になっていないか確認してから、もう一度お試しください。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
+            receiptUploadFailedSaveOnlyMessage: 'アップロードに失敗しました。レシートを保存して保持してください。',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: 'ご注意ください！このエラーを閉じると、アップロード済みのレシートが完全に削除されます。本当に続行しますか？',
@@ -2935,10 +2936,10 @@ ${date} の ${merchant} への ${amount}`,
             approverSubtitle: 'すべての承認者は、既存のワークフローに属しています。',
             bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
-        configureViaHR: ({provider}: {provider: string}) => `${provider} で設定する。`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `${provider} で設定する。`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `承認は${provider}連携によって管理されています。承認ワークフローを更新するには、${provider}接続設定に移動してください。`,
-        goToHRSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
+        goToProviderSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
         approverFromProvider: ({provider}: {provider: string}) => `${provider}から`,
         finalApprover: '最終承認者',
         manager: 'マネージャー',
@@ -10999,18 +11000,8 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: '拡張されたベンダー対応付け',
-                body: '主要な会計ソフトへのスムーズなマッピングのために、取引先とカスタムルールを作成できます。',
-                cta: '試してみる',
-            },
-            member: {
-                heading: 'あらかじめ作成されたエージェントをご用意しました',
-                body: 'あらかじめ用意されたエージェントやカスタムエージェントを使って、経費を自動的にコード化・分割・提出できます。',
-                cta: '試してみる',
-            },
-        },
+        heading: 'ExpensifyをClaudeに接続',
+        body: '経費データをClaudeで直接検索・分析・要約できます。',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',

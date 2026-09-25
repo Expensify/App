@@ -21,11 +21,11 @@ import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {isAnyHRReadOnlyWorkflowMode} from '@libs/merge/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -82,7 +82,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         (isEmptyObject(policy) && !isLoadingReportData) ||
         !canWriteApprovals ||
         isPendingDeletePolicy(policy) ||
-        isAnyHRReadOnlyWorkflowMode(policy) ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
     const approverDisplayName = Str.isSMSLogin(currentApprover?.displayName ?? '') ? formatPhoneNumber(currentApprover?.displayName ?? '') : (currentApprover?.displayName ?? '');
