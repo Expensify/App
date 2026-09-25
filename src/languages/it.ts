@@ -8137,6 +8137,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 autoPayApprovedReportsSubtitle: 'Configura quali note spese sono idonee per il pagamento automatico.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Inserisci un importo inferiore a ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle: 'Vai su Altre funzionalità e abilita i flussi di lavoro, poi aggiungi i pagamenti per sbloccare questa funzione.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Il pagamento automatico è disponibile solo con il piano Control. [Esegui l’upgrade](${upgradeLink}) per sbloccare questa funzione.`,
                 autoPayReportsUnderTitle: 'Paga automaticamente i report sotto',
                 autoPayReportsUnderDescription: 'Le note spese pienamente conformi inferiori a questo importo verranno rimborsate automaticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Aggiungi ${featureName} per sbloccare questa funzione.`,

@@ -8183,6 +8183,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 autoPayApprovedReportsSubtitle: 'Legen Sie fest, welche Spesenabrechnungen für die automatische Zahlung infrage kommen.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Bitte gib einen Betrag ein, der kleiner als ${currency ?? ''}20.000 ist`,
                 autoPayApprovedReportsLockedSubtitle: 'Gehe zu „Weitere Funktionen“ und aktiviere Workflows, dann füge Zahlungen hinzu, um diese Funktion freizuschalten.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Automatische Zahlung ist nur im Control-Tarif verfügbar. [Upgrade](${upgradeLink}), um diese Funktion freizuschalten.`,
                 autoPayReportsUnderTitle: 'Berichte für automatische Bezahlung unter',
                 autoPayReportsUnderDescription: 'Vollständig konforme Spesenabrechnungen unter diesem Betrag werden automatisch bezahlt.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Füge ${featureName} hinzu, um diese Funktion freizuschalten.`,

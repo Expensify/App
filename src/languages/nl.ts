@@ -8115,6 +8115,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 autoPayApprovedReportsSubtitle: 'Configureren welke onkostendeclaraties in aanmerking komen voor automatische betaling.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Voer een bedrag in dat lager is dan ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle: 'Ga naar Meer functies en schakel Workflows in, voeg vervolgens Betalingen toe om deze functie te ontgrendelen.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Automatisch betalen is alleen beschikbaar met het Control-abonnement. [Upgrade](${upgradeLink}) om deze functie te ontgrendelen.`,
                 autoPayReportsUnderTitle: 'Automatisch rapporten betalen onder',
                 autoPayReportsUnderDescription: 'Volledig conforme onkostendeclaraties onder dit bedrag worden automatisch betaald.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Voeg ${featureName} toe om deze functie te ontgrendelen.`,

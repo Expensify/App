@@ -8547,6 +8547,8 @@ ${reportName}`,
                 autoPayApprovedReportsLimitError: (currency?: string) => `Παρακαλούμε εισαγάγετε ένα ποσό μικρότερο από ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle:
                     'Μεταβείτε στις πρόσθετες λειτουργίες και ενεργοποιήστε τις ροές εργασιών, έπειτα προσθέστε πληρωμές για να ξεκλειδώσετε αυτή τη λειτουργία.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Η αυτόματη πληρωμή είναι διαθέσιμη μόνο στο πλάνο Control. [Κάντε αναβάθμιση](${upgradeLink}) για να ξεκλειδώσετε αυτή τη λειτουργία.`,
                 autoPayReportsUnderTitle: 'Αυτόματη πληρωμή αναφορών κάτω από',
                 autoPayReportsUnderDescription: 'Πλήρως συμβατικές αναφορές εξόδων κάτω από αυτό το ποσό θα εξοφλούνται αυτόματα.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Προσθέστε ${featureName} για να ξεκλειδώσετε αυτήν τη δυνατότητα.`,

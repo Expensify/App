@@ -8576,6 +8576,7 @@ const translations = {
                 autoPayApprovedReportsSubtitle: 'Configure which expense reports are eligible for auto-pay.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Please enter an amount less than ${currency ?? ''}20,000`,
                 autoPayApprovedReportsLockedSubtitle: 'Go to more features and enable workflows, then add payments to unlock this feature.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) => `Auto-pay is only available on the Control plan. [Upgrade](${upgradeLink}) to unlock this feature.`,
                 autoPayReportsUnderTitle: 'Auto-pay reports under',
                 autoPayReportsUnderDescription: 'Fully compliant expense reports under this amount will be automatically paid.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Add ${featureName} to unlock this feature.`,

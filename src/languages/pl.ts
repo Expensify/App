@@ -8142,6 +8142,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 autoPayApprovedReportsSubtitle: 'Skonfiguruj, które raporty wydatków kwalifikują się do automatycznej płatności.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Wprowadź kwotę mniejszą niż ${currency ?? ''}20 000`,
                 autoPayApprovedReportsLockedSubtitle: 'Przejdź do „Więcej funkcji” i włącz Workflows, a następnie dodaj płatności, aby odblokować tę funkcję.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `Automatyczna płatność jest dostępna tylko w planie Control. [Uaktualnij](${upgradeLink}), aby odblokować tę funkcję.`,
                 autoPayReportsUnderTitle: 'Automatycznie opłacaj raporty w ramach',
                 autoPayReportsUnderDescription: 'W pełni zgodne raporty wydatków poniżej tej kwoty zostaną opłacone automatycznie.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Dodaj ${featureName}, aby odblokować tę funkcję.`,

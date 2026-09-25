@@ -8122,6 +8122,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 autoPayApprovedReportsSubtitle: 'Configurar quais relatórios de despesas são elegíveis para pagamento automático.',
                 autoPayApprovedReportsLimitError: (currency?: string) => `Insira um valor menor que ${currency ?? ''}20.000`,
                 autoPayApprovedReportsLockedSubtitle: 'Vá para mais recursos e ative os fluxos de trabalho, depois adicione pagamentos para desbloquear este recurso.',
+                autoPayApprovedReportsControlPlanSubtitle: (upgradeLink: string) =>
+                    `O pagamento automático está disponível apenas no plano Control. [Faça upgrade](${upgradeLink}) para desbloquear este recurso.`,
                 autoPayReportsUnderTitle: 'Relatórios com pagamento automático em',
                 autoPayReportsUnderDescription: 'Relatórios de despesas totalmente compatíveis abaixo deste valor serão pagos automaticamente.',
                 unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `Adicione ${featureName} para desbloquear este recurso.`,
