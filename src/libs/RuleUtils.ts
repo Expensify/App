@@ -9,9 +9,24 @@ import type {ExpenseDefaultAction, ExpenseDefaultRule} from '@src/types/onyx/Exp
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
+/**
+ * The index-keyed object shape the rules API uses for lists (`['a', 'b']` becomes `{'1': 'a', '2': 'b'}`). The
+ * indices start at 1 because PHP decodes a 0-keyed JSON object as a list and re-encodes it as a JSON array,
+ * which loses the object shape the rules API expects.
+ */
+function toIndexMap<T>(values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
+}
+
+/** Unwraps one of those index-keyed lists. The indices only order the list, so every reader drops them. */
+function fromIndexMap<T>(indexMap: Record<string, T> | undefined): T[] {
+    return Object.values(indexMap ?? {});
+}
+
 /** A rule's kind is read off its triggers, since nothing on the rule itself says which one it is. */
 function getRuleTriggers(rule: Rule): string[] {
-    return Object.values(rule.triggers ?? {});
+    const triggers: Record<string, string> | undefined = rule.triggers;
+    return fromIndexMap(triggers);
 }
 
 /**
@@ -40,8 +55,8 @@ function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDef
     }
 
     // A rule's actions are one kind or the other, so widen to the union before reading the shared name.
-    const actionsByIndex: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> = rule.actions ?? {};
-    const actions = Object.values(actionsByIndex);
+    const actionsByIndex: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> | undefined = rule.actions;
+    const actions = fromIndexMap(actionsByIndex);
     const hasCreateTransactionTrigger = getRuleTriggers(rule).some((trigger) => trigger === CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
     const hasSetAction = actions.some((action) => action?.name === CONST.RULES.ACTIONS.SET);
 
@@ -53,9 +68,14 @@ function isRuleFilterNode(value: unknown): value is RuleFilterNode {
     return !!value && typeof value === 'object' && 'left' in value && 'operator' in value && 'right' in value;
 }
 
-/** A leaf node compares a single field: its `left` is a field name rather than another node. */
-function isRuleFilterComparison(node: RuleFilterNode): node is RuleFilterComparison {
-    return typeof node.left === 'string';
+/**
+ * A leaf node compares a single field, rather than joining two other nodes.
+ *
+ * Both shapes look the same (`{operator, left, right}`), so the giveaway is `left`: a comparison points at a
+ * field name, a combination points at another node.
+ */
+function isRuleFilterComparison(node: RuleFilterNode | undefined): node is RuleFilterComparison {
+    return !!node && typeof node.left === 'string';
 }
 
 /** Flattens a filter tree into its leaf comparisons, left to right. */
@@ -70,4 +90,4 @@ function getRuleFilterLeaves(filters: RuleFilterNode | undefined): RuleFilterCom
     return [...getRuleFilterLeaves(filters.left), ...getRuleFilterLeaves(filters.right)];
 }
 
-export {getRuleFilterLeaves, isApprovalWorkflowRule, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode};
+export {fromIndexMap, getRuleFilterLeaves, isApprovalWorkflowRule, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode, toIndexMap};

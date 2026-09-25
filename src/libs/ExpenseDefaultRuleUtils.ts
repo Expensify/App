@@ -22,8 +22,7 @@ import type {ValueOf} from 'type-fest';
 
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
-import {getRuleFilterLeaves, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode} from './RuleUtils';
-import {toIndexMap} from './WorkflowUtils';
+import {fromIndexMap, getRuleFilterLeaves, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode, toIndexMap} from './RuleUtils';
 
 /** The form shape the merchant rule editor round-trips a rule through. */
 type MerchantRuleFormValues = {
@@ -77,26 +76,58 @@ const ACTION_FIELD_ORDER = [FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.TAX
 /** Merchant match types the editor can represent. Any other operator on the merchant node makes a rule read-only. */
 const SUPPORTED_MERCHANT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, CONTAINS]);
 
-const STRING_ACTION_FIELDS = new Set<ExpenseDefaultActionField>([FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.VENDOR_ID, FIELD.COMMENT]);
-const BOOLEAN_ACTION_FIELDS = new Set<ExpenseDefaultActionField>([FIELD.REIMBURSABLE, FIELD.BILLABLE]);
+/**
+ * The form key each action field reads back into, which makes reading a rule the mirror of writing one.
+ *
+ * A field that is absent here has no form input, so a rule setting it is read-only rather than landing in
+ * whichever branch happens to catch it.
+ */
+const STRING_ACTION_FIELD_TO_FORM_KEY = {
+    [FIELD.MERCHANT]: 'merchant',
+    [FIELD.CATEGORY]: 'category',
+    [FIELD.TAG]: 'tag',
+    [FIELD.VENDOR_ID]: 'vendorID',
+    [FIELD.COMMENT]: 'comment',
+} as const satisfies Partial<Record<ExpenseDefaultActionField, keyof MerchantRuleFormValues>>;
 
-/** The rule format has no notion of an empty value: a field the admin cleared is simply not set. */
+/** See `STRING_ACTION_FIELD_TO_FORM_KEY`. */
+const BOOLEAN_ACTION_FIELD_TO_FORM_KEY = {
+    [FIELD.REIMBURSABLE]: 'reimbursable',
+    [FIELD.BILLABLE]: 'billable',
+} as const satisfies Partial<Record<ExpenseDefaultActionField, keyof MerchantRuleFormValues>>;
+
+function isStringActionField(field: ExpenseDefaultActionField): field is keyof typeof STRING_ACTION_FIELD_TO_FORM_KEY {
+    return field in STRING_ACTION_FIELD_TO_FORM_KEY;
+}
+
+function isBooleanActionField(field: ExpenseDefaultActionField): field is keyof typeof BOOLEAN_ACTION_FIELD_TO_FORM_KEY {
+    return field in BOOLEAN_ACTION_FIELD_TO_FORM_KEY;
+}
+
+/**
+ * The rule format has no notion of an empty value: a field the admin cleared is simply not set.
+ *
+ * The value is trimmed as well as tested, so a field holding only padding round-trips as unset rather than as
+ * whitespace the admin never typed.
+ */
 function emptyToUndefined(value: string | undefined): string | undefined {
-    return value?.trim() ? value : undefined;
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+    return trimmed;
 }
 
 /** Lists a rule's actions keyed by their stringified index. Rules of other kinds (approval workflows) carry actions of a different shape. */
 function getRuleActionEntries(rule: Rule | ExpenseDefaultRule | undefined): Array<[string, ExpenseDefaultAction | ApprovalWorkflowAction]> {
-    if (!rule?.actions) {
-        return [];
-    }
-    const actions: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> = rule.actions;
-    return Object.entries(actions);
+    const actions: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> | undefined = rule?.actions;
+    return Object.entries(actions ?? {});
 }
 
 /** Lists a rule's actions. See `getRuleActionEntries`. */
 function getRuleActions(rule: Rule | ExpenseDefaultRule | undefined): Array<ExpenseDefaultAction | ApprovalWorkflowAction> {
-    return getRuleActionEntries(rule).map(([, action]) => action);
+    const actions: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> | undefined = rule?.actions;
+    return fromIndexMap(actions);
 }
 
 /** `GetRules` returns every rule the user can see, so callers have to narrow the collection to one policy themselves. */
@@ -220,7 +251,7 @@ function isExpenseDefaultTaxValue(value: unknown): value is ExpenseDefaultTaxVal
 
 /** Every trigger has to be one the editor knows about, otherwise saving the form would drop the rest. */
 function areTriggersEditable(triggers: Record<string, string> | undefined): boolean {
-    const triggerValues = Object.values(triggers ?? {});
+    const triggerValues = fromIndexMap(triggers);
     return triggerValues.length > 0 && triggerValues.every((trigger) => trigger === TRIGGER.CREATE_TRANSACTION);
 }
 
@@ -281,33 +312,20 @@ function getMerchantRuleFormValues(rule: Rule | ExpenseDefaultRule | undefined):
 
         const {field, value} = action;
 
-        if (STRING_ACTION_FIELDS.has(field)) {
+        if (isStringActionField(field)) {
             if (typeof value !== 'string') {
                 return undefined;
             }
-            if (field === FIELD.COMMENT) {
-                formValues.comment = Parser.htmlToMarkdown(value);
-            } else if (field === FIELD.MERCHANT) {
-                formValues.merchant = value;
-            } else if (field === FIELD.CATEGORY) {
-                formValues.category = value;
-            } else if (field === FIELD.TAG) {
-                formValues.tag = value;
-            } else {
-                formValues.vendorID = value;
-            }
+            // Descriptions are stored as HTML and edited as markdown. Every other string field is stored as typed.
+            formValues[STRING_ACTION_FIELD_TO_FORM_KEY[field]] = field === FIELD.COMMENT ? Parser.htmlToMarkdown(value) : value;
             continue;
         }
 
-        if (BOOLEAN_ACTION_FIELDS.has(field)) {
+        if (isBooleanActionField(field)) {
             if (typeof value !== 'boolean') {
                 return undefined;
             }
-            if (field === FIELD.REIMBURSABLE) {
-                formValues.reimbursable = value;
-            } else {
-                formValues.billable = value;
-            }
+            formValues[BOOLEAN_ACTION_FIELD_TO_FORM_KEY[field]] = value;
             continue;
         }
 
@@ -433,8 +451,8 @@ function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefine
 export type {MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
-    canEditMerchantRule,
     buildMerchantRule,
+    canEditMerchantRule,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getMerchantRuleFormValues,

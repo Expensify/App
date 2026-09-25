@@ -47,7 +47,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
 import {createHasExpenseDefaultRuleErrorsSelector} from '@selectors/Rule';
 import {emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -89,8 +89,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
-    const hasMerchantRuleErrorsSelector = useMemo(() => createHasExpenseDefaultRuleErrorsSelector(policyID), [policyID]);
-    const [hasMerchantRuleErrors] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: hasMerchantRuleErrorsSelector});
+    const [hasMerchantRuleErrors] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createHasExpenseDefaultRuleErrorsSelector(policyID)});
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
@@ -152,7 +151,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             return;
         }
         openPolicyInitialPage(routePolicyID);
-        // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever a workspace is opened.
+        // Deliberately not `useRulesPrefetch`, which fetches once per session for screens that only need a count.
+        // Opening a workspace is the point at which its rules have to be current, including after a reconnect.
         getRules();
     };
     useNetwork({onReconnect: fetchPolicyData});

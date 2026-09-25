@@ -52,4 +52,4 @@ type ApprovalWorkflowRule = {
     isDefaultApprovalWorkflow?: boolean;
 };
 
-export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTrigger, ApprovalWorkflowTriggers};
+export type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers};

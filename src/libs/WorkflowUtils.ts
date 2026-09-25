@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {ApprovalWorkflowAction, ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTrigger, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -25,7 +25,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './merge/HRUtils';
 import {rand64} from './NumberUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
-import {isApprovalWorkflowRule} from './RuleUtils';
+import {fromIndexMap, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -762,15 +762,6 @@ function buildToComparison(email: string): RuleFilterComparison {
     return buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, email);
 }
 
-/**
- * The index-keyed object shape the rules API uses for lists (`['a', 'b'] -> {'1': 'a', '2': 'b'}`). The indices
- * start at 1 because PHP decodes a 0-keyed JSON object as a list and re-encodes it as a JSON array, which loses
- * the object shape the rules API expects.
- */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
-}
-
 function buildSubmitTriggers(): ApprovalWorkflowTriggers {
     return toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]);
 }
@@ -897,20 +888,9 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     return dedupedRules.map((rule) => ({...rule, isDefaultApprovalWorkflow: true}));
 }
 
-/**
- * True when this node is a single comparison like `from = alice@expensify.com`, rather than an `AND` that
- * joins two other nodes.
- *
- * Both look the same (`{operator, left, right}`), so the giveaway is `left`: a comparison points at a field
- * name, an `AND` points at another node.
- */
-function isComparisonLeaf(node: RuleFilterNode | undefined): node is RuleFilterComparison {
-    return !!node && typeof node.left === 'string';
-}
-
 /** True when a comparison node targets the `from` field with an equality operator. */
 function isSubmitterFilter(node: RuleFilterNode): boolean {
-    return isComparisonLeaf(node) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && node.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
+    return isRuleFilterComparison(node) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && node.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 }
 
 /** Return the first comparison leaf in the filter tree whose `left` field matches. */
@@ -918,7 +898,7 @@ function getFilter(node: RuleFilterNode | undefined, leftKey: string): RuleFilte
     if (!node) {
         return undefined;
     }
-    if (isComparisonLeaf(node)) {
+    if (isRuleFilterComparison(node)) {
         return node.left === leftKey ? node : undefined;
     }
     return getFilter(node.left, leftKey) ?? getFilter(node.right, leftKey);
@@ -926,7 +906,7 @@ function getFilter(node: RuleFilterNode | undefined, leftKey: string): RuleFilte
 
 /** Rebuild a filter tree, replacing every comparison leaf with the result of `mapLeaf`. */
 function mapFilters(node: RuleFilterNode, mapLeaf: (leaf: RuleFilterComparison) => RuleFilterComparison): RuleFilterNode {
-    if (isComparisonLeaf(node)) {
+    if (isRuleFilterComparison(node)) {
         return mapLeaf(node);
     }
     return {...node, left: mapFilters(node.left, mapLeaf), right: mapFilters(node.right, mapLeaf)};
@@ -976,7 +956,7 @@ function getRuleShape(rule: ApprovalWorkflowRule): string {
         if (!node) {
             return node;
         }
-        if (isComparisonLeaf(node)) {
+        if (isRuleFilterComparison(node)) {
             if (isSubmitterFilter(node)) {
                 return {operator: node.operator, left: node.left};
             }
@@ -1236,29 +1216,19 @@ function applyApprovalWorkflowRulesDiff(existingRules: Record<string, ApprovalWo
     return result;
 }
 
-/** The triggers of a rule as a flat list. */
-function getRuleTriggers(rule: ApprovalWorkflowRule): ApprovalWorkflowTrigger[] {
-    return Object.values(rule.triggers ?? {});
-}
-
-/** The actions of a rule as a flat list. */
-function getRuleActions(rule: ApprovalWorkflowRule): ApprovalWorkflowAction[] {
-    return Object.values(rule.actions ?? {});
-}
-
 /** True when the rule fires on report submission. */
 function isSubmitRule(rule: ApprovalWorkflowRule): boolean {
-    return getRuleTriggers(rule).includes(CONST.RULES.TRIGGERS.REPORT_SUBMIT);
+    return fromIndexMap(rule.triggers).includes(CONST.RULES.TRIGGERS.REPORT_SUBMIT);
 }
 
 /** True when the rule approves (finalizes) the report. */
 function isApproveReportRule(rule: ApprovalWorkflowRule): boolean {
-    return getRuleActions(rule).some((action) => action.name === CONST.RULES.ACTIONS.APPROVE_REPORT);
+    return fromIndexMap(rule.actions).some((action) => action.name === CONST.RULES.ACTIONS.APPROVE_REPORT);
 }
 
 /** The approver a `ForwardTo` rule routes to, if any. */
 function getForwardApprover(rule: ApprovalWorkflowRule): string | undefined {
-    return getRuleActions(rule).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver;
+    return fromIndexMap(rule.actions).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver;
 }
 
 /**
@@ -1476,9 +1446,9 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
         }
         const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
         result[ruleID] = {
-            triggers: toIndexMap(Object.values(rule.triggers ?? {})),
+            triggers: toIndexMap(fromIndexMap(rule.triggers)),
             filters: rule.filters,
-            actions: toIndexMap(Object.values(rule.actions ?? {})),
+            actions: toIndexMap(fromIndexMap(rule.actions)),
             ...(rule.isDefaultApprovalWorkflow ? {isDefaultApprovalWorkflow: true} : {}),
         };
     }
@@ -1742,7 +1712,6 @@ export {
     reconcileApprovalWorkflowRulesForEdit,
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
-    toIndexMap,
     updateWorkflowDataOnApproverRemoval,
 };
 export type {ApprovalWorkflowRulesDiff};

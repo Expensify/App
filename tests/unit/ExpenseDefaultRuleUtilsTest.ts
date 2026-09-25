@@ -10,7 +10,7 @@ import {
 } from '@libs/ExpenseDefaultRuleUtils';
 import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Parser from '@libs/Parser';
-import {getRuleFilterLeaves, isExpenseDefaultRule} from '@libs/RuleUtils';
+import {getRuleFilterLeaves, isExpenseDefaultRule, toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,11 +27,6 @@ const {EQUAL_TO, CONTAINS, AND, OR, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATOR
 const POLICY_ID = 'ABC123';
 const OTHER_POLICY_ID = 'DEF456';
 const TAX_KEY = 'id_TAX_RATE_1';
-
-/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
-}
 
 const policy: Policy = {
     ...createRandomPolicy(1),

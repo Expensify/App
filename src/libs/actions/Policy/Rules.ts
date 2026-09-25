@@ -1,4 +1,6 @@
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
+// Namespace import on purpose. `rulesdir/no-api-side-effects-method` only matches member calls, so importing
+// `makeRequestWithSideEffects` by name would quietly switch that guardrail off.
 import * as API from '@libs/API';
 import type {
     AddPolicyAgentRuleParams,
@@ -11,11 +13,11 @@ import type {
 } from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
 import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
-import * as NumberUtils from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,26 +37,46 @@ type ImportedMerchantRule = Omit<CodingRule, 'ruleID' | 'pendingAction' | 'error
 /**
  * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
  *
- * The flag lets screens that only consume the collection fetch it once rather than on every mount. It
- * lives in Onyx rather than in this module so it is cleared along with the rest of the data on sign out.
+ * Two flags rather than one: the in-flight flag is set before the request so a second screen mounting
+ * during it waits instead of sending its own, and so a deep linked editor can hold off on rendering
+ * not-found. The fetched flag is only set once the collection has actually arrived.
  */
 function getRules() {
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED>> = [
+    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES;
+
+    const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
             value: true,
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED>> = [
+    const successData: Array<OnyxUpdate<RulesFetchKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+            value: true,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<RulesFetchKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
             value: false,
         },
     ];
 
-    API.read(READ_COMMANDS.GET_RULES, {}, {successData, failureData});
+    API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -131,7 +153,7 @@ function setMerchantRule(
     }
 
     const isEditing = !!ruleID;
-    const targetRuleID = ruleID ?? NumberUtils.rand64();
+    const targetRuleID = ruleID ?? rand64();
     const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${targetRuleID}` as const;
     const created = existingRule?.created ?? new Date().toISOString();
 
@@ -156,7 +178,7 @@ function setMerchantRule(
                 value: {
                     ...(isEditing && existingRule ? existingRule : optimisticRule),
                     pendingAction: isEditing ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],
@@ -265,7 +287,7 @@ function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undef
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ruleKey,
-                value: rule ? {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : null,
+                value: rule ? {...rule, pendingAction: null, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : null,
             },
         ],
     };
@@ -327,7 +349,7 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
                         agentRules: {
                             [agentRuleID]: {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -400,7 +422,7 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                                 prompt: previousPrompt,
                                 title: previousTitle ?? null,
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -466,7 +488,7 @@ function deletePolicyAgentRule(policy: Policy, agentRuleID: string) {
                             [agentRuleID]: {
                                 ...existingRule,
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },

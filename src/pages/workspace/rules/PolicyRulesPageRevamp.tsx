@@ -98,7 +98,8 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         // Fetch once on mount and whenever policyID changes. setMerchantRule already updates Onyx, so refetching
         // after a save can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
-        // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever the Rules page is opened.
+        // Deliberately not `useRulesPrefetch`, which fetches once per session for screens that only need a count.
+        // This page lists the rules themselves, so a stale collection here is visible to the admin.
         getRules();
     }, [policyID]);
 
