@@ -22,6 +22,7 @@ import React from 'react';
 import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
 
 import {isSafari} from './Browser';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from './CustomEmojiUtils';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -873,24 +874,6 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
-function containsCustomEmoji(text?: string): boolean {
-    if (!text) {
-        return false;
-    }
-
-    const privateUseAreaRegex = CONST.REGEX.PRIVATE_USER_AREA;
-    return privateUseAreaRegex.test(text);
-}
-
-function containsOnlyCustomEmoji(text?: string): boolean {
-    if (!text) {
-        return false;
-    }
-
-    const privateUseAreaRegex = CONST.REGEX.ONLY_PRIVATE_USER_AREA;
-    return privateUseAreaRegex.test(text);
-}
-
 /**
  * Insert Variation Selector 15 (FE0E) between digits/symbols and emojis to prevent Safari's automatic keycap sequence bug.
  *
@@ -959,6 +942,7 @@ export {
     extractEmojis,
     getAddedEmojis,
     isFirstLetterEmoji,
+    findEmojiByName,
     hasAccountIDEmojiReacted,
     getRemovedSkinToneEmoji,
     getSpacersIndexes,

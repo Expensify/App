@@ -1,7 +1,7 @@
-import ConfirmModal from '@components/ConfirmModal';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,11 +17,10 @@ import ROUTES from '@src/ROUTES';
 
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
 import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type PreferredWorkspaceToggleProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */
@@ -31,7 +30,7 @@ type PreferredWorkspaceToggleProps = {
 function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspaceToggleProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [isNoWorkspacesModalVisible, setIsNoWorkspacesModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const [group] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: selectGroupByID(groupID),
@@ -48,6 +47,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
 
     // When the requester is not a member of the preferred policy, BE adds a minimal {avatarURL, id, name} policy Onyx data for the policy to the policy collection, so this resolves to the configured workspace's name even for domain admins without access to that policy.
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {selector: policyNameSelector});
+    const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
 
     const [enableRestrictedPrimaryPolicyPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: domainSecurityGroupSettingPendingActionSelector('enableRestrictedPrimaryPolicy', groupID),
@@ -73,7 +73,14 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     shouldPlaceSubtitleBelowSwitch
                     isActive={isEnabled}
                     disabled={!hasAdminPolicies && !isEnabled}
-                    disabledAction={() => setIsNoWorkspacesModalVisible(true)}
+                    disabledAction={() => {
+                        showConfirmModal({
+                            title: translate('workspace.distanceRates.oopsNotSoFast'),
+                            prompt: translate('domain.groups.noWorkspacesMessage'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                    }}
                     onToggle={(enabled) => {
                         if (!group?.name) {
                             return;
@@ -103,15 +110,6 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     onCloseError={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'enableRestrictedPrimaryPolicyErrors')}
                 />
             </View>
-            <ConfirmModal
-                onConfirm={() => setIsNoWorkspacesModalVisible(false)}
-                onCancel={() => setIsNoWorkspacesModalVisible(false)}
-                isVisible={isNoWorkspacesModalVisible}
-                title={translate('workspace.distanceRates.oopsNotSoFast')}
-                prompt={translate('domain.groups.noWorkspacesMessage')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
             {(hasAdminPolicies || !!preferredPolicyName) && (
                 <OfflineWithFeedback
                     pendingAction={restrictedPrimaryPolicyIDPendingAction}
@@ -119,12 +117,11 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'restrictedPrimaryPolicyIDErrors')}
                     errorRowStyles={[styles.mh5]}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('domain.groups.preferredWorkspace')}
-                        title={preferredPolicyName ?? firstAdminPolicy?.name}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('domain.groups.preferredWorkspace')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
-                        disabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
+                        isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
+                        value={preferredWorkspaceName}
                     />
                 </OfflineWithFeedback>
             )}

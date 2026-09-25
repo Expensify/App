@@ -27,13 +27,8 @@ import KeyboardUtils from '@src/utils/keyboard';
 import React, {useCallback} from 'react';
 
 type CardNameStepProps = {
-    /** ID of the policy */
     policyID: string | undefined;
-
-    /** Array of step names */
     stepNames: readonly string[];
-
-    /** Start from step index */
     startStepIndex: number;
 };
 

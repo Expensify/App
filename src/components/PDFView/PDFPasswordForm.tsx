@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -22,7 +22,6 @@ type PDFPasswordFormProps = {
     /** If the submitted password is invalid (show an error message) */
     isPasswordInvalid?: boolean;
 
-    /** If loading indicator should be shown */
     shouldShowLoadingIndicator?: boolean;
 
     /** Notify parent that the password form has been submitted */

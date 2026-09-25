@@ -10,7 +10,6 @@ import type {TransactionMonthGroupListItemType} from './types';
 import BaseListItemHeader from './BaseListItemHeader';
 
 type MonthListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
-    /** The month group currently being looked at */
     month: TransactionMonthGroupListItemType;
 };
 

@@ -25,6 +25,8 @@ const queryContextValue: SearchQueryContextValue = {
     currentSimilarSearchHash: 1,
     currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     currentSearchQueryJSON: expenseQueryJSON,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     suggestedSearches: getEmptyObject<SearchQueryContextValue['suggestedSearches']>(),
     shouldResetSearchQuery: false,
 };
@@ -47,6 +49,7 @@ function buildSelected(...keys: string[]): SelectedTransactions {
                 reportID: 'report_1',
                 policyID: 'policy_1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
             },
         ]),
@@ -277,7 +280,7 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         expect(result.current.state.excludedTransactions).toEqual({});
     });
 
-    it('keeps the original expense-report behavior when a report is deselected', () => {
+    it('preserves an all-matching expense-report selection when a report is deselected', () => {
         mockCurrentSearchQueryJSON = expenseReportQueryJSON;
         const {result} = renderSelection();
         seedAllMatchingSelection(result);
@@ -285,22 +288,22 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
         act(() => {
             result.current.actions.applySelection((selectedTransactions) => removeTransaction(selectedTransactions, 'tx_1'), {
                 totalSelectableItemsCount: 2,
-                shouldPreserveAllMatchingSelection: false,
+                shouldPreserveAllMatchingSelection: true,
             });
         });
 
-        expect(result.current.state.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(Object.keys(result.current.state.selectedTransactions)).toEqual(['tx_2']);
-        expect(result.current.state.excludedTransactions).toEqual({});
+        expect(Object.keys(result.current.state.excludedTransactions)).toEqual(['tx_1']);
     });
 
-    it('does not treat an empty expense-report all-matching state as a loaded selection', () => {
+    it('keeps an empty loaded expense-report selection active while all matching reports are selected', () => {
         mockCurrentSearchQueryJSON = expenseReportQueryJSON;
         const {result} = renderSelection();
 
         act(() => result.current.actions.selectAllMatchingItems(true));
 
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
-        expect(result.current.state.hasSelectedTransactions).toBe(false);
+        expect(result.current.state.hasSelectedTransactions).toBe(true);
     });
 });
