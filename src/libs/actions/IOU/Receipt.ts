@@ -8,8 +8,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {buildOptimisticDetachReceipt, buildOptimisticReceiptAddedAction, getReportOrDraftReport, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
+import {buildOptimisticDetachReceipt, buildOptimisticReceiptAddedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -21,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -45,10 +45,14 @@ type ReplaceReceipt = {
     transactionReport: OnyxEntry<OnyxTypes.Report>;
     isVendorMatchingBetaEnabled: boolean | undefined;
     delegateAccountID: number | undefined;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 };
-// delegateAccountID is left out because a retry builds a fresh optimistic action, so it has to
-// reflect who is copiloting at retry time rather than who was copiloting when the upload failed.
-type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport' | 'delegateAccountID'> & {transactionID: string};
+// The actor and thread fields are left out because a retry builds a fresh optimistic action,
+// so it has to reflect who is acting and the thread state at retry time rather than when the upload failed.
+type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport' | 'delegateAccountID' | 'currentUserPersonalDetails' | 'transactionThreadReport'> & {
+    transactionID: string;
+};
 
 function detachReceipt(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -57,6 +61,7 @@ function detachReceipt(
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    transactionThreadReportID: string | undefined,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionID = transaction?.transactionID;
@@ -178,8 +183,6 @@ function detachReceipt(
 
     const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
 
-    const transactionThreadReportID = getIOUActionForReportID(transaction?.reportID, transactionID)?.childReportID;
-
     API.write(
         WRITE_COMMANDS.DETACH_RECEIPT,
         parameters,
@@ -203,6 +206,8 @@ function replaceReceipt({
     transactionReport,
     isVendorMatchingBetaEnabled,
     delegateAccountID,
+    currentUserPersonalDetails,
+    transactionThreadReport,
 }: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
@@ -342,10 +347,18 @@ function replaceReceipt({
 
     // Show "added a receipt" right away, but not for a crop or rotate (isSameReceipt) and only if the
     // thread already exists. Otherwise the backend creates the thread and message and it syncs in.
-    const transactionThreadReportID = getIOUActionForReportID(transaction?.reportID, transactionID)?.childReportID;
-    const transactionThread = transactionThreadReportID ? getReportOrDraftReport(transactionThreadReportID) : undefined;
+    const transactionThreadReportID = transactionThreadReport?.reportID;
     const optimisticReceiptAddedAction =
-        !isSameReceipt && transactionThreadReportID ? buildOptimisticReceiptAddedAction(transactionThreadReportID, transactionID, delegateAccountID) : undefined;
+        !isSameReceipt && transactionThreadReportID
+            ? buildOptimisticReceiptAddedAction(
+                  transactionThreadReportID,
+                  transactionID,
+                  currentUserPersonalDetails.accountID,
+                  currentUserPersonalDetails.displayName,
+                  currentUserPersonalDetails.avatar,
+                  delegateAccountID,
+              )
+            : undefined;
 
     if (optimisticReceiptAddedAction && transactionThreadReportID) {
         optimisticData.push(
@@ -387,8 +400,8 @@ function replaceReceipt({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
                 value: {
-                    lastVisibleActionCreated: transactionThread?.lastVisibleActionCreated ?? null,
-                    lastReadTime: transactionThread?.lastReadTime ?? null,
+                    lastVisibleActionCreated: transactionThreadReport?.lastVisibleActionCreated ?? null,
+                    lastReadTime: transactionThreadReport?.lastReadTime ?? null,
                 },
             },
         );

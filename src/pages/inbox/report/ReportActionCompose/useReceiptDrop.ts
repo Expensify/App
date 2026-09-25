@@ -25,6 +25,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 
 type UseReceiptDropParams = {
@@ -52,6 +53,10 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const delegateAccountID = useDelegateAccountID();
 
     const onFilesValidated = (files: FileObject[]) => {
@@ -72,6 +77,8 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
                 transactionViolations,
                 transactionReport,
                 delegateAccountID,
+                currentUserPersonalDetails,
+                transactionThreadReport,
             });
             return;
         }

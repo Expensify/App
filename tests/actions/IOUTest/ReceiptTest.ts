@@ -22,7 +22,6 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
-import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
@@ -159,6 +158,8 @@ describe('actions/IOU/Receipt', () => {
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
                 delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -181,6 +182,8 @@ describe('actions/IOU/Receipt', () => {
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
                 delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -209,6 +212,8 @@ describe('actions/IOU/Receipt', () => {
                 transactionPolicyTagList: undefined,
                 transactionReport: undefined,
                 delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -236,6 +241,8 @@ describe('actions/IOU/Receipt', () => {
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
                 delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -265,6 +272,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -298,6 +307,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -345,6 +356,8 @@ describe('actions/IOU/Receipt', () => {
                 transactionReport: undefined,
                 isVendorMatchingBetaEnabled: false,
                 delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -370,6 +383,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -404,6 +419,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -437,6 +454,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -468,6 +487,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -500,6 +521,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isVendorMatchingBetaEnabled: false,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -536,6 +559,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     isSameReceipt: true,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -595,6 +620,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionReport: undefined,
                     transactionViolations: existingViolations,
                     delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: undefined,
                 });
                 await waitForBatchedUpdates();
 
@@ -620,22 +647,15 @@ describe('actions/IOU/Receipt', () => {
                 receipt: OLD_RECEIPT,
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+            const threadReport = {
                 ...createRandomReport(2, undefined),
                 reportID: threadReportID,
                 lastVisibleActionCreated: previousThreadTime,
                 lastReadTime: previousThreadTime,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
-                iouActionID: {
-                    ...createRandomReportAction(1),
-                    reportActionID: 'iouActionID',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    childReportID: threadReportID,
-                    originalMessage: {IOUTransactionID: transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
-                },
-            });
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
             await waitForBatchedUpdates();
 
             const writeSpy = mockApiWrite();
@@ -650,6 +670,8 @@ describe('actions/IOU/Receipt', () => {
                     transactionPolicyTagList: undefined,
                     transactionReport: undefined,
                     delegateAccountID,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: threadReport,
                 });
                 await waitForBatchedUpdates();
 
@@ -724,7 +746,7 @@ describe('actions/IOU/Receipt', () => {
         it('should do nothing when transactionID is undefined', async () => {
             const transactionsBefore = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
 
-            detachReceipt(undefined, undefined, undefined, undefined, undefined, false);
+            detachReceipt(undefined, undefined, undefined, undefined, undefined, false, undefined);
             await waitForBatchedUpdates();
 
             const transactionsAfter = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -737,7 +759,7 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transaction, undefined, undefined, undefined, undefined, false);
+                detachReceipt(transaction, undefined, undefined, undefined, undefined, false, undefined);
                 await waitForBatchedUpdates();
 
                 const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -756,7 +778,7 @@ describe('actions/IOU/Receipt', () => {
         it('should create an optimistic report action and update report timestamps', async () => {
             await seedOnyx();
 
-            detachReceipt(transaction, undefined, undefined, undefined, report, false);
+            detachReceipt(transaction, undefined, undefined, undefined, report, false, undefined);
             await waitForBatchedUpdates();
 
             // Then a new report action should be created on the report
@@ -775,7 +797,7 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transaction, undefined, undefined, undefined, undefined, false);
+                detachReceipt(transaction, undefined, undefined, undefined, undefined, false, undefined);
                 await waitForBatchedUpdates();
 
                 expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
@@ -787,7 +809,7 @@ describe('actions/IOU/Receipt', () => {
         it('should compute violations when policy is paid group', async () => {
             await seedOnyx();
 
-            detachReceipt(transaction, policy, policyTagList, undefined, undefined, false);
+            detachReceipt(transaction, policy, policyTagList, undefined, undefined, false, undefined);
             await waitForBatchedUpdates();
 
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);

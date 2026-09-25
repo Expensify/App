@@ -8504,12 +8504,19 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
  * Builds an optimistic "added a receipt" action for the transaction thread.
  * It shares a reportActionID with the server action so the two reconcile.
  */
-function buildOptimisticReceiptAddedAction(reportID: string | undefined, transactionID: string, delegateAccountID: number | undefined) {
+function buildOptimisticReceiptAddedAction(
+    reportID: string | undefined,
+    transactionID: string,
+    currentUserAccountID: number,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatar: AvatarSource | undefined,
+    delegateAccountID: number | undefined,
+) {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatar(),
+        avatar: currentUserAvatar,
         created: DateUtils.getDBTime(),
         isAttachmentOnly: false,
         originalMessage: {
@@ -8518,8 +8525,8 @@ function buildOptimisticReceiptAddedAction(reportID: string | undefined, transac
         },
         message: [
             {
-                // The App builds the text from originalMessage, so this placeholder is only used by OldDot.
-                text: 'You',
+                // The App builds the text from originalMessage, so this text is only used by OldDot.
+                text: 'You added a receipt',
                 style: 'strong',
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
@@ -8527,7 +8534,7 @@ function buildOptimisticReceiptAddedAction(reportID: string | undefined, transac
         person: [
             {
                 style: 'strong',
-                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: currentUserDisplayName ?? String(currentUserAccountID),
                 type: 'TEXT',
             },
         ],
