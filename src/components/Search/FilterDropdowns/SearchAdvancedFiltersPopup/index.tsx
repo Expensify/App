@@ -273,6 +273,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         </>
                     )}
                     <FilterList
+                        style={[styles.flex1]}
                         type={searchAdvancedFiltersForm?.type}
                         selectedFilter={isDescribeMode ? undefined : activeFilter}
                         onHoverIn={hoverFilter}
