@@ -54,7 +54,7 @@ import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/Repo
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptAdoptFailed, logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
-import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasAllManuallyEnteredScanFields, hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
 import getSubmitExpensePreMountDestinationRoute from '@pages/iou/request/step/confirmation/getSubmitExpensePreMountDestinationRoute';
@@ -182,7 +182,18 @@ function SubmitDetailsPage({
         showErrorAlert(errorTitle, errorMessage);
     }, [errorTitle, errorMessage]);
 
+    // Whether the user has taken over any of the amount / merchant / date the Scan confirmation reveals behind
+    // "Show more". Re-seeding the draft resets `created` and `currency`, so it has to stop once those are the
+    // user's to own. Clearing all three hands them back to SmartScan, and seeding resumes.
+    const hasEnteredScanFields = hasAnyManuallyEnteredScanField(transaction);
+
     useEffect(() => {
+        // This effect re-runs every time late Onyx data lands (the policy resolving, the report updating), and
+        // `initMoneyRequest` re-seeds `created` to today and `currency` from the policy on every run. Once the
+        // user has entered any of the three Scan fields, those writes would discard what they just typed.
+        if (hasEnteredScanFields) {
+            return;
+        }
         initMoneyRequest({
             reportID: reportOrAccountID,
             policy,
@@ -198,7 +209,7 @@ function SubmitDetailsPage({
         // Populate transaction.participants so IOURequestStepReport can highlight the destination (mirrors other expense flows).
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies]);
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails.accountID, hasOnlyPersonalPolicies, hasEnteredScanFields]);
 
     // Use the branch-aware values computed above: for a share that needs conversion (e.g. HEIC), these resolve to the
     // converted JPEG from VALIDATED_FILE_OBJECT; otherwise they fall back to the raw attachment. Re-deriving from
@@ -542,7 +553,11 @@ function SubmitDetailsPage({
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
-        receipt.state = file && CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        // A scan whose amount / merchant / date the user filled in themselves is submitted the same way as a manual
+        // expense with an attached receipt: `open` keeps SmartScan from re-reading the receipt and overwriting what the
+        // user typed. The in-app Scan confirmation derives this in ReceiptFileValidator / getCurrentReceiptState, both
+        // of which the share flow skips because it builds the receipt by hand here.
+        receipt.state = hasAllManuallyEnteredScanFields(transaction) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
         // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
         // the trace id and log the capture.
         const receiptTraceId = mintAndStampReceiptTraceId(receipt);
@@ -693,7 +708,11 @@ function SubmitDetailsPage({
                         receiptPath={currentReceiptSource}
                         receiptFilename={currentReceiptName}
                         reportID={reportOrAccountID}
-                        shouldShowSmartScanFields={false}
+                        // The share flow always creates a Scan expense from the shared file: it is never a split, never
+                        // a moved tracked expense and never a test receipt, so the amount / merchant / date are always
+                        // offered behind "Show more" here, exactly as they are on the in-app Scan confirmation.
+                        shouldShowSmartScanFields
+                        canEnterScanFieldsManually
                         shouldDisplayReceipt
                         isReceiptEditable
                         action={CONST.IOU.ACTION.CREATE}
