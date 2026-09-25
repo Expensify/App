@@ -137,8 +137,7 @@ describe('useMoneyRequestReportTransactionSelection', () => {
         mockSelectedTransactionIDs = ['1'];
         mockGetRootState.mockReturnValue(rootStateWithTopRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR));
 
-        // When the user opens a transaction in the right modal, which unfocuses the report list but
-        // keeps selection mode on screen
+        // When the user opens a transaction in the right modal, which remove focus from the report list
         blur();
 
         // Then the selection survives, otherwise opening a transaction would silently deselect it
