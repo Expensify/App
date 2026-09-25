@@ -3,7 +3,7 @@ import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisable
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -431,12 +431,12 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                     )}
                 </View>
             </View>
-            <MenuItemSectionRow>
+            <MenuItemSectionRoot>
                 <MenuItemField.Row
                     name={translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subsections.currentTravelLimitLabel')}
                     value={formattedLimit}
                 />
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
             <OfflineWithFeedback
                 errors={settlementAccountErrors}
                 pendingAction={settlementAccountPendingAction}
@@ -444,7 +444,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
-                <MenuItemSectionRow
+                <MenuItemSectionRoot
                     onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))) : undefined}
                 >
                     <MenuItem.Row>
@@ -459,7 +459,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                             </MenuItem.Trailing>
                         )}
                     </MenuItem.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 errors={settlementFrequencyErrors}
@@ -468,7 +468,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
-                <MenuItemSectionRow
+                <MenuItemSectionRoot
                     onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))) : undefined}
                 >
                     <MenuItemField.Row
@@ -482,7 +482,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                             </>
                         )}
                     </MenuItemField.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 errors={monthlyLimitErrors}
@@ -491,7 +491,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowStyles={styles.mh2half}
                 errorRowTextStyles={styles.mr3}
             >
-                <MenuItemSectionRow
+                <MenuItemSectionRoot
                     onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))) : undefined}
                 >
                     <MenuItemField.Row
@@ -505,7 +505,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                             </>
                         )}
                     </MenuItemField.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
         </>
     );

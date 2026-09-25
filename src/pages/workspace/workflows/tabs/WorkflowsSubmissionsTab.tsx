@@ -1,6 +1,6 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -56,7 +56,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
             onToggle={onToggle}
             subMenuItems={
                 <View style={[styles.mt3, styles.mbn3]}>
-                    <MenuItemSectionRow
+                    <MenuItemSectionRoot
                         onPress={canWriteWorkflows ? callFunctionIfActionIsAllowed(onPressAutoReportingFrequency) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTO_REPORTING_FREQUENCY}
                     >
@@ -69,7 +69,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
                                 {canWriteWorkflows && <MenuItem.Chevron />}
                             </>
                         </MenuItemField.Row>
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 </View>
             }
             isActive={(policy?.autoReporting && !hasDelayedSubmissionError) ?? false}
