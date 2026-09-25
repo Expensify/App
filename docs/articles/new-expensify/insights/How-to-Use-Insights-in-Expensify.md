@@ -30,14 +30,6 @@ You can access Insights on both web and mobile.
 2. Scroll to **Insights**. 
 3. Select an Insight to open the report.
 
-You can also jump straight to Insights from **Search**:
-
-1. Select **Search** (the magnifying glass icon).
-2. Type **Insights**, or **go to Insights**.
-3. Select **Go to Insights**.
-
-**Go to Insights** only appears in the Search results if Insights is available to your account.
-
 ---
 
 ## How to use Spend over time
