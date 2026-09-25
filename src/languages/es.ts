@@ -620,12 +620,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Por favor, inicia sesión de nuevo.',
         notValid: 'No se pudo usar este enlace.',
         sessionMismatch: 'El enlace que has abierto no es válido para tu sesión actual.',
-        switchAccount: {
-            title: '¿Cambiar de cuenta?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
-                `Has iniciado sesión como ${currentEmail}. Este enlace iniciará sesión como ${newEmail} en su lugar.`,
-            confirm: 'Cambiar de cuenta',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

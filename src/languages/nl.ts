@@ -629,11 +629,6 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Meld je opnieuw aan.',
         notValid: 'Deze link kon niet worden gebruikt.',
         sessionMismatch: 'De link die je hebt geopend is niet geldig voor je huidige sessie.',
-        switchAccount: {
-            title: 'Van account wisselen?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Je bent ingelogd als ${currentEmail}. Deze link logt je in als ${newEmail} in plaats daarvan.`,
-            confirm: 'Van account wisselen',
-        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
