@@ -1,27 +1,18 @@
-import FormHelpMessage from '@components/FormHelpMessage';
-
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import type {ReactNode} from 'react';
 
 import React from 'react';
 
-type MenuItemHelpTextProps = {
-    /** Error or hint text to render under the row. Nothing renders when it is empty */
-    message?: string | ReactNode;
+import type {MenuItemHelpTextProps} from './types';
 
-    /** Whether the text reads as an error (red) instead of a hint (muted) */
-    isError?: boolean;
-};
+import BaseMenuItemHelpText from './BaseMenuItemHelpText';
 
 /** The trailing help line of a `MenuItem.Root`, rendered under `MenuItem.Row` and inside the row's press target */
 function MenuItemHelpText({message, isError = false}: MenuItemHelpTextProps) {
     const styles = useThemeStyles();
 
     return (
-        <FormHelpMessage
+        <BaseMenuItemHelpText
             isError={isError}
-            shouldShowRedDotIndicator={false}
             message={message}
             style={styles.menuItemError}
         />

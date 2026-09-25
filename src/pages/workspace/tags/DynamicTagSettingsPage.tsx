@@ -1,11 +1,10 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
@@ -234,15 +233,9 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                 isDisabled={approverDisabled}
                             />
                             {approverDisabled && (
-                                <FormHelpMessage
-                                    isError={false}
-                                    shouldShowRedDotIndicator={false}
-                                    style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
-                                >
-                                    <RenderHTML
-                                        html={`<comment><muted-text-label>${Parser.replace(translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`))}</muted-text-label></comment>`}
-                                    />
-                                </FormHelpMessage>
+                                <MenuItem.HelpTextHTML>
+                                    {Parser.replace(translate('workspace.rules.categoryRules.enableWorkflows', `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`))}
+                                </MenuItem.HelpTextHTML>
                             )}
                         </>
                     )}
