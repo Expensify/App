@@ -1,15 +1,15 @@
 /**
- * Detection logic for new `eslint-disable` bypasses of the Onyx.connect() ban and `rulesdir/no-unsafe-onyx-read`.
+ * Finds `eslint-disable` directives that silence one of the bans in `BANNED_RULES`:
+ * `rulesdir/no-onyx-connect`, `rulesdir/no-unsafe-onyx-read`, and the
+ * `@typescript-eslint/no-restricted-imports` entry for `react-native-onyx/dist/OnyxUtils`.
  *
- * `rulesdir/no-onyx-connect` (shipped by eslint-config-expensify) is a normal lint rule, so an
- * inline `eslint-disable` can silence it. The lint runner re-elevates those disables by scanning
- * source for disable directives that name the ban or blanket directives that cover a real call. No
- * disable directive can reach this check because it does not go through ESLint's message pipeline.
+ * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
+ * call: `Onyx.connect()` for the connect ban, `Onyx.get()` or `Onyx.multiGet()` for the read ban.
+ * For the OnyxUtils ban it counts only when it covers a runtime import of the module. Blanket
+ * disables over unrelated code, like the ones around ReportUtils, are ignored.
  *
- * Blanket `eslint-disable` / `eslint-disable-next-line` with no rule list counts only when it
- * covers a real banned call: Onyx.connect(), or Onyx.get() and Onyx.multiGet() for the read rule. Unrelated blanket comments (e.g. around ReportUtils) remain
- * ignored. Call sites are found via the Babel AST so comments and grouping parens cannot hide a
- * banned member access from a source scan.
+ * Calls and imports are located in the Babel AST, so spacing, comments and parentheses cannot hide
+ * them the way they could from a text scan.
  */
 
 import {parse} from '@babel/parser';
@@ -38,6 +38,8 @@ type BannedRule = {
     name: string;
     objects: Set<string>;
     methods: Set<string>;
+    /** Bans runtime imports of these modules instead of `objects`/`methods` calls. */
+    importSources?: Set<string>;
     grandfathered: Map<string, number>;
     appliesTo: (file: string) => boolean;
     searchTerms: string[];
@@ -67,7 +69,20 @@ const ONYX_READ_BAN: BannedRule = {
         'Onyx reads checked by no-unsafe-onyx-read cannot be silenced with eslint-disable. Fix the read instead: use useOnyx() for data a component renders or reacts to, and call Onyx.get() or Onyx.multiGet() only from event handlers or useCallback bodies in components, pages and hooks.',
 };
 
-const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN];
+const ONYX_UTILS_IMPORT_BAN: BannedRule = {
+    id: '@typescript-eslint/no-restricted-imports',
+    name: '@typescript-eslint/no-restricted-imports',
+    objects: new Set(),
+    methods: new Set(),
+    importSources: new Set(['react-native-onyx/dist/OnyxUtils']),
+    grandfathered: new Map<string, number>(),
+    appliesTo: (file) => file.startsWith('src/'),
+    searchTerms: ['OnyxUtils', 'eslint-disable'],
+    message:
+        'The react-native-onyx/dist/OnyxUtils import restriction cannot be silenced with eslint-disable. Read Onyx with useOnyx(), Onyx.get() or Onyx.multiGet() instead. Type-only imports of OnyxUtils are still allowed.',
+};
+
+const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN];
 
 /** A banned-rule violation that an inline disable directive silenced. */
 type SuppressedBan = {
@@ -186,6 +201,44 @@ function collectBannedCallOffsets(root: ASTNode, ban: BannedRule): number[] {
     return offsets;
 }
 
+function isTypeOnlyImport(node: ASTNode): boolean {
+    if (node.importKind === 'type' || node.exportKind === 'type') {
+        return true;
+    }
+    const specifiers = node.specifiers;
+    return (
+        Array.isArray(specifiers) &&
+        specifiers.length > 0 &&
+        specifiers.every((specifier) => BabelASTUtils.isRecord(specifier) && (specifier.importKind === 'type' || specifier.exportKind === 'type'))
+    );
+}
+
+function importedSource(node: ASTNode): string | null {
+    if (node.type === 'ImportDeclaration' || node.type === 'ExportNamedDeclaration' || node.type === 'ExportAllDeclaration') {
+        return BabelASTUtils.isASTNode(node.source) && typeof node.source.value === 'string' ? node.source.value : null;
+    }
+    if (node.type === 'TSImportEqualsDeclaration' && BabelASTUtils.isASTNode(node.moduleReference) && node.moduleReference.type === 'TSExternalModuleReference') {
+        const expression = node.moduleReference.expression;
+        return BabelASTUtils.isASTNode(expression) && typeof expression.value === 'string' ? expression.value : null;
+    }
+    return null;
+}
+
+function collectBannedImportOffsets(root: ASTNode, sources: Set<string>): number[] {
+    const offsets: number[] = [];
+    const visit = (node: ASTNode) => {
+        const source = importedSource(node);
+        if (source !== null && sources.has(source) && !isTypeOnlyImport(node)) {
+            offsets.push(node.start);
+        }
+        for (const child of BabelASTUtils.children(node, NON_CHILD_KEYS)) {
+            visit(child);
+        }
+    };
+    visit(root);
+    return offsets;
+}
+
 function normalizedDirectiveArgs(args: string): string {
     return args
         .replace(/--[\s\S]*$/, '')
@@ -265,13 +318,14 @@ function collectDisableDirectivesFromSource(source: string, file: string, ban: B
         return [];
     }
     const bans: SuppressedBan[] = [];
-    const callOffsets = collectBannedCallOffsets(parsed.root, ban);
+    const callOffsets = ban.importSources ? collectBannedImportOffsets(parsed.root, ban.importSources) : collectBannedCallOffsets(parsed.root, ban);
     const enableMatches = collectDirectiveMatches(parsed.comments, source, 'enable');
     for (const match of collectDirectiveMatches(parsed.comments, source, 'disable')) {
         const args = directiveArgs(match);
         const targetsBan = directiveTargetsBan(args, ban);
-        const coversBan = isBlanketDirective(args) && blanketDirectiveCoversCall(source, match, callOffsets, enableMatches, ban);
-        if (!targetsBan && !coversBan) {
+        const isBlanket = isBlanketDirective(args);
+        const coversBan = (isBlanket || (!!ban.importSources && targetsBan)) && blanketDirectiveCoversCall(source, match, callOffsets, enableMatches, ban);
+        if ((ban.importSources || !targetsBan) && !coversBan) {
             continue;
         }
         const prefix = source.slice(0, match.index);
@@ -302,5 +356,5 @@ function findNewBypasses(suppressedBans: readonly SuppressedBan[], rule: BannedR
     return newBypasses;
 }
 
-export {BANNED_RULE_ID, BANNED_RULE_NAME, BANNED_RULES, GRANDFATHERED_BYPASSES, ONYX_CONNECT_BAN, ONYX_READ_BAN, collectDisableDirectivesFromSource, findNewBypasses};
+export {BANNED_RULE_ID, BANNED_RULE_NAME, BANNED_RULES, GRANDFATHERED_BYPASSES, ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN, collectDisableDirectivesFromSource, findNewBypasses};
 export type {BannedRule, SuppressedBan};
