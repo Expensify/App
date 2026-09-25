@@ -15,13 +15,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {useEffect, useRef} from 'react';
 
 /**
- * Renders nothing and pushes the "a trip is in progress" prompt onto the global modal stack.
+ * Pushes the "a trip is in progress" prompt onto the global modal stack.
  *
  * The prompt is asked for by `closeReactNativeApp`, a non-React action that cannot call a hook, so the Onyx flag stays
- * as the cross-boundary trigger and this component is the controller that turns it into a modal. Nothing other than
+ * as the cross-boundary trigger and this hook is the controller that turns it into a modal. Nothing other than
  * the answer below clears the flag, so the entry never has to be taken down by hand.
  */
-function GPSInProgressModal() {
+function useGPSInProgressModal() {
     const [isGPSInProgressModalOpen] = useOnyx(ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
@@ -64,10 +64,6 @@ function GPSInProgressModal() {
             closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false, shouldIgnoreTryNewDotLoading: true});
         });
     }, [gpsDraftDetails, isGPSInProgressModalOpen, isOffline, showConfirmModal, translate]);
-
-    return null;
 }
 
-GPSInProgressModal.displayName = 'GPSInProgressModal';
-
-export default GPSInProgressModal;
+export default useGPSInProgressModal;

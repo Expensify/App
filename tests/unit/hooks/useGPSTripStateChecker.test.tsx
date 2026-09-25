@@ -1,9 +1,10 @@
-import {act, render} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
-import GPSTripStateChecker from '@components/GPSTripStateChecker/index.native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker/index.native';
 
 import type * as GPSDraftDetailsUtils from '@libs/GPSDraftDetailsUtils';
 
@@ -37,7 +38,7 @@ jest.mock('@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications', 
     shouldUpdateGpsNotificationUnit: jest.fn(() => false),
 }));
 
-// The component renders nothing and pushes its prompt onto the global modal stack, so what it pushed -- and when it
+// The hook returns nothing and pushes its prompt onto the global modal stack, so what it pushed -- and when it
 // took that entry back down -- is the only observable behaviour there is to assert on.
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../../utils/mockUseConfirmModal');
@@ -67,7 +68,7 @@ jest.mock('@src/SplashScreenStateContext', () => ({
 const CURRENT_ACCOUNT_ID = 1;
 const OTHER_ACCOUNT_ID = 2;
 
-// Has to match the id the component pushes its prompt under, because closing that exact entry is a behaviour under test.
+// Has to match the id the hook pushes its prompt under, because closing that exact entry is a behaviour under test.
 const CONTINUE_TRIP_MODAL_ID = 'gpsContinueTrip';
 
 const FIRST_POINT = {lat: 1, long: 2};
@@ -81,15 +82,15 @@ const trip: GpsDraftDetails = {
     unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
 };
 
-function renderChecker() {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <GPSTripStateChecker />
-        </ComposeProviders>,
-    );
+function Wrapper({children}: {children: React.ReactNode}) {
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
 
-describe('GPSTripStateChecker', () => {
+function renderChecker() {
+    return renderHook(() => useGPSTripStateChecker(), {wrapper: Wrapper});
+}
+
+describe('useGPSTripStateChecker', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

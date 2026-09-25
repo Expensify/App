@@ -25,11 +25,14 @@ import {useEffect, useRef, useState} from 'react';
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
-// Names this component's entry on the global modal stack so the effect below can take that one entry down, rather
+// Names this hook's entry on the global modal stack so the effect below can take that one entry down, rather
 // than whatever modal happens to be on top when the trip stops being resumable.
 const CONTINUE_TRIP_MODAL_ID = 'gpsContinueTrip';
 
-function GPSTripStateChecker() {
+/**
+ * Restores a GPS trip that was in progress when the app was closed, asking the user whether to continue or stop it.
+ */
+function useGPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
     const [gpsDraftDetails, gpsDraftDetailsMetadata] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
@@ -215,10 +218,6 @@ function GPSTripStateChecker() {
             onViewTrip();
         });
     }, [closeModalByID, onContinueTrip, onViewTrip, shouldShowContinueTripModal, showConfirmModal, translate]);
-
-    return null;
 }
 
-GPSTripStateChecker.displayName = 'GPSTripStateChecker';
-
-export default GPSTripStateChecker;
+export default useGPSTripStateChecker;
