@@ -14,6 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {parseExpenseFilters} from '@libs/actions/Search';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import {getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import variables from '@styles/variables';
@@ -100,7 +101,7 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     value={nlQuery}
                     onChangeText={setNlQuery}
                     onKeyPress={(e) => {
-                        if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey)) {
+                        if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey) || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
                             return;
                         }
                         e.preventDefault();
