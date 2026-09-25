@@ -1220,6 +1220,78 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('never writes the tag from the flattened changes.tag when no per-level intent is recorded (single source of truth)', () => {
+            const transactionID = 'transaction-flat-only-1';
+            const iouReportID = 'iou-flat-only-1';
+            const policy = {
+                ...createRandomPolicy(71, CONST.POLICY.TYPE.TEAM),
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(71, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: 'thread-flat-only-1',
+                tag: 'CostCenterA:IndicationX',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+            const policyTagList = {
+                CostCenter: {name: 'CostCenter', orderWeight: 0, required: false, tags: {CostCenterA: {name: 'CostCenterA', enabled: true}}},
+                Indication: {name: 'Indication', orderWeight: 1, required: false, tags: {IndicationX: {name: 'IndicationX', enabled: true}}},
+            };
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                // A collapsed flattened tag with NO per-level intent (e.g. a net no-op deselect). Category is
+                // changed too so a write still fires and we can assert the tag is absent from it.
+                changes: {tag: 'CostCenterA', category: 'Food'},
+                bulkEditTagChanges: undefined,
+                policy,
+                reports,
+                transactions,
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {
+                    [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagList,
+                },
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            const updates = getBulkEditUpdates(writeSpy);
+            // The flattened changes.tag is display-only; without a per-level intent the tag must not be written.
+            expect(updates.tag).toBeUndefined();
+            expect(updates.category).toBe('Food');
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('preserves parent levels and re-resolves dependent child levels below the edited one when bulk-editing a middle level (dependent tags)', () => {
             const transactionID = 'transaction-dep-1';
             const iouReportID = 'iou-dep-1';
