@@ -3006,9 +3006,9 @@ ${amount} voor ${merchant} - ${date}`,
         memberAlreadyInWorkflowTitle: 'Lid bevindt zich al in een workflow',
         memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
             `${memberName} bevindt zich al in een goedkeuringsworkflow die indient bij ${approverName}. Door het lid hier toe te voegen, wordt het naar deze workflow verplaatst.`,
-        moveEveryoneToThisWorkflowTitle: 'Iedereen naar deze workflow verplaatsen',
+        moveEveryoneToThisWorkflowTitle: 'Verplaats iedereen naar deze workflow',
         moveEveryoneToThisWorkflowPrompt:
-            'Je staat op het punt iedereen naar deze goedkeuringsworkflow te verplaatsen. Hiermee worden alle andere goedkeuringsworkflows verwijderd en wordt iedereen naar deze verplaatst. Deze actie kan niet ongedaan worden gemaakt.',
+            'Je staat op het punt om iedereen naar deze goedkeuringsworkflow te verplaatsen. Dit verwijdert alle andere goedkeuringsworkflows en verplaatst iedereen naar deze. Deze actie kan niet ongedaan worden gemaakt.',
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
