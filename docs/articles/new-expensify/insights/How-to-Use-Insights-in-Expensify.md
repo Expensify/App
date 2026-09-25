@@ -48,7 +48,7 @@ You can use Spend over time to:
 
 ## How to use Top Spenders
 
-Top Spenders shows which members submitted the highest total expenses in the previous calendar month.
+Top Spenders shows which members submitted the highest total expenses in the previous calendar month, across the workspaces where you're a Workspace Admin, Approver, or Auditor.
 
 You can use Top Spenders to: 
 
