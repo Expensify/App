@@ -20,7 +20,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -33,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
@@ -57,7 +57,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const [adminIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
-    const [adminLoginsByAccountIDs = getEmptyArray<string>()] = usePersonalDetailsByIDs(adminIDs, (personalDetails) => getLoginsByAccountIDs(adminIDs, personalDetails));
+    const [adminLoginsByAccountIDs = getEmptyArray<string>()] = usePersonalDetailsByIDs(adminIDs, personalDetailsLoginsSelector(adminIDs));
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const didInvite = useRef<boolean>(false);
