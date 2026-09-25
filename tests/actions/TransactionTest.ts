@@ -462,8 +462,7 @@ describe('actions/Transaction', () => {
         });
 
         it('moves an undeleted expense using its live IOU action and re-parents its transaction thread, ignoring the blanked action left by the deletion', async () => {
-            // Given a self-DM expense that was deleted and then undeleted: deleting blanked its original IOU action but kept its
-            // IOUTransactionID, and restoring it via Undelete created a new live action with a new transaction thread
+            // Given an undeleted self-DM expense with its blanked old IOU action and a new live one
             const selfDMReport: Report = {...createRandomReport(81, CONST.REPORT.CHAT_TYPE.SELF_DM), reportID: '81'};
             const movePolicy: Policy = {...createRandomPolicy(82, CONST.POLICY.TYPE.TEAM, 'Move Workspace'), id: 'policy-for-undeleted-move'};
             const workspaceChat: Report = {...createRandomReport(83, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: '83', policyID: movePolicy.id};
@@ -495,7 +494,7 @@ describe('actions/Transaction', () => {
                     isPersonalTrackingExpense: true,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
-            // The blanked action gets the lower ID so it comes first in the report actions object, like the reported bug
+            // The lower ID puts the blanked action first, as in the bug
             const blankedAction: ReportAction = {
                 ...buildTrackAction(),
                 reportActionID: '1000',
@@ -533,7 +532,7 @@ describe('actions/Transaction', () => {
             let allTransactions: OnyxCollection<Transaction>;
             await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
 
-            // The narrow REPORT subset the UI passes in; the full collection would hide a thread missing from it
+            // Use the REPORT subset the UI passes, since the full collection would hide a missing thread
             const {result: reportsSubset} = renderHook(() => useChangeTransactionsReportReports([movedTransaction], destinationReport.reportID));
             await waitFor(() => expect(reportsSubset.current?.[`${ONYXKEYS.COLLECTION.REPORT}${liveTransactionThread.reportID}`]).toBeDefined());
 
@@ -555,7 +554,7 @@ describe('actions/Transaction', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the action created in the destination report is not deleted and points at the live transaction thread
+            // Then the new action isn't deleted and points at the live thread
             const destinationActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${destinationReport.reportID}`);
             const newIOUAction = Object.values(destinationActions ?? {}).find(
                 (action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === movedTransaction.transactionID,
@@ -564,7 +563,7 @@ describe('actions/Transaction', () => {
             expect(isDeletedAction(newIOUAction)).toBe(false);
             expect(newIOUAction?.childReportID).toBe(liveTransactionThread.reportID);
 
-            // And the live transaction thread is re-parented onto the destination report and the new action
+            // And the live thread is re-parented onto the new action
             const updatedThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${liveTransactionThread.reportID}`);
             expect(updatedThread?.parentReportID).toBe(destinationReport.reportID);
             expect(updatedThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);

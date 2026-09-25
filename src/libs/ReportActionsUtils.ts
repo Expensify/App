@@ -2789,9 +2789,7 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
 
 /**
  * Get the IOU action for a transactionID from given reportActions.
- * Pass `shouldPreferLiveAction` when the resolved action is going to be mutated or copied: deleting a self-DM expense blanks its
- * IOU action but keeps its IOUTransactionID, so after an undelete the report can hold a blanked and a live action for the same
- * transaction. The live one then wins; when there is a single match it is returned as before, deleted or not.
+ * With `shouldPreferLiveAction`, a live action wins over a deleted one claiming the same transaction, which happens after an undelete.
  */
 function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string, shouldPreferLiveAction = false): OnyxEntry<ReportAction> {
     const isMatch = (reportAction: ReportAction) => (isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined) === transactionID;
@@ -2799,7 +2797,7 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
     if (!shouldPreferLiveAction) {
         return firstMatch;
     }
-    // An action with no message at all is not evidence of a deletion: deleting blanks the message rather than dropping it.
+    // Deleting blanks the message, so a missing message doesn't mean the action is deleted
     const isLive = (reportAction: ReportAction) => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (!reportAction.message || !isDeletedAction(reportAction));
     return reportActions.find((reportAction) => isMatch(reportAction) && isLive(reportAction)) ?? firstMatch;
 }
