@@ -5,7 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
@@ -571,16 +571,11 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
 
     const headerDateContent = (
         <View style={styles.pb3}>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                shouldRenderAsHTML
-                key={translate('iou.splitDates')}
-                description={translate('iou.splitDates')}
-                title={splitDatesTitle}
+            <MenuItemField
+                name={translate('iou.splitDates')}
+                value={splitDatesTitle}
+                numberOfLinesValue={2}
                 onPress={handleDatePress}
-                style={[styles.moneyRequestMenuItem]}
-                titleWrapperStyle={styles.flex1}
-                numberOfLinesTitle={2}
             />
         </View>
     );

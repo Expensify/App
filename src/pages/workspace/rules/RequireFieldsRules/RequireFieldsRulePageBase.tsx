@@ -1,6 +1,8 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -43,7 +45,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
-import variables from '@styles/variables';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -436,6 +438,8 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         />
     ) : null;
 
+    const categoryError = canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : '';
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -457,19 +461,36 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
-                    <MenuItemWithTopDescription
-                        description={translate('common.category')}
-                        title={categoryDisplayName}
-                        errorText={canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canEditCategory ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)) : undefined}
-                        shouldShowRightIcon={canEditCategory}
-                        interactive={canEditCategory}
-                        icon={icons.Folder}
-                        iconWidth={variables.iconSizeNormal}
-                        iconHeight={variables.iconSizeNormal}
-                        shouldIconUseAutoWidthStyle
+                    <MenuItem.Root
+                        onPress={
+                            canEditCategory
+                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)))
+                                : undefined
+                        }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.IconNarrow src={icons.Folder} />
+                            </MenuItem.Leading>
+                            <MenuItemField.Content name={translate('common.category')}>
+                                {!!categoryDisplayName && <MenuItem.FieldValue>{categoryDisplayName}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {canEditCategory && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                        {!!categoryError && (
+                            <FormHelpMessage
+                                isError
+                                shouldShowRedDotIndicator={false}
+                                message={categoryError}
+                                style={styles.menuItemError}
+                            />
+                        )}
+                    </MenuItem.Root>
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <View style={[styles.ph5, styles.pv3]}>
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.doTheFollowing')}</Text>

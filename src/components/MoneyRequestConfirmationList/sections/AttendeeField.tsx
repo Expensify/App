@@ -1,4 +1,6 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserPills from '@components/UserPills';
 
@@ -11,6 +13,8 @@ import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendeesListDisplayString} from '@libs/TransactionUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -49,41 +53,55 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const iouAttendees = enrichAndSortAttendees(rawIouAttendees, loginToAccountIDMap, personalDetailsList, localeCompare);
 
     return (
-        <MenuItemWithTopDescription
-            key="attendees"
-            shouldShowRightIcon={!isReadOnly}
-            accessibilityLabel={`${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`}
-            description={`${translate('iou.attendees')} ${
-                iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `· ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
-            }`}
-            descriptionTextStyle={styles.textLabelSupportingNormal}
-            titleComponent={
-                Array.isArray(iouAttendees) ? (
-                    <UserPills
-                        users={iouAttendees.map((a) => ({
-                            avatar: a?.avatarUrl,
-                            displayName: a?.displayName ?? a?.email ?? '',
-                            accountID: a?.accountID,
-                            email: a?.email,
-                        }))}
-                        maxVisible={isReadOnly ? iouAttendees.length : undefined}
-                    />
-                ) : undefined
-            }
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
+        <MenuItem.Root
+            onPress={
+                isReadOnly
+                    ? undefined
+                    : callFunctionIfActionIsAllowed(() => {
+                          if (!transactionID) {
+                              return;
+                          }
 
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID)));
-            }}
-            interactive={!isReadOnly}
-            brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
+                          Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID)));
+                      })
+            }
+            accessibilityLabel={`${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItemField.Content
+                    name={`${translate('iou.attendees')} ${
+                        iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `· ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+                    }`}
+                >
+                    {Array.isArray(iouAttendees) ? (
+                        <UserPills
+                            users={iouAttendees.map((a) => ({
+                                avatar: a?.avatarUrl,
+                                displayName: a?.displayName ?? a?.email ?? '',
+                                accountID: a?.accountID,
+                                email: a?.email,
+                            }))}
+                            maxVisible={isReadOnly ? iouAttendees.length : undefined}
+                        />
+                    ) : undefined}
+                </MenuItemField.Content>
+                {(shouldDisplayAttendeesError || !isReadOnly) && (
+                    <MenuItem.Trailing>
+                        {shouldDisplayAttendeesError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {!isReadOnly && <MenuItem.Chevron />}
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+            {shouldDisplayAttendeesError && (
+                <FormHelpMessage
+                    isError
+                    shouldShowRedDotIndicator={false}
+                    message={translate(formError as TranslationPaths)}
+                    style={styles.menuItemError}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

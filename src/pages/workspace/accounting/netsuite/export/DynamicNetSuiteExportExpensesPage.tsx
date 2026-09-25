@@ -1,19 +1,21 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
-import type {MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     exportExpensesDestinationSettingName,
     shouldHideJournalPostingPreference,
@@ -30,10 +32,6 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
-
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'description' | 'title' | 'onPress' | 'shouldHide' | 'onCloseError' | 'helperText' | 'shouldParseHelperText'> & {
-    subscribedSettings?: string[];
-};
 
 function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -58,76 +56,12 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
 
     const selectedReimbursablePayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.reimbursablePayableAccount), [payableList, config?.reimbursablePayableAccount]);
 
-    const menuItems: MenuItemWithSubscribedSettings[] = [
-        {
-            description: translate('workspace.accounting.exportAs'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path));
-            },
-            title: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined,
-            subscribedSettings: [exportDestinationSettingName],
-            onCloseError: () => clearNetSuiteErrorField(policyID, exportDestinationSettingName),
-            helperText: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`) : undefined,
-            shouldParseHelperText: true,
-        },
-        {
-            description: translate('workspace.accounting.defaultVendor'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path));
-            },
-            title: defaultVendor ? defaultVendor.name : undefined,
-            subscribedSettings: [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR],
-            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR),
-            shouldHide: shouldHideReimbursableDefaultVendor(isReimbursable, config),
-        },
-        {
-            description: translate('workspace.netsuite.nonReimbursableJournalPostingAccount'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path));
-            },
-            title: selectedPayableAccount ? selectedPayableAccount.name : undefined,
-            subscribedSettings: [CONST.NETSUITE_CONFIG.PAYABLE_ACCT],
-            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
-            shouldHide: shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config),
-        },
-        {
-            description: translate('workspace.netsuite.reimbursableJournalPostingAccount'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path));
-            },
-            title: selectedReimbursablePayableAccount ? selectedReimbursablePayableAccount.name : undefined,
-            subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT],
-            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
-            shouldHide: shouldHideReimbursableJournalPostingAccount(isReimbursable, config),
-        },
-        {
-            description: translate('workspace.netsuite.journalPostingPreference.label'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.path));
-            },
-            title: config?.journalPostingPreference
-                ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)
-                : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE],
-            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
-            shouldHide: shouldHideJournalPostingPreference(isReimbursable, config),
-        },
-    ];
+    const navigateToStep = (path: Parameters<typeof createDynamicRoute>[0]) => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(createDynamicRoute(path));
+    };
 
     return (
         <ConnectionLayout
@@ -141,24 +75,80 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
-            {menuItems
-                .filter((item) => !item.shouldHide)
-                .map((item) => (
-                    <OfflineWithFeedback
-                        key={item.description}
-                        pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+            <OfflineWithFeedback pendingAction={settingsPendingAction([exportDestinationSettingName], config?.pendingFields)}>
+                <MenuItemField
+                    name={translate('workspace.accounting.exportAs')}
+                    value={exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined}
+                    onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.path)}
+                >
+                    {areSettingsInErrorFields([exportDestinationSettingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
+                {!!exportDestination && (
+                    <FormHelpMessage
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
                     >
-                        <MenuItemWithTopDescription
-                            title={item.title}
-                            description={item.description}
-                            shouldShowRightIcon
-                            onPress={item?.onPress}
-                            brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            helperText={item?.helperText}
-                            shouldParseHelperText={item.shouldParseHelperText ?? false}
+                        <RenderHTML
+                            html={`<comment><muted-text-label>${Parser.replace(translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`))}</muted-text-label></comment>`}
                         />
-                    </OfflineWithFeedback>
-                ))}
+                    </FormHelpMessage>
+                )}
+            </OfflineWithFeedback>
+            {!shouldHideReimbursableDefaultVendor(isReimbursable, config) && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.pendingFields)}>
+                    <MenuItemField
+                        name={translate('workspace.accounting.defaultVendor')}
+                        value={defaultVendor?.name}
+                        onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path)}
+                    >
+                        {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                </OfflineWithFeedback>
+            )}
+            {!shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config) && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.PAYABLE_ACCT], config?.pendingFields)}>
+                    <MenuItemField
+                        name={translate('workspace.netsuite.nonReimbursableJournalPostingAccount')}
+                        value={selectedPayableAccount?.name}
+                        onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path)}
+                    >
+                        {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.PAYABLE_ACCT], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                </OfflineWithFeedback>
+            )}
+            {!shouldHideReimbursableJournalPostingAccount(isReimbursable, config) && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT], config?.pendingFields)}>
+                    <MenuItemField
+                        name={translate('workspace.netsuite.reimbursableJournalPostingAccount')}
+                        value={selectedReimbursablePayableAccount?.name}
+                        onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.path)}
+                    >
+                        {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                </OfflineWithFeedback>
+            )}
+            {!shouldHideJournalPostingPreference(isReimbursable, config) && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE], config?.pendingFields)}>
+                    <MenuItemField
+                        name={translate('workspace.netsuite.journalPostingPreference.label')}
+                        value={translate(
+                            `workspace.netsuite.journalPostingPreference.values.${config?.journalPostingPreference ?? CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`,
+                        )}
+                        onPress={() => navigateToStep(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.path)}
+                    >
+                        {areSettingsInErrorFields([CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
+                </OfflineWithFeedback>
+            )}
         </ConnectionLayout>
     );
 }

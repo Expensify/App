@@ -1,3 +1,4 @@
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -52,21 +53,31 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 value={startDate.date}
             />
 
-            <MenuItemWithTopDescription
-                description={translate('travel.trainDetails.departs')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>}
-                helperText={formatTransitLocationLabel(reservation.start)}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.trainDetails.departs')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{startDate.hour}</Text>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={formatTransitLocationLabel(reservation.start)}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
-            <MenuItemWithTopDescription
-                description={translate('travel.trainDetails.arrives')}
-                descriptionTextStyle={[styles.textLabelSupporting, styles.mb1]}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>}
-                helperText={formatTransitLocationLabel(reservation.end)}
-                helperTextStyle={[styles.pb3, styles.mtn2]}
-                interactive={false}
+            <MenuItem.Root>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.trainDetails.arrives')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{endDate.hour}</Text>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={formatTransitLocationLabel(reservation.end)}
+                style={[styles.mtn2, styles.mb0, styles.ph5, styles.pb3]}
             />
 
             <View style={[styles.flexRow, styles.flexWrap]}>
@@ -97,24 +108,22 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
             )}
 
             {!!displayName && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.trainDetails.passenger')}
-                    descriptionTextStyle={styles.fontSizeLabel}
-                    interactive={false}
-                    accessibilityLabel={`${translate('travel.trainDetails.passenger')} ${displayName}`}
-                    titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
-                    }
-                />
+                <MenuItem.Root accessibilityLabel={`${translate('travel.trainDetails.passenger')} ${displayName}`}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('travel.trainDetails.passenger')}>
+                            <UserPills
+                                users={[
+                                    {
+                                        avatar: personalDetails?.avatar,
+                                        displayName,
+                                        accountID: personalDetails?.accountID,
+                                        email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                    },
+                                ]}
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );

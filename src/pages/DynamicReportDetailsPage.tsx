@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -844,26 +845,23 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowEditableTitleField = caseID !== CASES.MONEY_REQUEST && canEditReportTitle(report, policy, currentUserAccountID, rules);
 
     const nameSectionFurtherDetailsContent = (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon={false}
-            interactive={false}
-            titleComponent={
-                <ParentNavigationSubtitle
-                    parentNavigationSubtitleData={parentNavigationSubtitleData}
-                    reportID={report?.reportID}
-                    parentReportID={report?.parentReportID}
-                    parentReportActionID={report?.parentReportActionID}
-                    pressableStyles={[styles.mt1, styles.mw100]}
-                    textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
-                    subtitleNumberOfLines={2}
-                    shouldShowFromPrefix={false}
-                    openParentReportInCurrentTab
-                />
-            }
-            description={translate('threads.from')}
-            descriptionTextStyle={[styles.mutedNormalTextLabel, styles.mb1]}
-            shouldCheckActionAllowedOnPress={false}
-        />
+        <MenuItem.Root>
+            <MenuItem.Row>
+                <MenuItemField.Content name={translate('threads.from')}>
+                    <ParentNavigationSubtitle
+                        parentNavigationSubtitleData={parentNavigationSubtitleData}
+                        reportID={report?.reportID}
+                        parentReportID={report?.parentReportID}
+                        parentReportActionID={report?.parentReportActionID}
+                        pressableStyles={[styles.mt1, styles.mw100]}
+                        textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
+                        subtitleNumberOfLines={2}
+                        shouldShowFromPrefix={false}
+                        openParentReportInCurrentTab
+                    />
+                </MenuItemField.Content>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 
     const nameSectionTitleField = (
@@ -1081,17 +1079,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    interactive
-                                    title={getReportDescription(report)}
-                                    shouldRenderAsHTML
-                                    shouldTruncateTitle
-                                    characterLimit={100}
-                                    shouldCheckActionAllowedOnPress={false}
-                                    description={translate('reportDescriptionPage.roomDescription')}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
-                                />
+                                <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}>
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('reportDescriptionPage.roomDescription')}>
+                                            {!!getReportDescription(report) && <MenuItem.FieldValueHTML characterLimit={100}>{getReportDescription(report)}</MenuItem.FieldValueHTML>}
+                                        </MenuItemField.Content>
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
                     )}

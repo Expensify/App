@@ -407,13 +407,11 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         titleStyle={styles.walletCardNumber}
                     />
                     {spendRulesSummary.length > 0 && (
-                        <MenuItemWithTopDescription
-                            interactive={false}
-                            description={translate('cardPage.spendRules')}
-                            descriptionTextStyle={[styles.fontSizeLabel]}
-                            titleComponent={spendRulesTitleComponent}
-                            accessibilityLabel={spendRulesSummary.join('. ')}
-                        />
+                        <MenuItem.Root accessibilityLabel={spendRulesSummary.join('. ')}>
+                            <MenuItem.Row>
+                                <MenuItemField.Content name={translate('cardPage.spendRules')}>{spendRulesTitleComponent}</MenuItemField.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
                     <OfflineWithFeedback pendingAction={card?.pendingFields?.availableSpend}>
                         <MenuItem.Root>

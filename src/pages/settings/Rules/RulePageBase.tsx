@@ -1,7 +1,8 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -24,6 +25,8 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,20 +45,6 @@ type RulePageBaseProps = {
     titleKey: TranslationPaths;
     testID: string;
     hash?: string;
-};
-
-type SectionItemType = {
-    key: string;
-    description: string;
-    required?: boolean;
-    title?: string;
-    onPress: () => void;
-    shouldRenderAsHTML?: boolean;
-};
-
-type SectionType = {
-    titleTranslationKey: TranslationPaths;
-    items: Array<SectionItemType | undefined>;
 };
 
 const navigateTo = (field: ExpenseRuleFormFieldID, hash?: string, index?: number) => {
@@ -156,83 +145,8 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
         });
     };
 
-    const sections: SectionType[] = [
-        {
-            titleTranslationKey: 'expenseRulesPage.addRule.expenseContains',
-            items: [
-                {
-                    key: 'merchantToMatch',
-                    description: translate('common.merchant'),
-                    required: true,
-                    title: form?.merchantToMatch,
-                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash),
-                },
-            ],
-        },
-        {
-            titleTranslationKey: 'expenseRulesPage.addRule.applyUpdates',
-            items: [
-                {
-                    key: 'merchant',
-                    description: translate('common.merchant'),
-                    title: form?.merchant,
-                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT, hash),
-                },
-                form?.category || hasPolicyCategories
-                    ? {
-                          key: 'category',
-                          description: translate('common.category'),
-                          title: form?.category ? getDecodedCategoryName(form.category) : undefined,
-                          onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.CATEGORY, hash),
-                      }
-                    : undefined,
-                ...policyTags
-                    .filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0)
-                    .map(({name, orderWeight}) => {
-                        const formTag = formTags.at(orderWeight);
-                        return {
-                            key: `tag-${name}-${orderWeight}`,
-                            description: name,
-                            title: formTag ? getCleanedTagName(formTag) : undefined,
-                            onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.TAG, hash, orderWeight),
-                        };
-                    }),
-                hasTaxRates
-                    ? {
-                          key: 'tax',
-                          description: translate('common.tax'),
-                          title: selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined,
-                          onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.TAX, hash),
-                      }
-                    : undefined,
-                {
-                    key: 'description',
-                    description: translate('common.description'),
-                    title: form?.comment ? Parser.replace(form.comment) : undefined,
-                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.DESCRIPTION, hash),
-                    shouldRenderAsHTML: true,
-                },
-                {
-                    key: 'reimbursable',
-                    description: translate('common.reimbursable'),
-                    title: form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange'),
-                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.REIMBURSABLE, hash),
-                },
-                {
-                    key: 'billable',
-                    description: translate('common.billable'),
-                    title: form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange'),
-                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.BILLABLE, hash),
-                },
-                {
-                    key: 'addToReport',
-                    description: translate('expenseRulesPage.addRule.addToReport'),
-                    title: form?.report,
-                    onPress: () => navigateTo(EXPENSE_RULE_INPUT_IDS.REPORT, hash),
-                },
-            ],
-        },
-    ];
+    const hasMerchantToMatchError = shouldShowError && !form?.merchantToMatch;
+    const tagsToShow = policyTags.filter(({orderWeight, tags}) => !!formTags.at(orderWeight) || getEnabledTags(tags, form?.tag ?? '', orderWeight).length > 0);
 
     return (
         <RuleNotFoundPageWrapper
@@ -246,29 +160,78 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             >
                 <HeaderWithBackButton title={translate(titleKey)} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    {sections.map((section) => (
-                        <View key={section.titleTranslationKey}>
-                            <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
-                            {section.items.map((item) => {
-                                if (!item) {
-                                    return null;
-                                }
-                                return (
-                                    <MenuItemWithTopDescription
-                                        key={item.key}
-                                        description={item.description}
-                                        errorText={shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                                        onPress={item.onPress}
-                                        rightLabel={item.required ? translate('common.required') : undefined}
-                                        shouldShowRightIcon
-                                        title={item.title}
-                                        titleStyle={styles.flex1}
-                                        shouldRenderAsHTML={item.shouldRenderAsHTML}
-                                    />
-                                );
-                            })}
-                        </View>
-                    ))}
+                    <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.expenseContains')}</Text>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.MERCHANT, hash))}>
+                        <MenuItemField.Row
+                            name={translate('common.merchant')}
+                            value={form?.merchantToMatch}
+                        >
+                            {!form?.merchantToMatch && !hasMerchantToMatchError && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {hasMerchantToMatchError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={translate('common.error.fieldRequired')}
+                            />
+                        )}
+                    </MenuItem.Root>
+                    <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate('expenseRulesPage.addRule.applyUpdates')}</Text>
+                    <MenuItemField
+                        name={translate('common.merchant')}
+                        value={form?.merchant}
+                        onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT, hash)}
+                    />
+                    {(!!form?.category || !!hasPolicyCategories) && (
+                        <MenuItemField
+                            name={translate('common.category')}
+                            value={form?.category ? getDecodedCategoryName(form.category) : undefined}
+                            onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.CATEGORY, hash)}
+                        />
+                    )}
+                    {tagsToShow.map(({name, orderWeight}) => {
+                        const formTag = formTags.at(orderWeight);
+                        return (
+                            <MenuItemField
+                                key={`tag-${name}-${orderWeight}`}
+                                name={name}
+                                value={formTag ? getCleanedTagName(formTag) : undefined}
+                                onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.TAG, hash, orderWeight)}
+                            />
+                        );
+                    })}
+                    {hasTaxRates && (
+                        <MenuItemField
+                            name={translate('common.tax')}
+                            value={selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.value})` : undefined}
+                            onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.TAX, hash)}
+                        />
+                    )}
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateTo(EXPENSE_RULE_INPUT_IDS.DESCRIPTION, hash))}>
+                        <MenuItem.Row>
+                            <MenuItemField.Content name={translate('common.description')}>
+                                {!!form?.comment && <MenuItem.FieldValueHTML>{Parser.replace(form.comment)}</MenuItem.FieldValueHTML>}
+                            </MenuItemField.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                    <MenuItemField
+                        name={translate('common.reimbursable')}
+                        value={form?.reimbursable ? translate(form.reimbursable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange')}
+                        onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.REIMBURSABLE, hash)}
+                    />
+                    <MenuItemField
+                        name={translate('common.billable')}
+                        value={form?.billable ? translate(form.billable === 'true' ? 'common.yes' : 'common.no') : translate('common.dontChange')}
+                        onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.BILLABLE, hash)}
+                    />
+                    <MenuItemField
+                        name={translate('expenseRulesPage.addRule.addToReport')}
+                        value={form?.report}
+                        onPress={() => navigateTo(EXPENSE_RULE_INPUT_IDS.REPORT, hash)}
+                    />
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                         <ToggleSettingOptionRow
                             isActive={form?.createReport ?? false}
