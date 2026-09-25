@@ -97,7 +97,6 @@ describe('actions/Policy', () => {
                 userReportedIntegration: 'other',
                 userReportedIntegrationName: 'Acme Books',
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -131,7 +130,6 @@ describe('actions/Policy', () => {
                 currency: CONST.CURRENCY.USD,
                 userReportedIntegration: 'other',
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -172,7 +170,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: CONST.CURRENCY.USD,
                 isSelfTourViewed: false,
-                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -983,7 +980,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1005,43 +1001,6 @@ describe('actions/Policy', () => {
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
         });
 
-        it('creates a new workspace when betas are explicitly passed', async () => {
-            const policyID = Policy.generatePolicyID();
-            Policy.createWorkspace({
-                conciergeChat: undefined,
-                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
-                makeMeAdmin: true,
-                policyName: WORKSPACE_NAME,
-                policyID,
-                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                currentUserAccountIDParam: ESH_ACCOUNT_ID,
-                currentUserEmailParam: ESH_EMAIL,
-                currency: undefined,
-                isSelfTourViewed: false,
-                hasActiveAdminPolicies: false,
-                hasOwnedPaidPolicy: false,
-                activePolicy: undefined,
-                delegateAccountID: undefined,
-                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
-            });
-            await waitForBatchedUpdates();
-
-            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
-            });
-
-            expect(policy?.id).toBe(policyID);
-            expect(policy?.name).toBe(WORKSPACE_NAME);
-            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
-        });
-
         it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
@@ -1057,7 +1016,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: CONST.CURRENCY.EUR,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1100,7 +1058,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: true,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1131,7 +1088,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1167,7 +1123,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1200,7 +1155,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1234,7 +1188,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1266,7 +1219,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1298,7 +1250,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1330,7 +1281,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1362,7 +1312,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1392,7 +1341,6 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1445,7 +1393,6 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1485,7 +1432,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: true,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1525,7 +1471,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1571,7 +1516,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: true,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1622,7 +1566,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1672,7 +1615,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1710,7 +1652,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1754,7 +1695,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1812,7 +1752,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1850,7 +1789,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1888,7 +1826,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1929,7 +1866,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1962,7 +1898,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1986,7 +1921,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: true,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -2014,7 +1948,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -2050,7 +1983,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
@@ -2095,7 +2027,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
@@ -2114,7 +2045,6 @@ describe('actions/Policy', () => {
                 currentUserEmailParam: ESH_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
@@ -2158,7 +2088,6 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -7582,6 +7511,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7639,6 +7569,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy,
                 currentUserDisplayName: undefined,
             });
@@ -7675,6 +7606,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             expect(result).toBeUndefined();
@@ -7735,6 +7667,7 @@ describe('actions/Policy', () => {
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
 
@@ -7791,6 +7724,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
@@ -7863,6 +7797,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                reportTransactions: [transaction],
                 hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();

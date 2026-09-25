@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -28,7 +29,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -57,17 +58,12 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
 
-    // Use a ref so that changes to the employee list (e.g. after inviting a member) don't
-    // recreate the callback and trigger an unnecessary re-fetch that flashes a skeleton loader.
-    const employeeListRef = useRef(policy?.employeeList);
-    useEffect(() => {
-        employeeListRef.current = policy?.employeeList;
-    }, [policy?.employeeList]);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
-    const loadPolicyCompanyCardsPage = useCallback(() => {
-        const emailList = Object.keys(getMemberAccountIDsForWorkspace(employeeListRef.current));
+    const loadPolicyCompanyCardsPage = () => {
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
-    }, [domainOrWorkspaceAccountID, policyID, translate]);
+    };
 
     const {isOffline} = useNetwork({
         onReconnect: loadPolicyCompanyCardsPage,
@@ -83,13 +79,17 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const isPageFetchPending = !hasFeedsLoaded;
 
-    useEffect(() => {
+    const loadPolicyCompanyCardsPageEvent = useEffectEvent(() => {
         if (isOffline || hasFeedsLoaded) {
             return;
         }
 
         loadPolicyCompanyCardsPage();
-    }, [loadPolicyCompanyCardsPage, isOffline, hasFeedsLoaded]);
+    });
+
+    useEffect(() => {
+        loadPolicyCompanyCardsPageEvent();
+    }, []);
 
     const loadPolicyCompanyCardsFeed = useCallback(() => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
