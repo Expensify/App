@@ -2955,10 +2955,10 @@ ${amount} para ${merchant} - ${date}`,
             approverSubtitle: 'Todas as pessoas aprovadoras pertencem a um fluxo de trabalho existente.',
             bulkApproverSubtitle: 'Nenhum aprovador corresponde aos critérios para os relatórios selecionados.',
         },
-        configureViaHR: ({provider}: {provider: string}) => `Configurar via ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Configurar via ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `As aprovações são gerenciadas pela sua integração com o ${provider}. Para atualizar seu fluxo de aprovação, vá até as configurações de conexão do ${provider}.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Ir para as configurações do ${provider}`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Ir para as configurações do ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `de ${provider}`,
         finalApprover: 'Aprovador final',
         manager: 'Gerente',
@@ -11121,18 +11121,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Mapeamento de fornecedor aprimorado',
-                body: 'Crie fornecedores e regras personalizadas para facilitar o mapeamento para os principais pacotes de contabilidade.',
-                cta: 'Experimente',
-            },
-            member: {
-                heading: 'Agentes pré-configurados para você',
-                body: 'Use agentes prontos ou personalizados para codificar, dividir e enviar despesas automaticamente em seu nome.',
-                cta: 'Experimente',
-            },
-        },
+        heading: 'Conecte o Expensify ao Claude',
+        body: 'Pesquise, analise e resuma os dados de despesas diretamente no Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',

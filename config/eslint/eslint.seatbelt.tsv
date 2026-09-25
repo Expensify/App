@@ -563,7 +563,7 @@
 "../../src/libs/actions/Link.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/MapboxToken.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/MergeAccounts.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/MergeTransaction.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
+"../../src/libs/actions/MergeTransaction.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/MergeTransaction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/MergeTransaction.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/MergeTransaction.ts"	"no-restricted-syntax"	1
@@ -592,7 +592,6 @@
 "../../src/libs/actions/Policy/Member.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-deprecated/ReportUtils.getReportTransactions"	1
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-imports"	2
@@ -609,7 +608,7 @@
 "../../src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/ReimbursementAccount/resetUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/replaceOptimisticReportWithActualReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	3
+"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/reportAction.originalMessage"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	7
@@ -620,7 +619,6 @@
 "../../src/libs/actions/ReportLayout.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/RequestConflictUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/ScheduleCall.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
@@ -679,8 +677,7 @@
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/ExpenseRuleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ExportOnyxState/common.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
-"../../src/libs/ExportOnyxState/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/ExportOnyxState/masking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/fileDownload/getImageManipulator/index.native.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
@@ -822,7 +819,7 @@
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	27
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	17
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	16
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	32
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	13

@@ -3024,10 +3024,10 @@ const translations = {
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        configureViaHR: ({provider}: {provider: string}) => `Configure via ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Configure via ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Approvals are managed by your ${provider} integration. To update your approval workflow, head to your ${provider} connection settings.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Go to ${provider} settings`,
         approverFromProvider: ({provider}: {provider: string}) => `from ${provider}`,
         finalApprover: 'Final approver',
         manager: 'Manager',
@@ -11420,18 +11420,8 @@ const translations = {
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Enhanced vendor mapping',
-                body: 'Create vendors and custom rules for easy mapping to major accounting packages.',
-                cta: 'Try it out',
-            },
-            member: {
-                heading: 'Pre-built agents for you',
-                body: 'Use pre-built or custom agents to code, split, and submit expenses automatically on your behalf.',
-                cta: 'Try it out',
-            },
-        },
+        heading: 'Connect Expensify to Claude',
+        body: 'Search, analyze, and summarize expense data directly in Claude.',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

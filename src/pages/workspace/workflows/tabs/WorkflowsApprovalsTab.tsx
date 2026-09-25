@@ -28,7 +28,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyErrorField, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, getHRFinalApprover, isAnyHRConnected, isAnyHRReadOnlyWorkflowMode, isHRAdvancedMode} from '@libs/merge/HRUtils';
+import {getHRFinalApprover, isHRAdvancedMode} from '@libs/merge/HRUtils';
+import {isRecruitingAdvancedMode} from '@libs/merge/RecruitingUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -39,7 +40,9 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
+    getApprovalWorkflowSource,
     INITIAL_APPROVAL_WORKFLOW,
+    isApprovalWorkflowLockedByIntegration,
 } from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
@@ -164,29 +167,34 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         });
     }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
 
-    const navigateToHRSettings = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
-    }, [policyID]);
+    const approvalWorkflowSource = getApprovalWorkflowSource(policy, policyID);
+    const isWorkflowFromIntegration = !!approvalWorkflowSource;
+    const workflowSourceName = approvalWorkflowSource?.providerName ?? '';
+    const workflowSourceSettingsRoute = approvalWorkflowSource?.settingsRoute;
 
-    const connectedHRProvider = getConnectedHRProvider(policy);
-    const hrProviderName = connectedHRProvider?.displayName ?? '';
+    const navigateToWorkflowSourceSettings = useCallback(() => {
+        if (!workflowSourceSettingsRoute) {
+            return;
+        }
+        Navigation.navigate(workflowSourceSettingsRoute);
+    }, [workflowSourceSettingsRoute]);
 
-    const promptConfigureApprovalsInHR = useCallback(async () => {
+    const promptConfigureApprovalsInIntegration = useCallback(async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-            prompt: translate('workflowsPage.hrApprovalWorkflowLockedPrompt', {
-                provider: hrProviderName,
+            prompt: translate('workflowsPage.integrationApprovalWorkflowLockedPrompt', {
+                provider: workflowSourceName,
             }),
-            confirmText: translate('workflowsPage.goToHRSettings', {
-                provider: hrProviderName,
+            confirmText: translate('workflowsPage.goToProviderSettings', {
+                provider: workflowSourceName,
             }),
             cancelText: translate('common.cancel'),
         });
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToHRSettings();
-    }, [navigateToHRSettings, hrProviderName, showConfirmModal, translate]);
+        navigateToWorkflowSourceSettings();
+    }, [navigateToWorkflowSourceSettings, workflowSourceName, showConfirmModal, translate]);
 
     const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
@@ -220,6 +228,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
+    const isRecruitingAdvancedModeEnabled = isRecruitingAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy);
 
     const filteredApprovalWorkflows =
@@ -290,31 +299,30 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // A Dynamic External Workflow can be configured to keep the approval workflow out of the customer's hands entirely.
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
-    const isHRConnected = isAnyHRConnected(policy);
-    const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
     const approvalSubtitle = useMemo(() => {
-        if (!isHRConnected) {
+        if (!isWorkflowFromIntegration) {
             return translate('workflowsPage.addApprovalsDescription');
         }
 
         return (
             <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
                 {translate('workflowsPage.addApprovalsDescription')}{' '}
-                <TextLink onPress={navigateToHRSettings}>
-                    {translate('workflowsPage.configureViaHR', {
-                        provider: hrProviderName,
+                <TextLink onPress={navigateToWorkflowSourceSettings}>
+                    {translate('workflowsPage.configureViaProvider', {
+                        provider: workflowSourceName,
                     })}
                 </TextLink>
             </Text>
         );
-    }, [isHRConnected, hrProviderName, navigateToHRSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
+    }, [isWorkflowFromIntegration, workflowSourceName, navigateToWorkflowSourceSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
 
-    const approvalOptionSubtitle = isHRConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
+    const approvalOptionSubtitle = isWorkflowFromIntegration || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
 
     const getAddApprovalsToggleDisabledAction = () => {
-        if (isHRConnected) {
-            return promptConfigureApprovalsInHR;
+        if (isWorkflowFromIntegration) {
+            return promptConfigureApprovalsInIntegration;
         }
         return undefined;
     };
@@ -333,7 +341,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     navigateToSubmitWorkspaceApprovalsUpgrade();
                     return;
                 }
-                if (isHRConnected) {
+                if (isWorkflowFromIntegration) {
                     return;
                 }
                 if (!isEnabled) {
@@ -437,8 +445,9 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                             }
                                             currency={policy?.outputCurrency}
                                             isDisabled={shouldBlockApprovalWorkflowEditing || !canWriteApprovals}
-                                            hrProviderName={isHRConnected ? hrProviderName : undefined}
+                                            providerName={approvalWorkflowSource?.providerName}
                                             isHRAdvancedMode={isHRAdvancedModeEnabled}
+                                            isRecruitingAdvancedMode={isRecruitingAdvancedModeEnabled}
                                             hrFinalApproverEmail={isHRAdvancedModeEnabled ? hrFinalApproverEmail : undefined}
                                         />
                                     </OfflineWithFeedback>
@@ -471,13 +480,13 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                     )}
                 </>
             }
-            disabled={!canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isHRConnected}
+            disabled={!canWriteApprovals || isSmartLimitEnabled || isDEWEnabled || isWorkflowFromIntegration}
             disabledAction={withApprovalsReadOnlyFallback(getAddApprovalsToggleDisabledAction())}
             showLockIcon={!canWriteApprovals}
             // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
             isActive={
                 !isSubmitPolicyWorkspace &&
-                (isHRConnected ||
+                (isWorkflowFromIntegration ||
                     isDEWEnabled ||
                     (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false))
             }

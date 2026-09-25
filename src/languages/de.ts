@@ -2975,10 +2975,10 @@ ${amount} für ${merchant} – ${date}`,
             approverSubtitle: 'Alle Genehmigenden gehören zu einem bestehenden Workflow.',
             bulkApproverSubtitle: 'Keine Genehmigenden entsprechen den Kriterien für die ausgewählten Berichte.',
         },
-        configureViaHR: ({provider}: {provider: string}) => `Über ${provider} konfigurieren.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Über ${provider} konfigurieren.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Genehmigungen werden über deine ${provider}-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen ${provider}-Verbindungseinstellungen.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
         approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
         finalApprover: 'Letzte*r Genehmigende*r',
         manager: 'Manager',
@@ -11212,18 +11212,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Erweiterte Lieferanten-Zuordnung',
-                body: 'Erstellen Sie Lieferanten und benutzerdefinierte Regeln für eine einfache Zuordnung zu den wichtigsten Buchhaltungspaketen.',
-                cta: 'Probieren Sie es aus',
-            },
-            member: {
-                heading: 'Vorgefertigte Agents für Sie',
-                body: 'Verwenden Sie vorgefertigte oder benutzerdefinierte Agenten, um Ausgaben automatisch in Ihrem Namen zu kodieren, aufzuteilen und einzureichen.',
-                cta: 'Ausprobieren',
-            },
-        },
+        heading: 'Expensify mit Claude verbinden',
+        body: 'Durchsuchen, analysieren und fassen Sie Ausgabendaten direkt in Claude zusammen.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',

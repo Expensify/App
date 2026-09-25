@@ -2965,10 +2965,10 @@ ${amount} voor ${merchant} - ${date}`,
             approverSubtitle: 'Alle fiatteurs behoren tot een bestaand workflow.',
             bulkApproverSubtitle: 'Geen goedkeurders komen overeen met de criteria voor de geselecteerde rapporten.',
         },
-        configureViaHR: ({provider}: {provider: string}) => `Configureren via ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Configureren via ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Goedkeuringen worden beheerd door je ${provider}-integratie. Ga naar je ${provider}-verbindingsinstellingen om je goedkeuringsworkflow bij te werken.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Ga naar ${provider}-instellingen`,
         approverFromProvider: ({provider}: {provider: string}) => `van ${provider}`,
         finalApprover: 'Laatste fiatteur',
         manager: 'Manager',
@@ -11128,18 +11128,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Verbeterde leverancierskoppeling',
-                body: 'Maak leveranciers en aangepaste regels aan voor eenvoudige koppeling met grote boekhoudpakketten.',
-                cta: 'Probeer het uit',
-            },
-            member: {
-                heading: 'Vooraf gebouwde agents voor jou',
-                body: 'Gebruik vooraf gebouwde of aangepaste agents om automatisch namens jou uitgaven te coderen, te splitsen en in te dienen.',
-                cta: 'Probeer het uit',
-            },
-        },
+        heading: 'Verbind Expensify met Claude',
+        body: 'Zoek, analyseer en vat uitgavengegevens direct samen in Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',

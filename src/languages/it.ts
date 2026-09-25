@@ -2962,10 +2962,10 @@ ${amount} per ${merchant} - ${date}`,
             approverSubtitle: 'Tutti gli approvatori appartengono a un workflow esistente.',
             bulkApproverSubtitle: 'Nessun approvatore corrisponde ai criteri per i report selezionati.',
         },
-        configureViaHR: ({provider}: {provider: string}) => `Configura tramite ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Configura tramite ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Le approvazioni sono gestite dalla tua integrazione con ${provider}. Per aggiornare il flusso di approvazione, vai alle impostazioni di connessione di ${provider}.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Vai alle impostazioni di ${provider}`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Vai alle impostazioni di ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `da ${provider}`,
         finalApprover: 'Approvazione finale',
         manager: 'Responsabile',
@@ -11163,18 +11163,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Mappatura fornitori avanzata',
-                body: 'Crea fornitori e regole personalizzate per mappare facilmente le principali suite contabili.',
-                cta: 'Provalo',
-            },
-            member: {
-                heading: 'Agenti preconfigurati per te',
-                body: 'Usa agenti preconfigurati o personalizzati per codificare, suddividere e inviare automaticamente le spese per tuo conto.',
-                cta: 'Provalo',
-            },
-        },
+        heading: 'Collega Expensify a Claude',
+        body: 'Cerca, analizza e riassumi i dati delle spese direttamente in Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',

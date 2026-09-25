@@ -2981,10 +2981,10 @@ ${amount} pour ${merchant} - ${date}`,
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
             bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
-        configureViaHR: ({provider}: {provider: string}) => `Configurer via ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Configurer via ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Les validations sont gérées par votre intégration ${provider}. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion ${provider}.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Aller aux paramètres ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `de la part de ${provider}`,
         finalApprover: 'Approbateur final',
         manager: 'Manager',
@@ -11234,18 +11234,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Mappage de fournisseur amélioré',
-                body: 'Créez des fournisseurs et des règles personnalisées pour faciliter la mise en correspondance avec les principaux logiciels de comptabilité.',
-                cta: 'Essayer',
-            },
-            member: {
-                heading: 'Agents préconfigurés pour vous',
-                body: 'Utilisez des agents prédéfinis ou personnalisés pour coder, répartir et soumettre automatiquement les dépenses en votre nom.',
-                cta: 'Essayer',
-            },
-        },
+        heading: 'Connectez Expensify à Claude',
+        body: 'Recherchez, analysez et résumez vos données de dépenses directement dans Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',
