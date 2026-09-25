@@ -173,6 +173,16 @@ const PLAYGROUND_PRESETS: Record<PlaygroundPreset, Pick<DynamicFormStoryProps, '
         fields: allFieldTypes.filter((field) => field.key === 'useCases'),
         draftValues: {},
     },
+    sections: {
+        fields: [
+            {key: 'legalFirstName', label: 'Legal first name', group: 'Personal details', section: 'Basic details', type: 'text', required: true, refreshOnChange: false},
+            {key: 'legalLastName', label: 'Legal last name', group: 'Personal details', section: 'Basic details', type: 'text', required: true, refreshOnChange: false},
+            {key: 'dateOfBirth', label: 'Date of birth', group: 'Personal details', section: 'Basic details', type: 'date', required: true, rule: 'dateOfBirth', refreshOnChange: false},
+            {key: 'phoneNumber', label: 'Phone number', group: 'Personal details', section: 'Contact', type: 'text', keyboard: 'tel', required: false, refreshOnChange: false},
+            {key: 'homeAddress', label: 'Address', group: 'Personal details', section: 'Address', type: 'address', required: true, rule: 'zipCode', refreshOnChange: false},
+        ],
+        draftValues: {legalFirstName: 'Ali', legalLastName: 'Rahman'},
+    },
     owners: {
         fields: allFieldTypes.filter((field) => field.key === 'legalEntityShareholders'),
         draftValues: {
@@ -254,7 +264,7 @@ const PLAYGROUND_PRESETS: Record<PlaygroundPreset, Pick<DynamicFormStoryProps, '
     },
 };
 
-type PlaygroundPreset = 'bankAccount' | 'singleQuestion' | 'owners' | 'ownersWithTabs' | 'loneCountry';
+type PlaygroundPreset = 'bankAccount' | 'singleQuestion' | 'owners' | 'ownersWithTabs' | 'loneCountry' | 'sections';
 
 type PlaygroundProps = DynamicFormStoryProps & {
     /** Loads a starting schema and draft into the editable `fields` and `draftValues` controls */
@@ -321,7 +331,7 @@ PlaygroundStory.args = {
     layout: 'pages',
 };
 PlaygroundStory.argTypes = {
-    preset: {options: ['bankAccount', 'singleQuestion', 'owners', 'ownersWithTabs', 'loneCountry'], control: {type: 'select'}},
+    preset: {options: ['bankAccount', 'singleQuestion', 'owners', 'ownersWithTabs', 'loneCountry', 'sections'], control: {type: 'select'}},
     fields: {control: {type: 'object'}},
     draftValues: {control: {type: 'object'}},
 };
@@ -370,7 +380,7 @@ const FlowStory: StoryFn<FlowStoryProps> = Flow.bind({});
 FlowStory.storyName = 'Flow';
 FlowStory.args = {preset: 'bankAccount', layout: 'auto', confirmation: 'auto'};
 FlowStory.argTypes = {
-    preset: {options: ['bankAccount', 'singleQuestion', 'owners', 'ownersWithTabs', 'loneCountry'], control: {type: 'select'}},
+    preset: {options: ['bankAccount', 'singleQuestion', 'owners', 'ownersWithTabs', 'loneCountry', 'sections'], control: {type: 'select'}},
     layout: {options: ['auto', 'stepper', 'pages'], control: {type: 'radio'}},
     confirmation: {options: ['auto', 'yes', 'no'], control: {type: 'radio'}},
 };

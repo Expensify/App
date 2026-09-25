@@ -58,6 +58,12 @@ type DynamicFormField = {
     /** Our translation of the page title; required for App-owned schemas */
     groupLabelKey?: TranslationPaths;
 
+    /** Sub-heading within the page; consecutive fields sharing it render under one bold title */
+    section?: string;
+
+    /** Our translation of the section title; required for App-owned schemas */
+    sectionLabelKey?: TranslationPaths;
+
     type: DynamicFormFieldType;
 
     required: boolean;

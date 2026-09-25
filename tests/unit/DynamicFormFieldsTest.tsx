@@ -387,6 +387,38 @@ describe('DynamicFormFields', () => {
         expect(list?.itemFields?.map((field) => field.key)).toEqual(['name', 'country', 'ownershipPercentage']);
     });
 
+    it('renders one bold title before each run of fields that share a section, translated when the section has a key', () => {
+        const fields: DynamicFormField[] = [
+            {
+                key: 'legalFirstName',
+                label: 'Legal first name',
+                group: 'Details',
+                section: 'Basic details',
+                sectionLabelKey: 'privatePersonalDetails.basicDetails',
+                type: 'text',
+                required: true,
+                refreshOnChange: false,
+            },
+            {
+                key: 'legalLastName',
+                label: 'Legal last name',
+                group: 'Details',
+                section: 'Basic details',
+                sectionLabelKey: 'privatePersonalDetails.basicDetails',
+                type: 'text',
+                required: true,
+                refreshOnChange: false,
+            },
+            {key: 'street', label: 'Street', group: 'Details', section: 'Address', type: 'text', required: true, refreshOnChange: false},
+            {key: 'nickname', label: 'Nickname', group: 'Details', type: 'text', required: false, refreshOnChange: false},
+        ];
+        renderFields(fields);
+
+        expect(screen.getAllByText('privatePersonalDetails.basicDetails')).toHaveLength(1);
+        expect(screen.getAllByText('Address')).toHaveLength(1);
+        expect(screen.queryByText('Basic details')).not.toBeOnTheScreen();
+    });
+
     it('renders a readonly field as a plain row, skips drafts for sensitive fields and grows multiline text', () => {
         const fields: DynamicFormField[] = [
             {key: 'legalName', label: 'Legal business name', group: 'Business', type: 'text', required: true, readonly: true, refreshOnChange: false},
