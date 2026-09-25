@@ -25,13 +25,13 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {consumePageRequestedSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
@@ -167,7 +167,6 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -439,9 +438,9 @@ function Search({
         // When mounting after the pre-insert fast path, the deferred write hasn't
         // been flushed yet. Triggering a search now would race with the CREATE
         // API call and return stale results that overwrite the optimistic row.
-        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // Skip this call; the optimistic data from the pending Search write will populate
         // the list, and the next user-driven search will refresh from the server.
-        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasPendingSearchWrite()) {
             return;
         }
 
@@ -617,7 +616,6 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    betas,
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
@@ -681,7 +679,6 @@ function Search({
                             backTo,
                             currentUserLogin: email ?? '',
                             currentUserAccountID: accountID,
-                            betas,
                             personalDetails,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
@@ -766,7 +763,6 @@ function Search({
             handleSearch,
             unmarkReportRHPWidth,
             introSelected,
-            betas,
             personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
@@ -917,7 +913,7 @@ function Search({
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
-            callback: () => flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
+            callback: () => flushPendingSearchWrite(),
         });
     }, [onDestinationVisible]);
 
@@ -959,11 +955,11 @@ function Search({
         // different component" warning. setIsSearchReady is idempotent, so
         // firing this on every bail-out render is safe.
         onContentReady?.();
-        if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!hasPendingSearchWrite()) {
             return;
         }
         didBailToFallbackState.current = false;
-        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        flushPendingSearchWrite();
     });
 
     const onLayoutChart = useCallback(() => {
@@ -991,7 +987,7 @@ function Search({
 
             // Re-arm pending expense skeleton for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
-            if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
+            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
                 rearmTracking();
                 setSkeletonWasDisplayed(true);
@@ -1004,7 +1000,7 @@ function Search({
             endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            flushPendingSearchWrite();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 
@@ -1014,7 +1010,7 @@ function Search({
     // write channel is gone (write executed) and sortedData has updated, then
     // signals overlay readiness.
     useEffect(() => {
-        if (!wasRearmedRef.current || hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!wasRearmedRef.current || hasPendingSearchWrite()) {
             return;
         }
         wasRearmedRef.current = false;

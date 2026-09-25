@@ -3,7 +3,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {clearPageRequestedSearch, markPageRequestedSearch, openSearch, search} from '@libs/actions/Search';
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -98,7 +98,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
 
-        const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        const shouldSkipWaitForWrites = hasPendingSearchWrite();
         requestedHashesRef.current.add(hash);
         // Claim this query's first page so Search does not request it again when it mounts behind the skeleton.
         // With data loaded Search is already mounted, so a token set here would never be read and would skip the next revisit.

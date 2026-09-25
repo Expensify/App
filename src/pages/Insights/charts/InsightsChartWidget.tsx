@@ -21,10 +21,10 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
+
+import InsightsDataTable from './InsightsDataTable';
 
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
@@ -39,11 +39,9 @@ type InsightsChartWidgetProps = {
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
-
-    containerStyles?: StyleProp<ViewStyle>;
 };
 
-function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, containerStyles}: InsightsChartWidgetProps) {
+function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -51,6 +49,8 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
 
     const {queryJSON, data, state} = useInsightsChartData(dashboardID, hash, chart, filters);
     const groupBy = queryJSON?.groupBy;
+    const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
+    const shouldShowTable = chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE;
 
     if (!queryJSON || !groupBy) {
         return null;
@@ -59,7 +59,6 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
-            containerStyles={containerStyles}
             titleRightContent={
                 state === INSIGHTS_CHART_STATE.READY ? (
                     <WidgetHeaderMenu
@@ -80,14 +79,27 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], chart.view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={chart.view}
                         groupBy={groupBy}
                         data={data}
-                        isLoading={state === INSIGHTS_CHART_STATE.LOADING}
+                        isLoading={isLoading}
                         color={chart.color}
+                        chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        renderDetails={
+                            shouldShowTable
+                                ? (rows) => (
+                                      <InsightsDataTable
+                                          rows={rows}
+                                          view={chart.view}
+                                          groupBy={groupBy}
+                                          isLoading={isLoading}
+                                      />
+                                  )
+                                : undefined
+                        }
                     />
                 </View>
             )}
