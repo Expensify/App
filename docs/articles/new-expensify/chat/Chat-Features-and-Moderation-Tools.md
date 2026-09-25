@@ -6,32 +6,31 @@ keywords: [New Expensify, chat, edit messages, report chat, add members, leave r
 internalScope: Audience is any New Expensify member using chat. Covers sending, formatting, editing, deleting, downloading attachments from, and moderating chat messages, plus chat membership. Does not cover receipts attached to expenses or Expensify Chat room administration.
 ---
 
+# Chat Features and Moderation Tools
 
 New Expensify Chat makes it easy to collaborate with teammates through messaging. This guide walks you through sending messages, formatting them, editing or deleting chats, reporting content, and managing group or room participation.
 
 ---
 
-# Send and Format Messages
-
-## Sending Messages
+## How to Send a Message
 
 You can send messages, attach files, and add emojis from the message bar at the bottom of any chat.
 
-**On Web:**
+**Web:**
 1. Open any chat from your inbox.
 2. Click the field labeled **Write something**, then type your message.
 3. To add an attachment, click the **plus icon** and select **Add attachment**.
 4. To add an emoji, click the **emoji icon**.
 5. Press **Enter** or click the **Send** icon.
 
-**On Mobile:**
+**Mobile:**
 1. Tap any chat from your inbox.
 2. Use the message bar to type a message, add an attachment, or insert an emoji.
 3. Tap the **Send** icon.
 
-## Formatting Messages
+## How to Format a Message
 
-**You can style messages using markdown:**
+You can style messages using markdown:
 
 * *Italic*: `_text_`
 * **Bold**: `**text**`
@@ -45,7 +44,7 @@ You can send messages, attach files, and add emojis from the message bar at the 
 
 ## How to download a file attachment from a chat message
 
-**Desktop:**
+**Web:**
 1. Open a chat.
 2. Click the file card in the message, or right-click the message and select **Download**.
 
@@ -57,9 +56,9 @@ The file is saved under the name shown on the file card. If the name shown on th
 
 ---
 
-# Edit or Delete Messages
+## How to Edit or Delete Messages
 
-**Desktop:**
+**Web:**
 1. Open a chat.
 2. Right-click (or hover over) a message.
 3. Select **Edit comment** or **Delete comment**.
@@ -71,17 +70,31 @@ The file is saved under the name shown on the file card. If the name shown on th
 3. Select **Edit comment** or **Delete comment**.
 4. If editing, the message text appears in the composer at the bottom of the screen. Edit the text and tap the **Send** icon to save.
 
-✏️ **Note:** You can only edit or delete your own messages. Deleted messages are permanently removed.
-
-📎 **Note:** Editing a message changes only its text. Any file attached to the message stays attached and keeps showing as a downloadable file card, including when you edit the message while the file is still uploading.
+**Note:** You can only edit or delete your own messages. Deleted messages are permanently removed. Editing a message changes only its text. Any file attached to the message stays attached and keeps showing as a downloadable file card, including when you edit the message while the file is still uploading.
 
 ---
 
-# Start a Conversation Thread
+## How to Mark a Message as Unread
+
+You can mark a message as unread when you want to come back to it later. 
+
+**Web:**
+1. Open the chat from your **Inbox**.
+2. Hover over the message, then select the three dots **(⋮)**.
+3. Select **Mark as unread**.
+
+**Mobile:**
+1. Open the chat from your **Inbox**.
+2. Long-press the message.
+3. Select **Mark as unread**.
+
+The chat name stays bold in your **Inbox**, and a green **New** line appears above the message you marked so you can find your place again.
+
+---
+
+## How to Start a Conversation Thread
 
 You can start a private 1-on-1 thread based on a message in a chat room or group.
-
-**To start a thread:**
 
 1. Open a chat.
 2. Right-click the message and select **Reply in thread**.
@@ -91,34 +104,34 @@ To return to the original conversation, tap the link at the top of the thread.
 
 ---
 
-# Invite Members to Groups or Rooms
+## How to Invite Members to Groups or Rooms
 
 You can invite others in three ways:
 
-## Using @mention
+**Using @mention**
 
 1. In the message field, type `@` and the person’s name or email.
 2. Send the message to invite them.
 
-## From the Members Pane
+**From the Members List**
 
 1. Open the room or group.
 2. Click the header > **Members** > **Invite member**.
 3. Select contacts and click **Invite**.
 
-## Via Link or QR Code
+**Via Link or QR Code**
 
 1. Tap the room header.
 2. Tap **Share code**.
 3. Copy the link or display the QR code to scan.
 
-📌 **Note:** Private rooms can only be joined by people already in the room.
+**Note:** Private rooms can only be joined by people already in the room.
 
 ---
 
-# Leave a Chat Room
+## How to Leave a Chat Room
 
-**To remove a chat room from your inbox:**
+To remove a chat room from your inbox:
 
 1. Open the chat room.
 2. Click the chat room header.
@@ -126,18 +139,16 @@ You can invite others in three ways:
 
 ---
 
-# Flag a Chat Message
+## How to Flag a Chat Message
 
 If you see spam, harassment, or any other inappropriate content, flag the message.
-
-**To flag a message:**
 
 1. Hover over the message.
 2. Click the 3-dot menu > **Flag as offensive**.
 3. Choose a reason (e.g., spam, bullying).
 
 
-🚩 **Note:** Public rooms are automatically scanned by Expensify's moderation system. Moderators will review flagged content and take appropriate action, and the sender is notified anonymously.
+ **Note:** Public rooms are automatically scanned by Expensify's moderation system. Moderators will review flagged content and take appropriate action, and the sender is notified anonymously.
 
 ---
 
