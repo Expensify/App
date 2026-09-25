@@ -19,7 +19,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {conciergeChatSelector} from '@selectors/Report';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
@@ -121,7 +120,7 @@ function useMoneyRequestReportScroll({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     // The unified list reports its last item index through updateLastItemIndex

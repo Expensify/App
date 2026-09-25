@@ -25,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
-import {getConciergeChatReportFields, getReportIDFromLink} from '@libs/ReportUtils';
+import {getReportIDFromLink} from '@libs/ReportUtils';
 import {registerPusherReinitializeHandler} from '@libs/requestPusherReinitialize';
 import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitialize';
 import {Scheduler} from '@libs/Scheduler';
@@ -210,7 +210,7 @@ function AuthScreensInitHandler() {
                 Report.openReport({
                     reportID,
                     introSelected,
-                    conciergeChat: getConciergeChatReportFields(conciergeChat),
+                    conciergeChat,
                     hasReportActions: false,
                     currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

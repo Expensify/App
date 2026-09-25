@@ -11212,7 +11212,10 @@ function canUserPerformWriteAction(
  * Projects the Concierge chat report onto the fields the openReport onboarding path reads. This is the only producer of
  * ConciergeChatReport; subscribers use it as a useOnyx selector so `live*` and other frequently changing fields do not re-render them.
  */
-function getConciergeChatReportFields(report: OnyxEntry<Report>): ConciergeChatReport | undefined {
+function getConciergeChatReportFields(report: OnyxEntry<Report | ConciergeChatReport>): ConciergeChatReport | undefined {
+    if (report && 'conciergeReportID' in report) {
+        return report;
+    }
     if (!report?.reportID) {
         return undefined;
     }
@@ -12466,8 +12469,8 @@ type PrepareOnboardingOnyxDataParams = {
     isSelfTourViewed?: boolean;
     // TODO: should be required field. Refactor issue: https://github.com/Expensify/App/issues/66412
     currentUserEmail?: string;
-    /** The concierge chat report, looked up by conciergeReportID */
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    /** The concierge chat report, looked up by conciergeReportID. Subscribers may pass the full report or its projection. */
+    conciergeChat: OnyxEntry<Report | ConciergeChatReport>;
     /** The admins chat report, looked up by adminsChatReportID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
     adminsChatReport?: OnyxEntry<Report>;
     /** The self-DM report, looked up by ONYXKEYS.SELF_DM_REPORT_ID. Falls back to the deprecated module-level Onyx data while the refactor is in progress. */
@@ -12493,7 +12496,7 @@ function prepareOnboardingOnyxData({
     onboardingPurposeSelected,
     isSelfTourViewed,
     currentUserEmail,
-    conciergeChat,
+    conciergeChat: conciergeChatParam,
     adminsChatReport: adminsChatReportParam,
     selfDMReport: selfDMReportParam,
     delegateAccountID,
@@ -12510,6 +12513,7 @@ function prepareOnboardingOnyxData({
         onboardingMessage = shouldSkipConciergeOnboarding ? {message: '', tasks: []} : getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
+    const conciergeChat = getConciergeChatReportFields(conciergeChatParam);
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // Server picks the inboxAdminsBespoke variant at response time, so optimistic writes here would be stale.
     const shouldDeferOptimisticTasks = engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;

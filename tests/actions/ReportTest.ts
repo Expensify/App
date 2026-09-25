@@ -3385,7 +3385,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat,
                 delegateAccountID: undefined,
             });
 
@@ -3433,7 +3433,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat,
                 delegateAccountID: undefined,
             });
 
@@ -3466,7 +3466,7 @@ describe('actions/Report', () => {
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat,
                 delegateAccountID: undefined,
             });
 
@@ -6436,16 +6436,7 @@ describe('actions/Report', () => {
 
             // When a new thread is created with the conciergeChat threaded through
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            Report.navigateToAndOpenChildReport(
-                undefined,
-                PARENT_REPORT_ACTION,
-                PARENT_REPORT,
-                TEST_USER_ACCOUNT_ID,
-                introSelected,
-                undefined,
-                undefined,
-                ReportUtils.getConciergeChatReportFields(conciergeChat),
-            );
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, introSelected, undefined, undefined, conciergeChat);
             await waitForBatchedUpdates();
 
             // Then the optimistic onboarding actions target the threaded Concierge chat, not the deprecated module-level lookup
@@ -6587,17 +6578,10 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            const conciergeChat: OnyxTypes.Report = {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
-            Report.navigateToAndOpenChildReport(
-                undefined,
-                PARENT_REPORT_ACTION,
-                PARENT_REPORT,
-                TEST_USER_ACCOUNT_ID,
-                introSelected,
-                undefined,
-                isSelfTourViewed,
-                ReportUtils.getConciergeChatReportFields(conciergeChat),
-            );
+            Report.navigateToAndOpenChildReport(undefined, PARENT_REPORT_ACTION, PARENT_REPORT, TEST_USER_ACCOUNT_ID, introSelected, undefined, isSelfTourViewed, {
+                reportID: CONCIERGE_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -6892,7 +6876,6 @@ describe('actions/Report', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, PARENT_REPORT);
             await waitForBatchedUpdates();
 
-            const conciergeChat: OnyxTypes.Report = {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
             Report.explain({
                 childReport: undefined,
                 originalReport: PARENT_REPORT,
@@ -6900,7 +6883,7 @@ describe('actions/Report', () => {
                 translate: TestHelper.translateLocal,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat: {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT},
                 isSelfTourViewed,
                 delegateAccountID: undefined,
                 participantsPersonalDetails: undefined,
@@ -8379,7 +8362,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called
-            const conciergeChat: OnyxTypes.Report = {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
             Report.navigateToAndCreateGroupChat({
                 isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
@@ -8389,7 +8371,7 @@ describe('actions/Report', () => {
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat: {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -8431,7 +8413,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false},
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSupportalSession: false,
             });
@@ -8461,7 +8443,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.SUBMIT},
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 isSupportalSession: false,
             });
@@ -8499,7 +8481,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with an avatar URI and isSelfTourViewed=true
-            const conciergeChat: OnyxTypes.Report = {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
             Report.navigateToAndCreateGroupChat({
                 isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
@@ -8509,7 +8490,7 @@ describe('actions/Report', () => {
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: true,
                 hasCompletedGuidedSetupFlow: false,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat: {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 avatarUri: AVATAR_URI,
             });
@@ -8706,7 +8687,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When hasCompletedGuidedSetupFlow param is explicitly false, guided setup should run
-            const conciergeChat: OnyxTypes.Report = {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
             Report.navigateToAndCreateGroupChat({
                 isSupportalSession: false,
                 participantsPersonalDetails: KNOWN_PARTICIPANTS_PERSONAL_DETAILS,
@@ -8716,7 +8696,7 @@ describe('actions/Report', () => {
                 introSelected: TEST_INTRO_SELECTED,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: false,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat: {reportID: CONCIERGE_REPORT_ID, type: CONST.REPORT.TYPE.CHAT},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -9063,7 +9043,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 userLogins: [PARTICIPANT_LOGIN],
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false},
@@ -9591,7 +9571,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: true};
 
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -9601,7 +9581,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -9616,7 +9596,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -9635,7 +9615,7 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toContain(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
@@ -9652,7 +9632,7 @@ describe('actions/Report', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.WORKSPACE,
                 isInviteOnboardingComplete: false,
             };
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined);
 
             expect(result).toBeDefined();
             expect(result?.optimisticData.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING)?.value).toEqual({hasCompletedGuidedSetupFlow: true});
@@ -9665,7 +9645,7 @@ describe('actions/Report', () => {
 
             const conciergeChat: OnyxTypes.Report = {...createRandomReport(777, undefined), reportID: 'concierge-guided-setup-1'};
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(conciergeChat), false);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, conciergeChat, false);
 
             expect(result).toBeDefined();
             // The onboarding data must target the threaded Concierge chat, not the deprecated module-level lookup.
@@ -9678,7 +9658,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined);
 
             expect(result).toBeUndefined();
         });
@@ -9692,7 +9672,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.SUBMIT, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), isSelfTourViewed);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, isSelfTourViewed);
 
             expect(result).toBeDefined();
             const guidedSetupData = parseGuidedSetupData(result?.guidedSetupData ?? '[]');
@@ -9714,7 +9694,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, true);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, true);
 
             expect(result).toBeUndefined();
         });
@@ -9725,7 +9705,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, false);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, false);
 
             expect(result).toBeDefined();
             expect(result?.guidedSetupData).toBeDefined();
@@ -9740,7 +9720,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const introSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
-            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, ReportUtils.getConciergeChatReportFields(CONCIERGE_CHAT), undefined, undefined);
+            const result = Report.getGuidedSetupDataForOpenReport(introSelected, CONST.DEFAULT_NUMBER_ID, CONCIERGE_CHAT, undefined, undefined);
 
             expect(result).toBeUndefined();
         });
@@ -9995,7 +9975,7 @@ describe('actions/Report', () => {
 
             Report.createTransactionThreadReport({
                 introSelected: TEST_INTRO_SELECTED,
-                conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+                conciergeChat,
                 currentUserLogin: TEST_USER_LOGIN,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
                 personalDetails: undefined,

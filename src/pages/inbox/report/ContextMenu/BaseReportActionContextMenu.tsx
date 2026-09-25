@@ -66,7 +66,6 @@ import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'reac
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {conciergeChatSelector} from '@selectors/Report';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -244,7 +243,7 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
     const delegateAccountID = useDelegateAccountID();

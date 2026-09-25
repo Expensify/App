@@ -48,7 +48,6 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
-    getConciergeChatReportFields,
     getDefaultNotificationPreferenceForReport,
     getParsedComment,
     getReportOrDraftReport,
@@ -1931,7 +1930,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
-                      conciergeChat: getConciergeChatReportFields(conciergeChat),
+                      conciergeChat,
                       delegateAccountID,
                   })?.guidedSetupData
                 : undefined;

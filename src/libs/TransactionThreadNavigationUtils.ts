@@ -1,5 +1,4 @@
 import type {IntroSelected, PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -33,7 +32,7 @@ type ResolveReportContext = {
     currentUserEmail: string | undefined;
     currentUserAccountID: number;
     personalDetails: OnyxEntry<PersonalDetailsList>;
-    conciergeChat: OnyxEntry<ConciergeChatReport>;
+    conciergeChat: OnyxEntry<Report>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
 };

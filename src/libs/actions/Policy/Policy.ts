@@ -3244,7 +3244,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onboardingPurposeSelected,
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
-            conciergeChat: ReportUtils.getConciergeChatReportFields(conciergeChat),
+            conciergeChat,
             delegateAccountID,
         });
         if (!onboardingData) {

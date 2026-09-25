@@ -38,7 +38,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {conciergeChatSelector, policyChatRoomsSelector} from '@selectors/Report';
+import {policyChatRoomsSelector} from '@selectors/Report';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -63,7 +63,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');

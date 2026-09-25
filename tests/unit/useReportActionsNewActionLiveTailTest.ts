@@ -6,7 +6,6 @@ import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActi
 
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 
@@ -124,17 +123,7 @@ describe('useReportActionsNewActionLiveTail', () => {
     });
 
     it('threads the conciergeChat report through to the catch-up openReport call', () => {
-        const conciergeChat: ConciergeChatReport = {
-            conciergeReportID: 'concierge-live-tail-1',
-            chatType: undefined,
-            policyID: undefined,
-            type: undefined,
-            permissions: undefined,
-            writeCapability: undefined,
-            errorFields: undefined,
-            parentReportID: undefined,
-            parentReportActionID: undefined,
-        };
+        const conciergeChat = {reportID: 'concierge-live-tail-1'};
         renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({conciergeChat})});
 
         act(() => {
