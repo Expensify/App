@@ -75,7 +75,6 @@ function useSelectionModeReportActions({
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [chatReportRNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -132,7 +131,7 @@ function useSelectionModeReportActions({
             currentUserAccountID,
             transactions,
             onlyShowPayElsewhere,
-            chatReportRNVP,
+            isChatReportArchived,
             invoiceReceiverPolicy,
         );
     const canIOUBePaid = getCanIOUBePaid();

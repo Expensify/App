@@ -17,7 +17,7 @@ import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,10 +78,22 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         chatReportPolicyID: chatReport?.policyID,
     });
 
-    const chatReportRNVP = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
-    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
+    const canBePaid = canIOUBePaid(
+        iouReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin ?? '',
+        currentUserAccountID,
+        transactions,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const shouldOnlyShowElsewhere =
-        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, chatReportRNVP, invoiceReceiverPolicy);
+        !canBePaid &&
+        canIOUBePaid(iouReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, true, isChatReportArchived, invoiceReceiverPolicy);
 
     const {currency} = iouReport ?? {};
 

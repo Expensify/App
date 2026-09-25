@@ -215,10 +215,9 @@ function canIOUBePaid(
     currentUserAccountID: number,
     transactions: OnyxTypes.Transaction[] | undefined,
     onlyShowPayElsewhere: boolean,
-    chatReportRNVP: OnyxTypes.ReportNameValuePairs | undefined,
+    isChatReportArchived: boolean,
     invoiceReceiverPolicy?: OnyxTypes.Policy,
 ) {
-    const isChatReportArchived = isArchivedReport(chatReportRNVP);
     const iouSettled = isSettled(iouReport);
 
     if (isEmptyObject(iouReport)) {
@@ -344,13 +343,13 @@ function getBadgeFromIOUReport(
     }
 
     // TODO: https://github.com/Expensify/App/issues/66518
-    // Transitional: resolve the chat report's RNVP from the module-level cache until this function threads it down from its callers.
-    const chatReportRNVP = getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
+    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
+    const isChatReportArchived = isArchivedReport(getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
 
     const isReportPayer = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
         (isInvoiceReportReportUtils(iouReport) || isReportPayer) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, false, chatReportRNVP, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, false, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidNow) {
         return CONST.REPORT.ACTION_BADGE.PAY;
     }
@@ -360,7 +359,7 @@ function getBadgeFromIOUReport(
     const canPayElsewhereActor = isPayerReportUtils(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, true);
     const canBePaidElsewhere =
         (isInvoiceReportReportUtils(iouReport) || canPayElsewhereActor) &&
-        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, chatReportRNVP, invoiceReceiverPolicy);
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     if (canBePaidElsewhere) {
         return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
     }
