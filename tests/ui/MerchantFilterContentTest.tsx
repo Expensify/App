@@ -89,6 +89,32 @@ describe('MerchantFilterContent', () => {
         });
     });
 
+    it('retains the value when changing a stored negative filter back to positive', () => {
+        const onChange = jest.fn();
+        render(
+            <NavigationContainer>
+                <MerchantFilterContent
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
+                    value="Prime"
+                    isNegated
+                    merchantOperator={CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO}
+                    onChange={onChange}
+                />
+            </NavigationContainer>,
+        );
+
+        fireEvent.press(screen.getByText('search.filters.filterType.is.positive'));
+        expect(screen.getByDisplayValue('Prime')).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('search.filters.merchant.contains'));
+        fireEvent.press(screen.getByText('common.confirm'));
+
+        expect(onChange).toHaveBeenCalledWith({
+            [FILTER_KEYS.MERCHANT]: 'Prime',
+            [FILTER_KEYS.MERCHANT_NOT]: undefined,
+            [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+        });
+    });
+
     it('hides match type controls and uses exact matching when the filter is negated', () => {
         const {onChange} = renderMerchantFilter();
         const merchantInput = screen.getByLabelText('common.merchant');

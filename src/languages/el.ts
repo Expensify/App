@@ -9773,7 +9773,7 @@ ${reportName}`,
                 has: {positive: 'έχει', negative: 'δεν έχει'},
                 is: {positive: 'είναι', negative: 'δεν είναι'},
             },
-            merchant: {matchType: 'Τύπος αντιστοίχισης', contains: 'Περιέχει', exactMatch: 'Ακριβής αντιστοιχία'},
+            merchant: {matchType: 'Τύπος αντιστοίχισης', contains: 'Περιέχει', exactMatch: 'Ίσο με'},
         },
         display: {
             label: 'Εμφάνιση',

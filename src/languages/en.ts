@@ -9651,7 +9651,7 @@ const translations = {
             merchant: {
                 matchType: 'Match type',
                 contains: 'Contains',
-                exactMatch: 'Exactly matches',
+                exactMatch: 'Equal to',
             },
             card: {
                 expensify: 'Expensify',

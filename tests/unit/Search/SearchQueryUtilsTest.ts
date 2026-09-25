@@ -487,6 +487,32 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense merchant*:Amazon');
         });
 
+        test('preserves multiple merchant clauses when the form value is unchanged', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant*:Amazon merchant*:Uber');
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues, {flatFilters: queryJSON?.flatFilters});
+
+            expect(result).toEqual('type:expense merchant*:Amazon merchant*:Uber');
+        });
+
+        test('applies a changed merchant operator to every merchant clause', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant*:Amazon merchant*:Uber');
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                merchant: 'Uber',
+                merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues, {flatFilters: queryJSON?.flatFilters});
+
+            expect(result).toEqual('type:expense merchant=Amazon merchant=Uber');
+        });
+
         test('currencies and categories', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -2862,6 +2888,9 @@ describe('SearchQueryUtils', () => {
                 'merchant=I',
                 'merchant*:I',
                 '-merchant:I',
+                '-merchant:Amazon -merchant:Prime',
+                '-merchant:Amazon,Prime',
+                '-merchant:"Coffee, Shop",Uber',
             ])('preserves Merchant predicates when changing Currency: %s', (input) => {
                 const {originalQuery, updatedQuery} = updateQuery(input, {currency: ['USD']});
 
@@ -2894,12 +2923,95 @@ describe('SearchQueryUtils', () => {
                 {input: 'merchant="I,Ig"', operator: 'contains', expectedValue: 'I,Ig'},
                 {input: 'merchant*:"Coffee, Shop",Uber', operator: 'eq', expectedValue: ['Coffee, Shop', 'Uber']},
                 {input: 'merchant="Coffee, Shop",Uber', operator: 'contains', expectedValue: ['Coffee, Shop', 'Uber']},
-                {input: 'merchant=I merchant*:I,Ig', operator: 'eq', expectedValue: ['I', 'Ig']},
-                {input: 'merchant*:I merchant=I,Ig', operator: 'contains', expectedValue: ['I', 'Ig']},
             ])('preserves Merchant values when changing only the match type: %j', ({input, operator, expectedValue}) => {
                 const {updatedQuery} = updateQuery(input, {merchantOperator: operator});
 
                 expect(updatedQuery.filters).toEqual({operator, left: 'merchant', right: expectedValue});
+            });
+
+            test.each<{input: string; operator: MerchantMatchType}>([
+                {input: 'merchant=I merchant*:I,Ig', operator: 'eq'},
+                {input: 'merchant*:I merchant=I,Ig', operator: 'contains'},
+            ])('applies a changed match type to every Merchant predicate: %j', ({input, operator}) => {
+                const {updatedQuery} = updateQuery(input, {merchantOperator: operator});
+
+                expect(updatedQuery.flatFilters.filter((filter) => filter.key === 'merchant')).toEqual([
+                    {key: 'merchant', filters: [{operator, value: 'I'}]},
+                    {
+                        key: 'merchant',
+                        filters: [
+                            {operator, value: 'I'},
+                            {operator, value: 'Ig'},
+                        ],
+                    },
+                ]);
+            });
+
+            test.each([
+                'merchant:Amazon merchant:Prime',
+                'merchant=Amazon merchant=Prime',
+                'merchant=Amazon merchant*:Prime',
+                'merchant:Amazon,Prime',
+                'merchant:"Coffee, Shop",Uber merchant:Prime',
+            ])('applies negation to every original Merchant value: %s', (input) => {
+                const originalQuery = buildSearchQueryJSON(input);
+                if (!originalQuery) {
+                    throw new Error('Invalid test query');
+                }
+                const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {}, {});
+                const {updatedQuery} = updateQuery(input, {
+                    merchant: undefined,
+                    merchantNot: form.merchantNot ?? form.merchant,
+                    merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                });
+
+                expect(updatedQuery.flatFilters).toEqual(
+                    originalQuery?.flatFilters.map((filter) => ({
+                        ...filter,
+                        filters: filter.filters.map((item) => ({...item, operator: 'neq'})),
+                    })),
+                );
+            });
+
+            test.each(['-merchant:Amazon -merchant:Prime', '-merchant:Amazon,Prime', '-merchant:"Coffee, Shop",Uber -merchant:Prime', 'merchant:Amazon -merchant:Prime'])(
+                'applies positive matching to every original Merchant value: %s',
+                (input) => {
+                    const originalQuery = buildSearchQueryJSON(input);
+                    if (!originalQuery) {
+                        throw new Error('Invalid test query');
+                    }
+                    const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {}, {});
+                    const {updatedQuery} = updateQuery(input, {
+                        merchant: form.merchantNot,
+                        merchantNot: undefined,
+                        merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                    });
+
+                    expect(updatedQuery.flatFilters).toEqual(
+                        originalQuery?.flatFilters.map((filter) => ({
+                            ...filter,
+                            filters: filter.filters.map((item) => ({...item, operator: 'eq'})),
+                        })),
+                    );
+                },
+            );
+
+            test.each(['merchant:Amazon merchant:Prime', '-merchant:Amazon -merchant:Prime', 'merchant=Amazon -merchant:Prime'])(
+                'removes every Merchant predicate without changing other filters: %s',
+                (input) => {
+                    const {updatedQuery} = updateQuery(`type:expense description:Lunch ${input}`, {merchant: undefined, merchantNot: undefined});
+
+                    expect(updatedQuery.type).toBe('expense');
+                    expect(updatedQuery.flatFilters).toEqual([{key: 'description', filters: [{operator: 'eq', value: 'Lunch'}]}]);
+                },
+            );
+
+            test('preserves both Merchant values through negation and match type round trips', () => {
+                const negative = updateQuery('merchant:Amazon merchant:Prime', {merchant: undefined, merchantNot: 'Prime', merchantOperator: 'eq'});
+                const positive = updateQuery(buildSearchQueryString(negative.updatedQuery), {merchant: 'Prime', merchantNot: undefined, merchantOperator: 'eq'});
+                const contains = updateQuery(buildSearchQueryString(positive.updatedQuery), {merchantOperator: 'contains'});
+
+                expect(contains.updatedQuery.filters).toEqual(negative.originalQuery.filters);
             });
 
             test('keeps a Merchant list through successive match type and Currency changes without mutating the original query', () => {
