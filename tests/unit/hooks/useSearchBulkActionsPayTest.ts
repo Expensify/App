@@ -371,7 +371,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'excluded-report'})};
         mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();

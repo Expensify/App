@@ -497,7 +497,7 @@ describe('useSearchBulkActions - Download report', () => {
             tx1: makeSelectedTransaction({reportID: '1'}),
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -531,7 +531,7 @@ describe('useSearchBulkActions - Download report', () => {
             excludedTx2: makeSelectedTransaction({reportID: 'excluded-report-2'}),
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
@@ -573,7 +573,7 @@ describe('useSearchBulkActions - Download report', () => {
             excludedTx: makeSelectedTransaction({reportID: undefined}),
         };
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
         await waitFor(() => {
             expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
