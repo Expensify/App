@@ -74,6 +74,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const isDraftLoading = isLoadingOnyxValue(avatarDraftMetadata);
     const hasSubmittedRef = useRef(false);
+    const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -115,6 +116,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     // Reset the draft when the add flow is dismissed without creating the agent, so the next session starts fresh.
     useBeforeRemove(
         useCallback(() => {
+            hasLeftPageRef.current = true;
             if (hasSubmittedRef.current || !avatarDraft) {
                 return;
             }
@@ -150,6 +152,12 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         const isNarrowLayout = getIsNarrowLayout();
 
         optimisticPersonalDetailPromise.then(() => {
+            // The user left the builder before the write resolved, so don't pull them into the DM from whatever screen is now active.
+            if (hasLeftPageRef.current) {
+                clearNewAgentAvatarDraft();
+                return;
+            }
+
             if (isNarrowLayout) {
                 // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
                 // instead of dismissing to the agents list first and navigating to the DM afterward.

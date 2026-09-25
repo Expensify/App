@@ -393,6 +393,22 @@ describe('AddAgentPage', () => {
             expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
         });
 
+        it('does not navigate to the DM when the builder is left before the personal detail is written', async () => {
+            // Given a submitted agent whose personal detail write is still pending
+            const beforeRemoveHandler = captureBeforeRemoveHandler();
+            mockFormOnSubmit?.({firstName: 'Bot', prompt: 'Reject gambling.'});
+
+            // When the user backs out of the builder before the write resolves
+            beforeRemoveHandler?.();
+            resolveOptimisticPersonalDetail?.();
+            await Promise.resolve();
+
+            // Then the user stays where they went and the avatar draft is still cleared
+            expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+            expect(mockNavigate).not.toHaveBeenCalled();
+            expect(mockClearNewAgentAvatarDraft).toHaveBeenCalledTimes(1);
+        });
+
         it('creates the agent with the persisted preset when no photo was uploaded', () => {
             renderAddAgentPage({});
 
