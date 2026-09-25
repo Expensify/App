@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -51,12 +51,12 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
                 showLockIcon
             />
             <View style={styles.mt2}>
-                <MenuItemSectionRow>
+                <MenuItemSectionRoot>
                     <MenuItemField.Row
                         name={translate('workspace.common.displayedAs')}
                         value={translate('workspace.common.categories')}
                     />
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </View>
             <Text style={styles.pv5}>{translate('workspace.qbd.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow

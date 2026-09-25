@@ -1,7 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -61,7 +61,7 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qbdConfig?.pendingFields)}>
-                <MenuItemSectionRow onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID))}>
+                <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID))}>
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
                         value={qbdConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
@@ -72,7 +72,7 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                         <MenuItem.Chevron />
                     </MenuItemField.Row>
                     {!!qbdConfig?.autoSync?.enabled && <MenuItem.HelpText message={translate(`workspace.qbd.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)} />}
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow

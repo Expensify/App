@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
@@ -54,12 +54,12 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                     />
                 </View>
             </View>
-            <MenuItemSectionRow>
+            <MenuItemSectionRoot>
                 <MenuItemField.Row
                     name={translate('workspace.common.displayedAs')}
                     value={translate('workspace.common.categories')}
                 />
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
             <Text style={styles.pv5}>{translate('workspace.xero.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}

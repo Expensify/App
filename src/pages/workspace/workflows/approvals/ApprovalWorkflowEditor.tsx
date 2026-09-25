@@ -1,6 +1,6 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
@@ -257,7 +257,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     );
                 })}
 
-                <MenuItemSectionRow onPress={addAdditionalApprover}>
+                <MenuItemSectionRoot onPress={addAdditionalApprover}>
                     <MenuItemField.Row name={approverCount > 0 ? translate('workflowsCreateApprovalsPage.additionalApprover') : translate('workflowsPage.approver')}>
                         {!!approvalWorkflow?.errors?.additionalApprover && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         <MenuItem.Chevron />
@@ -268,11 +268,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             message={translate(approvalWorkflow.errors.additionalApprover)}
                         />
                     )}
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
 
                 {!!removeApprovalWorkflow && !approvalWorkflow.isDefault && (
                     <View style={styles.mt6}>
-                        <MenuItemSectionRow onPress={removeApprovalWorkflow}>
+                        <MenuItemSectionRoot onPress={removeApprovalWorkflow}>
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <MenuItem.Icon src={icons.Trashcan} />
@@ -281,7 +281,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                     <MenuItem.Title>{translate('common.delete')}</MenuItem.Title>
                                 </MenuItem.Content>
                             </MenuItem.Row>
-                        </MenuItemSectionRow>
+                        </MenuItemSectionRoot>
                     </View>
                 )}
             </View>

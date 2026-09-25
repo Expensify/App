@@ -2,7 +2,7 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -114,7 +114,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     key={item.key}
                     pendingAction={item.pendingAction}
                 >
-                    <MenuItemSectionRow onPress={item.onPress}>
+                    <MenuItemSectionRoot onPress={item.onPress}>
                         <MenuItemField.Row
                             name={item.description}
                             value={item.title}
@@ -122,7 +122,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             {!!item.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={item.brickRoadIndicator} />}
                             <MenuItem.Chevron />
                         </MenuItemField.Row>
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 </OfflineWithFeedback>
             ))}
         </View>
@@ -193,7 +193,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qboConfig?.pendingFields)}>
-                <MenuItemSectionRow onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path))}>
+                <MenuItemSectionRoot onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path))}>
                     <MenuItemField.Row
                         name={translate('workspace.accounting.autoSync')}
                         value={qboConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
@@ -208,7 +208,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             message={translate(`workspace.qbo.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)}
                         />
                     )}
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             {qboToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow

@@ -1,6 +1,6 @@
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -269,7 +269,7 @@ function WorkspaceFieldsSection({
                                 )}
                             </View>
                             {canWrite && (
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     onPress={() => {
                                         setInitialCreateReportFieldsForm();
                                         Navigation.navigate(createRoute);
@@ -283,7 +283,7 @@ function WorkspaceFieldsSection({
                                             <MenuItem.Title>{translate(addFieldKey)}</MenuItem.Title>
                                         </MenuItem.Content>
                                     </MenuItem.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             )}
                         </>
                     )

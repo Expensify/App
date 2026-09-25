@@ -5,7 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PopoverMenu from '@components/PopoverMenu';
@@ -508,7 +508,7 @@ function CopilotPage() {
                                     </>
                                 )}
                                 {isAgentAccount === false ? (
-                                    <MenuItemSectionRow
+                                    <MenuItemSectionRoot
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
                                         onPress={() => {
                                             if (isActingAsDelegate) {
@@ -535,7 +535,7 @@ function CopilotPage() {
                                                 <MenuItem.Chevron />
                                             </MenuItem.Trailing>
                                         </MenuItem.Row>
-                                    </MenuItemSectionRow>
+                                    </MenuItemSectionRoot>
                                 ) : null}
                             </Section>
                             <PopoverMenu

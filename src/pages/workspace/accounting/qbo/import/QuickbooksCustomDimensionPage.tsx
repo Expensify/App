@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -72,12 +72,12 @@ function QuickbooksCustomDimensionPage({policy, route}: QuickbooksCustomDimensio
                 onCloseError={() => clearQBOErrorField(policyID, dimensionSetting)}
                 subMenuItems={
                     <View style={styles.mt4}>
-                        <MenuItemSectionRow>
+                        <MenuItemSectionRoot>
                             <MenuItemField.Row
                                 name={translate('workspace.common.displayedAs')}
                                 value={translate('workspace.common.tags')}
                             />
-                        </MenuItemSectionRow>
+                        </MenuItemSectionRoot>
                     </View>
                 }
             />

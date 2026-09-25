@@ -5,7 +5,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -330,7 +330,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     ) : (
                         canWritePayments && (
                             <View style={[styles.mt3, styles.mbn3]}>
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     isDisabled={isAddBankAccountInert && !policy?.pendingFields?.reimbursementChoice}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_BANK_ACCOUNT}
                                     onPress={isAddBankAccountInert ? undefined : addBankAccount}
@@ -347,7 +347,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                             <MenuItem.Chevron />
                                         </MenuItem.Trailing>
                                     </MenuItem.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             </View>
                         )
                     )}

@@ -2,7 +2,7 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -97,7 +97,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
                     <View style={styles.mt4}>
-                        <MenuItemSectionRow
+                        <MenuItemSectionRoot
                             onPress={canUseTagsForLocations ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID)) : undefined}
                         >
                             <MenuItemField.Row
@@ -110,7 +110,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                 {canUseTagsForLocations && <MenuItem.Chevron />}
                             </MenuItemField.Row>
                             <MenuItem.HelpText message={translate('workspace.qbo.locationsLineItemsRestrictionDescription', integrationName)} />
-                        </MenuItemSectionRow>
+                        </MenuItemSectionRoot>
                     </View>
                 </OfflineWithFeedback>
             </Accordion>

@@ -2,7 +2,7 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -68,7 +68,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.pendingFields)}>
                     <View style={styles.mt4}>
-                        <MenuItemSectionRow onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS.getRoute(policyID))}>
+                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS.getRoute(policyID))}>
                             <MenuItemField.Row
                                 name={translate('workspace.common.displayedAs')}
                                 value={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
@@ -78,7 +78,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                                 )}
                                 <MenuItem.Chevron />
                             </MenuItemField.Row>
-                        </MenuItemSectionRow>
+                        </MenuItemSectionRoot>
                     </View>
                 </OfflineWithFeedback>
             </Accordion>

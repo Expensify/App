@@ -3,7 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -372,7 +372,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                         {centralBillingAccountEmail && (
                                             <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.centralBillingAccountEmail}>
                                                 <View style={styles.mt5}>
-                                                    <MenuItemSectionRow
+                                                    <MenuItemSectionRoot
                                                         onPress={
                                                             canWriteMoreFeatures
                                                                 ? () =>
@@ -391,13 +391,13 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                         >
                                                             {canWriteMoreFeatures && <MenuItem.Chevron />}
                                                         </MenuItemField.Row>
-                                                    </MenuItemSectionRow>
+                                                    </MenuItemSectionRoot>
                                                 </View>
                                             </OfflineWithFeedback>
                                         )}
                                         {canWriteMoreFeatures && (
                                             <View style={[styles.mbn3, !centralBillingAccountEmail && styles.mt6]}>
-                                                <MenuItemSectionRow
+                                                <MenuItemSectionRoot
                                                     onPress={() =>
                                                         Navigation.navigate(
                                                             buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)),
@@ -415,7 +415,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                                             <MenuItem.Chevron />
                                                         </MenuItem.Trailing>
                                                     </MenuItem.Row>
-                                                </MenuItemSectionRow>
+                                                </MenuItemSectionRoot>
                                             </View>
                                         )}
                                     </>

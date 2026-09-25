@@ -2,7 +2,7 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
@@ -87,7 +87,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                             key={menuItem.id}
                             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
                         >
-                            <MenuItemSectionRow onPress={menuItem.onPress}>
+                            <MenuItemSectionRoot onPress={menuItem.onPress}>
                                 <MenuItemField.Row
                                     name={menuItem.description}
                                     value={menuItem.title}
@@ -97,7 +97,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                                     )}
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
-                            </MenuItemSectionRow>
+                            </MenuItemSectionRoot>
                         </OfflineWithFeedback>
                     ))}
                 </View>

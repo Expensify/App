@@ -8,7 +8,7 @@ import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/M
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -604,14 +604,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 clearPolicyErrorField(policy.id, 'clientID');
                             }}
                         >
-                            <MenuItemSectionRow onPress={readOnly ? undefined : onPressClientID}>
+                            <MenuItemSectionRoot onPress={readOnly ? undefined : onPressClientID}>
                                 <MenuItemField.Row
                                     name={translate('workspace.common.clientID')}
                                     value={policy?.clientID}
                                 >
                                     {!readOnly && <MenuItem.Chevron />}
                                 </MenuItemField.Row>
-                            </MenuItemSectionRow>
+                            </MenuItemSectionRoot>
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback
@@ -626,7 +626,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         errorRowStyles={[styles.mt2]}
                     >
                         <View>
-                            <MenuItemSectionRow
+                            <MenuItemSectionRoot
                                 onPress={isCurrencyInteractive ? onPressCurrency : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
                             >
@@ -643,13 +643,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                             : translate('workspace.editor.currencyInputHelpText')
                                     }
                                 />
-                            </MenuItemSectionRow>
+                            </MenuItemSectionRoot>
                         </View>
                     </OfflineWithFeedback>
                     {shouldShowAddress && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.address}>
                             <View>
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     onPress={readOnly ? undefined : onPressAddress}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADDRESS}
                                 >
@@ -664,7 +664,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                             </>
                                         )}
                                     </MenuItemField.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}
@@ -672,7 +672,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     {!readOnly && !!policy?.type && (
                         <OfflineWithFeedback pendingAction={policy?.pendingFields?.type}>
                             <View>
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     onPress={onPressPlanType}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.PLAN_TYPE}
                                 >
@@ -682,7 +682,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     >
                                         <MenuItem.Chevron />
                                     </MenuItemField.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}

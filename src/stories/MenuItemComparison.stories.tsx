@@ -10,7 +10,7 @@ import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithLabel from '@components/MenuItem/presets/MenuItemWithLabel';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -299,7 +299,7 @@ function Comparison() {
                 }
                 composable={
                     <Section title="Share">
-                        <MenuItemSectionRow onPress={noop}>
+                        <MenuItemSectionRoot onPress={noop}>
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <MenuItem.Icon src={icons.Download} />
@@ -308,7 +308,7 @@ function Comparison() {
                                     <MenuItem.Title>Download</MenuItem.Title>
                                 </MenuItem.Content>
                             </MenuItem.Row>
-                        </MenuItemSectionRow>
+                        </MenuItemSectionRoot>
                     </Section>
                 }
             />

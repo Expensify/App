@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -78,7 +78,7 @@ function Finish() {
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
-                    <MenuItemSectionRow
+                    <MenuItemSectionRoot
                         onPress={() => {
                             Navigation.navigate(getTwoFactorAuthRoute());
                         }}
@@ -94,7 +94,7 @@ function Finish() {
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>
                         </MenuItem.Row>
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 </Section>
             </ScrollView>
         </ScreenWrapper>

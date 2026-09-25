@@ -6,7 +6,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -752,7 +752,7 @@ function WalletPage() {
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     shouldShowConnectionStatus
                                 />
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     onPress={onAddPersonalCardPress}
                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
                                 >
@@ -762,9 +762,9 @@ function WalletPage() {
                                             <MenuItem.Title>{translate('personalCard.addPersonalCard')}</MenuItem.Title>
                                         </MenuItem.Content>
                                     </MenuItem.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             </>
-                            <MenuItemSectionRow
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
                             >
@@ -777,9 +777,9 @@ function WalletPage() {
                                         <MenuItem.Chevron />
                                     </MenuItem.Trailing>
                                 </MenuItem.Row>
-                            </MenuItemSectionRow>
+                            </MenuItemSectionRoot>
                             {!hasAssignedCard && (
-                                <MenuItemSectionRow onPress={openCompanyCardFlow}>
+                                <MenuItemSectionRoot onPress={openCompanyCardFlow}>
                                     <MenuItem.Row>
                                         <View style={[styles.popoverMenuIcon, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)]}>
                                             <Icon
@@ -796,7 +796,7 @@ function WalletPage() {
                                             <MenuItem.Chevron />
                                         </MenuItem.Trailing>
                                     </MenuItem.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             )}
                         </Section>
                         {hasWallet && (
@@ -856,7 +856,7 @@ function WalletPage() {
 
                                             if (hasActivatedWallet) {
                                                 return (
-                                                    <MenuItemSectionRow
+                                                    <MenuItemSectionRoot
                                                         ref={buttonRef}
                                                         onPress={(event) => {
                                                             triggerKYCFlow({event});
@@ -872,7 +872,7 @@ function WalletPage() {
                                                                 <MenuItem.Chevron />
                                                             </MenuItem.Trailing>
                                                         </MenuItem.Row>
-                                                    </MenuItemSectionRow>
+                                                    </MenuItemSectionRoot>
                                                 );
                                             }
 
@@ -903,7 +903,7 @@ function WalletPage() {
                                             }
 
                                             return (
-                                                <MenuItemSectionRow
+                                                <MenuItemSectionRoot
                                                     ref={buttonRef}
                                                     onPress={enableWallet}
                                                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
@@ -914,7 +914,7 @@ function WalletPage() {
                                                             <MenuItem.Title>{translate('walletPage.enableWallet')}</MenuItem.Title>
                                                         </MenuItem.Content>
                                                     </MenuItem.Row>
-                                                </MenuItemSectionRow>
+                                                </MenuItemSectionRoot>
                                             );
                                         }}
                                     </KYCWall>

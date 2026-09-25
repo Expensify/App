@@ -1,5 +1,5 @@
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import RenderHTML from '@components/RenderHTML';
@@ -290,7 +290,7 @@ function CardSection() {
             )}
 
             {!!account?.hasPurchases && (
-                <MenuItemSectionRow
+                <MenuItemSectionRoot
                     onPress={viewPurchases}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                 >
@@ -303,11 +303,11 @@ function CardSection() {
                             <MenuItem.Chevron />
                         </MenuItem.Trailing>
                     </MenuItem.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             )}
 
             {!!(subscriptionPlan && account?.isEligibleForRefund) && (
-                <MenuItemSectionRow
+                <MenuItemSectionRoot
                     isDisabled={isOffline}
                     onPress={async () => {
                         const result = await showRequestRefundModal();
@@ -327,7 +327,7 @@ function CardSection() {
                             <MenuItem.Chevron />
                         </MenuItem.Trailing>
                     </MenuItem.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             )}
 
             {!privateSubscription?.pendingFields?.type && canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases) && (

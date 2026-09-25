@@ -9,13 +9,13 @@ import type {RefObject} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 
-type MenuItemSectionRowProps = MenuItemRootProps & {
+type MenuItemSectionRootProps = MenuItemRootProps & {
     /** Ref to the bleed wrapper. Use it when a popover needs to anchor on the row. */
     ref?: RefObject<View | null>;
 };
 
 /** A `MenuItem.Root` that spans the full width of a `Section`, ignoring the section's own horizontal padding */
-function MenuItemSectionRow({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, ref}: MenuItemSectionRowProps) {
+function MenuItemSectionRoot({children, onPress, isDisabled = false, sentryLabel, testID, accessibilityLabel, ref}: MenuItemSectionRootProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -37,4 +37,4 @@ function MenuItemSectionRow({children, onPress, isDisabled = false, sentryLabel,
     );
 }
 
-export default MenuItemSectionRow;
+export default MenuItemSectionRoot;
