@@ -1,7 +1,8 @@
 ---
 title: Track Taxes
 description: Set up and manage tax rates in your Expensify workspace for non-USD currencies.
-keywords: [New Expensify, tax rates, VAT, GST, QST, PST, expense tax codes, foreign currency taxes, workspace settings, SmartScan tax, scanned tax, receipt tax]
+keywords: [New Expensify, tax rates, VAT, GST, QST, PST, expense tax codes, foreign currency taxes, workspace settings, SmartScan tax, scanned tax, receipt tax, Taxes table, Tax rate column, Tax code column, sort tax rates, find tax rate]
+internalScope: Audience is Workspace Admins. Covers enabling Taxes, reading and sorting the Taxes table, adding, editing, and deleting tax rates, and setting default tax rates. Does not cover tax rates managed in a connected accounting integration or category, merchant, and distance tax rules.
 ---
 
 Workspaces on **Collect** and **Control** plans can add tax rates to track VAT, GST, or other regional taxes. Tax rates are applied by default based on currency, but can also be manually selected per expense. When you SmartScan a receipt, Expensify also reads the tax amount printed on the receipt and applies it automatically where possible. You can always review and edit the tax on the expense.
@@ -17,7 +18,7 @@ To enable tax tracking in a workspace:
 1. In the **navigation tabs** on the left (web) or bottom (mobile), click Workspaces.
 2. Click your **workspace name**.
 3. Click **More Features**.
-4. Under the **Reports** section, toggle on **Taxes**.
+4. Under the **Organize** section, toggle on **Taxes**.
 
 Once enabled, a new **Taxes** section will appear in the left-hand menu.
 
@@ -29,11 +30,26 @@ Once enabled, a new **Taxes** section will appear in the left-hand menu.
 
 Once the **Taxes** feature is enabled, you can create and manage tax rates.
 
+## What each column on the Taxes page shows
+
+The **Taxes** page lists every tax rate in the workspace in a table with these columns:
+
+- **Name** – The tax rate name. The default rate also shows **Workspace currency default**, **Foreign currency default**, or **Default** (when it's both) under its name.
+- **Tax rate** – The rate's percentage value.
+- **Tax code** – The tax code assigned to the rate. This column appears only on the **Control** plan, and only when at least one tax rate has a tax code.
+- **Enabled** – A toggle that shows whether the rate is active.
+
+To sort the table, click the **Name**, **Tax rate**, **Tax code**, or **Enabled** column header. Click the same header again to reverse the order. When you sort by **Tax code**, rates without a tax code appear last.
+
+To find a rate, type its name, value, or tax code in the **Find tax rate** search box.
+
+On mobile and smaller screens, the **Tax rate** and **Tax code** columns are hidden. The rate's value appears under its name instead, followed by the default label if one applies (for example, **9% • Workspace currency default**).
+
 ## Add a Tax Rate
 
 1. Go to **Workspaces > [Workspace Name] > Taxes**.
-2. Click **Add Rate** in the top-right corner.
-3. Enter a **Name**, **Value**, and **Tax Code**.
+2. Click **Add rate** in the top-right corner.
+3. Enter a **Name**, **Value**, and **Tax code**.
 4. Click **Save**.
 
 ## Edit, Make Inactive, or Delete a Single Tax Rate
@@ -50,9 +66,9 @@ Once the **Taxes** feature is enabled, you can create and manage tax rates.
 1. On the **Taxes** page, select the checkboxes next to the rates you want to modify.
 2. Click **X selected** in the top-right menu.
 3. Choose one of the following actions:
-   - **Enable Rates** – Mark selected rates as active.
-   - **Disable Rates** – Mark selected rates as inactive.
-   - **Delete Rates** – Permanently remove selected tax rates.
+   - **Enable rates** – Mark selected rates as active.
+   - **Disable rates** – Mark selected rates as inactive.
+   - **Delete rates** – Permanently remove selected tax rates.
 
 **Note:** The workspace’s default tax rate must remain active and cannot be removed.
 
@@ -69,10 +85,20 @@ To update these defaults:
 
 1. Go to **Workspaces > [Workspace Name] > Taxes**.
 2. Click **Settings** in the top-right.
-3. Choose **Workspace Currency Default** or **Foreign Currency Default**.
+3. Choose **Workspace currency default** or **Foreign currency default**.
 4. Select the desired tax rate.
 
 # FAQ
+
+## Why can't I see the Tax code column on the Taxes page?
+
+The **Tax code** column appears only when all of these are true:
+
+- The workspace is on the **Control** plan.
+- At least one tax rate in the workspace has a tax code.
+- You're using a wide screen. On mobile and smaller screens, the table hides the **Tax rate** and **Tax code** columns.
+
+To see a rate's tax code on a smaller screen, click the tax rate to open it.
 
 ## How do I set up multiple taxes (GST/PST/QST) for indirect connections?
 
