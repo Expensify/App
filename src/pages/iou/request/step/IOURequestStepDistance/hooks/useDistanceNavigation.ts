@@ -7,6 +7,7 @@ import useMoneyRequestParticipantsPolicyTags from '@hooks/useMoneyRequestPartici
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
@@ -14,9 +15,10 @@ import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtil
 import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 
 import type {IOUAction, IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Beta, IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Policy, RecentWaypoint, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -100,9 +102,6 @@ type UseDistanceNavigationParams = {
     /** Resolved policy from `usePolicyForMovingExpenses` — the workspace a new report should land in. */
     policyForMovingExpenses: OnyxEntry<Policy>;
 
-    /** Enabled betas — passed through to downstream API calls. */
-    betas: OnyxEntry<Beta[]>;
-
     /** Recently-used waypoints — passed through so the next screen can suggest them. */
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 
@@ -141,13 +140,14 @@ function useDistanceNavigation({
     translate,
     selfDMReport,
     policyForMovingExpenses,
-    betas,
     recentWaypoints,
     introSelected,
     unit,
     personalOutputCurrency,
 }: UseDistanceNavigationParams): (manualDistance?: number) => void {
     const {isOffline} = useNetwork();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -187,6 +187,7 @@ function useDistanceNavigation({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             iouType,
             action,
@@ -219,7 +220,6 @@ function useDistanceNavigation({
             isOffline,
             selfDMReport,
             policyForMovingExpenses,
-            betas,
             recentWaypoints,
             unit,
             personalOutputCurrency,
