@@ -68,9 +68,48 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-
                 <data android:scheme="https" android:host="new.expensify.com" />
                 <data android:scheme="https" android:host="staging.new.expensify.com" />
+
+                <!--
+                 Browser-only paths, keep in sync with .well-known/apple-app-site-association.
+                 Android 15+ only; older versions ignore these and match every path.
+                -->
+                <uri-relative-filter-group android:allow="false">
+                    <!-- Site root, matches both "" and "/" -->
+                    <data android:pathPattern="/*" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:path="/NewExpensify.dmg" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:pathPrefix="/docs/" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:pathPrefix="/pdfs/" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:path="/oauth/callback" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:queryPrefix="oauth_state_id=" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:path="/transition" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:path="/connection-complete" />
+                </uri-relative-filter-group>
+                <uri-relative-filter-group android:allow="false">
+                    <data android:path="/bank-connection-complete" />
+                </uri-relative-filter-group>
+                <!--
+                 Groups are checked in order and the first match decides.
+                 A URI matching no group is rejected, so this catch-all must stay last.
+                -->
+                <uri-relative-filter-group android:allow="true">
+                    <data android:pathPattern=".*" />
+                </uri-relative-filter-group>
             </intent-filter>
              <intent-filter>
                 <action android:name="android.intent.action.SEND" />

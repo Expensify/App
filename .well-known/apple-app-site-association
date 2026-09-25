@@ -5,8 +5,53 @@
                 "appIDs": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"],
                 "components": [
                     {
+                        "/": "/",
+                        "exclude": true,
+                        "comment": "Site root, opened in the browser from the app"
+                    },
+                    {
+                        "/": "/NewExpensify.dmg",
+                        "exclude": true,
+                        "comment": "Desktop app download, see CONST.PATHS_TO_TREAT_AS_EXTERNAL"
+                    },
+                    {
+                        "/": "/docs/*",
+                        "exclude": true,
+                        "comment": "Storybook, see CONST.PATHS_TO_TREAT_AS_EXTERNAL"
+                    },
+                    {
+                        "/": "/pdfs/*",
+                        "exclude": true,
+                        "comment": "Static PDFs, e.g. the PDS and FSG paperwork"
+                    },
+                    {
+                        "/": "/oauth/callback",
+                        "exclude": true,
+                        "comment": "Web Cloudflare Access sign-in callback, see CONST.CLOUDFLARE_ACCESS"
+                    },
+                    {
+                        "?": {"oauth_state_id": "?*"},
+                        "exclude": true,
+                        "comment": "Web Plaid OAuth return, the Plaid session lives in the browser tab"
+                    },
+                    {
+                        "/": "/transition",
+                        "exclude": true,
+                        "comment": "Browser sign-in handoff (web SAML, Supportal, OldDot web), carries a short-lived auth token"
+                    },
+                    {
+                        "/": "/connection-complete",
+                        "exclude": true,
+                        "comment": "Final page of web accounting connection flows, native flows detect it in a WebView"
+                    },
+                    {
+                        "/": "/bank-connection-complete",
+                        "exclude": true,
+                        "comment": "Final page of web bank connection flows, native flows detect it in a WebView"
+                    },
+                    {
                         "/": "*",
-                        "comment": "Every path on this domain"
+                        "comment": "Every other path on this domain"
                     }
                 ]
             }
