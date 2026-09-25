@@ -47,7 +47,6 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const delegateAccountID = useDelegateAccountID();
@@ -67,7 +66,6 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
                 translate,
                 currentUserAccountID: personalDetail.accountID,
                 introSelected,
-                betas,
                 conciergeChat,
                 isSelfTourViewed,
                 delegateAccountID,

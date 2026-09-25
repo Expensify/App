@@ -4,7 +4,7 @@ import {openReport} from '@libs/actions/Report';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import {hasRoute} from '@libs/TransactionUtils';
 
-import type {Beta, IntroSelected, Transaction} from '@src/types/onyx';
+import type {IntroSelected, Transaction} from '@src/types/onyx';
 import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -27,9 +27,6 @@ type UseDistanceTransactionBackupParams = {
     /** The current user's onboarding selection — used by the offline-recovery `openReport` call. */
     introSelected: OnyxEntry<IntroSelected>;
 
-    /** The current user's enabled betas — used by the offline-recovery `openReport` call. */
-    betas: OnyxEntry<Beta[]>;
-
     /** The Concierge chat report */
     conciergeChat: OnyxEntry<ConciergeChatReport>;
 
@@ -49,7 +46,6 @@ function useDistanceTransactionBackup({
     isEditingSplit,
     isDraft,
     introSelected,
-    betas,
     conciergeChat,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
@@ -85,7 +81,6 @@ function useDistanceTransactionBackup({
                 reportID: transaction?.reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed,

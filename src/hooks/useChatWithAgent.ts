@@ -17,7 +17,6 @@ function useChatWithAgent() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const [personalDetails] = useAllPersonalDetails();
@@ -29,7 +28,6 @@ function useChatWithAgent() {
             introSelected,
             guidedSetupAndTourStatus?.isSelfTourViewed,
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
             personalDetails,
             conciergeChat,
         );

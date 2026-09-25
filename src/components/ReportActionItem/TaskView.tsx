@@ -34,7 +34,8 @@ import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {canActionTask, canModifyTask, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {clearTaskErrors} from '@userActions/TaskDeletion';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +65,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
@@ -88,7 +88,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
 
     const assigneePersonalDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
-    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate}) : '';
+    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) : '';
 
     const isOpen = isOpenTaskReport(report);
 
@@ -136,7 +136,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 conciergeReportID,
                                 accountID,
                                 introSelected,
-                                betas,
                                 isSelfTourViewed,
                                 report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
                                 currentUserPersonalDetails,

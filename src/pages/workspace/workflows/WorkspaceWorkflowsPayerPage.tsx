@@ -17,7 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -82,7 +82,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const bankAccountState = isBankAccountFullySetup ? policyAchAccountState : bankAccountConnectedToWorkspace?.accountData?.state;
     const isAccountInSetupState = isBankAccountPartiallySetup(bankAccountState);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -98,7 +97,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {isLoading, startWithLoading} = usePressLoading({isLoading: sharedBankAccountData?.isLoading ?? false});
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails);
     const selectedPayerDisplayName = usePersonalDetailByLogin(selectedPayer, displayNameSelector);
     const ownerDisplayName = usePersonalDetailByLogin(policy?.owner, displayNameSelector);
     const accountID = selectedPayer ? policyMemberEmailsToAccountIDs?.[selectedPayer] : '';
@@ -256,7 +256,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                 introSelected,
                                 guidedSetupAndTourStatus?.isSelfTourViewed,
                                 guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                                betas,
                                 personalDetails,
                                 conciergeChat,
                             );

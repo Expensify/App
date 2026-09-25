@@ -122,7 +122,7 @@ import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -140,6 +140,7 @@ import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDelegateAccountID from './useDelegateAccountID';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -361,6 +362,25 @@ function getAllMatchingExportQueryAndExclusions(
     return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
 }
 
+function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransactions: SelectedTransactions): SearchQueryJSON | undefined {
+    const excludedEntries = Object.values(excludedTransactions);
+    if (excludedEntries.some((transaction) => !transaction.reportID)) {
+        return undefined;
+    }
+    const excludedReportIDs = [...new Set(excludedEntries.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID))];
+    if (excludedReportIDs.length === 0) {
+        return queryJSON;
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    flatFilters.push({
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+        filters: excludedReportIDs.map((reportID) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: reportID})),
+    });
+
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+}
+
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
 
 function getGroupExportExactMatchFilterKeys(groupBy: SearchQueryJSON['groupBy']): ReadonlySet<SearchFilterKey> | undefined {
@@ -535,7 +555,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {
         introSelected,
         isSelfTourViewed,
-        betas,
         activePolicyID,
         activePolicy,
         conciergeChat,
@@ -558,6 +577,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const [personalDetails] = useAllPersonalDetails();
@@ -1021,7 +1041,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (groupBy) {
                 const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
-                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
+                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter(
+                    (column) => expensePermittedColumns.includes(column) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR),
+                );
 
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
                 // Grouped export skips getColumnsToShow(), so inject Violations when the query asks for it
@@ -1040,12 +1062,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     fallbackPolicyID: policyForMovingExpensesID,
                     sortBy: queryJSON?.sortBy,
                     shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+                    isVendorColumnAvailable,
                 });
             }
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
             for (const column of columnsToExport) {
-                exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column));
+                exportColumnLabels[column] = translate(getSearchColumnTranslationKey(column, exportSearchType));
             }
 
             // searchKey changes what the backend query matches (e.g. reconciliation includes Expensify Card cash back),
@@ -1060,7 +1083,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 exportColumnLabels: JSON.stringify(exportColumnLabels),
             };
         },
-        [accountID, currentSearchKey, exportSearchData, exportSearchType, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
+        [accountID, currentSearchKey, exportSearchData, exportSearchType, isVendorColumnAvailable, policyForMovingExpensesID, queryJSON, translate, visibleColumns],
     );
 
     const handleCSVExport = useCallback(
@@ -1078,16 +1101,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
 
             if (areAllMatchingItemsSelected) {
-                if ((!isExpenseType && selectedTransactionsKeys.length === 0) || !hash) {
+                const supportsAllMatchingExclusions = isExpenseType || isExpenseReportType;
+                if ((!supportsAllMatchingExclusions && selectedTransactionsKeys.length === 0) || !hash) {
                     return;
                 }
                 const allMatchingExportData = isExpenseType && queryJSON ? getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
-                if (isExpenseType && !allMatchingExportData) {
+                const allMatchingReportExportQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                if ((isExpenseType && !allMatchingExportData) || (isExpenseReportType && !allMatchingReportExportQuery)) {
                     setIsDownloadErrorModalVisible(true);
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
-                const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? queryJSON);
+                const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? allMatchingReportExportQuery ?? queryJSON);
                 queueExportSearchItemsToCSV({
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
@@ -1144,6 +1169,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactions,
             selectedTransactionsKeys,
             isExpenseType,
+            isExpenseReportType,
             excludedTransactions,
             translate,
             clearSelectedTransactions,
@@ -1446,7 +1472,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             if (areAllMatchingItemsSelected) {
-                const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                const allMatchingQuery = isExpenseReportType && queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : queryJSON;
+                if (isExpenseReportType && !allMatchingQuery) {
+                    Log.info('[BulkPay] Dropping bulk pay: report exclusion has no reportID');
+                    return;
+                }
+                const serializedQuery = allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : JSON.stringify(allMatchingQuery);
                 queueBulkPayReports(serializedQuery);
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
@@ -1629,7 +1660,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     payInvoice({
                         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                        betas,
                         getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
@@ -1659,7 +1689,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 payMoneyRequest({
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                    betas,
                     getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
@@ -1702,8 +1731,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             areAllMatchingItemsSelected,
             queryJSON,
+            excludedTransactions,
+            isExpenseReportType,
             isOffline,
-            betas,
             isBetaEnabled,
             isDelegateAccessRestricted,
             selectedReports.length,
@@ -1907,8 +1937,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions, rules]);
 
+    // Some matches haven't been loaded yet, so the client can't check whether they are movable
+    const hasUnloadedMatchingExpenses = !!currentSearchResults?.search?.hasMoreResults;
+    const isUnreportedOnlyQuery = useMemo(() => {
+        const statusFilter = queryJSON ? getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) : undefined;
+        return !statusFilter?.isNegated && !!statusFilter?.value?.length && statusFilter.value.every((status) => status === CONST.SEARCH.STATUS.EXPENSE.UNREPORTED);
+    }, [queryJSON]);
+
     const {headerButtonsOptions, dropdownButtonsOptions} = useMemo(() => {
-        if ((selectedTransactionsKeys.length === 0 && !(isExpenseType && areAllMatchingItemsSelected)) || !hash) {
+        if ((selectedTransactionsKeys.length === 0 && !((isExpenseType || isExpenseReportType) && areAllMatchingItemsSelected)) || !hash) {
             const noOptions = CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
             return {headerButtonsOptions: noOptions, dropdownButtonsOptions: noOptions};
         }
@@ -1946,7 +1983,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 doAllSelectedItemsBelongToCADPolicies,
                 hasCardEnabledAdminPolicy,
             );
-            const shouldHideTemplateExports = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
+            const shouldHideTemplateExports = (isExpenseType || isExpenseReportType) && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
             const availableCustomTemplates = shouldHideTemplateExports
                 ? customTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)
                 : customTemplates;
@@ -2299,6 +2336,57 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             dropdownButtonsOptions: openExportOptionsDirectlyIfSoleAction(builtOptions),
         });
 
+        // These checks only see the loaded page. The backend enforces the same rules on the full set.
+        const moveOwnerAccountIDs = new Set<number>();
+        let moveHasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID =
+                transactionEntry.ownerAccountID ??
+                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                moveOwnerAccountIDs.add(ownerAccountID);
+            } else {
+                moveHasUnknownOwner = true;
+            }
+        }
+        const moveHasMultipleOwners = moveOwnerAccountIDs.size > 1 || (moveHasUnknownOwner && (moveOwnerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+
+        // For selections across submitters, offer only Auto report when every expense has a resolved owner,
+        // is on a managed card, and does not depend on the destination workspace. Otherwise hide the flow.
+        const canAutoReportAcrossSubmitters =
+            moveOwnerAccountIDs.size > 1 &&
+            !moveHasUnknownOwner &&
+            selectedTransactionsKeys.every((id) => {
+                const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                if (!transaction || !isManagedCardTransaction(transaction)) {
+                    return false;
+                }
+                return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
+            });
+
+        // `every` returns true for an empty selection, so check the length too. The destination page has nothing to move.
+        const canAllTransactionsBeMoved = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const canMoveExpenses = canAllTransactionsBeMoved && !isExpenseReportType && (!moveHasMultipleOwners || canAutoReportAcrossSubmitters);
+
+        const moveExpensesOption: DropdownOption<SearchHeaderOptionValue> = {
+            text: translate('iou.moveExpenses'),
+            icon: expensifyIcons.DocumentMerge,
+            value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                // A queued all-matching move would send a stale query, so ask the user to reconnect like export does
+                if (areAllMatchingItemsSelected && isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute());
+            },
+        };
+
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
         const shouldShowPayOption = areAllMatchingItemsSelected
@@ -2315,8 +2403,71 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             onSelected: () => onBulkPaySelected(undefined),
         };
 
+        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+        const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Download,
+            text: translate('common.downloadReport', {count: selectedReportIDs.length}),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
+            shouldCloseModalOnSelect: true,
+            onSelected: async () => {
+                if (isOffline) {
+                    setIsOfflineModalVisible(true);
+                    return;
+                }
+                // In "Select all" mode the matching reports aren't enumerated on the client (results are paged),
+                // so send the search query to the backend and let it resolve the reports. The searchKey changes what
+                // the backend query matches, so it must be sent exactly as search() does or the exported set differs from the viewed set.
+                if (areAllMatchingItemsSelected) {
+                    const allMatchingReportQuery = queryJSON ? getAllMatchingReportQuery(queryJSON, excludedTransactions) : undefined;
+                    if (!allMatchingReportQuery) {
+                        setIsDownloadErrorModalVisible(true);
+                        return;
+                    }
+                    const serializedQuery = serializeQueryJSONForBackend({...allMatchingReportQuery, searchKey: currentSearchKey});
+                    exportReportsToPDF([], serializedQuery);
+
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
+                    return;
+                }
+                if (selectedReportIDs.length === 1) {
+                    const reportIDForPDF = selectedReportIDs.at(0);
+                    if (!reportIDForPDF) {
+                        return;
+                    }
+                    await exportReportToPDF({reportID: reportIDForPDF});
+                    setPdfReportID(reportIDForPDF);
+                    setIsPdfModalVisible(true);
+                    return;
+                }
+                exportReportsToPDF(selectedReportIDs);
+
+                // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
+                selectAllMatchingItems(false);
+                clearSelectedTransactions(undefined, true);
+            },
+        };
+
         if (areAllMatchingItemsSelected) {
-            return buildResult(shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption]);
+            // Offer an all-matching move only when no rows are excluded and unloaded matches are unreported.
+            // The backend rejects the entire move if any matching expense is invalid
+            const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
+
+            const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
+            if (shouldShowPayOption) {
+                allMatchingOptions.push(payButtonOption);
+            }
+            allMatchingOptions.push(exportButtonOption);
+            if (isExpenseReportSearch) {
+                allMatchingOptions.push(downloadPDFOption);
+            }
+            if (canMoveExpenses && isAllMatchingSelectionMovable) {
+                allMatchingOptions.push(moveExpensesOption);
+            }
+
+            return buildResult(allMatchingOptions);
         }
 
         if (allSelectedAreDeleted) {
@@ -2354,7 +2505,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return buildResult(deletedTransactionOptions);
         }
 
-        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
@@ -2640,33 +2790,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         options.push(exportButtonOption);
 
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
-            options.push({
-                icon: expensifyIcons.Download,
-                text: translate('common.downloadReport', {count: selectedReportIDs.length}),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
-                shouldCloseModalOnSelect: true,
-                onSelected: async () => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-                    if (selectedReportIDs.length === 1) {
-                        const reportIDForPDF = selectedReportIDs.at(0);
-                        if (!reportIDForPDF) {
-                            return;
-                        }
-                        await exportReportToPDF({reportID: reportIDForPDF});
-                        setPdfReportID(reportIDForPDF);
-                        setIsPdfModalVisible(true);
-                        return;
-                    }
-                    exportReportsToPDF(selectedReportIDs);
-
-                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
-                    selectAllMatchingItems(false);
-                    clearSelectedTransactions(undefined, true);
-                },
-            });
+            options.push(downloadPDFOption);
         }
 
         const selectedReportReceiptCount = Object.values(allTransactions ?? {}).filter(
@@ -2839,54 +2963,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
 
-        const ownerAccountIDs = new Set<number>();
-        let hasUnknownOwner = false;
-        for (const id of selectedTransactionsKeys) {
-            const transactionEntry = selectedTransactions[id];
-            if (!transactionEntry) {
-                continue;
-            }
-            const ownerAccountID =
-                transactionEntry.ownerAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
-            if (typeof ownerAccountID === 'number') {
-                ownerAccountIDs.add(ownerAccountID);
-            } else {
-                hasUnknownOwner = true;
-            }
-        }
-        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
-
-        // Across submitters the only destination the App can offer is "Auto report". Every other mixed-owner selection
-        // stays hidden as before, so there is no entry into a screen that could only offer one submitter's reports to
-        // everybody else's expenses. Requirements:
-        //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
-        //   - every expense on a managed card, because the backend resolves each destination through the card; one
-        //     expense without a card fails the whole request with "404 Card not found"
-        //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
-        //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
-        // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
-        const canAutoReportAcrossSubmitters =
-            ownerAccountIDs.size > 1 &&
-            !hasUnknownOwner &&
-            selectedTransactionsKeys.every((id) => {
-                const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!transaction || !isManagedCardTransaction(transaction)) {
-                    return false;
-                }
-                return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
-            });
-
-        if (canAllTransactionsBeMoved && !isExpenseReportType && (!hasMultipleOwners || canAutoReportAcrossSubmitters)) {
-            options.push({
-                text: translate('iou.moveExpenses'),
-                icon: expensifyIcons.DocumentMerge,
-                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP.getRoute()),
-            });
+        if (canMoveExpenses) {
+            options.push(moveExpensesOption);
         }
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
@@ -2994,7 +3072,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectedTransactions,
         excludedTransactions,
-        queryJSON?.type,
+        queryJSON,
         expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
@@ -3073,9 +3151,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectAllMatchingItems,
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
-        queryJSON?.groupBy,
         currentUserPersonalDetails.accountID,
         delegateAccountID,
+        hasUnloadedMatchingExpenses,
+        isUnreportedOnlyQuery,
         currentSearchQueryJSON,
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,

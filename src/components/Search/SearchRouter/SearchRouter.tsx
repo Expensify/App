@@ -54,6 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
 
+import type {ComponentRef} from 'react';
 import type {TextInputProps} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -81,7 +82,7 @@ type SearchRouterProps = {
     onRouterClose: (afterClose?: () => void) => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
     isSearchRouterDisplayed?: boolean;
-    ref?: React.Ref<View>;
+    ref?: React.Ref<ComponentRef<typeof View>>;
 };
 
 function searchForReportsAndUsersInServer(searchInput: string) {
@@ -103,7 +104,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const isSupportalSession = useIsSupportalSession();
@@ -250,6 +250,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
                     isTrackIntentUser,
+                    currentUserAccountID,
                 });
                 reportForContextualSearch = option;
             }
@@ -320,6 +321,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
+            currentUserAccountID,
             convertToDisplayString,
             rules,
         ],
@@ -489,7 +491,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         introSelected,
                         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                        betas,
                         conciergeChat,
                         isSupportalSession,
                         shouldDismissModal: false,
@@ -509,7 +510,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             introSelected,
             guidedSetupAndTourStatus?.isSelfTourViewed,
             guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-            betas,
             conciergeChat,
             isSupportalSession,
             contextualPoliciesMap,

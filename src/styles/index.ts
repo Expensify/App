@@ -1601,7 +1601,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
-        },
+        } satisfies ViewStyle & {transformOrigin?: string},
 
         textInputLabel: {
             fontSize: fontScale.text,
@@ -3304,15 +3304,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         flipUpsideDown: {
-            transform: `rotate(180deg)`,
-        },
-
-        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
-        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
-        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
-        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
-        flipUpsideDownInPlace: {
-            transform: `scaleY(-1)`,
+            transform: [{rotate: '180deg'}],
         },
 
         navigationScreenCardStyle: {
@@ -5145,16 +5137,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         rotate90: {
-            transform: 'rotate(90deg)',
+            transform: [{rotate: '90deg'}],
         },
 
         emojiStatusLHN: {
             fontSize: 9,
-            ...(getBrowser() && !isMobile() && {transform: 'scale(.5)', fontSize: 22, overflow: 'visible'}),
+            ...(getBrowser() && !isMobile() && {transform: [{scale: 0.5}], fontSize: 22, overflow: 'visible'}),
             ...(getBrowser() &&
                 isSafari() &&
                 !isMobile() && {
-                    transform: 'scale(0.7)',
+                    transform: [{scale: 0.7}],
                     fontSize: 13,
                     lineHeight: 15,
                     overflow: 'visible',
@@ -6785,10 +6777,8 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
-        discoverSectionImage: {
-            width: '100%',
-            height: undefined,
-            aspectRatio: 2.2,
+        chartInlineTable: {
+            marginTop: 20,
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
@@ -6976,7 +6966,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean, sidebarWidth: number = variables.sideBarWithLHBWidth) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : sidebarWidth, flex: 1}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 
@@ -7457,6 +7448,28 @@ const plainStyles = (theme: ThemeColors) =>
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
         homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
+
+        insightsDashboardLayout: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsChartGrid: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsChartColumn: {
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
+
+        insightsEmptyStateIllustration: {
+            width: variables.insightsEmptyStateIllustrationSize,
+            height: variables.insightsEmptyStateIllustrationSize,
+        } satisfies ImageStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

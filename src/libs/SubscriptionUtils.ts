@@ -7,14 +7,14 @@ import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, PrivateSubscription, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {addMonths, differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 
 import {convertToShortDisplayString} from './CurrencyUtils';
@@ -426,7 +426,8 @@ function getFreeTrialText(
         return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return translate('subscription.billingBanner.trialStarted.title', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
+        // Badges have less room than the billing banner, so they drop the "Trial:" prefix and show only the remaining days.
+        return translate('subscription.billingBanner.trialStarted.badgeTitle', {count: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
     }
 
     return undefined;
@@ -668,6 +669,27 @@ function shouldShowTrialEndedUI(
     return hasUserFreeTrialEnded(lastDayFreeTrial);
 }
 
+/**
+ * Whether to warn the subscription owner that their annual subscription is about to lapse, matching the Expensify
+ * Classic trigger: an annual subscription, auto-renew switched off, and an end date one month or less away.
+ *
+ * `endDate` is compared against now rather than trusting `type` alone: billing converts a lapsed subscription to
+ * pay-per-use asynchronously, so the NVP can still read annual with an end date in the past. That makes this a
+ * strictly pre-expiry warning. It never renders a retroactive "your subscription expired on X".
+ */
+function shouldShowSubscriptionExpiringSoonUI(privateSubscription: OnyxEntry<PrivateSubscription>): boolean {
+    // An absent `autoRenew` means the subscription still renews, so only an explicit `false` qualifies.
+    if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.ANNUAL || (privateSubscription?.autoRenew ?? true) || !privateSubscription?.endDate) {
+        return false;
+    }
+
+    // `endDate` is a date-only string. Anchor it to midnight the way `formatSubscriptionEndDate` does.
+    const endDate = new Date(`${privateSubscription.endDate}T00:00:00`);
+    const now = new Date();
+
+    return isAfter(endDate, now) && !isAfter(endDate, addMonths(now, 1));
+}
+
 function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType | undefined) {
     return privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.INVOICING;
 }
@@ -726,6 +748,7 @@ export {
     getSubscriptionPrice,
     shouldUseSimplifiedCollectSubscriptionUI,
     shouldShowTrialEndedUI,
+    shouldShowSubscriptionExpiringSoonUI,
     isSubscriptionTypeOfInvoicing,
     calculateTrialDayNumber,
     calculateRemainingTrialSeconds,

@@ -71,6 +71,9 @@ jest.mock('@libs/actions/Report', () => ({
         mockOpenReport(...args);
     },
     pruneReportActionPagesToNewestWindow: jest.fn(),
+}));
+
+jest.mock('@libs/actions/Report/reportActionSubscribers', () => ({
     subscribeToNewActionEvent: (_reportID: string, callback: (isFromCurrentUser: boolean, action?: ReportAction) => void) => {
         newActionHandler = callback;
         return jest.fn();
@@ -93,7 +96,6 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         conciergeChat: undefined,
         isSelfTourViewed: undefined,
         hasCompletedGuidedSetupFlow: undefined,
-        betas: [],
         isOffline: false,
         reportScrollManager,
         setIsFloatingMessageCounterVisible: jest.fn(),

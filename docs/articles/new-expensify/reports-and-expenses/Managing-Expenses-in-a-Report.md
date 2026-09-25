@@ -84,9 +84,11 @@ You can move expenses to a different report, create a new report, or remove them
 
 Apart from a Workspace Admin attaching or replacing a receipt, Approved and Paid reports are locked for editing. To make other changes:
 
-1. (Admins only) Open the report.
-2. Click **More > Cancel Payment** (if Paid).
+1. Open the report.
+2. Click **More > Cancel payment** (if Paid).
 3. Then select **More > Unapprove**.
+
+**Cancel payment** is only offered to the report’s **Payer**, or — on a workspace that tracks payments made elsewhere — to a member with edit access to the **Payments** section of **Workflows**. Learn more about [who can cancel a payment on a report](articles/new-expensify/reports-and-expenses/Expense-and-Report-Actions#who-can-cancel-a-payment-on-a-report).
 
 After it’s unapproved:
   - The member can select **More** > **Undo Submit**.

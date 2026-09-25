@@ -50,6 +50,7 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
             onApply={applyChanges}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT_FIELD}
             style={[styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode)]}
+            shouldSubmitOnEnter={selectedField?.type === CONST.REPORT_FIELD_TYPES.TEXT}
         >
             <ReportFieldBase
                 ref={reportFieldRef}

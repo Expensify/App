@@ -37,7 +37,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [siblingDescriptorsByTransactionID] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -138,7 +137,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
         // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
-        openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: true});
+        openReport({reportID: parentReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: true});
         return true;
     };
 
@@ -164,7 +163,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     conciergeChat,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                    betas,
                     currentUserEmail,
                     currentUserAccountID,
                     personalDetails,
@@ -212,7 +210,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     currentUserLogin: currentUserEmail ?? '',
                     currentUserAccountID,
-                    betas,
                     iouReport: nextParentReport,
                     iouReportAction: nextParentReportAction,
                     transaction: nextTransaction,
@@ -244,7 +241,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     conciergeChat,
                     isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                    betas,
                     currentUserEmail,
                     currentUserAccountID,
                     personalDetails,
@@ -292,7 +288,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     currentUserLogin: currentUserEmail ?? '',
                     currentUserAccountID,
-                    betas,
                     iouReport: prevParentReport,
                     iouReportAction: prevParentReportAction,
                     transaction: prevTransaction,

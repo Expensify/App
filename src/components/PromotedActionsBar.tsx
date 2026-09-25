@@ -13,7 +13,6 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import type Beta from '@src/types/onyx/Beta';
 import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type OnyxReport from '@src/types/onyx/Report';
 
@@ -45,7 +44,6 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         personalDetails: OnyxEntry<PersonalDetailsList>;
         isSelfTourViewed: boolean | undefined;
         hasCompletedGuidedSetupFlow: boolean | undefined;
-        betas: OnyxEntry<Beta[]>;
         hasReportActions: boolean | undefined;
         conciergeChat: OnyxEntry<ConciergeChatReport>;
         isSupportalSession: boolean;
@@ -90,7 +88,6 @@ const PromotedActions = {
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
-        betas,
         hasReportActions,
         conciergeChat,
         isSupportalSession,
@@ -112,7 +109,6 @@ const PromotedActions = {
                     introSelected,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
-                    betas,
                     conciergeChat,
                     isSupportalSession,
                     shouldDismissModal: false,
@@ -128,7 +124,6 @@ const PromotedActions = {
                     introSelected,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
-                    betas,
                     personalDetails,
                     conciergeChat,
                     true,

@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
@@ -50,6 +51,9 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
         if (!queryString) {
             return;
         }
+
+        // Mark the query as a refinement so SearchPage holds the previous results while it loads
+        markQueryAsRefinement(queryString);
 
         const shouldResetSearchKey = !!values.type && values.type !== searchAdvancedFiltersForm.type;
 

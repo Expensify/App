@@ -54,7 +54,6 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: conciergeChatSelector});
@@ -86,7 +85,6 @@ function WithReportOrNotFoundImpl<TProps extends WithReportAndReportActionOrNotF
             reportID: props.route.params.reportID,
             introSelected,
             conciergeChat,
-            betas,
             hasReportActions,
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
