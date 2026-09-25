@@ -285,7 +285,7 @@ describe('Deep linking', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the prompt shows both the current and the new account emails, not a blank one
-            const prompt = await screen.findByText(`You're signed in as ${TEST_USER_LOGIN_2}. This link will sign you in as ${TEST_USER_LOGIN_1} instead.`);
+            const prompt = await screen.findByText(`You're signed in to ${TEST_USER_LOGIN_2}. This sign-in link is for ${TEST_USER_LOGIN_1}.`);
             expect(prompt).toBeOnTheScreen();
 
             unmount2();
@@ -316,7 +316,7 @@ describe('Deep linking', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: 'Cancel'}));
+            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.staySignedIn')}));
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
 
