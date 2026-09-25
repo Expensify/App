@@ -338,6 +338,7 @@ function setMoneyRequestReceipt(
     thumbnail?: string,
     receiptTraceId?: string,
 ) {
+    ReceiptStorage.retain(source);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
         receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null, thumbnail, receiptTraceId},
