@@ -59,11 +59,7 @@ Available rules:
 
 **Cash expenses** and **Billable expenses** can also be set per merchant. [Learn how Merchant Rules work](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
 
-<!-- SCREENSHOT:
-Suggestion: The Rules page on the General tab, showing the tab bar and the full Basic rules card.
-Location: After the list of General tab rules.
-Purpose: Confirms which tab a member is on, since the rules that used to sit together on one Rules page are now split across six tabs.
--->
+![The Rules page on the General tab, showing the tab bar and the full Basic rules card.]({{site.url}}/assets/images/Rules_general.png){:width="100%"}
 
 ---
 
@@ -182,7 +178,7 @@ Rules that apply to a whole expense report are on the **Advanced** tab of the **
 
 When an expense breaks a Workspace Rule or a category rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
 
-![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_02.png){:width="100%"}
+![Expense showing violations]({{site.url}}/assets/images/Expense_violation.png){:width="100%"}
 
 ---
 
