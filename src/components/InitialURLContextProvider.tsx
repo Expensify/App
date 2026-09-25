@@ -49,7 +49,6 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
             Linking.getInitialURL(),
             new Promise<null>((resolve) => {
                 timeoutId = setTimeout(() => {
-                    didTimeOut = true;
                     resolve(null);
                 }, CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
             }),
