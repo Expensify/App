@@ -76,6 +76,7 @@ function SearchFiltersSaveButton() {
                     onSecondOptionSubmit={updateActiveSavedSearch}
                     isVisible={isSaveEditsModalVisible}
                     onClose={() => setIsSaveEditsModalVisible(false)}
+                    shouldRenderPromptAsHTML={false}
                 />
             )}
         </>
