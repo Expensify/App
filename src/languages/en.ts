@@ -677,7 +677,7 @@ const translations = {
         sessionMismatch: "The link you opened isn't valid for your current session.",
         switchAccount: {
             title: 'Switch accounts?',
-            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This link will sign you in as ${newEmail} instead.`,
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `You're signed in as ${currentEmail}. This sign-in link is for ${newEmail}.`,
             confirm: 'Switch accounts',
             staySignedIn: 'Stay signed-in',
         },
