@@ -389,8 +389,8 @@ describe('getMoneyRequestInformation', () => {
 
         it('reuses the existing report preview action supplied via allReportActionsList', () => {
             // Given an existing expense report on the chat and a REPORT_PREVIEW action linked to it that is supplied
-            // only through the `allReportActionsList` param — deliberately never written to Onyx, so the deprecated
-            // `getAllReportActionsFromIOU` fallback inside `getReportPreviewReportAction` cannot be its source.
+            // only through the allReportActionsList param deliberately never written to Onyx, so the deprecated
+            // getAllReportActionsFromIOU fallback inside getReportPreviewReportAction cannot be its source.
             const reportPreviewAction = {
                 reportActionID: PREVIEW_ACTION_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
