@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, change a single filter, filter buttons, landscape mode filters, sideways phone filters, keyboard covering filter input, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -172,12 +172,30 @@ Mobile:
 1. In the navigation tabs on the bottom, tap **Spend**. 
 2. Tap the **Filters** icon next to the search box. 
 3. Tap **Type** and select **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
-4. Tap **Save**.
+4. Tap **Confirm**.
 5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
-6. Tap **Save** after selecting each filter.
-7. Tap **View Results**. 
+6. Tap **Confirm** after selecting each filter.
+7. Tap **Apply filters**. 
+
+On the **Filters** page, **Reset** and **Apply filters** are stacked when you hold your phone upright and sit side by side in one row when you turn your phone sideways.
 
 For more advanced filtering, you can enter search operators directly into the search box on the **Spend** page. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+
+## How to change a single filter from the Spend page on mobile
+
+The filter buttons above your results let you change one filter without opening the full **Filters** page.
+
+1. In the navigation tabs on the bottom, tap **Spend**.
+2. Tap the filter button you want to change, for example **Date** or **Workspace**.
+3. Select the value you want.
+4. Tap **Apply**.
+
+How the filter opens depends on how you hold your phone:
+
+- Holding your phone upright opens the filter in a popup over your results.
+- Turning your phone sideways opens the filter on its own full screen, so the keyboard can't cover the input or the **Apply** button. Tap **Apply** to save the change and return to the **Spend** page, or tap the back arrow to return without changing the filter.
+
+Either way, the change applies to your results right away—you don't need to open the **Filters** page or tap **Apply filters** afterward.
 
 ## How filtering works on the Spend page
 
