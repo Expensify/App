@@ -4,6 +4,7 @@ import importTransactionsFromCSV, {
     buildTransactionListFromSpreadsheet,
     getColumnIndexes,
     getExistingCardImportSettings,
+    hasTagExceedingMaxLength,
     uploadOFXStatement,
 } from '@libs/actions/ImportTransactions';
 import * as API from '@libs/API';
@@ -43,6 +44,7 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: -1,
                 category: -1,
+                tag: -1,
             });
         });
 
@@ -53,6 +55,7 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: -1,
                 category: -1,
+                tag: -1,
             });
         });
 
@@ -69,7 +72,24 @@ describe('ImportTransactions', () => {
                 merchant: 1,
                 amount: 2,
                 category: 3,
+                tag: -1,
             });
+        });
+
+        it('should include the tag column index', () => {
+            // Given a spreadsheet where one column is mapped to Tag
+            const columns = {
+                0: 'date',
+                1: 'merchant',
+                2: 'amount',
+                3: 'tag',
+            };
+
+            // When the column indexes are extracted
+            const result = getColumnIndexes(columns);
+
+            // Then the tag index is returned so the tag values are read from that column
+            expect(result.tag).toBe(3);
         });
 
         it('should handle sparse column mappings', () => {
@@ -84,6 +104,7 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: 5,
                 category: -1,
+                tag: -1,
             });
         });
 
@@ -100,7 +121,49 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: 2,
                 category: -1,
+                tag: -1,
             });
+        });
+    });
+
+    describe('hasTagExceedingMaxLength', () => {
+        const buildSpreadsheet = (tagValues: string[], columns: Record<number, string>) =>
+            createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', ...tagValues.map(() => '2024-01-15')],
+                    ['Merchant', ...tagValues.map(() => 'Store')],
+                    ['Amount', ...tagValues.map(() => '10.00')],
+                    ['Tag', ...tagValues],
+                ],
+                columns,
+                containsHeader: true,
+            });
+
+        it('should return false when no column is mapped to Tag', () => {
+            // Given a long value in a column that isn't mapped to Tag
+            const spreadsheet = buildSpreadsheet(['a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH + 1)], {0: 'date', 1: 'merchant', 2: 'amount', 3: 'ignore'});
+
+            // When the tag length is checked
+            // Then nothing is flagged, because the value is not imported
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(false);
+        });
+
+        it('should return false when every tag is within the limit', () => {
+            // Given tags that are at most the maximum length
+            const spreadsheet = buildSpreadsheet(['Visa', 'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH)], {0: 'date', 1: 'merchant', 2: 'amount', 3: 'tag'});
+
+            // When the tag length is checked
+            // Then nothing is flagged
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(false);
+        });
+
+        it('should return true when a tag is longer than the limit', () => {
+            // Given one tag that is longer than the API accepts
+            const spreadsheet = buildSpreadsheet(['Visa', 'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH + 1)], {0: 'date', 1: 'merchant', 2: 'amount', 3: 'tag'});
+
+            // When the tag length is checked
+            // Then it is flagged so the user can fix the file before importing instead of the import failing on the server
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(true);
         });
     });
 
@@ -154,6 +217,7 @@ describe('ImportTransactions', () => {
                         amount: false,
                         merchant: false,
                         category: false,
+                        tag: false,
                         type: false,
                     },
                     indexes: {
@@ -161,6 +225,7 @@ describe('ImportTransactions', () => {
                         amount: false,
                         merchant: false,
                         category: false,
+                        tag: false,
                         type: false,
                     },
                 },
@@ -198,6 +263,7 @@ describe('ImportTransactions', () => {
                 merchant: 1,
                 amount: 2,
                 category: 3,
+                tag: false,
                 type: false,
             });
             expect(result.columnMapping.names).toEqual({
@@ -205,8 +271,35 @@ describe('ImportTransactions', () => {
                 merchant: 'Merchant',
                 amount: 'Amount',
                 category: 'Category',
+                tag: false,
                 type: false,
             });
+        });
+
+        it('should save the tag column index and header name', () => {
+            // Given a spreadsheet with a column mapped to Tag
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-01'],
+                    ['Merchant', 'Store A'],
+                    ['Amount', '10.00'],
+                    ['Card', 'Visa'],
+                ],
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
+                },
+                containsHeader: true,
+            });
+
+            // When the column layout is built
+            const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
+
+            // Then the tag mapping is saved so it can be restored when a file is uploaded again to the same card
+            expect(result.columnMapping.indexes.tag).toBe(3);
+            expect(result.columnMapping.names.tag).toBe('Card');
         });
 
         it('should handle missing headers when containsHeader is false', () => {
@@ -234,6 +327,7 @@ describe('ImportTransactions', () => {
                 merchant: 1,
                 amount: 2,
                 category: false,
+                tag: false,
                 type: false,
             });
             // Names should be false when no header
@@ -242,6 +336,7 @@ describe('ImportTransactions', () => {
                 merchant: false,
                 amount: false,
                 category: false,
+                tag: false,
                 type: false,
             });
         });
@@ -347,6 +442,34 @@ describe('ImportTransactions', () => {
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.category).toBe('Office Supplies');
+        });
+
+        it('should include tag when provided', () => {
+            // Given a spreadsheet with a column mapped to Tag, including a multi-level tag and an empty value
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-15', '2024-01-16', '2024-01-17'],
+                    ['Merchant', 'Store', 'Store', 'Store'],
+                    ['Amount', '10.00', '20.00', '30.00'],
+                    ['Tag', 'Visa', 'Dept:Project', ''],
+                ],
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
+                },
+                containsHeader: true,
+            });
+
+            // When the transactions are built
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+
+            // Then each row carries its tag as-is, so a colon-delimited value becomes a multi-level tag, and an empty value adds no tag
+            expect(result).toHaveLength(3);
+            expect(result.at(0)?.tag).toBe('Visa');
+            expect(result.at(1)?.tag).toBe('Dept:Project');
+            expect(result.at(2)?.tag).toBeUndefined();
         });
 
         it('should skip rows with missing required fields (date or amount)', () => {
@@ -606,6 +729,56 @@ describe('ImportTransactions', () => {
                     1: 'merchant',
                     2: 'amount',
                     3: 'category',
+                },
+            });
+        });
+
+        it('should reapply a saved tag mapping', () => {
+            // Given a card whose saved layout mapped the "Card" header to Tag
+            const spreadsheetData = [
+                ['Date', '2024-01-01'],
+                ['Merchant', 'Store A'],
+                ['Amount', '10.00'],
+                ['Card', 'Visa'],
+            ];
+            const savedLayout: SavedCSVColumnLayoutData = {
+                name: 'Test Card',
+                useTypeColumn: false,
+                flipAmountSign: false,
+                reimbursable: true,
+                offset: 0,
+                dateFormat: null,
+                accountDetails: {
+                    bank: 'CSV',
+                    currency: 'USD',
+                    accountID: 'test',
+                },
+                columnMapping: {
+                    names: {
+                        date: 'Date',
+                        merchant: 'Merchant',
+                        amount: 'Amount',
+                        tag: 'Card',
+                    },
+                    indexes: {
+                        date: 0,
+                        merchant: 1,
+                        amount: 2,
+                        tag: 3,
+                    },
+                },
+            };
+
+            // When a new file is uploaded to the same card
+            applySavedColumnMappings(spreadsheetData, savedLayout);
+
+            // Then the Tag mapping is restored so the user doesn't have to map it again
+            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
                 },
             });
         });
@@ -958,6 +1131,34 @@ describe('ImportTransactions', () => {
             const [command, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(command).toBe('ImportCSVTransactions');
             getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE);
+        });
+
+        it('sends the tag of each row and sets it on the optimistic transaction', async () => {
+            // Given a spreadsheet with a column mapped to Tag
+            const spreadsheetWithTag = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-15'],
+                    ['Merchant', 'Coffee Shop'],
+                    ['Amount', '5.50'],
+                    ['Tag', 'Visa'],
+                ],
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
+                },
+                containsHeader: true,
+            });
+
+            // When the transactions are imported
+            await importTransactionsFromCSV(spreadsheetWithTag, CURRENT_USER_ACCOUNT_ID);
+
+            // Then the tag is sent to the server and shown on the expense right away
+            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({tag: 'Visa'})]);
+            const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({merchant: 'Coffee Shop', tag: 'Visa'})})]));
         });
 
         it('stores the reimbursable selection on the optimistic card', async () => {
