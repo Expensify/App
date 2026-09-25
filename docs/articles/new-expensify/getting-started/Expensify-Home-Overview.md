@@ -33,6 +33,7 @@ Home includes:
 - **Time sensitive** (when applicable)
 - **To-dos**
 - **Recently added**
+- **Upcoming travel** (when applicable)
 - **Spend over time** and other insights (when applicable)
 - **Getting started** (when applicable)
 - **Discover**
@@ -52,12 +53,11 @@ These alerts appear when:
 - A bank account is locked, such as a business or personal bank account that has been locked due to a failed debit or bank-side restriction
 - A reimbursement is waiting for the payee to add a personal deposit account
 - There is potential risk, such as suspected Expensify Card fraud on an active card
-- A subscription invoice is unpaid, which the Workspace owner sees as **Pay your invoice by [date] to avoid service interruption** while the payment is still within the grace period, or as **Your payment is past due, please pay your invoice** once the grace period ends
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
 Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger **Time sensitive** alerts.
 
-Each **Time sensitive** row also shows the workspace or page it relates to above the row title, so you can tell which account or workspace needs attention. Each alert includes a button that takes you where the issue is resolved. For an unpaid subscription invoice, select **Review** to open your invoices on the **Spend** page.
+Each **Time sensitive** row also shows the workspace or page it relates to above the row title, so you can tell which account or workspace needs attention.
 
 If there are no urgent issues, this section will not appear.
 
@@ -70,8 +70,6 @@ The **To-dos** section highlights items that may need your attention like:
 - “2 reports to approve”
 - “Pay 3 reports”
 
-This section was previously called **For you**.
-
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
 If you recently created your account, the **To-dos** section stays hidden until you have your first to-do to submit, approve, export, or pay. 
@@ -81,6 +79,26 @@ After the section has appeared, if there’s nothing that needs action, the **To
 To learn what qualifies as a to-do and where each item takes you, see [Learn how the To-dos section works](/articles/new-expensify/getting-started/Understanding-the-To-dos-Section).
 
 ![]({{site.url}}/assets/images/home2.png){:width="100%"}
+
+---
+
+## How the Upcoming travel section works on Home
+
+The **Upcoming travel** section shows the trip reservations that start in the next 7 days on trips where you are listed as a traveler.
+
+Each row shows the reservation and when it starts, for example:
+- **Flight to Lisbon** — In 3 days
+- **Hotel in Lisbon** — In 1 week
+- **Car rental in Lisbon** — Today
+- **Train to Porto** — In 1 day
+
+Canceled reservations are left out of this section, so it only lists travel you’re still expected to take. A reservation that is canceled disappears from **Upcoming travel** but stays in the trip itself, where it’s labeled **Canceled**.
+
+Select any row to open the full details for that reservation.
+
+You’re listed as a traveler when a booking is made in your name, including bookings a travel arranger makes for you. Trips you booked for someone else don’t appear here, because you aren’t the traveler on those reservations.
+
+To review every trip instead of just the next 7 days, learn how to [view upcoming and past trips](/articles/travel/managing-trips/View-Upcoming-and-Past-Trips).
 
 ---
 
@@ -189,18 +207,6 @@ The **Recently added** section always appears on Home. If you haven’t added an
 ## Why don’t I see the Time sensitive section?
 
 The **Time sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
-
-## Why don’t I see the unpaid invoice alert on Home?
-
-The unpaid subscription invoice alert is only shown to the Workspace owner, because only the Workspace owner is billed for the subscription. Members and Workspace Admins who are not the Workspace owner never see it.
-
-To learn who is billed for a workspace, see [What is a Workspace owner?](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner).
-
-## What happens if I ignore the unpaid invoice alert on Home?
-
-While the payment is still within the grace period, the alert shows the date your invoice is due. Once that date passes, the alert changes to **Your payment is past due, please pay your invoice** and the workspace loses access to paid features until the invoice is paid.
-
-To learn how to resolve an unpaid invoice, see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Fix-a-Billing-Issue).
 
 ## Why don’t I see the Spend over time section?
 
