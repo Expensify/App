@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {ListItem, ListItemProps} from './types';
 
-import BaseSelectListItem from './BaseSelectListItem';
+import SingleSelectListItem from './SingleSelectListItem';
 
 /**
  * A compact row with a checkbox and optional avatar, used in multi-choice picker lists
@@ -21,42 +21,32 @@ function MultiSelectListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    isMultilineSupported = false,
-    isAlternateTextMultilineSupported = false,
-    alternateTextNumberOfLines = 2,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
-    titleStyles,
-    shouldHighlightSelectedItem,
     titleNumberOfLines,
+    alternateTextNumberOfLines,
 }: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
-    const computedWrapperStyle = [icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle];
-
     return (
-        <BaseSelectListItem
+        <SingleSelectListItem
             item={item}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
             canSelectMultiple
-            onSelectRow={onSelectRow}
             accessibilityRole={CONST.ROLE.CHECKBOX}
+            onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            isMultilineSupported={isMultilineSupported}
-            isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
-            alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={computedWrapperStyle}
-            titleStyles={titleStyles}
-            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            wrapperStyle={[icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle]}
             titleNumberOfLines={titleNumberOfLines}
+            alternateTextNumberOfLines={alternateTextNumberOfLines}
         />
     );
 }

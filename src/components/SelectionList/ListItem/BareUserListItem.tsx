@@ -51,7 +51,7 @@ function BareUserListItem<TItem extends ListItem>({
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         >
-            <ListItemComposed.Row style={wrapperStyle}>
+            <ListItemComposed.Row style={[wrapperStyle, item.itemStyle]}>
                 <UserListItemContent
                     item={item}
                     forwardedFSClass={forwardedFSClass}

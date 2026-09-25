@@ -86,9 +86,7 @@ function BaseSelectionListWithSectionsImpl({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventAutoScrollOnSelect = false,
-    isRowMultilineSupported = false,
     titleNumberOfLines,
-    shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     selectionButtonPosition,
     shouldFooterBeInsideList = false,
@@ -318,11 +316,7 @@ function BaseSelectionListWithSectionsImpl({
                         singleExecution={singleExecution}
                         shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
-                        wrapperStyle={style?.listItemWrapperStyle}
-                        titleStyles={style?.listItemTitleStyles}
-                        isMultilineSupported={isRowMultilineSupported}
                         titleNumberOfLines={titleNumberOfLines}
-                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
                         selectionButtonPosition={selectionButtonPosition}
                         shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}

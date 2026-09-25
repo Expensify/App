@@ -191,7 +191,7 @@ function ApproverSelectionList({
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     disableMaintainingScrollPosition
                     showScrollIndicator
-                    isRowMultilineSupported
+                    titleNumberOfLines={2}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

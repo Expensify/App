@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import type {InviteMemberListItemProps, ListItem} from '@components/SelectionList/ListItem/types';
+import type {ListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import ListItemReportAvatar from '@components/SelectionList/ListItemComposed/primitives/ListItemReportAvatar';
 import ListItemUserAvatar from '@components/SelectionList/ListItemComposed/primitives/ListItemUserAvatar';
 
@@ -38,7 +38,7 @@ const buildItem = (extra: Partial<ListItem> = {}): ListItem => ({
     ...extra,
 });
 
-const renderItem = ({item = buildItem(), ...props}: Partial<InviteMemberListItemProps<ListItem>> = {}) =>
+const renderItem = ({item = buildItem(), ...props}: Partial<ListItemProps<ListItem>> = {}) =>
     render(
         <OnyxListItemProvider>
             <InviteMemberListItem
@@ -72,10 +72,11 @@ describe('InviteMemberListItem', () => {
     });
 
     it.each([
-        [2, true],
-        [1, false],
-    ])('renders the title with %s line(s) when isMultilineSupported=%s', (expectedNumberOfLines, isMultilineSupported) => {
-        renderItem({isMultilineSupported});
+        [2, 2],
+        [1, 1],
+        [1, undefined],
+    ])('renders the title with %s line(s) when titleNumberOfLines=%s', (expectedNumberOfLines, titleNumberOfLines) => {
+        renderItem({titleNumberOfLines});
 
         expect(screen.getByText('Invitee').props.numberOfLines).toBe(expectedNumberOfLines);
     });

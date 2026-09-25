@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
-import type {ListItem, ListItemProps, SplitListItemType} from './types';
+import type {ListItemProps, SplitListItemType} from './types';
 
 import SplitAmountDisplay from './SplitListItem/SplitAmountDisplay';
 import SplitListItemInput from './SplitListItem/SplitListItemInput';
@@ -31,18 +31,8 @@ import SplitListItemInput from './SplitListItem/SplitListItemInput';
  * A rich row showing merchant, date, category/tags, and an editable amount or percentage input.
  * Used in split expense flows to allocate amounts across participants.
  */
-function SplitListItem<TItem extends ListItem>({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    onSelectRow,
-    shouldPreventEnterKeySubmit,
-    onFocus,
-    onInputFocus,
-    onInputBlur,
-}: ListItemProps<TItem>) {
-    const splitItem = item as unknown as SplitListItemType;
+function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTooltip, isDisabled, onSelectRow, shouldPreventEnterKeySubmit, onFocus}: ListItemProps<TItem>) {
+    const splitItem = item;
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -78,8 +68,8 @@ function SplitListItem<TItem extends ListItem>({
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const [percentageDraft, setPercentageDraft] = useState<string | undefined>();
     const focusHandler = useCallback(() => {
-        onInputFocus?.(item);
-    }, [onInputFocus, item]);
+        item.onInputFocus?.(item);
+    }, [item]);
 
     // Only connect the auto-focus ref to the selected item so useAutoFocusInput's useFocusEffect
     // cleanup can cancel any pending focus task when the screen starts closing, preventing
@@ -206,7 +196,6 @@ function SplitListItem<TItem extends ListItem>({
                             onSplitExpenseValueChange={onSplitExpenseValueChange}
                             setPercentageDraft={setPercentageDraft}
                             focusHandler={focusHandler}
-                            onInputBlur={onInputBlur}
                             inputCallbackRef={inputCallbackRef}
                         />
                     </View>

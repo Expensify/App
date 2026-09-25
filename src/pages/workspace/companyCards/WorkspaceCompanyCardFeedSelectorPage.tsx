@@ -201,11 +201,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                                 showTooltip={false}
                                 item={itemWithError}
                                 onSelectRow={selectOtherFeed}
-                                isMultilineSupported
-                                isAlternateTextMultilineSupported
                                 alternateTextNumberOfLines={2}
                                 titleNumberOfLines={2}
-                                // BaseSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
+                                // SingleSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
                                 wrapperStyle={[styles.flexReset, styles.w100]}
                             />
                         );

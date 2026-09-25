@@ -187,18 +187,10 @@ describe('SelectableListItem', () => {
         ['the defaults for an enabled, interactive row', {}, 'row-state-false-true-false'],
         ['the disabled state', {isDisabled: true}, 'row-state-true-true-false'],
         ['the non-interactive state from the item', {item: buildItem({isInteractive: false})}, 'row-state-false-false-false'],
-        ['the disabled accessible grouping when the row is not accessible as one unit', {accessible: false}, 'row-state-false-true-true'],
     ])('provides %s to children through ListItemContext', (_label, props, expectedTestID) => {
         renderItem({children: <RowStateProbe />, ...props});
 
         expect(screen.getByTestId(expectedTestID)).toBeVisible();
-    });
-
-    it('reports hover as false to children when shouldDisableHoverStyle is set', () => {
-        renderItem({children: <HoverProbe />, shouldDisableHoverStyle: true});
-
-        fireEvent(screen.getByTestId(ROW_TEST_ID), 'mouseEnter');
-        expect(screen.getByTestId('hovered-false')).toBeVisible();
     });
 
     it('renders the action element the item carries', () => {

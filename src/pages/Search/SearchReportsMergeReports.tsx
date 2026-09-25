@@ -219,7 +219,6 @@ function SearchMergeReports() {
                 data={reportItems}
                 onSelectRow={onSelection}
                 ListItem={SearchMergeReportsListItem}
-                isRowMultilineSupported
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 footerContent={
