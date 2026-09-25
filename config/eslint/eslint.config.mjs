@@ -815,6 +815,9 @@ const config = defineConfig([
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
+        // Oxlint's own config. Its rule names are quoted object keys, which naming-convention flags by the
+        // hundred; `**/*.config.mjs` below is ignored for the same kind of reason.
+        'oxlint.config.mts',
         '.github/actions/**/index.js',
         '**/*.config.js',
         '**/*.config.mjs',

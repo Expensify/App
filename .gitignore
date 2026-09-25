@@ -185,3 +185,7 @@ server/victory-chart-renderer/.dev/
 
 # Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
 bun.lock
+
+# Oxlint leg configs derived from oxlint.config.mts for one sharded run (scripts/lint/oxlint/OxlintLinter.ts)
+.oxlintrc.js-plugins.*.json
+.oxlintrc.type-aware.*.json
