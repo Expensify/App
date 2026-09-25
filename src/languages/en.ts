@@ -37,6 +37,7 @@ type AllCountries = Record<Country, string>;
 
 const translations = {
     earlyRenewal: {
+        confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renew your subscription for a 12-month term, from ${startDate} to ${endDate}.`,
         adminTitle: 'Ask your billing owner to renew early',
         adminSubtitle: 'Review a message to your billing owner about the Early Renewal 2027 offer.',
         adminCTA: 'Nudge',

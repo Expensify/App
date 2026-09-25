@@ -1,8 +1,22 @@
-import isNonIncentivizedEarlyRenewalPeriod, {isIncentivizedEarlyRenewalPeriod} from '@libs/EarlyRenewalOfferUtils';
+import isNonIncentivizedEarlyRenewalPeriod, {getNonIncentivizedEarlyRenewalDates, isIncentivizedEarlyRenewalPeriod} from '@libs/EarlyRenewalOfferUtils';
 
 import CONST from '@src/CONST';
 
 describe('EarlyRenewalOfferUtils', () => {
+    test.each([
+        ['2026-10-05T16:20:00Z', '2026-10-01T00:00:00.000Z', '2027-10-01T00:00:00.000Z'],
+        ['2026-11-15T12:00:00Z', '2026-11-01T00:00:00.000Z', '2027-11-01T00:00:00.000Z'],
+        ['2026-12-31T23:59:59Z', '2026-12-01T00:00:00.000Z', '2027-12-01T00:00:00.000Z'],
+        ['2026-09-30T20:00:00-07:00', '2026-10-01T00:00:00.000Z', '2027-10-01T00:00:00.000Z'],
+    ])('shows a full year anchored to the UTC acceptance month: %s', (timestamp, startDate, endDate) => {
+        // Given an acceptance timestamp, including a local date that falls in a different UTC month
+        // When the confirmation dates are calculated
+        const dates = getNonIncentivizedEarlyRenewalDates(Date.parse(timestamp));
+
+        // Then both dates match Auth's first-of-month boundaries exactly one year apart
+        expect(dates).toEqual({startDate, endDate});
+    });
+
     test.each([
         ['before the campaign', new Date(Date.parse(CONST.SUBSCRIPTION.EARLY_RENEWAL.NON_INCENTIVIZED_START) - 1).toISOString(), false],
         ['at the campaign start', CONST.SUBSCRIPTION.EARLY_RENEWAL.NON_INCENTIVIZED_START, true],
