@@ -17,12 +17,13 @@
 #     with push access to App main.
 #   - GITHUB_OUTPUT: written by `check` and `sync` (defaults to /dev/null outside GitHub Actions).
 #   - TARGET_VERSION (sync, optional): version to sync to. Must equal the Mobile-Expensify version,
-#     since only the App side is rewritten and the final verification compares the two. Empty means
-#     "use the Mobile-Expensify version".
+#     since only the App side is rewritten and the final verification compares the two. Anything else
+#     is rejected before the sync writes or pushes. Empty means "use the Mobile-Expensify version".
 #   - NEED_FULL_VERSION_SYNC (sync): 'true' to rewrite versions, anything else to only bump the
 #     submodule pointer. Threaded from `check` so exactly one decision exists across both steps.
 #   - EXPECTED_SUBMODULE_SHA (sync): Mobile-Expensify SHA `check` updated to. The submodule-only
-#     path asserts against it so a checkout that moved in between is caught.
+#     path asserts against it so a checkout that moved in between is caught, and verification uses
+#     it to tell "this sync went wrong" apart from "Mobile-Expensify moved on again".
 #
 # Outputs (via GITHUB_OUTPUT):
 #   - check: IN_SYNC, NEED_FULL_VERSION_SYNC, ACTUAL_SHA
@@ -96,17 +97,25 @@ function update_ios_versions {
 }
 
 function resolve_target_version {
-    if [[ -n "$TARGET_VERSION" ]]; then
-        echo "Using provided target version: $TARGET_VERSION" >&2
-        echo "$TARGET_VERSION"
-        return
-    fi
-
     # Use Mobile-Expensify version as source of truth since it was pushed first
     local me_version
     me_version="$(get_mobile_expensify_version)"
-    echo "Using Mobile-Expensify version as target: $me_version" >&2
-    echo "$me_version"
+
+    if [[ -z "$TARGET_VERSION" ]]; then
+        echo "Using Mobile-Expensify version as target: $me_version" >&2
+        echo "$me_version"
+        return
+    fi
+
+    # Only the App side is rewritten, so any other target fails verification -- after the commits
+    # have already been pushed to main. Reject it before anything is written.
+    if [[ "$TARGET_VERSION" != "$me_version" ]]; then
+        echo "::error::TARGET_VERSION ($TARGET_VERSION) must match the Mobile-Expensify version ($me_version)" >&2
+        exit 1
+    fi
+
+    echo "Using provided target version: $TARGET_VERSION" >&2
+    echo "$TARGET_VERSION"
 }
 
 function cmd_check {
@@ -168,10 +177,12 @@ function sync_full_version {
     git add package.json package-lock.json android/app/build.gradle ios/*/Info.plist
     git commit -m "Update version to $target (sync recovery)"
 
-    # Stages the submodule's checked-out HEAD, which is the commit `check` moved it to with
-    # --remote, not whatever main currently records.
+    # Stages the submodule's checked-out HEAD, the commit `check` moved it to with --remote. That can
+    # already be what main records, when a previous sync got this far and then died, hence the guard.
     git add Mobile-Expensify
-    git commit -m "Update Mobile-Expensify submodule version to $target (sync recovery)"
+    if ! git diff --staged --quiet; then
+        git commit -m "Update Mobile-Expensify submodule version to $target (sync recovery)"
+    fi
 
     # main is busy enough that another merge can land between `check` and here, which makes this
     # push non fast-forward.
@@ -233,8 +244,15 @@ function verify_sync {
     recorded=$(git rev-parse HEAD:Mobile-Expensify)
     remote_sha=$(git -C Mobile-Expensify rev-parse origin/main)
     if [[ "$recorded" != "$remote_sha" ]]; then
-        echo "::error::Submodule on App main ($recorded) still differs from Mobile-Expensify origin/main ($remote_sha)"
-        exit 1
+        # Mobile-Expensify main can advance mid-run, which is likely because a deployer triggers this
+        # during a deploy. Recording what `check` pinned is still a successful sync, so report it and
+        # let the next run collect the newer commit.
+        if [[ "$recorded" == "$EXPECTED_SUBMODULE_SHA" ]]; then
+            echo "::warning::Mobile-Expensify main advanced to $remote_sha while syncing. App main records $recorded, which is what this run set out to record. Re-run to pick up the newer commit."
+        else
+            echo "::error::Submodule on App main ($recorded) still differs from Mobile-Expensify origin/main ($remote_sha)"
+            exit 1
+        fi
     fi
 
     set_output POST_SYNC_APP_VERSION "$app_version"

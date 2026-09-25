@@ -263,6 +263,21 @@ describe('syncVersions.sh sync (submodule only)', () => {
         expect(git(appDir, 'log', '-1', '--format=%s', 'origin/main')).toBe(`Bump Mobile-Expensify submodule to latest main (${newSubmoduleSha})`);
     });
 
+    it('warns instead of failing when Mobile-Expensify main advances mid-sync', () => {
+        setUpFixture('9.3.11-48', '9.3.11-48');
+        const shaAtCheck = advanceMobileExpensify();
+        runScript('check');
+        // Mobile-Expensify main moves again while Node is being set up and the sync runs
+        const laterSha = advanceMobileExpensify();
+
+        const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'false', EXPECTED_SUBMODULE_SHA: shaAtCheck}});
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain(`::warning::Mobile-Expensify main advanced to ${laterSha} while syncing`);
+        expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
+        expect(git(appDir, 'ls-tree', 'origin/main', 'Mobile-Expensify')).toContain(shaAtCheck);
+    });
+
     it('rebases and retries when App main moved since the check step', () => {
         setUpFixture('9.3.11-48', '9.3.11-48');
         const newSubmoduleSha = advanceMobileExpensify();
@@ -372,7 +387,7 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
         expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
     });
 
-    it('fails verification when the target version does not match Mobile-Expensify', () => {
+    it('rejects a target version that does not match Mobile-Expensify, without touching App main', () => {
         setUpFixture('9.3.10-1', '9.3.11-48', true);
         // A real version drift always comes with the submodule pointer being behind, since Mobile-Expensify is bumped first
         advanceMobileExpensify();
@@ -381,7 +396,33 @@ describeMacOS('syncVersions.sh sync (full version)', () => {
         const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'true', TARGET_VERSION: '9.9.9-9'}});
 
         expect(result.status).toBe(1);
-        expect(result.stdout).toContain("::error::Sync failed! Versions still don't match");
+        expect(result.stderr).toContain('::error::TARGET_VERSION (9.9.9-9) must match the Mobile-Expensify version (9.3.11-48)');
+        expect(readVersion(path.join(appDir, 'package.json'))).toBe('9.3.10-1');
+        expect(git(appDir, 'log', '-1', '--format=%s', 'origin/main')).toBe('Add Mobile-Expensify submodule');
+    });
+
+    it('fails verification when App main records a submodule commit this run never pinned', () => {
+        setUpFixture('9.3.10-1', '9.3.11-48', true);
+        runScript('check');
+        advanceMobileExpensify();
+
+        const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'true', EXPECTED_SUBMODULE_SHA: 'f'.repeat(40)}});
+
+        expect(result.status).toBe(1);
+        expect(result.stdout).toContain('::error::Submodule on App main');
+    });
+
+    it('still syncs when the submodule pointer is already current', () => {
+        // Reachable after a previous sync got as far as bumping the submodule pointer but not the versions
+        setUpFixture('9.3.10-1', '9.3.11-48', true);
+        runScript('check');
+
+        const result = runScript('sync', {env: {NEED_FULL_VERSION_SYNC: 'true'}});
+
+        expect(result.status).toBe(0);
+        expect(result.outputs.POST_SYNC_APP_VERSION).toBe('9.3.11-48');
+        expect(readVersion(path.join(appDir, 'package.json'))).toBe('9.3.11-48');
+        expect(git(appDir, 'log', '-1', '--format=%s', 'origin/main')).toBe('Update version to 9.3.11-48 (sync recovery)');
     });
 });
 
