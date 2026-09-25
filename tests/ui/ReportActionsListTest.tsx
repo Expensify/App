@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
 
 import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
 
@@ -145,12 +145,13 @@ const mockLegendScrollToEnd = jest.fn();
 let mockShouldCallLegendListOnLoad = true;
 jest.mock('@legendapp/list/react-native', () => {
     const reactModule = jest.requireActual<typeof React>('react');
-    const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void}>(({onLoad}, ref) => {
+    const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void; onReady?: () => void}>(({onLoad, onReady}, ref) => {
         reactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockLegendScrollToEnd}), []);
         reactModule.useEffect(() => {
             mockLegendListMount();
             if (mockShouldCallLegendListOnLoad) {
                 onLoad?.();
+                onReady?.();
             }
             return () => {
                 mockLegendListUnmount();
@@ -159,7 +160,9 @@ jest.mock('@legendapp/list/react-native', () => {
         return null;
     });
     return {
-        LegendList: jest.fn((props: {onLoad?: () => void; ref?: React.Ref<{scrollToEnd: typeof mockLegendScrollToEnd}>}) => reactModule.createElement(MockLegendListContent, props)),
+        LegendList: jest.fn((props: {onLoad?: () => void; onReady?: () => void; ref?: React.Ref<{scrollToEnd: typeof mockLegendScrollToEnd}>}) =>
+            reactModule.createElement(MockLegendListContent, props),
+        ),
     };
 });
 jest.mock('@hooks/useUnreadMarker', () => jest.fn(() => ({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1})));
@@ -201,6 +204,7 @@ type MockLegendListProps = {
     maintainScrollAtEndThreshold?: number;
     maintainVisibleContentPosition?: boolean;
     onLoad?: () => void;
+    onReady?: () => void;
     onStartReachedThreshold?: number;
     onContentSizeChange?: (width: number, height: number) => void;
     onViewableItemsChanged?: (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => void;
@@ -438,6 +442,84 @@ describe('ReportActionsList (body)', () => {
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
         expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(0.01);
         expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
+    });
+
+    it('corrects the initial end position after the latest row has been measured', async () => {
+        // Given a report opens at its latest action and the virtualized list finishes its initial placement.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        // When the last row is taller than the estimate, its feedback controls must not remain below the viewport.
+        // Then the list makes one final end scroll after the layout is ready.
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
+    it('keeps the latest message visible when its measured height grows after opening', async () => {
+        // Given the chat has opened at the end with a measured viewport.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        mockLegendScrollToEnd.mockClear();
+        const listProps = getCapturedListProps();
+        act(() => {
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 500},
+                    contentSize: {height: 1000, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+        });
+
+        // When a late feedback row makes the content taller without a user scroll.
+        act(() => {
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 500},
+                    contentSize: {height: 1025, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+            listProps?.onContentSizeChange?.(300, 1025);
+        });
+
+        // Then the last 25 pixels are brought into view.
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+    });
+
+    it('does not pull the chat back down when the reader has scrolled away', async () => {
+        // Given the chat opened at the end and the reader scrolled upward.
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        mockLegendScrollToEnd.mockClear();
+        const listProps = getCapturedListProps();
+        act(() => {
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 500},
+                    contentSize: {height: 1000, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+            listProps?.onScroll?.({
+                nativeEvent: {
+                    contentOffset: {x: 0, y: 400},
+                    contentSize: {height: 1000, width: 300},
+                    layoutMeasurement: {height: 500, width: 300},
+                },
+            });
+            listProps?.onContentSizeChange?.(300, 1025);
+        });
+
+        // When content grows, the reader's position stays where they left it.
+        await act(
+            async () =>
+                new Promise<void>((resolve) => {
+                    setTimeout(resolve, 30);
+                }),
+        );
+        expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
     });
 
     it('does not duplicate the composer spacing inside the chronological list', () => {

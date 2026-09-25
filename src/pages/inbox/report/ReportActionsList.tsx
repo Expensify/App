@@ -91,6 +91,7 @@ type ReportActionsListContentProps = {
 type ReportActionsListProps = ReportActionsListContentProps;
 
 const PAGINATION_THRESHOLD = 0.75;
+const MAINTAIN_SCROLL_AT_END_THRESHOLD = 0.01;
 const REPORT_ACTIONS_DRAW_DISTANCE = 1500;
 
 const REPORT_ACTION_COMMENT_SIZE = {
@@ -405,6 +406,39 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
     // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
     const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
+    const readyEndListIDRef = useRef<string | undefined>(undefined);
+    const shouldFollowEndOnResizeRef = useRef(false);
+    const lastScrollMetricsRef = useRef<{offset: number; contentHeight: number; viewportHeight: number} | undefined>(undefined);
+    const endCorrectionFrameRef = useRef<number | undefined>(undefined);
+
+    const scheduleEndCorrection = () => {
+        if (
+            readyEndListIDRef.current !== listID ||
+            !shouldFollowEndOnResizeRef.current ||
+            hasNewerActions ||
+            initialScrollIndex !== undefined ||
+            endCorrectionFrameRef.current !== undefined
+        ) {
+            return;
+        }
+        endCorrectionFrameRef.current = requestAnimationFrame(() => {
+            endCorrectionFrameRef.current = undefined;
+            if (readyEndListIDRef.current === listID && shouldFollowEndOnResizeRef.current) {
+                legendListRef.current?.scrollToEnd({animated: false});
+            }
+        });
+    };
+
+    useEffect(
+        () => () => {
+            if (endCorrectionFrameRef.current === undefined) {
+                return;
+            }
+            cancelAnimationFrame(endCorrectionFrameRef.current);
+            endCorrectionFrameRef.current = undefined;
+        },
+        [listID],
+    );
 
     const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
         onViewableItemsChanged(info);
@@ -421,6 +455,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         setLoadedInitialViewportListID(listID);
     };
 
+    const handleListReady = () => {
+        readyEndListIDRef.current = listID;
+        shouldFollowEndOnResizeRef.current = initialScrollIndex === undefined && !hasNewerActions;
+        lastScrollMetricsRef.current = undefined;
+        // The final row can grow after LegendList's initial end estimate (for example, Concierge feedback).
+        scheduleEndCorrection();
+    };
+
     const loadOlderChatsOnStartReached = () => {
         if (showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID) {
             return;
@@ -434,6 +476,21 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
         const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
         const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
+        const previousMetrics = lastScrollMetricsRef.current;
+        if (readyEndListIDRef.current === listID && !hasNewerActions) {
+            if (distanceFromBottom <= layoutMeasurement.height * MAINTAIN_SCROLL_AT_END_THRESHOLD) {
+                shouldFollowEndOnResizeRef.current = true;
+            } else if (
+                (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
+                (previousMetrics &&
+                    previousMetrics.contentHeight === contentSize.height &&
+                    previousMetrics.viewportHeight === layoutMeasurement.height &&
+                    endCorrectionFrameRef.current === undefined)
+            ) {
+                shouldFollowEndOnResizeRef.current = false;
+            }
+        }
+        lastScrollMetricsRef.current = {offset: contentOffset.y, contentHeight: contentSize.height, viewportHeight: layoutMeasurement.height};
 
         if (isNearStart) {
             loadOlderChatsOnStartReached();
@@ -585,6 +642,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
      */
     const recordTimeToMeasureItemLayout = (event: LayoutChangeEvent) => {
         onLayout?.(event);
+        scheduleEndCorrection();
         if (didLayout.current) {
             return;
         }
@@ -657,10 +715,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     // Only follow the real latest page. Older/linked windows must retain their visible anchor.
                     maintainScrollAtEnd={!hasNewerActions && {animated: false}}
                     // Leave the end-follow region as soon as the user starts reading older messages.
-                    maintainScrollAtEndThreshold={0.01}
+                    maintainScrollAtEndThreshold={MAINTAIN_SCROLL_AT_END_THRESHOLD}
                     maintainVisibleContentPosition
                     onLoad={handleListLoad}
-                    onContentSizeChange={() => trackVerticalScrolling(undefined)}
+                    onReady={handleListReady}
+                    onContentSizeChange={() => {
+                        trackVerticalScrolling(undefined);
+                        scheduleEndCorrection();
+                    }}
                 />
                 {shouldShowInitialViewportSkeleton && (
                     <View
