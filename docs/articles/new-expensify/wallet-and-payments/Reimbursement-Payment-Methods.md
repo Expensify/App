@@ -1,7 +1,7 @@
 ---
 title: Reimbursement payment methods 
 description: Learn how Workspace Admins reimburse approved expense reports using ACH, global reimbursement or Pay elsewhere, including timelines and supported currencies.
-keywords: [New Expensify, Workspace Admin reimburse, ACH reimbursement, global reimbursement, reimbursement timeline, Pay elsewhere, Rapid Reimbursement, reimburse employees, supported currencies, direct reimbursement]
+keywords: [New Expensify, Workspace Admin reimburse, ACH reimbursement, global reimbursement, reimbursement timeline, reimbursement expected date, Pay elsewhere, Rapid Reimbursement, reimburse employees, supported currencies, direct reimbursement]
 internalScope: Audience is Workspace Admins. Covers how Workspace Admins reimburse approved expense reports using ACH, global reimbursement, including timelines and supported currencies. Does not cover bank account setup steps, reimbursement failure troubleshooting, member-level bank account setup, or Expensify Card transactions.
 ---
 
@@ -97,6 +97,8 @@ Once confirmed, Expensify processes the transfers and the report statuses update
 - **Standard ACH reimbursement:** All other ACH payments are typically received by the member in four to five business days.
 
 Rapid Reimbursement is applied automatically when eligibility requirements are met.
+
+To check when a specific payment will arrive, open the report. The payment message in the report history ends with **Waiting for payment to complete by** and the expected date.
 
 ## Global Reimbursement timelines 
 
