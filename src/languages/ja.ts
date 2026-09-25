@@ -2936,10 +2936,10 @@ ${date} の ${merchant} への ${amount}`,
             approverSubtitle: 'すべての承認者は、既存のワークフローに属しています。',
             bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
-        configureViaHR: ({provider}: {provider: string}) => `${provider} で設定する。`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `${provider} で設定する。`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `承認は${provider}連携によって管理されています。承認ワークフローを更新するには、${provider}接続設定に移動してください。`,
-        goToHRSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
+        goToProviderSettings: ({provider}: {provider: string}) => `${provider}設定に移動`,
         approverFromProvider: ({provider}: {provider: string}) => `${provider}から`,
         finalApprover: '最終承認者',
         manager: 'マネージャー',

@@ -2985,10 +2985,10 @@ ${amount} για ${merchant} - ${date}`,
         addApprovalTip: 'Αυτή η προεπιλεγμένη ροή εργασιών ισχύει για όλα τα μέλη, εκτός εάν υπάρχει πιο συγκεκριμένη ροή εργασιών.',
         approver: 'Έγκριση',
         addApprovalsDescription: 'Να απαιτείται πρόσθετη έγκριση πριν από την έγκριση μιας πληρωμής.',
-        configureViaHR: ({provider}: {provider: string}) => `Ρυθμίστε μέσω ${provider}.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Ρυθμίστε μέσω ${provider}.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Οι εγκρίσεις διαχειρίζονται από την ενοποίηση με το ${provider}. Για να ενημερώσετε τη ροή εργασίας εγκρίσεών σας, μεταβείτε στις ρυθμίσεις σύνδεσης του ${provider}.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Μεταβείτε στις ρυθμίσεις του ${provider}`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Μεταβείτε στις ρυθμίσεις του ${provider}`,
         approverFromProvider: ({provider}: {provider: string}) => `από ${provider}`,
         finalApprover: 'Τελικός εγκρίνων',
         manager: 'Διαχειριστής',

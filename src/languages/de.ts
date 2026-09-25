@@ -2975,10 +2975,10 @@ ${amount} für ${merchant} – ${date}`,
             approverSubtitle: 'Alle Genehmigenden gehören zu einem bestehenden Workflow.',
             bulkApproverSubtitle: 'Keine Genehmigenden entsprechen den Kriterien für die ausgewählten Berichte.',
         },
-        configureViaHR: ({provider}: {provider: string}) => `Über ${provider} konfigurieren.`,
-        hrApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
+        configureViaProvider: ({provider}: {provider: string}) => `Über ${provider} konfigurieren.`,
+        integrationApprovalWorkflowLockedPrompt: ({provider}: {provider: string}) =>
             `Genehmigungen werden über deine ${provider}-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen ${provider}-Verbindungseinstellungen.`,
-        goToHRSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
+        goToProviderSettings: ({provider}: {provider: string}) => `Zu den ${provider}-Einstellungen gehen`,
         approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
         finalApprover: 'Letzte*r Genehmigende*r',
         manager: 'Manager',
