@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import {findMissingAllowlistEntries, getShippedDirectories, isAllowlisted, isToolingPackage, loadProdPackageNames} from '../../scripts/repackBabelAllowlist';
+import {findMissingAllowlistEntries, getShippedDirectories, isAllowlisted, isToolingPackage, loadProdPackageNames} from '../../scripts/checkRepackBabelAllowlist';
 
 let fixtureRoot: string;
 let nodeModulesPath: string;

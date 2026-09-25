@@ -16,6 +16,20 @@ const __dirname = path.dirname(__filename);
 // This file lives in config/repack; the project root is two levels up.
 const projectRoot = path.resolve(__dirname, '../..');
 
+dotenv.config({path: path.resolve(projectRoot, '.env')});
+
+/**
+ * `EXPO_PUBLIC_*` parity with the Metro lane. Metro bakes these values into the bundle at transform
+ * time; OXC does not, so the reads reach Hermes as `process.env` lookups that evaluate to undefined
+ * and every branch on them takes the false path. Values and defaults match `babel.config.js`.
+ */
+process.env.EXPO_PUBLIC_USE_RN_FETCH ??= '1';
+const expoPublicDefines = Object.fromEntries(
+    Object.keys(process.env)
+        .filter((key) => key.startsWith('EXPO_PUBLIC_'))
+        .map((key) => [`process.env.${key}`, JSON.stringify(process.env[key])]),
+);
+
 const babelPackagesRegex = new RegExp(`node_modules/(${BABEL_PACKAGES.join('|')})/`);
 
 /**

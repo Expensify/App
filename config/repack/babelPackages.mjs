@@ -22,8 +22,6 @@ const BABEL_PACKAGES = [
     'react-native-image-size',
     'react-native-pdf',
     'shallowequal',
-    // Re.Pack's own runtime: its native-module lookup breaks on boot through the OXC chain.
-    '@callstack/repack',
     // codegenNativeComponent in shipped JS:
     '@expensify/react-native-live-markdown',
     // codegenNativeCommands in shipped JS (caught by the CI guard, not by a boot failure).
