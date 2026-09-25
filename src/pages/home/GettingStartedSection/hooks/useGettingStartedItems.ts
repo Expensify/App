@@ -55,12 +55,18 @@ type UseGettingStartedItemsResult = {
     items: GettingStartedItem[];
 };
 
+// The onboarding accounting options that we can actually connect to from the workspace Connections page. An option
+// offered on that step but missing here sends the user to customize categories instead of to the integration they asked
+// for, so this has to grow alongside `CONST.ONBOARDING_ACCOUNTING_MAPPING`.
 const DIRECT_CONNECT_INTEGRATIONS = new Set<string>([
     CONST.POLICY.CONNECTIONS.NAME.QBO,
+    CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
     CONST.POLICY.CONNECTIONS.NAME.QBD,
     CONST.POLICY.CONNECTIONS.NAME.XERO,
     CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
     CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+    CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
+    CONST.POLICY.CONNECTIONS.NAME.RILLET,
 ]);
 
 function useGettingStartedItems(): UseGettingStartedItemsResult {

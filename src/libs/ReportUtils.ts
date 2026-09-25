@@ -12961,14 +12961,22 @@ function prepareOnboardingOnyxData({
     }
 
     if (userReportedIntegration) {
-        const requiresControlPlan: AllConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.NETSUITE, CONST.POLICY.CONNECTIONS.NAME.QBD, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
+        // Integrations that only work on Control, per each entry's `requiredPlan` in `UPGRADE_FEATURE_INTRO_MAPPING`. Picking one of
+        // these has to create a Control workspace, or the signup lands on Collect and immediately hits an upgrade wall. Intuit
+        // Enterprise Suite is a QBO integration alias rather than a connection name, so it is allowed alongside them explicitly.
+        const requiresControlPlan: Array<AllConnectionName | typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE> = [
+            CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+            CONST.POLICY.CONNECTIONS.NAME.QBD,
+            CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+            CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+        ];
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
                 areConnectionsEnabled: true,
-                ...(requiresControlPlan.includes(userReportedIntegration as AllConnectionName)
+                ...(requiresControlPlan.some((integration) => integration === userReportedIntegration)
                     ? {
                           type: CONST.POLICY.TYPE.CORPORATE,
                       }

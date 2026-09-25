@@ -14,7 +14,7 @@ import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/V
 
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
@@ -101,17 +101,43 @@ const chatTypes = {
     SYSTEM: 'system',
 } as const;
 
+// This map is the single source of truth for the options offered on the onboarding accounting step and their order.
+// Adding a key here without giving it an icon and a label in BaseOnboardingAccounting fails typecheck.
 const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
+    intuitEnterpriseSuite: 'Intuit Enterprise Suite',
+    quickbooksDesktop: 'QuickBooks Desktop',
     xero: 'Xero',
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
-    quickbooksDesktop: 'QuickBooks Desktop',
+    financialforce: 'Certinia',
+    rillet: 'Rillet',
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
     other: 'accounting software',
 };
+
+type OnboardingAccountingOption = keyof typeof ONBOARDING_ACCOUNTING_MAPPING;
+
+/**
+ * Accounting connections we deliberately don't offer on the onboarding accounting step. Removing a name from this union
+ * is all it takes to start offering it, and adding a new accounting connection without doing either fails the assertion
+ * below - which is what stops this screen from silently going stale the way it did before.
+ */
+type UnofferedOnboardingAccountingConnection =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    // Dynamics 365 Business Central landed after the mocks were signed off, and the step already offers a generic
+    // Microsoft Dynamics option, so whether it needs a tile of its own is a design call.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+
+type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
+
+// Compile-time only: this fails to typecheck while any accounting connection is neither offered on the onboarding
+// step nor listed above as deliberately unoffered.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertEveryAccountingConnectionIsHandled<T extends never = UnhandledAccountingConnection> = T;
 
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
@@ -4822,7 +4848,10 @@ const CONST = {
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
-            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
+            // Onboarding accounting choices that have to create a Control workspace. `intuitEnterpriseSuite` is spelled out rather than
+            // referenced because this is a plain property, and it is Control-only per its `requiredPlan` in `UPGRADE_FEATURE_INTRO_MAPPING`.
+            // Certinia and Rillet are deliberately absent - neither declares a `requiredPlan`, so they stay available on Collect.
+            CORPORATE: ['quickbooksDesktop', 'intuitEnterpriseSuite', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -10229,6 +10258,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    OnboardingAccountingOption,
     OnboardingIntent,
     IOUActionParams,
     EnablePaymentsPageType,

@@ -3396,8 +3396,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         accounting: {
             title: 'Gebruikt u een boekhoudprogramma?',
-            none: 'Geen',
-            otherAccountingSoftware: 'Je boekhoudsoftware',
+            otherAccountingSoftware: 'Naam van de software',
         },
         interestedFeatures: {
             title: 'In welke functies ben je geïnteresseerd?',
