@@ -1623,7 +1623,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>Si è verificato un errore durante il caricamento della ricevuta. <a href="download">Salva la ricevuta</a> e <a href="retry">riprova</a> più tardi.</rbr>',
             receiptFailureMessageShort: 'Si è verificato un errore durante il caricamento della ricevuta.',
-            receiptUploadFailedMessage: 'Caricamento della ricevuta non riuscito. Salva la ricevuta oppure elimina la spesa e perdila.',
+            receiptUploadFailedMessage: 'Caricamento non riuscito. Riprova o salva per dopo.',
             saveReceipt: 'Salva ricevuta',
             genericDeleteFailureMessage: 'Errore imprevisto durante l’eliminazione di questa spesa. Riprova più tardi.',
             genericEditFailureMessage: 'Errore imprevisto durante la modifica di questa spesa. Riprova più tardi.',
@@ -1654,6 +1654,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
             failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
+            receiptUploadFailedSaveOnlyMessage: 'Caricamento non riuscito. Salva la ricevuta per conservarla.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',
@@ -11162,18 +11163,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Mappatura fornitori avanzata',
-                body: 'Crea fornitori e regole personalizzate per mappare facilmente le principali suite contabili.',
-                cta: 'Provalo',
-            },
-            member: {
-                heading: 'Agenti preconfigurati per te',
-                body: 'Usa agenti preconfigurati o personalizzati per codificare, suddividere e inviare automaticamente le spese per tuo conto.',
-                cta: 'Provalo',
-            },
-        },
+        heading: 'Collega Expensify a Claude',
+        body: 'Cerca, analizza e riassumi i dati delle spese direttamente in Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',

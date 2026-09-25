@@ -4531,7 +4531,11 @@ function getReasonAndReportActionThatRequiresAttention(
 
     const reportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optionOrReport.reportID}`] ?? getAllReportActions(optionOrReport.reportID);
 
-    if (optionOrReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+    // Only the approver can retry a failed DEW approval, so nobody else should get a green dot for it. The archive
+    // check is inline rather than relying on the `isReportArchived` early return below, to keep this branch ahead of
+    // the card fraud alert check. `useOptimisticNextStep` keys the "fix the issues" next step off this exact reason,
+    // so demoting the branch would silently drop that next step for the approver.
+    if (optionOrReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && !isReportArchived && isReportManager(optionOrReport, currentUserAccountID)) {
         const reportActionsArray = Object.values(reportActions ?? {});
         const mostRecentActiveDEWApproveAction = getMostRecentActiveDEWApproveFailedAction(reportActionsArray);
         if (mostRecentActiveDEWApproveAction) {
@@ -8169,7 +8173,13 @@ function buildOptimisticMovedReportAction(
  * Builds an optimistic CHANGE_POLICY report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, currentUserAccountID: number, automaticAction = false): ReportAction {
+function buildOptimisticChangePolicyReportAction(
+    fromPolicyID: string | undefined,
+    toPolicyID: string,
+    currentUserAccountID: number,
+    delegateAccountID: number | undefined,
+    automaticAction = false,
+): ReportAction {
     const originalMessage = {
         fromPolicy: fromPolicyID,
         toPolicy: toPolicyID,
@@ -8199,6 +8209,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
         actorAccountID: currentUserAccountID,
+        delegateAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         originalMessage,
@@ -8330,18 +8341,16 @@ function buildOptimisticReportPreview(
     chatReport: OnyxInputOrEntry<Report>,
     iouReport: Report,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    delegateAccountIDParam: number | undefined,
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
-    delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimals);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
-    // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
-    const effectiveDelegateAccountID = delegateAccountIDParam ?? (delegateEmail ? getPersonalDetailByEmail(delegateEmail)?.accountID : undefined);
     const isTestDriveTransaction = !!transaction?.receipt?.isTestDriveReceipt;
     const isScanRequest = transaction ? isScanRequestTransactionUtils(transaction) : false;
     return {
@@ -8360,7 +8369,7 @@ function buildOptimisticReportPreview(
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
-        delegateAccountID: effectiveDelegateAccountID,
+        delegateAccountID: delegateAccountIDParam,
         created,
         accountID: iouReport?.managerID,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well

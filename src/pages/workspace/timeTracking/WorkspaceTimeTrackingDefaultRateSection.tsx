@@ -1,4 +1,6 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 
@@ -34,16 +36,14 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures
             isCentralPane
         >
             <OfflineWithFeedback pendingAction={policy?.pendingFields?.timeTrackingDefaultRate}>
-                <MenuItemWithTopDescription
-                    shouldShowLoadingSpinnerIcon={!policy}
-                    key={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                    shouldShowRightIcon={canWriteMoreFeatures}
-                    title={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy?.outputCurrency) : ''}
-                    description={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID))}
-                    interactive={canWriteMoreFeatures}
-                    style={styles.sectionMenuItemTopDescription}
-                />
+                <MenuItemSectionRoot onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}>
+                    <MenuItemField.Row
+                        name={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
+                        value={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy.outputCurrency) : undefined}
+                    >
+                        {canWriteMoreFeatures && <MenuItem.Chevron />}
+                    </MenuItemField.Row>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
         </Section>
     );

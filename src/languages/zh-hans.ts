@@ -1564,7 +1564,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: '删除此收据时发生意外错误。请稍后再试。',
             receiptFailureMessage: '<rbr>上传您的收据时出错。请<a href="download">保存收据</a>并在稍后<a href="retry">重试</a>。</rbr>',
             receiptFailureMessageShort: '上传您的收据时出错。',
-            receiptUploadFailedMessage: '收据上传失败。保存收据，或删除该支出并失去它。',
+            receiptUploadFailedMessage: '上传失败。请重试或稍后保存。',
             saveReceipt: '保存收据',
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时发生意外错误。请稍后再试。',
@@ -1594,6 +1594,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reportsNotMarkedAsDoneDescription: '无法将这些报销报告标记为已完成。请检查报销是否未被保留或待处理，然后重试。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
+            receiptUploadFailedSaveOnlyMessage: '上传失败。请保存收据以保留副本。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
@@ -10716,18 +10717,8 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: '增强型供应商映射',
-                body: '创建供应商和自定义规则，轻松映射到主流会计软件。',
-                cta: '试一试',
-            },
-            member: {
-                heading: '为你预构建的代理',
-                body: '使用预构建或自定义智能代理，代表你自动编写、拆分并提交报销费用。',
-                cta: '试用',
-            },
-        },
+        heading: '将 Expensify 连接到 Claude',
+        body: '直接在 Claude 中搜索、分析和总结费用数据。',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',

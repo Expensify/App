@@ -2455,10 +2455,15 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         conciergeChat,
     } = params;
 
-    // Determine if we need selfDM report (for track expenses or unreported transactions)
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
+    const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
+    if (shouldUseSelfDM && iouReportAction?.actorAccountID !== currentUserAccountID) {
+        Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user');
+        return;
+    }
+
+    const selfDMReportID = shouldUseSelfDM ? findSelfDMReportID() : undefined;
 
     let optimisticSelfDMReport: Report | undefined;
     let reportToUse = iouReport;
@@ -7903,6 +7908,7 @@ function buildOptimisticChangePolicyData({
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
+    delegateAccountID,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7919,6 +7925,7 @@ function buildOptimisticChangePolicyData({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    delegateAccountID: number | undefined;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -8150,8 +8157,7 @@ function buildOptimisticChangePolicyData({
     // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
-    // TODO: delegateAccountIDParam will be threaded in PR 15 (https://github.com/Expensify/App/issues/66425)
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, '', null, undefined, undefined, undefined);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, delegateAccountID, '', null);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
@@ -8205,7 +8211,7 @@ function buildOptimisticChangePolicyData({
     });
 
     // 4. Optimistically create a CHANGE_POLICY reportAction on the report using the reportActionID
-    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policy.id, currentUserAccountID);
+    const optimisticMovedReportAction = buildOptimisticChangePolicyReportAction(report.policyID, policy.id, currentUserAccountID, delegateAccountID);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -8403,6 +8409,7 @@ function changeReportPolicy({
     getCurrencyDecimals,
     reportTransactions,
     rules,
+    delegateAccountID,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8420,6 +8427,7 @@ function changeReportPolicy({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
+    delegateAccountID: number | undefined;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -8440,6 +8448,7 @@ function changeReportPolicy({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        delegateAccountID,
     });
 
     const params = {
@@ -8476,6 +8485,7 @@ function changeReportPolicyAndInviteSubmitter({
     getCurrencyDecimals,
     reportTransactions,
     rules,
+    delegateAccountID,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8494,6 +8504,7 @@ function changeReportPolicyAndInviteSubmitter({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
+    delegateAccountID: number | undefined;
 }) {
     if (
         !report.reportID ||
@@ -8557,6 +8568,7 @@ function changeReportPolicyAndInviteSubmitter({
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        delegateAccountID,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
