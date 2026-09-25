@@ -3160,6 +3160,7 @@ const translations = {
         activateCard: 'Activate card',
         pleaseEnterLastFour: 'Please enter the last four digits of your card.',
         activatePhysicalCard: 'Activate physical card',
+        fillInAllDetails: 'Please fill in all the details below',
         error: {
             thatDidNotMatch: "That didn't match the last 4 digits on your card. Please try again.",
         },
@@ -7370,6 +7371,13 @@ const translations = {
                 createNew: 'Create new',
                 spendRulesEmptyStateTitle: 'No rules to choose from',
                 spendRulesEmptyStateSubtitle: 'No rules yet. You can create one from the previous screen.',
+                enterShippingAddress: 'Enter shipping address',
+                shippingAddressDescription: 'Tell us where we should send the new card.',
+                promptCardholder: 'Prompt cardholder',
+                promptCardholderDescription: 'The cardholder will be prompted to enter or confirm their shipping address.',
+                enterAddress: 'Enter address',
+                enterAddressDescription: 'Enter a shipping address for the card (e.g., the cardholder’s home address or an office address).',
+                shippingAddress: 'Shipping address',
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',

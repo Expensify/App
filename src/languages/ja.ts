@@ -3031,6 +3031,7 @@ ${date} の ${merchant} への ${amount}`,
         error: {
             thatDidNotMatch: 'カードの下4桁が一致しませんでした。もう一度お試しください。',
         },
+        fillInAllDetails: '以下のすべての項目を入力してください',
     },
     getPhysicalCard: {
         header: '物理カードを取得',
@@ -7054,6 +7055,13 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 createNew: '新規作成',
                 spendRulesEmptyStateTitle: '選択できるルールがありません',
                 spendRulesEmptyStateSubtitle: 'まだルールがありません。前の画面から作成できます。',
+                enterShippingAddress: '配送先住所を入力してください',
+                shippingAddressDescription: '新しいカードの送付先住所を入力してください。',
+                promptCardholder: 'カード保有者に確認',
+                promptCardholderDescription: 'カード名義人に、配送先住所の入力または確認が求められます。',
+                enterAddress: '住所を入力してください',
+                enterAddressDescription: 'カードの配送先住所を入力してください（例：カード所有者の自宅住所または勤務先住所）。',
+                shippingAddress: '配送先住所',
             },
             deactivateCardModal: {
                 deactivate: '無効化',

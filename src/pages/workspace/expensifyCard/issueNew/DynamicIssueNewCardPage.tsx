@@ -6,6 +6,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
 import {startIssueNewCardFlow} from '@libs/actions/Card';
+import {shouldShowShippingAddressStep} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -31,6 +32,7 @@ import CardTypeStep from './CardTypeStep';
 import ConfirmationStep from './ConfirmationStep';
 import InviteNewMemberStep from './InviteNewMemberStep';
 import LimitTypeStep from './LimitTypeStep';
+import ShippingAddressStep from './ShippingAddressStep';
 import SetSpendRulesStep from './spendRules/SetSpendRulesStep';
 
 type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
@@ -47,7 +49,8 @@ function getStartStepIndex(issueNewCard: OnyxEntry<IssueNewCard>): number {
         [CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE]: 2,
         [CONST.EXPENSIFY_CARD.STEP.SPEND_RULES]: 3,
         [CONST.EXPENSIFY_CARD.STEP.CARD_NAME]: 4,
-        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: 5,
+        [CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS]: 5,
+        [CONST.EXPENSIFY_CARD.STEP.CONFIRMATION]: shouldShowShippingAddressStep(issueNewCard.data) ? 6 : 5,
     };
 
     const stepIndex = STEP_INDEXES[issueNewCard.currentStep];
@@ -62,11 +65,12 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     const stepNames = useMemo(() => {
+        const isShippingAddressStepShown = shouldShowShippingAddressStep(issueNewCard?.data);
         if (issueNewCard?.isChangeAssigneeDisabled) {
-            return CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES;
+            return isShippingAddressStepShown ? CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES;
         }
-        return CONST.EXPENSIFY_CARD.STEP_NAMES;
-    }, [issueNewCard?.isChangeAssigneeDisabled]);
+        return isShippingAddressStepShown ? CONST.EXPENSIFY_CARD.SHIPPING_ADDRESS_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
+    }, [issueNewCard?.isChangeAssigneeDisabled, issueNewCard?.data]);
     const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
 
     useEffect(() => {
@@ -111,6 +115,14 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             case CONST.EXPENSIFY_CARD.STEP.SPEND_RULES:
                 return (
                     <SetSpendRulesStep
+                        policyID={policyID}
+                        stepNames={stepNames}
+                        startStepIndex={startStepIndex}
+                    />
+                );
+            case CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS:
+                return (
+                    <ShippingAddressStep
                         policyID={policyID}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}

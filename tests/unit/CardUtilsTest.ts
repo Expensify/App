@@ -86,6 +86,7 @@ import {
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
+    shouldShowShippingAddressStep,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
     toMonthlySettlementDate,
@@ -4560,6 +4561,26 @@ describe('formatMaskedCardName', () => {
 
     it('returns non-commercial card names unchanged', () => {
         expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
+    });
+});
+
+describe('shouldShowShippingAddressStep', () => {
+    it('shows the step for a physical card on the US program', () => {
+        // Given a physical card issued in USD, so it ships on the US program
+        const data = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL, currency: CONST.CURRENCY.USD};
+
+        // Then the admin can enter where the card ships
+        expect(shouldShowShippingAddressStep(data)).toBe(true);
+    });
+
+    it('hides the step for virtual cards and UK/EU cards', () => {
+        // Given a virtual card, which never ships, and a UK/EU card, which needs a PIN before it ships
+        const virtualCard = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL, currency: CONST.CURRENCY.USD};
+        const ukEuCard = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL, currency: CONST.CURRENCY.GBP};
+
+        // Then neither gets the shipping address step
+        expect(shouldShowShippingAddressStep(virtualCard)).toBe(false);
+        expect(shouldShowShippingAddressStep(ukEuCard)).toBe(false);
     });
 });
 
