@@ -63,7 +63,7 @@ function RequirementsPage({route}: RequirementsPageProps) {
                 title={translate('wiseKYC.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
-            {requirementsResult.status === 'loading' ? (
+            {requirementsResult.status === 'loading' || requirements === undefined ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <View style={styles.flex1}>

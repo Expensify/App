@@ -43,6 +43,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
 import TravelCVVContextProvider from '@pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
+import WiseKYCCompletePage from '@pages/WiseKYCCompletePage';
 
 import * as Modal from '@userActions/Modal';
 
@@ -378,6 +379,11 @@ function AuthScreens() {
                             name={SCREENS.BANK_CONNECTION_COMPLETE}
                             options={rootNavigatorScreenOptions.fullScreen}
                             component={ConnectionCompletePage}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.WISE_KYC_COMPLETE}
+                            options={rootNavigatorScreenOptions.fullScreen}
+                            component={WiseKYCCompletePage}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}

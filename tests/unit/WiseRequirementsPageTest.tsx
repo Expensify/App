@@ -155,7 +155,24 @@ describe('Wise KYC requirements pages', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM.getRoute(BANK_ACCOUNT_ID, 'ACCOUNT_PURPOSE', 'confirm'));
 
         expect(submitWiseKYCRequirement).toHaveBeenCalledTimes(1);
-        expect(submitWiseKYCRequirement).toHaveBeenCalledWith(BANK_ACCOUNT_ID, 'ACCOUNT_PURPOSE', expect.objectContaining({accountPurpose: 'PAYING_BILLS'}));
+        expect(submitWiseKYCRequirement).toHaveBeenCalledWith(BANK_ACCOUNT_ID, 'ACCOUNT_PURPOSE', expect.objectContaining({accountPurpose: 'PAYING_BILLS'}), expect.any(Array));
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: true});
+        });
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: false, errors: {'1': 'Wise rejected the answer'}});
+        });
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(screen.getByText('Wise rejected the answer')).toBeOnTheScreen();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: true, errors: null});
+        });
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: false});
+        });
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(BANK_ACCOUNT_ID));
     });
 

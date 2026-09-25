@@ -7,6 +7,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DynamicFormField} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import Onyx from 'react-native-onyx';
@@ -15,17 +16,21 @@ function getWiseKYCRequirements(bankAccountID: number) {
     read(READ_COMMANDS.GET_WISE_KYC_REQUIREMENTS, {bankAccountID});
 }
 
-function isFileList(value: unknown): value is FileObject[] {
-    return Array.isArray(value) && value.every((item) => typeof item === 'object' && item !== null && 'name' in item);
+function isFileObject(item: unknown): item is FileObject {
+    return typeof item === 'object' && item !== null;
 }
 
-function submitWiseKYCRequirement(bankAccountID: number, requirementKey: string, draft: DynamicFormValues) {
+/** Files are the answers of `file` fields and travel as multipart parts; everything else, lists included, goes inside submissionData */
+function submitWiseKYCRequirement(bankAccountID: number, requirementKey: string, draft: DynamicFormValues, fields: DynamicFormField[]) {
+    const fileKeys = new Set(fields.filter((field) => field.type === 'file').map((field) => field.key));
     const answers: Record<string, unknown> = {};
     const files: Record<WiseKYCFileParamKey, FileObject> = {};
     for (const [key, value] of Object.entries(draft)) {
-        if (isFileList(value)) {
-            for (const [index, file] of value.entries()) {
-                files[`${key}_${index}`] = file;
+        if (fileKeys.has(key)) {
+            if (Array.isArray(value)) {
+                value.filter(isFileObject).forEach((file, index) => {
+                    files[`${key}_${index}`] = file;
+                });
             }
         } else if (value !== undefined) {
             answers[key] = value;
@@ -37,10 +42,16 @@ function submitWiseKYCRequirement(bankAccountID: number, requirementKey: string,
     write(WRITE_COMMANDS.SUBMIT_WISE_KYC_REQUIREMENT, parameters, {
         optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, value: {isLoading: true, errors: null}}],
         successData: [
-            {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, value: {isLoading: false}},
+            {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, value: {isLoading: false, errors: null}},
             {onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM_DRAFT, value: null},
         ],
-        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, value: {isLoading: false}}],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM,
+                value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
     });
 }
 
