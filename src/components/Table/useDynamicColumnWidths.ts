@@ -182,7 +182,9 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
         const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
         const rowChromeWidth = (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2;
-        const availableWidth = tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth;
+        // Floored because the tracks are whole px. A fractional budget leaves a fraction over once they are rounded, and
+        // handing it to a column would put a sub-pixel track in the row. Rounding down keeps the columns inside the table.
+        const availableWidth = Math.floor(tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth);
 
         if (availableWidth <= 0) {
             return noDynamicWidths;
@@ -231,7 +233,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         }));
 
         const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
-
         // The columns fit equally, which is exactly what the static `1fr` tracks already do.
         if (widths.length === 0) {
             return noDynamicWidths;

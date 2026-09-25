@@ -220,7 +220,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
-    const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
+    const hrFinalApproverEmail = getHRFinalApprover(policy);
 
     const filteredApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
 
