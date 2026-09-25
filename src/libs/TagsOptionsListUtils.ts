@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {Option} from './OptionsListUtils';
 
 import {insertTagIntoTransactionTagsString} from './IOUUtils';
-import {hasEnabledOptions} from './OptionsListUtils';
+import {hasEnabledOptions, isOptionEnabled} from './OptionsListUtils';
 import {
     getCleanedTagName,
     getGLCodeFromPolicyTag,
@@ -17,6 +17,7 @@ import {
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    matchesParentTagPath,
 } from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
@@ -208,12 +209,27 @@ function getTagListSections({
  * Verifies that there is at least one enabled tag
  */
 function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>) {
-    const policyTagValueList = policyTagList
-        .filter((tag) => tag?.tags)
-        .map(({tags}) => Object.values(tags))
-        .flat();
+    for (const tagList of policyTagList) {
+        const tags = tagList?.tags;
 
-    return hasEnabledOptions(policyTagValueList);
+        if (!tags) {
+            continue;
+        }
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (isOptionEnabled(tag)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -266,32 +282,54 @@ function getTagVisibility({
 }
 
 /**
- * Determines whether a dependent tag list should be shown based on the selected parent tag
- * and available enabled tags for the current level.
+ * Whether a tag list has an enabled tag under a parent tag path.
+ *
+ * Resolves on the first match, and skips disabled tags before touching their filter.
  */
-function shouldShowDependentTagList(tagListIndex: number, transactionTag: string | undefined, tags: PolicyTags | undefined): boolean {
-    if (tagListIndex === 0) {
-        return true;
+function hasEnabledTagUnderParentTag(tags: PolicyTags | undefined, parentTag: string): boolean {
+    for (const tagName in tags) {
+        if (!Object.hasOwn(tags, tagName)) {
+            continue;
+        }
+
+        const tag = tags[tagName];
+
+        if (!isOptionEnabled(tag)) {
+            continue;
+        }
+
+        if (matchesParentTagPath(tag, parentTag)) {
+            return true;
+        }
     }
 
+    return false;
+}
+
+/**
+ * Determines which tag lists are visible for a transaction tag, when the policy uses dependent tag lists.
+ *
+ * Answers every tag list in one call so the transaction tag is split once, and resolves a tag list on its first
+ * selectable tag below the parent - a parent filter is a regular expression, so evaluating fewer tags is the point.
+ *
+ * @returns one entry per tag list, in the order given
+ */
+function getDependentTagVisibility(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists]>, transactionTag: string | undefined): boolean[] {
     const tagParts = getTagArrayFromName(transactionTag ?? '');
-    const previousTagValue = tagParts.at(tagListIndex - 1);
-    if (!previousTagValue) {
-        return false;
-    }
 
-    const parentTag = tagParts.slice(0, tagListIndex).join(':');
-    const availableTags = Object.values(tags ?? {}).filter((policyTag) => {
-        const filterRegex = policyTag.rules?.parentTagsFilter;
-        if (!filterRegex) {
+    return policyTagList.map((tagList, index) => {
+        // The first tag list has no parent to wait for
+        if (index === 0) {
             return true;
         }
 
-        const regex = new RegExp(filterRegex);
-        return regex.test(parentTag ?? '');
-    });
+        // A deeper tag list waits for its parent level to have a value
+        if (!tagParts.at(index - 1)) {
+            return false;
+        }
 
-    return availableTags.some((tag) => tag.enabled);
+        return hasEnabledTagUnderParentTag(tagList?.tags, tagParts.slice(0, index).join(':'));
+    });
 }
 
 /**
@@ -375,10 +413,9 @@ function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
         if (!policyTag.enabled) {
             return false;
         }
-        const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-        return !filterRegex || new RegExp(filterRegex).test(parentTag);
+        return matchesParentTagPath(policyTag, parentTag);
     });
 }
 
-export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
+export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, getDependentTagVisibility, getEnabledTags};
 export type {SelectedTagOption, TagOption};

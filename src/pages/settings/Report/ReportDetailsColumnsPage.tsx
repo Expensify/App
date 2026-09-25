@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasVendorFeature, isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {getColumnsToShow, isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
 import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -41,13 +41,7 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
 
-const REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
-
-function isReportDetailsCustomColumn(column: string): column is SearchCustomColumnIds {
-    return REPORT_DETAILS_CUSTOM_COLUMNS.some((customColumn) => customColumn === column);
-}
-
-const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = REPORT_DETAILS_CUSTOM_COLUMNS.filter(isReportDetailsCustomColumn);
+const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
 
 function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();

@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
+import type {HostInstance, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 
 import {NavigationContext, useIsFocused} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
@@ -34,7 +34,7 @@ function BaseEducationalTooltip({
 }: EducationalTooltipProps) {
     const shouldShowTooltip = shouldDisplayTooltip ?? shouldRender;
     const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
-    const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
+    const tooltipElementRef = useRef<Readonly<HostInstance> | undefined>(undefined);
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
     const show = useRef<(() => void) | undefined>(undefined);
