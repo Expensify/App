@@ -6396,6 +6396,17 @@ describe('OptionsListUtils', () => {
 
             expect(doesReportMatchSearchTerms(groupReport, ['JOSÉ'])).toBe(true);
         });
+
+        it('matches a non-Latin group participant', () => {
+            // cspell:ignore 김민수
+            const groupReport: SearchOption<Report> = {
+                ...report,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
+                participantsList: [{accountID: 2, displayName: '김민수', login: 'minsu@example.com'}],
+            };
+
+            expect(doesReportMatchSearchTerms(groupReport, ['김민수'])).toBe(true);
+        });
     });
 
     describe('getMostRecentOptions()', () => {

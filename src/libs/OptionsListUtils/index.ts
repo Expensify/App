@@ -2868,7 +2868,8 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[]): Sear
 }
 
 function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
-    const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term).toLocaleLowerCase());
+    const normalizeSearchText = (value: string) => deburr(StringUtils.normalizeForMatch(value).toLocaleLowerCase());
+    const normalizedSearchTerms = searchTerms.map(normalizeSearchText);
     let searchText = `${report.text ?? ''}${report.login ?? ''}`;
     if (report.isThread) {
         searchText += report.alternateText ?? '';
@@ -2880,7 +2881,7 @@ function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: s
         const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
         searchText += participantsSearchText;
     }
-    searchText = deburr(searchText.toLocaleLowerCase());
+    searchText = normalizeSearchText(searchText);
 
     return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms).length > 0;
 }
