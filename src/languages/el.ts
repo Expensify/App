@@ -1693,7 +1693,7 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>Προέκυψε σφάλμα κατά τη μεταφόρτωση της απόδειξής σας. Παρακαλούμε <a href="download">αποθηκεύστε την απόδειξη</a> και <a href="retry">δοκιμάστε ξανά</a> αργότερα.</rbr>',
             receiptFailureMessageShort: 'Παρουσιάστηκε σφάλμα κατά τη μεταφόρτωση της απόδειξής σας.',
-            receiptUploadFailedMessage: 'Η αποστολή της απόδειξης απέτυχε. Αποθηκεύστε την απόδειξη ή διαγράψτε την δαπάνη και χάστε την.',
+            receiptUploadFailedMessage: 'Η μεταφόρτωση απέτυχε. Δοκιμάστε ξανά ή αποθηκεύστε για αργότερα.',
             saveReceipt: 'Αποθήκευση απόδειξης',
             genericDeleteFailureMessage: 'Παρουσιάστηκε απρόσμενο σφάλμα κατά τη διαγραφή αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
             genericEditFailureMessage: 'Παρουσιάστηκε απροσδόκητο σφάλμα κατά την επεξεργασία αυτής της δαπάνης. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
@@ -1711,6 +1711,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Η ημερομηνία λήξης δεν μπορεί να είναι ίδια με την ημερομηνία έναρξης',
             manySplitsProvided: `Ο μέγιστος επιτρεπόμενος αριθμός διαχωρισμών είναι ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Το εύρος ημερομηνιών δεν μπορεί να υπερβαίνει τις ${CONST.IOU.SPLITS_LIMIT} ημέρες.`,
+            receiptUploadFailedSaveOnlyMessage: 'Η αποστολή απέτυχε. Αποθηκεύστε την απόδειξή σας για να τη διατηρήσετε.',
         },
         dismissReceiptError: 'Απόρριψη σφάλματος',
         dismissReceiptErrorConfirmation: 'Προσοχή! Αν απορρίψετε αυτό το σφάλμα, η ανεβασμένη απόδειξή σας θα διαγραφεί πλήρως. Είστε βέβαιοι;',
