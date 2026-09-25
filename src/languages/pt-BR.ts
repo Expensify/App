@@ -995,7 +995,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
                 subtitle: 'Carteira',
             },
-            validateAccount: {title: 'Valide sua conta', subtitle: 'Conta', cta: 'Validar'},
             addHomeAddress: {title: 'Adicione seu endereço residencial para rastrear distâncias', subtitle: 'Conta', cta: 'Adicionar'},
             fixFailedBilling: {title: 'Não foi possível cobrar o cartão cadastrado', subtitle: 'Assinatura'},
             unlockBankAccount: {
@@ -1016,12 +1015,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({date}: {date: string}) => `A assinatura termina em ${date}`,
                 cta: 'Gerenciar',
             },
-        },
-        discoverSection: {
-            title: 'Descobrir',
-            menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
-            menuItemTitleAdmin: 'Saiba como convidar membros, editar fluxos de aprovação e conciliar cartões corporativos.',
-            menuItemDescription: 'Veja o que o Expensify pode fazer em 2 minutos',
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1504,6 +1497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `pagou ${amount} com a conta bancária ${last4Digits}` : `pago com conta bancária ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `pagou ${amount ? `${amount} ` : ''} com a conta bancária ${last4Digits} via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras da workspace</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Conta pessoal • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Conta empresarial • ${lastFour}`,
         nextStep: 'Próximas etapas',
@@ -2754,6 +2748,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Corrija esta conexão em <a href="${companyCardsRoute}">cartões corporativos</a>`,
             askAdminToFixConnection: 'Peça para um administrador corrigir essa conexão',
             reconnectBank: 'Sua conexão bancária precisa ser autenticada novamente',
+            pending: 'Pendente',
         },
         bankAccountStatus: {
             active: 'Ativo',
@@ -4264,7 +4259,7 @@ ${amount} para ${merchant} - ${date}`,
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
         enterTheDateOfBirthOfTheOwner: 'Qual é a data de nascimento do proprietário?',
-        enterTheSSN: 'Qual é o número do Social Security do proprietário?',
+        enterTheSSN: 'Quais são os últimos 4 dígitos do número de Social Security do proprietário?',
         dontWorry: 'Não se preocupe, não fazemos nenhuma análise de crédito pessoal!',
         enterTheOwnersAddress: 'Qual é o endereço do proprietário?',
         letsDoubleCheck: 'Vamos conferir se está tudo certo.',
@@ -8678,6 +8673,28 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             importSettings: 'Importar configurações',
             defaultApprover: 'Aprovador padrão',
             approverFields: {recruiter: 'Recrutador', recruitingCoordinator: 'Coordenador de recrutamento'},
+            filters: {
+                description: (providerName: string) => `Selecione quais membros serão importados de ${providerName}. Você pode escolher por etapas do trabalho, tags e escritórios.`,
+                stages: {
+                    title: 'Etapa do trabalho',
+                    description: 'Escolha a etapa do processo seletivo dos candidatos que você gostaria de sincronizar com este workspace',
+                    toggleTitle: 'Etapas do trabalho',
+                    allSelected: 'Todas as etapas de trabalho',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Escolha as tags dos candidatos que você gostaria de sincronizar com este workspace',
+                    toggleTitle: 'Tags',
+                    allSelected: 'Todas as tags',
+                },
+                offices: {
+                    title: 'Escritório',
+                    description: 'Escolha os escritórios dos candidatos que você gostaria de sincronizar com este espaço de trabalho',
+                    toggleTitle: 'Escritórios',
+                    allSelected: 'Todos os escritórios',
+                },
+                enableJobStagesOrTags: 'Ative Estágios de Trabalho ou Tags para continuar',
+            },
             subtitle: 'Conecte ferramentas de recrutamento e mantenha as aprovações de candidatos em sincronia.',
             syncResults: {
                 importedCount: () => ({
