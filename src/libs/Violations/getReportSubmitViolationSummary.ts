@@ -11,7 +11,7 @@ import type {Report, Transaction, TransactionViolation, TransactionViolations} f
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import ViolationsUtils from './ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations} from './ViolationsUtils';
 
 type ReportSubmitViolationSummary = {
     /** A transaction on the report has its own AUTO_REPORTED_REJECTED_EXPENSE violation */
@@ -58,7 +58,7 @@ function getReportSubmitViolationSummary(
         if (hasPendingRTERViolation(transactionViolations)) {
             hasPendingCardMatch = true;
         }
-        for (const violation of transactionViolations) {
+        for (const violation of filterReceiptViolations(transactionViolations)) {
             if (violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
                 continue;
             }
