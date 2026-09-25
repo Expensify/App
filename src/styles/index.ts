@@ -5725,8 +5725,7 @@ const staticStyles = (theme: ThemeColors) =>
         onboardingAccountingItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
-            // Horizontal padding is deliberately tight: "Intuit Enterprise Suite" is ~135px at the tile label size, and a
-            // narrow-layout tile is only ~162px wide, so 16px each side would wrap it onto a second line.
+            // Keeps "Intuit Enterprise Suite" on one line in narrow tiles.
             paddingHorizontal: 8,
             paddingVertical: 20,
             alignItems: 'center',
@@ -5735,10 +5734,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
-        // The onboarding modal is 640px wide with 32px of horizontal margin on each side, so the tiles share 576px. A
-        // flex basis of 32% would make three tiles plus their two 12px gaps 576.96px, which wraps the third tile onto
-        // the next line, so the basis stays under that and `maxWidth` caps the last tile in a row to a column width
-        // instead of letting it stretch.
+        // Three 32% tiles plus gaps overflow the 576px row, so wrap at 30% and cap the width instead.
         onboardingAccountingItemWide: {
             flexBasis: '30%',
             maxWidth: '32%',
@@ -5753,8 +5749,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.selectedOptionBG,
         },
 
-        // `SelectionButton` passes `style` to the pressable inside its wrapper, so the corner placement has to go on
-        // the wrapper or the control stays in the tile's flow and renders beside the logo.
+        // Positioned via the wrapper, since `SelectionButton` applies `style` to the inner pressable.
         onboardingAccountingItemSelectionButton: {
             position: 'absolute',
             top: 12,

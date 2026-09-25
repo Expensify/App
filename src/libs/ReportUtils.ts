@@ -12961,13 +12961,14 @@ function prepareOnboardingOnyxData({
     }
 
     if (userReportedIntegration) {
-        // Integrations that only work on Control, per each entry's `requiredPlan` in `UPGRADE_FEATURE_INTRO_MAPPING`. Picking one of
-        // these has to create a Control workspace, or the signup lands on Collect and immediately hits an upgrade wall. Intuit
-        // Enterprise Suite is a QBO integration alias rather than a connection name, so it is allowed alongside them explicitly.
+        // These integrations can only be connected on Control, so picking one during onboarding creates a Control workspace.
+        // Intuit Enterprise Suite is a QBO alias, not a connection name.
         const requiresControlPlan: Array<AllConnectionName | typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE> = [
             CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
             CONST.POLICY.CONNECTIONS.NAME.QBD,
             CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+            CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
+            CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
         ];
 

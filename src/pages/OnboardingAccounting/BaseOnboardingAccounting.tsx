@@ -50,11 +50,7 @@ type AccountingIntegrationKey = Exclude<OnboardingAccountingOption, 'other'>;
 
 type AccountingOptionKey = OnboardingAccountingOption;
 
-/**
- * Icon and label for every option in `CONST.ONBOARDING_ACCOUNTING_MAPPING`, which also sets the order of the tiles.
- * `satisfies` is what keeps the two in step: a connection added to the mapping and missing here - or listed here
- * and missing from the mapping - fails typecheck rather than quietly disappearing from this screen.
- */
+/** Icon and label for each option in `CONST.ONBOARDING_ACCOUNTING_MAPPING`. `satisfies` keeps the keys in sync. */
 const accountingIntegrationDetails = {
     quickbooksOnline: {iconName: 'QBOCircle', translationKey: 'workspace.accounting.qbo'},
     intuitEnterpriseSuite: {iconName: 'IntuitSquare', translationKey: 'workspace.accounting.intuitEnterpriseSuite'},
@@ -62,7 +58,7 @@ const accountingIntegrationDetails = {
     xero: {iconName: 'XeroCircle', translationKey: 'workspace.accounting.xero'},
     netsuite: {iconName: 'NetSuiteSquare', translationKey: 'workspace.accounting.netsuite'},
     intacct: {iconName: 'IntacctSquare', translationKey: 'workspace.accounting.intacct'},
-    // Certinia has no `workspace.accounting` entry, but its connection page already translates the brand name.
+    // Certinia has no `workspace.accounting` label, so reuse its connection page title.
     financialforce: {iconName: 'CertiniaSquare', translationKey: 'workspace.certinia.title'},
     rillet: {iconName: 'RilletSquare', translationKey: 'workspace.accounting.rillet'},
     sap: {iconName: 'SapSquare', translationKey: 'workspace.accounting.sap'},
@@ -84,7 +80,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    // Derived from the option list, so a newly offered integration loads its icon without a second list to update.
     const expensifyIcons = useMemoizedLazyExpensifyIcons(integrationIconNames);
     const illustrations = useMemoizedLazyIllustrations(['Pencil']);
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -177,7 +172,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 accessibilityLabel={label}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
                 accessible={false}
-                // The hover background would otherwise paint over the selected tile's green fill.
+                // Keep the selected fill on hover.
                 hoverStyle={isSelected ? undefined : styles.hoveredComponentBG}
                 style={[
                     styles.onboardingAccountingItem,
@@ -185,7 +180,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     isSelected && styles.onboardingAccountingItemSelected,
                 ]}
             >
-                {/* Square like a checkbox to match the mocks, but announced as a radio because only one option can be picked. */}
+                {/* Square to match the mocks, but a radio because only one option can be picked. */}
                 <RadioButton
                     isChecked={isSelected}
                     onPress={() => handleIntegrationSelect(optionKey)}
@@ -197,7 +192,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     src={isOtherOption ? illustrations.Pencil : expensifyIcons[accountingIntegrationDetails[optionKey].iconName]}
                     width={variables.iconSizeExtraLarge}
                     height={variables.iconSizeExtraLarge}
-                    // Unlike the integration logos, the mocks draw the Other illustration without a circular badge behind it.
+                    // The Other illustration has no circular badge.
                     additionalStyles={isOtherOption ? undefined : [StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)]}
                 />
                 <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter, styles.mt2]}>{label}</Text>

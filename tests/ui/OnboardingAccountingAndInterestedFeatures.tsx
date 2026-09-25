@@ -232,18 +232,17 @@ describe('Onboarding interested features and accounting pages', () => {
     });
 
     it('renders one tile per option in the accounting mapping', async () => {
-        // Given the onboarding accounting step, whose tiles are derived from CONST.ONBOARDING_ACCOUNTING_MAPPING
+        // Given the onboarding accounting step, whose tiles come from CONST.ONBOARDING_ACCOUNTING_MAPPING
         renderAccountingPage();
 
         // When the step has rendered
         await waitForBatchedUpdatesWithAct();
 
-        // Then every key in the mapping has exactly one tile. This is the runtime half of the drift guard: a connection added
-        // to the mapping that never reaches this screen fails here rather than quietly going missing from onboarding.
+        // Then every key in the mapping has exactly one tile
         const tiles = screen.getAllByRole(CONST.ROLE.RADIO);
         expect(tiles).toHaveLength(Object.keys(CONST.ONBOARDING_ACCOUNTING_MAPPING).length);
 
-        // Then the tiles follow the mapping's order, which matches the mocks, with Other last
+        // Then the tiles follow the mapping's order, with Other last
         const expectedLabels = [
             'workspace.accounting.qbo',
             'workspace.accounting.intuitEnterpriseSuite',
@@ -262,7 +261,7 @@ describe('Onboarding interested features and accounting pages', () => {
             expectedLabels.map((label, index) => index),
         );
 
-        // Then the integrations this step adds are labelled with copy that already ships, so no new brand strings are needed
+        // Then the new integrations reuse existing labels
         expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.intuitEnterpriseSuite'))).toBeOnTheScreen();
         expect(screen.getByText(TestHelper.translateLocal('workspace.certinia.title'))).toBeOnTheScreen();
         expect(screen.getByText(TestHelper.translateLocal('workspace.accounting.rillet'))).toBeOnTheScreen();
@@ -277,9 +276,7 @@ describe('Onboarding interested features and accounting pages', () => {
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.certinia.title')));
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
 
-        // Then the reported integration is the connection name `financialforce`, not the displayed brand name. Downstream
-        // consumers key off this value, so a tile reporting its label instead would render the onboarding task and the
-        // Getting Started card against a key nothing recognizes.
+        // Then the connection name is reported rather than the label, since downstream consumers key off it
         await waitFor(() => {
             expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
                 featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
@@ -299,11 +296,10 @@ describe('Onboarding interested features and accounting pages', () => {
         renderAccountingPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the saved choice is recognized as a known integration, so the free-text input stays hidden. An option the
-        // screen no longer offers would be treated as unknown and collapse the selection back to Other.
+        // Then the saved choice is recognized, so the Other input stays hidden
         expect(screen.queryByLabelText(TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware'))).not.toBeOnTheScreen();
 
-        // Then submitting without touching anything keeps that same choice
+        // Then submitting keeps that choice
         fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
         await waitFor(() => {
             expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
