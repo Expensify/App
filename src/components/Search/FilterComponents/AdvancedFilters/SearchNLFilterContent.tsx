@@ -101,6 +101,8 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     value={nlQuery}
                     onChangeText={setNlQuery}
                     onKeyPress={(e) => {
+                        // On web, nativeEvent is a native DOM KeyboardEvent; the cast is safe for IME composition detection.
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                         if (e.nativeEvent.key !== 'Enter' || ('shiftKey' in e.nativeEvent && e.nativeEvent.shiftKey) || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
                             return;
                         }
