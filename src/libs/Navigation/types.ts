@@ -262,6 +262,10 @@ type SettingsNavigatorParamList = {
         subPage?: string;
         action?: 'edit';
     };
+    [SCREENS.SETTINGS.COLLECT_DEPOSIT_ACCOUNT]: {
+        subPage?: string;
+        action?: 'edit';
+    };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
         subPage?: string;
 

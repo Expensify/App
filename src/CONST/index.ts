@@ -759,6 +759,10 @@ const CONST = {
                 EXIT: 'EXIT',
             },
         },
+        FIELDS_TYPE: {
+            LOCAL: 'local',
+            INTERNATIONAL: 'international',
+        },
         STEP: {
             // In the order they appear in the VBA flow
             COUNTRY: 'CountryStep',
@@ -8900,6 +8904,23 @@ const CONST = {
                 ACCOUNT_HOLDER_INFORMATION: 4,
                 CONFIRMATION: 5,
                 SUCCESS: 6,
+            },
+        },
+    },
+
+    COLLECT_DEPOSIT_ACCOUNT: {
+        PAGE_NAME: {
+            COUNTRY: 'country',
+            BANK_ACCOUNT_DETAILS: 'bank-account-details',
+            CONFIRM: 'confirm',
+            SUCCESS: 'success',
+        },
+        INDEXES: {
+            MAPPING: {
+                COUNTRY_SELECTOR: 0,
+                BANK_ACCOUNT_DETAILS: 1,
+                CONFIRMATION: 2,
+                SUCCESS: 3,
             },
         },
     },

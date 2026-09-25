@@ -5,6 +5,8 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {
+    isCollectingDepositAccountsSelector,
+    createBanksInCountrySelector,
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
@@ -573,5 +575,88 @@ describe('createHasWorkspaceToSubmitToSelector', () => {
         };
 
         expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+});
+
+describe('isCollectingDepositAccountsSelector', () => {
+    it('returns true when any workspace collects deposit accounts', () => {
+        // Given one workspace that collects deposit accounts and one that does not
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it does, because the collecting workspace still wants the employee's details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(true);
+    });
+
+    it('returns false when no workspace collects deposit accounts', () => {
+        // Given only workspaces that do not collect deposit accounts
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it is not offered, because nobody is asking the employee for their details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+
+    it('returns false when the only collecting workspace is pending deletion', () => {
+        // Given a collecting workspace that is on its way out
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it is not offered, because that workspace will never reimburse anyone
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+});
+
+describe('createBanksInCountrySelector', () => {
+    const collectingGB: OnyxCollection<Policy> = {
+        policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+    };
+
+    it('returns true when a collecting workspace banks in that country', () => {
+        // Given a collecting workspace with a GB bank account
+        // When the employee adds a GB account
+        // Then local details are collected, because the employer can pay them domestically
+        expect(createBanksInCountrySelector('GB')(collectingGB)).toBe(true);
+    });
+
+    it('returns false when no collecting workspace banks in that country', () => {
+        // Given a collecting workspace that only banks in GB
+        // When the employee adds a DE account
+        // Then wire details are collected, because the money has to arrive from abroad
+        expect(createBanksInCountrySelector('DE')(collectingGB)).toBe(false);
+    });
+
+    it('returns false for a country only listed on an archived workspace', () => {
+        // Given a GB bank account on a collecting workspace that is pending deletion
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                isCollectDepositAccountsEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                reimbursement: {countries: {GB: {}}},
+            }),
+        };
+
+        // When the employee adds a GB account
+        // Then it is not treated as local, because that workspace can no longer pay from there
+        expect(createBanksInCountrySelector('GB')(policies)).toBe(false);
+    });
+
+    it('returns false for a country only listed on a workspace that does not collect', () => {
+        // Given a GB bank account on a workspace that does not collect deposit accounts
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false, reimbursement: {countries: {GB: {}}}}),
+        };
+
+        // When the employee adds a GB account
+        // Then that workspace says nothing about how it is paid, so wire details are collected
+        expect(createBanksInCountrySelector('GB')(policies)).toBe(false);
     });
 });

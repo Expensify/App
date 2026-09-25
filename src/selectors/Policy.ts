@@ -15,6 +15,7 @@ import {
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
     isPolicyAdmin,
+    isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -65,6 +66,21 @@ const createOwnedPaidPoliciesCountsSelector =
             active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
         };
     };
+
+/** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
+const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean =>
+    Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
+
+/**
+ * Whether a collecting workspace banks in this country, which decides local vs international details.
+ * Both conditions must hold on the same policy - a country only counts if that same policy collects.
+ */
+const createBanksInCountrySelector =
+    (countryISO: string) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some(
+            (policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy) && countryISO in (policy.reimbursement?.countries ?? {}),
+        );
 
 /**
  * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
@@ -578,5 +594,7 @@ export {
     policyACHAccountNumberSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
+    isCollectingDepositAccountsSelector,
+    createBanksInCountrySelector,
 };
 export type {ReusablePolicyConnectionName};
