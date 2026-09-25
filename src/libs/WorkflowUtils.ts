@@ -31,6 +31,7 @@ import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './merge/HRUtils';
 import {rand64} from './NumberUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
+import {getSearchParamFromPath} from './Url';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -378,7 +379,18 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
+    // A circular chain (A forwards to B, B forwards back to A) makes `calculateApprovers` push the repeat before it
+    // breaks, so the approvers array arrives here as [A, B, A]. Rebuilding every entry would let that trailing A
+    // overwrite the first one's `forwardsTo: B` with `''`, silently cutting the chain the caller never edited.
+    // Only the first occurrence of an email describes where it actually forwards, so later repeats are skipped.
+    const handledApproverEmails = new Set<string>();
+
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
+        if (handledApproverEmails.has(approver.email)) {
+            continue;
+        }
+        handledApproverEmails.add(approver.email);
+
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
         const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? null : approver.approvalLimit;
@@ -803,6 +815,60 @@ function buildApproveActions(): ApprovalWorkflowActions {
  */
 function getWorkflowMemberEmails(members: Member[]): string[] {
     return members.map((member) => member.email).filter((email): email is string => !!email);
+}
+
+/**
+ * The members a workflow had that it no longer does, i.e. the `membersToRemove` side of `updateApprovalWorkflow`.
+ * Compared by email because that is the identity the policy's `employeeList` is keyed by. `displayName` and
+ * `avatar` are cosmetic and can differ between the saved workflow and the picker's version of the same member.
+ */
+function getRemovedApprovalWorkflowMembers(originalMembers: Member[], members: Member[]): Member[] {
+    return originalMembers.filter((originalMember) => !members.some((member) => member.email === originalMember.email));
+}
+
+/** The workflow an approval-workflow Edit page is mounted for, as read back off the route it was opened with. */
+type OpenApprovalWorkflowEdit = {
+    /** First approver in the route's path segment. */
+    firstApproverEmail: string;
+
+    /** Member anchor from the route's `memberEmail` query param, or `''` when it carried none. */
+    memberEmail: string;
+};
+
+/**
+ * Identifies the approval workflow whose Edit page is mounted in `activeRoute`, or `undefined` when no Edit page
+ * for `policyID` is in it. Pure: the caller reads the active route and passes it in.
+ *
+ * Both halves of the identity matter. A first approver is not unique once rule-based chains diverge, since `A → B`
+ * and `A → C` share one. That is why the workflows list keys its rows and builds its Edit route on a member as
+ * well. Matching on the approver alone would report an unrelated workflow's Edit page as this row's.
+ *
+ * The Edit segment is matched anywhere in the path rather than only at its end, because a sub-page opened from Edit
+ * is appended to that route (`.../{approver}/edit/expenses-from`) and inherits its query params. That page still
+ * means an Edit session owns the `APPROVAL_WORKFLOW` draft.
+ */
+function getOpenApprovalWorkflowEdit(activeRoute: string, policyID: string): OpenApprovalWorkflowEdit | undefined {
+    const [path] = activeRoute.split('?', 2);
+    const prefix = `workspaces/${policyID}/workflows/approvals/`;
+    const prefixIndex = path.indexOf(prefix);
+    if (prefixIndex === -1) {
+        return undefined;
+    }
+
+    const [encodedApproverEmail, editSegment] = path.slice(prefixIndex + prefix.length).split('/');
+    if (!encodedApproverEmail || editSegment !== 'edit') {
+        return undefined;
+    }
+
+    let firstApproverEmail = encodedApproverEmail;
+    try {
+        firstApproverEmail = decodeURIComponent(encodedApproverEmail);
+    } catch {
+        // A malformed segment can't be decoded. Compare it raw rather than dropping the match, which would let a
+        // fast edit seed over the draft the mounted Edit page owns.
+    }
+
+    return {firstApproverEmail, memberEmail: getSearchParamFromPath(activeRoute, 'memberEmail') ?? ''};
 }
 
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
@@ -1741,6 +1807,8 @@ export {
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
     filterRulesForPolicy,
+    getOpenApprovalWorkflowEdit,
+    getRemovedApprovalWorkflowMembers,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,

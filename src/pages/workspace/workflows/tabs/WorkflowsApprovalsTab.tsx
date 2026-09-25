@@ -38,6 +38,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     filterRulesForPolicy,
     getApprovalWorkflowRulesForPolicy,
+    getOpenApprovalWorkflowEdit,
     INITIAL_APPROVAL_WORKFLOW,
 } from '@libs/WorkflowUtils';
 
@@ -426,10 +427,33 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                                 shouldBlockApprovalWorkflowEditing
                                                     ? undefined
                                                     : () => {
+                                                          // There is one APPROVAL_WORKFLOW slot, and a mounted Edit page owns it for the
+                                                          // workflow it was opened for. On a large layout this list stays visible underneath
+                                                          // the Edit RHP, so "+N more" is still tappable while that page holds the draft.
+                                                          // Compare on the member anchor as well as the first approver: the approver is not
+                                                          // unique once rule-based chains diverge, which is why the row key and the Edit
+                                                          // navigate above both carry firstMemberEmail.
+                                                          const openEdit = getOpenApprovalWorkflowEdit(Navigation.getActiveRoute(), policyID);
+                                                          const isEditOpenForThisWorkflow =
+                                                              !!openEdit && openEdit.firstApproverEmail === firstApproverEmail && openEdit.memberEmail === firstMemberEmail;
+
+                                                          // A different workflow's Edit page is holding the draft. Seeding here would
+                                                          // Onyx.set straight over it, and the fast-edit Save would then persist this
+                                                          // workflow and clear the draft out from under that still-mounted page. Meanwhile
+                                                          // expenses-from, appended to whatever route is active, would go back to the wrong
+                                                          // Edit page. Leave the other session alone rather than corrupt both.
+                                                          if (openEdit && !isEditOpenForThisWorkflow) {
+                                                              return;
+                                                          }
+
                                                           selectApprovalWorkflowForEdit({
                                                               workflow,
                                                               defaultWorkflowMembers: availableMembers,
                                                               usedApproverEmails,
+                                                              // With this workflow's own Edit page still mounted, that page keeps ownership of
+                                                              // the save: expenses-from is opened as its child and goes back to it. Marking a
+                                                              // fast edit would instead persist immediately and clear the draft underneath it.
+                                                              isFastEdit: !isEditOpenForThisWorkflow,
                                                           });
                                                           Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
                                                       }

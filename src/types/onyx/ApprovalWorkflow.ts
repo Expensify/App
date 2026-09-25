@@ -160,6 +160,11 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     originalApprovers: Approver[];
 
     /**
+     * List of original members in the workflow, used to work out which members were removed by an edit
+     */
+    originalMembers?: Member[];
+
+    /**
      * Email of the member whose workflow this edit session belongs to.
      */
     memberEmail?: string;
@@ -168,6 +173,23 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * Whether the user is in the initial creation flow
      */
     isInitialFlow?: boolean;
+
+    /**
+     * Identifies the edit session that seeded this draft. A fresh random id is minted every time a new draft
+     * replaces the previous one in the single `APPROVAL_WORKFLOW` slot, so a screen can tell the draft it is
+     * showing apart from one a later session seeded over it. Random rather than sequential because this draft is
+     * persisted, so it outlives the process that wrote it and a restarting counter would eventually repeat an id
+     * a restored screen still holds.
+     */
+    sessionID?: string;
+
+    /**
+     * Whether this edit session was opened straight from the workflows page, skipping the edit page.
+     *
+     * The edit page is normally the only screen that saves a workflow, so a sub-page entered this way has
+     * to save the changes itself.
+     */
+    isFastEdit?: boolean;
 };
 
 export default ApprovalWorkflow;

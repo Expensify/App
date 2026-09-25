@@ -6,13 +6,17 @@ import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
 import * as Task from '@src/libs/actions/Task';
 import {
     clearApprovalWorkflowApprover,
+    clearApprovalWorkflowFastEdit,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
+    getApprovalWorkflowSessionID,
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
+    selectApprovalWorkflowForEdit,
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
+    validateFastEditApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
 import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -169,6 +173,243 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('selectApprovalWorkflowForEdit', () => {
+        it('should store the original members so a fast edit can work out who was removed', async () => {
+            // Given a workflow with two members, about to be opened by a "+N more" fast edit
+            const members = [
+                {email: employee1Email, displayName: 'Employee 1'},
+                {email: employee2Email, displayName: 'Employee 2'},
+            ];
+
+            // When the entry point seeds the draft for that fast edit
+            selectApprovalWorkflowForEdit({
+                workflow: {members, approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the members are snapshotted as originalMembers, because the fast-edit save has no edit page to
+            // diff against and cannot work out membersToRemove without this baseline
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.originalMembers).toEqual(members);
+            expect(approvalWorkflow?.isFastEdit).toBe(true);
+            expect(approvalWorkflow?.action).toBe(CONST.APPROVAL_WORKFLOW.ACTION.EDIT);
+        });
+
+        it('should not mark an edit-page session as a fast edit', async () => {
+            // Given the edit page seeding its own draft, which it does without asking for a fast edit
+
+            // When the draft is committed
+            selectApprovalWorkflowForEdit({
+                workflow: {members: [{email: employee1Email, displayName: 'Employee 1'}], approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+            });
+            await waitForBatchedUpdates();
+
+            // Then the flag stays off, so the expenses-from sub-page leaves the save to the edit page that is
+            // still mounted behind it rather than persisting and clearing the draft underneath it
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.isFastEdit).toBeUndefined();
+        });
+
+        it('should stamp each seeded draft with a new session id', async () => {
+            // Given two fast edits started one after the other, which both write into the single
+            // APPROVAL_WORKFLOW slot
+            const seed = () =>
+                selectApprovalWorkflowForEdit({
+                    workflow: {members: [{email: employee1Email, displayName: 'Employee 1'}], approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                    defaultWorkflowMembers: [],
+                    usedApproverEmails: [],
+                    isFastEdit: true,
+                });
+
+            // When the first draft is seeded and then replaced by the second
+            seed();
+            await waitForBatchedUpdates();
+            const firstSessionID = (await getApprovalWorkflowState())?.sessionID;
+            if (!firstSessionID) {
+                throw new Error('expected the seeded draft to carry a session id');
+            }
+
+            seed();
+            await waitForBatchedUpdates();
+
+            // Then the second draft carries a different id, so a screen still mounted over the first one can see
+            // that it no longer owns what is in the slot and skip its teardown
+            expect((await getApprovalWorkflowState())?.sessionID).not.toBe(firstSessionID);
+        });
+
+        it('should mint session ids that cannot repeat after a reload', async () => {
+            // Given a draft seeded before an app restart. APPROVAL_WORKFLOW is persisted, so that draft and its
+            // id outlive the process, while any counter the mint kept in memory does not
+            const seed = () =>
+                selectApprovalWorkflowForEdit({
+                    workflow: {members: [{email: employee1Email, displayName: 'Employee 1'}], approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                    defaultWorkflowMembers: [],
+                    usedApproverEmails: [],
+                    isFastEdit: true,
+                });
+
+            // When several further sessions are started, as they would be after that restart
+            // Seeded one at a time on purpose: each has to settle in Onyx before the next replaces it.
+            const sessionIDs: Array<string | undefined> = [];
+            for (let i = 0; i < 5; i++) {
+                seed();
+                await waitForBatchedUpdates();
+                sessionIDs.push((await getApprovalWorkflowState())?.sessionID);
+            }
+
+            // Then no id repeats. A counter restarting from zero would eventually hand a fresh session the very
+            // id a restored screen is still holding, letting that screen's teardown discard someone else's draft
+            expect(new Set(sessionIDs).size).toBe(sessionIDs.length);
+            expect(sessionIDs.every((sessionID) => typeof sessionID === 'string' && sessionID.length > 0)).toBe(true);
+        });
+
+        it('should report the live draft session id rather than one the mint kept in memory', async () => {
+            // Given a persisted draft restored into Onyx by a reload, with no seed call in this process to set
+            // whatever variable the mint would otherwise be tracking
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}],
+                isFastEdit: true,
+                sessionID: 'restored-session-id',
+            });
+            await waitForBatchedUpdates();
+
+            // When a teardown asks which session currently owns the draft
+            const liveSessionID = getApprovalWorkflowSessionID();
+
+            // Then it gets the restored draft's own id. Reading a process-local variable instead would report
+            // nothing here, and the restored screen would refuse to discard the very draft it owns
+            expect(liveSessionID).toBe('restored-session-id');
+        });
+    });
+
+    describe('clearApprovalWorkflowFastEdit', () => {
+        it('should hand a fast-edit draft back to the edit page without disturbing the rest of it', async () => {
+            // Given a fast-edit draft that the edit page has picked up, which happens when a refresh or deep link
+            // lands on the edit route with an abandoned fast edit still in Onyx
+            const members = [{email: employee1Email, displayName: 'Employee 1'}];
+
+            selectApprovalWorkflowForEdit({
+                workflow: {members, approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdates();
+
+            // When the edit page claims ownership of it
+            clearApprovalWorkflowFastEdit();
+            await waitForBatchedUpdates();
+
+            // Then only the flag drops, so the expenses-from sub-page stops saving on its own
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.isFastEdit).toBe(false);
+            // Then the draft itself survives, because the edit page owns it from here and still needs the baseline
+            // to work out which members were removed when the admin finally presses Save
+            expect(approvalWorkflow?.members).toEqual(members);
+            expect(approvalWorkflow?.originalMembers).toEqual(members);
+            expect(approvalWorkflow?.action).toBe(CONST.APPROVAL_WORKFLOW.ACTION.EDIT);
+        });
+    });
+
+    describe('validateFastEditApprovalWorkflow', () => {
+        it('should ignore approver-level state the expenses-from page cannot fix', async () => {
+            // Given a draft whose approver is both a circular reference and carries an approvalLimit with no
+            // overLimitForwardsTo. Both fail the whole-workflow validateApprovalWorkflow, and neither has a field
+            // on the expenses-from page
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner', isCircularReference: true, approvalLimit: 100}],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // When a fast edit validates it before saving
+            const isValid = validateFastEditApprovalWorkflow(currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then it passes with no errors recorded, because rejecting here would dead-end every fast edit on
+            // such a policy behind an alert the admin has no field to act on
+            expect(isValid).toBe(true);
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toBeUndefined();
+        });
+
+        it('should reject an empty member list on a non-default workflow and record a translatable error', async () => {
+            // Given a corrupted draft for a non-default workflow that has lost every member
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}],
+                isDefault: false,
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // When a fast edit validates it before saving
+            const isValid = validateFastEditApprovalWorkflow(currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then it is rejected and the error is left on the draft as a translation key, because saving would
+            // write the workflow back empty and the footer needs something it can render to the admin
+            expect(isValid).toBe(false);
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toEqual({members: 'common.error.fieldRequired'});
+        });
+
+        it('should still reject a missing approver slot, which the save would write back truncated', async () => {
+            // Given a corrupted draft with a hole in its approver chain
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}, undefined],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // When a fast edit validates it before saving
+            const isValid = validateFastEditApprovalWorkflow(currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then it is rejected, because unlike the approver-level rules above this one is structural: saving
+            // would write the chain back truncated rather than merely imperfect.
+            // Asserted key by key rather than with an object literal, whose `approver-1` property name would
+            // trip @typescript-eslint/naming-convention.
+            expect(isValid).toBe(false);
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(Object.keys(approvalWorkflow?.errors ?? {})).toEqual(['approver-1']);
+            expect(approvalWorkflow?.errors?.['approver-1']).toBe('common.error.fieldRequired');
+        });
+
+        it('should clear a previous run of errors once the workflow validates', async () => {
+            // Given a draft that failed validation once and still carries that error, then had the problem fixed
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {...currentApprovalWorkflow, errors: {members: 'common.error.fieldRequired'}});
+            await waitForBatchedUpdates();
+
+            // When the admin presses Save again and it validates
+            const isValid = validateFastEditApprovalWorkflow(currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the stale error is gone rather than merged over, so the footer stops showing an alert about a
+            // problem the admin already fixed
+            expect(isValid).toBe(true);
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toBeUndefined();
         });
     });
 
@@ -775,6 +1016,59 @@ describe('actions/Workflow', () => {
             // Then approvalMode should be BASIC because no forwardsTo chain remains
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should leave the draft alone when the caller opts out of clearing it', async () => {
+            mockFetch.pause();
+
+            // Given a fast-edit save that is queued while a draft sits in APPROVAL_WORKFLOW. It always opts out
+            // of clearing, because it writes before navigating and the screen it is leaving is still rendering
+            // that draft. The default clearing behavior is covered by the surrounding tests
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, role: 'user', submitsTo: ownerEmail},
+                },
+            });
+
+            const members = [{email: employee1Email, displayName: employee1Email}];
+            const approvers = [{email: employee2Email, displayName: employee2Email}];
+            const approvalWorkflow = {
+                members,
+                approvers,
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: approvers,
+            };
+            // Stands in for the draft the screen being left behind is still rendering.
+            const seededDraft: ApprovalWorkflowOnyx = {...INITIAL_APPROVAL_WORKFLOW, members, approvers};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, seededDraft);
+            await waitForBatchedUpdates();
+
+            // When the save runs with shouldClearApprovalWorkflowDraft off
+            updateApprovalWorkflow(approvalWorkflow, [], [], policy, false);
+            await waitForBatchedUpdates();
+
+            // Then the optimistic data leaves APPROVAL_WORKFLOW untouched, so the write can land before the
+            // transition without blanking the list on the page that is still sliding away
+            const draft = await getApprovalWorkflowState();
+            expect(draft?.members).toEqual(members);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();

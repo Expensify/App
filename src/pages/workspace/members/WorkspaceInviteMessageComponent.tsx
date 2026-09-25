@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,9 @@ import {
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
+import {filterRulesForPolicy} from '@libs/WorkflowUtils';
+
+import saveFastEditApprovalWorkflow from '@pages/workspace/workflows/approvals/saveFastEditApprovalWorkflow';
 
 import variables from '@styles/variables';
 
@@ -49,10 +53,11 @@ import type {Route as Routes} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
+import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
@@ -86,6 +91,8 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name;
 
+    const {isBetaEnabled} = usePermissions();
+
     const backToPath = typeof backTo === 'string' ? (backTo.split('?').at(0) ?? '') : '';
     const isWorkflowApprovalExpensesFromRoute = backToPath.endsWith('/expenses-from');
     const headerTitle = isWorkflowApprovalExpensesFromRoute ? translate('workflowsExpensesFromPage.title') : translate('workspace.inviteMessage.confirmDetails');
@@ -95,6 +102,15 @@ function WorkspaceInviteMessageComponent({
     const [allPersonalDetails] = useAllPersonalDetails();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    // Only read when this page is finishing an approval-workflow fast edit, but useOnyx can't be conditional.
+    // The draft carries `isFastEdit` and the removed-members baseline. The rules collection is what the
+    // MULTIPLE_APPROVERS save path needs. See saveFastEditApprovalWorkflow below.
+    // Scope the rules to this policy the way the workflow pages do: this component also serves the generic member
+    // invite flow, and subscribing to the whole collection would rerender every one of those on any policy's rule
+    // change. updateApprovalWorkflowRules is given the same pre-filtered collection the edit page passes it.
+    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID), [policyID]);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
 
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
@@ -119,7 +135,14 @@ function WorkspaceInviteMessageComponent({
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const isControl = isControlPolicy(policy);
-    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled;
+    // A "+N more" fast edit detours here only to create the member it is about to add to the workflow it is
+    // editing, and it saves that workflow itself on the way out. The Approver row is seeded from the policy's
+    // *default* approver and feeds `addMembersToWorkspace` as `submitsTo`, which fights that save: the legacy path
+    // overwrites the admin's pick with the workflow's first approver, and the MULTIPLE_APPROVERS path leaves
+    // `submitsTo` pointing at the row while the rules route the member to the edited workflow, so the two stores
+    // disagree. This path is not choosing an approver, so don't offer the row at all.
+    const isFastEditWorkflowInvite = isWorkflowApprovalExpensesFromRoute && !!approvalWorkflow?.isFastEdit;
+    const shouldShowApproverRow = isControl && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED && policy?.areWorkflowsEnabled && !isFastEditWorkflowInvite;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -181,6 +204,36 @@ function WorkspaceInviteMessageComponent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
+    /**
+     * Finishes an approval-workflow fast edit that detoured through this page to invite a new member.
+     *
+     * A "+N more" fast edit opens `expenses-from` with no nested `backTo`, so no edit page is waiting to save the
+     * workflow. The expenses-from Save handler returned early at its `usersToInvite` branch to run this invite.
+     * Without this, the invite succeeds and the member the admin picked never gets a `submitsTo`, so the workflow
+     * comes back unchanged. The draft still holds the pending selection: the expenses-from cleanup skips its
+     * teardown while handing off to this page.
+     *
+     * @returns whether the save was performed. `false` leaves the caller's existing navigation in charge.
+     */
+    const completeFastEditApprovalWorkflowSave = () => {
+        if (!approvalWorkflow?.isFastEdit) {
+            return false;
+        }
+
+        // The same helper the expenses-from page's own Save runs, so the two screens can't drift: it validates with
+        // the fast-edit scope (the approver rules belong to the edit page, and this form has no field to point one
+        // of their errors at either), queues the write before navigating, and tears the draft down afterwards. A
+        // structurally broken draft is the only thing that fails here, in which case falling through to the
+        // approver step lets the admin finish the workflow by hand.
+        return saveFastEditApprovalWorkflow({
+            approvalWorkflow,
+            policy,
+            rules: rulesCollection,
+            isMultipleApproversBetaEnabled: isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS),
+            navigateBack: () => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
+        });
+    };
+
     const sendInvitation = () => {
         Keyboard.dismiss();
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
@@ -215,12 +268,19 @@ function WorkspaceInviteMessageComponent({
         if (isWorkflowApprovalExpensesFromRoute) {
             const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
+                // An edit-page session: that page is still in the stack and owns the save.
                 Navigation.goBack(nestedBackTo as Routes);
-            } else {
-                // forceReplace so the invite page is removed from the stack. Otherwise it stays
-                // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
+                return;
             }
+
+            // A fast edit has no edit page behind it, so this is the last chance to save the workflow.
+            if (completeFastEditApprovalWorkflowSave()) {
+                return;
+            }
+
+            // forceReplace so the invite page is removed from the stack. Otherwise it stays
+            // underneath the Approver page and an iOS swipe-back reopens the invite confirm page.
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0), {forceReplace: true});
             return;
         }
 
