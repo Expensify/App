@@ -472,6 +472,9 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
         // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
         // response that replaces the routes carries the matching decision with it.
         commuterExclusionPreview: null,
+
+        // A waypoint edit means the trip no longer matches a reused route, so route fetching must run again
+        isReusedRoute: null,
     });
 }
 

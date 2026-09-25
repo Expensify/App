@@ -557,6 +557,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
 
+        /** Draft-only marker set when waypoints come from a reused route, so the client must not refetch the route from the map SDK */
+        isReusedRoute?: boolean;
+
         /**
          * Tracks whether the user has explicitly set an amount in the new manual expense flow.
          * A fresh draft transaction starts at amount=0 which is indistinguishable from an intentional $0 entry,

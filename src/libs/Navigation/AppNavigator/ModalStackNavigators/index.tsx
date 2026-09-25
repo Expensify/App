@@ -201,6 +201,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCategory').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCategoryCreate').default,
     [SCREENS.MONEY_REQUEST.STEP_VENDOR]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepVendor').default,
+    [SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepReuseRoute').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDate').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDescription').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDistance').default,
