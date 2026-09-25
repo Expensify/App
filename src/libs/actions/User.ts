@@ -910,14 +910,12 @@ function subscribeToUserEvents(
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        // Anonymous public-room sessions already have report actions from OpenReport. A full ReconnectApp
-        // uses setCollection and clears them, which flashes the loading skeleton until GetNewerActions
-        // refills. Pass lastUpdateID so reconnect stays incremental for anonymous users (#97847).
-        if (isAnonymousUser()) {
-            reconnectApp(lastUpdateIDAppliedToClient);
-        } else {
-            reconnectApp();
-        }
+        // This event is broadcast on the account-wide channel, so every signed-in device receives it, not only
+        // the one whose updateID is missing. A full ReconnectApp uses setCollection and clears report actions the
+        // device already holds (#97847, #100791). Pass lastUpdateID so the server can reply incrementally; it
+        // still returns full data when it can't serve that range, and we fall back to a full reconnect when the
+        // client has no lastUpdateID yet.
+        reconnectApp(lastUpdateIDAppliedToClient);
         return Promise.resolve();
     });
 }
