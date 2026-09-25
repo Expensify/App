@@ -4,8 +4,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
 import CONST from '@src/CONST';
 
@@ -32,10 +35,14 @@ function YearPickerModal({isVisible, years, currentYear, onYearChange, onClose, 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
-    const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
-    const headerMessage = !yearsList.length ? translate('common.noResultsFound') : '';
-    // Copy before sorting: with an empty search `yearsList` is the `years` prop itself, and sorting it in place would mutate the caller's state during render.
-    const data = [...yearsList].sort((a, b) => b.value - a.value);
+    // Freeze the year selected when the picker opened so it stays pinned to the top for the whole open cycle, even as the live selection changes.
+    const initialYear = useInitialSelection(resolvedCurrentYear, {isVisible});
+    // Pin the frozen initial year to the top of the full sorted list before search filtering, so it stays pinned while searching.
+    // Copy before sorting so we don't mutate the caller's `years` prop during render.
+    const sortedYears = [...years].sort((a, b) => b.value - a.value);
+    const orderedYears = moveInitialSelectionToTop(sortedYears, [String(initialYear)]);
+    const data = searchText === '' ? orderedYears : orderedYears.filter((year) => year.text?.includes(searchText));
+    const headerMessage = !data.length ? translate('common.noResultsFound') : '';
 
     useEffect(() => {
         if (isVisible) {
@@ -83,7 +90,9 @@ function YearPickerModal({isVisible, years, currentYear, onYearChange, onClose, 
                         onYearChange?.(option.value);
                     }}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={resolvedCurrentYear.toString()}
+                    initiallyFocusedItemKey={initialYear.toString()}
+                    shouldScrollToFocusedIndexOnMount={false}
+                    shouldUpdateFocusedIndex
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     shouldStopPropagation

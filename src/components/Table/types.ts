@@ -67,7 +67,7 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     /** Whether this column's values come from a fixed set (a role, a status), so it always fits them in full and never truncates. */
     shouldFitContent?: boolean;
 
-    /** Smallest width this column may be squeezed to. Defaults to a readable width, or the column's content width when that is narrower. */
+    /** Smallest width this column may be squeezed to, capped at its content width. Defaults to a readable width. */
     minWidth?: number;
 
     /**
@@ -199,6 +199,13 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
          * false so central-pane tables keep their existing behavior.
          */
         shouldEnableSelectionInNarrowPaneModal?: boolean;
+
+        /**
+         * Whether selection is always on, so checkboxes show from the start instead of being hidden behind a long
+         * press on small screens. Set this for a table whose only purpose is picking rows. Such a table also leaves
+         * the app wide selection mode untouched, so no other screen can clear its selection.
+         */
+        shouldAlwaysEnableSelection?: boolean;
 
         /** Whether the selection survives a change to the search string or the filters, e.g. when rows are confirmed in one batch. */
         shouldPreserveSelectionOnSearchAndFilter?: boolean;

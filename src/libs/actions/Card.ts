@@ -32,6 +32,8 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
+import deferNavigate from '@libs/Navigation/deferNavigate';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -40,6 +42,7 @@ import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
 import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
@@ -227,6 +230,19 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
     };
 
     API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, buildCardLoadingOnyxData(cardID));
+}
+
+/**
+ * Opens the confirm or deny flow for a digital wallet addition. Every entry point goes through here so they share one
+ * URL and `backTo` keeps the page they came from underneath. This card's details page is already where the route goes
+ * back to, so it sends no `backTo`.
+ */
+function navigateToAddCardToDigitalWallet(cardID: number) {
+    const isOpenedOverCardDetails = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(cardID))}`;
+    const backTo = isOpenedOverCardDetails ? undefined : Navigation.getActiveRoute();
+
+    // Called straight from a press handler, so defer it and let the touch finish before the RHP mounts.
+    deferNavigate(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.getRoute(String(cardID), backTo)));
 }
 
 /**
@@ -2028,6 +2044,7 @@ export {
     openCardDetailsPage,
     getExpensifyCardPendingWalletApproval,
     approveDigitalWalletCardAddition,
+    navigateToAddCardToDigitalWallet,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,
