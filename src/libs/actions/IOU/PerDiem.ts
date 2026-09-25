@@ -68,8 +68,8 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import resolveWriteBarrier from './resolveWriteBarrier';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -1199,7 +1199,9 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         {onWriteStarted: () => notifyNewAction(notifyReportID ?? chatReport.reportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam)},
     );
 
-    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 
     return {iouReport, transactionID: transaction.transactionID};
 }
@@ -1222,7 +1224,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         getCurrencyDecimals,
         writeBarrier,
     } = submitPerDiemExpenseInformation;
-    const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
+    const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable, isFromGlobalCreate} = transactionParams;
 
     if (isEmptyObject(policy) || !hasCompletePerDiemCustomUnit(customUnit)) {
         return;
@@ -1282,6 +1284,10 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
         {onWriteStarted: () => notifyNewAction(chatReport.reportID, undefined, true)},
     );
+
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 }
 
 export {
