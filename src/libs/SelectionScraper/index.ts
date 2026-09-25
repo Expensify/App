@@ -116,7 +116,6 @@ const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean): ChildNod
         if (dom.parent instanceof Element && dom.parent?.attribs?.[tagAttribute] === 'email-with-break-opportunities') {
             clonedDom.data = clonedDom.data.replaceAll('\u200b', '');
         }
-
         return clonedDom;
     }
 
@@ -129,6 +128,10 @@ const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean): ChildNod
             if (markdownElements.has(dom.attribs[tagAttribute])) {
                 clonedDom.name = dom.attribs[tagAttribute];
             }
+        } else if (dom.name === 'button') {
+            // A pressable row can render as a <button> on web. Keep it block-level so the HTML flavor matches what Safari
+            // already ships and `htmlToMarkdown` still emits a break between messages.
+            clonedDom.name = 'div';
         } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement && child) {
             // We are excluding divs that are children of our editor element and have only one child to prevent
             // additional newlines from being added in the HTML to Markdown conversion process.
