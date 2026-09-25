@@ -43,12 +43,14 @@ function HeaderTitle({title, subtitle = '', titleColor, titleStyles, stepCounter
             dialogLabel={title}
             shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
         >
-            <HeaderTitleComponent.Text
-                numberOfLines={1}
-                style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
-            >
-                {title}
-            </HeaderTitleComponent.Text>
+            {!!title && (
+                <HeaderTitleComponent.Text
+                    numberOfLines={1}
+                    style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                >
+                    {title}
+                </HeaderTitleComponent.Text>
+            )}
             {!!resolvedSubtitle && <HeaderTitleComponent.Subtitle>{resolvedSubtitle}</HeaderTitleComponent.Subtitle>}
             {!!subTitleLink && <HeaderTitleComponent.SubtitleLink>{subTitleLink}</HeaderTitleComponent.SubtitleLink>}
         </HeaderTitleComponent>
