@@ -104,7 +104,6 @@ describe('DynamicReportDetailsPage', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DynamicReportDetailsPage
-                        betas={[]}
                         isLoadingReportData={false}
                         navigation={navigationMock}
                         policy={undefined}
@@ -178,7 +177,6 @@ describe('DynamicReportDetailsPage', () => {
                 <CurrentUserPersonalDetailsContext.Provider value={{accountID: currentUserAccountID}}>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            betas={[]}
                             isLoadingReportData={false}
                             navigation={navigationMock}
                             policy={undefined}

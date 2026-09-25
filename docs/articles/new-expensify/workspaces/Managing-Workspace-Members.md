@@ -24,11 +24,12 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 To invite someone to your workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Click **Invite Member**.
-3. Search for the user by name, email, or phone number.
-4. (Optional) Click **Role** to change the default role (Member).
-5. (Optional) Add a message to the invitation.
-6. Click **Invite**.
+2. Click **Invite member**.
+3. Search for the user by name, email, or phone number, then select them from the list.
+4. Click **Next** to open **Confirm details**.
+5. (Optional) Click **Role** to change the default role (Member).
+6. (Optional) Add a **Message** to the invitation.
+7. Click **Invite**.
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 

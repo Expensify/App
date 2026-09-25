@@ -2,9 +2,9 @@ import {useSession} from '@components/OnyxListItemProvider';
 import SearchStaticList from '@components/Search/SearchStaticList';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getValidGroupBy, isTransactionSearchType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -17,6 +17,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 
+import useIsVendorColumnAvailable from './useIsVendorColumnAvailable';
 import useOnyx from './useOnyx';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 
@@ -67,9 +68,10 @@ function useSearchOverlay({
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
-    const [isSearchReady, setIsSearchReady] = useState(() => !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !Navigation.getIsFullscreenPreInsertedUnderRHP());
+    const [isSearchReady, setIsSearchReady] = useState(() => !hasPendingSearchWrite() && !Navigation.getIsFullscreenPreInsertedUnderRHP());
 
     const onSearchContentReady = () => {
         setIsSearchReady(true);
@@ -79,7 +81,7 @@ function useSearchOverlay({
     // (e.g. a subsequent submit flow while Search stays mounted).
     useFocusEffect(
         useCallback(() => {
-            const hasPending = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            const hasPending = hasPendingSearchWrite();
             const hasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
             if (!hasPending && !hasPreInserted) {
                 return;
@@ -123,6 +125,8 @@ function useSearchOverlay({
             shouldUseStrictDefaultExpenseColumns,
             fallbackPolicyID: policyForMovingExpensesID,
             sortBy: queryJSON.sortBy,
+            shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+            isVendorColumnAvailable,
         });
     })();
 

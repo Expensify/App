@@ -3,7 +3,7 @@
  */
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
-import {useSearchQueryActions, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -16,16 +16,17 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import {getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
-import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
 
@@ -61,13 +62,14 @@ import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
-type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Globe' | 'Gear', IconAsset>;
+type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'PieChart' | 'Building' | 'Globe' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
 const SEARCH_ROUTER_ICON_NAMES = [
     'Home',
     'Inbox',
     'ReceiptMultiple',
+    'PieChart',
     'Building',
     'Globe',
     'Gear',
@@ -87,6 +89,8 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Clock',
     'InvoiceGeneric',
     'Bolt',
+    'Bot',
+    'UserPlus',
 ] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
@@ -98,11 +102,13 @@ type BuildTopLevelNavigationItemsParams = {
         home: string;
         inbox: string;
         spend: string;
+        insights: string;
         workspaces: string;
         domains: string;
         account: string;
     };
     icons: TopLevelNavigationIcons;
+    isInsightsPageBetaEnabled: boolean;
     getSpendRoute: () => Route;
     getDestinationText: (destination: string) => string;
 };
@@ -132,8 +138,10 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Whether pending offline state should be considered by Workspace visibility rules. */
     isOffline: boolean;
 
-    isRulesRevampBetaEnabled: boolean;
     isVendorMatchingBetaEnabled: boolean;
+
+    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
+    isRecruitingBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
@@ -199,7 +207,7 @@ type BuildAccountNavigationItemsParams = {
 };
 
 // Tab buttons own stateful navigation behavior and do not expose reusable descriptors, so Search Router keeps deterministic destination actions here.
-function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
+function buildTopLevelNavigationItems({labels, icons, isInsightsPageBetaEnabled, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return [
         {
             text: getDestinationText(labels.home),
@@ -222,6 +230,17 @@ function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinat
             keyForList: 'topLevelSpend',
             matchTerms: [labels.spend],
         },
+        ...(isInsightsPageBetaEnabled
+            ? [
+                  {
+                      text: getDestinationText(labels.insights),
+                      singleIcon: icons.PieChart,
+                      action: () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)),
+                      keyForList: 'topLevelInsights',
+                      matchTerms: [labels.insights],
+                  },
+              ]
+            : []),
         {
             text: getDestinationText(labels.workspaces),
             singleIcon: icons.Building,
@@ -270,8 +289,8 @@ function buildWorkspaceNavigationItems({
     currentUserLogin,
     icons,
     isOffline,
-    isRulesRevampBetaEnabled,
     isVendorMatchingBetaEnabled,
+    isRecruitingBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -289,8 +308,8 @@ function buildWorkspaceNavigationItems({
                 currentUserLogin,
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
-                isRulesRevampBetaEnabled,
                 isVendorMatchingBetaEnabled,
+                isRecruitingBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -378,8 +397,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const typeMenuSections = useSearchTypeMenuSections(shouldWatchForApprovals);
-    const {setCurrentSearchKey} = useSearchQueryActions();
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     const topLevelItems = buildTopLevelNavigationItems({
@@ -387,11 +405,13 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             home: translate('common.home'),
             inbox: translate('common.inbox'),
             spend: translate('common.spend'),
+            insights: translate('common.insights'),
             workspaces: translate('common.workspacesTabTitle'),
             domains: translate('common.domains'),
             account: translate('initialSettingsPage.account'),
         },
         icons,
+        isInsightsPageBetaEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
         getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuerySelector(searchFilters)),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
@@ -410,8 +430,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         ),
         getItemText: (item) => translate(item.translationPath),
         getDestinationText: (destination) => getGoToText(translate, destination),
-        onSelect: (searchKey, searchQuery) =>
-            navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions, setCurrentSearchKey),
+        onSelect: (searchKey, searchQuery) => navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions),
     });
 
     const workspaceItems = buildWorkspaceNavigationItems({
@@ -420,8 +439,8 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         currentUserLogin,
         icons,
         isOffline: !!isOffline,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),

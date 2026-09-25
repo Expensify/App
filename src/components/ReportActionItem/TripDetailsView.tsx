@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
 import {formatCancelledDescription, formatTransitLocationLabel, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -165,7 +167,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
             interactive
-            onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
@@ -247,11 +248,13 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         [translate],
     );
 
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReport?.reportID}`);
+
     if (!tripRoomReport) {
         return null;
     }
 
-    const reservationsData = getPNRReservationDataFromTripReport(tripRoomReport, tripTransactions);
+    const reservationsData = getPNRReservationDataFromTripReport(tripRoomReport, reportNameValuePairs, tripTransactions);
 
     return (
         <View style={[styles.flex1, styles.ph5]}>

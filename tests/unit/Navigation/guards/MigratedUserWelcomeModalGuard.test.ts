@@ -46,6 +46,7 @@ describe('MigratedUserWelcomeModalGuard', () => {
         isLoading: false,
         currentUrl: '',
         isSupportalSession: false,
+        isDelegateSession: false,
     };
 
     beforeEach(async () => {
@@ -130,6 +131,23 @@ describe('MigratedUserWelcomeModalGuard', () => {
         await waitForBatchedUpdates();
 
         const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, {...defaultContext, isSupportalSession: true});
+        expect(result.type).toBe('ALLOW');
+    });
+
+    it('should allow during a copilot session even when eligible for the migrated user welcome modal', async () => {
+        // Given the delegator account is in the nudge migration and has not dismissed the modal
+        await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            nudgeMigration: {
+                timestamp: new Date(),
+                cohort: 'test',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        // When a navigation is evaluated during a copilot session
+        const result = MigratedUserWelcomeModalGuard.evaluate(mockState, mockAction, {...defaultContext, isDelegateSession: true});
+
+        // Then the guard allows it, because the modal belongs to the delegator and a copilot must not see or dismiss it
         expect(result.type).toBe('ALLOW');
     });
 
@@ -466,6 +484,24 @@ describe('MigratedUserWelcomeModalGuard', () => {
             onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, true);
             await waitForBatchedUpdates();
 
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not navigate during a copilot session', async () => {
+            // Given the delegator account is in the nudge migration and has not dismissed the modal
+            await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                nudgeMigration: {
+                    timestamp: new Date(),
+                    cohort: 'test',
+                },
+            });
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            // When the app finishes loading in a copilot session
+            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123, authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE}, false);
+
+            // Then the modal is not opened, because it belongs to the delegator and a copilot must not see or dismiss it
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 

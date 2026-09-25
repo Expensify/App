@@ -2,18 +2,17 @@ import useOnyx from '@hooks/useOnyx';
 
 import {
     isActionableVirtualExpensifyCard,
-    isCard,
+    isActiveExpensifyCard,
     isCardPendingActivate,
+    isCardPendingDigitalWalletApproval,
     isCardPendingIssue,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     isCardWithPotentialFraud,
-    isExpensifyCard,
 } from '@libs/CardUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getUnresolvedCardFraudAlertAction} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
@@ -30,10 +29,15 @@ function useTimeSensitiveCards() {
     const cardsNeedingActivation: Card[] = [];
     const cardsWithFraud: Card[] = [];
     const virtualCardsNeedingPersonalDetails: Card[] = [];
+    const cardsPendingDigitalWalletApproval: Card[] = [];
 
     for (const card of Object.values(cards ?? {})) {
-        if (!isCard(card) || !isExpensifyCard(card) || !CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state)) {
+        if (!isActiveExpensifyCard(card)) {
             continue;
+        }
+
+        if (isCardPendingDigitalWalletApproval(card)) {
+            cardsPendingDigitalWalletApproval.push(card);
         }
 
         const fraudAlertReportID = card.nameValuePairs?.possibleFraud?.fraudAlertReportID;
@@ -73,16 +77,19 @@ function useTimeSensitiveCards() {
     const shouldShowActivateCard = cardsNeedingActivation.length > 0;
     const shouldShowReviewCardFraud = cardsWithFraud.length > 0;
     const shouldShowAddVirtualCardPersonalDetails = virtualCardsNeedingPersonalDetails.length > 0;
+    const shouldShowConfirmDigitalWalletAddition = cardsPendingDigitalWalletApproval.length > 0;
 
     return {
         shouldShowAddShippingAddress,
         shouldShowActivateCard,
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
+        shouldShowConfirmDigitalWalletAddition,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
         virtualCardsNeedingPersonalDetails,
+        cardsPendingDigitalWalletApproval,
     };
 }
 
