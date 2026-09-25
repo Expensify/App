@@ -12782,7 +12782,6 @@ describe('SearchUIUtils', () => {
             backTo,
             currentUserLogin,
             currentUserAccountID,
-            betas: undefined,
             personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
@@ -12805,7 +12804,6 @@ describe('SearchUIUtils', () => {
                 conciergeChat: undefined,
                 currentUserLogin,
                 currentUserAccountID,
-                betas: undefined,
                 iouReport: report1,
                 iouReportAction: reportAction1,
                 transaction: undefined,
@@ -12814,6 +12812,51 @@ describe('SearchUIUtils', () => {
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
             });
+        });
+
+        test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
+            // Given an unreported expense owned by another user
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction});
+
+            // Then no optimistic data, transaction thread, or navigation is created
+            expect(targetReportID).toBeUndefined();
+            expect(setOptimisticDataForTransactionThreadPreview).not.toHaveBeenCalled();
+            expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
+        test("Should create a transaction thread in the current user's self DM for their own unreported expense", () => {
+            // Given an unreported expense owned by the current user
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the transaction thread is created using the unreported transaction data
+            expect(targetReportID).toBe(threadReportID);
+            expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentUserAccountID,
+                    iouReport: undefined,
+                    iouReportAction: unreportedTransaction.reportAction,
+                    transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                }),
+            );
         });
 
         test('Should not navigate if shouldNavigate = false', () => {

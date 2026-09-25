@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -117,7 +117,7 @@ function PreferencesPage() {
                                     />
                                 </View>
                             </View>
-                            <MenuItemSectionRow
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
                             >
@@ -127,8 +127,8 @@ function PreferencesPage() {
                                 >
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
-                            </MenuItemSectionRow>
-                            <MenuItemSectionRow
+                            </MenuItemSectionRoot>
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
                             >
@@ -139,8 +139,8 @@ function PreferencesPage() {
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
                                 {(!preferredLocale || !isFullySupportedLocale(preferredLocale)) && <MenuItem.HelpText message={translate('languagePage.aiGenerated')} />}
-                            </MenuItemSectionRow>
-                            <MenuItemSectionRow
+                            </MenuItemSectionRoot>
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
                             >
@@ -150,8 +150,8 @@ function PreferencesPage() {
                                 >
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
-                            </MenuItemSectionRow>
-                            <MenuItemSectionRow
+                            </MenuItemSectionRoot>
+                            <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             >
@@ -161,7 +161,7 @@ function PreferencesPage() {
                                 >
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
-                            </MenuItemSectionRow>
+                            </MenuItemSectionRoot>
                         </View>
                     </Section>
                 </View>

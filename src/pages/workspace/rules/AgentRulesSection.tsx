@@ -1,7 +1,7 @@
 import AgentRulesList from '@components/AgentRules/AgentRulesList';
 import useAgentRulesSectionHeader from '@components/AgentRules/useAgentRulesSectionHeader';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Section from '@components/Section';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -59,7 +59,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
             )}
             {/* The row stays pressable when the user cannot write rules. Pressing it explains why, so it only looks disabled. */}
             <View style={[!hasRules && styles.mt6, styles.mbn3, !canWriteRules && styles.buttonOpacityDisabled]}>
-                <MenuItemSectionRow
+                <MenuItemSectionRoot
                     onPress={() => {
                         if (!canWriteRules) {
                             showReadOnlyModal();
@@ -77,7 +77,7 @@ function AgentRulesSection({policyID, canWriteRules, showReadOnlyModal}: AgentRu
                             <MenuItem.Title>{translate('workspace.rules.agentRules.addRule')}</MenuItem.Title>
                         </MenuItem.Content>
                     </MenuItem.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </View>
         </Section>
     );

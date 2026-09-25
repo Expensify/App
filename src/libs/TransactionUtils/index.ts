@@ -1,3 +1,6 @@
+/* eslint-disable max-lines */
+// TransactionUtils aggregates the shared transaction helpers, so its length grows with the number of utilities it collects rather than with any one
+// of them. Splitting it is a repo-wide refactor, so the rule is suppressed here the same way it is in ReportUtils, ReportActionsUtils and SearchUIUtils.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
@@ -725,7 +728,10 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
+    // A zero amount is a deliberate, valid choice for an unreported expense, so it isn't a missing field there. It is never
+    // a missing field on an expense report either, where only the merchant is checked.
+    const isZeroAmountAllowed = isFromExpenseReport || isExpenseUnreported(transaction);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isZeroAmountAllowed && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -2188,7 +2194,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: 
 }
 
 /**
- * Check if user should see broken connection violation warning based on selected transactions.
+ * Check if user should see broken connection violation warning based on selected transactions. RTER violations stop being actionable once the report is paid, so they are hidden on settled reports.
  */
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactions: Transaction[],
@@ -2215,7 +2221,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, true, transaction);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, currentUserAccountID, false, transaction);
         });
     });
 
@@ -2317,6 +2323,10 @@ function shouldShowViolation(
     }
 
     if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, iouReport)) {
+        return false;
+    }
+
+    if (violationName === CONST.VIOLATIONS.DUPLICATED_TRANSACTION && isIOUReport(iouReport)) {
         return false;
     }
 
@@ -2483,7 +2493,7 @@ function isDuplicate(
     policy: OnyxEntry<Policy>,
     transactionViolation: OnyxEntry<TransactionViolations>,
 ): boolean {
-    if (!transaction) {
+    if (!transaction || !shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.DUPLICATED_TRANSACTION, currentUserEmail, currentUserAccountID, true, transaction)) {
         return false;
     }
 
@@ -2593,6 +2603,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
+            (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }

@@ -1,7 +1,7 @@
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
@@ -32,7 +32,7 @@ function Enable2FACard() {
             <View style={styles.mb6}>
                 <Text>{translate('connectBankAccountStep.enable2FAText')}</Text>
             </View>
-            <MenuItemSectionRow onPress={() => Navigation.navigate(getTwoFactorAuthRoute())}>
+            <MenuItemSectionRoot onPress={() => Navigation.navigate(getTwoFactorAuthRoute())}>
                 <MenuItem.Row>
                     <MenuItem.Leading>
                         <MenuItem.Icon src={icons.Shield} />
@@ -44,7 +44,7 @@ function Enable2FACard() {
                         <MenuItem.Chevron />
                     </MenuItem.Trailing>
                 </MenuItem.Row>
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
         </Section>
     );
 }

@@ -8,7 +8,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -277,7 +277,7 @@ function ProfilePage() {
                             {publicOptions.map((detail) => {
                                 const {pageRoute} = detail;
                                 return (
-                                    <MenuItemSectionRow
+                                    <MenuItemSectionRoot
                                         key={detail.testID}
                                         onPress={pageRoute ? () => Navigation.navigate(pageRoute) : undefined}
                                         testID={detail?.testID}
@@ -294,7 +294,7 @@ function ProfilePage() {
                                                 </>
                                             )}
                                         </MenuItemField.Row>
-                                    </MenuItemSectionRow>
+                                    </MenuItemSectionRoot>
                                 );
                             })}
                             <Button

@@ -1,6 +1,6 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 
@@ -36,14 +36,14 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures
             isCentralPane
         >
             <OfflineWithFeedback pendingAction={policy?.pendingFields?.timeTrackingDefaultRate}>
-                <MenuItemSectionRow onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}>
+                <MenuItemSectionRoot onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}>
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
                         value={policy ? convertToDisplayString(getDefaultTimeTrackingRate(policy), policy.outputCurrency) : undefined}
                     >
                         {canWriteMoreFeatures && <MenuItem.Chevron />}
                     </MenuItemField.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
         </Section>
     );

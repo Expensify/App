@@ -3,7 +3,7 @@ import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import TextPicker from '@components/TextPicker';
 
 import useLocalize from '@hooks/useLocalize';
@@ -92,7 +92,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 allowHTML
             />
 
-            <MenuItemSectionRow>
+            <MenuItemSectionRoot>
                 <MenuItem.Row>
                     <MenuItem.Content>
                         <MenuItem.Label>{translate('domain.samlConfigurationDetails.entityID')}</MenuItem.Label>
@@ -103,9 +103,9 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                         />
                     </MenuItem.Content>
                 </MenuItem.Row>
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
 
-            <MenuItemSectionRow>
+            <MenuItemSectionRoot>
                 <MenuItem.Row>
                     <MenuItem.Content>
                         <MenuItem.Label>{translate('domain.samlConfigurationDetails.nameIDFormat')}</MenuItem.Label>
@@ -116,9 +116,9 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                         />
                     </MenuItem.Content>
                 </MenuItem.Row>
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
 
-            <MenuItemSectionRow>
+            <MenuItemSectionRoot>
                 <MenuItem.Row>
                     <MenuItem.Content>
                         <MenuItem.Label>{translate('domain.samlConfigurationDetails.loginUrl')}</MenuItem.Label>
@@ -134,9 +134,9 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                     message={translate('domain.samlConfigurationDetails.acsUrl')}
                     style={[styles.mt3, styles.mb0]}
                 />
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
 
-            <MenuItemSectionRow>
+            <MenuItemSectionRoot>
                 <MenuItem.Row>
                     <MenuItem.Content>
                         <MenuItem.Label>{translate('domain.samlConfigurationDetails.logoutUrl')}</MenuItem.Label>
@@ -152,9 +152,9 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                     message={translate('domain.samlConfigurationDetails.sloUrl')}
                     style={[styles.mt3, styles.mb0]}
                 />
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
 
-            <MenuItemSectionRow>
+            <MenuItemSectionRoot>
                 <MenuItem.Row>
                     <MenuItem.Content>
                         <MenuItem.Label>{translate('domain.samlConfigurationDetails.serviceProviderMetaData')}</MenuItem.Label>
@@ -166,10 +166,10 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                         />
                     </MenuItem.Content>
                 </MenuItem.Row>
-            </MenuItemSectionRow>
+            </MenuItemSectionRoot>
 
             {shouldShowScimToken && (
-                <MenuItemSectionRow>
+                <MenuItemSectionRoot>
                     <MenuItem.Row>
                         <MenuItem.Content>
                             <MenuItem.Label>{translate('domain.samlConfigurationDetails.oktaScimToken')}</MenuItem.Label>
@@ -178,7 +178,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                             </View>
                         </MenuItem.Content>
                     </MenuItem.Row>
-                </MenuItemSectionRow>
+                </MenuItemSectionRoot>
             )}
         </>
     );

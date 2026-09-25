@@ -2,7 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -141,14 +141,14 @@ function WorkspaceReportFieldsPage({
                                 onClose={clearTitleFieldError}
                             >
                                 <View style={styles.mt6}>
-                                    <MenuItemSectionRow onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
+                                    <MenuItemSectionRoot onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
                                         <MenuItemField.Row
                                             name={translate('workspace.reports.customNameTitle')}
                                             value={titleField?.defaultValue ? Str.htmlDecode(titleField.defaultValue) : undefined}
                                         >
                                             {canWriteReportFields && <MenuItem.Chevron />}
                                         </MenuItemField.Row>
-                                    </MenuItemSectionRow>
+                                    </MenuItemSectionRoot>
                                 </View>
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow

@@ -1,7 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -34,14 +34,13 @@ function Finish() {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: true});
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
@@ -79,7 +78,7 @@ function Finish() {
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
-                    <MenuItemSectionRow
+                    <MenuItemSectionRoot
                         onPress={() => {
                             Navigation.navigate(getTwoFactorAuthRoute());
                         }}
@@ -95,7 +94,7 @@ function Finish() {
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>
                         </MenuItem.Row>
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 </Section>
             </ScrollView>
         </ScreenWrapper>

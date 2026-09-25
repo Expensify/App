@@ -33,6 +33,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
@@ -97,7 +98,7 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
+import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
     getBillable,
@@ -147,7 +148,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -228,7 +229,7 @@ function MoneyRequestView({
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
     const [parentReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
     const parentReport = parentReportFromOnyx ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
@@ -283,7 +284,7 @@ function MoneyRequestView({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
-    const transactionViolations = useTransactionViolations(transaction?.transactionID, true, distanceOriginalPolicy ?? policy);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, false, distanceOriginalPolicy ?? policy);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -1153,6 +1154,7 @@ function MoneyRequestView({
     );
 
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTagList);
+    const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, transactionTag) : [];
 
     const [previousTransactionTag, setPreviousTransactionTag] = useState(transactionTag);
     const [previousTag, setPreviousTag] = useState<string | undefined>(undefined);
@@ -1171,12 +1173,7 @@ function MoneyRequestView({
 
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
-        let shouldShow = false;
-        if (hasDependentTags) {
-            shouldShow = shouldShowDependentTagList(index, transactionTag, tags);
-        } else {
-            shouldShow = !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
-        }
+        const shouldShow = hasDependentTags ? !!shouldShowTagList.at(index) : !!tagForDisplay || (canEdit && hasEnabledOptions(tags));
 
         if (!shouldShow) {
             return null;

@@ -35,7 +35,6 @@ function useAutoCreateTrackWorkspace() {
         onboardingAdminsChatReportID,
         introSelected,
         isSelfTourViewed,
-        betas,
         currentUserEmail,
         currentUserAccountID,
         localCurrencyCode,
@@ -95,7 +94,6 @@ function useAutoCreateTrackWorkspace() {
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
                       onboardingPurposeSelected,
-                      betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       hasOwnedPaidPolicy,
@@ -121,6 +119,7 @@ function useAutoCreateTrackWorkspace() {
                     isSelfTourViewed,
                     conciergeChat,
                     selfDMReport,
+                    currentUserAccountID,
                     delegateAccountID,
                 });
 
@@ -167,7 +166,6 @@ function useAutoCreateTrackWorkspace() {
             activePolicy,
             isSelfTourViewed,
             onboardingMessages,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             shouldUseNarrowLayout,

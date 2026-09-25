@@ -1,5 +1,5 @@
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -92,7 +92,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                 isCentralPane
             >
                 <View style={[styles.mt3, !canWriteMoreFeatures && styles.buttonOpacityDisabled]}>
-                    <MenuItemSectionRow
+                    <MenuItemSectionRoot
                         onPress={withReadOnlyFallback(handleManageTravel)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BOOK_TRAVEL_BUTTON}
                     >
@@ -107,7 +107,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                                 </MenuItem.Trailing>
                             )}
                         </MenuItem.Row>
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 </View>
                 <ToggleSettingOptionRow
                     title={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}

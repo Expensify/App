@@ -16,7 +16,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {loginSelector} from '@selectors/PersonalDetails';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -24,6 +24,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
+import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
@@ -48,12 +49,11 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -118,7 +118,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 activePolicy,
                 policy,
                 chatReportPolicy,
-                betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
                 amountOwed,

@@ -1,7 +1,7 @@
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -220,7 +220,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
-    const hrFinalApproverEmail = getHRFinalApprover(policy) ?? undefined;
+    const hrFinalApproverEmail = getHRFinalApprover(policy);
 
     const filteredApprovalWorkflows =
         isMultipleApproversBetaEnabled ||
@@ -452,7 +452,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                             )}
                             {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
                                 <View style={[styles.mt6, styles.mbn3]}>
-                                    <MenuItemSectionRow
+                                    <MenuItemSectionRoot
                                         onPress={addApprovalAction}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
                                     >
@@ -464,7 +464,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                                 <MenuItem.Title>{translate('workflowsPage.addApprovalButton')}</MenuItem.Title>
                                             </MenuItem.Content>
                                         </MenuItem.Row>
-                                    </MenuItemSectionRow>
+                                    </MenuItemSectionRoot>
                                 </View>
                             )}
                         </>

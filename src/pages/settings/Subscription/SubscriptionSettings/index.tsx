@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
@@ -88,7 +88,6 @@ function SubscriptionSettings() {
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
@@ -164,14 +163,14 @@ function SubscriptionSettings() {
                     }}
                 >
                     <View style={styles.mt5}>
-                        <MenuItemSectionRow onPress={onSubscriptionSizePress}>
+                        <MenuItemSectionRoot onPress={onSubscriptionSizePress}>
                             <MenuItemField.Row
                                 name={translate('subscription.details.subscriptionSize')}
                                 value={privateSubscription?.userCount ? String(privateSubscription.userCount) : undefined}
                             >
                                 <MenuItem.Chevron />
                             </MenuItemField.Row>
-                        </MenuItemSectionRow>
+                        </MenuItemSectionRoot>
                     </View>
                 </OfflineWithFeedback>
                 {!privateSubscription?.userCount && <Text style={[styles.mt2, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>}
@@ -330,7 +329,7 @@ function SubscriptionSettings() {
                     </>
                 )}
                 <View style={styles.mt5}>
-                    <MenuItemSectionRow onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}>
+                    <MenuItemSectionRoot onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}>
                         <MenuItemField.Row
                             name={translate('subscription.expensifyCode.title')}
                             value={isSecretPromoCode ? undefined : privatePromoCode}
@@ -342,21 +341,21 @@ function SubscriptionSettings() {
                                 message={translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)}
                             />
                         )}
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 </View>
                 {!!freebieCredits && freebieCredits > 0 && (
-                    <MenuItemSectionRow>
+                    <MenuItemSectionRoot>
                         <MenuItemField.Row
                             name={translate('subscription.details.creditBalance')}
                             value={convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}
                         />
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 )}
                 <View style={styles.mb5}>
-                    <MenuItemSectionRow
+                    <MenuItemSectionRoot
                         onPress={() => {
                             requestTaxExempt();
-                            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+                            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
                         }}
                     >
                         <MenuItem.Row>
@@ -377,7 +376,7 @@ function SubscriptionSettings() {
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>
                         </MenuItem.Row>
-                    </MenuItemSectionRow>
+                    </MenuItemSectionRoot>
                 </View>
             </ScrollView>
         </ScreenWrapper>

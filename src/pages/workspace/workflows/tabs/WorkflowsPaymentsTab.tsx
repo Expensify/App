@@ -6,7 +6,7 @@ import type {BankName} from '@components/Icon/BankIconsUtils';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -26,7 +26,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, setWorkspaceReimbursement} from '@libs/actions/Policy/Policy';
-import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getBankAccountConnectionStatus, isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
@@ -70,7 +70,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -131,6 +130,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
     const bankAccountID = isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : bankAccountConnectedToWorkspace?.methodID;
     const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
     const isAccountInSetupState = isBankAccountPartiallySetup(state);
     const isBusinessBankAccountLocked = state === CONST.BANK_ACCOUNT.STATE.LOCKED;
     const canChangePayer = canWritePayments && !isAccountInSetupState;
@@ -216,8 +218,12 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         }
         // User who is reimburser can initiate unlocking process
         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-            pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
+            if (unlockRequestedAt) {
+                showUnlockAlreadyRequestedModal(showConfirmModal, translate);
+                return;
+            }
+            pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed});
             return;
         }
 
@@ -325,7 +331,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     ) : (
                         canWritePayments && (
                             <View style={[styles.mt3, styles.mbn3]}>
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     isDisabled={isAddBankAccountInert && !policy?.pendingFields?.reimbursementChoice}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_BANK_ACCOUNT}
                                     onPress={isAddBankAccountInert ? undefined : addBankAccount}
@@ -342,7 +348,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                             <MenuItem.Chevron />
                                         </MenuItem.Trailing>
                                     </MenuItem.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             </View>
                         )
                     )}
@@ -355,7 +361,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             errorRowStyles={[styles.ml7]}
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     onPress={canChangePayer ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(policyID))) : undefined}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
                                 >
@@ -368,7 +374,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                             {canChangePayer && <MenuItem.Chevron />}
                                         </>
                                     </MenuItemField.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}
@@ -380,7 +386,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             errorRowStyles={[styles.mt3]}
                         >
                             <View style={[styles.mt3, styles.mbn3]}>
-                                <MenuItemSectionRow
+                                <MenuItemSectionRoot
                                     onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID)))}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
                                 >
@@ -394,7 +400,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                     >
                                         <MenuItem.Chevron />
                                     </MenuItemField.Row>
-                                </MenuItemSectionRow>
+                                </MenuItemSectionRoot>
                             </View>
                         </OfflineWithFeedback>
                     )}

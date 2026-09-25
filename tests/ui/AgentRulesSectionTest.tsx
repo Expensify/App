@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import UserPill from '@components/UserPill';
 
@@ -29,7 +29,7 @@ jest.mock('@components/MenuItem', () =>
         },
     ),
 );
-jest.mock('@components/MenuItem/presets/MenuItemSectionRow', () => jest.fn(() => null));
+jest.mock('@components/MenuItem/presets/MenuItemSectionRoot', () => jest.fn(() => null));
 jest.mock('@components/MenuItemWithTopDescription', () => jest.fn(() => null));
 jest.mock(
     '@components/OfflineWithFeedback',
@@ -84,7 +84,7 @@ jest.mock('@userActions/Policy/Rules', () => ({
 const mockedUsePolicy = jest.mocked(usePolicy);
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedMenuItemWithTopDescription = jest.mocked(MenuItemWithTopDescription);
-const mockedMenuItemSectionRow = jest.mocked(MenuItemSectionRow);
+const mockedMenuItemSectionRoot = jest.mocked(MenuItemSectionRoot);
 const mockedUserPill = jest.mocked(UserPill);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
@@ -250,7 +250,7 @@ describe('AgentRulesSection', () => {
                 />,
             );
 
-            const onPress = mockedMenuItemSectionRow.mock.calls.at(0)?.at(0)?.onPress;
+            const onPress = mockedMenuItemSectionRoot.mock.calls.at(0)?.at(0)?.onPress;
             onPress?.(mockKeyboardEvent);
 
             expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID));
@@ -268,7 +268,7 @@ describe('AgentRulesSection', () => {
                 />,
             );
 
-            const onPress = mockedMenuItemSectionRow.mock.calls.at(0)?.at(0)?.onPress;
+            const onPress = mockedMenuItemSectionRoot.mock.calls.at(0)?.at(0)?.onPress;
             onPress?.(mockKeyboardEvent);
 
             expect(showReadOnlyModal).toHaveBeenCalledTimes(1);

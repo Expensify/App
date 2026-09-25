@@ -1,6 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import MenuItem from '@components/MenuItem';
-import MenuItemSectionRow from '@components/MenuItem/presets/MenuItemSectionRow';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +26,7 @@ function CancelSubscriptionMenuItem() {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION);
     };
     return (
-        <MenuItemSectionRow
+        <MenuItemSectionRoot
             onPress={handleCancelSubscriptionPress}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION}
         >
@@ -39,7 +39,7 @@ function CancelSubscriptionMenuItem() {
                     <MenuItem.Chevron />
                 </MenuItem.Trailing>
             </MenuItem.Row>
-        </MenuItemSectionRow>
+        </MenuItemSectionRoot>
     );
 }
 
