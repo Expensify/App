@@ -4086,20 +4086,41 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        reuseRouteCard: {
+            ...spacing.mh5,
+            ...spacing.mb3,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.cardBG,
+        },
+
+        reuseRouteThumbnailWrapper: {
+            ...spacing.p1,
+        },
+
         reuseRouteThumbnail: {
-            width: 96,
-            height: 72,
-            borderRadius: variables.componentBorderRadiusSmall,
+            width: '100%',
+            // Map area from the Figma spec: 354x192 inside the card padding.
+            aspectRatio: 1.84,
+            borderRadius: 12,
             overflow: 'hidden',
             backgroundColor: theme.border,
         },
 
         // Float above the map thumbnail so the date stays readable over the map image.
+        // Fixed dark green because the badge always sits on the map image, in both themes.
         reuseRouteLastUsedBadge: {
             position: 'absolute',
-            top: 4,
-            left: 4,
+            top: 12,
+            left: 12,
             marginLeft: 0,
+            backgroundColor: colors.productDark400,
+            borderColor: colors.productDark400,
+        },
+
+        reuseRouteLastUsedBadgeText: {
+            color: colors.productDark900,
         },
 
         receiptActionButton: {

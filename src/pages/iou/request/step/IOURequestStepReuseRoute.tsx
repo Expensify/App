@@ -1,4 +1,5 @@
 import SelectionList from '@components/SelectionList';
+import ReuseRouteSkeleton from '@components/Skeletons/ReuseRouteSkeleton';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -148,6 +149,8 @@ function IOURequestStepReuseRoute({
         route,
         text: getRouteEndpoints(route).start,
         keyForList: route.transactionID,
+        // The whole card is the tap target, so the radio button adds noise without function.
+        shouldHideSelectionButton: true,
     }));
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, undefined, report, transaction);
@@ -180,6 +183,7 @@ function IOURequestStepReuseRoute({
                         customListHeaderContent={<Text style={[styles.ph5, styles.pb2, styles.textSupporting]}>{translate('distance.choosePreviousRoute')}</Text>}
                         ListItem={ReuseRouteListItem}
                         shouldShowLoadingPlaceholder={!!isLoadingReusableDistanceRoutes && routes.length === 0}
+                        customLoadingPlaceholder={<ReuseRouteSkeleton fixedNumItems={3} />}
                         shouldSingleExecuteRowSelect
                     />
                 );
