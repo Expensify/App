@@ -4,7 +4,8 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
-import {getExportTemplates, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
+import {getExportTemplates, queueBulkApproveReports, queueExportSearchItemsToCSV, queueExportSearchWithTemplate} from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,6 +25,7 @@ jest.mock('@libs/actions/Search', () => ({
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(() => 'mock-export-id'),
     queueExportSearchWithTemplate: jest.fn(() => 'mock-template-export-id'),
+    queueBulkApproveReports: jest.fn(),
     getSearchApproveOnyxData: jest.fn(() => ({})),
     getSearchPayOnyxData: jest.fn(() => ({})),
     bulkDeleteReports: jest.fn(),
@@ -37,6 +39,10 @@ jest.mock('@libs/actions/Search', () => ({
     payMoneyRequestOnSearch: jest.fn(),
     submitMoneyRequestOnSearch: jest.fn(),
     unholdMoneyRequestOnSearch: jest.fn(),
+}));
+
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
+    approveMoneyRequest: jest.fn(),
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -536,5 +542,78 @@ describe('useSearchBulkActions - CSV export flow', () => {
         expect(exportItems.some((item) => item.text === 'Default template')).toBe(false);
         expect(exportItems.some((item) => item.text === 'export.currentView')).toBe(true);
         expect(exportItems.some((item) => item.text === 'export.basicExport')).toBe(true);
+    });
+});
+
+describe('useSearchBulkActions - Approve under Select all', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = true;
+        await Onyx.clear();
+        mockSelectedTransactions = {};
+        mockExcludedTransactions = {};
+        mockSelectedReports = [];
+        mockCurrentSearchResults = undefined;
+        mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    it('queues a server-side bulk approval instead of approving per report', async () => {
+        // Given "Select all" is checked with an approvable expense loaded, so the selection can span more reports than are on the page
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE})};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true);
+        });
+
+        // When the user selects Approve
+        const approveOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+        await act(async () => {
+            await approveOption?.onSelected?.();
+        });
+
+        // Then the approval is handed to the backend via the search query, not looped per loaded report
+        expect(queueBulkApproveReports).toHaveBeenCalledTimes(1);
+        expect(queueBulkApproveReports).toHaveBeenCalledWith(expect.any(String));
+        expect(approveMoneyRequest).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('keeps the Approve option when a loaded expense is held', async () => {
+        // Given a held expense on the loaded page, which hides Approve for a normal selection
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.APPROVE, isHeld: true})};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        // Then Approve is still offered, because the backend skips reports it cannot approve
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true);
+        });
+    });
+
+    it('hides the Approve option when no loaded expense can be approved', async () => {
+        // Given nothing on the loaded page is awaiting the user's approval
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({action: CONST.SEARCH.ACTION_TYPES.VIEW})};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}));
+
+        await waitFor(() => {
+            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+        });
+
+        // Then Approve is not offered
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(false);
     });
 });

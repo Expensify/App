@@ -33,6 +33,7 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkApproveReports,
     queueBulkPayReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
@@ -1206,6 +1207,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
+        // "Select all" can cover more reports than are loaded, so hand the search query to the backend to approve every match.
+        if (areAllMatchingItemsSelected) {
+            const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+            queueBulkApproveReports(serializedQuery);
+            playSound(SOUNDS.SUCCESS);
+            clearSelectedTransactions();
+            return;
+        }
+
         const reportIDList = !selectedReports.length
             ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
             : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
@@ -1269,6 +1279,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedReports,
         selectedTransactions,
         hash,
+        areAllMatchingItemsSelected,
+        queryJSON,
         clearSelectedTransactions,
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
@@ -2345,6 +2357,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             onSelected: () => onBulkPaySelected(undefined),
         };
 
+        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
+        const approveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.ThumbsUp,
+            text: translate('search.bulkActions.approve'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                handleApproveWithDEWCheck();
+            },
+        };
+
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
         const downloadPDFOption: DropdownOption<SearchHeaderOptionValue> = {
@@ -2393,7 +2416,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            const selectAllOptions = shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption];
+            // The backend only approves the matching reports the user can approve, so one approvable loaded item is enough to offer it.
+            const hasLoadedApprovableItem = selectedReports.length
+                ? selectedReports.some((report) => report.canApprove)
+                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE);
+            const shouldShowApproveOptionForAllMatchingItems = !isOffline && !hasSubmitPolicyTransactions && hasLoadedApprovableItem;
+            const selectAllOptions = [...(shouldShowApproveOptionForAllMatchingItems ? [approveButtonOption] : []), ...(shouldShowPayOption ? [payButtonOption] : []), exportButtonOption];
             if (isExpenseReportSearch) {
                 selectAllOptions.push(downloadPDFOption);
             }
@@ -2462,7 +2490,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
             selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
         );
-        const hasSubmitPolicyTransactions = areIncludedSubmitPolicyTransactions(selectedTransactions, selectedReports, policies);
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
@@ -2473,15 +2500,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
-            options.push({
-                icon: expensifyIcons.ThumbsUp,
-                text: translate('search.bulkActions.approve'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.APPROVE,
-                shouldCloseModalOnSelect: true,
-                onSelected: () => {
-                    handleApproveWithDEWCheck();
-                },
-            });
+            options.push(approveButtonOption);
         }
 
         const hasNoRejectedTransaction = selectedTransactionsKeys.every(
