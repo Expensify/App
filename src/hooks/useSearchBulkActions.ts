@@ -34,6 +34,7 @@ import {
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
     queueBulkPayReports,
+    queueBulkSubmitReports,
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     resolveSearchPayPaymentMethod,
@@ -2393,7 +2394,42 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         if (areAllMatchingItemsSelected) {
-            const selectAllOptions = shouldShowPayOption ? [payButtonOption, exportButtonOption] : [exportButtonOption];
+            // The backend only submits the matching reports the user can submit, so one submittable loaded item is enough to offer it.
+            // Submit plan workspaces pick an approver per report and Mark as done is a different action, so neither is sent to the backend.
+            const hasLoadedSubmittableItem = selectedReports.length
+                ? selectedReports.some((report) => report.canSubmit)
+                : selectedTransactionsKeys.some((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.SUBMIT);
+            const shouldShowSubmitOptionForAllMatchingItems = !isOffline && !doSelectedItemsBelongToSubmitPolicy && noReportsShouldMarkAsDone && hasLoadedSubmittableItem;
+            const submitAllMatchingItemsOption: DropdownOption<SearchHeaderOptionValue> = {
+                icon: expensifyIcons.Send,
+                text: translate('common.submit'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    const itemList = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+                    if (restrictedPolicyID) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const serializedQuery = queryJSON ? serializeQueryJSONForBackend(queryJSON) : JSON.stringify(queryJSON);
+                    queueBulkSubmitReports(serializedQuery);
+                    playSound(SOUNDS.SUCCESS);
+                    clearSelectedTransactions();
+                },
+            };
+
+            const selectAllOptions = [
+                ...(shouldShowSubmitOptionForAllMatchingItems ? [submitAllMatchingItemsOption] : []),
+                ...(shouldShowPayOption ? [payButtonOption] : []),
+                exportButtonOption,
+            ];
             if (isExpenseReportSearch) {
                 selectAllOptions.push(downloadPDFOption);
             }
