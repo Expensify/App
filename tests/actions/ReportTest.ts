@@ -5252,6 +5252,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -5282,6 +5283,7 @@ describe('actions/Report', () => {
                 isReportLastVisibleArchived: undefined,
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
+                reportTransactions: [],
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
