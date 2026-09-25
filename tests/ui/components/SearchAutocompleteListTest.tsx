@@ -78,8 +78,6 @@ jest.mock('@libs/OptionsListUtils', () => ({
         hasMore: false,
     })),
     combineOrderingOfReportsAndPersonalDetails: jest.fn(() => ({recentReports: [], personalDetails: []})),
-    createOptionFromReport: jest.fn(),
-    doesReportMatchSearchTerms: jest.fn(() => false),
     getAlternateText: jest.fn(),
 }));
 
