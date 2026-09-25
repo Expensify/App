@@ -176,6 +176,7 @@ import {
     isApproverOfOutstandingPolicyReports,
     isArchivedNonExpenseReport,
     isArchivedReport,
+    isAwaitingFirstLevelApproval,
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
@@ -11486,6 +11487,89 @@ describe('ReportUtils', () => {
             };
             const participants = getParticipantsList(report, participantsPersonalDetails);
             expect(participants.length).toBe(2);
+        });
+    });
+
+    describe('isAwaitingFirstLevelApproval', () => {
+        const REPORT_OWNER_ACCOUNT_ID = 801;
+        const REPORT_OWNER_EMAIL = 'owner@vikings.net';
+        const FIRST_APPROVER_ACCOUNT_ID = 802;
+        const FIRST_APPROVER_EMAIL = 'first.approver@vikings.net';
+        const SECOND_APPROVER_ACCOUNT_ID = 803;
+        const SECOND_APPROVER_EMAIL = 'second.approver@vikings.net';
+        const OTHER_MEMBER_EMAIL = 'other.member@vikings.net';
+
+        /**
+         * The owner submits to the first approver, and the other member submits to the second one. The policy default
+         * approver is the second approver, so an owner login that matches no employee resolves somewhere different again.
+         * That lets each test tell apart the passed login, the stored login, and the default.
+         */
+        async function setUpApprovalChain() {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [REPORT_OWNER_ACCOUNT_ID]: {accountID: REPORT_OWNER_ACCOUNT_ID, login: REPORT_OWNER_EMAIL},
+                [FIRST_APPROVER_ACCOUNT_ID]: {accountID: FIRST_APPROVER_ACCOUNT_ID, login: FIRST_APPROVER_EMAIL},
+                [SECOND_APPROVER_ACCOUNT_ID]: {accountID: SECOND_APPROVER_ACCOUNT_ID, login: SECOND_APPROVER_EMAIL},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                ...policy,
+                approver: SECOND_APPROVER_EMAIL,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [REPORT_OWNER_EMAIL]: {email: REPORT_OWNER_EMAIL, submitsTo: FIRST_APPROVER_EMAIL},
+                    [OTHER_MEMBER_EMAIL]: {email: OTHER_MEMBER_EMAIL, submitsTo: SECOND_APPROVER_EMAIL},
+                },
+            });
+        }
+
+        /** A processing report owned by REPORT_OWNER_ACCOUNT_ID and currently sitting with the first approver. */
+        function buildProcessingReport(): Report {
+            return {
+                ...createRandomReport(900, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: REPORT_OWNER_ACCOUNT_ID,
+                managerID: FIRST_APPROVER_ACCOUNT_ID,
+            };
+        }
+
+        it('should prefer the passed reportOwnerLogin over the login held in the personal details store', async () => {
+            // Given a report owned by an account whose stored login submits to the report manager
+            await setUpApprovalChain();
+            const report = buildProcessingReport();
+
+            // When a different member's login is passed explicitly, and that member submits to someone else
+            const result = isAwaitingFirstLevelApproval(report, undefined, OTHER_MEMBER_EMAIL);
+
+            // Then the passed login decides the approver, so the report is not awaiting its first level.
+            // Were the parameter ignored in favour of the store, the stored owner would match the manager and this would be true.
+            expect(result).toBe(false);
+        });
+
+        it('should fall back to the personal details store when reportOwnerLogin is undefined', async () => {
+            // Given the same report, and no login passed by the caller
+            await setUpApprovalChain();
+            const report = buildProcessingReport();
+
+            // When the owner login is left unresolved
+            const result = isAwaitingFirstLevelApproval(report, undefined, undefined);
+
+            // Then the store supplies the owner login, which submits to the manager
+            expect(result).toBe(true);
+        });
+
+        it('should treat an empty reportOwnerLogin as unresolved rather than looking it up', async () => {
+            // Given the same report, and a caller holding an optimistic personal detail, whose login is an empty string
+            await setUpApprovalChain();
+            const report = buildProcessingReport();
+
+            // When that empty login is passed
+            const result = isAwaitingFirstLevelApproval(report, undefined, '');
+
+            // Then it is discarded in favour of the store, rather than reaching the approval lookup and matching no
+            // employee, which would fall through to the policy default approver and wrongly report false
+            expect(result).toBe(true);
         });
     });
 
