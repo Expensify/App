@@ -25,7 +25,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType, shouldShowShippingAddressStep} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1436,7 +1436,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
 
     const spendRuleEnabled = !!data.spendRuleEnabled;
     const spendRuleOption = data.spendRuleOption ?? CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING;
-    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, spendRuleValue, spendRuleID} = data;
+    const {assigneeEmail, limit, limitType, cardTitle, cardType, validFrom, validThru, spendRuleValue, spendRuleID, shippingAddress} = data;
     const normalizedAssigneeEmail = addSMSDomainIfPhoneNumber(assigneeEmail);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD | typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -1534,7 +1534,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, policyID},
+            {...parameters, policyID, shippingAddress: shippingAddress && shouldShowShippingAddressStep(data) ? JSON.stringify(shippingAddress) : undefined},
             {
                 optimisticData,
                 successData,
