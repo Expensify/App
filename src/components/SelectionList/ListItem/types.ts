@@ -250,11 +250,12 @@ type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & 
     accessibilityRole?: Role;
 };
 
-type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
-    ForwardedFSClassProps & {
-        pressableStyle?: StyleProp<ViewStyle>;
-        shouldHighlightSelectedItem?: boolean;
-    };
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
+
+type BareUserListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    pressableStyle?: StyleProp<ViewStyle>;
+    shouldHighlightSelectedItem?: boolean;
+};
 
 type SpendRuleListItemType = ListItem & {
     /** The action for this rule */
@@ -324,6 +325,7 @@ export type {
     SelectableListItemProps,
     SingleSelectListItemProps,
     UserListItemProps,
+    BareUserListItemProps,
     SplitListItemType,
     WorkspaceListItemType,
 };

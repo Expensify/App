@@ -32,14 +32,13 @@ import SplitListItemInput from './SplitListItem/SplitListItemInput';
  * Used in split expense flows to allocate amounts across participants.
  */
 function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTooltip, isDisabled, onSelectRow, shouldPreventEnterKeySubmit, onFocus}: ListItemProps<TItem>) {
-    const splitItem = item;
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
-    const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
+    const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(item.originalAmount, item.currency);
 
     const onSplitExpenseValueChange = useCallback(
         (value: string) => {
@@ -48,22 +47,22 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
             if (Number.isNaN(numericValue)) {
                 return;
             }
-            splitItem.onSplitExpenseValueChange(splitItem.transactionID, numericValue, splitItem.mode);
+            item.onSplitExpenseValueChange(item.transactionID, numericValue, item.mode);
         },
-        [splitItem],
+        [item],
     );
 
     const {inputCallbackRef: autoFocusCallbackRef} = useAutoFocusInput();
 
     // Animated highlight style for selected item
     const animatedHighlightStyle = useRowHighlightAnimation({
-        shouldHighlight: splitItem.isSelected ?? false,
-        isSelected: splitItem.isSelected,
+        shouldHighlight: item.isSelected ?? false,
+        isSelected: item.isSelected,
         skipInitialFade: true,
         itemEnterDelay: 0,
     });
 
-    const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
+    const isBottomVisible = !!item.category || !!item.tags?.at(0);
 
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const [percentageDraft, setPercentageDraft] = useState<string | undefined>();
@@ -75,20 +74,20 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
     // cleanup can cancel any pending focus task when the screen starts closing, preventing
     // the focused input from interfering with the close animation.
     const inputCallbackRef: (ref: BaseTextInputRef | null) => void = (ref) => {
-        if (!splitItem.isSelected || !splitItem.isEditable) {
+        if (!item.isSelected || !item.isEditable) {
             return;
         }
         (autoFocusCallbackRef as unknown as (ref: BaseTextInputRef | null) => void)(ref);
     };
 
-    const isPercentageMode = splitItem.mode === CONST.TAB.SPLIT.PERCENTAGE;
+    const isPercentageMode = item.mode === CONST.TAB.SPLIT.PERCENTAGE;
 
     // Build accessibility label for the grouped text content (date, merchant, category, tags)
     const textContentAccessibilityLabel = [
-        splitItem.headerText,
-        splitItem.merchant,
-        splitItem.category ? getDecodedFullCategoryName(splitItem.category) : undefined,
-        splitItem.tags?.at(0) ? getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags.at(0) ?? '') : undefined,
+        item.headerText,
+        item.merchant,
+        item.category ? getDecodedFullCategoryName(item.category) : undefined,
+        item.tags?.at(0) ? getCommaSeparatedTagNameWithSanitizedColons(item.tags.at(0) ?? '') : undefined,
     ]
         .filter(Boolean)
         .join(', ');
@@ -105,27 +104,27 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             onFocus={onFocus}
-            accessible={!splitItem.isEditable}
+            accessible={!item.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
                 <View
                     style={styles.flex1}
-                    accessible={splitItem.isEditable}
+                    accessible={item.isEditable}
                     accessibilityLabel={textContentAccessibilityLabel}
-                    aria-label={splitItem.isEditable ? textContentAccessibilityLabel : undefined}
-                    tabIndex={splitItem.isEditable ? 0 : undefined}
-                    role={splitItem.isEditable ? CONST.ROLE.SUMMARY : undefined}
+                    aria-label={item.isEditable ? textContentAccessibilityLabel : undefined}
+                    tabIndex={item.isEditable ? 0 : undefined}
+                    role={item.isEditable ? CONST.ROLE.SUMMARY : undefined}
                 >
                     <View
                         style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}
-                        aria-hidden={splitItem.isEditable ? true : undefined}
+                        aria-hidden={item.isEditable ? true : undefined}
                     >
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                             <Text
                                 numberOfLines={1}
                                 style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                             >
-                                {splitItem.headerText}
+                                {item.headerText}
                             </Text>
                         </View>
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
@@ -134,12 +133,12 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
                                     style={styles.flexShrink1}
                                     numberOfLines={1}
                                 >
-                                    {splitItem.merchant}
+                                    {item.merchant}
                                 </Text>
                                 {isPercentageMode && (
                                     <SplitAmountDisplay
                                         shouldRemoveSpacing
-                                        splitItem={splitItem}
+                                        splitItem={item}
                                     />
                                 )}
                             </View>
@@ -148,10 +147,10 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
                     {isBottomVisible && (
                         <View
                             style={styles.splitItemBottomContent}
-                            aria-hidden={splitItem.isEditable ? true : undefined}
+                            aria-hidden={item.isEditable ? true : undefined}
                         >
-                            {!!splitItem.category && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
+                            {!!item.category && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!item.tags?.at(0) && styles.mw50]}>
                                     <Icon
                                         src={icons.Folder}
                                         height={variables.iconSizeExtraSmall}
@@ -162,12 +161,12 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getDecodedFullCategoryName(splitItem.category)}
+                                        {getDecodedFullCategoryName(item.category)}
                                     </Text>
                                 </View>
                             )}
-                            {!!splitItem.tags?.at(0) && (
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!splitItem.category && styles.mw50]}>
+                            {!!item.tags?.at(0) && (
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!item.category && styles.mw50]}>
                                     <Icon
                                         src={icons.Tag}
                                         height={variables.iconSizeExtraSmall}
@@ -178,7 +177,7 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags?.at(0) ?? '')}
+                                        {getCommaSeparatedTagNameWithSanitizedColons(item.tags?.at(0) ?? '')}
                                     </Text>
                                 </View>
                             )}
@@ -189,7 +188,7 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
                     <View style={styles.justifyContentCenter}>
                         <SplitListItemInput
                             isPercentageMode={isPercentageMode}
-                            splitItem={splitItem}
+                            splitItem={item}
                             contentWidth={contentWidth}
                             formattedOriginalAmount={formattedOriginalAmount}
                             percentageDraft={percentageDraft}
@@ -200,7 +199,7 @@ function SplitListItem<TItem extends SplitListItemType>({item, isFocused, showTo
                         />
                     </View>
                     <View style={styles.popoverMenuIcon}>
-                        {!splitItem.isEditable ? null : (
+                        {!item.isEditable ? null : (
                             <PressableWithFeedback
                                 onPress={() => onSelectRow(item)}
                                 accessibilityLabel={translate('common.edit')}
