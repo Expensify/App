@@ -48,7 +48,7 @@ function NetSuiteFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
     };
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(netsuiteFxExpenseAccountOptions, netsuiteFxExpenseAccountOptions.length, saveSelectedAccount);
-    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList);
+    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
 
     const listEmptyContent = (
         <BlockingView
