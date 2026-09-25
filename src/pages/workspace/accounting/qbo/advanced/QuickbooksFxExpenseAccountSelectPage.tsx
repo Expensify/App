@@ -36,7 +36,7 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const policyID = policy?.id;
     const {expenseAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(qboConfig?.fxExpenseAccount);

@@ -32,7 +32,7 @@ function SageIntacctFxExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
-    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const policyID = policy?.id;
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const {config} = policy?.connections?.intacct ?? {};
