@@ -23,6 +23,7 @@ import type {
     UpdateExpensifyCardLimitTypeParams,
     UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
+import type {ActivatePhysicalCardPersonalDetails} from '@libs/API/parameters/ActivatePhysicalExpensifyCardParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
 import {getTranslationKeyForLimitType, shouldShowShippingAddressStep} from '@libs/CardUtils';
@@ -222,10 +223,11 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
 /**
  * Activates the physical Expensify card based on the last four digits of the card number
  */
-function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number) {
+function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number, personalDetails?: ActivatePhysicalCardPersonalDetails) {
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
+        ...personalDetails,
     };
 
     API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, buildCardLoadingOnyxData(cardID));
