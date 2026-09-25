@@ -24,15 +24,15 @@ A **Workspace member** is anyone added to a workspace with one of the following 
 To invite someone to your workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
-2. Click **Invite Member**.
-3. Search for the user by name, email, or phone number.
+2. Click **Invite member**.
+3. Search for the member by name, email, or phone number.
 4. (Optional) Click **Role** to change the default role (Member).
 5. (Optional) Add a message to the invitation.
 6. Click **Invite**.
 
 **Tip:** You can also invite members under **Settings > Profile** by clicking **Share** to send the workspace’s URL or QR code.
 
-**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot invite admins or other scoped admin roles.
+**Note:** Workspace admins and People admins can invite members. People admins can only invite users as **Members** or **Auditors** — they cannot assign admin roles.
 
 ---
 
@@ -67,8 +67,6 @@ If someone no longer needs access to your workspace, you can remove them individ
 **Note:** Workspace admins and People admins can remove members. People admins can only remove **Members** and **Auditors** — they cannot remove admins or other scoped admin roles.
 
 **Note:** If you remove a member who is an approver on an Outstanding report, the workspace owner replaces them as the approver. Learn more about [automatic approver reassignment](/articles/new-expensify/workspaces/Add-Approvals).
-
-**Note:** You can’t remove the member set as the workspace’s authorized payer. A message asks you to set a new reimburser first. To remove them, go to **Workspaces > [Workspace Name] > Workflows**, open **Payments**, set a different admin as the **Payer**, then try again.
 
 ## Remove a Single Member
 
@@ -108,8 +106,6 @@ To transfer ownership to another admin:
 2. Click the current **Owner** (identified with a tag).
 3. Click **Transfer owner** in the right-hand panel.
 4. Click **Continue** to confirm.
-
-**Note:** If the previous owner was the **Payer** and the workspace has no business bank account connected, the new owner becomes the **Payer**. If a business bank account is connected, the previous owner stays the **Payer** until an admin assigns a new one in **Workflows > Payments**.
 
 After the transfer, the initiating user becomes the new **Owner**.
 
@@ -154,7 +150,7 @@ You must be a **Workspace admin**, and the email or phone number of the individu
 
 ## Can I invite multiple members to a workspace at the same time?
 
-Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above.
+Yes. Use the search tool during invite or import members using a spreadsheet (see the **Invite Multiple Members via Spreadsheet** section above).
 
 ## Why am I prompted to upgrade when importing members from a spreadsheet?
 
