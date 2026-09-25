@@ -16,7 +16,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 
-import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
+import type {ListItemComponent} from './SelectionList/ListItem/types';
 import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
 
 import ErrorMessageRow from './ErrorMessageRow';
@@ -48,9 +48,7 @@ type SelectionScreenProps<T = string> = {
     data: Array<SelectorType<T>>;
 
     /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
-    ListItem?: typeof SingleSelectListItem | typeof SingleSelectWithAvatarListItem;
-
-    listItemWrapperStyle?: StyleProp<ViewStyle>;
+    ListItem?: ListItemComponent<SelectorType<T>>;
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | undefined;
@@ -90,8 +88,8 @@ type SelectionScreenProps<T = string> = {
 
     shouldShowTextInput?: boolean;
 
-    /** Whether to allow each row's title to wrap onto multiple lines instead of truncating */
-    isRowMultilineSupported?: boolean;
+    /** Maximum number of title lines per row. Values above 1 let the title wrap instead of truncating */
+    titleNumberOfLines?: number;
 
     textInputOptions?: {
         /** Label for the text input */
@@ -117,7 +115,6 @@ function SelectionScreen<T = string>({
     listFooterContent,
     data,
     ListItem = SingleSelectListItem,
-    listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
     onBackButtonPress,
@@ -135,7 +132,7 @@ function SelectionScreen<T = string>({
     shouldShowTextInput,
     textInputOptions,
     shouldUpdateFocusedIndex = false,
-    isRowMultilineSupported = false,
+    titleNumberOfLines,
     confirmButtonOptions,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -178,11 +175,10 @@ function SelectionScreen<T = string>({
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        style={{listItemWrapperStyle}}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         alternateNumberOfSupportedLines={2}
-                        isRowMultilineSupported={isRowMultilineSupported}
+                        titleNumberOfLines={titleNumberOfLines}
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
                     >

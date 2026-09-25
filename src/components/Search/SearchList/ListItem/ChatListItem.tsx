@@ -52,7 +52,7 @@ function ChatListItem<TItem extends ListItem>({
     return (
         <ListItemComposed
             item={item}
-            pressableStyle={[pressableStyle, styles.p0, styles.textAlignLeft, styles.overflowHidden, item.cursorStyle]}
+            pressableStyle={[pressableStyle, styles.p0, styles.textAlignLeft, styles.overflowHidden]}
             containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}

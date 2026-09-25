@@ -2,7 +2,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
-import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
+import type {ListItem as NewListItem, ListItemProps} from '@components/SelectionList/ListItem/types';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
@@ -48,7 +48,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 
-import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
+import type {SearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
@@ -127,22 +127,38 @@ const setPerformanceTimersEnd = () => {
     endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
 
-function isSearchQueryListItem(listItem: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
-    return isSearchQueryItem(listItem.item);
-}
-
 function getAutocompleteDisplayText(filterKey: UserFriendlyKey, value: string) {
     return `${filterKey}:${value}`;
 }
 
-function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | SearchQueryListItemProps) {
+function SearchRouterItem({
+    item,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    onSelectRow,
+    onDismissError,
+    shouldPreventEnterKeySubmit,
+    onFocus,
+    shouldSyncFocus,
+    shouldDisableHoverStyle,
+}: ListItemProps<AutocompleteListItem>) {
     const styles = useThemeStyles();
 
-    if (isSearchQueryListItem(props)) {
-        return <SearchQueryListItem {...props} />;
+    if (isSearchQueryItem(item)) {
+        return (
+            <SearchQueryListItem
+                item={item}
+                isFocused={isFocused}
+                showTooltip={showTooltip}
+                onSelectRow={onSelectRow}
+                onFocus={onFocus}
+                shouldSyncFocus={shouldSyncFocus}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+            />
+        );
     }
 
-    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, onFocus, shouldSyncFocus, wrapperStyle} = props;
     const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
@@ -156,7 +172,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={wrapperStyle}
+            wrapperStyle={[styles.pr0, styles.pl0]}
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
             shouldHighlightSelectedItem
@@ -795,7 +811,6 @@ function SearchAutocompleteList({
                 containerStyle: [styles.mh100],
                 listStyle: styles.overscrollBehaviorContain,
                 contentContainerStyle,
-                listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
@@ -821,5 +836,4 @@ function SearchAutocompleteList({
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
-export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};

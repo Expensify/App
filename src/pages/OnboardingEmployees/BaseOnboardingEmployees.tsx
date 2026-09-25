@@ -111,9 +111,10 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     text: translate(`onboarding.employees.${companySize}`),
                     keyForList: companySize,
                     isSelected: companySize === selectedCompanySize,
+                    itemStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : [],
                 };
             });
-    }, [translate, selectedCompanySize, onboardingValues?.signupQualifier]);
+    }, [translate, selectedCompanySize, onboardingValues?.signupQualifier, onboardingIsMediumOrLargerScreenWidth, styles.pl8, styles.pr8]);
 
     const submitCompanySize = () => {
         if (!selectedCompanySize) {
@@ -170,7 +171,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 shouldUpdateFocusedIndex
                 ListItem={SingleSelectListItem}
                 footerContent={footerContent}
-                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
             />
         </ScreenWrapper>
     );

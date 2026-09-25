@@ -56,7 +56,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     return (
         <ListItemComposed
             item={item}
-            pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]}
+            pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
             onFocus={onFocus}
@@ -91,4 +91,4 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
 
 export default SearchQueryListItem;
 export {isSearchQueryItem};
-export type {SearchQueryItem, SearchQueryListItemProps};
+export type {SearchQueryItem};

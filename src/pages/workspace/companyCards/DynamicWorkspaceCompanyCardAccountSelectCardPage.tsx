@@ -134,7 +134,7 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                 listEmptyContent={listEmptyContent}
                 connectionName={connectedIntegration}
                 shouldShowTextInput={shouldShowTextInput}
-                isRowMultilineSupported
+                titleNumberOfLines={2}
             />
         </AccessOrNotFoundWrapper>
     );

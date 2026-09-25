@@ -38,12 +38,6 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */
     shouldPreventAutoScrollOnSelect?: boolean;
-
-    /** Whether to wrap long text in rows */
-    isRowMultilineSupported?: boolean;
-
-    /** Number of lines to show for title text when multiline is supported */
-    titleNumberOfLines?: number;
 };
 
 type MeasurableInput = unknown;

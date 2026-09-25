@@ -206,6 +206,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
                 ...option,
                 rightElement,
                 errors: uberEmployeesByEmail[email]?.errors,
+                itemStyle: styles.cursorDefault,
             };
 
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
@@ -335,7 +336,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
                                             ListItem={BareUserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
+                                            style={{listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
                                             textInputOptions={{

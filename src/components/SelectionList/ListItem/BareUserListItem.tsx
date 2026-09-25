@@ -3,7 +3,7 @@ import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRB
 
 import React from 'react';
 
-import type {ListItem, UserListItemProps} from './types';
+import type {BareUserListItemProps, ListItem} from './types';
 
 import UserListItemContent from './UserListItemContent';
 
@@ -30,7 +30,7 @@ function BareUserListItem<TItem extends ListItem>({
     forwardedFSClass,
     shouldDisableHoverStyle,
     shouldHighlightSelectedItem,
-}: UserListItemProps<TItem>) {
+}: BareUserListItemProps<TItem>) {
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!item.actionElement;
 
@@ -51,7 +51,7 @@ function BareUserListItem<TItem extends ListItem>({
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         >
-            <ListItemComposed.Row style={wrapperStyle}>
+            <ListItemComposed.Row style={[wrapperStyle, item.itemStyle]}>
                 <UserListItemContent
                     item={item}
                     forwardedFSClass={forwardedFSClass}

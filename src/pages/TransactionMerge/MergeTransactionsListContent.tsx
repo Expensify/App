@@ -2,7 +2,6 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -25,12 +24,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+
+import type {MergeTransactionListItemType} from './MergeTransactionItem';
 
 import MergeTransactionItem from './MergeTransactionItem';
 
@@ -38,8 +38,6 @@ type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
 };
-
-type MergeTransactionListItemType = Transaction & ListItem;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);

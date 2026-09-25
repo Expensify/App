@@ -27,10 +27,8 @@ function UserListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
-    pressableStyle,
     forwardedFSClass,
     shouldDisableHoverStyle,
-    shouldHighlightSelectedItem,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
 }: UserListItemProps<TItem>) {
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
@@ -56,14 +54,12 @@ function UserListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            pressableStyle={pressableStyle}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
-            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         >
-            <ListItemComposed.Row style={wrapperStyle}>
+            <ListItemComposed.Row style={[wrapperStyle, item.itemStyle]}>
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.LEFT && selectionButton}
                 <UserListItemContent
                     item={item}

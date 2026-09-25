@@ -51,7 +51,6 @@ function BaseSelectionListImpl({
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
-    onLongPressRow,
     onSelectionButtonPress,
     onScrollBeginDrag,
     onDismissError,
@@ -72,7 +71,7 @@ function BaseSelectionListImpl({
     isDisabled = false,
     isSmallScreenWidth,
     isLoadingNewOptions,
-    isRowMultilineSupported = false,
+    titleNumberOfLines,
     addBottomSafeAreaPadding,
     shouldShowListEmptyContent = true,
     shouldShowLoadingPlaceholder,
@@ -96,7 +95,6 @@ function BaseSelectionListImpl({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput: shouldShowTextInputProp,
     shouldClearInputOnSelect = false,
-    shouldHighlightSelectedItem,
     shouldDisableHoverStyle = false,
     selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
@@ -130,8 +128,7 @@ function BaseSelectionListImpl({
 
     const dataDetails = useMemo<DataDetailsType<ListItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions, disabledSelectedIndexes} = data.reduce(
-            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: ListItem[]; disabledSelectedIndexes: number[]}, item: ListItem, index: number) => {
-                const idx = item.index ?? index;
+            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: ListItem[]; disabledSelectedIndexes: number[]}, item: ListItem, idx: number) => {
                 const itemIsSelected = isItemSelected(item);
                 const isItemDisabled = isDisabled || (!!item?.isDisabled && !itemIsSelected);
                 const isEffectivelyDisabled = isItemDisabled || !!item?.isDisabledCheckbox;
@@ -319,19 +316,12 @@ function BaseSelectionListImpl({
                 isDisabled={isItemDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onDismissError={onDismissError}
-                onLongPressRow={onLongPressRow}
                 onSelectionButtonPress={onSelectionButtonPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
+                titleNumberOfLines={titleNumberOfLines}
                 alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                 shouldIgnoreFocus={shouldIgnoreFocus}
-                titleStyles={style?.listItemTitleStyles}
-                wrapperStyle={style?.listItemWrapperStyle}
-                titleContainerStyles={style?.listItemTitleContainerStyles}
-                errorRowStyles={style?.listItemErrorRowStyles}
                 singleExecution={singleExecution}
-                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 isFirstItem={index === 0}
