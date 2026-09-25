@@ -563,7 +563,7 @@
 "../../src/libs/actions/Link.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/MapboxToken.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/MergeAccounts.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/MergeTransaction.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
+"../../src/libs/actions/MergeTransaction.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/MergeTransaction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/MergeTransaction.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/MergeTransaction.ts"	"no-restricted-syntax"	1
@@ -620,7 +620,6 @@
 "../../src/libs/actions/ReportLayout.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/RequestConflictUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/ScheduleCall.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
