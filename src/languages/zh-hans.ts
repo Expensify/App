@@ -10717,18 +10717,8 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: '增强型供应商映射',
-                body: '创建供应商和自定义规则，轻松映射到主流会计软件。',
-                cta: '试一试',
-            },
-            member: {
-                heading: '为你预构建的代理',
-                body: '使用预构建或自定义智能代理，代表你自动编写、拆分并提交报销费用。',
-                cta: '试用',
-            },
-        },
+        heading: '将 Expensify 连接到 Claude',
+        body: '直接在 Claude 中搜索、分析和总结费用数据。',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',

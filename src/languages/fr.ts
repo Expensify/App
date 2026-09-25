@@ -11234,18 +11234,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Mappage de fournisseur amélioré',
-                body: 'Créez des fournisseurs et des règles personnalisées pour faciliter la mise en correspondance avec les principaux logiciels de comptabilité.',
-                cta: 'Essayer',
-            },
-            member: {
-                heading: 'Agents préconfigurés pour vous',
-                body: 'Utilisez des agents prédéfinis ou personnalisés pour coder, répartir et soumettre automatiquement les dépenses en votre nom.',
-                cta: 'Essayer',
-            },
-        },
+        heading: 'Connectez Expensify à Claude',
+        body: 'Recherchez, analysez et résumez vos données de dépenses directement dans Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',

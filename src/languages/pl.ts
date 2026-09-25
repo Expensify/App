@@ -11147,18 +11147,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
     },
     productMarketingWindow: {
-        roleTypes: {
-            admin: {
-                heading: 'Ulepszone mapowanie dostawców',
-                body: 'Twórz dostawców i własne reguły, żeby łatwo mapować je do głównych pakietów księgowych.',
-                cta: 'Wypróbuj to',
-            },
-            member: {
-                heading: 'Gotowe agenty dla ciebie',
-                body: 'Korzystaj z gotowych lub niestandardowych agentów, aby automatycznie kodować, dzielić i przesyłać wydatki w Twoim imieniu.',
-                cta: 'Wypróbuj',
-            },
-        },
+        heading: 'Połącz Expensify z Claude',
+        body: 'Wyszukuj, analizuj i podsumowuj dane o wydatkach bezpośrednio w Claude.',
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',
