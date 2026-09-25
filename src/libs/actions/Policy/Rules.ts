@@ -98,26 +98,46 @@ function buildLegacyCodingRule(ruleValue: BuiltMerchantRule, ruleID: string, cre
 /**
  * Fetches every rule the user has access to. The response SETs the whole `rules_` collection.
  *
- * The flag lets screens that only consume the collection fetch it once rather than on every mount. It
- * lives in Onyx rather than in this module so it is cleared along with the rest of the data on sign out.
+ * Two flags rather than one: the in-flight flag is set before the request so a second screen mounting
+ * during it waits instead of sending its own, and so a deep linked editor can hold off on rendering
+ * not-found. The fetched flag is only set once the collection has actually arrived.
  */
 function getRules() {
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED>> = [
+    type RulesFetchKey = typeof ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_RULES;
+
+    const optimisticData: Array<OnyxUpdate<RulesFetchKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
             value: true,
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED>> = [
+    const successData: Array<OnyxUpdate<RulesFetchKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.HAS_RULES_DATA_BEEN_FETCHED,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
+            value: true,
+        },
+    ];
+    const failureData: Array<OnyxUpdate<RulesFetchKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
             value: false,
         },
     ];
 
-    API.read(READ_COMMANDS.GET_RULES, {}, {successData, failureData});
+    API.read(READ_COMMANDS.GET_RULES, {}, {optimisticData, successData, failureData});
 }
 
 /**

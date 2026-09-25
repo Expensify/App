@@ -10,6 +10,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import EditMerchantRulePage from '@pages/workspace/rules/MerchantRules/EditMerchantRulePage';
 
@@ -38,11 +39,6 @@ const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
-}
-
 function buildRulesEnabledControlPolicy(): Policy {
     return {
         ...createRandomPolicy(0),
@@ -62,6 +58,11 @@ function buildEditableRule(): Rule {
         filters: {left: FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
         actions: toIndexMap([{name: ACTION.SET, field: FIELD.CATEGORY, value: 'Coffee'}]),
     };
+}
+
+/** Stops `GetRules` from actually going out, so a test can hold the collection in whatever fetch state it needs. */
+function stubRulesFetch() {
+    return jest.spyOn(API, 'read').mockImplementation(() => {});
 }
 
 async function seedOnyx(rule?: Rule) {
@@ -138,7 +139,7 @@ describe('EditMerchantRulePage route guard', () => {
 
     it('fetches the rules collection when it is reached without one loaded', async () => {
         // Given this route is deep linkable, so nothing on the way in has populated the rules collection
-        const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+        const readSpy = stubRulesFetch();
         await seedOnyx();
 
         // When the editor mounts against an empty collection
@@ -147,6 +148,41 @@ describe('EditMerchantRulePage route guard', () => {
 
         // Then it requests the rules rather than settling on not-found for a rule that does exist server side
         expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_RULES, expect.anything(), expect.anything());
+        readSpy.mockRestore();
+    });
+
+    it('waits for the fetch instead of showing not-found before the collection arrives', async () => {
+        // Given the request is in flight, so Onyx has hydrated the collection as empty but nothing has answered yet
+        const readSpy = stubRulesFetch();
+        await seedOnyx();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, true);
+        });
+
+        // When the editor mounts
+        renderEditMerchantRulePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it stays on the editor, because an empty collection here means "not loaded", not "no such rule"
+        expect(screen.getByTestId('EditMerchantRulePage')).toBeOnTheScreen();
+        readSpy.mockRestore();
+    });
+
+    it('refuses a ruleID that is absent once the collection has been fetched', async () => {
+        // Given the fetch has answered and the rule is genuinely not in the collection
+        const readSpy = stubRulesFetch();
+        await seedOnyx();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
+        });
+
+        // When the editor mounts
+        renderEditMerchantRulePage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the guard fires, since waiting any longer would never produce the rule
+        expect(screen.queryByTestId('EditMerchantRulePage')).toBeNull();
         readSpy.mockRestore();
     });
 

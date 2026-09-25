@@ -66,7 +66,7 @@ import {isAnyRecruitingConnected} from './merge/RecruitingUtils';
 import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {getAccountIDsByLogins, getKnownAccountIDByLogin, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {isApprovalWorkflowRule} from './RuleUtils';
+import {isApprovalWorkflowRule, isRuleFilterComparison} from './RuleUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {generateAccountID} from './UserUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -2024,13 +2024,6 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
     return firstCategoryApprover || firstTagApprover;
 }
 
-/**
- * True when this node is a single comparison instead of a combination of two children.
- */
-function isApprovalWorkflowComparison(node: RuleFilterNode): node is RuleFilterComparison {
-    return typeof node.left === 'string';
-}
-
 function matchesApprovalWorkflowEmailComparison(node: RuleFilterComparison, email: string | undefined): boolean {
     const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
     const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
@@ -2062,7 +2055,7 @@ function matchesApprovalWorkflowAmountComparison(node: RuleFilterComparison, amo
 }
 
 function evaluateApprovalWorkflowFilter(node: RuleFilterNode, context: ApprovalWorkflowContext): boolean {
-    if (!isApprovalWorkflowComparison(node)) {
+    if (!isRuleFilterComparison(node)) {
         const left = evaluateApprovalWorkflowFilter(node.left, context);
         const right = evaluateApprovalWorkflowFilter(node.right, context);
         return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR ? left || right : left && right;

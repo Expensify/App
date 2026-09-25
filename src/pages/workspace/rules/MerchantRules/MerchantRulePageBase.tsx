@@ -183,10 +183,10 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
 
     // This route is deep linkable, so it can be the first screen mounted. Nothing else on the way in fetches the
     // rules collection, which would leave the not-found guard below reading an empty collection for a valid rule.
-    useRulesPrefetch();
+    const {areRulesLoading: isRulesFetchPending} = useRulesPrefetch();
 
     const [rules, rulesResult] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const areRulesLoading = isLoadingOnyxValue(rulesResult);
+    const areRulesLoading = isLoadingOnyxValue(rulesResult) || isRulesFetchPending;
     // Get the existing rule from the rules collection (for edit mode)
     const existingRule = ruleID ? rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`] : undefined;
     const existingCategoryTaxID = editCategoryTaxRuleFor ? getCategoryTaxRuleTaxID(policy?.rules?.expenseRules, editCategoryTaxRuleFor) : undefined;
@@ -614,7 +614,8 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, editCatego
         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_PREVIEW_MATCHES.getRoute(policyID, ruleID)));
     };
 
-    // `areRulesLoading` keeps a deep link from rendering not-found against a collection Onyx has not hydrated yet.
+    // `areRulesLoading` keeps a deep link from rendering not-found before the collection has both hydrated and
+    // been fetched. Onyx hydrates it as empty well before `GetRules` answers, so hydration alone is not enough.
     if (ruleID && !existingRule && !isClosing && !areRulesLoading) {
         return <NotFoundPage />;
     }

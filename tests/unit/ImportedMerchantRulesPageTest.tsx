@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as Rules from '@libs/actions/Policy/Rules';
 import * as API from '@libs/API';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import ImportedMerchantRulesPage, {
     buildImportedCategoryLookup,
@@ -27,11 +28,6 @@ import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-
-/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
-}
 
 const POLICY_ID = 'imported-merchant-rules-test-policy';
 const ADMIN_EMAIL = 'admin@example.com';

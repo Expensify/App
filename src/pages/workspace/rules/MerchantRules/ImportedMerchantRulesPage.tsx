@@ -258,7 +258,7 @@ function parseSpreadsheetRules(
 
         const rule: ImportedMerchantRule = {
             filters: {
-                left: 'merchant',
+                left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT,
                 operator: formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
                 right: merchantToMatch,
             },

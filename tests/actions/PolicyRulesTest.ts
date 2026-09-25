@@ -10,6 +10,7 @@ import {
 } from '@libs/actions/Policy/Rules';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import {getAll as getAllPersistedRequests, getOngoingRequest as getOngoingPersistedRequest, save as savePersistedRequest} from '@userActions/PersistedRequests';
 
@@ -54,11 +55,6 @@ async function getRules(): Promise<OnyxCollection<Rule>> {
         },
     });
     return collection;
-}
-
-/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
 }
 
 /** A minimal merchant rule as stored in the rules collection. */

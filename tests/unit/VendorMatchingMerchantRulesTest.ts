@@ -1,6 +1,7 @@
 import {buildMerchantRule} from '@libs/ExpenseDefaultRuleUtils';
 import {getMerchantRulesTableData} from '@libs/MerchantTypeRulesUtils';
 import {hasVendorFeature} from '@libs/PolicyUtils';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -13,11 +14,6 @@ import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
-function toIndexMap<T>(values: T[]): Record<string, T> {
-    return Object.fromEntries(values.map((value, index) => [String(index + 1), value]));
-}
 
 /**
  * A minimal merchant rule form. Individual tests override only the fields they exercise, so the

@@ -65,7 +65,9 @@ const PARTS_TO_POLICY_FIELDS = {
         'shouldShowAutoReimbursementLimitOption',
         'customRules',
     ],
-    codingRules: ['rules'],
+    // Merchant rules are copied into the `rules_` collection rather than onto the policy, so this part patches
+    // no policy field. It stays listed because the map has to cover every part.
+    codingRules: [],
     distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
@@ -85,8 +87,8 @@ type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
  * given target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
  *
  * This is intentionally separate from `PARTS_TO_POLICY_FIELDS`: that map lists every Onyx field a
- * part copies, where the feature toggle isn't reliably identifiable (e.g. `codingRules` copies the
- * `rules` field, not the `areRulesEnabled` feature; `timeTracking`/`receiptPartners` copy no fields).
+ * part copies, and several parts copy no policy field at all (`codingRules` copies into the `rules_`
+ * collection, `timeTracking`/`receiptPartners` are patched separately).
  */
 const PART_TO_POLICY_FEATURE: Partial<Record<Part, PolicyFeatureName>> = {
     reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
@@ -311,9 +313,6 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
                 continue;
             }
             if (field === 'fieldList') {
-                continue;
-            }
-            if (part === 'codingRules' && field === 'rules') {
                 continue;
             }
             // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
