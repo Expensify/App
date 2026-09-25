@@ -3731,6 +3731,95 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, zeroAmountNonReimbursableTransactions, true)).toBeFalsy();
         });
 
+        it('allows marking an approved report as paid when its reimbursable expenses cancel out to 0 (onlyShowPayElsewhere=true)', async () => {
+            // Given an approved expense report whose reimbursable expenses net to exactly $0
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportID = '997';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: 0,
+                nonReimbursableTotal: 0,
+            };
+
+            const offsettingReimbursableTransactions: Transaction[] = [
+                {
+                    ...createRandomTransaction(1),
+                    reportID,
+                    amount: 5000,
+                    currency: 'USD',
+                    reimbursable: true,
+                },
+                {
+                    ...createRandomTransaction(2),
+                    reportID,
+                    amount: -5000,
+                    currency: 'USD',
+                    reimbursable: true,
+                },
+            ];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the payer checks whether the report can be paid
+            // Then there is nothing to settle, so only the pay elsewhere flow is offered
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, offsettingReimbursableTransactions, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, offsettingReimbursableTransactions, true)).toBeTruthy();
+        });
+
+        it('should return false for an approved report whose totals have not loaded yet', async () => {
+            // Given an approved expense report with no stored total, which is not the same as a report totalling $0
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportID = '996';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: undefined,
+                nonReimbursableTotal: undefined,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the payer checks whether the report can be paid
+            // Then no pay action is offered, because a missing total is not a report that nets to $0
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true)).toBeFalsy();
+        });
+
         it('allows non-reimburser admin to pay in manual reimbursement mode', async () => {
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 

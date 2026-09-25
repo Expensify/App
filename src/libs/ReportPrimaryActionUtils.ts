@@ -59,6 +59,7 @@ import {
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
+    getAmount as getTransactionAmount,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
@@ -259,12 +260,22 @@ function isPrimaryPayAction({
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
+    // A report whose expenses cancel out to exactly zero (for example a $50 and a -$50 expense) has nothing to
+    // settle, but the payer still needs a way to close it out. Requiring a non-zero expense keeps reports that are
+    // simply empty or missing totals out of this path, and reports made up entirely of non-reimbursable expenses
+    // are excluded because paying those is optional.
+    const hasOffsettingExpenses =
+        reimbursableSpend === 0 &&
+        nonReimbursableSpend === 0 &&
+        reportTransactions.some((transaction) => getTransactionAmount(transaction, true, false, true) !== 0) &&
+        !hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions);
+
     if (
         canPayReport &&
         isExpenseReport &&
         arePaymentsEnabled &&
         isReportFinished &&
-        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))
+        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)) || hasOffsettingExpenses)
     ) {
         return isSecondaryAction ?? !didExportFail;
     }
