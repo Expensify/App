@@ -94,10 +94,9 @@ function navigateAfterOnboarding(
     const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
 
-    // The homePageNoRHP arm of the onboarding experiment lands on Home with the side panel closed, at every company size,
+    // The homePageNoRHP arm of the onboarding experiment lands on Home without opening the side panel, at every company size,
     // so it is handled before the variants that are limited to micro companies or that open the side panel.
     if (variant === CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP) {
-        SidePanelActions.dismissSidePanel();
         if (!isReportTopmostSplitNavigator()) {
             Navigation.navigate(ROUTES.HOME, navigationOptions);
         }

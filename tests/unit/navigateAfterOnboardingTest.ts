@@ -3,6 +3,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type * as ReportUtils from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import SidePanelActions from '@userActions/SidePanel';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -203,39 +204,39 @@ describe('navigateAfterOnboarding', () => {
     });
 
     it.each([CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL, CONST.ONBOARDING_COMPANY_SIZE.SMALL, CONST.ONBOARDING_COMPANY_SIZE.LARGE])(
-        'should land on Home with the side panel closed at company size %s for the homePageNoRHP variant',
+        'should land on Home without opening the side panel at company size %s for the homePageNoRHP variant',
         async (companySize) => {
-            // Given a company size that decides whether the older RHP arms open the side panel, and a side panel left open
+            // Given a new account at a company size that decides whether the older RHP arms open the side panel
             const navigate = jest.spyOn(Navigation, 'navigate');
+            const openSidePanel = jest.spyOn(SidePanelActions, 'openSidePanel');
             await Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, companySize);
-            await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
 
             // When onboarding finishes with the homePageNoRHP arm
             navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
             await waitForBatchedUpdates();
 
-            // Then the arm behaves the same at every company size: Home, with the side panel closed on every layout
+            // Then the arm behaves the same at every company size: Home, and the side panel is never opened
             expect(navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
+            expect(openSidePanel).not.toHaveBeenCalled();
             const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
-            expect(sidePanel?.open).toBe(false);
-            expect(sidePanel?.openNarrowScreen).toBe(false);
+            expect(sidePanel?.open).toBeFalsy();
+            expect(sidePanel?.openNarrowScreen).toBeFalsy();
         },
     );
 
     it('should keep a report that is already on top for the homePageNoRHP variant', async () => {
         // Given a report is already showing, which the other paths that end on Home also leave in place
         const navigate = jest.spyOn(Navigation, 'navigate');
+        const openSidePanel = jest.spyOn(SidePanelActions, 'openSidePanel');
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
-        await Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true});
 
         // When onboarding finishes with the homePageNoRHP arm
         navigateAfterOnboarding(false, true, '', {}, ONBOARDING_POLICY_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, false, {variantOverride: CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP});
         await waitForBatchedUpdates();
 
-        // Then the report stays where it is, and the side panel is still closed
+        // Then the report stays where it is, and the side panel is not opened over it
         expect(navigate).not.toHaveBeenCalled();
-        const sidePanel = await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL);
-        expect(sidePanel?.open).toBe(false);
+        expect(openSidePanel).not.toHaveBeenCalled();
     });
 
     it('should use the stored homePageNoRHP variant when the onboarding response does not carry one', async () => {
