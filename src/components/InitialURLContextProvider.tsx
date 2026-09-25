@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 import type {ReactNode} from 'react';
@@ -41,7 +42,18 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
     const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>(false);
 
     useEffect(() => {
-        Linking.getInitialURL()
+        let timeoutId: ReturnType<typeof setTimeout>;
+
+        // Race against a timeout so isLoadingInitialURL doesn't stay stuck if getInitialURL() never resolves
+        Promise.race([
+            Linking.getInitialURL(),
+            new Promise<null>((resolve) => {
+                timeoutId = setTimeout(() => {
+                    didTimeOut = true;
+                    resolve(null);
+                }, CONST.TIMING.GET_INITIAL_URL_TIMEOUT);
+            }),
+        ])
             .then((initURL) => {
                 if (!initURL) {
                     return;
@@ -49,6 +61,8 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
                 setInitialURL(initURL as Route);
             })
             .finally(() => setIsLoadingInitialURL(false));
+
+        return () => clearTimeout(timeoutId);
     }, []);
 
     // Because of the React Compiler we don't need to memoize it manually
