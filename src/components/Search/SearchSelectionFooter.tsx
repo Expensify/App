@@ -743,7 +743,7 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         pendingTotal?.hash !== undefined && pendingTotal.hash === currentSearchHash && metadata?.hash !== currentSearchHash && metadata?.hash === pendingTotal.fromHash;
 
     // A partial selection shows a client-side subtotal that is ready immediately, so it never waits on a search.
-    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && isAwaitingFooterTotal);
+    const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isAwaitingFooterTotal || (!!metadata?.isLoading && metadata?.offset === 0)));
 
     // The reports a selection covers. The server's report count describes the whole search, so a selection needs its own:
     // on a Reports search that is the selected reports, elsewhere the distinct reports the selected expenses sit on.
