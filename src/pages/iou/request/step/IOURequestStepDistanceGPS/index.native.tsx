@@ -65,7 +65,8 @@ function IOURequestStepDistanceGPS({
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -80,7 +81,6 @@ function IOURequestStepDistanceGPS({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -152,6 +152,7 @@ function IOURequestStepDistanceGPS({
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
 
         handleMoneyRequestStepDistanceNavigation({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             iouType,
             action,
@@ -184,7 +185,6 @@ function IOURequestStepDistanceGPS({
             gpsModifiedDistance: modifiedDistance,
             selfDMReport,
             policyForMovingExpenses,
-            betas,
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,

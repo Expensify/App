@@ -1,6 +1,9 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import MerchantFilterContent from '@components/Search/FilterComponents/AdvancedFilters/MerchantFilterContent';
+import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
+
+import MerchantFilterContentPageWrapper from '@pages/Search/SearchAdvancedFiltersContentPage/MerchantFilterContentPageWrapper';
 
 import CONST from '@src/CONST';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
@@ -59,6 +62,30 @@ describe('MerchantFilterContent', () => {
         const {onChange} = renderMerchantFilter();
 
         fireEvent.press(screen.getByText('common.confirm'));
+
+        expect(onChange).toHaveBeenCalledWith({
+            [FILTER_KEYS.MERCHANT]: 'I',
+            [FILTER_KEYS.MERCHANT_NOT]: undefined,
+            [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+        });
+    });
+
+    it('applies the Merchant filter directly when the page supplies an Apply label', () => {
+        const onChange = jest.fn();
+        render(
+            <NavigationContainer>
+                <SearchAdvancedFiltersContent
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
+                    values={{merchant: 'I', merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}}
+                    buttonText="common.apply"
+                    components={{Merchant: MerchantFilterContentPageWrapper, Text: () => null, Amount: () => null, Date: () => null, ReportField: () => null, List: () => null}}
+                    onChange={onChange}
+                />
+            </NavigationContainer>,
+        );
+
+        expect(screen.queryByText('common.confirm')).not.toBeOnTheScreen();
+        fireEvent.press(screen.getByText('common.apply'));
 
         expect(onChange).toHaveBeenCalledWith({
             [FILTER_KEYS.MERCHANT]: 'I',

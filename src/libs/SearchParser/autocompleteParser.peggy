@@ -98,6 +98,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / transactionStatus
       / withdrawalType
       / withdrawalStatus
       / paidStatus

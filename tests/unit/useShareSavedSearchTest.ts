@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import useShareSavedSearch from '@hooks/useShareSavedSearch';
 
 import Clipboard from '@libs/Clipboard';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
 import ROUTES from '@src/ROUTES';
 
@@ -34,7 +35,7 @@ describe('useShareSavedSearch', () => {
             result.current.handleShare(ITEM_ID, ITEM_QUERY);
         });
 
-        const expectedURL = `https://new.expensify.com/${ROUTES.SEARCH_ROOT.getRoute({query: ITEM_QUERY})}`;
+        const expectedURL = `https://new.expensify.com/${ROUTES.SEARCH_ROOT.getRoute({query: ITEM_QUERY, searchKey: savedSearchIDToSearchKey(ITEM_ID)})}`;
         expect(mockClipboardSetString).toHaveBeenCalledWith(expectedURL);
         expect(result.current.copiedID).toBe(ITEM_ID);
     });

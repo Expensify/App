@@ -42,6 +42,7 @@ type ReplaceReceipt = {
     transactionPolicyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     transactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 type ReplaceReceiptRetryParams = Omit<ReplaceReceipt, 'transaction' | 'transactionReport'> & {transactionID: string};
 
@@ -51,6 +52,7 @@ function detachReceipt(
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
+    isVendorMatchingBetaEnabled: boolean | undefined,
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionID = transaction?.transactionID;
@@ -117,6 +119,7 @@ function detachReceipt(
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -192,6 +195,7 @@ function replaceReceipt({
     transactionPolicyTagList,
     transactionViolations,
     transactionReport,
+    isVendorMatchingBetaEnabled,
 }: ReplaceReceipt) {
     const transactionID = transaction?.transactionID;
 
@@ -221,6 +225,7 @@ function replaceReceipt({
         transactionPolicyCategories,
         transactionPolicyTagList,
         transactionViolations,
+        isVendorMatchingBetaEnabled,
     };
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
@@ -275,6 +280,7 @@ function replaceReceipt({
             hasDependentTags: hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceTransaction: isInvoiceReportReportUtils(transactionReport),
             ownerLogin: undefined,
+            isVendorMatchingBetaEnabled,
         });
         optimisticData.push(violationsOnyxData);
         failureData.push({

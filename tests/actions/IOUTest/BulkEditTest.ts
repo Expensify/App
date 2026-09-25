@@ -87,6 +87,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -163,6 +164,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -228,6 +230,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [firstTransactionID, secondTransactionID],
                 changes: {amount: 1000},
@@ -302,6 +305,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -1000},
@@ -380,6 +384,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {billable: true, reimbursable: false},
@@ -448,6 +453,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -515,6 +521,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'New merchant'},
@@ -572,6 +579,7 @@ describe('actions/IOU/BulkEdit', () => {
             await waitForBatchedUpdates();
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 1000},
@@ -648,6 +656,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -711,6 +720,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: ''},
@@ -779,6 +789,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food'},
@@ -848,6 +859,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'New Merchant'},
@@ -920,6 +932,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Pass categories for BOTH policies — "Engineering" only exists in the transaction's policy
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -996,6 +1009,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -1080,6 +1094,7 @@ describe('actions/IOU/BulkEdit', () => {
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: 2000},
@@ -1171,6 +1186,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [firstTransactionID, secondTransactionID],
                 // The bulk-edit page pre-computes a common-prefix display string (parent only)...
@@ -1261,6 +1277,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {tag: 'CostCenterA:IndicationZ'},
@@ -1352,6 +1369,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [firstTransactionID, secondTransactionID],
                 // The picker resolved the tap as a deselect, so it recorded an empty value for the Indication
@@ -1438,6 +1456,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 // Deselecting the middle (Indication, index 1) level. Built programmatically because
@@ -1503,6 +1522,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food', billable: true},
@@ -1572,6 +1592,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Food', amount: 5000, currency: CONST.CURRENCY.EUR, taxCode: 'id_TAX_RATE_1'},
@@ -1663,6 +1684,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // When: bulk-editing with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category},
@@ -1760,6 +1782,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // When: bulk-editing reimbursable with the shared policy (different from transaction's policy)
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {reimbursable: false},
@@ -1835,6 +1858,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
@@ -1909,6 +1933,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
@@ -1976,6 +2001,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {amount: -2000},
@@ -2037,6 +2063,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'Coffee Shop'},
@@ -2146,6 +2173,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {merchant: 'Priority Test'},
@@ -2240,6 +2268,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txn1ID, txn2ID],
                 changes: {created: '2025-01-15'},
                 policy,
@@ -2330,6 +2359,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txnID],
                 changes: {currency: CONST.CURRENCY.EUR},
                 policy,
@@ -2429,6 +2459,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Iter 1 (currency) → indeterminate. Iter 2 (same-currency amount) must inherit the sticky flag.
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [currencyTxnID, amountTxnID],
                 changes: {amount: 3000},
                 policy,
@@ -2515,6 +2546,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // `transactions` carries both (mirrors mergedTransactions in SearchEditMultiplePage).
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [onyxTxnID],
                 changes: {created: '2025-01-15'},
                 policy,
@@ -2597,6 +2629,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txnID],
                 changes: {created: '2025-01-15'},
                 policy,
@@ -2678,6 +2711,7 @@ describe('actions/IOU/BulkEdit', () => {
 
             // Merchant edit leaves totals untouched, so the gate lets the recompute through.
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 transactionIDs: [txnID],
                 changes: {merchant: 'New Merchant'},
                 policy,
@@ -2758,6 +2792,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {attendees: nextAttendees},
@@ -2849,6 +2884,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {attendees: nextAttendees},
@@ -2932,6 +2968,7 @@ describe('actions/IOU/BulkEdit', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
                 personalDetailsList: undefined,
                 transactionIDs: [transactionID],
                 changes: {category: 'Meals', attendees: nextAttendees},

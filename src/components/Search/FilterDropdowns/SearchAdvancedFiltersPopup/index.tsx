@@ -11,12 +11,14 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {getFilterNegatableValue, hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
+import {hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {ComponentRef} from 'react';
 
 import React, {Activity, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -111,7 +113,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const filterContentRef = useRef<View>(null);
+    const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const [mountedFilterState, setMountedFilterState] = useState<MountedFilterState>(() => ({
         activeFilter: INITIAL_FILTER,
         mountedFilters: [INITIAL_FILTER],
@@ -198,7 +200,6 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
-                    policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                     selectedFilter={activeFilter}
                     onHoverIn={hoverFilter}
                     onPointerMove={trackPointerMovement}

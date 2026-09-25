@@ -19,11 +19,12 @@ import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, removeNegation} from '@libs/SearchQueryUtils';
-import {FILTER_VIEW_MAP, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
+import {getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -38,6 +39,7 @@ import DatePickerFilterPopup from './DatePickerFilterPopup';
 type FilterItem = WithSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     onClosePress: (() => void) | undefined;
+    onLandscapePress?: () => void;
 };
 
 type UseSearchFiltersBarResult = {
@@ -63,7 +65,7 @@ function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilter
 
 function FilterPopup({baseFilterKey, isDefault, searchAdvancedFiltersForm, closeOverlay, setPopoverWidth, updateFilterForm}: FilterPopupProps) {
     const {translate} = useLocalize();
-    const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
+    const label = translate(getFilterViewLabelKey(baseFilterKey, searchAdvancedFiltersForm.type));
 
     const closeModalAndUpdateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         close(() => updateFilterForm(values));
@@ -185,6 +187,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 </ListFilterHeightContextProvider>
             ),
             sentryLabel: getFilterSentryLabel(filterKey),
+            onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(removeNegation(filterKey), true)),
             onClosePress: isDefault
                 ? undefined
                 : () => {

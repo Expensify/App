@@ -1026,7 +1026,7 @@ So, if a new language feature isn't something we have agreed to support it's off
 
 ## React Coding Standards
 
-For additional React best practices and patterns that are automatically enforced during code review, see the [Coding Standards](../.claude/skills/coding-standards/SKILL.md).
+For additional React best practices and patterns that are automatically enforced during code review, see the [App Coding Standards](../.claude/skills/app-coding-standards/SKILL.md).
 
 ### Code Documentation
 

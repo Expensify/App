@@ -4,6 +4,7 @@
  * gates access behind DomainNotFoundPageWrapper.
  */
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -14,6 +15,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -24,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {createAdminPoliciesSelector} from '@selectors/Policy';
-import React from 'react';
+import React, {useState} from 'react';
 
 type WorkspaceListItem = {
     policyID: string;
@@ -37,11 +39,14 @@ type BaseDomainGroupPreferredWorkspacePageProps = {
     /** AccountID of the domain */
     domainAccountID: number;
 
-    /** The policy ID of the currently selected preferred workspace */
+    /** The policy ID of the saved preferred workspace */
     selectedPolicyID: string | undefined;
 
     /** Called with the policy ID of the workspace the user picked */
     onSelectWorkspace: (policyID: string) => void;
+
+    /** Whether a pick is staged behind a Save button, which WCAG 3.2.2 "On Input" requires when committing navigates away */
+    shouldConfirmSelection?: boolean;
 
     /** Called when the back button is pressed */
     onBackButtonPress: () => void;
@@ -60,6 +65,7 @@ function BaseDomainGroupPreferredWorkspacePage({
     domainAccountID,
     selectedPolicyID,
     onSelectWorkspace,
+    shouldConfirmSelection = false,
     onBackButtonPress,
     testID,
     shouldBeBlocked,
@@ -67,6 +73,11 @@ function BaseDomainGroupPreferredWorkspacePage({
 }: BaseDomainGroupPreferredWorkspacePageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+    const checkedPolicyID = draftPolicyID ?? selectedPolicyID;
+
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(selectedPolicyID)});
 
@@ -81,7 +92,7 @@ function BaseDomainGroupPreferredWorkspacePage({
             policyID: policy.id,
             created: policy.created,
             keyForList: policy.id,
-            isSelected: selectedPolicyID === policy.id,
+            isSelected: checkedPolicyID === policy.id,
         });
     }
     workspaceOptions.sort((a, b) => localeCompare(a.created ?? '', b.created ?? ''));
@@ -94,6 +105,20 @@ function BaseDomainGroupPreferredWorkspacePage({
     // The search input is gated on the unfiltered list length so it doesn't disappear once a query narrows the results.
     const shouldShowSearchInput = workspaceOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
+    const confirmButtonOptions = shouldConfirmSelection
+        ? {
+              showButton: true,
+              text: translate('common.save'),
+              onConfirm: () => {
+                  if (!checkedPolicyID) {
+                      return;
+                  }
+                  onSelectWorkspace(checkedPolicyID);
+              },
+              isDisabled: checkedPolicyID === selectedPolicyID,
+          }
+        : undefined;
+
     return (
         <DomainNotFoundPageWrapper
             domainAccountID={domainAccountID}
@@ -103,13 +128,15 @@ function BaseDomainGroupPreferredWorkspacePage({
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID={testID}
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('domain.groups.preferredWorkspace')}
-                    onBackButtonPress={onBackButtonPress}
-                />
-                <Text style={[styles.ph5, styles.mb3]}>{translate('domain.groups.preferredWorkspaceSelectDescription')}</Text>
+                <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('domain.groups.preferredWorkspace')}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                    <Text style={[styles.ph5, styles.mb3]}>{translate('domain.groups.preferredWorkspaceSelectDescription')}</Text>
+                </CollapsibleHeaderOnKeyboard>
                 <SelectionList<WorkspaceListItem>
                     data={filteredWorkspaceOptions}
                     ListItem={UserListItem}
@@ -119,9 +146,12 @@ function BaseDomainGroupPreferredWorkspacePage({
                         onChangeText: setSearchTerm,
                         headerMessage: workspaceOptions.length > 0 && filteredWorkspaceOptions.length === 0 ? translate('common.noResultsFound') : '',
                     }}
-                    onSelectRow={(item: WorkspaceListItem) => onSelectWorkspace(item.policyID)}
+                    onSelectRow={(item: WorkspaceListItem) => (shouldConfirmSelection ? setDraftPolicyID(item.policyID) : onSelectWorkspace(item.policyID))}
+                    confirmButtonOptions={confirmButtonOptions}
                     initiallyFocusedItemKey={selectedPolicyID}
                     shouldUpdateFocusedIndex
+                    addBottomSafeAreaPadding
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
