@@ -99,7 +99,6 @@ function useSelectionModePayment({
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -204,7 +203,6 @@ function useSelectionModePayment({
                 paymentMethod,
                 activePolicy,
                 conciergeChat,
-                betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
@@ -225,7 +223,6 @@ function useSelectionModePayment({
                 activePolicy,
                 policy,
                 chatReportPolicy,
-                betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
                 amountOwed,
