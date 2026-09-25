@@ -151,7 +151,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             return;
         }
         openPolicyInitialPage(routePolicyID);
-        // The rules collection is keyed per rule rather than per policy, so it is fetched whole whenever a workspace is opened.
+        // Deliberately not `useRulesPrefetch`, which fetches once per session for screens that only need a count.
+        // Opening a workspace is the point at which its rules have to be current, including after a reconnect.
         getRules();
     };
     useNetwork({onReconnect: fetchPolicyData});

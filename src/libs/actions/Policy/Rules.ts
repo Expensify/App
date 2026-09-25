@@ -1,4 +1,6 @@
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
+// Namespace import on purpose. `rulesdir/no-api-side-effects-method` only matches member calls, so importing
+// `makeRequestWithSideEffects` by name would quietly switch that guardrail off.
 import * as API from '@libs/API';
 import type {
     AddPolicyAgentRuleParams,
@@ -10,11 +12,11 @@ import type {
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
 import type SetPolicyCodingRuleParams from '@libs/API/parameters/SetPolicyCodingRuleParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildMerchantRule, isExpenseDefaultTaxValue} from '@libs/ExpenseDefaultRuleUtils';
 import type {BuiltMerchantRule, MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Log from '@libs/Log';
-import * as NumberUtils from '@libs/NumberUtils';
+import {rand64} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -214,7 +216,7 @@ function setMerchantRule(
     }
 
     const isEditing = !!ruleID;
-    const targetRuleID = ruleID ?? NumberUtils.rand64();
+    const targetRuleID = ruleID ?? rand64();
     const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${targetRuleID}` as const;
     const created = existingRule?.created ?? new Date().toISOString();
 
@@ -239,7 +241,7 @@ function setMerchantRule(
                 value: {
                     ...(isEditing && existingRule ? existingRule : optimisticRule),
                     pendingAction: isEditing ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
         ],
@@ -345,7 +347,7 @@ function deleteMerchantRule(policyID: string, ruleID: string, rule: Rule | undef
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ruleKey,
-                value: rule ? {...rule, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : null,
+                value: rule ? {...rule, pendingAction: null, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : null,
             },
         ],
     };
@@ -413,7 +415,7 @@ function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: strin
                         agentRules: {
                             [agentRuleID]: {
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -486,7 +488,7 @@ function updatePolicyAgentRule(policyID: string, agentRuleID: string, prompt: st
                                 prompt: previousPrompt,
                                 title: previousTitle ?? null,
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -552,7 +554,7 @@ function deletePolicyAgentRule(policy: Policy, agentRuleID: string) {
                             [agentRuleID]: {
                                 ...existingRule,
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
