@@ -56,7 +56,7 @@ import type {DismissedProductTraining} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {hasPersonalDetailSelector, loginSelector} from '@selectors/PersonalDetails';
+import {doesPersonalDetailExist, loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -94,7 +94,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const ownerAccountID = report?.ownerAccountID;
     const managerID = report?.managerID;
     const [submitterLogin] = usePersonalDetail(ownerAccountID, loginSelector);
-    const [hasSubmitterPersonalDetail = false] = usePersonalDetail(ownerAccountID, hasPersonalDetailSelector);
+    const [hasSubmitterPersonalDetail = false] = usePersonalDetail(ownerAccountID, doesPersonalDetailExist);
     const [managerLogin] = usePersonalDetail(managerID, loginSelector);
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const {isBetaEnabled} = usePermissions();

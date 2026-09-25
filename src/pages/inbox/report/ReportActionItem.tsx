@@ -33,6 +33,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -41,10 +42,12 @@ import {
     extractLinksFromMessageHtml,
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
+    getPaymentMessageWithExpectedDate,
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
     isCreatedTaskReportAction,
+    isActionOfType,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
     isMoneyRequestAction,
@@ -74,6 +77,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {getReimbursedExpectedDateSelector} from '@src/selectors/ReportAction';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
@@ -188,7 +192,13 @@ function ReportActionItem({
 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const transactionsOnIOUReport = useReportTransactionsCollection(iouReport?.reportID);
-    const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
+    const IOUOriginalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(action) : undefined;
+    const transactionID = isMoneyRequestAction(action) && IOUOriginalMessage?.IOUTransactionID;
+    const isACHPaymentAction = IOUOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && IOUOriginalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA;
+    const reimbursedExpectedDateSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
+        isACHPaymentAction && !IOUOriginalMessage?.expectedDate ? getReimbursedExpectedDateSelector(reportActions, action.created) : undefined;
+    const [reimbursedExpectedDate] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: reimbursedExpectedDateSelector});
+    const paymentExpectedDate = isACHPaymentAction ? (IOUOriginalMessage?.expectedDate ?? reimbursedExpectedDate) : undefined;
 
     const getLinkedTransactionRouteError = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
         return linkedTransactionRouteErrorProp ?? transaction?.errorFields?.route;
@@ -201,7 +211,7 @@ function ReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
+    const {translate, datetimeToCalendarTime, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [actorDisplayName] = usePersonalDetail(action.actorAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const {showConfirmModal} = useConfirmModal();
@@ -506,7 +516,7 @@ function ReportActionItem({
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getReportActionText(action);
+    const plainMessage = getPaymentMessageWithExpectedDate(translate, dateFnsLocale, getReportActionText(action), paymentExpectedDate);
     const accessibilityLabel = `${actorDisplayName ?? ''}, ${formattedTimestamp}, ${plainMessage}`;
 
     return (
@@ -636,6 +646,7 @@ function ReportActionItem({
                                                                 updateHiddenState={updateHiddenState}
                                                                 isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                                 isTrackIntentUser={isTrackIntentUser}
+                                                                paymentExpectedDate={paymentExpectedDate}
                                                                 isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}

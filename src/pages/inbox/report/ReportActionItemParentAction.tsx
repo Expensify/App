@@ -55,7 +55,6 @@ function ReportActionItemParentAction({
     const styles = useThemeStyles();
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
@@ -94,7 +93,6 @@ function ReportActionItemParentAction({
             currentUserAccountID,
             introSelected,
             isSelfTourViewed,
-            allBetas,
             reportOwnerPersonalDetail,
             currentUserPersonalDetail,
             conciergePersonalDetail,
@@ -121,7 +119,6 @@ function ReportActionItemParentAction({
                         reportAction={ancestorReportAction}
                         shouldDisplayNewMarker={shouldDisplayNewMarker}
                         reportNameValuePairs={ancestorsReportNameValuePairs}
-                        allBetas={allBetas}
                         conciergePersonalDetail={conciergePersonalDetail}
                         conciergeReportID={conciergeReportID}
                         currentUserAccountID={currentUserAccountID}

@@ -25,9 +25,6 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-const avatarStyleColorSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
-    accountID ? personalDetailsList?.[accountID]?.avatarStyle?.color : undefined;
-
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
 const personalDetailsDisplayNameSelector =
@@ -118,7 +115,9 @@ const accountIDSelector = (personalDetails: PersonalDetails | undefined) => pers
 
 const loginSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.login;
 
-const hasPersonalDetailSelector = (personalDetails: PersonalDetails | undefined) => !!personalDetails;
+const avatarStyleColorSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.avatarStyle?.color;
+
+const doesPersonalDetailExist = (personalDetails: PersonalDetails | undefined) => !!personalDetails;
 
 const firstNameSelector = (personalDetails: PersonalDetails | undefined) => (personalDetails?.firstName?.trim() ? personalDetails.firstName : undefined);
 
@@ -144,7 +143,7 @@ export {
     displayNameSelector,
     accountIDSelector,
     loginSelector,
-    hasPersonalDetailSelector,
     firstNameSelector,
     displayNameOrDefaultSelector,
+    doesPersonalDetailExist,
 };

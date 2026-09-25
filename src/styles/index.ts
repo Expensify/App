@@ -6777,10 +6777,8 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
-        discoverSectionImage: {
-            width: '100%',
-            height: undefined,
-            aspectRatio: 2.2,
+        chartInlineTable: {
+            marginTop: 20,
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
@@ -7460,17 +7458,13 @@ const plainStyles = (theme: ThemeColors) =>
 
         insightsChartGrid: {
             flexDirection: 'row',
-            flexWrap: 'wrap',
-            alignItems: 'stretch',
-            marginHorizontal: -variables.insightsCardGap / 2,
-            marginVertical: -variables.insightsCardGap / 2,
+            alignItems: 'flex-start',
+            gap: variables.insightsCardGap,
         } satisfies ViewStyle,
 
-        insightsChartGridCell: (shouldUseNarrowLayout: boolean) =>
-            ({
-                flexBasis: shouldUseNarrowLayout ? '100%' : '50%',
-                padding: variables.insightsCardGap / 2,
-            }) satisfies ViewStyle,
+        insightsChartColumn: {
+            gap: variables.insightsCardGap,
+        } satisfies ViewStyle,
 
         insightsEmptyStateIllustration: {
             width: variables.insightsEmptyStateIllustrationSize,

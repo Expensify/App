@@ -82,7 +82,6 @@ function IOURequestStepDistanceGPS({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -187,7 +186,6 @@ function IOURequestStepDistanceGPS({
             gpsModifiedDistance: modifiedDistance,
             selfDMReport,
             policyForMovingExpenses,
-            betas,
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,

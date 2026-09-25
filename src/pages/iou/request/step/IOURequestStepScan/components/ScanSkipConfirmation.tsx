@@ -97,7 +97,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -322,7 +321,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             reimbursable: defaultReimbursable,
             isSelfTourViewed,
             allTransactionDrafts,
-            betas,
             personalDetails,
             recentWaypoints,
             optimisticTransactionIDs,
