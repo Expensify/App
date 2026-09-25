@@ -3,8 +3,6 @@ import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 
-import type {Linking as LinkingWeb} from 'react-native-web';
-
 import {Linking} from 'react-native';
 
 import type AsyncOpenURL from './types';
@@ -24,7 +22,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
     if (!isSafari || !!shouldSkipCustomSafariLogic || !!shouldOpenInSameTab) {
         promise
             .then((params) => {
-                (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), shouldOpenInSameTab && canOpenURLInSameTab ? '_self' : undefined);
+                Linking.openURL(typeof url === 'string' ? url : url(params));
             })
             .catch(() => {
                 Log.warn('[asyncOpenURL] error occurred while opening URL', {url});
@@ -34,7 +32,7 @@ const asyncOpenURL: AsyncOpenURL = (promise, url, shouldSkipCustomSafariLogic, s
         promise
             .then((params) => {
                 if (!windowRef) {
-                    (Linking.openURL as LinkingWeb['openURL'])(typeof url === 'string' ? url : url(params), '_self');
+                    Linking.openURL(typeof url === 'string' ? url : url(params));
                     return;
                 }
                 windowRef.location = typeof url === 'string' ? url : url(params);

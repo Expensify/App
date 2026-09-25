@@ -18,9 +18,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {ImageContentFit} from 'expo-image';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle, WebViewStyle} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
-import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 
 import React, {useMemo} from 'react';
@@ -88,7 +87,7 @@ type BlockingViewAnimationProps = {
     animation: DotLottieAnimation;
 
     animationStyles?: StyleProp<ViewStyle>;
-    animationWebStyle?: WebStyle;
+    animationWebStyle?: WebViewStyle;
 };
 
 // This page requires either an icon or an animation, but not both

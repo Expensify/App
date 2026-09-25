@@ -38,6 +38,75 @@ type PushNotificationBridge = {
 };
 
 declare module 'react-native' {
+    // The Strict API exports these as type aliases. `expo/types/react-native-web.d.ts` (pulled in by
+    // `types: ["react-native-web"]`) redeclares them as interfaces, and augmenting a type alias with
+    // an interface erases every property. Web CSS that react-native-web accepts is added as its own
+    // exported type instead, and composed at the call site.
+    type WebViewStyle = {
+        backdropFilter?: string;
+        animationDelay?: string | string[] | number | number[];
+        animationDirection?: string | string[];
+        animationDuration?: string | string[] | number | number[];
+        animationFillMode?: string | string[];
+        animationName?: string | Record<string, unknown> | (string | Record<string, unknown>)[];
+        animationIterationCount?: number | 'infinite' | (number | 'infinite')[];
+        animationPlayState?: string | string[];
+        animationTimingFunction?: string | string[];
+        backgroundAttachment?: string;
+        backgroundBlendMode?: string;
+        backgroundClip?: string;
+        backgroundImage?: string;
+        backgroundOrigin?: 'border-box' | 'content-box' | 'padding-box';
+        backgroundPosition?: string;
+        backgroundRepeat?: string;
+        backgroundSize?: string;
+        boxSizing?: string;
+        clip?: string;
+        gridAutoColumns?: string;
+        gridAutoFlow?: string;
+        gridAutoRows?: string;
+        gridColumnEnd?: string;
+        gridColumnGap?: string;
+        gridColumnStart?: string;
+        gridRowEnd?: string;
+        gridRowGap?: string;
+        gridRowStart?: string;
+        gridTemplateColumns?: string;
+        gridTemplateRows?: string;
+        gridTemplateAreas?: string;
+        outline?: string;
+        overflowX?: string;
+        overflowY?: string;
+        overscrollBehavior?: 'auto' | 'contain' | 'none';
+        overscrollBehaviorX?: 'auto' | 'contain' | 'none';
+        overscrollBehaviorY?: 'auto' | 'contain' | 'none';
+        perspective?: string;
+        perspectiveOrigin?: string;
+        touchAction?: string;
+        transitionDelay?: string | string[];
+        transitionDuration?: string | string[] | number;
+        transitionProperty?: string | string[];
+        transitionTimingFunction?: string | Function | (string | Function)[];
+        userSelect?: string;
+        visibility?: string;
+        willChange?: string;
+        position?: 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
+        whiteSpace?: string;
+        textOverflow?: string;
+        wordBreak?: string;
+        WebkitUserSelect?: string;
+        WebkitTouchCallout?: string;
+        transformOrigin?: string;
+    };
+
+    type WebTextStyle = WebViewStyle & {
+        textIndent?: string;
+        textRendering?: string;
+        unicodeBidi?: string;
+        wordWrap?: string;
+        verticalAlign?: string;
+    };
+
     interface TextInputFocusEventData extends TargetedEvent {
         text: string;
         eventCount: number;
