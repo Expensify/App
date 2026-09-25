@@ -87,7 +87,9 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies);
+    // The login is required for the `employeeList` role fallback in `getPolicyRole`. Without it, every policy
+    // that only carries the member's role in `employeeList` is filtered out and the user looks workspace-less.
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, currentUserPersonalDetails?.login);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
