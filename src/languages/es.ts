@@ -9755,6 +9755,7 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
         mergeReports: {title: 'Combinar informes', description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.'},
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} del gasto`,
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
