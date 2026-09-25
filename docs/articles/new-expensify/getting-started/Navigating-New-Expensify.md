@@ -212,18 +212,6 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
-## How do I clear all my unread messages at once?
-
-Right-click (web) or long-press (mobile) **All**, **Unread**, or **To-dos** at the top of the **Inbox**, select **Mark all as read**, then confirm.
-
-## Does Mark all as read clear my to-do chats too?
-
-It depends on the tab you use. From **All** or **Unread**, every unread chat is marked as read. From **To-dos**, only the chats listed in **To-dos** are marked as read.
-
-## Why do I see a tip about Mark all as read next to the Unread tab?
-
-The tip appears when you have unread messages that are more than three months old. Dismiss it to hide it; it reappears at most once a week.
-
 ## Where do I manage workspace settings?
 
 Open the **Workspaces** tab from the navigation tabs.
