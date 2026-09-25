@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType, shouldShowShippingAddressStep} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
@@ -121,9 +121,18 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
     };
 
+    const isShippingAddressStepShown = shouldShowShippingAddressStep(data);
+
     const handleBackButtonPress = () => {
-        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_NAME, policyID});
+        setIssueNewCardStepAndData({step: isShippingAddressStepShown ? CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS : CONST.EXPENSIFY_CARD.STEP.CARD_NAME, policyID});
     };
+
+    const shippingAddress = data?.shippingAddress;
+    const shippingAddressTitle = shippingAddress
+        ? [...shippingAddress.addressStreet.split('\n'), shippingAddress.addressCity, shippingAddress.addressState, shippingAddress.addressZip, shippingAddress.addressCountry]
+              .filter(Boolean)
+              .join(', ')
+        : translate('workspace.card.issueNewCard.promptCardholder');
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
     const limitTitle = convertToShortDisplayString(data?.limit, data?.currency);
@@ -226,6 +235,13 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                     value={data?.cardTitle}
                 />
+                {isShippingAddressStepShown && (
+                    <MenuItemField
+                        name={translate('workspace.card.issueNewCard.shippingAddress')}
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS)}
+                        value={shippingAddressTitle}
+                    />
+                )}
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <FormAlertWithSubmitButton
                         buttonRef={submitButton}
