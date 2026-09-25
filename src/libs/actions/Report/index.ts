@@ -253,6 +253,7 @@ import type {
     TransactionViolations,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -383,7 +384,7 @@ type OpenReportActionParams = {
     shouldMarkAsRead?: boolean;
 
     /** The Concierge chat report used to build the guided setup onboarding data */
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<Report | ConciergeChatReport>;
 };
 
 type PregeneratedResponseParams = {
@@ -1606,7 +1607,7 @@ function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
     // TODO: undefined will be removed once all openReport callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID: number | undefined,
-    conciergeChat: OnyxEntry<Report>,
+    conciergeChat: OnyxEntry<Report | ConciergeChatReport>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
@@ -2437,7 +2438,7 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
-    conciergeChat: OnyxEntry<Report>;
+    conciergeChat: OnyxEntry<Report | ConciergeChatReport>;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2859,7 +2860,7 @@ function navigateToAndOpenChildReport(
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
     isSelfTourViewed: boolean | undefined,
-    conciergeChat: OnyxEntry<Report>,
+    conciergeChat: OnyxEntry<Report | ConciergeChatReport>,
 ) {
     const report =
         childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
@@ -2911,7 +2912,7 @@ function createChildReport(
     isSelfTourViewed: boolean | undefined,
     // The personal details of the child report participants (the current user and the parent action's actor).
     participantsPersonalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeChat: OnyxEntry<Report>,
+    conciergeChat: OnyxEntry<Report | ConciergeChatReport>,
 ): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent

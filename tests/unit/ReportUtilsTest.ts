@@ -97,6 +97,7 @@ import {
     getChatListItemReportName,
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
+    getConciergeChatReportFields,
     getDefaultGroupAvatar,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
@@ -879,6 +880,20 @@ describe('ReportUtils', () => {
 
             const reportAction = optimisticAssigneeAddComment?.reportAction as ReportAction | undefined;
             expect(reportAction?.delegateAccountID).toBe(delegateAccountID);
+        });
+    });
+
+    describe('getConciergeChatReportFields', () => {
+        it('returns an existing projection unchanged', () => {
+            // Given a projection produced from a full concierge report, as subscribers using conciergeChatSelector hold it
+            const projection = getConciergeChatReportFields({reportID: '5', type: CONST.REPORT.TYPE.CHAT, policyID: 'policy1'});
+
+            // When the projection is passed back in, as prepareOnboardingOnyxData does with whatever its caller provided
+            const result = getConciergeChatReportFields(projection);
+
+            // Then it is returned as is, because a projection has no reportID and would otherwise be dropped
+            expect(result).toBe(projection);
+            expect(result?.conciergeReportID).toBe('5');
         });
     });
 

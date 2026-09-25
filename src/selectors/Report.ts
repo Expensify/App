@@ -1,6 +1,7 @@
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
+    getConciergeChatReportFields,
     getPolicyIDsWithEmptyReportsForAccount,
     isArchivedReport,
     isChatRoom,
@@ -13,6 +14,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type ConciergeChatReport from '@src/types/onyx/ConciergeChatReport';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -356,6 +358,14 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
     } satisfies Record<keyof StableReport, unknown> & StableReport;
 }
 
+/**
+ * Selector for subscribers that only forward the Concierge chat report into the openReport onboarding path.
+ * Strips every field that path does not read, so `live*` and other frequently changing fields do not re-render them.
+ */
+function conciergeChatSelector(report: OnyxEntry<Report>): ConciergeChatReport | undefined {
+    return getConciergeChatReportFields(report);
+}
+
 function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
@@ -373,6 +383,7 @@ export {
     policyChatRoomsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    conciergeChatSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
