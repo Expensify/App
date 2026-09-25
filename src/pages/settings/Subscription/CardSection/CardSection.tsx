@@ -215,7 +215,11 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (shouldShowDiscountBanner(session?.accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies)) {
+    // Checked before the trial banners because the pre-trial check also passes when the free trial NVPs are absent,
+    // which an annual subscriber can have
+    if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
+        BillingBanner = <SubscriptionExpiringSoonBanner endDate={privateSubscription?.endDate} />;
+    } else if (shouldShowDiscountBanner(session?.accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
     } else if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <PreTrialBillingBanner />;
@@ -223,9 +227,6 @@ function CardSection() {
         BillingBanner = <TrialStartedBillingBanner />;
     } else if (shouldShowTrialEndedUI(session?.accountID, lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
         BillingBanner = <TrialEndedBillingBanner />;
-    } else if (shouldShowSubscriptionExpiringSoonUI(privateSubscription)) {
-        // A subscription with an end date is never on trial, so this can only ever be reached when the trial branches above miss
-        BillingBanner = <SubscriptionExpiringSoonBanner endDate={privateSubscription?.endDate} />;
     }
     if (billingStatus) {
         BillingBanner = (
