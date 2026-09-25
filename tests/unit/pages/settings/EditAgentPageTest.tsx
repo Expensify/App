@@ -290,7 +290,12 @@ describe('EditAgentPage', () => {
     });
 
     it('renders NotFoundPage when agent and personalDetails are both missing after Onyx is loaded', () => {
-        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_LOADING_APP) {
+                return [false, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
 
         const {toJSON} = render(
             <EditAgentPage
