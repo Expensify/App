@@ -1,8 +1,8 @@
 ---
 title: How to Export Reports
 description: Learn how to export reports to CSV, download them as PDFs, or download their receipts.
-keywords: [New Expensify, export reports, CSV export, PDF download, download report, download reports, download receipt, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data]
-internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
+keywords: [New Expensify, export reports, CSV export, PDF download, download report, download reports, download receipt, download receipts, download receipts for multiple reports, report receipts, receipt zip, report export template, bulk export reports, bulk PDF download, report data, select all reports, exclude reports from export, uncheck report after select all]
+internalScope: Audience is all members. Covers exporting reports to CSV using export templates (individually and in bulk), excluding reports after using Select all, downloading reports as PDF (individually and in bulk), and downloading the receipts on a report (individually and in bulk). Does not cover exporting individual expenses from the Expenses page (see Export-Expenses.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
 # How to export reports 
@@ -47,6 +47,27 @@ Use **Export current view** to download a CSV that matches the columns currently
 6. Select **Export current view**.
 
 The CSV uses the same columns displayed on the page.
+
+## How to exclude reports when you export all matching reports
+
+After you use **Select all** to select every report that matches your search, you can uncheck individual reports to leave them out of the export.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**.
+2. Select the top checkbox, then select **Select all**.
+3. Uncheck each report you want to exclude.
+4. Select **Export**.
+5. Select **Current view** or **Basic export**.
+
+The **Select all** option only appears when there are more reports than fit on one page.
+
+## What happens when you exclude reports from Select all
+
+- The selection count at the top goes down by one for each report you uncheck.
+- The **Expenses** count and **Total spend** at the bottom of the list no longer include any expenses on the excluded reports.
+- Reports that load as you scroll are selected automatically, while excluded reports stay unchecked.
+- Excluded reports are left out of the CSV file.
+- Only **Current view** and **Basic export** are available while any report is excluded. Recheck all excluded reports to see the other export templates again.
+- Your exclusions are cleared when you clear the selection, select all again, or change your search.
 
 ## What export templates can I choose from? 
 
@@ -151,6 +172,10 @@ The label follows the number of receipts the download will include. It reads **D
 ## What happens if some receipts fail to download?
 
 When you download the receipts on a report, a message tells you how many of the receipts were exported successfully. If some receipts couldn't be included, the zip file still contains the ones that did download.
+
+## Why don't I see All Data or custom export templates after I uncheck a report?
+
+When you use **Select all** and then uncheck one or more reports, only **Current view** and **Basic export** support leaving those reports out. The other export templates are hidden until you recheck every excluded report.
 
 ## What is the difference between expense-level and report-level export templates?
 
