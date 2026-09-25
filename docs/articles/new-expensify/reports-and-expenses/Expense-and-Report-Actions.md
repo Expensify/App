@@ -1,7 +1,7 @@
 ---
 title: Expense and Report Actions
 description: Learn what actions (Submit, Approve, Pay, Export, Hold) are available on reports based on role and report status.
-keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, who can cancel payment, report status actions, approver permissions]
+keywords: [New Expensify, report actions Expensify, who can approve report, when can I pay report, who can cancel payment, report status actions, approver permissions, change approver, reassign approver, bypass approvers]
 internalScope: Audience is all members. High level overview of what report actions are available based on role and report status. Does not cover step-by-step instructions for performing each action.
 ---
 
@@ -95,6 +95,7 @@ Use this guide to understand:
 - Mark reports as exported
 - Change approver
 - Bypass approvers
+- Reassign approver
 - Change workspace (before export)
 
 ---
@@ -138,7 +139,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Hold** | Draft, Outstanding, or Approved reports | Submitter, approver, Workspace Admin | Prevents expenses from moving forward |
 | **Change workspace** | Draft reports | Submitter | Moves the report to another workspace |
 | **Change workspace** | Before export | Approver, Workspace Admin | Moves the report to another workspace |
-| **Change approver** | Submitted reports | Workspace Admin | Adds or bypasses approvers |
+| **Change approver** | Submitted reports | Workspace Admin | Adds, bypasses, or reassigns approvers |
 | **Delete** | Draft reports only | Submitter | Permanently removes the report |
 | **Undelete** | Deleted expenses | Submitter | Restores a deleted expense |
 | **Unapprove** | After approval, before payment | Approver | Reverts approval |
@@ -155,7 +156,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
-| **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
+| **Change approver** | On submitted reports, before the report is final-approved | Admin | **Add approver** inserts an extra approver into the approval workflow at the current point. **Bypass approvers** lets an admin take control of the report approval and final approve. **Reassign approver** skips the current approver and assigns the report to another workspace member, who then continues the rest of the workflow |
 | **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
@@ -211,6 +212,10 @@ Payments can only be canceled before processing begins. Manual payments cannot b
 ## Why can’t I see “Bypass approvers”?
 
 Only workspace admins can bypass approvers. Some settings may prevent self-approval.
+
+## Why can’t I see “Reassign approver”?
+
+Only workspace admins can reassign an approver, and only while the report is submitted and waiting for approval on a workspace that has an approval workflow enabled.
 
 ## How do I invite a member to an expense report?
 
