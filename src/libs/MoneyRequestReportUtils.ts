@@ -160,7 +160,9 @@ function shouldWaitForTransactions(
     // Scope the pending-submit-write check to *this* report so an unrelated submit flow that's
     // mid-submit doesn't make every empty money-request/invoice report look like it's loading.
     const hasPendingSubmitWrite = hasPendingSubmitWriteForReport(report?.reportID);
-    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingSubmitWrite);
+    // A nonzero total only means transactions are still on their way until the report has loaded once. After that, any
+    // transactions the report has are already in Onyx, so waiting on the total alone would show the skeleton forever.
+    const isStillLoadingData = transactions?.length === 0 && (((isReportLoadPending || report?.total !== 0) && !reportLoadingState?.hasOnceLoadedReportActions) || hasPendingSubmitWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
