@@ -34,12 +34,13 @@ A temporary problem reaching Xero, such as a timed-out request or a busy Xero AP
 
 You do not need to disconnect Xero first. Reconnecting restores access while keeping your imported data and your Xero configuration.
 
-1. Click **Settings** in the left-side navigation menu.
-2. Navigate to **Workspaces > [Workspace Name] > Accounting**.
-3. Click **Sync Now**.
-4. When the **Couldn't connect to Xero** window appears, click **Reconnect**.
-5. Log in to Xero using an account with admin access to the connected organization.
-6. Review the access permissions and click **Allow Access**.
+1. Go to **Settings > Workspaces**.
+2. Select your Workspace.
+3. Click **Accounting**.
+4. Click **Sync Now**.
+5. When the **Couldn't connect to Xero** window appears, click **Reconnect**.
+6. Log in to Xero using an account with admin access to the connected organization.
+7. Review the access permissions and click **Allow Access**.
 
 You are returned to Expensify once the connection is restored.
 
@@ -49,7 +50,7 @@ If the Workspace is not connected to Xero at all, [learn how to connect to Xero]
 
 ## How to export the report again after reconnecting Xero
 
-1. Click **Reports** in the left-side navigation menu.
+1. Go to **Reports**.
 2. Select the report that failed to export.
 3. Click **Export to**.
 4. Select **Xero**.
