@@ -1,7 +1,7 @@
 ---
 title: How to Troubleshoot Expensify Card Issues
 description: Learn how to fix common problems with your Expensify Card, including declined transactions, card activation issues, and Smart Limit errors.
-keywords: [Expensify Card, card declined, Smart Limit, inactive card, card status, fix this connection, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
+keywords: [Expensify Card, card declined, Smart Limit, inactive card, pending card, card status, fix this connection, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
 ---
 
 You can troubleshoot most Expensify Card issues in just a few steps. This guide walks you through the most common problems — like declined transactions, activation issues, or Smart Limit errors — and shows how to get your card working again.
@@ -70,12 +70,15 @@ To check whether a Spend Rule caused the decline:
 
 Then click your card to view its Spend Rule summary. If a Spend Rule is blocking your purchase, contact your Workspace Admin, since only an admin can change the rule. To learn more, [learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
-## What the Inactive status on your Expensify Card in Wallet means
+## What the Pending and Inactive statuses on your Expensify Card in Wallet mean
 
 In the navigation tabs (on the left on web, on the bottom on mobile), go to **Account > Wallet**. Under **Cards**, each Expensify Card shows one of these statuses:
 
 - **Active** — The card is ready to use.
+- **Pending** — The physical card is waiting to be issued or activated and can't be used for purchases yet.
 - **Inactive** — The card is suspended and can't be used for purchases, usually because your Workspace Admin suspended it or set its limit to $0.
+
+A **Pending** status changes to **Active** after your physical card arrives and you activate it. Virtual cards are ready to use as soon as they're issued, so they never show **Pending**.
 
 An **Inactive** Expensify Card is not a broken connection. Your Expensify Card is issued by Expensify rather than imported from a bank, so it has no bank connection to re-authenticate and nothing for you to fix in **Wallet**. To use the card again, contact your Workspace Admin and ask them to reactivate it or restore your limit.
 
