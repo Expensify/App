@@ -1,6 +1,7 @@
 import type {GroupedItem} from '@components/Search/types';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@pages/Insights/resolveChartData';
@@ -110,5 +111,39 @@ describe('resolveInsightsChartData', () => {
 
         // Then the chart shows the failure
         expect(state).toBe(INSIGHTS_CHART_STATE.ERROR);
+    });
+
+    it('plots the rows a Search request loaded before the dashboard response landed', () => {
+        // Given no stored dashboard yet, and a snapshot a Search request settled for the chart's own query
+        const queryJSON = buildSearchQueryJSON(QUERY);
+        const snapshot = makeSnapshot({search: {...makeSnapshot().search, hash: queryJSON?.hash ?? 0, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED}});
+        const sortedData = makeRows(2);
+
+        // When the chart is resolved
+        const {data, state} = resolveInsightsChartData({chart: CHART, dashboard: undefined, snapshot, queryJSON, sortedData});
+
+        // Then the chart is ready right away instead of waiting on GetInsights for data it already has
+        expect(state).toBe(INSIGHTS_CHART_STATE.READY);
+        expect(data).toBe(sortedData);
+    });
+
+    it('says it is offline when nothing is stored for it and no data can arrive', () => {
+        // Given no stored dashboard and no snapshot for the chart, while the device is offline
+        // When the chart is resolved
+        const {state} = resolveInsightsChartData({chart: CHART, dashboard: undefined, snapshot: undefined, sortedData: undefined, isOffline: true});
+
+        // Then it shows the offline state instead of loading forever
+        expect(state).toBe(INSIGHTS_CHART_STATE.OFFLINE);
+    });
+
+    it('keeps plotting stored rows while offline', () => {
+        // Given a snapshot the dashboard already answered with rows, and a connection that since dropped
+        const sortedData = makeRows(3);
+
+        // When the chart is resolved
+        const {state} = resolveInsightsChartData({chart: CHART, dashboard: DASHBOARD_WITH_SNAPSHOT, snapshot: makeSnapshot(), sortedData, isOffline: true});
+
+        // Then the chart stays on screen rather than being replaced by the offline state
+        expect(state).toBe(INSIGHTS_CHART_STATE.READY);
     });
 });

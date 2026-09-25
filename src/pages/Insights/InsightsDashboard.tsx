@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
@@ -29,7 +30,7 @@ import type {InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
-import buildInsightsJsonQuery from './insightsQueries';
+import buildInsightsJsonQuery, {applyInsightsFilters} from './insightsQueries';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
@@ -169,7 +170,8 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
+    const headlineQueryJSON = isResolved ? buildSearchQueryJSON(applyInsightsFilters(INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart, filters)) : undefined;
+    const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${headlineQueryJSON?.hash}`);
 
     return (
         <ScreenWrapper
@@ -185,7 +187,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             <InsightsDashboardContent
                 dashboardID={dashboardID}
                 hash={hash}
-                state={getDashboardState(dashboard, isOffline, headlineSnapshot)}
+                state={getDashboardState(dashboard, isOffline, headlineSnapshot, headlineQueryJSON)}
                 filters={filters}
                 onRetry={requestDashboard}
             />

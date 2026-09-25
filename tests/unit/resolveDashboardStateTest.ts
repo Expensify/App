@@ -1,4 +1,5 @@
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from '@pages/Insights/resolveDashboardState';
 
@@ -118,6 +119,21 @@ describe('getDashboardState', () => {
         const state = getDashboardState(LOADED_DASHBOARD, false, SNAPSHOT_WITH_ROWS);
 
         // Then the dashboard renders
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
+    });
+
+    it('draws the charts from a headline snapshot a Search request loaded before the response landed', () => {
+        // Given no stored response yet, and a headline snapshot a Search request settled for the same query
+        const headlineQueryJSON = buildSearchQueryJSON(QUERY);
+        const snapshot: SearchResults = {
+            ...SNAPSHOT_WITH_ROWS,
+            search: {...SNAPSHOT_WITH_ROWS.search, hash: headlineQueryJSON?.hash ?? 0, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED},
+        };
+
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, false, snapshot, headlineQueryJSON);
+
+        // Then the dashboard renders instead of waiting on GetInsights for data it already has
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
     });
 });

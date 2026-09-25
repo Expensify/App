@@ -1,7 +1,6 @@
-import BlockingView from '@components/BlockingViews/BlockingView';
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
+import ChartOfflineState from '@components/Search/ChartOfflineState';
 import SearchChartView from '@components/Search/SearchChartView';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
@@ -11,14 +10,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,8 +30,7 @@ import useInsightData, {INSIGHT_STATE} from './useInsightData';
 function InsightsSectionContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'OfflineCloud']);
+    const icons = useMemoizedLazyExpensifyIcons(['Expand']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
@@ -89,18 +84,7 @@ function InsightsSectionContent() {
                 ) : null
             }
         >
-            {state === INSIGHT_STATE.OFFLINE && (
-                <BlockingView
-                    icon={icons.OfflineCloud}
-                    iconColor={theme.offline}
-                    iconWidth={variables.iconSizeUltraLarge}
-                    title={translate('common.youAppearToBeOffline')}
-                    titleStyles={[styles.mt0, styles.mb2]}
-                    subtitle={translate('common.thisFeatureRequiresInternet')}
-                    subtitleStyle={styles.textSupporting}
-                    containerStyle={[{minHeight: CHART_CONTENT_MIN_HEIGHT}, styles.gap5]}
-                />
-            )}
+            {state === INSIGHT_STATE.OFFLINE && <ChartOfflineState />}
             {state === INSIGHT_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHT_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHT_STATE.LOADING || state === INSIGHT_STATE.READY) && (
