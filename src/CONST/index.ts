@@ -746,7 +746,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssnLast4',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -821,7 +821,7 @@ const CONST = {
                 UBOS_LIST: 'ubos-list',
                 LEGAL_NAME: 'legal-name',
                 DATE_OF_BIRTH: 'date-of-birth',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssn',
                 ADDRESS: 'address',
                 CONFIRMATION: 'confirmation',
             },
@@ -2274,10 +2274,6 @@ const CONST = {
         GET_INITIAL_URL_TIMEOUT: 10000,
         MIN_SMOOTH_SCROLL_EVENT_THROTTLE: 16,
     },
-    DEFERRED_LAYOUT_WRITE_KEYS: {
-        SEARCH: 'search',
-        DISMISS_MODAL: 'dismiss_modal',
-    },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_MEMORY: 'Memory',
@@ -3277,6 +3273,7 @@ const CONST = {
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     // These are the native values stored in the connection's export.exportStatus config, shared with
@@ -3381,7 +3378,12 @@ const CONST = {
         },
         ATS_APPROVER_FIELD: {
             RECRUITER: 'recruiter',
-            RECRUITING_COORDINATOR: 'recruitingCoordinator',
+            RECRUITING_COORDINATOR: 'coordinator',
+        },
+        ATS_FILTER_TYPE: {
+            TAGS: 'tags',
+            STAGES: 'stages',
+            OFFICES: 'offices',
         },
         CATEGORY: {
             HRIS: 'hris',
@@ -3934,6 +3936,9 @@ const CONST = {
 
     BUSINESS_CENTRAL_CONFIG: {
         COMPANY_ID: 'companyID',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_TAX_RATES: 'syncTaxRates',
+        SYNC_ITEMS: 'syncItems',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
     },
 
@@ -9481,9 +9486,6 @@ const CONST = {
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
         },
-        DISCOVER_SECTION: {
-            TEST_DRIVE: 'DiscoverSection-TestDrive',
-        },
         HOME_PAGE: {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
@@ -10019,6 +10021,19 @@ const CONST = {
         AI_FEATURES_PROMO_MODAL: {
             CONFIRM_BUTTON: 'AIFeaturesPromoModal-ConfirmButton',
             HELP_BUTTON: 'AIFeaturesPromoModal-HelpButton',
+        },
+    },
+
+    /**
+     * Stable test IDs rendered as `data-testid` on web, used both by tests and by analytics tooling
+     * (e.g. Fullstory) that needs a selector which survives react-native-web's generated class names.
+     */
+    TEST_ID: {
+        QUICK_CREATION_ACTIONS_BAR: {
+            EXPENSE: 'QuickCreationActionsBar-Expense',
+            REPORT: 'QuickCreationActionsBar-Report',
+            DISTANCE: 'QuickCreationActionsBar-Distance',
+            BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
     },
 

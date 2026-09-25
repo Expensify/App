@@ -57,6 +57,9 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Used to apply styles to the row holding the title and the switch, leaving the sub menu items below it untouched */
+    toggleContainerStyles?: StyleProp<ViewStyle>;
+
     titleStyle?: StyleProp<TextStyle>;
 
     /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular rows. */
@@ -112,6 +115,7 @@ function ToggleSettingOptionRow({
     shouldEscapeText = undefined,
     shouldParseSubtitle = false,
     wrapperStyle,
+    toggleContainerStyles,
     titleStyle,
     titleAccessibilityRole,
     onToggle,
@@ -271,6 +275,7 @@ function ToggleSettingOptionRow({
                             shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.h10,
+                            toggleContainerStyles,
                         ]}
                     >
                         <PressableWithoutFeedback

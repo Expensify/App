@@ -983,7 +983,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
-            validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
             addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
@@ -999,12 +998,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `サービス中断を防ぐため、${date}までに請求書をお支払いください`,
                 overdueTitle: 'お支払いの期限が過ぎています。請求書をお支払いください。',
             },
-        },
-        discoverSection: {
-            title: '発見',
-            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
-            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法を確認しましょう。',
-            menuItemDescription: 'Expensify でできることを 2 分で確認',
+            renewSubscription: {
+                title: '現在の料金を維持するには自動更新をオンにしてください',
+                subtitle: ({date}: {date: string}) => `サブスクリプションは${date}に終了`,
+                cta: '管理',
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1484,6 +1482,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `銀行口座（末尾${last4Digits}）で${amount}を支払いました` : `銀行口座（下4桁 ${last4Digits}）で支払い済み`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>に従い、銀行口座（下4桁 ${last4Digits}）で${amount ? `${amount} ` : ''}を支払いました`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}。${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `個人アカウント・${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `ビジネスアカウント・${lastFour}`,
         nextStep: '次のステップ',
@@ -1806,12 +1805,20 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
+            changedFinalApproverMessage: (managerID: number) => `最終承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
+            reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
+                previousApproverID
+                    ? `承認者を <mention-user accountID="${newApproverID}"/> に変更し、<mention-user accountID="${previousApproverID}"/> をスキップしました`
+                    : `承認者を <mention-user accountID="${newApproverID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
                 addApproverSubtitle: '既存のワークフローに追加の承認者を追加します。',
                 bypassApprovers: '承認者をバイパス',
                 bypassApproversSubtitle: '自分を最終承認者として割り当て、残りの承認者をすべてスキップする。',
+                reassignApprover: '承認者を再割り当て',
+                reassignApproverSubtitle: '現在の承認者をスキップし、新しい承認者を割り当てます。',
+                reassignApproverPageHeader: '代わりの承認者を選択し、残りの承認ワークフローに従ってください。',
             },
             addApprover: {
                 subtitle: '残りの承認ワークフローへ回付する前に、このレポートの追加承認者を選択してください。',
@@ -2724,6 +2731,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
             askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
             reconnectBank: '銀行連携の再認証が必要です',
+            pending: '保留中',
         },
         bankAccountStatus: {
             active: 'アクティブ',
@@ -3887,6 +3895,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             deletePaymentBankAccount: 'この銀行口座は Expensify カードの支払いに使用されているため、削除できません。この口座を削除したい場合は、Concierge までご連絡ください。',
             sameDepositAndWithdrawalAccount: '入金口座と出金口座が同じです。',
         },
+        unlockAlreadyRequestedTitle: 'リクエストは既に送信されています',
+        unlockAlreadyRequestedDescription: 'この銀行口座のロック解除リクエストは既に送信されています。追加で必要なことがある場合は、Concierge からご連絡します。',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -4228,7 +4238,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
         enterTheDateOfBirthOfTheOwner: '所有者の生年月日はいつですか？',
-        enterTheSSN: '所有者の社会保障番号は何ですか？',
+        enterTheSSN: '所有者の社会保障番号の下4桁は何ですか？',
         dontWorry: 'ご安心ください。個人信用情報の審査は一切行いません。',
         enterTheOwnersAddress: 'オーナーの住所は何ですか？',
         letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',
@@ -5379,6 +5389,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'アサインメント',
                 },
             },
+            fxExpenseAccount: '通貨換算手数料勘定',
+            fxExpenseAccountDescription: '海外での支払いに対する通貨換算コストを会社が負担する場合、そのコストをこの勘定科目でコード化した明細行として、買掛請求書に追加します。',
+            noExpenseAccountsFound: 'アカウントが見つかりません',
+            noExpenseAccountsFoundDescription: 'Certinia で総勘定元帳勘定科目を追加した後に、接続を再同期してください。',
         },
         netsuite: {
             subsidiary: '子会社',
@@ -8510,10 +8524,6 @@ ${reportName}`,
             providerFinalApprover: (providerName: string) => `${providerName} 最終承認者`,
             syncing: '従業員を同期しています',
             approvalModeDescription: (providerName: string) => `メンバーとマネージャーは ${providerName} と同期するように設定されています。`,
-            approvalModeWarningTitle: '承認モードを変更しますか？',
-            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
-                `このワークスペースの承認モードを変更してもよろしいですか？${providerName} 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
-            approvalModeWarningConfirm: '承認モードを変更',
             approvalModeDescriptions: {
                 basic: 'すべてのユーザーは、処理と承認のために 1 人の担当者に提出します。',
                 manager: (providerName: string) => `従業員は、${providerName} で設定された直属のマネージャーにレポートを提出します。`,
@@ -8570,12 +8580,40 @@ ${reportName}`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            filters: {
+                description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
+                stages: {
+                    title: 'ジョブの段階',
+                    description: 'このワークスペースと同期したい候補者の選考ステージを選択してください',
+                    toggleTitle: 'ジョブのステージ',
+                    allSelected: 'すべての採用ステージ',
+                },
+                tags: {
+                    title: 'タグ',
+                    description: 'このワークスペースと同期したい候補者のタグを選択してください',
+                    toggleTitle: 'タグ',
+                    allSelected: 'すべてのタグ',
+                },
+                offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
+                enableJobStagesOrTags: '続行するにはジョブステージまたはタグを有効にしてください',
+            },
             subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
                 importedCount: () => ({
                     one: '1 名の候補者',
                     other: (count: number) => `${count}件の候補`,
                 }),
+            },
+            approverField: `第1承認者`,
+            finalApprover: `最終承認者`,
+            finalApproverOptional: '最終承認者（任意）',
+            approvalModeDescription: (providerName: string) => `${providerName} から Expensify にインポートされる新しいメンバーの承認者を設定します。`,
+            approverFieldDescription: (providerName: string) =>
+                `候補者の最初の承認者を選択します。${providerName} で割り当てられているリクルーターまたはコーディネーターのいずれかを指定してください。`,
+            approvalModeDescriptions: {
+                basic: '承認者を 1 名選択してください',
+                advanced: `候補者のリクルーターまたはコーディネーターが、その候補者の経費承認者になります`,
+                custom: 'Expensify で承認者を手動設定',
             },
         },
         merge: {
@@ -8602,6 +8640,10 @@ ${reportName}`,
                 custom: 'カスタム承認',
                 advanced: '詳細承認',
             },
+            approvalModeWarningTitle: '承認モードを変更しますか？',
+            approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
+                `このワークスペースの承認モードを変更してもよろしいですか？${providerName} 対応の各ワークフローモードについては、<a href="${helpSiteURL}">ヘルプサイト</a>で詳しくご覧いただけます。`,
+            approvalModeWarningConfirm: '承認モードを変更',
             syncingModalTitle: '接続を同期しています',
             syncingModalDescription: '最初の接続には時間がかかる場合があります。エラーが発生した場合は通知されます。',
             syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
@@ -8633,6 +8675,22 @@ ${reportName}`,
             enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
             enableNewAccountsDescription: '新しい Campfire アカウントは、カテゴリーとして利用できるようになります。',
             dimensionsImport: 'すべての Campfire ディメンションがタグとしてインポートされます',
+            exportDescription: 'Expensify のデータを Campfire へエクスポートする方法を設定します。',
+            exportReimbursable: {label: '精算対象の経費を書き出す形式', values: {VENDOR_BILL: {label: '仕入先請求書'}}},
+            exportDate: {
+                label: '仕入先請求書の日付',
+                description: 'Campfire にレポートをエクスポートするときは、この日付を使用します。',
+                values: {
+                    LAST_EXPENSE: {label: '最終経費日', description: 'レポート内の最新経費の日付です。'},
+                    REPORT_EXPORTED: {label: 'エクスポート日', description: 'レポートが Campfire にエクスポートされた日付です。'},
+                    REPORT_SUBMITTED: {label: '提出日', description: 'レポートが承認申請に提出された日付です。'},
+                },
+            },
+            exportNonReimbursable: {label: '会社カード経費のエクスポート形式', values: {JOURNAL_ENTRY: {label: '仕訳伝票'}}},
+            defaultCompanyCardVendor: {label: '全社カードのデフォルトベンダー', description: '自動で一致しない経費に使用するデフォルトの Campfire ベンダーを選択してください。'},
+            companyCardAccount: {label: '法人カード口座', description: '会社カード取引のエクスポート先を選択します。'},
+            noAccountsFound: 'アカウントが見つかりません',
+            noAccountsFoundDescription: 'Campfire に口座を追加して、もう一度同期してください',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -8646,6 +8704,9 @@ ${reportName}`,
             noCompaniesFoundDescription: 'Dynamics 365 Business Central に会社を追加して、接続をもう一度同期してください',
             noVendorsFound: '取引先が見つかりませんでした',
             noVendorsFoundDescription: 'Business Central に仕入先を追加してから、もう一度接続を同期してください',
+            importDescription: 'Dynamics 365 Business Central からインポートするコーディング構成を選択してください。',
+            items: 'アイテム',
+            enableNewCategories: '新しくインポートされたカテゴリを有効にする',
         },
     },
     getAssistancePage: {
@@ -10582,6 +10643,11 @@ ${reportName}`,
             trialEnded: {
                 title: '無料トライアル期間は終了しました',
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `サブスクリプションは${date}に終了します`,
+                subtitle: '現在の料金を維持するには、自動更新をオンにしてください。',
+                manage: '管理',
             },
             earlyDiscount: {
                 claimOffer: 'オファーを獲得',
