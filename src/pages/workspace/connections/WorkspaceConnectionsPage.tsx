@@ -225,7 +225,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView
-                contentContainerStyle={[styles.pb5, shouldUseNarrowLayout ? [styles.ph5, styles.workspaceSectionMobile] : [styles.mh5, styles.workspaceSection]]}
+                contentContainerStyle={[styles.pb5, styles.ph5]}
                 addBottomSafeAreaPadding
                 keyboardShouldPersistTaps="handled"
             >
