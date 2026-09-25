@@ -23,14 +23,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {consumePageRequestedSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
@@ -102,6 +102,7 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
@@ -159,14 +160,18 @@ function Search({
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const {setShouldShowFiltersBarLoading} = useSearchResultsActions();
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {areAllMatchingItemsSelected, selectedTransactions} = useSearchSelectionContext();
     // Wide layout floats the bulk action bar over the end of the list, so the list has to leave room for it.
     const shouldReserveBulkActionBarSpace = useShouldShowBulkActionBar(queryJSON);
     const [offset, setOffset] = useState(0);
+    // a page left running by a previous mount is still in flight, so wait for it rather than revealing or skipping its rows
+    const isLivePageRunningAtMount = () => shouldUseLiveData && isSearchPending(searchResults) && (searchResults?.search?.offset ?? 0) > 0;
+    // live paging owns its in-flight flag, keyed to the offset it asked for so other searches on this hash don't read as ours
+    const [livePageOffset, setLivePageOffset] = useState(() => (isLivePageRunningAtMount() ? searchResults?.search?.offset : undefined));
+    const [isLivePageAdopted, setIsLivePageAdopted] = useState(isLivePageRunningAtMount);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -192,6 +197,20 @@ function Search({
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+
+    const isSnapshotPending = isSearchPending(searchResults);
+
+    // gate on state: loading so it self-clears — Onyx resolves loading on every response
+    const isLivePageInFlight = shouldUseLiveData && livePageOffset !== undefined && livePageOffset === searchResults?.search?.offset && isSnapshotPending;
+    // once the adopted page settles, a later page in flight is ours and must not be re-asked
+    if (isLivePageAdopted && !isLivePageInFlight) {
+        setIsLivePageAdopted(false);
+    }
+
+    // live results drop `errors`, so the response code is the only failure signal left
+    const didLastLivePageFail = shouldUseLiveData && typeof searchResults?.search?.responseJsonCode === 'number';
+
+    const {liveRowLimit, answeredOffset: answeredLiveOffset, revealNextPage: revealNextLivePage} = useLiveRowLimit(searchResults?.search?.offset, isSnapshotPending || didLastLivePageFail);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -287,6 +306,8 @@ function Search({
         searchResults,
         transactions,
         reportActions,
+        visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
+        selectedTransactions,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
@@ -376,7 +397,8 @@ function Search({
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
-    const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+    const isLoadingMorePage = shouldUseLiveData ? isLivePageInFlight : !!searchResults?.search?.isLoading;
+    const shouldShowLoadingMoreItems = !shouldShowLoadingState && isLoadingMorePage && (searchResults?.search?.offset ?? 0) > 0;
 
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
@@ -417,13 +439,14 @@ function Search({
         // When mounting after the pre-insert fast path, the deferred write hasn't
         // been flushed yet. Triggering a search now would race with the CREATE
         // API call and return stale results that overwrite the optimistic row.
-        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // Skip this call; the optimistic data from the pending Search write will populate
         // the list, and the next user-driven search will refresh from the server.
-        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasPendingSearchWrite()) {
             return;
         }
 
-        if (searchResults?.search?.isLoading) {
+        // the offset change from paging would otherwise fire a duplicate page alongside fetchMoreResults
+        if (isLoadingMorePage) {
             if (validGroupBy || (shouldCalculateTotals && isRequiredAllMatchingTotalMissing)) {
                 shouldRetrySearchWithTotalsOrGroupedRef.current = true;
             }
@@ -452,6 +475,11 @@ function Search({
             return;
         }
 
+        // The page already fetched this first page, and that request finished before Search mounts, so search() no longer sees it.
+        if (!shouldRefreshOnReconnect && searchRequestOffset === 0 && isDataLoaded && consumePageRequestedSearch(queryJSON.hash, shouldCalculateTotals)) {
+            return;
+        }
+
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -463,7 +491,7 @@ function Search({
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -590,7 +618,6 @@ function Search({
                     backTo,
                     currentUserLogin: email ?? '',
                     currentUserAccountID: accountID,
-                    betas,
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
@@ -654,7 +681,6 @@ function Search({
                             backTo,
                             currentUserLogin: email ?? '',
                             currentUserAccountID: accountID,
-                            betas,
                             personalDetails,
                             isSelfTourViewed,
                             hasCompletedGuidedSetupFlow,
@@ -739,7 +765,6 @@ function Search({
             handleSearch,
             unmarkReportRHPWidth,
             introSelected,
-            betas,
             personalDetails,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
@@ -812,23 +837,65 @@ function Search({
     // dropped. Stays set until that page actually shows up in the snapshot.
     const wantedOffsetRef = useRef<number | undefined>(undefined);
 
+    // rebuilds report ends too, only a scroll moves the visible rows; not onScroll, it's a worklet on native
+    const hasScrolledSinceLastEndRef = useRef(true);
+    const onViewableItemsChanged = () => {
+        hasScrolledSinceLastEndRef.current = true;
+    };
+
     const fetchMoreResults = useCallback(() => {
-        if (!searchResults?.search?.hasMoreResults) {
+        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
+        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
+        // Live rows don't come from the snapshot, so live paging follows the pages that answered instead.
+        const serverOffset = shouldUseLiveData ? answeredLiveOffset : (searchResults?.search?.offset ?? 0);
+        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+
+        // a failed page never writes `hasMoreResults`, and a failure doesn't mean the server is out of rows
+        if (!searchResults?.search?.hasMoreResults && !didLastLivePageFail) {
+            // before the first answer `hasMoreResults` is only the default, so wait for the server to say it is out of pages;
+            // no `state` means no request for this tab has even gone out yet
+            const hasLiveSearchStarted = searchResults?.search?.state !== undefined;
+            if (shouldUseLiveData && (!hasLiveSearchStarted || (isSnapshotPending && !isOffline))) {
+                wantedOffsetRef.current = nextOffset;
+                return;
+            }
+            // the server has nothing left, but the live scan can still hold rows past the cap: page those in locally
+            if (shouldUseLiveData && allDataLength > liveRowLimit) {
+                revealNextLivePage();
+            }
             wantedOffsetRef.current = undefined;
             return;
         }
 
-        // A first-page response replaces the snapshot rather than appending to it, so deriving the next page
-        // from `offset` instead of the snapshot's own cursor drifts the moment one lands mid-pagination.
-        const serverOffset = searchResults?.search?.offset ?? 0;
-        if (!isFocused || shouldShowLoadingState || serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+        if (!isFocused || shouldShowLoadingState) {
             return;
         }
 
-        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        const hasScrolledToEnd = hasScrolledSinceLastEndRef.current;
+        hasScrolledSinceLastEndRef.current = false;
+        // a failed page retries once per end the user scrolls to, not on every rebuild while they sit at the bottom
+        if (didLastLivePageFail && !hasScrolledToEnd) {
+            return;
+        }
+
+        // onEndReached refires mid-flight under the skeleton; recording the next offset would chase past the loading page
+        if (shouldUseLiveData && isLoadingMorePage) {
+            // a reload strands an adopted page in loading, so re-ask it once; search() drops it if it is still running
+            if (isLivePageAdopted && !isOffline) {
+                setIsLivePageAdopted(false);
+                handleSearch({queryJSON, searchKey: currentSearchKey, offset: nextOffset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
+            }
+            return;
+        }
+
+        if (serverOffset > allDataLength - CONST.SEARCH.RESULTS_PAGE_SIZE) {
+            return;
+        }
+
+        // the cap can outrun the cursor, and pulling the cursor up to it would skip server pages for good
         wantedOffsetRef.current = nextOffset;
         // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
-        if (searchResults?.search?.isLoading || isOffline) {
+        if (isLoadingMorePage || isOffline) {
             return;
         }
 
@@ -843,11 +910,23 @@ function Search({
             prevReportsLength: filteredDataLength,
             isLoading: false,
         });
+        // offline path returned above, so we never arm with no request running
+        if (shouldUseLiveData) {
+            setLivePageOffset(nextOffset);
+        }
     }, [
         isFocused,
         isOffline,
+        shouldUseLiveData,
+        answeredLiveOffset,
+        isSnapshotPending,
+        liveRowLimit,
+        revealNextLivePage,
+        didLastLivePageFail,
+        isLivePageAdopted,
         searchResults?.search?.hasMoreResults,
-        searchResults?.search?.isLoading,
+        searchResults?.search?.state,
+        isLoadingMorePage,
         searchResults?.search?.offset,
         shouldShowLoadingState,
         allDataLength,
@@ -861,25 +940,27 @@ function Search({
     // Ask again for a page that never arrived, either because a search was still running when the list hit
     // its end or because a first-page response replaced it. Both leave the request with nothing to retry it.
     useEffect(() => {
-        const serverOffset = searchResults?.search?.offset ?? 0;
+        const serverOffset = shouldUseLiveData ? answeredLiveOffset : (searchResults?.search?.offset ?? 0);
         // A first-page response that lands after the page it displaces drags the cursor back below the page we
         // hold, after that page's arrival already cleared the intent. The list has not moved, so arm it again.
-        if (wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
+        // Live rows stay in Onyx through that, so there is nothing to fetch again.
+        if (!shouldUseLiveData && wantedOffsetRef.current === undefined && searchResults?.search?.hasMoreResults && serverOffset < offset) {
             wantedOffsetRef.current = offset;
         }
 
         const wantedOffset = wantedOffsetRef.current;
-        if (wantedOffset === undefined || searchResults?.search?.isLoading) {
+        if (wantedOffset === undefined || isLoadingMorePage) {
             return;
         }
 
-        if (serverOffset >= wantedOffset) {
+        // a failed live page waits for the next end rather than retrying on its own
+        if (serverOffset >= wantedOffset || didLastLivePageFail) {
             wantedOffsetRef.current = undefined;
             return;
         }
 
         fetchMoreResults();
-    }, [fetchMoreResults, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.isLoading, searchResults?.search?.offset]);
+    }, [answeredLiveOffset, didLastLivePageFail, fetchMoreResults, isLoadingMorePage, offset, searchResults?.search?.hasMoreResults, searchResults?.search?.offset, shouldUseLiveData]);
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
@@ -890,7 +971,7 @@ function Search({
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
-            callback: () => flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
+            callback: () => flushPendingSearchWrite(),
         });
     }, [onDestinationVisible]);
 
@@ -931,11 +1012,11 @@ function Search({
         // different component" warning. setIsSearchReady is idempotent, so
         // firing this on every bail-out render is safe.
         onContentReady?.();
-        if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!hasPendingSearchWrite()) {
             return;
         }
         didBailToFallbackState.current = false;
-        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        flushPendingSearchWrite();
     });
 
     const onLayoutChart = useCallback(() => {
@@ -963,7 +1044,7 @@ function Search({
 
             // Re-arm pending expense skeleton for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
-            if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
+            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
                 rearmTracking();
                 setSkeletonWasDisplayed(true);
@@ -976,7 +1057,7 @@ function Search({
             endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            flushPendingSearchWrite();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 
@@ -986,7 +1067,7 @@ function Search({
     // write channel is gone (write executed) and sortedData has updated, then
     // signals overlay readiness.
     useEffect(() => {
-        if (!wasRearmedRef.current || hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!wasRearmedRef.current || hasPendingSearchWrite()) {
             return;
         }
         wasRearmedRef.current = false;
@@ -1293,6 +1374,7 @@ function Search({
         contentContainerStyle: [styles.pb3, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing, contentContainerStyle],
         containerStyle: [styles.pv0],
         onScroll: onSearchListScroll,
+        onViewableItemsChanged,
         onEndReached: fetchMoreResults,
         ListFooterComponent: listFooterComponent,
         onLayout,

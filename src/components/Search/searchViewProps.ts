@@ -67,6 +67,8 @@ type CommonSearchViewProps = {
     /** Scroll handler forwarded to the list. */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
+    onViewableItemsChanged?: () => void;
+
     contentContainerStyle: StyleProp<ViewStyle>;
     containerStyle: StyleProp<ViewStyle>;
 };
