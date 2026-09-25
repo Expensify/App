@@ -39,7 +39,7 @@ function buildTransaction(transactionID: string, overrides: Partial<TransactionW
 function buildParams(overrides: Partial<Params> = {}): Params {
     const transactions = overrides.sortedTransactions ?? [];
     return {
-        report: REPORT,
+        reportCurrency: REPORT.currency ?? '',
         sortedTransactions: transactions,
         resolvedTransactions: transactions,
         currentGroupBy: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,

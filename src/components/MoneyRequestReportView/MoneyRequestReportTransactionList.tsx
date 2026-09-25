@@ -232,7 +232,7 @@ function MoneyRequestReportTransactionList({
     const {currentSelection, currentGroupBy, shouldGroupTransactions, selectLayout} = useMoneyRequestReportLayout(shouldShowGroupedTransactions);
 
     const {groupedTransactions, listItems, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({
-        report,
+        reportCurrency: report.currency ?? '',
         sortedTransactions,
         resolvedTransactions,
         currentGroupBy,
