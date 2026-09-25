@@ -68,7 +68,13 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle,
                     return;
                 }
                 if (result.success) {
-                    const searchQuery = new URL(result.searchURL).searchParams.get('q') ?? '';
+                    let searchQuery: string;
+                    try {
+                        searchQuery = new URL(result.searchURL).searchParams.get('q') ?? '';
+                    } catch {
+                        setErrorMessage(translate('common.genericErrorMessage'));
+                        return;
+                    }
                     onSuccess(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
                 } else {
                     setErrorMessage(result.message);
