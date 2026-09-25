@@ -79,6 +79,9 @@ type OriginalMessageIOU = {
     /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
     accountNumber?: string;
 
+    /** Estimated date the reimbursement will reach the recipient's bank account */
+    expectedDate?: string;
+
     /** True when the submitter marked the report as payment received outside Expensify */
     isSubmitterMarkedPaymentReceived?: boolean;
 

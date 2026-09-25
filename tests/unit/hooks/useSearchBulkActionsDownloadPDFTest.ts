@@ -83,6 +83,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 const mockClearSelectedTransactions = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockAreAllMatchingItemsSelected = false;
@@ -91,6 +92,7 @@ let mockCurrentSearchKey: string | undefined;
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
@@ -234,6 +236,7 @@ describe('useSearchBulkActions - Download report', () => {
         mockIsOffline = false;
         await Onyx.clear();
         mockSelectedTransactions = {};
+        mockExcludedTransactions = {};
         mockSelectedReports = [];
         mockCurrentSearchResults = undefined;
         mockAreAllMatchingItemsSelected = false;
@@ -513,6 +516,77 @@ describe('useSearchBulkActions - Download report', () => {
         expect(reportIDs).toEqual([]);
         expect(JSON.parse(serializedQuery ?? '{}')).toEqual(expect.objectContaining({searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}));
         expect(exportReportToPDF).not.toHaveBeenCalled();
+    });
+
+    it('should exclude unchecked reports from an all-matching PDF export', async () => {
+        // Given all matching reports are selected and two reports have been explicitly unchecked
+        mockCurrentSearchKey = CONST.SEARCH.SEARCH_KEYS.REPORTS;
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+        };
+        mockExcludedTransactions = {
+            excludedTx1: makeSelectedTransaction({reportID: 'excluded-report-1'}),
+            excludedTx2: makeSelectedTransaction({reportID: 'excluded-report-2'}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the Download reports action is triggered
+        act(() => {
+            getDownloadPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then the backend query excludes every unchecked report while retaining the current search key
+        expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
+        const [reportIDs, serializedQuery] = jest.mocked(exportReportsToPDF).mock.calls.at(0) ?? [];
+        expect(reportIDs).toEqual([]);
+        expect(JSON.parse(serializedQuery ?? '{}')).toEqual(
+            expect.objectContaining({
+                searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+                flatFilters: expect.arrayContaining([
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                        filters: [
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'excluded-report-1'},
+                            {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: 'excluded-report-2'},
+                        ],
+                    },
+                ]),
+            }),
+        );
+    });
+
+    it('should stop an all-matching PDF export when an exclusion has no report ID', async () => {
+        // Given malformed exclusion state that cannot be represented by a report filter
+        mockAreAllMatchingItemsSelected = true;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+        };
+        mockExcludedTransactions = {
+            excludedTx: makeSelectedTransaction({reportID: undefined}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getDownloadPDFOption(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the Download reports action is triggered
+        act(() => {
+            getDownloadPDFOption(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then no incomplete export is started and the existing download error is shown
+        expect(exportReportsToPDF).not.toHaveBeenCalled();
+        expect(result.current.isDownloadErrorModalVisible).toBe(true);
     });
 
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {

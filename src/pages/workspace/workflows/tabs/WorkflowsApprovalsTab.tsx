@@ -1,6 +1,7 @@
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -450,16 +451,21 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                 />
                             )}
                             {!shouldBlockApprovalWorkflowEditing && canWriteApprovals && (
-                                <MenuItem
-                                    title={translate('workflowsPage.addApprovalButton')}
-                                    titleStyle={styles.textStrong}
-                                    icon={expensifyIcons.Plus}
-                                    iconHeight={20}
-                                    iconWidth={20}
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                                    onPress={addApprovalAction}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
-                                />
+                                <View style={[styles.mt6, styles.mbn3]}>
+                                    <MenuItemSectionRoot
+                                        onPress={addApprovalAction}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
+                                    >
+                                        <MenuItem.Row>
+                                            <MenuItem.Leading>
+                                                <MenuItem.Icon src={expensifyIcons.Plus} />
+                                            </MenuItem.Leading>
+                                            <MenuItem.Content>
+                                                <MenuItem.Title>{translate('workflowsPage.addApprovalButton')}</MenuItem.Title>
+                                            </MenuItem.Content>
+                                        </MenuItem.Row>
+                                    </MenuItemSectionRoot>
+                                </View>
                             )}
                         </>
                     )}

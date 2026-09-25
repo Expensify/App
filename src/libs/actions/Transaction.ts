@@ -15,6 +15,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -882,6 +883,8 @@ type ChangeTransactionsReportProps = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
+    jsonQuery?: string;
+    hash?: number;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -2076,6 +2079,60 @@ function getChangeTransactionsReportOnyxData({
 }
 
 function changeTransactionsReport(props: ChangeTransactionsReportProps) {
+    const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    // Without a hash the move falls back to the explicit list and only the loaded page moves, so surface that
+    if (props.jsonQuery && props.hash === undefined) {
+        Log.warn('changeTransactionsReport: received an all-matching jsonQuery without a hash; falling back to the explicit transaction list, which only moves the loaded transactions.');
+    }
+
+    if (props.jsonQuery && props.hash !== undefined) {
+        // The backend moves the full query result while the client only has loaded transactions.
+        // Apply normal optimistic updates to loaded transactions, then send the request even if none are loaded.
+        const loadedTransactionsOnyxData = getChangeTransactionsReportOnyxData(props);
+
+        const optimisticData = [...(loadedTransactionsOnyxData?.optimisticData ?? [])];
+        const successData = [...(loadedTransactionsOnyxData?.successData ?? [])];
+        const failureData = [...(loadedTransactionsOnyxData?.failureData ?? [])];
+
+        if (props.newReport) {
+            // Unloaded expenses are still moving server-side, so the destination stays pending for the whole request
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
+                value: {pendingFields: {reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
+                value: {pendingFields: {reportID: null}},
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${props.newReport.reportID}`,
+                value: {pendingFields: {reportID: null}},
+            });
+        }
+
+        const transactionIDToUpdatedCustomUnitRateID = loadedTransactionsOnyxData?.transactionIDToUpdatedCustomUnitRateID ?? {};
+
+        const queryParameters: ChangeTransactionsReportParams = {
+            // Stays empty so the backend moves every matching expense from the query, not just the loaded page
+            transactionList: '',
+            reportID,
+            // Send the optimistic action and thread IDs so the backend reuses them instead of adding a second moved message
+            transactionIDToReportActionAndThreadData: JSON.stringify(loadedTransactionsOnyxData?.transactionIDToReportActionAndThreadData ?? {}),
+            ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
+                transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
+            }),
+            jsonQuery: props.jsonQuery,
+            hash: props.hash,
+        };
+
+        API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, queryParameters, {optimisticData, successData, failureData});
+        return;
+    }
+
     const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData(props);
     if (!changeTransactionsReportOnyxData) {
         return;
@@ -2088,8 +2145,6 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         return;
     }
 
-    const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-
     const parameters: ChangeTransactionsReportParams = {
         transactionList: movedTransactionIDs.join(','),
         reportID,
@@ -2099,6 +2154,8 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
         }),
     };
 
+    // The all-matching path above already returned after its own API.write, so only one of the two writes ever runs
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
         optimisticData,
         successData,

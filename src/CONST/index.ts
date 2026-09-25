@@ -746,7 +746,7 @@ const CONST = {
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssnLast4',
                 STREET: 'street',
                 CITY: 'city',
                 STATE: 'state',
@@ -821,7 +821,7 @@ const CONST = {
                 UBOS_LIST: 'ubos-list',
                 LEGAL_NAME: 'legal-name',
                 DATE_OF_BIRTH: 'date-of-birth',
-                SSN: 'ssn',
+                SSN_LAST_4: 'ssn',
                 ADDRESS: 'address',
                 CONFIRMATION: 'confirmation',
             },
@@ -7290,6 +7290,8 @@ const CONST = {
         TAG_FILTER_PAGE_SIZE: 200,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
+        // Null byte can't appear in a query, so it's safe to join query parts with it
+        QUERY_PARAMS_SEPARATOR: '\x00',
         /** How far the cursor may wander from where it last counted as moving over the advanced filter list and still count as resting */
         HOVER_INTENT_REST_RADIUS_PX: 8,
         DATA_TYPES: {
