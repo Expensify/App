@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 
-import variables from '@styles/variables';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -105,7 +103,7 @@ function EditReportFieldDropdown({
             // Same override the Spend single-select dropdowns use to shorten the default 64px option row. It also makes
             // the rows match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized
             // for less content than it holds.
-            style={shouldUseCompactRows ? {listItemWrapperStyle: {minHeight: variables.optionRowHeightCompact}} : undefined}
+            style={shouldUseCompactRows ? {listItemWrapperStyle: styles.optionRowCompactMinHeight} : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             // Re-selecting the value the field already holds submits that same value rather than an empty string.

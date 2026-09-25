@@ -122,8 +122,8 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    // Only used to decide whether the report field block is worth rendering — `MoneyRequestViewReportFields` builds and
-    // resolves the fields it displays itself.
+    // Only used to decide whether the report field block is worth rendering.
+    // `MoneyRequestViewReportFields` builds and resolves the fields it displays itself.
     const sortedPolicyReportFields = useMemo(() => {
         const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
         return Object.values(fieldsByName)

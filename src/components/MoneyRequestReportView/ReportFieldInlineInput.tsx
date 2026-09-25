@@ -197,7 +197,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         );
 
         return (
-            // No `popoverWidth`, so the dropdown falls back to `CONST.POPOVER_DROPDOWN_WIDTH` — the same width every
+            // No `popoverWidth`, so the dropdown falls back to `CONST.POPOVER_DROPDOWN_WIDTH`, the same width every
             // Spend filter dropdown uses. Matching the field's own width instead made narrow fields open odd, cramped
             // popovers and wide ones open oversized.
             <FilterPopupButton
@@ -214,7 +214,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                             errorText={violationError}
                             inputStyle={styles.pointerEventsNone}
                             icon={icons.DownArrow}
-                            // `pr0` makes the icon container's padding asymmetric, so it has to flip in place —
+                            // `pr0` makes the icon container's padding asymmetric, so it has to flip in place.
                             // `flipUpsideDown` would rotate that padding too and shift the caret left when open.
                             iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDownInPlace]}
                             onPress={onPress}

@@ -2183,6 +2183,10 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
+        optionRowCompactMinHeight: {
+            minHeight: variables.optionRowHeightCompact,
+        },
+
         optionsListSectionHeader: {
             marginTop: 8,
             marginBottom: 4,
