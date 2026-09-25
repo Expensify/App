@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {appendParam} from '@libs/Url';
 
@@ -27,7 +28,7 @@ import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActio
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
@@ -73,6 +74,11 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
         if (policyID === undefined) {
+            return;
+        }
+
+        if (methodID && accountData?.state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(methodID.toString())));
             return;
         }
 

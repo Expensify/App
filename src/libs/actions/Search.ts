@@ -37,7 +37,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
-import {getActivePaymentType} from '@libs/PaymentUtils';
+import {getActivePaymentType, selectPartiallySetupBankAccount} from '@libs/PaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
@@ -2381,6 +2381,14 @@ function handleBulkPayItemSelected(params: {
     // KYC wall, which only accepts the policy-linked account and would bounce the user to the bank account setup.
     const selectedBankAccountID = (item?.additionalData as BulkPaySelectionData | undefined)?.bankAccountID;
     const selectedBankAccountData = selectedBankAccountID ? bankAccountList?.[selectedBankAccountID]?.accountData : undefined;
+
+    if (
+        item.key === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT &&
+        selectPartiallySetupBankAccount({state: selectedBankAccountData?.state, methodID: selectedBankAccountID, policyID: policyFromPaymentMethod?.id ?? policyFromContext?.id})
+    ) {
+        return;
+    }
+
     const isPayingWithSelectedOpenBusinessBankAccount =
         item.key === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT &&
         selectedBankAccountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&

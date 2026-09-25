@@ -24,6 +24,7 @@ import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {selectPartiallySetupBankAccount} from '@libs/PaymentUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
@@ -128,7 +129,17 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         }
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
-        } else if (isAnyTransactionOnHold) {
+            return;
+        }
+
+        if (
+            type === CONST.IOU.PAYMENT_TYPE.VBBA &&
+            selectPartiallySetupBankAccount({state: methodID ? bankAccountList?.[methodID]?.accountData?.state : undefined, methodID, policyID: moneyRequestReport?.policyID})
+        ) {
+            return;
+        }
+
+        if (isAnyTransactionOnHold) {
             openHoldMenu({
                 requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
                 paymentType: type,
