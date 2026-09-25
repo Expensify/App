@@ -222,6 +222,7 @@ function KYCWall({
                             reportActionsList: filteredReportActions,
                             doesEmployeePersonalDetailExist: doesSubmitterPersonalDetailExist ?? false,
                             getCurrencyDecimals,
+                            reportTransactions,
                             hasOwnedPaidPolicy: ownerPoliciesSelector(policies, currentUserAccountID).length > 0,
                         }) ?? {};
                     if (policyID && iouReport?.policyID) {
