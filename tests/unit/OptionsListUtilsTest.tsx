@@ -6444,17 +6444,23 @@ describe('OptionsListUtils', () => {
             expect(doesMatch).toBe(true);
         });
 
-        it('matches a non-Latin group participant', () => {
-            // Given a group report with a non-Latin participant name
-            // cspell:ignore 김민수
+        // cspell:ignore 김민수 山田太郎 Ирина Смирнова Νίκος Παπαδόπουλος Nguyễn
+        it.each([
+            {writingSystem: 'Korean', displayName: '김민수'},
+            {writingSystem: 'Japanese', displayName: '山田太郎'},
+            {writingSystem: 'Cyrillic', displayName: 'Ирина Смирнова'},
+            {writingSystem: 'Greek', displayName: 'Νίκος Παπαδόπουλος'},
+            {writingSystem: 'Vietnamese', displayName: 'Nguyễn Thị Minh'},
+        ])('matches a group participant using $writingSystem text', ({displayName}) => {
+            // Given a group report with a participant name in that writing system
             const groupReport: SearchOption<Report> = {
                 ...report,
                 item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
-                participantsList: [{accountID: 2, displayName: '김민수', login: 'minsu@example.com'}],
+                participantsList: [{accountID: 2, displayName, login: 'participant@example.com'}],
             };
 
             // When the query uses that participant name
-            const doesMatch = doesReportMatchSearchTerms(groupReport, ['김민수']);
+            const doesMatch = doesReportMatchSearchTerms(groupReport, [displayName]);
 
             // Then the group report matches
             expect(doesMatch).toBe(true);
