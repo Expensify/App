@@ -2,7 +2,8 @@
 
 import {file} from 'bun';
 /**
- * Fails the lint run when a new inline `eslint-disable` bypasses the Onyx.connect() ban or `rulesdir/no-unsafe-onyx-read`.
+ * Fails the lint run when a new inline `eslint-disable` silences one of the bans in `BANNED_RULES`
+ * (see `onyxConnectBypass.ts`).
  *
  * The ban (`rulesdir/no-onyx-connect`, shipped by eslint-config-expensify) is a normal lint rule,
  * so an inline disable can silence it. The runner re-elevates those disables by scanning source
