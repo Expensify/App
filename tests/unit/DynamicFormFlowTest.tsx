@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import carriedAnswersByForm from '@components/DynamicForm/carriedAnswersByForm';
 import DynamicFormFlow from '@components/DynamicForm/DynamicFormFlow';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
@@ -304,15 +305,15 @@ describe('DynamicFormFlow', () => {
         expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'identity'});
     });
 
-    it('keeps answers carried on later pages when an earlier page mount presses Next again', async () => {
+    it('keeps answers carried by a later page when an earlier page mount presses Next', async () => {
         const fields: DynamicFormField[] = [
             {key: 'ssn', label: 'SSN', group: 'Identity', type: 'text', required: true, sensitive: true, refreshOnChange: false},
             {key: 'pin', label: 'PIN', group: 'Security', type: 'text', required: true, sensitive: true, refreshOnChange: false},
         ];
         const onSubmit = jest.fn();
-        const renderPage = (subPage: string) => {
+        const renderPage = async (subPage: string) => {
             mockRouteParams.subPage = subPage;
-            return render(
+            render(
                 <DynamicFormFlow
                     fields={fields}
                     formID={FORM_ID}
@@ -325,29 +326,19 @@ describe('DynamicFormFlow', () => {
                     confirmationTitle="Confirm"
                 />,
             );
+            await waitForBatchedUpdatesWithAct();
         };
 
-        const identityPage = renderPage('identity');
+        await renderPage('identity');
+        carriedAnswersByForm.set(FORM_ID, {pin: '4321'});
+        fireEvent.changeText(screen.getByLabelText('SSN'), '123456789');
+        fireEvent.press(screen.getByText('common.next'));
         await waitForBatchedUpdatesWithAct();
-        fireEvent.changeText(identityPage.getByLabelText('SSN'), '123456789');
-        fireEvent.press(identityPage.getByText('common.next'));
-        await waitForBatchedUpdatesWithAct();
+        expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('security'));
+        screen.unmount();
 
-        const securityPage = renderPage('security');
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.changeText(securityPage.getByLabelText('PIN'), '4321');
-        fireEvent.press(securityPage.getByText('common.next'));
-        await waitForBatchedUpdatesWithAct();
-        securityPage.unmount();
-
-        mockRouteParams.subPage = 'identity';
-        fireEvent.press(identityPage.getByText('common.next'));
-        await waitForBatchedUpdatesWithAct();
-        identityPage.unmount();
-
-        const confirmPage = renderPage('confirm');
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(confirmPage.getByText('common.confirm'));
+        await renderPage('confirm');
+        fireEvent.press(screen.getByText('common.confirm'));
         await waitForBatchedUpdatesWithAct();
 
         expect(onSubmit).toHaveBeenCalledWith({ssn: '123456789', pin: '4321'});

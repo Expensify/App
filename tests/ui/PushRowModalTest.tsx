@@ -100,7 +100,7 @@ describe('PushRowModal', () => {
         }
         act(() => selectionListProps?.onSelectRow(secondRow));
 
-        expect(onOptionChange).toHaveBeenCalledWith(secondRow.value);
+        expect(onOptionChange).toHaveBeenCalledWith(secondRow.keyForList);
         expect(onClose).not.toHaveBeenCalled();
 
         act(() => selectionListProps?.confirmButtonOptions?.onConfirm?.());
