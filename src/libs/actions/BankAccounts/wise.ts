@@ -28,9 +28,9 @@ function submitWiseKYCRequirement(bankAccountID: number, requirementKey: string,
     for (const [key, value] of Object.entries(draft)) {
         if (fileKeys.has(key)) {
             if (Array.isArray(value)) {
-                value.filter(isFileObject).forEach((file, index) => {
+                for (const [index, file] of value.filter(isFileObject).entries()) {
                     files[`${key}_${index}`] = file;
-                });
+                }
             }
         } else if (value !== undefined) {
             answers[key] = value;

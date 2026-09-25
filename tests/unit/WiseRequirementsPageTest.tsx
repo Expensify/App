@@ -162,7 +162,7 @@ describe('Wise KYC requirements pages', () => {
             await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: true});
         });
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: false, errors: {'1': 'Wise rejected the answer'}});
+            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: false, errors: {wiseError: 'Wise rejected the answer'}});
         });
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(screen.getByText('Wise rejected the answer')).toBeOnTheScreen();

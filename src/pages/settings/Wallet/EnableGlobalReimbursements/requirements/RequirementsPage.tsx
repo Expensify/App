@@ -2,6 +2,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +23,6 @@ import type SCREENS from '@src/SCREENS';
 import type {WiseKYCRequirement} from '@src/types/onyx';
 
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 
 import getWiseRequirementTitle from './getWiseRequirementTitle';
 
@@ -66,7 +66,7 @@ function RequirementsPage({route}: RequirementsPageProps) {
             {requirementsResult.status === 'loading' || requirements === undefined ? (
                 <FullScreenLoadingIndicator />
             ) : (
-                <View style={styles.flex1}>
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <Text style={[styles.ph5, styles.mb4, styles.textSupporting]}>{translate('wiseKYC.description')}</Text>
                     {(requirements ?? []).map((requirement) => {
                         const stateKey = STATE_KEYS[requirement.state];
@@ -80,7 +80,7 @@ function RequirementsPage({route}: RequirementsPageProps) {
                             />
                         );
                     })}
-                </View>
+                </ScrollView>
             )}
         </ScreenWrapper>
     );
