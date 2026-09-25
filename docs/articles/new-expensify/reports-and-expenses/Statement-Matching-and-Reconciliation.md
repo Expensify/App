@@ -1,8 +1,8 @@
 ---
 title: Statement Matching and Reconciliation
 description: Learn how to reconcile company card transactions in Expensify against your credit card statement.
-keywords: [New Expensify, company cards, statement matching, company card reconciliation, reconciliation, card statement, card feed, statement close date, statement mismatch]
-internalScope: Audience is Workspace Admins reconciling third-party company card spend. Covers statement-based reconciliation under Reconciliation > Card statements. Does not cover Expensify Card withdrawal-based reconciliation or reimbursement reconciliation.
+keywords: [New Expensify, company cards, statement matching, company card reconciliation, reconciliation, card statement, card feed, statement close date, statement mismatch, export card statement, Reconciliation - All Expenses, export card group]
+internalScope: Audience is Workspace Admins reconciling third-party company card spend. Covers statement-based reconciliation under Reconciliation > Card statements, including exporting selected card groups with the Reconciliation - All Expenses template. Does not cover Expensify Card withdrawal-based reconciliation or reimbursement reconciliation.
 ---
 
 # Statement Matching and Reconciliation
@@ -40,6 +40,21 @@ If the Expensify total does not match your card statement:
 
 ---
 
+## How to Export the Card Transactions You Are Reconciling
+
+You can export the card groups you're reconciling to a CSV without expanding them first.
+
+1. From the **Card statements** view, check the box next to each card group you want to export.
+2. Click the selection button at the top (for example, **1 selected**).
+3. Select **Export**.
+4. Select **Reconciliation - All Expenses**.
+
+The export covers every transaction on each selected card group, including transactions further down the list that you haven't scrolled to yet. If you also expanded a group and checked individual transactions, those are included as well.
+
+**Reconciliation - All Expenses** and **Current view** are the only options offered for a card group selection. To use a different export template, expand the group and select the individual transactions instead. Learn more about [exporting grouped expenses](/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses#export-grouped-expenses).
+
+---
+
 ## How Multi-Currency Works With Company Card Reconciliation
 
 If your workspace uses multiple currencies, apply the **Group currency** filter to convert all transactions into a single currency. This ensures the grouped totals match your accounting system's reporting currency.
@@ -55,6 +70,10 @@ Company card reconciliation is statement-based and matches Expensify transaction
 ## Why Don't I See Card Statements Under Reconciliation?
 
 The Card statements option appears only when your workspace has at least one company card feed connected. If you don’t see it, confirm that a company card feed is set up and active.
+
+## Why Don't I See Reconciliation - All Expenses When I Select a Card Group?
+
+The **Reconciliation - All Expenses** template is offered only to Workspace Admins and card admins of a workspace that has a card product enabled. If you don't have one of those roles, **Current view** is the only export option for a card group selection.
 
 ## What Does the Last Statement Filter Show?
 
