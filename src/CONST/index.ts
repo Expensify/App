@@ -2293,6 +2293,8 @@ const CONST = {
             POLICIES_COUNT: 'policies_count',
             REPORTS_COUNT: 'reports_count',
             PERSONAL_DETAILS_COUNT: 'personal_details_count',
+            TRANSACTIONS_COUNT: 'transactions_count',
+            DB_SIZE: 'db_size',
             USER_ROLE: 'user_role',
             NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
             AUTHENTICATION_FUNCTION: 'authentication_function',
@@ -2324,6 +2326,13 @@ const CONST = {
             SQLITE: 'sqlite',
             INDEXED_DB: 'indexed_db',
             UNAVAILABLE: 'unavailable',
+        },
+        // Numeric prefix keeps Sentry's alphabetical sort in size order
+        SIZE_TIER: {
+            SMALL: '1-small',
+            MEDIUM: '2-medium',
+            LARGE: '3-large',
+            XLARGE: '4-xlarge',
         },
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',

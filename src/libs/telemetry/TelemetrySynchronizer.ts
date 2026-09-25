@@ -14,6 +14,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
+import getAccountSizeTier from './accountSizeTier';
 import {cleanupCrashDiagnostics, initializeCrashDiagnostics} from './crashDiagnostics';
 import {cleanupDatabaseSizeTracking, requestDatabaseSizeRemeasurement} from './databaseSizeTracker';
 import {clearGlobalSpanAttributes, setGlobalSpanAttribute} from './globalSpanAttributes';
@@ -113,59 +114,6 @@ Onyx.connectWithoutView({
     },
 });
 
-/**
- * Buckets policy count into cohorts for Sentry tagging
- */
-function bucketPolicyCount(count: number): string {
-    if (count <= 1) {
-        return '0-1';
-    }
-    if (count <= 10) {
-        return '2-10';
-    }
-    if (count <= 50) {
-        return '11-50';
-    }
-    if (count <= 100) {
-        return '51-100';
-    }
-    if (count <= 250) {
-        return '101-250';
-    }
-    if (count <= 500) {
-        return '251-500';
-    }
-    if (count <= 1000) {
-        return '501-1000';
-    }
-    return '1000+';
-}
-
-/**
- * Buckets report count into cohorts for Sentry tagging
- */
-function bucketReportCount(count: number): string {
-    if (count <= 60) {
-        return '0-60';
-    }
-    if (count <= 300) {
-        return '61-300';
-    }
-    if (count <= 1000) {
-        return '301-1000';
-    }
-    if (count <= 2500) {
-        return '1001-2500';
-    }
-    if (count <= 5000) {
-        return '2501-5000';
-    }
-    if (count <= 10000) {
-        return '5001-10000';
-    }
-    return '10000+';
-}
-
 function handleAccountChange() {
     clearGlobalSpanAttributes();
     activePolicyID = undefined;
@@ -189,9 +137,8 @@ function sendPoliciesContext() {
         }
     }
 
-    const policiesCountBucket = bucketPolicyCount(activePolicies.length);
     Sentry.setTag(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, activePolicyID);
-    Sentry.setTag(CONST.TELEMETRY.TAGS.POLICIES_COUNT, policiesCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.POLICIES_COUNT, getAccountSizeTier(CONST.TELEMETRY.TAGS.POLICIES_COUNT, activePolicies.length));
     Sentry.setTag(CONST.TELEMETRY.TAGS.USER_ROLE, userRole);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
     setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW, activePolicies.length);
@@ -206,19 +153,17 @@ function sendTryNewDotCohortTag() {
 }
 
 function sendReportsCount(reportsCount: number) {
-    const reportsCountBucket = bucketReportCount(reportsCount);
-    Sentry.setTag(CONST.TELEMETRY.TAGS.REPORTS_COUNT, reportsCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.REPORTS_COUNT, getAccountSizeTier(CONST.TELEMETRY.TAGS.REPORTS_COUNT, reportsCount));
     setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW, reportsCount);
 }
 
 function sendPersonalDetailsCount(personalDetailsCount: number) {
-    const personalDetailsCountBucket = bucketReportCount(personalDetailsCount);
-    Sentry.setTag(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, getAccountSizeTier(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, personalDetailsCount));
     setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW, personalDetailsCount);
 }
 
 function sendTransactionsCount(transactionsCount: number) {
-    // Attribute only for now. The bucketed tag comes once borders can be derived from this data (https://github.com/Expensify/App/issues/98432).
+    Sentry.setTag(CONST.TELEMETRY.TAGS.TRANSACTIONS_COUNT, getAccountSizeTier(CONST.TELEMETRY.TAGS.TRANSACTIONS_COUNT, transactionsCount));
     setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_TRANSACTIONS_COUNT_RAW, transactionsCount);
 }
 
