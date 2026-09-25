@@ -19,7 +19,7 @@ To create a new workspace using an existing workspace as a template, learn how t
 
 Only Workspace Admins can copy settings. The **Copy settings** option is available only if you're a Workspace Admin on two or more Collect or Control workspaces.
 
-Some settings require the destination workspaces to be on the Control plan. If a setting you select is only available on Control, you'll be prompted to upgrade the affected workspaces before you can continue.
+Some settings require the destination workspaces to be on the Control plan. **Rules** and **Merchant rules** can only be copied to a destination workspace on the Control plan, even though a Collect workspace can turn its own rules on. If a setting you select requires Control, you'll be prompted to upgrade the affected workspaces before the copy starts.
 
 ---
 
@@ -29,7 +29,8 @@ Some settings require the destination workspaces to be on the Control plan. If a
 2. Select the three dots **(⋮)** next to the workspace you want to copy settings from, then select **Copy settings**.
 3. On the **Select workspaces** page, choose the workspaces you want to copy settings to, then select **Next**.
 4. On the **Select settings** page, choose the settings to copy to the selected workspaces, then select **Next**. Available settings depend on what is enabled on the source workspace. 
-5. Review the summary of the settings that will be copied, then select **Copy settings** to confirm.
+5. If any setting you chose requires a Control plan, the **Some features require a Control plan** page appears. Select **Upgrade** to upgrade the destination workspaces, then select **Continue**.
+6. Review the summary of the settings that will be copied, then select **Copy settings** to confirm.
 
 ![The workspace three dots (⋮) menu open with the Copy settings option visible]({{site.url}}/assets/images/Workspaces_copy_settings.png){:width="100%"}
 
@@ -61,6 +62,12 @@ The Copy settings option is available only if you're a Workspace Admin on two or
 
 ## Why can't I copy certain settings?
 
-Some settings can only be copied when the workspaces are compatible. For example, you can only copy accounting settings if all workspaces use the same accounting system and company connection, you can only copy travel if every selected workspace has a company address, and some settings require the destination workspaces to be on the Control plan.
+Some settings can only be copied when the workspaces are compatible. For example, you can only copy accounting settings if all workspaces use the same accounting system and company connection, you can only copy travel if every selected workspace has a company address, and **Rules** and **Merchant rules** can only be copied to destination workspaces on the Control plan.
 
 [Learn about the differences between the Collect and Control plans](/articles/new-expensify/billing-and-subscriptions/explore-plans-subscriptions-and-pricing/Compare-Collect-and-Control-Plans#common-feature-differences-between-collect-and-control).
+
+## Why am I asked to upgrade when I copy Rules or Merchant rules?
+
+**Rules** and **Merchant rules** carry over settings that are only available on the Control plan, so every destination workspace has to be on Control before they can be copied. If you select either setting while a Collect destination workspace is selected, the **Some features require a Control plan** page appears and nothing is copied until you upgrade. Selecting **Upgrade** upgrades the destination workspaces and returns you to the summary, where you can finish the copy.
+
+A Collect workspace can still turn **Rules** on by itself under **More features**. The Control plan is only required to copy another workspace's rules onto it.
