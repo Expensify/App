@@ -111,6 +111,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
+                canUpgradeReceiptQuality={false}
             />
         </StepScreenDragAndDropWrapper>
     );

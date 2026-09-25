@@ -63,6 +63,9 @@ type CameraViewportProps = {
     /** Whether a photo has been captured (forces camera inactive) */
     didCapturePhoto?: boolean;
 
+    /** Whether a full-resolution capture is still running; keeps the camera session active even after didCapturePhoto so the capture is not cancelled */
+    hasPendingPhotoCapture?: boolean;
+
     /** Callback fired when the camera finishes initializing */
     onInitialized?: () => void;
 
@@ -102,6 +105,7 @@ function CameraViewport({
     blinkStyle,
     isAttachmentPickerActive,
     didCapturePhoto = false,
+    hasPendingPhotoCapture = false,
     onInitialized,
     onLayout,
     shouldShowFlashButton,
@@ -131,7 +135,8 @@ function CameraViewport({
                         zoom={device.neutralZoom}
                         photo
                         cameraTabIndex={1}
-                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
+                        forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
+                        shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
                         onInitialized={onInitialized}
                         onLayout={onLayout}
                         // Use TextureView on Android to fix partially blank images for takeSnapshot()
