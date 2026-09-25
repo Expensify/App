@@ -44,7 +44,7 @@ You do not need to disconnect Xero first. Reconnecting restores access while kee
 
 You are returned to Expensify once the connection is restored.
 
-If the Workspace is not connected to Xero at all, [learn how to connect to Xero](/articles/expensify-classic/connections/xero/Connect-to-Xero).
+If the Workspace is not connected to Xero at all, [learn how to connect to Xero](/articles/expensify-classic/connections/xero/Connect-To-Xero).
 
 ## How to retry the Xero sync after reconnecting
 
