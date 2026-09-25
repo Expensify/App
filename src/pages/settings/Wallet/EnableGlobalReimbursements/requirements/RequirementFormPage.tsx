@@ -1,4 +1,5 @@
 import DynamicFormFlow from '@components/DynamicForm/DynamicFormFlow';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,6 +53,10 @@ function RequirementFormPage({route}: RequirementFormPageProps) {
         wasSubmittingRef.current = false;
         Navigation.goBack(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(bankAccountID));
     }, [isSubmitting, hasSubmitError, bankAccountID]);
+
+    if (requirement === undefined) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <DynamicFormFlow

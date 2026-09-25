@@ -14,7 +14,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import {getWiseKYCRequirements, getWiseKYCReviewEmbeddedLink} from '@userActions/BankAccounts/wise';
-import {clearDraftValues} from '@userActions/FormActions';
+import {clearDraftValues, clearErrors} from '@userActions/FormActions';
 
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +51,7 @@ function RequirementsPage({route}: RequirementsPageProps) {
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM);
+        clearErrors(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM);
         Navigation.navigate(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENT_FORM.getRoute(bankAccountID, requirement.key));
     };
 

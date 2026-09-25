@@ -7,13 +7,15 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import RequirementFormPage from '@pages/settings/Wallet/EnableGlobalReimbursements/requirements/RequirementFormPage';
 import RequirementsPage from '@pages/settings/Wallet/EnableGlobalReimbursements/requirements/RequirementsPage';
 
-import {getWiseKYCReviewEmbeddedLink, submitWiseKYCRequirement} from '@userActions/BankAccounts/wise';
+import {getWiseKYCRequirements, getWiseKYCReviewEmbeddedLink, submitWiseKYCRequirement} from '@userActions/BankAccounts/wise';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {WiseKYCRequirementForm} from '@src/types/form';
 
 import type ReactNative from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -206,6 +208,46 @@ describe('Wise KYC requirements pages', () => {
 
         expect(getWiseKYCReviewEmbeddedLink).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_EMBEDDED.getRoute(BANK_ACCOUNT_ID));
+    });
+
+    it('shows a loading indicator and fetches requirements when the form page mounts on an empty cache', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.WISE_KYC_REQUIREMENTS, null);
+        });
+        mockRouteParams.subPage = 'account-purpose';
+
+        await renderRequirementFormPage('ACCOUNT_PURPOSE');
+
+        expect(getWiseKYCRequirements).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
+        expect(screen.queryByText('common.confirm')).not.toBeOnTheScreen();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.WISE_KYC_REQUIREMENTS, kycRequirements);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('common.confirm')).toBeOnTheScreen();
+    });
+
+    it('clears a previous submit error when opening a requirement', async () => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {errors: {wiseError: 'Rejected'}});
+        });
+        await renderRequirementsPage();
+
+        fireEvent.press(screen.getByText('wiseKYC.requirement.ID_DOCUMENT'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        const form = await new Promise<OnyxEntry<WiseKYCRequirementForm>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+        expect(form?.errors).toBeFalsy();
     });
 
     it('replaces the task list when the Onyx key changes', async () => {
