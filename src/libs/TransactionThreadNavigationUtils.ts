@@ -1,4 +1,4 @@
-import type {Beta, IntroSelected, PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -29,7 +29,6 @@ type TransactionThreadNavigationDescriptor = {
 /** Context needed to create a transaction thread on demand when one doesn't exist yet. */
 type ResolveReportContext = {
     introSelected: OnyxEntry<IntroSelected>;
-    betas: OnyxEntry<Beta[]>;
     currentUserEmail: string | undefined;
     currentUserAccountID: number;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -79,7 +78,6 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
-        betas: context.betas,
         iouReport: getReportOrDraftReport(reportID) ?? expense.report,
         iouReportAction: iouAction,
         transaction,
@@ -134,7 +132,6 @@ function getOrCreateTransactionThreadReportID(
         hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
-        betas: context.betas,
         iouReport,
         iouReportAction,
         transaction,

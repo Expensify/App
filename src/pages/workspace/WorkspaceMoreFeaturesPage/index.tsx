@@ -138,7 +138,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`, {
@@ -172,8 +171,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
     // vendors right now), so it can't double as the visibility gate.
     //
-    // When no source is active, keep the connected integration's discovery row.
-    // QBO (R1), Sage Intacct (R2), and DualEntry are GA. Xero and Rillet require the vendorMatching beta.
+    // Use the active vendor source so a stale GA connection cannot bypass the beta for another
+    // integration. When no source is active, keep the connected integration's discovery row.
+    // QBO (R1), Sage Intacct (R2), Rillet, and DualEntry are GA. Xero and Business Central require the vendorMatching beta.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -182,10 +182,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.XERO,
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
+            CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
     const isGenerallyAvailableVendorConnection =
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
@@ -284,7 +286,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
     };
 
     const promptDisableTravelViaInvoicing = async () => {
@@ -310,7 +312,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
     };
 
     const promptDisableSmartLimitForWorkflows = async () => {

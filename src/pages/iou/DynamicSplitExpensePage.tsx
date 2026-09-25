@@ -130,7 +130,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);

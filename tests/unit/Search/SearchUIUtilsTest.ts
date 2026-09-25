@@ -3786,6 +3786,96 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        it('should not carry the group limit into the category drill-down query', () => {
+            // Given a category-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:category limit:10');
+            if (!parsedQuery) {
+                throw new Error('Failed to parse category-grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the category sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByCategory.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionCategoryGroupListItemType,
+            );
+
+            // Then the per-group query drops the limit along with the grouping, so expanding a group
+            // shows every transaction in it instead of capping them at the group limit
+            const categorySection = sections.at(0);
+            if (!categorySection) {
+                throw new Error('Expected a category group section');
+            }
+            expect(categorySection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
+        // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are
+        // covered together: a regression that reintroduced `limit` in that one builder would break all five.
+        it.each([
+            [CONST.SEARCH.GROUP_BY.DAY, searchResultsGroupByDay, SearchUIUtils.isTransactionDayGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.WEEK, searchResultsGroupByWeek, SearchUIUtils.isTransactionWeekGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.MONTH, searchResultsGroupByMonth, SearchUIUtils.isTransactionMonthGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.QUARTER, searchResultsGroupByQuarter, SearchUIUtils.isTransactionQuarterGroupListItemType],
+            [CONST.SEARCH.GROUP_BY.YEAR, searchResultsGroupByYear, SearchUIUtils.isTransactionYearGroupListItemType],
+        ] as const)('should not carry the group limit into the %s drill-down query', (groupBy, groupSearchResults, isExpectedGroupType) => {
+            // Given a date-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${groupBy} limit:10`);
+            if (!parsedQuery) {
+                throw new Error(`Failed to parse ${groupBy}-grouped search query`);
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the date-range sections are built
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: groupSearchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                groupBy,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+                queryJSON: {...parsedQuery},
+            });
+
+            // Then the per-group query drops the limit along with the grouping, so expanding a date group
+            // shows every transaction in the range instead of capping them at the group limit
+            const dateSection = sections.at(0);
+            if (!dateSection || !isExpectedGroupType(dateSection)) {
+                throw new Error(`Expected a ${groupBy} group section`);
+            }
+            expect(dateSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(dateSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+
+            // And the date-range filter that defines the group is still present, so dropping `limit` did not
+            // widen the drill-down beyond the bar the user clicked
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date>=');
+            expect(dateSection.transactionsQueryJSON?.inputQuery).toContain('date<=');
+        });
+
         it('should match a day group using created when modifiedCreated is empty', () => {
             const dayGroup: TransactionDayGroupListItemType = {
                 day: '2026-09-15',
@@ -11216,6 +11306,34 @@ describe('SearchUIUtils', () => {
             ).toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
         });
 
+        test('Should drop the vendor column from the saved list and the report view when the vendor feature is unavailable', () => {
+            // Given a saved Search column list that includes Vendor, and an expense that still carries a vendor
+            const transactionWithVendor = {...createRandomTransaction(3), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VENDOR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            // When no workspace has the vendor feature anymore
+            const searchColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: [transactionWithVendor],
+                visibleColumns: pickedColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                isVendorColumnAvailable: false,
+            });
+            const reportColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: [transactionWithVendor],
+                visibleColumns: [],
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                isExpenseReportView: true,
+                isVendorColumnAvailable: false,
+            });
+
+            // Then the Search table keeps the other saved columns but not Vendor, and the report view does not auto-show it either
+            expect(searchColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+            expect(searchColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(reportColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        });
+
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -12664,7 +12782,6 @@ describe('SearchUIUtils', () => {
             backTo,
             currentUserLogin,
             currentUserAccountID,
-            betas: undefined,
             personalDetails,
             isSelfTourViewed: false,
             hasCompletedGuidedSetupFlow: true,
@@ -12687,7 +12804,6 @@ describe('SearchUIUtils', () => {
                 conciergeChat: undefined,
                 currentUserLogin,
                 currentUserAccountID,
-                betas: undefined,
                 iouReport: report1,
                 iouReportAction: reportAction1,
                 transaction: undefined,

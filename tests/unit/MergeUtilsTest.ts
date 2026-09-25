@@ -16,10 +16,8 @@ import type {MergeConnectionName} from '@libs/merge/MergeUtils';
 
 import CONST from '@src/CONST';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
-import type {ConnectionLastSync, MergeConnectionLastSync} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, MergeApprovalMode, MergeConnectionLastSync} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-
-import type {ValueOf} from 'type-fest';
 
 import createRandomPolicy from 'tests/utils/collections/policies';
 import {formatPhoneNumber, translateLocal} from 'tests/utils/TestHelper';
@@ -47,7 +45,7 @@ function makeLastSync(overrides: Partial<MergeConnectionLastSync> = {}): Connect
 /** The approval config fields the shared Merge utils read, which both Merge HR and Merge ATS have in common. */
 type MergeApprovalConfig = {
     /** Approval mode configured for the connection */
-    approvalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+    approvalMode?: MergeApprovalMode | null;
 
     /** Workspace member who acts as the final approver */
     finalApprover?: string | null;
@@ -157,9 +155,9 @@ describe('MergeUtils', () => {
         describe('getMergeFinalApprover', () => {
             const policyWithApprovalConfig = (config: MergeApprovalConfig) => makeMergePolicy(connectionName, {}, config);
 
-            it('returns null when there is no policy or no connection', () => {
-                expect(getMergeFinalApprover(undefined, connectionName)).toBeNull();
-                expect(getMergeFinalApprover(makePolicy(), connectionName)).toBeNull();
+            it('returns undefined when there is no policy or no connection', () => {
+                expect(getMergeFinalApprover(undefined, connectionName)).toBeUndefined();
+                expect(getMergeFinalApprover(makePolicy(), connectionName)).toBeUndefined();
             });
 
             it('returns the finalApprover when in basic mode', () => {
@@ -172,19 +170,24 @@ describe('MergeUtils', () => {
                 expect(getMergeFinalApprover(policy, connectionName)).toBe('boss@company.com');
             });
 
-            it('returns null when in custom mode', () => {
-                const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, finalApprover: 'boss@company.com'});
-                expect(getMergeFinalApprover(policy, connectionName)).toBeNull();
+            it('returns the finalApprover when in advanced mode, where it is optional', () => {
+                const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.ADVANCED, finalApprover: 'boss@company.com'});
+                expect(getMergeFinalApprover(policy, connectionName)).toBe('boss@company.com');
             });
 
-            it('returns null when the finalApprover is not set', () => {
+            it('returns undefined when in custom mode, which routes approvals by hand instead', () => {
+                const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, finalApprover: 'boss@company.com'});
+                expect(getMergeFinalApprover(policy, connectionName)).toBeUndefined();
+            });
+
+            it('returns undefined when the finalApprover is not set', () => {
                 const policy = policyWithApprovalConfig({approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER, finalApprover: null});
-                expect(getMergeFinalApprover(policy, connectionName)).toBeNull();
+                expect(getMergeFinalApprover(policy, connectionName)).toBeUndefined();
             });
 
             it('ignores the final approver configured on the other Merge connection', () => {
                 const policy = makeMergePolicy(otherConnectionName, {}, {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, finalApprover: 'boss@company.com'});
-                expect(getMergeFinalApprover(policy, connectionName)).toBeNull();
+                expect(getMergeFinalApprover(policy, connectionName)).toBeUndefined();
             });
         });
 

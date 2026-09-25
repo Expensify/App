@@ -76,15 +76,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -212,7 +203,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -342,7 +332,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -405,7 +394,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -454,7 +443,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -551,7 +539,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -613,7 +600,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -701,7 +687,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -763,7 +748,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -854,7 +838,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -916,7 +899,6 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -1005,7 +987,6 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -1067,7 +1048,6 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -1175,7 +1155,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -1239,7 +1218,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -1305,7 +1283,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -1524,7 +1501,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 1,
-                firstPolicyID: policy.id,
+                firstPolicy: policy,
             });
             await waitForBatchedUpdates();
 
@@ -1571,7 +1548,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -1665,7 +1641,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -2042,7 +2017,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -2093,7 +2067,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -2146,7 +2119,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -2190,7 +2162,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -2260,7 +2231,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
@@ -2310,7 +2280,6 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
@@ -2401,7 +2370,6 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
@@ -2500,7 +2468,6 @@ describe('actions/IOU/TrackExpense', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -2618,7 +2585,6 @@ describe('actions/IOU/TrackExpense', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -2718,7 +2684,6 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
