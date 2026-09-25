@@ -7569,6 +7569,12 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 ES: 'la Spagna',
             },
             governmentRateCountryGeneric: 'il tuo paese',
+            governmentRateCountrySelectionPrompt:
+                'Per continuare a usare la funzione di aggiornamento automatico delle aliquote chilometriche governative, conferma quale paese vuoi usare in futuro.',
+            governmentRateCountryCreationPrompt:
+                'Per usare la funzione di aggiornamento automatico delle aliquote chilometriche governative in questo spazio di lavoro, conferma quale paese vuoi usare.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Attenzione! Cambiando la valuta dello spazio di lavoro in ${currency}, verranno utilizzate le aliquote chilometriche governative che ${countryPhrase} pubblica. Sei sicuro di voler procedere?`,
         },
         editor: {
             descriptionInputLabel: 'Descrizione',

@@ -7572,6 +7572,12 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 ES: 'Hiszpania',
             },
             governmentRateCountryGeneric: 'Twój kraj',
+            governmentRateCountrySelectionPrompt:
+                'Aby nadal korzystać z funkcji automatycznej aktualizacji rządowych stawek za dystans, potwierdź, którego kraju chcesz używać w przyszłości.',
+            governmentRateCountryCreationPrompt:
+                'Aby korzystać z funkcji automatycznej aktualizacji rządowych stawek za dystans w tym obszarze roboczym, potwierdź, którego kraju chcesz używać.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Uwaga! Zmiana waluty obszaru roboczego na ${currency} spowoduje korzystanie z rządowych stawek kilometrowych, które publikuje ${countryPhrase}. Czy na pewno chcesz kontynuować?`,
         },
         editor: {
             descriptionInputLabel: 'Opis',

@@ -7629,6 +7629,12 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 ES: "l'Espagne",
             },
             governmentRateCountryGeneric: 'votre pays',
+            governmentRateCountrySelectionPrompt:
+                "Pour continuer à utiliser la fonction de mise à jour automatique des taux de distance gouvernementaux, veuillez confirmer le pays que vous souhaitez utiliser à l'avenir.",
+            governmentRateCountryCreationPrompt:
+                'Pour utiliser la fonction de mise à jour automatique des taux de distance gouvernementaux sur cet espace de travail, veuillez confirmer le pays que vous souhaitez utiliser.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Attention ! Si vous changez la devise de l'espace de travail pour ${currency}, les taux kilométriques gouvernementaux que ${countryPhrase} publie seront utilisés à la place. Voulez-vous vraiment continuer ?`,
         },
         editor: {
             descriptionInputLabel: 'Description',

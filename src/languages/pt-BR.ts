@@ -7556,6 +7556,12 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 ES: 'Espanha',
             },
             governmentRateCountryGeneric: 'seu país',
+            governmentRateCountrySelectionPrompt:
+                'Para continuar usando o recurso de atualização automática de taxas de distância governamentais, confirme qual país você deseja usar daqui em diante.',
+            governmentRateCountryCreationPrompt:
+                'Para usar o recurso de atualização automática de taxas de distância governamentais neste espaço de trabalho, confirme qual país você deseja usar.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Atenção! Alterar a moeda do espaço de trabalho para ${currency} passará a usar as taxas de quilometragem governamentais que ${countryPhrase} publica. Tem certeza de que deseja continuar?`,
         },
         editor: {
             descriptionInputLabel: 'Descrição',

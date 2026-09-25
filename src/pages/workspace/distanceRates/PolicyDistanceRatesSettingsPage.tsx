@@ -28,8 +28,6 @@ import {
     isCurrencySupportedForAutoUpdate,
     isMapOrGPSRequired,
     isSharedGovernmentRateCurrency,
-    markGovernmentRateCountryPromptShown,
-    wasGovernmentRateCountryPromptShown,
 } from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
@@ -172,17 +170,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
         setWorkspaceDistanceAutoUpdate(policyID, customUnit, isOn, governmentMileageRates ?? [], policy?.outputCurrency);
     };
-
-    // A workspace that switched its currency to EUR while auto-update was on has no country yet, so open the
-    // selection page on the next settings visit. Shown once per session, so dismissing it doesn't re-open it.
-    const shouldPromptGovernmentRateCountry = isSharedCurrency && !!policy?.shouldAutoUpdateGovernmentDistanceRates && !autoUpdateCountry;
-    useEffect(() => {
-        if (!shouldPromptGovernmentRateCountry || wasGovernmentRateCountryPromptShown(policyID)) {
-            return;
-        }
-        markGovernmentRateCountryPromptShown(policyID);
-        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID));
-    }, [shouldPromptGovernmentRateCountry, policyID]);
 
     // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The
     // toggle is shown on and locked in that case, and the stored setting is left untouched so the admin's own

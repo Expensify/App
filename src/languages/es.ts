@@ -7595,6 +7595,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 ES: 'España',
             },
             governmentRateCountryGeneric: 'tu país',
+            governmentRateCountrySelectionPrompt:
+                'Para seguir usando la función de actualización automática de tasas de distancia gubernamentales, confirma qué país quieres usar en adelante.',
+            governmentRateCountryCreationPrompt:
+                'Para usar la función de actualización automática de tasas de distancia gubernamentales en este espacio de trabajo, confirma qué país quieres usar.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `¡Atención! Cambiar la moneda del espacio de trabajo a ${currency} hará que se usen las tasas de kilometraje gubernamentales que publica ${countryPhrase}. ¿Seguro que quieres continuar?`,
         },
         editor: {
             nameInputLabel: 'Nombre',

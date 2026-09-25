@@ -7550,6 +7550,12 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 ES: 'Spanje',
             },
             governmentRateCountryGeneric: 'uw land',
+            governmentRateCountrySelectionPrompt:
+                'Om de functie voor het automatisch bijwerken van overheidsafstandstarieven te blijven gebruiken, bevestig welk land je vanaf nu wilt gebruiken.',
+            governmentRateCountryCreationPrompt:
+                'Om de functie voor het automatisch bijwerken van overheidsafstandstarieven in deze werkruimte te gebruiken, bevestig welk land je wilt gebruiken.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Let op! Als je de valuta van de werkruimte wijzigt naar ${currency}, worden voortaan de overheidskilometertarieven gebruikt die ${countryPhrase} publiceert. Weet je zeker dat je door wilt gaan?`,
         },
         editor: {
             descriptionInputLabel: 'Beschrijving',

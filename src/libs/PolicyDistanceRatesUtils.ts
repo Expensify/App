@@ -293,17 +293,6 @@ function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy i
     return !!policy?.id && !!policy.commuterExclusions;
 }
 
-/** Policies whose EUR country selection page already auto-opened this session, so it opens once rather than on every settings visit. */
-const shownGovernmentRateCountryPrompts = new Set<string>();
-
-function wasGovernmentRateCountryPromptShown(policyID: string): boolean {
-    return shownGovernmentRateCountryPrompts.has(policyID);
-}
-
-function markGovernmentRateCountryPromptShown(policyID: string): void {
-    shownGovernmentRateCountryPrompts.add(policyID);
-}
-
 /**
  * Whether distance expenses on this workspace must come from a mapped route or a GPS track, which rules out the
  * manual and odometer flows. Commuter exclusions are derived from the mapped route, so configuring them enforces
@@ -347,8 +336,6 @@ export {
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
     isCommuterExclusionEnabled,
-    wasGovernmentRateCountryPromptShown,
-    markGovernmentRateCountryPromptShown,
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,

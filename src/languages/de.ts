@@ -7610,6 +7610,12 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 ES: 'Spanien',
             },
             governmentRateCountryGeneric: 'Ihr Land',
+            governmentRateCountrySelectionPrompt:
+                'Um die Funktion zur automatischen Aktualisierung staatlicher Entfernungssätze weiterhin zu nutzen, bestätigen Sie bitte, welches Land Sie künftig verwenden möchten.',
+            governmentRateCountryCreationPrompt:
+                'Um die Funktion zur automatischen Aktualisierung staatlicher Entfernungssätze in diesem Arbeitsbereich zu nutzen, bestätigen Sie bitte, welches Land Sie verwenden möchten.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Achtung! Wenn Sie die Währung des Arbeitsbereichs auf ${currency} ändern, werden stattdessen die staatlichen Kilometersätze verwendet, die ${countryPhrase} veröffentlicht. Möchten Sie wirklich fortfahren?`,
         },
         editor: {
             descriptionInputLabel: 'Beschreibung',

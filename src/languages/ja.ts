@@ -7478,6 +7478,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 ES: 'スペイン',
             },
             governmentRateCountryGeneric: 'お住まいの国',
+            governmentRateCountrySelectionPrompt: '政府の距離レート自動更新機能を引き続き使用するには、今後使用する国を確認してください。',
+            governmentRateCountryCreationPrompt: 'このワークスペースで政府の距離レート自動更新機能を使用するには、使用する国を確認してください。',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `注意！ワークスペースの通貨を${currency}に変更すると、代わりに${countryPhrase}が公表する政府の距離レートが使用されます。続行してもよろしいですか？`,
         },
         editor: {
             descriptionInputLabel: '説明',

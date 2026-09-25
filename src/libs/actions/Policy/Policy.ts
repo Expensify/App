@@ -287,6 +287,8 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
+    /** Force distance rates on for the new workspace, e.g. when the admin picks a government rate country during creation */
+    shouldEnableDistanceRates?: boolean;
     type?: CreatableWorkspaceType;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
@@ -2174,6 +2176,8 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 },
                 name,
                 outputCurrency: currency,
+                // The server clears the stored government rate country whenever the currency changes, so mirror that here
+                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: null}),
                 ...(customUnitID && {
                     customUnits: {
                         ...policy.customUnits,
@@ -2223,6 +2227,8 @@ function updateGeneralSettings(policy: OnyxEntry<Policy>, name: string, currency
                 errorFields,
                 name: policy.name,
                 outputCurrency: policy.outputCurrency,
+                // Restore the government rate country that the optimistic currency change cleared
+                ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null}),
                 ...(customUnitID && {
                     customUnits: {
                         [customUnitID]: {
@@ -2767,6 +2773,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
         shouldCreateControlPolicy = false,
+        shouldEnableDistanceRates = false,
         type,
         isSelfTourViewed,
         hasActiveAdminPolicies,
@@ -2814,7 +2821,8 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
 
     const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy || isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
 
-    const areDistanceRatesEnabled = isSubmitWorkspace || !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
+    const areDistanceRatesEnabled =
+        shouldEnableDistanceRates || isSubmitWorkspace || !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: Array<

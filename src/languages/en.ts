@@ -7859,6 +7859,10 @@ const translations = {
                 ES: 'Spain',
             },
             governmentRateCountryGeneric: 'your country',
+            governmentRateCountrySelectionPrompt: 'To continue using the auto-update government distance rates feature, please confirm which country you want to use going forward.',
+            governmentRateCountryCreationPrompt: 'To use the auto-update government distance rates feature on this workspace, please confirm which country you want to use.',
+            currencyChangeGovernmentRateWarning: (currency: string, countryPhrase: string) =>
+                `Heads up! Changing the workspace currency to ${currency} will start using the government mileage rates ${countryPhrase} publishes instead. Are you sure you want to proceed?`,
             errors: {
                 rateNameRequired: 'Rate name is required',
                 existingRateName: 'A distance rate with this name already exists',

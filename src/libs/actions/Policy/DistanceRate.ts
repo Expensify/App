@@ -697,10 +697,13 @@ function clearPolicyRequireMapOrGPSErrors(policyID: string) {
  *
  * EUR is shared by several supported countries, so an EUR workspace passes `countryCode` to pick one. The choice is stored
  * on the policy optimistically and `previousCountryCode` restores it on failure.
+ *
+ * `customUnit` is omitted right after workspace creation, when the server-created custom unit isn't in Onyx yet. The rate
+ * copying and unit correction are skipped then, and the server response fills them in.
  */
 function setWorkspaceDistanceAutoUpdate(
     policyID: string,
-    customUnit: CustomUnit,
+    customUnit: CustomUnit | undefined,
     shouldAutoUpdateGovernmentDistanceRates: boolean,
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
@@ -708,14 +711,14 @@ function setWorkspaceDistanceAutoUpdate(
     previousCountryCode?: string,
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    const customUnitID = customUnit.customUnitID;
+    const customUnitID = customUnit?.customUnitID;
 
     const optimisticRates: Record<string, Rate> = {};
     const clearedRatePendingActions: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, null> = {};
     const optimisticRateIDs: Record<string, string> = {};
 
-    if (shouldAutoUpdateGovernmentDistanceRates) {
+    if (shouldAutoUpdateGovernmentDistanceRates && customUnit) {
         const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
 
         for (const governmentMileageRate of governmentMileageRates) {
@@ -765,7 +768,7 @@ function setWorkspaceDistanceAutoUpdate(
         }
     }
 
-    const currentUnit = customUnit.attributes?.unit;
+    const currentUnit = customUnit?.attributes?.unit;
     const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
     const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
@@ -787,7 +790,7 @@ function setWorkspaceDistanceAutoUpdate(
                         ...(countryCode ? {autoUpdateGovernmentRateCountry: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
                     },
                     errorFields: {shouldAutoUpdateGovernmentDistanceRates: null},
-                    ...(Object.keys(optimisticCustomUnit).length > 0 ? {customUnits: {[customUnitID]: optimisticCustomUnit}} : {}),
+                    ...(customUnitID && Object.keys(optimisticCustomUnit).length > 0 ? {customUnits: {[customUnitID]: optimisticCustomUnit}} : {}),
                 },
             },
         ],
@@ -800,7 +803,7 @@ function setWorkspaceDistanceAutoUpdate(
                         shouldAutoUpdateGovernmentDistanceRates: null,
                         ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
                     },
-                    ...(Object.keys(clearedRatePendingActions).length > 0 || shouldCorrectUnit
+                    ...(customUnitID && (Object.keys(clearedRatePendingActions).length > 0 || shouldCorrectUnit)
                         ? {
                               customUnits: {
                                   [customUnitID]: {
@@ -826,7 +829,7 @@ function setWorkspaceDistanceAutoUpdate(
                         ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
                     },
                     errorFields: {shouldAutoUpdateGovernmentDistanceRates: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-                    ...(Object.keys(failureRates).length > 0 || shouldCorrectUnit
+                    ...(customUnitID && (Object.keys(failureRates).length > 0 || shouldCorrectUnit)
                         ? {
                               customUnits: {
                                   [customUnitID]: {
