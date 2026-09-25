@@ -1766,7 +1766,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
             // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
-            filtersForm[filterKey] = filterValues;
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues

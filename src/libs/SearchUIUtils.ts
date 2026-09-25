@@ -5840,7 +5840,7 @@ function getDisplayValue(
             .join(', ');
     }
 
-    if (key === FILTER_KEYS.VENDOR) {
+    if (key === FILTER_KEYS.VENDOR || key === FILTER_KEYS.VENDOR_NOT) {
         return form[key]
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
