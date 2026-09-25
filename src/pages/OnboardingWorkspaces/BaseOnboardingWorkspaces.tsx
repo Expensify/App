@@ -119,6 +119,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
         const joinWorkspaceTaskReportID =
             joinWorkspaceTaskReport?.reportID ??
+            introSelected?.joinWorkspace ??
             createdJoinWorkspaceTaskReportID.current ??
             createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
         createdJoinWorkspaceTaskReportID.current = joinWorkspaceTaskReportID;
@@ -289,14 +290,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     ]);
 
     useEffect(() => {
-        if (!shouldCreateJoinWorkspaceTaskOnExit || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
+        if (!shouldCreateJoinWorkspaceTaskOnExit || joinablePoliciesLength === 0 || introSelected?.joinWorkspace || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
             return;
         }
 
         createdJoinWorkspaceTask.current = true;
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
         createdJoinWorkspaceTaskReportID.current = createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
-    }, [conciergeChat, delegateAccountID, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
+    }, [conciergeChat, delegateAccountID, introSelected?.joinWorkspace, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
 
     useEffect(() => {
         if (isLoadingJoinablePolicies || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
