@@ -1788,6 +1788,7 @@ describe('getTransactionsForMerging', () => {
             report: undefined,
             currentUserLogin: undefined,
             rules: undefined,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
