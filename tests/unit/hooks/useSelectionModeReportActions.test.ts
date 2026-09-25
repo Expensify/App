@@ -238,6 +238,8 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
+        canApproveIOU: jest.fn(() => false),
+        canIOUBePaid: jest.fn(() => false),
         hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
@@ -255,8 +257,6 @@ jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
     __esModule: true,
     submitReport: jest.fn(),
     approveMoneyRequest: jest.fn(),
-    canApproveIOU: jest.fn(() => false),
-    canIOUBePaid: jest.fn(() => false),
 }));
 
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({

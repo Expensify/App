@@ -8,6 +8,7 @@ import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from '@libs/AgentRuleChangeLogUtils';
 import {isMobileSafari} from '@libs/Browser';
@@ -182,7 +183,6 @@ import {
     canEditReportAction,
     canFlagReportAction,
     canHoldUnholdReportAction,
-    changeMoneyRequestHoldStatus,
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getIOUReportActionDisplayMessage,
@@ -341,6 +341,7 @@ type ContextMenuActionPayload = {
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: RefObject<ComponentRef<typeof View> | null>;
     moneyRequestAction: ReportAction | undefined;
+    moneyRequestPolicy?: OnyxEntry<Policy>;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport?: boolean;
@@ -698,6 +699,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             {
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 iouTransactionViolations,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
@@ -718,6 +720,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        moneyRequestPolicy,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -734,6 +737,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,
@@ -762,6 +766,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             {
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 iouTransactionViolations,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
@@ -782,6 +787,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     changeMoneyRequestHoldStatus(
                         moneyRequestAction,
                         iouTransaction,
+                        moneyRequestPolicy,
                         isOffline,
                         currentUserPersonalDetails?.login ?? '',
                         currentUserPersonalDetails.accountID,
@@ -798,6 +804,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(
                 moneyRequestAction,
                 iouTransaction,
+                moneyRequestPolicy,
                 isOffline,
                 currentUserPersonalDetails?.login ?? '',
                 currentUserPersonalDetails.accountID,

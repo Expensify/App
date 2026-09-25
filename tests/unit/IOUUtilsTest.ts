@@ -6,8 +6,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {canApproveIOU, canSubmitReport} from '@userActions/IOU/ReportWorkflow';
-
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -470,7 +468,9 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(
+            true,
+        );
     });
 
     test('Return true if report can be submitted after being reopened', async () => {
@@ -534,7 +534,9 @@ describe('canSubmitReport', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(true);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations, false, '', currentUserAccountID)).toBe(
+            true,
+        );
     });
 
     test('Return false if report can not be submitted', async () => {
@@ -553,7 +555,7 @@ describe('canSubmitReport', () => {
             policyID: fakePolicy.id,
         };
 
-        expect(canSubmitReport(expenseReport, undefined, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(expenseReport, undefined, fakePolicy, [], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false if the report is archived', async () => {
@@ -578,7 +580,7 @@ describe('canSubmitReport', () => {
 
         // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-        expect(canSubmitReport(report, undefined, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(report, undefined, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
 
     it('returns false when SmartScan failed with missing fields before violation is written', async () => {
@@ -611,7 +613,7 @@ describe('canSubmitReport', () => {
             amount: 100,
         };
 
-        expect(canSubmitReport(report, undefined, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canSubmitReport(report, undefined, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
     });
 });
 
@@ -769,7 +771,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for DEW policy report with pending approval', async () => {
@@ -804,7 +806,7 @@ describe('canApproveIOU', () => {
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [transaction])).toBe(false);
     });
 
     it('should return true for Submit workspace report when user is manager', async () => {
@@ -833,7 +835,7 @@ describe('canApproveIOU', () => {
             status: undefined,
         };
 
-        expect(canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
+        expect(ReportUtils.canApproveIOU(report, policy, {}, currentUserAccountID, [transaction])).toBe(true);
     });
 
     it('should return false for non-expense report', async () => {
@@ -852,7 +854,7 @@ describe('canApproveIOU', () => {
         const reportMetadata: ReportMetadata = {};
 
         // Then canApproveIOU should return false
-        expect(canApproveIOU(report, policy, reportMetadata, currentUserAccountID)).toBe(false);
+        expect(ReportUtils.canApproveIOU(report, policy, reportMetadata, currentUserAccountID, [])).toBe(false);
     });
 });
 

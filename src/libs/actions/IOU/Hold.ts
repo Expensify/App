@@ -5,6 +5,8 @@ import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -30,12 +32,13 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isProcessingReport,
 } from '@libs/ReportUtils';
-import {getAmount, isScanFailedTransactionMovedOnPayment} from '@libs/TransactionUtils';
+import {getAmount, isOnHold, isScanFailedTransactionMovedOnPayment} from '@libs/TransactionUtils';
 
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1053,4 +1056,58 @@ function getReportFromHoldRequestsOnyxData({
     };
 }
 
-export {getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest};
+/**
+ * Takes the expense off hold when it is already on hold, otherwise opens the hold reason flow.
+ */
+function changeMoneyRequestHoldStatus(
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
+    iouTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isOffline: boolean,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
+): void {
+    if (!isMoneyRequestAction(reportAction)) {
+        return;
+    }
+    const moneyRequestReportID = reportAction?.reportID;
+
+    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
+    if (!moneyRequestReportID || !moneyRequestReport) {
+        return;
+    }
+
+    const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
+
+    if (!transactionID || !iouTransaction) {
+        Log.warn('Missing transactionID or iouTransaction during the change of the money request hold status');
+        return;
+    }
+
+    if (isOnHold(iouTransaction)) {
+        if (reportAction.childReportID) {
+            unholdRequest(
+                transactionID,
+                reportAction.childReportID,
+                policy,
+                isOffline,
+                currentUserLogin,
+                currentUserAccountID,
+                transactionViolations,
+                isTrackIntentUser,
+                delegateAccountID,
+                rules,
+            );
+        } else {
+            Log.warn('Missing reportAction.childReportID during money request unhold');
+        }
+    } else {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, reportAction.childReportID)));
+    }
+}
+
+export {changeMoneyRequestHoldStatus, getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest};

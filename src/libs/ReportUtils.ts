@@ -105,8 +105,6 @@ import type {AvatarSource} from './UserAvatarUtils';
 
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {unholdRequest} from './actions/IOU/Hold';
-import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
@@ -138,6 +136,7 @@ import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
 import {buildPersonalDetailsUpdate, getAccountIDsByLogins, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
+    arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
@@ -159,12 +158,14 @@ import {
     isGroupPolicy as isGroupPolicyPolicyUtils,
     isGroupPolicyByType,
     isInstantSubmitEnabled,
+    isPaidGroupPolicyByType,
     isPendingDeletePolicy,
     isPerDiemEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
     isPolicyOwner,
     isSubmitAndClose,
+    isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     resolveCurrentTaxCode,
     shouldShowPolicy,
@@ -194,6 +195,7 @@ import {
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionText,
     getSortedReportActions,
+    hasPendingDEWApprove,
     isActionableCardFraudAlert,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
@@ -235,6 +237,7 @@ import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportNa
 import {getAllPersonalDetailLogins} from './ShortMentionLogins';
 import {isTaskCompleted} from './TaskUtils';
 import {
+    allHavePendingRTERViolation,
     getAttendees,
     getBillable,
     getCardID,
@@ -269,6 +272,7 @@ import {
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasMissingSmartscanFieldsForRBR,
+    hasAnyTransactionWithoutRTERViolation,
     hasNoticeTypeViolation,
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
@@ -288,7 +292,9 @@ import {
     isReceiptBeingScanned,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
+    isScanningTransaction,
     isTransactionPendingDelete,
+    isTransactionSubmittable,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -3147,6 +3153,313 @@ function canSubmitAndIsAwaitingForCurrentUser(
     );
 }
 
+function canApproveIOU(
+    iouReport: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    currentUserAccountID: number,
+    reportTransactions: Transaction[],
+) {
+    if (!isExpenseReport(iouReport)) {
+        return false;
+    }
+
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
+    // On a Submit workspace the submitter is also the report manager, so hide Approve for reports they submitted.
+    // Mark as paid stays available via the pay flow. This is checked before the paid-group gate so it keeps hiding
+    // Approve for the submitter even though Submit workspaces now show Approve (which routes to the upgrade modal) for other users.
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, iouReport?.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
+    // Submit workspaces allow Approve (approving routes through the upgrade flow in approveMoneyRequest).
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    if (!policy || !(isPaidGroupPolicyByType(policy.type) || isSubmitWorkspace)) {
+        return false;
+    }
+
+    const isOnSubmitAndClosePolicy = isSubmitAndClose(policy);
+    if (isOnSubmitAndClosePolicy && !isSubmitWorkspace) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+        return false;
+    }
+
+    const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    const isReportOpen = isOpenExpenseReport(iouReport);
+    const isApproved = isReportApproved({report: iouReport});
+    const iouSettled = isSettled(iouReport);
+    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
+    if (hasOnlyPendingCardOrScanningTransactions) {
+        return false;
+    }
+    const isReportPayAtEnd = isPayAtEndExpenseReport(iouReport ?? undefined, reportTransactions);
+    const isReportClosed = isClosedReport(iouReport);
+    return reportTransactions.length > 0 && isCurrentUserManager && !isReportOpen && !isApproved && !iouSettled && !isReportPayAtEnd && !isReportClosed;
+}
+
+function canIOUBePaid(
+    iouReport: OnyxInputOrEntry<Report>,
+    chatReport: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+    bankAccountList: OnyxEntry<BankAccountList>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    transactions?: Transaction[],
+    onlyShowPayElsewhere = false,
+    chatReportRNVP?: ReportNameValuePairs,
+    invoiceReceiverPolicy?: Policy,
+) {
+    const reportNameValuePairs = chatReportRNVP ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+    const iouSettled = isSettled(iouReport);
+
+    if (isEmptyObject(iouReport)) {
+        return false;
+    }
+
+    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        if (!onlyShowPayElsewhere) {
+            return false;
+        }
+        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            return false;
+        }
+    }
+
+    if (isInvoiceReport(iouReport)) {
+        if (isChatReportArchived || iouSettled || isOpenInvoiceReport(iouReport)) {
+            return false;
+        }
+        if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+            return chatReport?.invoiceReceiver?.accountID === currentUserAccountID;
+        }
+        return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
+    const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
+    const canPay =
+        isReportPayer ||
+        (isGroupPolicyPolicyUtils(policy) &&
+            getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWritePolicyUtils(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+
+    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
+    const isAutoReimbursable = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
+    const isReportPayAtEnd = isPayAtEndExpenseReport(iouReport ?? undefined, transactions);
+    const isProcessing = isProcessingReport(iouReport);
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessing;
+    const isApproved = isReportApproved({report: iouReport}) || isSubmittedWithoutApprovalsEnabled;
+    const isClosed = isClosedReport(iouReport);
+    const isReportFinished = (isApproved || isClosed) && !iouReport?.isWaitingOnBankAccount;
+    const isIOU = isIOUReport(iouReport);
+    const canShowMarkedAsPaidForNegativeAmount = onlyShowPayElsewhere && reimbursableSpend < 0;
+    const isOnlyNonReimbursablePayElsewhere = onlyShowPayElsewhere && nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
+
+    if (isIOU && canPay && !iouSettled && reimbursableSpend > 0) {
+        return true;
+    }
+
+    // TODO: Submit workspaces should show the PAY button and redirect to an upgrade modal instead of hiding it.
+    // This will be addressed as part of the Wave 3 "Upgrade on Pay" feature.
+    if (isExpenseReport(iouReport) && !isPaidGroupPolicyByType(policy?.type)) {
+        return false;
+    }
+
+    return (
+        canPay &&
+        isReportFinished &&
+        !iouSettled &&
+        (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || isOnlyNonReimbursablePayElsewhere) &&
+        !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
+        !isAutoReimbursable &&
+        !isReportPayAtEnd &&
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy))
+    );
+}
+
+function canSubmitReport(
+    report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
+    policy: OnyxEntry<Policy>,
+    transactions: Transaction[],
+    allViolations: OnyxCollection<TransactionViolations> | undefined,
+    isReportArchived: boolean,
+    currentUserEmailParam: string,
+    currentUserAccountID: number,
+) {
+    const isReportOpen = isOpenExpenseReport(report);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(
+        transactions,
+        allViolations,
+        currentUserEmailParam,
+        currentUserAccountID,
+        report,
+        reportOwnerLogin,
+        policy,
+    );
+    const hasNoSubmittableTransaction =
+        transactions.length > 0 &&
+        !transactions.some((transaction) =>
+            isTransactionSubmittable(transaction, report, allViolations, currentUserEmailParam, currentUserAccountID, reportOwnerLogin, policy, isScanningTransaction),
+        );
+
+    return (
+        isReportOpen &&
+        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
+        !hasNoSubmittableTransaction &&
+        !hasAllPendingRTERViolations &&
+        hasTransactionWithoutRTERViolation &&
+        !isReportArchived &&
+        transactions.length > 0
+    );
+}
+
+function getBadgeFromIOUReport(
+    iouReport: OnyxEntry<Report>,
+    chatReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    iouReportActions: OnyxEntry<ReportActions>,
+    allViolations?: OnyxCollection<TransactionViolations>,
+): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
+
+    if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
+        return undefined;
+    }
+
+    const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
+    const canBePaidNow =
+        (isInvoiceReport(iouReport) || isReportPayer) &&
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, undefined, undefined, invoiceReceiverPolicy);
+    if (canBePaidNow) {
+        return CONST.REPORT.ACTION_BADGE.PAY;
+    }
+    // Pay-elsewhere path: covers negative reimbursable spend (mark-as-paid flow for credits).
+    // Skip the PAY badge when every expense is non-reimbursable — paying is optional and
+    // should not pin the report in the LHN.
+    const canPayElsewhereActor = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, true);
+    const canBePaidElsewhere =
+        (isInvoiceReport(iouReport) || canPayElsewhereActor) &&
+        canIOUBePaid(iouReport, chatReport, policy, undefined, currentUserLogin, currentUserAccountID, undefined, true, undefined, invoiceReceiverPolicy);
+    if (canBePaidElsewhere) {
+        return hasOnlyNonReimbursableTransactions(iouReport?.reportID) ? undefined : CONST.REPORT.ACTION_BADGE.PAY;
+    }
+    if (canApproveIOU(iouReport, policy, reportMetadata, currentUserAccountID, reportTransactions)) {
+        return CONST.REPORT.ACTION_BADGE.APPROVE;
+    }
+    const isWaitingSubmitFromCurrentUser = canSubmitAndIsAwaitingForCurrentUser(
+        iouReport,
+        chatReport,
+        policy,
+        reportTransactions,
+        allViolations,
+        currentUserLogin,
+        currentUserAccountID,
+        iouReportActions,
+    );
+    if (isWaitingSubmitFromCurrentUser) {
+        return CONST.REPORT.ACTION_BADGE.SUBMIT;
+    }
+    return undefined;
+}
+
+/**
+ * Determines if a p2p IOU can be paid by the current user using only the REPORTPREVIEW action's
+ * child* fields, without requiring the full IOU report to be loaded in Onyx. This is used as a
+ * fallback when the IOU report hasn't been fetched yet (e.g. right after login).
+ */
+function canPayIOUFromReportAction(action: ReportAction, chatReport: OnyxEntry<Report>, currentUserAccountID: number): boolean {
+    return (
+        action.childType === CONST.REPORT.TYPE.IOU &&
+        action.childReportID === chatReport?.iouReportID &&
+        action.childManagerAccountID === currentUserAccountID &&
+        action.childStatusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED
+    );
+}
+
+function getIOUReportActionWithBadge(
+    chatReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    invoiceReceiverPolicy: OnyxEntry<Policy>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    chatReportActions: OnyxEntry<ReportActions>,
+    allReports?: OnyxCollection<Report>,
+    allReportActionsParam?: OnyxCollection<ReportActions>,
+    allViolations?: OnyxCollection<TransactionViolations>,
+): {
+    reportAction: OnyxEntry<ReportAction>;
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+} {
+    let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
+    let earliestAction: ReportAction | undefined;
+
+    for (const action of Object.values(chatReportActions ?? {})) {
+        if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
+            continue;
+        }
+        // Prefer the report from the fresh `allReports` snapshot (when supplied by the reportAttributes derived value)
+        // over the module-level Onyx cache, which can be stale mid-recompute and surface a deleted report's badge.
+        const iouReport = getReportOrDraftReport(action.childReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`]);
+
+        // A report deleted offline still lives in Onyx (pendingFields.preview === DELETE) until the queue flushes,
+        // so skip it here — otherwise its preview keeps surfacing a stale "Mark as done"/action badge in the LHN.
+        if (isReportPendingDelete(iouReport)) {
+            continue;
+        }
+
+        if (!iouReport) {
+            // Fallback for p2p IOUs when the IOU report isn't loaded in Onyx yet (e.g. right after login).
+            // Use the REPORTPREVIEW action's child* fields to determine PAY badge without the full report.
+            if (chatReport?.hasOutstandingChildRequest && canPayIOUFromReportAction(action, chatReport, currentUserAccountID)) {
+                if (!earliestAction || isOlderReportAction(action, earliestAction)) {
+                    earliestAction = action;
+                    actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
+                }
+            }
+            continue;
+        }
+
+        const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
+
+        // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
+        // still needs action from the current user.
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions, allViolations);
+        if (!badge) {
+            continue;
+        }
+
+        if (!earliestAction || isOlderReportAction(action, earliestAction)) {
+            earliestAction = action;
+            actionBadge = badge;
+        }
+    }
+
+    return {reportAction: earliestAction, actionBadge};
+}
+
 function hasOutstandingChildRequest(
     chatReport: Report,
     iouReportOrIDorArray: OnyxEntry<Report> | string | Array<OnyxEntry<Report>>,
@@ -4520,6 +4833,7 @@ function getReasonAndReportActionThatRequiresAttention(
     currentUserAccountID: number,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
+    transactionViolations?: OnyxCollection<TransactionViolations>,
     allReportActionsParam?: OnyxCollection<ReportActions>,
     reports?: OnyxCollection<Report>,
     policiesParam?: OnyxCollection<Policy>,
@@ -4587,6 +4901,7 @@ function getReasonAndReportActionThatRequiresAttention(
         reportActions,
         reports,
         allReportActionsParam ?? allReportActions,
+        transactionViolations,
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
@@ -4621,6 +4936,7 @@ function getReasonAndReportActionThatRequiresAttention(
                 currentUserLogin,
                 currentUserAccountID,
                 reportActions,
+                transactionViolations,
             );
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
@@ -4708,8 +5024,9 @@ function requiresAttentionFromCurrentUser(
     currentUserAccountID: number,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
+    transactionViolations?: OnyxCollection<TransactionViolations>,
 ) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived);
+    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, currentUserLogin, currentUserAccountID, parentReportAction, isReportArchived, transactionViolations);
 }
 
 /**
@@ -5709,59 +6026,6 @@ function canHoldUnholdReportAction(
 
     return {canHoldRequest, canUnholdRequest};
 }
-
-const changeMoneyRequestHoldStatus = (
-    reportAction: OnyxEntry<ReportAction>,
-    iouTransaction: OnyxEntry<Transaction>,
-    isOffline: boolean,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    transactionViolations: OnyxEntry<TransactionViolations>,
-    isTrackIntentUser: boolean | undefined,
-    delegateAccountID: number | undefined,
-    rules: OnyxCollection<Rule>,
-): void => {
-    if (!isMoneyRequestAction(reportAction)) {
-        return;
-    }
-    const moneyRequestReportID = reportAction?.reportID;
-
-    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
-    if (!moneyRequestReportID || !moneyRequestReport) {
-        return;
-    }
-
-    const transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
-
-    if (!transactionID || !iouTransaction) {
-        Log.warn('Missing transactionID or iouTransaction during the change of the money request hold status');
-        return;
-    }
-
-    const isOnHold = isOnHoldTransactionUtils(iouTransaction);
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`];
-
-    if (isOnHold) {
-        if (reportAction.childReportID) {
-            unholdRequest(
-                transactionID,
-                reportAction.childReportID,
-                policy,
-                isOffline,
-                currentUserLogin,
-                currentUserAccountID,
-                transactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-                rules,
-            );
-        } else {
-            Log.warn('Missing reportAction.childReportID during money request unhold');
-        }
-    } else {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, reportAction.childReportID)));
-    }
-};
 
 const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void => {
     if (!isMoneyRequestAction(reportAction)) {
@@ -10381,6 +10645,8 @@ type ShouldReportBeInOptionListParams = {
     conciergeReportID: string | undefined;
     /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
     requiresAttention?: boolean;
+    /** Needed when `requiresAttention` is not pre-computed: the SUBMIT badge is suppressed when every expense was auto-rejected, which is only knowable from the violations. */
+    transactionViolations?: OnyxCollection<TransactionViolations>;
     /** Pre-computed isEmpty flag from reportAttributes derived value. When provided, skips the module-level reportAttributesDerivedValue read inside isEmptyReport. */
     derivedIsEmptyReport: boolean | undefined;
     hasGuidesEmails: boolean;
@@ -10403,6 +10669,7 @@ function reasonForReportToBeInOptionList({
     isReportArchived,
     conciergeReportID,
     requiresAttention,
+    transactionViolations,
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
@@ -10479,7 +10746,10 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
-    if (requiresAttention ?? requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, undefined, isReportArchived)) {
+    if (
+        requiresAttention ??
+        requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, undefined, isReportArchived, transactionViolations)
+    ) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
@@ -13626,6 +13896,7 @@ function generateReportAttributes({
             currentUserAccountID,
             parentReportAction,
             isReportArchived,
+            transactionViolations,
             reportActions,
             reports,
             policies,
@@ -14425,6 +14696,9 @@ export {
     canAddTransaction,
     canDeleteTransaction,
     canBeAutoReimbursed,
+    canApproveIOU,
+    canIOUBePaid,
+    canSubmitReport,
     canCreateRequest,
     canCreateTaskInReport,
     canCurrentUserOpenReport,
@@ -14621,7 +14895,6 @@ export {
     isAwaitingFirstLevelApproval,
     isPublicRoom,
     isReportApproved,
-    isReportExcludedForHeldExpenses,
     isReportManuallyReimbursed,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
@@ -14675,7 +14948,6 @@ export {
     temporary_getMoneyRequestOptions,
     buildOptimisticInvoiceReport,
     isCurrentUserInvoiceReceiver,
-    changeMoneyRequestHoldStatus,
     rejectMoneyRequestReason,
     isAdminOwnerApproverOrReportOwner,
     canEditReportTitle,
@@ -14696,7 +14968,6 @@ export {
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
-    isPayAtEndExpenseReport,
     getApprovalChain,
     isIndividualInvoiceRoom,
     hasOutstandingChildRequest,
@@ -14708,6 +14979,8 @@ export {
     hasReportErrorsOtherThanFailedReceipt,
     getEffectiveReportErrors,
     getAllReportErrors,
+    getBadgeFromIOUReport,
+    getIOUReportActionWithBadge,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
     shouldExcludeAncestorReportAction,

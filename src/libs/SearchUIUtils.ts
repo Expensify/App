@@ -111,7 +111,6 @@ import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
-import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {createTransactionThreadReport} from './actions/Report';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
@@ -164,6 +163,9 @@ import {
 import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
+    canApproveIOU,
+    canIOUBePaid,
+    canSubmitReport,
     canDeleteMoneyRequestReport,
     canUserPerformWriteAction,
     findSelfDMReportID,

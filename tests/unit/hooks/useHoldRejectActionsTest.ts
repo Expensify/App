@@ -5,7 +5,8 @@ import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactio
 
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
 
-import {changeMoneyRequestHoldStatus, isDM} from '@libs/ReportUtils';
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
+import {isDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,6 +72,10 @@ jest.mock('@libs/ReportUtils', () => ({
     __esModule: true,
     isCurrentUserSubmitter: jest.fn(() => false),
     isDM: jest.fn(() => false),
+}));
+
+jest.mock('@libs/actions/IOU/Hold', () => ({
+    __esModule: true,
     changeMoneyRequestHoldStatus: jest.fn(),
 }));
 

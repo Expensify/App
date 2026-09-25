@@ -1,5 +1,6 @@
 import {act, render, waitFor} from '@testing-library/react-native';
 
+import type * as HoldActions from '@libs/actions/IOU/Hold';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -119,14 +120,17 @@ jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     showDeleteModal: (...args: unknown[]) => mockShowDeleteModal(...args),
 }));
 
-const mockUnholdRequest = jest.fn();
+// Defaults to the real implementation so the hold flow still navigates; the unhold test swaps it for a spy.
+const mockChangeMoneyRequestHoldStatus = jest.fn((...args: Parameters<typeof HoldActions.changeMoneyRequestHoldStatus>) =>
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Ignoring type errors for testing purposes
+    jest.requireActual<typeof import('@libs/actions/IOU/Hold')>('@libs/actions/IOU/Hold').changeMoneyRequestHoldStatus(...args),
+);
 jest.mock('@libs/actions/IOU/Hold', () => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Ignoring type errors for testing purposes
     const actual = jest.requireActual<typeof import('@libs/actions/IOU/Hold')>('@libs/actions/IOU/Hold');
     return {
         ...actual,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- Ignoring type errors for testing purposes
-        unholdRequest: (...args: Parameters<typeof actual.unholdRequest>) => mockUnholdRequest(...args),
+        changeMoneyRequestHoldStatus: (...args: Parameters<typeof actual.changeMoneyRequestHoldStatus>) => mockChangeMoneyRequestHoldStatus(...args),
     };
 });
 
@@ -401,8 +405,9 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), mockGetActiveRoute()));
     });
 
-    it('calls unholdRequest when pressing the unhold action', async () => {
+    it('calls changeMoneyRequestHoldStatus with the money request policy when pressing the unhold action', async () => {
         await seedOnyxData({isOnHold: true});
+        mockChangeMoneyRequestHoldStatus.mockImplementationOnce(() => undefined);
 
         render(
             <BaseReportActionContextMenu
@@ -418,10 +423,10 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
             onPress({});
         });
 
-        expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(
-            transactionID,
-            childReportID,
+        expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledTimes(1);
+        expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledWith(
+            expect.objectContaining({actionName: CONST.REPORT.ACTIONS.TYPE.IOU, childReportID}),
+            expect.objectContaining({transactionID}),
             expect.objectContaining({id: policyID}),
             false,
             currentUserLogin,
