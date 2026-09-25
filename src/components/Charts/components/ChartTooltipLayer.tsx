@@ -1,5 +1,5 @@
 import {useTooltipData} from '@components/Charts/hooks';
-import type {ChartDataPoint} from '@components/Charts/types';
+import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
@@ -18,6 +18,9 @@ type ChartTooltipLayerProps = {
     /** Chart data points used to compute tooltip content */
     data: ChartDataPoint[];
 
+    /** The plotted series, which the tooltip reads one row per */
+    series: ChartSeries[];
+
     /** Formats a numeric value for display */
     formatValue: (value: number) => string;
 
@@ -32,7 +35,7 @@ type ChartTooltipLayerProps = {
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, chartWidth, initialTooltipPosition}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     useAnimatedReaction(
@@ -51,7 +54,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
         opacity: isTooltipActive.get() ? 1 : 0,
     }));
 
-    const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
+    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
 
     if (!tooltipData) {
         return null;
@@ -63,9 +66,8 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
             pointerEvents="none"
         >
             <ChartTooltip
-                label={tooltipData.label}
-                amount={tooltipData.amount}
-                percentage={tooltipData.percentage}
+                title={tooltipData.title}
+                rows={tooltipData.rows}
                 chartWidth={chartWidth}
                 initialTooltipPosition={initialTooltipPosition}
             />

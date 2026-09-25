@@ -1,4 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import type {ChartSeries} from '@components/Charts';
+import {getSeriesValue} from '@components/Charts/utils';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from '@components/Search/types';
 import Text from '@components/Text';
@@ -25,6 +27,9 @@ type InsightsDataTableProps = {
     /** The plotted groups, prepared by `SearchChartView` */
     rows: SearchChartDataRow[];
 
+    /** The plotted series, primary first, which say which value of a row the table prints */
+    series: ChartSeries[];
+
     /** The chart type the rows are plotted on */
     view: ChartView;
 
@@ -43,7 +48,16 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return isMemberGroupBy(item.groupedBy);
 }
 
-function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTableProps) {
+/** How the period on screen compares to the one before it, in whole percentage points. Absent when there is nothing to measure against. */
+function getChangeAgainstComparison(current: number, previous: number | undefined): number | undefined {
+    if (previous === undefined || previous === 0) {
+        return undefined;
+    }
+
+    return Math.round(((current - previous) / Math.abs(previous)) * 100);
+}
+
+function InsightsDataTable({rows, series, view, groupBy, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, preferredLocale} = useLocalize();
@@ -66,12 +80,23 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
     }
 
     const shouldShowColorDot = view === CONST.SEARCH.VIEW.PIE;
+    const primarySeriesKey = series.at(0)?.key ?? '';
+    const comparisonSeries = series.at(1);
 
     return (
         <View style={styles.chartInlineTable}>
             {rows.map((row, index) => {
                 const {item, point, color} = row;
                 const isLastRow = index === rows.length - 1;
+                // Against a compared period a group is measured by how much it moved; on its own, by its share of the spend.
+                const change = comparisonSeries ? getChangeAgainstComparison(getSeriesValue(point, primarySeriesKey), getSeriesValue(point, comparisonSeries.key)) : undefined;
+                let supportingText =
+                    point.percentOfTotal === undefined
+                        ? undefined
+                        : translate('search.percentOfSpend', {percent: formatPercentOfTotal(point.percentOfTotal, item.total ?? 0, preferredLocale)});
+                if (comparisonSeries) {
+                    supportingText = change === undefined ? undefined : translate('insightsPage.compare.changeAgainst', change, comparisonSeries.label ?? '');
+                }
 
                 return (
                     <View
@@ -97,11 +122,7 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
                         </View>
                         <View style={[styles.flexColumn, styles.alignItemsEnd, styles.gap1, styles.alignSelfStretch]}>
                             <Text>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
-                            {point.percentOfTotal !== undefined && (
-                                <Text style={styles.mutedNormalTextLabel}>
-                                    {translate('search.percentOfSpend', {percent: formatPercentOfTotal(point.percentOfTotal, item.total ?? 0, preferredLocale)})}
-                                </Text>
-                            )}
+                            {!!supportingText && <Text style={styles.mutedNormalTextLabel}>{supportingText}</Text>}
                         </View>
                     </View>
                 );

@@ -1,7 +1,8 @@
 import type {CartesianChartProps, ChartDataPoint} from '..';
 
 type BarChartProps = CartesianChartProps & {
-    onBarPress?: (dataPoint: ChartDataPoint, index: number) => void;
+    /** Called with the pressed point and the series whose bar was pressed */
+    onBarPress?: (dataPoint: ChartDataPoint, index: number, seriesKey: string) => void;
 
     /** Color every bar is drawn in. Left out, each bar takes a different color from the palette by rank. */
     color?: string;

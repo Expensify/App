@@ -6730,11 +6730,36 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 4,
             paddingHorizontal: 8,
         },
+        chartTooltipBoxMultiSeries: {
+            borderRadius: variables.componentBorderRadiusNormal,
+            // A `padding` shorthand loses to the per-edge padding the single-series box sets, so the same properties are overridden here.
+            paddingVertical: 12,
+            paddingHorizontal: 12,
+        },
         chartTooltipText: {
             color: theme.textReversed,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
             whiteSpace: 'nowrap',
+        },
+        chartTooltipTitle: {
+            ...fontFamilyScale.strong,
+            color: theme.textReversed,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
+            whiteSpace: 'nowrap',
+            marginBottom: 10,
+        },
+        chartTooltipRows: {
+            rowGap: 8,
+        },
+        chartLegendContainer: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            columnGap: 16,
+            rowGap: 4,
+            marginTop: 12,
         },
         chartTooltipPointer: {
             width: 0,
