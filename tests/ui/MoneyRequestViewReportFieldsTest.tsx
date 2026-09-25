@@ -449,6 +449,46 @@ describe('MoneyRequestViewReportFields', () => {
         expect(expandedStyles).not.toEqual(expect.arrayContaining([expect.objectContaining({transform: [{rotate: '180deg'}]})]));
     });
 
+    it('keeps the label of text and list fields raised so it does not jump while the next report loads', async () => {
+        // Given a report holding both a text field and a list field
+        await renderReportFields(1, [buildListField()]);
+
+        // When the inputs are inspected
+        const raisedLabels: unknown[] = [];
+        for (const node of screen.UNSAFE_root.findAll((candidate) => candidate.props.forceActiveLabel === true)) {
+            raisedLabels.push(node.props.label);
+        }
+
+        // Then both labels are pinned in the raised position like the date field's. The next/previous arrows keep
+        // these inputs mounted, and the next report's value can briefly resolve to empty before it loads, so an
+        // unpinned label would drop into the field and animate back up
+        expect(raisedLabels).toEqual(expect.arrayContaining(['Field1', 'ListField']));
+    });
+
+    it('does not carry an unsaved edit into the next report', async () => {
+        // Given a report whose field holds an edit the user has typed but not saved yet
+        const {rerender} = await renderReportFields(1);
+        fireEvent.changeText(screen.getByLabelText('Field1'), 'Unsaved edit');
+        await waitForBatchedUpdatesWithAct();
+
+        // When the next report arrow swaps in another report on the same workspace without remounting the screen
+        const policy = buildPolicy(1);
+        const nextReport = {...buildReport(), reportID: 'next_report_report_fields_grid'};
+        rerender(
+            <ComposeProviders components={[OnyxListItemProvider]}>
+                <MoneyRequestViewReportFields
+                    report={nextReport}
+                    policy={policy}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the field shows the next report's value, because the edit belonged to the previous report and the
+        // field key alone is the same on every report of the workspace
+        expect(screen.getByLabelText('Field1')).toHaveProp('value', 'Value1');
+    });
+
     it('sizes the option popover like the Spend dropdowns instead of matching the field width', async () => {
         // Given a report holding a list field, which in the grid can be as narrow as a third of a row
         await renderReportFields(1, [buildListField()]);

@@ -225,6 +225,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                             // list rather than typed text, so the caret would be a caret you cannot type into.
                             // `disableKeyboard` only suppresses the software keyboard, it does not hide the caret.
                             caretHidden
+                            // Keeps the label raised like the date field's, so a value that goes empty and back while
+                            // the next report loads does not drop the label into the field and animate it back up.
+                            forceActiveLabel
                         />
                     </View>
                 )}
@@ -247,6 +250,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 saveDraftValue();
             }}
             onSubmitEditing={saveDraftValue}
+            // Keeps the label raised like the date field's, so a value that goes empty and back while the next report
+            // loads does not drop the label into the field and animate it back up.
+            forceActiveLabel
         />
     );
 }

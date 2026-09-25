@@ -74,7 +74,9 @@ function ReportFieldView(
 ) {
     return (
         <View
-            key={`reportField-${reportField.fieldKey}`}
+            // The next/previous report arrows only change the `reportID` param, so the screen stays mounted. Keying on
+            // the report gives every report fresh inputs instead of carrying one report's draft and errors into the next.
+            key={`reportField-${report?.reportID}-${reportField.fieldKey}`}
             style={styles.flex1}
         >
             <OfflineWithFeedback
