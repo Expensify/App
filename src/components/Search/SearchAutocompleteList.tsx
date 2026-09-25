@@ -511,6 +511,11 @@ function SearchAutocompleteList({
             reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
         }
 
+        // Preserve locally matched rows first. Auth orders only the remaining slots, so a server response cannot
+        // remove chats, contacts, or invite options that were already visible locally. The combined list remains capped at 20.
+        if (hasActiveSearchResults && searchResultReportIDs?.length) {
+            return reportOptions;
+        }
         return reportOptions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
     }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions, searchResultReportIDs, serverReportsOptions]);
 
@@ -685,10 +690,11 @@ function SearchAutocompleteList({
                 });
             }
 
-            if (serverRows.length > 0) {
+            const remainingServerRows = serverRows.slice(0, Math.max(CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - localRows.length, 0));
+            if (remainingServerRows.length > 0) {
                 pushSection({
                     title: translate('search.serverResults'),
-                    data: serverRows,
+                    data: remainingServerRows,
                     sectionIndex: sectionIndex++,
                 });
             }
