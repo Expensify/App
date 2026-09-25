@@ -1,7 +1,7 @@
 ---
 title: Add the Expensify Card to Apple Pay or Google Wallet
 description: Add your Expensify Card to Apple Pay or Google Wallet to make secure contactless payments using your mobile device.
-keywords: [Expensify Card, Apple Pay, Apple Wallet, Google Wallet, contactless payments, mobile wallet, virtual card, This card cannot be used, provisioning error]
+keywords: [Expensify Card, Apple Pay, Apple Wallet, Google Wallet, contactless payments, mobile wallet, virtual card, Added to Apple Wallet, This card cannot be used, provisioning error]
 internalScope: Audience is Expensify Cardholders. Covers adding an Expensify Card to Apple Pay or Google Wallet. Does not cover troubleshooting declined card transactions or replacing a card.
 ---
 
@@ -37,12 +37,16 @@ If you can't add your card directly from Apple Wallet or Google Wallet, you can 
 2. Go to **Account** > **Wallet**.
 3. Select your card.
 4. Tap **Add to Apple Wallet** or **Add to Google Wallet**.
+5. Follow the prompts from Apple Wallet or Google Wallet to finish adding the card.
+6. On iPhone, a **You're all set!** screen confirms that your card has been added to Apple Wallet. Tap **Got it** to return to your card details.
 
 ---
 
 ## What happens after you add your Expensify Card to Apple Pay or Google Wallet
 
 After your card is successfully added, you can use Apple Pay or Google Wallet anywhere contactless payments are accepted. Purchases made with your mobile wallet appear on the same Expensify Card account as purchases made with your physical card.
+
+On your card details page in the Expensify mobile app, the **Add to Apple Wallet** or **Add to Google Wallet** button is replaced by an **Added to Apple Wallet** or **Added to Google Wallet** label, so you can confirm at a glance that the card is already in your mobile wallet.
 
 ---
 
@@ -51,6 +55,10 @@ After your card is successfully added, you can use Apple Pay or Google Wallet an
 ## Why do I see the error "This card cannot be used"?
 
 If you see the **This card cannot be used** message while trying to add your card to Apple Wallet, add the card from within the Expensify mobile app instead.
+
+## Why don't I see the Add to Apple Wallet or Add to Google Wallet button on my card?
+
+The button only appears while the card can still be added. If the card is already in your mobile wallet, you'll see an **Added to Apple Wallet** or **Added to Google Wallet** label on the card details page instead.
 
 ## Can I add my Expensify Card from the Expensify web app?
 
