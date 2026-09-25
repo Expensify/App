@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, stop GPS trip, stop without moving, resume GPS trip, discard GPS trip, zero distance trip, same start and stop location, no edit icon, can't create expense, disabled distance rate, deleted distance rate, rate not valid for this workspace]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -164,6 +164,12 @@ Yes! You can edit the expense before it is approved. When editing a map-based Di
 The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
 
 If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
+
+## What happens to my Distance expense if the rate is disabled or deleted?
+
+If a Workspace Admin disables the rate your expense uses, the expense keeps that rate and the amount does not change. You can still edit the distance or the waypoints, and the amount is recalculated using the same rate. No violation is shown, because the rate is still on the Workspace.
+
+If a Workspace Admin deletes the rate instead, the expense shows a “Rate not valid for this workspace” violation. Selecting a rate that is still on the Workspace clears the violation and updates the amount.
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
