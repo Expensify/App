@@ -63,6 +63,7 @@ import useReceiptTraining from './MoneyRequestConfirmationList/hooks/useReceiptT
 import useSplitParticipants from './MoneyRequestConfirmationList/hooks/useSplitParticipants';
 import useTaxAmount from './MoneyRequestConfirmationList/hooks/useTaxAmount';
 import useTransactionReportForConfirmation from './MoneyRequestConfirmationList/hooks/useTransactionReportForConfirmation';
+import navigateToParticipantPage from './MoneyRequestConfirmationList/navigateToParticipantPage';
 import SplitBillController from './MoneyRequestConfirmationList/SplitBillController';
 import TaxController from './MoneyRequestConfirmationList/TaxController';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
@@ -447,15 +448,16 @@ function MoneyRequestConfirmationList({
         getSplitSectionHeader,
     });
 
-    /**
-     * Navigate to the participant step
-     */
-    const navigateToParticipantPage = () => {
-        if (!canEditParticipant) {
-            return;
-        }
-
-        onOpenParticipantPicker();
+    const openParticipantPage = () => {
+        navigateToParticipantPage({
+            canEditParticipant,
+            isManualRequest,
+            iouType,
+            action,
+            transactionID,
+            reportID: transaction?.reportID,
+            onOpenParticipantPicker,
+        });
     };
 
     const {validate} = useConfirmationValidation({
@@ -697,7 +699,7 @@ function MoneyRequestConfirmationList({
                     ref={listRef}
                     sections={sections}
                     ListItem={BareUserListItem}
-                    onSelectRow={navigateToParticipantPage}
+                    onSelectRow={openParticipantPage}
                     onDismissError={dismissParticipantRowError}
                     shouldSingleExecuteRowSelect
                     shouldPreventDefaultFocusOnSelectRow
