@@ -165,6 +165,25 @@ describe('ImportTransactions', () => {
             // Then it is flagged so the user can fix the file before importing instead of the import failing on the server
             expect(hasTagExceedingMaxLength(spreadsheet)).toBe(true);
         });
+
+        it('should return false when the long tag is only on a row that is skipped during import', () => {
+            // Given a long tag on a footer row with no date or amount, and another on a row with an invalid date
+            const longTag = 'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH + 1);
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-15', 'not a date', ''],
+                    ['Merchant', 'Store', 'Store', 'Total'],
+                    ['Amount', '10.00', '5.00', ''],
+                    ['Tag', 'Visa', longTag, longTag],
+                ],
+                columns: {0: 'date', 1: 'merchant', 2: 'amount', 3: 'tag'},
+                containsHeader: true,
+            });
+
+            // When the tag length is checked
+            // Then nothing is flagged, because those rows are never sent to the API
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(false);
+        });
     });
 
     describe('getImportFinalModalOnyxData', () => {

@@ -73,20 +73,6 @@ function getColumnIndexes(columns: Record<number, string> | undefined): ColumnIn
 }
 
 /**
- * Checks whether the column mapped to Tag has a value longer than the API accepts, so it can be flagged before import instead of failing on the server
- */
-function hasTagExceedingMaxLength(spreadsheet: ImportedSpreadsheet | undefined): boolean {
-    const {data, columns, containsHeader = true} = spreadsheet ?? {};
-    const {tag: tagColumnIndex} = getColumnIndexes(columns);
-    if (tagColumnIndex < 0) {
-        return false;
-    }
-
-    const tagValues = data?.at(tagColumnIndex)?.slice(containsHeader ? 1 : 0) ?? [];
-    return tagValues.some((tagValue) => [...String(tagValue ?? '')].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH);
-}
-
-/**
  * Builds the full column layout structure for oldDot compatibility
  */
 function buildColumnLayout(spreadsheet: ImportedSpreadsheet, cardName: string, currency: string, isReimbursable: boolean, flipAmountSign: boolean): SavedCSVColumnLayoutData {
@@ -212,6 +198,18 @@ function buildTransactionListFromSpreadsheet(spreadsheet: ImportedSpreadsheet, s
     }
 
     return transactions;
+}
+
+/**
+ * Checks whether any row that will be imported has a tag longer than the API accepts, so it can be flagged before import instead of failing on the server.
+ * Rows that buildTransactionListFromSpreadsheet skips (for example a footer or a row with an invalid date) are never sent, so their tags are not checked.
+ */
+function hasTagExceedingMaxLength(spreadsheet: ImportedSpreadsheet | undefined): boolean {
+    if (!spreadsheet || getColumnIndexes(spreadsheet.columns).tag < 0) {
+        return false;
+    }
+
+    return buildTransactionListFromSpreadsheet(spreadsheet, {}).some((transaction) => [...(transaction.tag ?? '')].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH);
 }
 
 /**
