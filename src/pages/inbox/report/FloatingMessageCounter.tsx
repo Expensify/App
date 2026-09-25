@@ -82,6 +82,9 @@ type FloatingMessageCounterProps = {
     /** The brick road status for the action badge ('error' = red, 'info' = green) */
     actionBadgeBrickRoadStatus?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
+    /** Whether the action badge target is below the current scroll position (pill points down instead of up) */
+    isActionBadgeBelowViewport?: boolean;
+
     /** Callback when the action badge pill is clicked */
     onActionBadgePress?: () => void;
 
@@ -98,6 +101,7 @@ function FloatingMessageCounter({
     hasNewMessages,
     actionBadge,
     actionBadgeBrickRoadStatus,
+    isActionBadgeBelowViewport = false,
     onActionBadgePress,
     shouldShowMarkAsDoneCopy,
 }: FloatingMessageCounterProps) {
@@ -148,7 +152,7 @@ function FloatingMessageCounter({
                         <FloatingPillButton
                             variant={isError ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={onActionBadgePress}
-                            icon={icons.UpArrow}
+                            icon={isActionBadgeBelowViewport ? icons.DownArrow : icons.UpArrow}
                             iconFill={theme.textLight}
                             label={actionBadgeText}
                             textStyle={styles.textWhite}

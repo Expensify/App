@@ -274,6 +274,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         flushPendingScrollToBottom,
@@ -463,6 +464,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return <ReportActionsAnimatedSkeletonCover />;
     }
 
+    // Show the action badge pill whenever the target is out of view — above or below the current scroll position.
+    const shouldShowActionBadgePill = !isProduction && (isActionBadgeAboveViewport || isActionBadgeBelowViewport);
+
     return (
         <>
             {/* Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
@@ -477,8 +481,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
-                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
-                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                actionBadge={shouldShowActionBadgePill ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={shouldShowActionBadgePill ? reportAttributes?.brickRoadStatus : undefined}
+                isActionBadgeBelowViewport={shouldShowActionBadgePill && isActionBadgeBelowViewport}
                 onActionBadgePress={scrollToActionBadgeTarget}
                 shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
