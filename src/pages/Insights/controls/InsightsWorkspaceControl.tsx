@@ -5,9 +5,12 @@ import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 
+import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useState} from 'react';
 
@@ -60,6 +63,8 @@ function InsightsWorkspaceControl({value, onChange}: InsightsControlProps<string
     const {translate} = useLocalize();
     const workspaceNames = useFilterWorkspaceValue(value);
     const label = translate('workspace.common.workspace');
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
+    const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
     const workspacePopover = ({closeOverlay}: PopoverComponentProps) => (
         <InsightsWorkspacePopup
@@ -69,6 +74,10 @@ function InsightsWorkspaceControl({value, onChange}: InsightsControlProps<string
             closeOverlay={closeOverlay}
         />
     );
+
+    if (!workspaces.some((section) => section.data.length > 1)) {
+        return null;
+    }
 
     return (
         <DropdownButton

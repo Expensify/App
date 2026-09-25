@@ -31,6 +31,7 @@ jest.mock('@libs/Navigation/Navigation');
 
 const POLICY_ID = 'A1';
 const POLICY_NAME = 'Marketing';
+const OTHER_POLICY_ID = 'B2';
 
 const RESET = /^(Reset|common\.reset)$/;
 const APPLY = /^(Apply|common\.apply)$/;
@@ -67,6 +68,8 @@ describe('Insights controls', () => {
     beforeEach(async () => {
         const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, name: POLICY_NAME};
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        const otherPolicy: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), id: OTHER_POLICY_ID, name: 'Sales'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, otherPolicy);
         await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
         await waitForBatchedUpdatesWithAct();
     });
@@ -170,5 +173,27 @@ describe('Insights controls', () => {
 
         // Then no workspace is selected, which reports on all of them
         expect(onChange).toHaveBeenCalledWith([]);
+    });
+
+    it('hides Workspace when the account has only one group workspace to pick from', async () => {
+        // Given an account with a single group workspace next to its personal one, which the workspace selector never lists
+        await Onyx.clear();
+        const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: POLICY_ID, name: POLICY_NAME};
+        const personalPolicy: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), id: 'P1'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}P1`, personalPolicy);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the workspace control renders
+        renderWithProviders(
+            <InsightsWorkspaceControl
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no pill is offered, since picking the only workspace can't narrow the dashboard any further
+        expect(screen.queryByText(/^(Workspace|workspace\.common\.workspace)/)).not.toBeOnTheScreen();
     });
 });

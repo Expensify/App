@@ -175,6 +175,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [headlineSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[INSIGHTS_DASHBOARD_SPECS[dashboardID].headlineChart.graphKey]?.snapshotHash}`);
+    const state = getDashboardState(dashboard, isOffline, headlineSnapshot);
 
     return (
         <ScreenWrapper
@@ -187,15 +188,17 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
             />
-            <InsightsPageControls
-                filters={filters}
-                defaultFilters={defaultFilters}
-                onChange={setFilters}
-            />
+            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
+                <InsightsPageControls
+                    filters={filters}
+                    defaultFilters={defaultFilters}
+                    onChange={setFilters}
+                />
+            )}
             <InsightsDashboardContent
                 dashboardID={dashboardID}
                 hash={hash}
-                state={getDashboardState(dashboard, isOffline, headlineSnapshot)}
+                state={state}
                 filters={filters}
                 onRetry={requestDashboard}
                 onGroupByChange={(groupBy) => setFilters({groupBy})}
