@@ -73,7 +73,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, on
                     renderFields,
                     openListItemEditor: onOpenListItemEditor,
                 });
-                const description = field.type === 'text' ? undefined : getFieldDescription(field, translate);
+                const description = field.type === 'text' || field.type === 'number' ? undefined : getFieldDescription(field, translate);
                 return (
                     <View
                         key={field.key}

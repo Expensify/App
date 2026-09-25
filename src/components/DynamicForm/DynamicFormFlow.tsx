@@ -143,21 +143,26 @@ function DynamicFormFlow({
         pages,
         skipPages,
         startFrom,
-        onFinished: () => {
-            const incompletePage = groupPages.at(firstIncompleteIndex);
-            if (firstIncompleteIndex !== -1 && incompletePage) {
+        onFinished: (lastPageValues) => {
+            const latestCarried = carriedAnswersByForm.get(formID) ?? {};
+            const latestValues: DynamicFormValues = {...draft, ...latestCarried, ...(isRecord(lastPageValues) ? lastPageValues : {})};
+            const incompleteIndex = groupPages.findIndex(
+                (page) => page.fields.some((field) => isFieldVisible(field, latestValues)) && Object.keys(getDynamicFieldErrors(page.fields, latestValues, translate)).length > 0,
+            );
+            const incompletePage = groupPages.at(incompleteIndex);
+            if (incompleteIndex !== -1 && incompletePage) {
                 Navigation.navigate(buildRoute(incompletePage.slug));
                 return;
             }
             carriedAnswersByForm.delete(formID);
-            const visibleFields = fields.filter((field) => isFieldVisible(field, draftValues));
+            const visibleFields = fields.filter((field) => isFieldVisible(field, latestValues));
             const isSubmitted = (key: string) => visibleFields.some((field) => key === field.key || key === field.currencyKey || key.startsWith(`${field.key}.`));
-            const submitted = Object.fromEntries(Object.entries(draftValues).filter(([key]) => isSubmitted(key)));
+            const submitted = Object.fromEntries(Object.entries(latestValues).filter(([key]) => isSubmitted(key)));
             for (const field of visibleFields) {
                 const items = submitted[field.key];
                 if (field.type === 'list' && isListItems(items)) {
                     submitted[field.key] = items.map((item) => {
-                        const carriedItemAnswers = carriedAnswers[getCarriedItemKey(field.key, item.id)];
+                        const carriedItemAnswers = latestCarried[getCarriedItemKey(field.key, item.id)];
                         return isRecord(carriedItemAnswers) ? {...item, ...carriedItemAnswers} : item;
                     });
                 }
@@ -272,7 +277,7 @@ function DynamicFormFlow({
             goBackToConfirmation();
             return;
         }
-        nextPage();
+        nextPage(values);
     };
 
     const isConfirmationPage = currentPageName === CONFIRM_PAGE_SLUG;

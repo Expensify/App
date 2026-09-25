@@ -39,7 +39,7 @@ const rsbuildFinal = async (config: RsbuildConfig): Promise<RsbuildConfig> => {
                 // `@libs` is a prefix alias no single-module alias can outrank, so the module is rewritten by a loader instead
                 rspackConfig.module?.rules?.push({
                     test: /src\/libs\/Navigation\/Navigation\.ts$/,
-                    use: [{loader: path.resolve(dirname, './mocks/navigationStoryLoader.js')}],
+                    use: [{loader: path.resolve(dirname, './mocks/navigationStoryLoader.cjs')}],
                 });
             },
         },
