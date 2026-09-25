@@ -382,6 +382,7 @@ const SCREENS = {
         DYNAMIC_SPLIT_EXPENSE_EDIT: 'Dynamic_Money_Request_Split_Expense_Edit',
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
+        STEP_REUSE_ROUTE: 'Money_Request_Step_Reuse_Route',
         DYNAMIC_STEP_DISTANCE_MANUAL: 'Dynamic_Money_Request_Step_Distance_Manual',
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',

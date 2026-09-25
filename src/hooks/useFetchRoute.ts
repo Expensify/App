@@ -39,8 +39,10 @@ export default function useFetchRoute(
     // states where the response is known to land back on this transaction, so it cannot drive a fetch per render.
     const homeAndOfficeExclusionPolicyID = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE ? policy.id : undefined;
     const isCommuterExclusionPreviewStale = !!homeAndOfficeExclusionPolicyID && hasRoute && !hasRouteError && !DistanceRequestUtils.hasCommuterExclusionPreviewForPolicy(transaction, policy);
+    // A draft seeded from a reused route already carries the server-computed distance, so routing must not run again.
     const shouldFetchRoute =
         isMapDistanceRequest &&
+        !transaction?.isReusedRoute &&
         (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || isCommuterExclusionPreviewStale) &&
         !isLoadingRoute &&
         Object.keys(validatedWaypoints).length > 1;

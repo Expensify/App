@@ -4086,6 +4086,22 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
         },
 
+        reuseRouteThumbnail: {
+            width: 96,
+            height: 72,
+            borderRadius: variables.componentBorderRadiusSmall,
+            overflow: 'hidden',
+            backgroundColor: theme.border,
+        },
+
+        // Float above the map thumbnail so the date stays readable over the map image.
+        reuseRouteLastUsedBadge: {
+            position: 'absolute',
+            top: 4,
+            left: 4,
+            marginLeft: 0,
+        },
+
         receiptActionButton: {
             width: 40,
             height: 40,
