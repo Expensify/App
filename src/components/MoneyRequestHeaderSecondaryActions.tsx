@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -85,7 +86,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
+import {loginSelector} from '@selectors/PersonalDetails';
 import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useMemo, useRef, useState} from 'react';
@@ -146,7 +147,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     // Per-key Onyx subscriptions
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [parentOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [parentOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
