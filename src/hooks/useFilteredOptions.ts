@@ -100,7 +100,11 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -118,6 +122,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       allPolicies,
                       {
                           currentUserAccountID,
+                          currentUserLogin,
+                          transactionThreadIDs,
+                          lastActions,
                           dateFnsLocale,
                           convertToDisplayString,
                           conciergeReportID,
@@ -129,8 +136,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           pendingDeleteMemberAccountIDsByReportID,
                       },
                       rules,
-                      undefined,
-                      undefined,
+                      allPolicyTags,
+                      visibleReportActionsData,
                       isTrackIntentUser,
                       sortedActions,
                   )
@@ -150,7 +157,12 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             deferContactsUntilSearch,
             preferredLocale,
             isTrackIntentUser,
+            currentUserLogin,
+            allPolicyTags,
+            visibleReportActionsData,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
             currentUserAccountID,
             pendingDeleteMemberAccountIDsByReportID,
             dateFnsLocale,
