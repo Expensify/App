@@ -430,7 +430,7 @@ describe('getViolationsOnyxData', () => {
             );
         });
 
-        it('should remove the customUnitRateOutOfDateRange violation when the rate is out of policy', () => {
+        it('should remove both the out of date range and out of policy violations when the distance rate is pending deletion', () => {
             transactionViolations = [
                 {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
@@ -482,10 +482,10 @@ describe('getViolationsOnyxData', () => {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                 }),
             );
-            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
-        it('should keep the customUnitOutOfPolicy violation when the distance rate is pending deletion', () => {
+        it('should remove the customUnitOutOfPolicy violation when the distance rate is pending deletion', () => {
             transactionViolations = [customUnitOutOfPolicyViolation];
             policy.customUnits = {
                 unitId: {
@@ -519,10 +519,10 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
-            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
-        it('should keep the customUnitOutOfPolicy violation when the distance rate is not on the policy at all', () => {
+        it('should remove the customUnitOutOfPolicy violation when the distance rate is not on the policy at all', () => {
             transactionViolations = [customUnitOutOfPolicyViolation];
             policy.customUnits = {
                 unitId: {
@@ -539,6 +539,29 @@ describe('getViolationsOnyxData', () => {
                 isVendorMatchingBetaEnabled: false,
                 ownerLogin: undefined,
                 updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep the customUnitOutOfPolicy violation for a track expense still on the P2P rate over a workspace chat', () => {
+            transactionViolations = [];
+            const p2pTransaction = {
+                ...transaction,
+                comment: {...transaction.comment, customUnit: {...transaction.comment?.customUnit, customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID}},
+                participants: [{isPolicyExpenseChat: true}],
+            };
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: p2pTransaction,
                 transactionViolations,
                 policy,
                 policyTagList: policyTags,

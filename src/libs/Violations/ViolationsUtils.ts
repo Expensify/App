@@ -658,12 +658,13 @@ const ViolationsUtils = {
                 }
 
                 const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-                // The backend only flags a rate that's gone from the policy (or pending deletion here), a disabled rate is still valid
                 const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                // For distance the backend reassigns a pending-delete or removed rate to a valid one on edit instead of flagging it, so clear the violation like the disabled case rather than pushing it. Only the P2P rate still flags, to prompt picking a workspace rate.
+                const isNonP2PDistanceRate = isDistanceRequestForCustomUnit && !TransactionUtils.isCustomUnitRateIDForP2P(updatedTransaction);
                 if (customRate && isRateValid) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
-                } else if (isSelfDM && isDistanceRequestForCustomUnit) {
+                } else if ((isSelfDM && isDistanceRequestForCustomUnit) || isNonP2PDistanceRate) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                 } else {
