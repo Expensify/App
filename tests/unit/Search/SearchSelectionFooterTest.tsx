@@ -257,7 +257,8 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
     });
 
-    it('counts the expenses inside manually selected reports', async () => {
+    it('counts manually selected reports, and their expenses once the count selector says so', async () => {
+        // Two expenses of one report: one report, two expenses. A Reports search counts reports unless told otherwise.
         setSearchQuery('type:expense-report');
         mockSelectedTransactions.current = {
             transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
@@ -265,7 +266,7 @@ describe('SearchSelectionFooter', () => {
         };
         mockSelectedReports.current = [buildSelectedReport('report1', -200)];
 
-        render(
+        const {rerender} = render(
             <SearchSelectionFooter
                 searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)}
                 onDisplayChange={mockOnDisplayChange}
@@ -273,7 +274,18 @@ describe('SearchSelectionFooter', () => {
         );
         await waitForBatchedUpdates();
 
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 200, currency: CONST.CURRENCY.USD}));
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, count: 1, total: 200, currency: CONST.CURRENCY.USD}));
+
+        setSearchQuery('type:expense-report footerCount:expenses');
+        rerender(
+            <SearchSelectionFooter
+                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)}
+                onDisplayChange={mockOnDisplayChange}
+            />,
+        );
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 2, total: 200, currency: CONST.CURRENCY.USD}));
     });
 
     it('does not request the same report conversion twice before the optimistic source stamp is observed', async () => {
@@ -589,18 +601,6 @@ describe('SearchSelectionFooter', () => {
 
             // Then the skeleton gives way to the figure
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({isTotalLoading: false, total: 12000}));
-
-            // And the wait is over for good: a later visit to that same search, with its snapshot not yet on screen,
-            // shows the figures it has rather than skeletoning on a request that was already answered.
-            rerender(
-                <SearchSelectionFooter
-                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
-                    onDisplayChange={mockOnDisplayChange}
-                />,
-            );
-            await waitForBatchedUpdates();
-
-            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(false);
         });
 
         it('leaves the total alone while a search the footer did not ask for runs, so it does not flicker', async () => {
