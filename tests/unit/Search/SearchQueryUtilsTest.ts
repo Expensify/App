@@ -887,6 +887,104 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        describe('compare option', () => {
+            test('includes valid compare mode in query string when provided in form values', () => {
+                // Given form values carrying a valid compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the compare key is preserved
+                expect(result).toContain('compare:previousPeriod');
+            });
+
+            test('omits compare when not provided', () => {
+                // Given form values without a compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then no compare key is emitted
+                expect(result).not.toContain('compare:');
+            });
+
+            test('discards invalid compare value', () => {
+                // Given form values with an unrecognized compare mode
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    compare: 'garbage',
+                };
+
+                // When building the query string
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the invalid compare key is dropped
+                expect(result).not.toContain('compare');
+            });
+
+            test('compare is preserved across a form round-trip so other filter changes do not drop it', () => {
+                // Given a query that carries a compare mode
+                const queryJSON = buildSearchQueryJSON('type:expense compare:average');
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When converting to form values and back to a query string
+                const filtersForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+                const result = buildQueryStringFromFilterFormValues(filtersForm);
+
+                // Then the compare key survives the round-trip
+                expect(filtersForm.compare).toBe(CONST.SEARCH.COMPARE.AVERAGE);
+                expect(result).toContain('compare:average');
+            });
+
+            test('compare survives even when the type is changed during the round-trip', () => {
+                // Given a query that carries a compare mode
+                const queryJSON = buildSearchQueryJSON('type:expense compare:average');
+
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When converting to form values, switching the type, and rebuilding the query string
+                const filtersForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+                const editedForm: Partial<SearchAdvancedFiltersForm> = {...filtersForm, type: CONST.SEARCH.DATA_TYPES.INVOICE};
+                const result = buildQueryStringFromFilterFormValues(editedForm);
+
+                // Then the compare key is not dropped by the type-strip step
+                expect(result).toContain('type:invoice');
+                expect(result).toContain('compare:average');
+            });
+
+            test('invalid compare value does not affect the primary hash', () => {
+                // Given one query with an invalid compare mode and one with no compare key
+                const withInvalid = buildSearchQueryJSON('type:expense compare:garbage');
+                const withNone = buildSearchQueryJSON('type:expense');
+
+                // Then the invalid compare value is normalized away and the hashes match
+                expect(withInvalid?.compare).toBeUndefined();
+                expect(withInvalid?.hash).toBe(withNone?.hash);
+            });
+
+            test('valid compare value does affect the primary hash', () => {
+                // Given one query with a valid compare mode and one with no compare key
+                const withCompare = buildSearchQueryJSON('type:expense compare:previousPeriod');
+                const withNone = buildSearchQueryJSON('type:expense');
+
+                // Then the valid compare value is kept and changes the hash
+                expect(withCompare?.compare).toBe(CONST.SEARCH.COMPARE.PREVIOUS_PERIOD);
+                expect(withCompare?.hash).not.toBe(withNone?.hash);
+            });
+        });
+
         describe('view parameter', () => {
             test('with view parameter set to bar', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {

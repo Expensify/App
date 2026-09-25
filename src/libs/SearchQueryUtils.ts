@@ -1004,6 +1004,11 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
             result.limit = Number.isInteger(num) && num > 0 ? num : undefined;
         }
 
+        // Normalize compare before computing hashes so invalid values don't affect hash
+        if (result.compare !== undefined && !Object.values(CONST.SEARCH.COMPARE).includes(result.compare)) {
+            result.compare = undefined;
+        }
+
         const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(result);
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
@@ -1379,6 +1384,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         if (Number.isInteger(num) && num > 0) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${num}`);
         }
+    }
+
+    // compare is a root key with no dedicated filter UI, so it is carried through from the original form values
+    // rather than the type-stripped set to avoid dropping it when other filters change.
+    const compareValue = filterValues.compare;
+    const validCompareModes: string[] = Object.values(CONST.SEARCH.COMPARE);
+    if (compareValue && validCompareModes.includes(compareValue)) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE}:${sanitizeSearchValue(compareValue)}`);
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -1947,6 +1960,10 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+
+    if (queryJSON.compare) {
+        filtersForm[FILTER_KEYS.COMPARE] = queryJSON.compare;
     }
 
     return filtersForm;
