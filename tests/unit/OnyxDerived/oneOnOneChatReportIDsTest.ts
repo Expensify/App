@@ -31,6 +31,10 @@ function delta(...reports: Array<[string, Report | undefined]>) {
     };
 }
 
+function index(reportIDs: Record<string, string>, accountID = ME) {
+    return {reportIDs, accountID};
+}
+
 const aliceKey = getParticipantsChatKey([ME, ALICE]);
 const bobKey = getParticipantsChatKey([ME, BOB]);
 
@@ -38,7 +42,7 @@ describe('oneOnOneChatReportIDs', () => {
     it('indexes 1:1 chats by participant set on a full compute', () => {
         const reports = collection(chatWith('10', ALICE), chatWith('20', BOB));
 
-        expect(oneOnOneChatReportIDsConfig.compute([reports, session], {})).toEqual({[aliceKey]: '10', [bobKey]: '20'});
+        expect(oneOnOneChatReportIDsConfig.compute([reports, session], {})).toEqual(index({[aliceKey]: '10', [bobKey]: '20'}));
     });
 
     it('adds a newly created chat without rebuilding', () => {
@@ -48,7 +52,7 @@ describe('oneOnOneChatReportIDs', () => {
         const withBob = collection(chatWith('10', ALICE), chatWith('20', BOB));
         const next = oneOnOneChatReportIDsConfig.compute([withBob, session], {currentValue, sourceValues: delta(['20', chatWith('20', BOB)])});
 
-        expect(next).toEqual({[aliceKey]: '10', [bobKey]: '20'});
+        expect(next).toEqual(index({[aliceKey]: '10', [bobKey]: '20'}));
     });
 
     it('drops the entry when a chat is deleted', () => {
@@ -58,7 +62,7 @@ describe('oneOnOneChatReportIDs', () => {
         const withoutBob = collection(chatWith('10', ALICE));
         const next = oneOnOneChatReportIDsConfig.compute([withoutBob, session], {currentValue, sourceValues: delta(['20', undefined])});
 
-        expect(next).toEqual({[aliceKey]: '10'});
+        expect(next).toEqual(index({[aliceKey]: '10'}));
     });
 
     it('moves the entry when a chat changes participants', () => {
@@ -68,32 +72,32 @@ describe('oneOnOneChatReportIDs', () => {
         const nowWithBob = collection(chatWith('10', BOB));
         const next = oneOnOneChatReportIDsConfig.compute([nowWithBob, session], {currentValue, sourceValues: delta(['10', chatWith('10', BOB)])});
 
-        expect(next).toEqual({[bobKey]: '10'});
+        expect(next).toEqual(index({[bobKey]: '10'}));
     });
 
     it('keeps the first chat when two share a participant set, and leaves it alone when the other one goes', () => {
         const duplicates = collection(chatWith('10', ALICE), chatWith('20', ALICE));
         const currentValue = oneOnOneChatReportIDsConfig.compute([duplicates, session], {});
-        expect(currentValue).toEqual({[aliceKey]: '10'});
+        expect(currentValue).toEqual(index({[aliceKey]: '10'}));
 
         const remaining = collection(chatWith('10', ALICE));
         const next = oneOnOneChatReportIDsConfig.compute([remaining, session], {currentValue, sourceValues: delta(['20', undefined])});
 
-        expect(next).toEqual({[aliceKey]: '10'});
+        expect(next).toEqual(index({[aliceKey]: '10'}));
     });
 
     it('promotes the remaining chat when the indexed one is deleted, as happens when an optimistic chat is replaced', () => {
         // The optimistic chat is indexed first, then the server report arrives on the same participants.
         const optimisticOnly = collection(chatWith('optimistic-1', ALICE));
         const afterOptimistic = oneOnOneChatReportIDsConfig.compute([optimisticOnly, session], {});
-        expect(afterOptimistic).toEqual({[aliceKey]: 'optimistic-1'});
+        expect(afterOptimistic).toEqual(index({[aliceKey]: 'optimistic-1'}));
 
         const bothReports = collection(chatWith('optimistic-1', ALICE), chatWith('30', ALICE));
         const afterServerReport = oneOnOneChatReportIDsConfig.compute([bothReports, session], {
             currentValue: afterOptimistic,
             sourceValues: delta(['30', chatWith('30', ALICE)]),
         });
-        expect(afterServerReport).toEqual({[aliceKey]: 'optimistic-1'});
+        expect(afterServerReport).toEqual(index({[aliceKey]: 'optimistic-1'}));
 
         // The optimistic report is cleaned up, so the real one has to take over rather than the key disappearing.
         const serverOnly = collection(chatWith('30', ALICE));
@@ -102,25 +106,37 @@ describe('oneOnOneChatReportIDs', () => {
             sourceValues: delta(['optimistic-1', undefined]),
         });
 
-        expect(afterCleanup).toEqual({[aliceKey]: '30'});
+        expect(afterCleanup).toEqual(index({[aliceKey]: '30'}));
     });
 
-    it('rebuilds when SESSION changes, because a different account ID changes what counts as a 1:1 chat', () => {
+    it('rebuilds when SESSION carries a different account ID, because that changes what counts as a 1:1 chat', () => {
         const reports = collection(chatWith('10', ALICE), chatWith('20', BOB));
         const currentValue = oneOnOneChatReportIDsConfig.compute([reports, session], {});
-        expect(currentValue).toEqual({[aliceKey]: '10', [bobKey]: '20'});
+        expect(currentValue).toEqual(index({[aliceKey]: '10', [bobKey]: '20'}));
 
-        // Signed in as a third party now, so neither report is a 1:1 chat any more. Neither report is in a delta:
-        // only the SESSION change can clear their entries.
         const asOutsider = oneOnOneChatReportIDsConfig.compute([reports, {accountID: 99}], {currentValue, sourceValues: {}, triggeredKeys: new Set([ONYXKEYS.SESSION])});
 
-        expect(asOutsider).toEqual({});
+        expect(asOutsider).toEqual(index({}, 99));
+    });
+
+    it('keeps the index when SESSION changes without changing the account ID', () => {
+        const reports = collection(chatWith('10', ALICE));
+        const currentValue = oneOnOneChatReportIDsConfig.compute([reports, session], {});
+
+        const withBob = collection(chatWith('10', ALICE), chatWith('20', BOB));
+        const next = oneOnOneChatReportIDsConfig.compute([withBob, {accountID: ME, authToken: 'refreshed'}], {
+            currentValue,
+            sourceValues: {[ONYXKEYS.SESSION]: {authToken: 'refreshed'}},
+            triggeredKeys: new Set([ONYXKEYS.SESSION]),
+        });
+
+        expect(next).toBe(currentValue);
     });
 
     it('rebuilds on the first compute after a reload, so a stale restored index is corrected', () => {
         const reports = collection(chatWith('10', ALICE));
         // Bob's chat was deleted after the index was last written, and Alice's chat arrived before the first compute.
-        const staleValue = {[bobKey]: '99'};
+        const staleValue = index({[bobKey]: '99'});
 
         // The engine's first flush has no baselines to diff against, so it passes no sourceValues, while
         // triggeredKeys holds every dependency.
@@ -129,12 +145,12 @@ describe('oneOnOneChatReportIDs', () => {
             triggeredKeys: new Set([ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION]),
         });
 
-        expect(next).toEqual({[aliceKey]: '10'});
+        expect(next).toEqual(index({[aliceKey]: '10'}));
     });
 
     it('builds nothing until the current account ID is known', () => {
         const reports = collection(chatWith('10', ALICE));
 
-        expect(oneOnOneChatReportIDsConfig.compute([reports, {}], {})).toEqual({});
+        expect(oneOnOneChatReportIDsConfig.compute([reports, {}], {})).toEqual({reportIDs: {}});
     });
 });

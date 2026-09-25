@@ -218,10 +218,10 @@ type LoginToAccountIDMapDerivedValue = Record<string, number>;
  */
 type GuideAccountIDsDerivedValue = number[];
 
-/**
- * Maps a participant set to the reportID of its 1:1 (or system) chat. Keys come from `getParticipantsChatKey`.
- */
-type OneOnOneChatReportIDsDerivedValue = Record<string, string>;
+type OneOnOneChatReportIDsDerivedValue = {
+    reportIDs: Record<string, string>;
+    accountID?: number;
+};
 
 export type {
     ReportAttributes,

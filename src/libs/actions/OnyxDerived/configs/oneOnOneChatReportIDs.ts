@@ -1,7 +1,6 @@
 import {getParticipantsChatKey, isOneOnOneChat, isSystemChat} from '@libs/ReportUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
-import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OneOnOneChatReportIDsDerivedValue} from '@src/types/onyx';
@@ -20,8 +19,8 @@ function getIndexableParticipantsKey(report: OnyxEntry<Report>, currentUserAccou
  * The first report in collection order wins a key, matching `getChatByParticipants`. When `keysToFind` is passed,
  * only those keys are looked up.
  */
-function buildIndex(reports: NonNullable<OnyxCollection<Report>>, currentUserAccountID: number, keysToFind?: Set<string>): OneOnOneChatReportIDsDerivedValue {
-    const index: OneOnOneChatReportIDsDerivedValue = {};
+function buildIndex(reports: NonNullable<OnyxCollection<Report>>, currentUserAccountID: number, keysToFind?: Set<string>): OneOnOneChatReportIDsDerivedValue['reportIDs'] {
+    const index: OneOnOneChatReportIDsDerivedValue['reportIDs'] = {};
     for (const report of Object.values(reports)) {
         const participantsKey = getIndexableParticipantsKey(report, currentUserAccountID);
         if (!participantsKey || !report?.reportID || index[participantsKey] || (keysToFind && !keysToFind.has(participantsKey))) {
@@ -46,21 +45,19 @@ export default createOnyxDerivedValueConfig({
     // `isOneOnOneChat` needs the current accountID to tell a DM from a group chat, so SESSION has to be a
     // dependency. Without it the index gets built before the ID arrives and every two-participant DM is missing.
     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION],
-    compute: ([reports, session], {sourceValues, currentValue, triggeredKeys}) => {
+    compute: ([reports, session], {sourceValues, currentValue}) => {
         const currentUserAccountID = session?.accountID;
 
         // Without the accountID every DM looks like a group chat, so an index built now would be thrown away.
         if (!reports || !currentUserAccountID) {
-            return {};
+            return {reportIDs: {}};
         }
 
         // The first flush after a reload has no `sourceValues`. The restored index can disagree with the restored
         // reports, because the two are written separately and reports that change before the subscriptions connect
         // never show up in a delta, so it is rebuilt rather than trusted.
-        // A SESSION change can carry a different account (delegate switching writes it before clearing Onyx), and
-        // the index doesn't record which account it was built for.
-        if (!currentValue || !sourceValues || hasKeyTriggeredCompute(ONYXKEYS.SESSION, triggeredKeys)) {
-            return buildIndex(reports, currentUserAccountID);
+        if (!currentValue || !sourceValues || currentValue.accountID !== currentUserAccountID) {
+            return {reportIDs: buildIndex(reports, currentUserAccountID), accountID: currentUserAccountID};
         }
 
         const reportUpdates = sourceValues[ONYXKEYS.COLLECTION.REPORT];
@@ -68,7 +65,7 @@ export default createOnyxDerivedValueConfig({
             return currentValue;
         }
 
-        const updatedIndex: OneOnOneChatReportIDsDerivedValue = {...currentValue};
+        const updatedIndex: OneOnOneChatReportIDsDerivedValue['reportIDs'] = {...currentValue.reportIDs};
         let keyByReportID: Record<string, string> | undefined;
         // Keys whose report left, refilled from `reports` after the loop. The server's `preexistingReportID`
         // replacement keeps an optimistic DM and the real one on the same participants for a moment, so dropping the
@@ -100,9 +97,9 @@ export default createOnyxDerivedValueConfig({
         }
 
         if (keysToRefill.size === 0) {
-            return updatedIndex;
+            return {reportIDs: updatedIndex, accountID: currentUserAccountID};
         }
 
-        return {...updatedIndex, ...buildIndex(reports, currentUserAccountID, keysToRefill)};
+        return {reportIDs: {...updatedIndex, ...buildIndex(reports, currentUserAccountID, keysToRefill)}, accountID: currentUserAccountID};
     },
 });

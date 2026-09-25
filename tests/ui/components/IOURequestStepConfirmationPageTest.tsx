@@ -1345,7 +1345,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     // The page resolves the participant chat through the derived index, so seed the entry the
                     // derived value would produce for this chat report.
                     await Onyx.merge(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {
-                        [ReportUtils.getParticipantsChatKey([PARTICIPANT_ACCOUNT_ID, ACCOUNT_ID])]: chatReportID,
+                        reportIDs: {[ReportUtils.getParticipantsChatKey([PARTICIPANT_ACCOUNT_ID, ACCOUNT_ID])]: chatReportID},
+                        accountID: ACCOUNT_ID,
                     });
                 });
 

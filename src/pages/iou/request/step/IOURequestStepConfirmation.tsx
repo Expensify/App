@@ -674,7 +674,7 @@ function IOURequestStepConfirmationContent({
     // Read reports reactively: if the chat lands mid-flow the optimistic ID must drop out, or we'd reveal an uncreated report.
     const existingP2PChatSelector = useCallback(
         (chatReportIDs: OnyxEntry<OneOnOneChatReportIDsDerivedValue>) =>
-            isP2PDestination ? chatReportIDs?.[getParticipantsChatKey([p2pRecipientAccountID, currentUserPersonalDetails.accountID])] : undefined,
+            isP2PDestination ? chatReportIDs?.reportIDs?.[getParticipantsChatKey([p2pRecipientAccountID, currentUserPersonalDetails.accountID])] : undefined,
         [isP2PDestination, p2pRecipientAccountID, currentUserPersonalDetails.accountID],
     );
     const [existingP2PDestinationReportID] = useOnyx(ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS, {selector: existingP2PChatSelector});
