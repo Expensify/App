@@ -45,6 +45,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
+    const currency = policy?.outputCurrency;
+    const currencySymbol = getCurrencySymbol(currency ?? '');
 
     // The same mapping screen is reused for the Members importer and the Workflows importer. When it is reached from the
     // Workflows page we keep the user in the Workflows context (title + back + return + confirmation navigation).
@@ -87,13 +89,12 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             } else {
                 const approvalLimitColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD);
                 if (approvalLimitColumn !== -1) {
-                    const currency = policy?.outputCurrency;
                     const decimals = getCurrencyDecimals(currency);
                     const hasInvalidApprovalLimit = spreadsheet?.data?.[approvalLimitColumn]?.some((value, index) => {
                         if (containsHeader && index === 0) {
                             return false;
                         }
-                        const normalizedValue = normalizeImportedAmount(String(value), getCurrencySymbol(currency ?? ''), currency);
+                        const normalizedValue = normalizeImportedAmount(String(value), currencySymbol, currency);
                         return !validateAmount(normalizedValue, decimals);
                     });
                     errors = hasInvalidApprovalLimit ? {approvalLimit: translate('spreadsheet.invalidApprovalLimit')} : {};
@@ -104,7 +105,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         return errors;
-    }, [containsHeader, getCurrencyDecimals, getCurrencySymbol, policy?.outputCurrency, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
+    }, [containsHeader, currency, currencySymbol, getCurrencyDecimals, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -214,8 +215,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             const approvalLimitValue = membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '';
-            const currency = policy?.outputCurrency;
-            const normalizedApprovalLimit = normalizeImportedAmount(approvalLimitValue, getCurrencySymbol(currency ?? ''), currency);
+            const normalizedApprovalLimit = normalizeImportedAmount(approvalLimitValue, currencySymbol, currency);
             let approvalLimit: string | undefined;
             if (membersApprovalLimitColumn !== -1) {
                 approvalLimit = normalizedApprovalLimit;
