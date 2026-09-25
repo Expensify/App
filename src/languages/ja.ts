@@ -9741,6 +9741,7 @@ ${reportName}`,
             violationsBySubmitter: '申請者による違反',
         },
         mergeReports: {title: 'レポートをマージする', description: '保持するレポートを選択してください。すべての経費はそのレポートに移動され、他のレポートは削除されます。'},
+        percentOfSpend: ({percent}: {percent: string}) => `支出の${percent}`,
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

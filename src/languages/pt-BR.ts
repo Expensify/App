@@ -9856,6 +9856,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             title: 'Mesclar relatórios',
             description: 'Selecione o relatório que você quer manter. Todas as despesas serão movidas para ele e os outros relatórios serão excluídos.',
         },
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} do gasto`,
     },
     genericErrorPage: {
         title: 'Opa, algo deu errado!',
