@@ -700,10 +700,6 @@ const staticStyles = (theme: ThemeColors) =>
             opacity: 1,
         },
 
-        textDanger: {
-            color: theme.danger,
-        },
-
         borderRadiusNormal: {
             borderRadius: variables.buttonBorderRadius,
         },
