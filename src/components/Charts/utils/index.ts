@@ -463,6 +463,15 @@ function getNiceValueTicks(domain: [number, number], tickCount: number): number[
     return scaleLinear().domain(domain).ticks(tickCount);
 }
 
+/**
+ * Height of a horizontal bar chart. Grows with the row count so every category row gets at least
+ * `minRowHeight` of vertical space, keeping all category labels visible instead of thinning them out.
+ * Never smaller than `minHeight`, so small datasets keep the shared minimum.
+ */
+function getHorizontalChartHeight(rowCount: number, minRowHeight: number, verticalPadding: number, minHeight: number): number {
+    return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -512,6 +521,7 @@ export {
     getNiceValueDomain,
     getNiceValueTicks,
     getYAxisLabelWidth,
+    getHorizontalChartHeight,
 };
 
 export type {ChartLabelHitTestParams};

@@ -7,6 +7,7 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
+    getHorizontalChartHeight,
     getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -709,5 +710,41 @@ describe('getNiceYAxisTicks', () => {
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {
         expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
+    });
+});
+
+describe('getHorizontalChartHeight', () => {
+    const MIN_ROW_HEIGHT = 36;
+    const PADDING = 40;
+    const MIN_HEIGHT = 220;
+
+    it('keeps the shared minimum height when few rows do not need the extra space', () => {
+        // Given 3 rows, 3 * 36 + 40 = 148 is below the 220 minimum
+        // When computing the height
+        // Then it stays at the minimum so small charts are not shrunk
+        expect(getHorizontalChartHeight(3, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(MIN_HEIGHT);
+    });
+
+    it('grows past the minimum once the rows need more than the minimum height', () => {
+        // Given 10 rows, 10 * 36 + 40 = 400 exceeds the 220 minimum
+        // When computing the height
+        // Then it grows so every row keeps its full MIN_ROW_HEIGHT and no label is thinned out
+        expect(getHorizontalChartHeight(10, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(400);
+    });
+
+    it('reserves at least one row of space per row as the count increases', () => {
+        // Given the row count grows by one
+        // When comparing consecutive grown heights
+        // Then each extra row adds exactly MIN_ROW_HEIGHT of space
+        const ten = getHorizontalChartHeight(10, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT);
+        const eleven = getHorizontalChartHeight(11, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT);
+        expect(eleven - ten).toBe(MIN_ROW_HEIGHT);
+    });
+
+    it('returns the minimum height when there are no rows', () => {
+        // Given an empty dataset
+        // When computing the height
+        // Then it falls back to the minimum rather than collapsing to just the padding
+        expect(getHorizontalChartHeight(0, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(MIN_HEIGHT);
     });
 });
