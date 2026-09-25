@@ -13,6 +13,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -28,7 +29,6 @@ import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, setDetailsValue,
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 import React, {useState} from 'react';
@@ -41,9 +41,7 @@ function DynamicNewTaskDetailsPage() {
     const ancestors = useAncestors(parentReport);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsListSelector([currentUserPersonalDetails.accountID, task?.assigneeAccountID]),
-    });
+    const [taskCreatorAndAssigneeDetails] = usePersonalDetailsByIDs([currentUserPersonalDetails.accountID, task?.assigneeAccountID]);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const accountIDToName = useAccountIDToNameMap();

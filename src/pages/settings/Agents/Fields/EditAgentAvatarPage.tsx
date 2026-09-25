@@ -13,7 +13,7 @@ import useAvatarCrop from '@hooks/useAvatarCrop';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,7 +30,6 @@ import {updateAgentAvatar} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -66,7 +65,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const presetAvatarSize = StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE);
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [personalDetails] = usePersonalDetail(accountID);
 
     const initialBotAvatar = useMemo<AgentAvatarID | null>(() => {
         if (!initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID)) {

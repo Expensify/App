@@ -8,7 +8,7 @@ import Tooltip from '@components/Tooltip';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,7 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDelegateAccountIDFromReportAction, getHumanAgentAccountIDFromReportAction, getManagerOnVacation, getModerationFlagState, getVacationer} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -27,7 +26,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isOptimisticPersonalDetailSelector} from '@selectors/PersonalDetails';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -122,7 +121,7 @@ function ReportActionItemSingle({
     };
 
     const optimisticCheckAccountID = delegateAccountID ? Number(delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const [isOptimistic] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(optimisticCheckAccountID)});
+    const [isOptimistic] = usePersonalDetail(optimisticCheckAccountID, isPersonalDetailOptimistic);
     const shouldDisableDetailPage = CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) || (!details.isWorkspaceActor && !!isOptimistic);
 
     const getBackgroundColor = () => {

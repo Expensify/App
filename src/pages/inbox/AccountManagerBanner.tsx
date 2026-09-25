@@ -3,6 +3,7 @@ import Banner from '@components/Banner';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -14,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 
 type AccountManagerBannerProps = {
@@ -35,9 +35,7 @@ function AccountManagerBanner({reportID}: AccountManagerBannerProps) {
     });
     const accountManagerReportID = accountManagerData?.accountManagerReportID;
     const accountManagerAccountID = accountManagerData?.accountManagerAccountID ?? CONST.DEFAULT_MISSING_ID;
-    const [participantPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(accountManagerAccountID),
-    });
+    const [participantPersonalDetail] = usePersonalDetail(accountManagerAccountID);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
 
     if (!accountManagerReportID || !isConciergeChatReport(report, conciergeReportID) || !isBannerVisible) {
