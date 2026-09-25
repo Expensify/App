@@ -1,7 +1,7 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline, add existing expense, select expenses on mobile]
 ---
 
 Managing expenses in reports helps you keep everything organized and ready for approval, payment, or export. This guide covers adding, moving, deleting, and editing expenses, as well as understanding audit trails and collaboration.
@@ -32,9 +32,9 @@ You can add expenses in two ways:
 **Add existing unreported expenses**
 1. Open the draft report.
 2. Click **More** > **Add expense** > **Add existing expense**.
-3. (Optional) Use the **Status** filter to show only **Unreported** or **Draft** expenses.
-3. Click one or more expenses.
-4. Click **Add to report**.
+3. (Optional) Click **Filters**, use the **Status** filter to show only **Unreported** or **Draft** expenses, then click **Apply**.
+4. Select the checkbox next to each expense you want to add. The checkboxes are visible as soon as the list opens on both web and mobile, so you do not need to long-press an expense first.
+5. Click **Add to report**.
 
 ---
 
@@ -165,3 +165,9 @@ You may be filtered into a different workspace or be using a mismatched search t
   - The destination report already has 500 expenses (the per-report limit).
 
 **Solution**: Ask a Workspace Admin to unapprove the report, or retract it if you submitted it. If the destination report is at the 500-expense limit, move some expenses out of it or choose a different destination report.
+
+## Why don’t I need to long-press to select expenses under Add existing expense on mobile?
+
+The **Add existing expense** list exists only to pick expenses, so its checkboxes are always shown. Tap an expense to select it, and tap it again to deselect it. Your selection is kept while you search or change the **Status** filter, so you can build up a selection and then tap **Add to report** once.
+
+Other mobile lists still work the other way: long-press a row, then tap **Select** to enter selection mode.
