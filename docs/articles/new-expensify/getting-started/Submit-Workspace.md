@@ -160,7 +160,6 @@ Features that are only available on the Control plan upgrade the workspace to **
 
 Features that are included in the Collect plan upgrade the workspace to **Collect**, including:
 
- - **Categories**
  - **Travel**
  - **Company cards**
  - **Approvals**
