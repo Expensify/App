@@ -8,8 +8,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
+import {isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -21,6 +23,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
+import AutomaticFieldHint from './AutomaticFieldHint';
 import {merchantStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -31,7 +34,7 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -50,6 +53,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
     const [merchantInput, setMerchantInput] = useState(displayMerchantValue);
     const [prevDisplayValue, setPrevDisplayValue] = useState(displayMerchantValue);
     const [prevTransactionID, setPrevTransactionID] = useState(transactionID);
+
+    // The hint says SmartScan will fill this in. It goes once the user takes the field over, by focusing it or by
+    // entering any of the three fields.
+    const shouldShowAutomaticHint = canEnterScanFieldsManually && !isMerchantInputFocused && !hasAnyManuallyEnteredScanField(merchantState);
 
     // Sync the mirror during render (not in an effect) to avoid an extra render pass. Reset on transaction change
     // even while focused; otherwise sync external updates (SmartScan, drafts) only when the field isn't being edited.
@@ -74,6 +81,12 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
 
         if (formError === 'iou.error.invalidMerchant') {
             return translate('iou.error.invalidMerchant');
+        }
+
+        // `common.error.fieldRequired` is shared with the amount and date fields, so only surface it here when the
+        // merchant is the one that is missing.
+        if (formError === 'common.error.fieldRequired' && (isConfirmationMerchantMissing(merchantState, canEnterScanFieldsManually) || (isMerchantRequired && !displayMerchantValue))) {
+            return translate('common.error.fieldRequired');
         }
 
         if (shouldDisplayFieldError && isMerchantRequired && !displayMerchantValue) {
@@ -127,6 +140,7 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
+                    rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                 />
             </View>
         );

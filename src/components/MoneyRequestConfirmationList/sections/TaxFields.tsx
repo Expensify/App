@@ -1,3 +1,4 @@
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -174,23 +175,23 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
                     />
                 </View>
             ) : (
-                <MenuItemWithTopDescription
+                <MenuItemField
                     key={`${taxRates?.name}_amount`}
-                    pressableTestID={`${taxRates?.name}_amount`}
-                    shouldShowRightIcon={canModifyTaxFields}
-                    title={formattedTaxAmount}
-                    description={translate('iou.taxAmount')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transactionID) {
-                            return;
-                        }
+                    testID={`${taxRates?.name}_amount`}
+                    value={formattedTaxAmount}
+                    name={translate('iou.taxAmount')}
+                    onPress={
+                        canModifyTaxFields
+                            ? () => {
+                                  if (!transactionID) {
+                                      return;
+                                  }
 
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
-                    }}
-                    disabled={didConfirm}
-                    interactive={canModifyTaxFields}
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID)));
+                              }
+                            : undefined
+                    }
+                    isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
                 />
             )}

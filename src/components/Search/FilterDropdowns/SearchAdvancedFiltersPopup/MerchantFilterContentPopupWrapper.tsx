@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 
-function MerchantFilterContentPopupWrapper({baseFilterKey, value, isNegated, merchantOperator, onChange}: MerchantFilterContentWrapperProps) {
+function MerchantFilterContentPopupWrapper({baseFilterKey, value, isNegated, merchantOperator, buttonText, onChange}: MerchantFilterContentWrapperProps) {
     const styles = useThemeStyles();
 
     return (
@@ -14,6 +14,7 @@ function MerchantFilterContentPopupWrapper({baseFilterKey, value, isNegated, mer
             value={value}
             isNegated={isNegated}
             merchantOperator={merchantOperator}
+            buttonText={buttonText}
             style={[styles.pt6]}
             onChange={onChange}
         />

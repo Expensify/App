@@ -624,6 +624,7 @@ describe('TransactionInlineEdit', () => {
 
         function buildParams(): TransactionInlineEditParams {
             return {
+                isVendorMatchingBetaEnabled: false,
                 hash: 123456,
                 isOffline: false,
                 transactionID: TRANSACTION_ID,
@@ -647,7 +648,6 @@ describe('TransactionInlineEdit', () => {
                 getCurrencySymbol: () => '$',
                 transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: snapshotTransaction},
                 transactionViolations: {},
-                betas: [],
                 isASAPSubmitBetaEnabled: false,
                 introSelected: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,

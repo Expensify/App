@@ -27,7 +27,7 @@ import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import type {ForwardedRef, RefObject} from 'react';
+import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 
 import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions, View} from 'react-native';
@@ -266,7 +266,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
-            anchorRef={getEmojiPopoverAnchor() as RefObject<View | HTMLDivElement>}
+            anchorRef={getEmojiPopoverAnchor() as RefObject<ComponentRef<typeof View> | HTMLDivElement>}
             withoutOverlay={isWithoutOverlay}
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,

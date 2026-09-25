@@ -8,6 +8,7 @@ const cursor: CursorStyles = {
     cursorUnset: {},
     cursorAuto: {},
     cursorZoomIn: {},
+    cursorGrab: {},
     cursorGrabbing: {},
     cursorZoomOut: {},
     cursorInitial: {},

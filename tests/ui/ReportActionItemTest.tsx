@@ -2,17 +2,20 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {openLink} from '@libs/actions/Link';
+import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type * as UrlType from '@libs/Url';
 
+import PaymentContent from '@pages/inbox/report/actionContents/PaymentContent';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 
@@ -24,7 +27,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Report, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, DecisionName, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
@@ -139,9 +142,9 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction) {
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -153,6 +156,7 @@ describe('ReportActionItem', () => {
                             displayAsGroup={false}
                             shouldDisplayNewMarker={false}
                             isFirstVisibleReportAction={false}
+                            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
                         />
                     </PortalProvider>
                 </ScreenWrapper>
@@ -2068,6 +2072,161 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
         });
 
+        it('IOU PAY VBBA renders a past expected reimbursement date', async () => {
+            // Given an ACH payment action with an expected reimbursement date in the past
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+                expectedDate: '2024-01-15',
+            });
+
+            // When the payment action is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expected date is visible and included in the accessibility label
+            expect(screen.getByText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY VBBA omits the payment status when the expected date is invalid', async () => {
+            // Given an ACH payment action with the backend's unknown-date sentinel
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+                expectedDate: '???',
+            });
+
+            // When the payment action is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={undefined}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment message remains visible without an incomplete status sentence
+            expect(screen.getByText(/paid with bank account/i)).toBeOnTheScreen();
+            expect(screen.queryByText(/Waiting for payment to complete/i)).toBeNull();
+        });
+
+        it('IOU PAY VBBA reads the expected date from an existing reimbursed action', async () => {
+            // Given an ACH payment whose expected date only exists on the preceding reimbursed action
+            const reportID = 'testReport';
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                automaticAction: false,
+                accountNumber: 'XXXX1111',
+            });
+            const reimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-15',
+            });
+            reimbursedAction.reportActionID = 'reimbursed';
+            reimbursedAction.created = '2025-07-12 09:03:16.653';
+            const earlierReimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-14',
+            });
+            earlierReimbursedAction.reportActionID = 'earlierReimbursed';
+            earlierReimbursedAction.created = '2025-07-12 09:03:15.653';
+            const laterReimbursedAction = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSED, {
+                expectedDate: '2024-01-16',
+            });
+            laterReimbursedAction.reportActionID = 'laterReimbursed';
+            laterReimbursedAction.created = '2025-07-12 09:03:18.653';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [reimbursedAction.reportActionID]: reimbursedAction,
+                    [earlierReimbursedAction.reportActionID]: earlierReimbursedAction,
+                    [laterReimbursedAction.reportActionID]: laterReimbursedAction,
+                    [action.reportActionID]: action,
+                });
+            });
+
+            // When the payment action is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                chatReport={undefined}
+                                report={createMock<Report>({reportID})}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment uses the preceding reimbursement date instead of an earlier or later action
+            expect(screen.getByText(/Waiting for payment to complete by Jan 15, 2024/i)).toBeOnTheScreen();
+        });
+
+        it('IOU PAY with no original message renders nothing', async () => {
+            // Given a payment action without an original message
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: '12345',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-07-12 09:03:17.653',
+                message: [],
+            });
+
+            // When the payment content is rendered
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <PaymentContent
+                        action={action}
+                        expectedDate={undefined}
+                        policyID={undefined}
+                    />
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then no payment message is shown
+            expect(screen.queryByText(/paid/i)).toBeNull();
+        });
+
         it('IOU PAY VBBA manual prefers originalMessage accountNumber over current policy account', async () => {
             const policyID = 'snapshot-policy';
             await act(async () => {
@@ -2599,6 +2758,23 @@ describe('ReportActionItem', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO,
                 originalMessage: {approvers: [{email: 'approver@test.com', name: 'Approver', accountID: 123}], forwardsTo: {email: 'fwd@test.com', name: 'Fwd', accountID: 456}},
                 assertion: /fwd@test\.com/,
+            },
+            {
+                testTitle: 'UPDATE_OVER_LIMIT_FORWARDS_TO',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {
+                    member: {email: 'member@test.com', name: 'Member', accountID: 789},
+                    overLimitForwardsTo: {email: 'overlimit@test.com', name: 'Over Limit Approver', accountID: 456},
+                    limit: 10000,
+                    currency: 'USD',
+                },
+                assertion: /overlimit@test\.com/,
+            },
+            {
+                testTitle: 'UPDATE_APPROVAL_LIMIT',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                originalMessage: {member: {email: 'member@test.com', name: 'Member', accountID: 789}, limit: 20000, previousLimit: 10000, currency: 'USD'},
+                assertion: /member@test\.com/,
             },
             {
                 testTitle: 'UPDATE_AUTO_REIMBURSEMENT',
@@ -3263,6 +3439,88 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(translateLocal('travel.tripSummary'))).toBeOnTheScreen();
+        });
+    });
+
+    describe('Concierge feedback prompt', () => {
+        const prompt = () => translateLocal('concierge.feedback.prompt');
+
+        function createConciergeComment(moderationDecision?: DecisionName) {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {});
+            action.actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+            action.message = [{type: 'COMMENT', html: 'Here you go', text: 'Here you go', ...(moderationDecision ? {moderationDecision: {decision: moderationDecision}} : {})}];
+            return action;
+        }
+
+        it('renders under the latest Concierge comment', async () => {
+            renderItemWithAction(createConciergeComment(), true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+        });
+
+        const THUMBS_UP_EMOJI_NAME = '+1';
+
+        function buildThumbsUpReaction(timestamp: string) {
+            return {
+                [THUMBS_UP_EMOJI_NAME]: {
+                    createdAt: timestamp,
+                    oldestTimestamp: timestamp,
+                    users: {[ACTOR_ACCOUNT_ID]: {id: String(ACTOR_ACCOUNT_ID), oldestTimestamp: timestamp, skinTones: {[CONST.EMOJI_DEFAULT_SKIN_TONE]: timestamp}}},
+                },
+            };
+        }
+
+        async function reactWithThumbsUp(action: ReportAction, timestamp: string) {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`, buildThumbsUpReaction(timestamp));
+            });
+        }
+
+        it('shows the acknowledgement in a second copy of the chat that did not take the press', async () => {
+            // The side panel and the central pane each mount their own copy, and the reaction is what they share
+            const action = createConciergeComment();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID});
+            });
+
+            renderItemWithAction(action, true);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
+
+            await reactWithThumbsUp(action, DateUtils.getDBTime());
+
+            expect(screen.getByText(translateLocal('concierge.feedback.thanks'))).toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('does not acknowledge a rating that was already there when the chat was opened', async () => {
+            const action = createConciergeComment();
+            await reactWithThumbsUp(action, DateUtils.getDBTime());
+
+            renderItemWithAction(action, true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('concierge.feedback.thanks'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('does not render while moderation has the message hidden', async () => {
+            renderItemWithAction(createConciergeComment(CONST.MODERATION.MODERATOR_DECISION_HIDDEN), true);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(prompt())).not.toBeOnTheScreen();
+        });
+
+        it('renders once the user reveals the hidden message', async () => {
+            renderItemWithAction(createConciergeComment(CONST.MODERATION.MODERATOR_DECISION_HIDDEN), true);
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Reveal message'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(prompt())).toBeOnTheScreen();
         });
     });
 

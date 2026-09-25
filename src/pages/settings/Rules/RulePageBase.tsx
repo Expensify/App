@@ -101,6 +101,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isSaving});
     const styles = useThemeStyles();
 
@@ -149,7 +150,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             setIsSaving(true);
 
             const newRule = extractRuleFromForm(form, selectedTaxRate);
-            saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
+            saveExpenseRule(expenseRules, newRule, hash, getKeyForRule, shouldUpdateMatchingTransactions);
 
             Navigation.goBack();
         });
@@ -290,6 +291,16 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     isLoading={isLoading}
                     shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        <ToggleSettingOptionRow
+                            isActive={shouldUpdateMatchingTransactions}
+                            onToggle={setShouldUpdateMatchingTransactions}
+                            switchAccessibilityLabel={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            title={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            wrapperStyle={styles.mb4}
+                        />
+                    }
                 />
             </ScreenWrapper>
         </RuleNotFoundPageWrapper>

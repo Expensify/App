@@ -69,7 +69,7 @@ function splitActions(value: SearchActionsContextValue): {
     selection: SearchSelectionActionsValue;
 } {
     return {
-        query: {setShouldResetSearchQuery: value.setShouldResetSearchQuery, setCurrentSearchKey: value.setCurrentSearchKey, resetSearchKey: value.resetSearchKey},
+        query: {setShouldResetSearchQuery: value.setShouldResetSearchQuery, getSearchKeyForQuery: value.getSearchKeyForQuery},
         results: {
             setSortedReportIDs: value.setSortedReportIDs,
             setShouldShowFiltersBarLoading: value.setShouldShowFiltersBarLoading,

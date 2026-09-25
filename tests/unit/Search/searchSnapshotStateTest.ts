@@ -197,6 +197,26 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
     });
 
+    it('persists a non-401 server failure code over the NO_RESPONSE placeholder written by failureData', async () => {
+        const queryJSON = getQueryJSON();
+        // failureData lands first and writes NO_RESPONSE. The real code must overwrite it, otherwise the error view
+        // would show the "stale results" copy for a request the server actually rejected.
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return {jsonCode: CONST.JSON_CODE.EXP_ERROR};
+        });
+
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(snapshot?.errors).toBeDefined();
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.EXP_ERROR);
+        expect(snapshot?.search?.responseJsonCode).not.toBe(CONST.JSON_CODE.NO_RESPONSE);
+    });
+
     it('does not persist a jsonCode for a successful response', async () => {
         const queryJSON = getQueryJSON();
         jest.mocked(makeRequestWithSideEffects).mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.SUCCESS});
@@ -257,7 +277,7 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
         expect(snapshot?.errors).toBeDefined();
         // There is no response to read a code from, but the errors still need one so the error view can
-        // classify them after a reload. 0 records "failed without a usable code" rather than leaving a gap.
-        expect(snapshot?.search?.responseJsonCode).toBe(0);
+        // classify them after a reload. NO_RESPONSE records "failed without a usable code" rather than leaving a gap.
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.NO_RESPONSE);
     });
 });

@@ -16,8 +16,6 @@ Once connected, the integration imports:
 - Departments, Projects, and Classes as tags.
 - Tax rates (when available).
 
-The Rillet integration is currently in beta and is available to select customers.
-
 ---
 
 ## Who can connect to Rillet

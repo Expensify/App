@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 
@@ -11,7 +11,7 @@ type TruncateProps = {
     /** The text string that may need truncation */
     text: string;
 
-    ref: RefObject<RNText | null>;
+    ref: RefObject<ComponentRef<typeof RNText> | null>;
 };
 
 type FontStyle = {

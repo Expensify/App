@@ -11,6 +11,7 @@ import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {deepEqual} from 'fast-equals';
@@ -90,7 +91,7 @@ function OptionRow({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark']);
-    const pressableRef = useRef<View | HTMLDivElement>(null);
+    const pressableRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
     useEffect(() => {
@@ -200,12 +201,9 @@ function OptionRow({
                                             />
                                         ) : (
                                             <ReportAvatar
-                                                subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                backdropColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
                                                 reportID={reportID}
                                                 size={CONST.AVATAR_SIZE.DEFAULT}
-                                                secondaryAvatarContainerStyle={[
-                                                    StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor),
-                                                ]}
                                             />
                                         )}
                                     </AvatarTooltipsProvider>

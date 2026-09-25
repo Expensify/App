@@ -19,20 +19,55 @@ import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork, subscribe as subscribeToNetworkState} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
-import {logReceiptEnqueued, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptEnqueued, logReceiptGaveUp, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import isUnauthorizedSupportalResponse from './isUnauthorizedSupportalResponse';
+
 let shouldFailAllRequests: boolean;
 const reportsWithProcessedOfflineComments = new Map<string, string>();
 const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+
+// Read when a response resolves rather than during render, so there is no component to pass it in from
+// and no render pass for useOnyx to hook into.
+let hasLoadedApp = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => {
+        hasLoadedApp = value ?? false;
+    },
+});
+
+// None of the prompting modules leave a mark on the response, so each branch below names the one that owns the prompt.
+function hasResponseAlreadyPromptedUser<TKey extends OnyxKey>(response: Response<TKey> | void): boolean {
+    const jsonCode = response?.jsonCode;
+
+    // A middleware consumed the response instead of passing it on, the way handleDeletedAccount does when it signs the user out.
+    if (!jsonCode) {
+        return true;
+    }
+
+    // HttpUtils.alertUser shows the update prompt.
+    if (jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
+        return true;
+    }
+
+    // SupportalPermission shows the supportal denial.
+    return isUnauthorizedSupportalResponse(response);
+}
+
+function shouldShowOpenAppFailureModal<TKey extends OnyxKey>(command: string, response: Response<TKey> | void): boolean {
+    return command === WRITE_COMMANDS.OPEN_APP && !hasLoadedApp && response?.jsonCode !== CONST.JSON_CODE.SUCCESS && !hasResponseAlreadyPromptedUser(response);
+}
 
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
@@ -463,6 +498,9 @@ function process(): Promise<void> {
                     queueFlushedDataLength: requestToProcess.queueFlushedData.length,
                 });
                 saveQueueFlushedData(...requestToProcess.queueFlushedData);
+            } else if (shouldShowOpenAppFailureModal(requestToProcess.command, response)) {
+                Log.info('[SequentialQueue] OpenApp resolved with an app-level error, showing the failure modal', false, {jsonCode: response?.jsonCode});
+                setIsOpenAppFailureModalOpen(true);
             }
 
             sequentialQueueRequestThrottle.clear();
@@ -544,6 +582,16 @@ function process(): Promise<void> {
                         command: requestToProcess.command,
                         errorMessage: error.message,
                     });
+                    const receiptData = (requestToProcess.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+                    if (RECEIPT_BEARING_COMMANDS.has(requestToProcess.command) && receiptData.receipt) {
+                        logReceiptGaveUp({
+                            receiptTraceId: receiptData.receipt.receiptTraceId,
+                            transactionID: receiptData.transactionID,
+                            command: requestToProcess.command,
+                            errorMessage: error.message,
+                            errorName: error.name,
+                        });
+                    }
                     Onyx.update(requestToProcess.failureData ?? []);
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
@@ -820,9 +868,10 @@ async function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promis
     if (RECEIPT_BEARING_COMMANDS.has(newRequest.command)) {
         const data = (newRequest.data ?? {}) as {
             transactionID?: string;
-            receipt?: {receiptTraceId?: string};
+            receipt?: {receiptTraceId?: string; receiptEnqueuedAt?: number};
         };
         if (data.receipt) {
+            data.receipt.receiptEnqueuedAt = Date.now();
             logReceiptEnqueued({
                 receiptTraceId: data.receipt.receiptTraceId,
                 transactionID: data.transactionID,

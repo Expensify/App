@@ -2,7 +2,7 @@ import type {FocusTrapOptions} from '@components/Modal/types';
 
 import type CONST from '@src/CONST';
 
-import type {ReactNode, Ref, RefObject} from 'react';
+import type {ComponentRef, ReactNode, Ref, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only: the launcher union must cover every anchor shape popovers pass, including RN Text anchors
 import type {NativeSyntheticEvent, StyleProp, Text, View, ViewProps, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
@@ -141,7 +141,7 @@ type ReanimatedModalProps = ViewProps &
          * The element that opened this modal, a popover's anchor. Used only when nothing held focus at activation time,
          * which is the case for triggers that blur themselves to avoid a focus ring (the FAB, the composer "+").
          */
-        launcherRef?: RefObject<View | Text | HTMLElement | null>;
+        launcherRef?: RefObject<ComponentRef<typeof View> | ComponentRef<typeof Text> | HTMLElement | null>;
 
         shouldIgnoreBackHandlerDuringTransition?: boolean;
     };
@@ -164,7 +164,7 @@ type BackdropProps = {
 
 type ContainerProps = {
     /** Host node of the modal's content, used to tell whether focus is still inside this modal. */
-    ref?: Ref<View>;
+    ref?: Ref<ComponentRef<typeof View>>;
 
     /** This function is called by open animation callback */
     onOpenCallBack: () => void;

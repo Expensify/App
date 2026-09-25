@@ -4,10 +4,12 @@ import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
+import DragCursor from '@libs/DragCursor';
 
 import CONST from '@src/CONST';
 
-import type {DragEndEvent} from '@dnd-kit/core';
+import type {DragEndEvent, DragStartEvent} from '@dnd-kit/core';
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
@@ -42,7 +44,7 @@ function DraggableList<T>({
     disableScroll,
     focusedIndex: controlledFocusedIndex,
     ref,
-}: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
+}: DraggableListProps<T> & {ref?: React.ForwardedRef<ComponentRef<typeof RNScrollView>>}) {
     const styles = useThemeStyles();
     const isControlled = controlledFocusedIndex !== undefined;
     const hasKeyboardNav = !isControlled && !!onSelectRow;
@@ -60,6 +62,9 @@ function DraggableList<T>({
             if (!isDraggingRef.current) {
                 return;
             }
+
+            // No drag end event fires for a list that unmounts mid-drag, which would strand the grabbing cursor.
+            DragCursor.hide();
             cancelDndKeyboardDrag();
         };
     }, []);
@@ -79,8 +84,14 @@ function DraggableList<T>({
 
     const activeFocusedIndex = isControlled ? controlledFocusedIndex : internalFocusedIndex;
 
-    const onDragStart = () => {
+    const onDragStart = (event: DragStartEvent) => {
         isDraggingRef.current = true;
+
+        // A keyboard drag is driven by arrow keys, so forcing a cursor the user isn't holding would be noise.
+        if (event.activatorEvent instanceof KeyboardEvent) {
+            return;
+        }
+        DragCursor.show();
     };
 
     /**
@@ -90,6 +101,7 @@ function DraggableList<T>({
      */
     const onDragEnd = (event: DragEndEvent) => {
         isDraggingRef.current = false;
+        DragCursor.hide();
         const {active, over} = event;
 
         if (over !== null && active.id !== over.id) {
@@ -106,6 +118,7 @@ function DraggableList<T>({
 
     const onDragCancel = () => {
         isDraggingRef.current = false;
+        DragCursor.hide();
     };
 
     const sortableItems = data.map((item, index) => {

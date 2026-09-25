@@ -36,7 +36,6 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@src/libs/actions/Report', () => ({
     ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report'),
-    notifyNewAction: jest.fn(),
     setDeleteTransactionNavigateBackUrl: jest.fn(),
 }));
 

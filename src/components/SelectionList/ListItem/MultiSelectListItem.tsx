@@ -1,12 +1,10 @@
-import ListItemComposed from '@components/SelectionList/ListItemComposed';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type {ListItem, MultiSelectListItemProps} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 import BaseSelectListItem from './BaseSelectListItem';
 
@@ -32,7 +30,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem,
     titleNumberOfLines,
-}: MultiSelectListItemProps<TItem>) {
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 
@@ -41,14 +39,6 @@ function MultiSelectListItem<TItem extends ListItem>({
     return (
         <BaseSelectListItem
             item={item}
-            leftElement={
-                icon ? (
-                    <ListItemComposed.CompactAvatar
-                        icon={icon}
-                        style={styles.mr3}
-                    />
-                ) : undefined
-            }
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}

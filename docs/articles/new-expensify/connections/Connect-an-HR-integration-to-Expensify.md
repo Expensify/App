@@ -89,6 +89,7 @@ For provider-specific setup details, see the dedicated articles for [BambooHR](/
 
 After the initial sync finishes:
 
+- A sync complete screen opens — named for your provider, such as **Workday sync complete** — with the **Added**, **Removed**, and **Skipped** employee counts. Click **Skipped** to see each skipped employee and the reason they were skipped, then click **Got it** to close the screen. The screen only opens if you stay on the **HR** or **Members** tab while the sync runs.
 - The connection displays the **Last synced** timestamp.
 - Active employees in your HR system are added to the workspace.
 - Employees who don't already have an Expensify account receive an email invitation to finish setting up their account.
@@ -128,7 +129,7 @@ No. You can connect only one HR platform to a workspace at a time. If you try to
 
 ## Can I sync employees to different Expensify workspaces?
 
-No. Each HR integration syncs all employees to a single Expensify workspace. You must choose one workspace when connecting.
+Yes. You can select which group to connect to each workspace, and connect different groups to different workspaces.
 
 ## Why is my HR integration connected but my employees haven't synced?
 

@@ -35,6 +35,9 @@ type ExportDownload = {
 
     /** Whether the export file should be sent from Concierge */
     shouldSendFromConcierge?: boolean;
+
+    /** Whether the export was limited to the first 50,000 matching reports */
+    truncated?: boolean;
 };
 
 export default ExportDownload;

@@ -311,6 +311,129 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
     });
 
+    it.each([false, true])('hides marketing before delegate/loading updates during Copilot entry (first session: %s)', async (isFirstSession) => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: !isFirstSession});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: USER_ACCOUNT_ID, email: USER_EMAIL});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(!!screen.queryByText(adminHeading)).toBe(!isFirstSession);
+
+        // ConnectAsDelegate changes the session before loading and delegatedAccess are updated.
+        // Preserve the still-eligible owner policy/login to exercise that intermediate render.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: USER_EMAIL}});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: USER_ACCOUNT_ID});
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.ACCOUNT, {});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.queryByText(adminHeading)).toBeNull();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(!!screen.queryByText(adminHeading)).toBe(!isFirstSession);
+        expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+    });
+
+    it('keeps the original session eligible when a failed Copilot connection leaves a stashed session', async () => {
+        const errorTimestamp = '1';
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: USER_ACCOUNT_ID, email: USER_EMAIL});
+            await Onyx.set(ONYXKEYS.ACCOUNT, {delegatedAccess: {errorFields: {connect: {[SECOND_USER_EMAIL]: {[errorTimestamp]: 'Connection failed'}}}}});
+            await waitForBatchedUpdatesWithAct();
+        });
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
+    it.each([{authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT}, {isSupportAuthTokenUsed: true}])(
+        'preserves marketing eligibility and first-session suppression in Supportal (%j)',
+        async (supportSession) => {
+            await act(async () => {
+                await setupOnyxBaseline({isAdmin: true});
+                await Onyx.merge(ONYXKEYS.SESSION, supportSession);
+                await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderManager();
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(adminHeading)).toBeTruthy();
+
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+                await waitForBatchedUpdatesWithAct();
+            });
+            expect(screen.queryByText(adminHeading)).toBeNull();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+                await waitForBatchedUpdatesWithAct();
+            });
+            expect(screen.queryByText(adminHeading)).toBeNull();
+            expect(mockDismissMarketingWindow).not.toHaveBeenCalled();
+        },
+    );
+
+    it('does not latch onboarding from the destination during the pre-delegate transition gap', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: SECOND_USER_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, null);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(screen.getByText(adminHeading)).toBeTruthy();
+    });
+
     it('does not latch incomplete onboarding observed while acting as a copilot', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
@@ -836,7 +959,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_VENDORS.getRoute(POLICY_ID));
     });
 
-    it('uses More Features without fetching fallback workspace connections when Vendor Matching beta is disabled', async () => {
+    it('waits for fallback workspace connections, then uses the hydrated DualEntry Vendors route when Vendor Matching beta is disabled', async () => {
         await act(async () => {
             await setupOnyxBaseline({
                 isAdmin: true,
@@ -852,12 +975,30 @@ describe('ProductMarketingWindowManager', () => {
         renderManager();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockOpenPolicyAccountingPage).not.toHaveBeenCalled();
+        expect(mockOpenPolicyAccountingPage).toHaveBeenCalledWith(POLICY_ID);
+        expect(screen.getByText(adminCtaLabel)).toBeDisabled();
+        fireEvent.press(screen.getByText(adminCtaLabel));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                ...buildAdminPolicy(),
+                areConnectionsEnabled: true,
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {config: {isConfigured: true}},
+                }),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${POLICY_ID}`, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
         expect(screen.getByText(adminCtaLabel)).not.toBeDisabled();
         fireEvent.press(screen.getByText(adminCtaLabel));
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(POLICY_ID));
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_VENDORS.getRoute(POLICY_ID));
     });
 
     it.each([

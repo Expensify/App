@@ -49,7 +49,6 @@ function CardListItem<TItem extends ListItem>({
     onSelectRow,
     onSelectionButtonPress,
     onDismissError,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
 }: CardListItemProps<TItem>) {
@@ -78,7 +77,7 @@ function CardListItem<TItem extends ListItem>({
     return (
         <SelectableListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            wrapperStyle={styles.listItemRow}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
@@ -87,7 +86,6 @@ function CardListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
         >

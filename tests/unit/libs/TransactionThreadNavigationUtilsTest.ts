@@ -27,7 +27,6 @@ const mockSetOptimisticTransactionThread = jest.mocked(setOptimisticTransactionT
 
 const CONTEXT = {
     introSelected: undefined,
-    betas: undefined,
     currentUserEmail: 'me@test.com',
     currentUserAccountID: 1,
     personalDetails: undefined,

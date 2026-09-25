@@ -1,5 +1,6 @@
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
@@ -43,7 +44,7 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
-        const scrollViewRef = listRef.current.getNativeScrollRef?.() as ScrollView | undefined;
+        const scrollViewRef = listRef.current.getNativeScrollRef?.() as ComponentRef<typeof ScrollView> | undefined;
         // Try to scroll on underlying scrollView if available, fallback to usual listRef
         if (scrollViewRef && typeof scrollViewRef.scrollToEnd === 'function') {
             scrollViewRef.scrollToEnd({animated: false});

@@ -79,6 +79,13 @@ jest.mock('expo-location', () => ({
         Highest: 5,
         BestForNavigation: 6,
     },
+    ActivityType: {
+        Other: 1,
+        AutomotiveNavigation: 2,
+        Fitness: 3,
+        OtherNavigation: 4,
+        Airborne: 5,
+    },
 }));
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest

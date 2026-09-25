@@ -394,6 +394,15 @@ describe('NumericField.TextInput', () => {
         expect(inputOnKeyPress).toHaveBeenCalledTimes(1);
     });
 
+    it('uses submit behavior by default', async () => {
+        // Given a NumericField.TextInput
+        renderTextInput({testID: INPUT_TEST_ID}, {value: '10'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Enter submits without blurring
+        expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('submit');
+    });
+
     it('collapses the selection onto its end when clearSelection is called', async () => {
         const ref = React.createRef<NumericFieldRef>();
 

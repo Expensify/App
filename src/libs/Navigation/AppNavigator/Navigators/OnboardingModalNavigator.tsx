@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {CardStyleInterpolators} from '@react-navigation/stack';
@@ -49,7 +50,7 @@ let signUpEventPublishedForAccountID: number | undefined;
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const outerViewRef = React.useRef<View>(null);
+    const outerViewRef = React.useRef<ComponentRef<typeof View>>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 

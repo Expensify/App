@@ -68,11 +68,11 @@ type RequireFieldsRulePageBaseProps = {
 function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const policyData = usePolicyData(policyID);
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
@@ -361,18 +361,18 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
 
         if (didChangeCategory && originalCategoryName) {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName));
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName), isVendorMatchingBetaEnabled);
             // Old category is fully removed; clearedFields belonged to that rule, not the new category.
-            saveRequireFieldsRule(policyData, formToSave, touchedFields);
+            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields);
         } else {
-            saveRequireFieldsRule(policyData, formToSave, touchedFields, clearedFields);
+            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields, clearedFields);
         }
 
         clearDraftRequireFieldsRule();
 
         // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
         // case going back one step would land on the New rule hub instead of the category we came from.
-        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
+        if (!isEditing || !!initialCategoryName) {
             const savedCategoryName = savedCategory ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
@@ -406,7 +406,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const {deleteHeaderProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
         onDelete: () => {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''));
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''), isVendorMatchingBetaEnabled);
             return true;
         },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DELETE,
@@ -442,7 +442,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 testID={testID}

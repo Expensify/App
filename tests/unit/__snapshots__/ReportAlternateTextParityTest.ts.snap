@@ -156,6 +156,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AGENT_RULE 1`] = `"updated an agent rule to: "`;
 
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_APPROVAL_LIMIT 1`] = `"Fixture message html"`;
+
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_APPROVER_RULE 1`] = `"Fixture message html"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_AUDIT_RATE 1`] = `"Fixture message html"`;
@@ -235,6 +237,8 @@ exports[`getOptionData alternateText parity snapshots special-action chain branc
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_MCC_GROUP_CATEGORY 1`] = `"Fixture message html"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_NAME 1`] = `"Fixture message html"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_OVER_LIMIT_FORWARDS_TO 1`] = `"changed the approval workflow for  to stop forwarding reports over $0.00"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) POLICYCHANGELOG_UPDATE_OWNERSHIP 1`] = `"Fixture message html"`;
 

@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -79,12 +79,9 @@ function WorkspaceTaxesSettingsPage({
                                 key={item.description}
                                 pendingAction={item.pendingAction}
                             >
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={item.title}
-                                    description={item.description}
-                                    style={[styles.moneyRequestMenuItem]}
-                                    titleStyle={styles.flex1}
+                                <MenuItemField
+                                    value={item.title}
+                                    name={item.description}
                                     onPress={item.action}
                                 />
                             </OfflineWithFeedback>

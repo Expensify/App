@@ -162,6 +162,7 @@ type UpdateMultipleMoneyRequestsParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function writeBulkEditMoneyRequest(
@@ -208,6 +209,7 @@ function updateMultipleMoneyRequests({
     getCurrencyDecimals,
     getCurrencySymbol,
     rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMultipleMoneyRequestsParams) {
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -285,7 +287,16 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs, rules});
+            return canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report: iouReport,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions: transactionReportActions,
+                rules,
+            });
         };
 
         let transactionChanges: TransactionChanges = {};
@@ -548,6 +559,7 @@ function updateMultipleMoneyRequests({
                 ownerLogin: getLoginByAccountID(iouReport?.ownerAccountID, personalDetailsList),
                 isFromExpenseReport,
                 distanceOriginalPolicy,
+                isVendorMatchingBetaEnabled,
             });
             optimisticData.push(optimisticViolationsData);
             failureData.push({

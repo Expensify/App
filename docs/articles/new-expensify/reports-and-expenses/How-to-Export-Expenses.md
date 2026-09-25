@@ -1,7 +1,7 @@
 ---
 title: How to Export Expenses
 description: Learn how to export expenses from the Expenses page to CSV using default or custom export templates, and how to download their receipts, in New Expensify.
-keywords: [New Expensify, export expenses, CSV export, download expenses, download receipts, expense receipts, receipt zip, expense export template, bulk export expenses, expense data]
+keywords: [New Expensify, export expenses, CSV export, download expenses, download receipt, download receipts, expense receipts, receipt zip, expense export template, bulk export expenses, expense data]
 internalScope: Audience is all members. Covers exporting expenses from the Expenses page to CSV using export templates (both individually and in bulk) and downloading the receipts on selected expenses. Does not cover exporting reports to CSV or PDF (see Export-Reports.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
@@ -41,10 +41,10 @@ You can download the receipts attached to your selected expenses in a single ZIP
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all.
 3. Select **Selected** at the top.
-4. Select **Download receipts**.
+4. Select **Download receipts**, or **Download receipt** if only one selected expense has a receipt.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
-**Note:** **Download receipts** only appears when at least one selected expense has a receipt. Deleted expenses are not included in the download.
+**Note:** This action only appears when at least one selected expense has a receipt. It reads **Download receipt** when exactly one selected expense has a receipt, and **Download receipts** when more than one does. Deleted expenses are not included in the download.
 
 ## How to export the columns currently displayed using Export current view
 
@@ -88,9 +88,13 @@ If all selected expenses are deleted, only the **Basic export** template is avai
 
 Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
 
-## Why don't I see Download receipts for my selected expenses?
+## Why don't I see Download receipt or Download receipts for my selected expenses?
 
-**Download receipts** only appears when at least one selected expense has a receipt attached. If none of the selected expenses have receipts, the option is hidden.
+This action only appears when at least one selected expense has a receipt attached. If none of the selected expenses have receipts, the option is hidden.
+
+## Why does the receipt download option sometimes read Download receipt instead of Download receipts?
+
+The label follows the number of receipts the download will include. It reads **Download receipt** when exactly one selected expense has a receipt, and **Download receipts** when more than one does. The download itself is the same either way.
 
 ## Are deleted expenses included when I download receipts?
 

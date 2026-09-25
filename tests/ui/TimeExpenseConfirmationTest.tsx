@@ -264,7 +264,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const hoursRow = screen.getByTestId('menu-item-Hours');
+            const hoursRow = screen.getByRole('button', {name: /^Hours/});
             expect(within(hoursRow).getByText('8')).toBeDefined();
         });
 
@@ -274,7 +274,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const rateRow = screen.getByTestId('menu-item-Rate');
+            const rateRow = screen.getByRole('button', {name: /^Rate/});
             expect(within(rateRow).getByText(/\$50\.00 \/ hour/)).toBeDefined();
         });
 
@@ -334,8 +334,8 @@ describe('TimeExpenseConfirmationTest', () => {
             }
 
             // Hours and Rate are only shown during CREATE
-            expect(screen.queryByTestId('menu-item-Hours')).toBeNull();
-            expect(screen.queryByTestId('menu-item-Rate')).toBeNull();
+            expect(screen.queryByRole('button', {name: /^Hours/})).toBeNull();
+            expect(screen.queryByRole('button', {name: /^Rate/})).toBeNull();
         });
     });
 
@@ -356,7 +356,7 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const rateRow = screen.getByTestId('menu-item-Rate');
+            const rateRow = screen.getByRole('button', {name: /^Rate/});
             expect(within(rateRow).getByText(/€50\.00 \/ hour/)).toBeDefined();
         });
     });

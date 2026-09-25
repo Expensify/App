@@ -290,7 +290,7 @@ See `IOURequestStepConfirmation.tsx` for a reference implementation.
 > When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures.
 
 > [!NOTE]
-> See [PERF-18](../.claude/skills/coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
+> See [PERF-18](../.claude/skills/app-coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
 
 #### What pre-inserting actually costs
 
@@ -1736,8 +1736,10 @@ The purpose of the `adaptStateIfNecessary` function is to ensure that a given `S
 
 When is this function used:
 
--   This function is called when the application starts. If we open the application on the central screen, this function will push the sidebar screen.
+-   This function is called when the application starts. If we open the application on the central screen, this function will push the sidebar screen unless the navigation explicitly opts out on a narrow layout. Wide layouts always keep the sidebar.
 -   When we are on the sidebar on a small screen and we expand it to a wide layout, we have to push the central screen to fill the space on the screen.
+
+The initial-route condition can also apply during in-app navigation while `TAB_NAVIGATOR` is the only route in the root stack. A caller can use `shouldSkipInitialSplitNavigatorSidebar` to prevent a directly opened split destination from adding the sidebar as an intermediate Back destination on a narrow layout.
 
 > [!NOTE] 
 > `adaptStateIfNecessary` is called in the `getInitialState` and `getRehydratedState` methods in `src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts`.

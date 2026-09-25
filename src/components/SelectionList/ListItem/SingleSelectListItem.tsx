@@ -1,5 +1,3 @@
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import React from 'react';
 
 import type {ListItem, SingleSelectListItemProps} from './types';
@@ -28,19 +26,15 @@ function SingleSelectListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem,
     isFocusVisible,
-    rightHandSideComponent,
     selectionButtonPosition,
     titleNumberOfLines,
 }: SingleSelectListItemProps<TItem>) {
-    const styles = useThemeStyles();
-
     return (
         <BaseSelectListItem
             item={item}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={rightHandSideComponent}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
@@ -49,7 +43,7 @@ function SingleSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[styles.optionRow, wrapperStyle]}
+            wrapperStyle={wrapperStyle}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             isFocusVisible={isFocusVisible}

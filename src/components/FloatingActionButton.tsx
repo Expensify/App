@@ -9,7 +9,7 @@ import variables from '@styles/variables';
 
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text as TextType, View as ViewType} from 'react-native';
 
@@ -34,14 +34,14 @@ type FloatingActionButtonProps = WithSentryLabel & {
     isActive: boolean;
     accessibilityLabel: string;
     role: Role;
-    ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
+    ref?: ForwardedRef<HTMLDivElement | ComponentRef<typeof ViewType> | ComponentRef<typeof TextType>>;
 };
 
 function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
     const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
-    const fabPressable = useRef<HTMLDivElement | ViewType | TextType | null>(null);
+    const fabPressable = useRef<HTMLDivElement | ComponentRef<typeof ViewType> | ComponentRef<typeof TextType> | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
     const {translate} = useLocalize();

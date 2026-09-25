@@ -117,7 +117,6 @@ describe('DynamicReportDetailsPage', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DynamicReportDetailsPage
-                        betas={[]}
                         isLoadingReportData={false}
                         navigation={navigationMock}
                         policy={undefined}
@@ -152,7 +151,6 @@ describe('DynamicReportDetailsPage', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DynamicReportDetailsPage
-                        betas={[]}
                         isLoadingReportData={false}
                         navigation={navigationMock}
                         policy={undefined}
@@ -181,7 +179,6 @@ describe('DynamicReportDetailsPage', () => {
                 <OnyxListItemProvider>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            betas={[]}
                             isLoadingReportData={false}
                             navigation={navigationMock}
                             policy={undefined}
@@ -323,7 +320,6 @@ describe('DynamicReportDetailsPage', () => {
                 <OnyxListItemProvider>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            betas={[]}
                             isLoadingReportData={false}
                             navigation={navigationMock}
                             policy={undefined}
@@ -361,7 +357,6 @@ describe('DynamicReportDetailsPage', () => {
                 <OnyxListItemProvider>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            betas={[]}
                             isLoadingReportData={false}
                             navigation={navigationMock}
                             policy={undefined}

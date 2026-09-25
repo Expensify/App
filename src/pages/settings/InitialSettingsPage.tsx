@@ -1,4 +1,5 @@
 import AccountSwitcher from '@components/AccountSwitcher';
+import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
@@ -11,6 +12,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -24,12 +26,15 @@ import {openInitialSettingsPage} from '@userActions/Wallet';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
+import {canSwitchAccountsSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -41,7 +46,8 @@ import useInitialSettingsPageMenuData from './useInitialSettingsPageMenuData';
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
@@ -100,13 +106,23 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
 
+    // Must match the same condition in AccountSwitcher, or the skeleton and the loaded header lay out differently.
+    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
+
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
             {isPersonalDetailsEmpty ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
+                <AccountSwitcherSkeletonView
+                    avatarSize={shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT}
+                    shouldStackHeader={shouldStackHeader}
+                    shouldShowSwitchButton={canSwitchAccounts}
+                />
             ) : (
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <AccountSwitcher isScreenFocused={isScreenFocused} />
+                    <AccountSwitcher
+                        isScreenFocused={isScreenFocused}
+                        shouldShowSwitchButton={shouldUseNarrowLayout}
+                    />
                 </View>
             )}
         </View>
@@ -114,7 +130,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const route = useRoute();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const triggerScrollEvent = useScrollEventEmitter();
 
     const onScroll: NonNullable<ScrollViewProps['onScroll']> = (e) => {
@@ -147,7 +163,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 breadcrumbLabel={translate('initialSettingsPage.account')}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
-            />
+            >
+                {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
+                    /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
+                    <View style={styles.mr2}>
+                        <AccountSwitcherButton isScreenFocused={isScreenFocused} />
+                    </View>
+                )}
+            </TopBarWithLoadingBar>
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}

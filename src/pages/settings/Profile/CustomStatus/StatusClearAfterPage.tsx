@@ -79,7 +79,7 @@ const useValidateCustomDate = (translate: LocalizedTranslate, data: string) => {
 
 function StatusClearAfterPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
@@ -128,7 +128,12 @@ function StatusClearAfterPage() {
     }, []);
 
     const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');
-    const customStatusTime = DateUtils.getTime12HourWithTranslatedPeriod(translate, statusDraftCustomClearAfterDate ?? '');
+    // The sentinel and empty cases are guarded here because, unlike `extractTime12Hour`, the display formatter parses
+    // whatever it is handed.
+    const customStatusTime =
+        statusDraftCustomClearAfterDate && statusDraftCustomClearAfterDate !== CONST.CUSTOM_STATUS_TYPES.NEVER
+            ? DateUtils.formatToLocalTime(statusDraftCustomClearAfterDate, dateFnsLocale)
+            : '';
 
     const listFooterContent = useMemo(() => {
         if (draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM) {

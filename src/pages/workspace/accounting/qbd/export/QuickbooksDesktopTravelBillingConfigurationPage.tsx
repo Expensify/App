@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -24,7 +25,7 @@ import React from 'react';
 
 type QBDSection = {
     title?: string;
-    description?: string;
+    description: string;
     onPress: () => void;
     subscribedSettings: string[];
     pendingAction?: PendingAction;
@@ -75,13 +76,13 @@ function QuickbooksDesktopTravelBillingConfigurationPage({policy}: WithPolicyCon
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
+                    <MenuItemField
+                        name={section.description}
                         onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                    />
+                        value={section.title}
+                    >
+                        {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>

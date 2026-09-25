@@ -14,9 +14,12 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
-// Relative on purpose: module aliases are not resolved when this config is evaluated.
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import SENTRY_APPLICATION_KEY from '../../src/libs/telemetry/sentryApplicationKey.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+// Relative on purpose: module aliases are not resolved when this config is evaluated.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import getAppVersion from '../../src/libs/VersionUtils.ts'; // eslint-disable-line @dword-design/import-alias/prefer-alias
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -49,20 +52,11 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
         {
             loader: path.resolve(dirname, './loaders/oxc-react-compiler-loader.mjs'),
             options: {
-                reactCompiler: {
-                    target: '19',
-                    panicThreshold: 'none',
-                    // `sources` is a filename allowlist: the compiler only runs on files whose path
-                    // contains one of these strings. Every path contains the empty string, so this
-                    // replaces the default filter (which skips `node_modules`) and keeps the compiler
-                    // running over INCLUDED_NODE_MODULES the same way it does over app source.
+                reactCompiler: oxcReactCompilerConfig({
+                    // The empty string matches every path, replacing the default filter that skips
+                    // node_modules. Web only: native must not compile dependencies.
                     sources: [''],
-                    // The compiler treats `react-hooks/exhaustive-deps` and `react-hooks/rules-of-hooks`
-                    // suppressions as an opt-out by default. babel-plugin-react-compiler disables that
-                    // default whenever exhaustive-memo and hooks-usage validation are both on, which is
-                    // its own default, so an empty list keeps web and Metro/Jest compiling the same files.
-                    eslintSuppressionRules: [],
-                },
+                }),
                 jsx: {runtime: 'automatic', development: isDevServer, refresh: isDevServer},
             },
         },
@@ -336,10 +330,12 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
     const shared = getSharedConfiguration({file, platform, isDevServer});
     const sharedRspackTool = shared.tools?.rspack;
     const sentryWebpackPlugin = isDevelopment ? undefined : (await import('@sentry/webpack-plugin')).sentryWebpackPlugin;
+    const {semanticVersion, buildNumber} = getAppVersion(process.env.npm_package_version ?? '');
+    const releaseName = `${process.env.npm_package_name}@${semanticVersion}`;
 
     if (!isDevelopment) {
-        const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
         console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
+        console.debug(`[SENTRY ${platform.toUpperCase()}] Dist: ${buildNumber ?? 'none'}`);
         console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${'./dist/**/*.{js,map}'}`);
     }
 
@@ -390,6 +386,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             copy: [
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
+                {from: 'web/favicon-concierge-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
                 {from: 'web/robots.txt'},
@@ -570,7 +567,8 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                                   org: 'expensify',
                                   project: 'app',
                                   release: {
-                                      name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+                                      name: releaseName,
+                                      dist: buildNumber,
                                       create: true,
                                       setCommits: {auto: true},
                                       // Don't inject SENTRY_RELEASE into every chunk: the SDK only reads it as a

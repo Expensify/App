@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import type {ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/core';
@@ -31,7 +31,7 @@ type PopoverComponentProps = {
 
 type ButtonComponentProps = {
     onPress: () => void;
-    ref: RefObject<View | null>;
+    ref: RefObject<ComponentRef<typeof View> | null>;
     isExpanded: boolean;
 };
 
@@ -42,6 +42,9 @@ type FilterPopupButtonProps = {
     popoverAnchorAlignment?: AnchorAlignment;
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     renderButton: (props: ButtonComponentProps) => ReactNode;
+
+    /** Called instead of opening the popover when device is in landscape mode */
+    onLandscapePress?: () => void;
 };
 
 const ANCHOR_ORIGIN = {
@@ -49,18 +52,26 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popoverAnchorAlignment: popoverAnchorAlignmentProp, PopoverComponent, renderButton}: FilterPopupButtonProps) {
+function FilterPopupButton({
+    viewportOffsetTop,
+    popoverWidth,
+    wrapperStyle,
+    popoverAnchorAlignment: popoverAnchorAlignmentProp,
+    PopoverComponent,
+    renderButton,
+    onLandscapePress,
+}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {isKeyboardActive} = useKeyboardState();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive});
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
-    const triggerRef = useRef<View | null>(null);
-    const anchorRef = useRef<View | null>(null);
+    const triggerRef = useRef<ComponentRef<typeof View> | null>(null);
+    const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
     // Defer mounting the (potentially heavy) popover content until the dropdown is first opened, then keep it
     // mounted so the close animation and reopening stay instant. The content is otherwise mounted eagerly on
@@ -117,7 +128,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             style={wrapperStyle}
         >
             {/* Dropdown Trigger */}
-            {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
+            {renderButton({ref: triggerRef, onPress: isInLandscapeMode && onLandscapePress ? onLandscapePress : calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
             {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
                 until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden. */}
             {isFocused && hasEverExpanded && (

@@ -38,6 +38,10 @@ type ReportActionsListItemRendererProps = {
 
     shouldDisplayReplyDivider: boolean;
     isFirstVisibleReportAction: boolean;
+
+    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction?: boolean;
+
     shouldUseThreadDividerLine?: boolean;
 
     /** Animate highlight action in few seconds */
@@ -67,6 +71,7 @@ function ReportActionsListItemRenderer({
     parentReportActionForTransactionThread,
     isHarvestCreatedExpenseReport = false,
     shouldDisableContextMenuForConciergeDraft = false,
+    isLatestConciergeFeedbackAction = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -176,6 +181,7 @@ function ReportActionsListItemRenderer({
             shouldHighlight={shouldHighlight}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
             shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
+            isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
         />
     );
 }

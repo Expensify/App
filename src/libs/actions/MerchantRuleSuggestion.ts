@@ -1,12 +1,46 @@
 import {arePolicyRulesEnabled, isControlPolicy} from '@libs/PolicyUtils';
+import {isInvoiceReport} from '@libs/ReportUtils';
+import {isDistanceRequest, isMerchantMissing, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MerchantRuleSuggestion, Policy, PolicyCategories} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, Policy, PolicyCategories, Report, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+type TrackMerchantRuleSuggestionParams = {
+    /** The edited expense */
+    transactionID: string | undefined;
+
+    /** The field that was edited */
+    field: MerchantRuleSuggestionField;
+
+    /** The edited expense's transaction thread, where the callout can show */
+    reportID: string | undefined;
+
+    /** The workspace that would own the rule */
+    policy: OnyxEntry<Policy>;
+
+    /** That workspace's categories, needed to tell whether Rules are reachable at all */
+    policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** The edited expense itself, which decides whether a merchant rule could ever match it */
+    transaction: OnyxEntry<Transaction>;
+
+    /** The report holding the expense, which is what says the expense is really on this workspace */
+    parentReport: OnyxEntry<Report>;
+
+    /** Which levels of a multi-level tag were edited */
+    editedTagLevels?: number[];
+
+    /**
+     * Whether the edit was made straight from a list of expenses, rather than from the expense itself. Such an edit
+     * records no offer, because the callout has nowhere to appear at the moment it is made.
+     */
+    isEditedFromExpenseList?: boolean;
+};
 
 /**
  * Records an edit that could become a merchant rule, so the expense can offer to create one.
@@ -19,18 +53,40 @@ import Onyx from 'react-native-onyx';
  * the most recently edited expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion` decides
  * who actually sees the callout.
  */
-function trackMerchantRuleSuggestion(
-    transactionID: string | undefined,
-    field: MerchantRuleSuggestionField,
-    reportID: string | undefined,
-    policy: OnyxEntry<Policy>,
-    policyCategories: OnyxEntry<PolicyCategories>,
-    editedTagLevels?: number[],
-) {
+function trackMerchantRuleSuggestion({
+    transactionID,
+    field,
+    reportID,
+    policy,
+    policyCategories,
+    transaction,
+    parentReport,
+    editedTagLevels,
+    isEditedFromExpenseList = false,
+}: TrackMerchantRuleSuggestionParams) {
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
     // moment somebody turned Rules on. Control only, matching the rule page the callout leads to, so an edit on a
     // Collect workspace does not pay for a write that could never be shown.
     if (!transactionID || !reportID || !isControlPolicy(policy) || !arePolicyRulesEnabled(policy, policyCategories)) {
+        return;
+    }
+
+    // An offer nothing can show is an offer nobody asked for. Editing from a list of expenses leaves no expense detail
+    // on screen, so the record would sit there unseen and fire on whatever expense the user opened next.
+    if (isEditedFromExpenseList) {
+        return;
+    }
+
+    // The policy handed in is the one whose fields the editor offered, which is not always the one that owns the
+    // expense. An expense held in a self DM borrows the workspace it would move to, so its edits must not be recorded
+    // against a workspace it has not reached. Invoices are excluded outright, since merchant rules govern expenses.
+    if (parentReport?.policyID !== policy?.id || isInvoiceReport(parentReport)) {
+        return;
+    }
+
+    // A rule matches on merchant, so an expense that has none, or whose merchant is not the user's to set, can never
+    // be matched by the rule this offer would create. Distance and per diem expenses derive their merchant.
+    if (isMerchantMissing(transaction) || isDistanceRequest(transaction) || isPerDiemRequest(transaction)) {
         return;
     }
 

@@ -21,7 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +40,8 @@ import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ComponentRef} from 'react';
+
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -57,10 +59,10 @@ function TaskFieldAvatar({reportID}: {reportID?: string}) {
 
     return (
         <ReportActionAvatars
-            singleAvatarContainerStyle={[styles.actionAvatar]}
-            subscriptAvatarBorderColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
+            singleAvatarContainerStyle={styles.actionAvatar}
+            subscriptAvatarContainerStyle={styles.mr0}
+            backdropColor={isInteractive && (isHovered || isPressed) ? borderColor : undefined}
             reportID={reportID}
-            noRightMarginOnSubscriptContainer
         />
     );
 }
@@ -74,7 +76,7 @@ function DynamicNewTaskPage() {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const reportAttributes = useReportAttributes();
+    const derivedSharedDestinationReportName = useDerivedReportNameByReportID(parentReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [taskCreatorAndAssigneeDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -85,7 +87,18 @@ function DynamicNewTaskPage() {
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate, formatPhoneNumber);
     const assigneePersonalDetails = task?.assigneeAccountID ? personalDetails?.[task.assigneeAccountID] : undefined;
     const shareDestination = task?.shareDestination
-        ? getShareDestination(parentReport, personalDetails, localeCompare, formatPhoneNumber, policy, conciergeReportID, translate, rules, reportAttributes, pendingDeleteMemberAccountIDs)
+        ? getShareDestination(
+              parentReport,
+              personalDetails,
+              localeCompare,
+              formatPhoneNumber,
+              policy,
+              conciergeReportID,
+              translate,
+              rules,
+              derivedSharedDestinationReportName,
+              pendingDeleteMemberAccountIDs,
+          )
         : undefined;
     const ancestors = useAncestors(parentReport);
     const taskKey = `${task?.assignee}|${task?.assigneeAccountID}|${task?.description}|${task?.parentReportID}|${task?.shareDestination}|${task?.title}`;
@@ -102,7 +115,7 @@ function DynamicNewTaskPage() {
     const {paddingBottom} = useSafeAreaPaddings();
 
     const detailsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK.path);
-    const confirmButtonRef = useRef<View>(null);
+    const confirmButtonRef = useRef<ComponentRef<typeof View>>(null);
 
     const navigateToAssignee = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path));
     const navigateToShareDestination = task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path));

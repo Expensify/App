@@ -35,7 +35,7 @@ describe('SearchColumnsPage', () => {
             throw new Error('Invalid test query');
         }
 
-        const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+        const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
         (jest.mocked(useOnyx) as jest.Mock).mockReturnValue([form]);
         mockGetRootState.mockReturnValue({
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR, params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: input}}}}],

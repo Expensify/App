@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,8 +43,6 @@ function RulesMaxExpenseAmountPage({
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const defaultValue =
         policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount
@@ -64,7 +61,7 @@ function RulesMaxExpenseAmountPage({
                 testID="RulesMaxExpenseAmountPage"
             >
                 <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.expensesAboveAmount' : 'workspace.rules.individualExpenseRules.maxExpenseAmount')}
+                    title={translate('workspace.rules.generalTab.expensesAboveAmount')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider

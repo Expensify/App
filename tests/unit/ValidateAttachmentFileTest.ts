@@ -207,6 +207,22 @@ describe('validateAttachmentFile', () => {
             expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
         });
 
+        it.each(['folder', 'receipts.pdf'])('returns FOLDER_NOT_ALLOWED for a receipt directory named %s', async (name) => {
+            const mockItem = createMock<DataTransferItem>({
+                kind: 'file' as const,
+                webkitGetAsEntry: jest.fn(() => createMock<FileSystemEntry>({isDirectory: true})),
+            });
+
+            const file = createMockFile(name, 0);
+            const error = await validateAttachmentFile(file, mockItem, true);
+
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
+        });
+
         it('returns valid result when DataTransferItem is not a directory', async () => {
             const mockItem = createMock<DataTransferItem>({
                 kind: 'file' as const,

@@ -2,8 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';

@@ -52,7 +52,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed;
     const cardID = route.params.cardID;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
@@ -72,9 +72,10 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardToAssign = assignCard?.cardToAssign;
 
     const cardholder = usePersonalDetailByLogin(cardToAssign?.email ?? '');
-    const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
+    const cardholderDisplayName = cardholder?.displayName ?? '';
+    const cardholderName = Str.isSMSLogin(cardholderDisplayName) ? formatPhoneNumber(cardholderDisplayName) : cardholderDisplayName;
 
-    const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
+    const cardholderEmail = formatPhoneNumber(cardToAssign?.email ?? '');
     const cardholderAccountID = cardholder?.accountID;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -113,7 +114,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 });
             }
 
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feed));
+            clearAssignCardErrorsAction();
+            setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feed));
+            });
             return;
         }
 

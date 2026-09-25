@@ -8,6 +8,7 @@ import ControlSelection from '@libs/ControlSelection';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ComponentRef} from 'react';
 import type {PanGesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
 
@@ -76,7 +77,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
     return (
         <GestureDetector gesture={panGesture}>
             <Animated.View
-                ref={(el: View | null) => ControlSelection.blockElement(el as HTMLElement | null)}
+                ref={(el: ComponentRef<typeof View> | null) => ControlSelection.blockElement(el as HTMLElement | null)}
                 style={[containerStyle, styles.imageCropContainer]}
             >
                 <Animated.Image

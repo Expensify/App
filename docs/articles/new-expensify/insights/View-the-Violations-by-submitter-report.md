@@ -67,6 +67,12 @@ To create your own custom search, [learn how to use search operators to filter a
 
 Not directly — the Violations by submitter report can’t be exported with its grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
 
+## Why doesn’t the Violations column appear in my own search?
+
+The **Violations** column is only available when your search filters for violations, because that’s the only time Expensify returns violation data. Add **Submitted violation**, **Approved violation**, or both under **Has** in **Filters**, and the column is added to the table and listed in **Display** > **Edit columns**. Removing both filters removes the column again.
+
+[Learn how to customize the columns in Spend](/articles/new-expensify/reports-and-expenses/Using-Reports-in-New-Expensify).
+
 ## How is the Violations by submitter report calculated?
 
 The report uses expenses from the previous calendar month that had a violation at the time they were submitted, groups them by the member who submitted them, and shows the top 10 members by the number of expenses with violations.

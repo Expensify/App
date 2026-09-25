@@ -60,7 +60,7 @@ describe('search shouldSaveRecentSearch flag', () => {
         expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldSaveRecentSearch: true}));
     });
 
-    it('omits the flag entirely by default so programmatic searches cannot be saved', async () => {
+    it('sends the flag as false by default so programmatic searches cannot be saved', async () => {
         // Given a search fired without the save-recent-search flag, like the home screen sections do
         // When the search is fired
         await search({
@@ -70,8 +70,8 @@ describe('search shouldSaveRecentSearch flag', () => {
             isLoading: false,
         });
 
-        // Then the payload contains no trace of the flag, so the backend cannot save this query
-        expect(getLastRequestJsonQuery()).not.toHaveProperty('shouldSaveRecentSearch');
+        // Then the payload declares the flag as false, because the backend saves the query when the flag is missing
+        expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldSaveRecentSearch: false}));
     });
 
     it('preserves the flag on a totals request queued behind an in-flight search', async () => {

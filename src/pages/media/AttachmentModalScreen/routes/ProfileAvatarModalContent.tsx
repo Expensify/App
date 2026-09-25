@@ -1,6 +1,7 @@
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -26,8 +27,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const defaultAvatars = useDefaultAvatars();
     const {formatPhoneNumber, translate} = useLocalize();
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const personalDetail = personalDetails?.[accountID];
+    const [personalDetail] = usePersonalDetail(accountID);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, translate, formatPhoneNumber});

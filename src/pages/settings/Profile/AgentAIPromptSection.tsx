@@ -21,7 +21,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
 
@@ -34,10 +34,10 @@ const SAVED_CONFIRMATION_DURATION_MS = 2000;
 
 type AgentAIPromptSectionProps = {
     accountID: number;
-    parentScrollViewRef?: RefObject<RNScrollView | null>;
+    parentScrollViewRef?: RefObject<ComponentRef<typeof RNScrollView> | null>;
 };
 
-function scrollInputIntoView(parentScrollViewRef: RefObject<RNScrollView | null>) {
+function scrollInputIntoView(parentScrollViewRef: RefObject<ComponentRef<typeof RNScrollView> | null>) {
     if (getPlatform() !== CONST.PLATFORM.IOS) {
         return;
     }

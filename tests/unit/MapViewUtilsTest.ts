@@ -173,6 +173,20 @@ describe('MapView utils', () => {
         });
     });
 
+    describe('getSinglePointCoordinate', () => {
+        it('returns the coordinate a trip with a single point sits on', () => {
+            expect(utils.getSinglePointCoordinate([[1, 2]], [[1, 2]])).toEqual([1, 2]);
+        });
+
+        it('returns nothing for coordinates that span an area', () => {
+            expect(utils.getSinglePointCoordinate([[1, 2]], SINGLE_SEGMENT)).toBeUndefined();
+        });
+
+        it('returns nothing when there are no coordinates', () => {
+            expect(utils.getSinglePointCoordinate([], undefined)).toBeUndefined();
+        });
+    });
+
     describe('isSingleSegmentRoute', () => {
         it('detects single segment, segmented and empty routes', () => {
             expect(utils.isSingleSegmentRoute(SINGLE_SEGMENT)).toBe(true);

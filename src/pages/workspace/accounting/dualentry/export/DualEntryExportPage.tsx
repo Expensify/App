@@ -1,6 +1,7 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
@@ -69,66 +70,70 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.exportDescription')}</Text>
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPORTER], dualentryConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={exporter}
-                    description={translate('workspace.accounting.preferredExporter')}
+                <MenuItemField
+                    name={translate('workspace.accounting.preferredExporter')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.EXPORTER], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={exporter}
+                >
+                    {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.EXPORTER], dualentryConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.REIMBURSABLE], dualentryConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.dualEntry.exportReimbursable.values.${exportReimbursable}.label`)}
-                    description={translate('workspace.dualEntry.exportReimbursable.label')}
-                    onPress={() => {}}
-                    interactive={false}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.REIMBURSABLE], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemField
+                    name={translate('workspace.dualEntry.exportReimbursable.label')}
+                    value={translate(`workspace.dualEntry.exportReimbursable.values.${exportReimbursable}.label`)}
+                >
+                    {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.REIMBURSABLE], dualentryConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.EXPORT_DATE], dualentryConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.dualEntry.exportDate.values.${exportDate}.label`)}
-                    description={translate('workspace.dualEntry.exportDate.label')}
+                <MenuItemField
+                    name={translate('workspace.dualEntry.exportDate.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.EXPORT_DATE], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={translate(`workspace.dualEntry.exportDate.values.${exportDate}.label`)}
+                >
+                    {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.EXPORT_DATE], dualentryConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE], dualentryConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.dualEntry.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
-                    description={translate('workspace.dualEntry.exportNonReimbursable.label')}
-                    onPress={() => {}}
-                    interactive={false}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                    }
-                />
+                <MenuItemField
+                    name={translate('workspace.dualEntry.exportNonReimbursable.label')}
+                    value={translate(`workspace.dualEntry.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
+                >
+                    {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE], dualentryConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID], dualentryConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={defaultCompanyCardVendor?.name}
-                    description={translate('workspace.dualEntry.defaultCompanyCardVendor.label')}
+                <MenuItemField
+                    name={translate('workspace.dualEntry.defaultCompanyCardVendor.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                    }
-                />
+                    value={defaultCompanyCardVendor?.name}
+                >
+                    {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID], dualentryConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={companyCardAccount ? `${companyCardAccount?.id} ${companyCardAccount?.name}` : undefined}
-                    description={translate('workspace.dualEntry.companyCardAccount.label')}
+                <MenuItemField
+                    name={translate('workspace.dualEntry.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID], dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                    }
-                />
+                    value={companyCardAccount ? `${companyCardAccount?.id} ${companyCardAccount?.name}` : undefined}
+                >
+                    {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID], dualentryConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             {hasActiveCards && (
                 <>
@@ -148,30 +153,28 @@ function DualEntryExportPage({policy}: WithPolicyConnectionsProps) {
                         isToggleTriggered={shouldAnimateExportToMultipleAccountsAccordionSection}
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction(cardProgramsOfflineFeedbackKeys, dualentryConfig?.pendingFields)}>
-                            <MenuItemWithTopDescription
-                                title={translate('workspace.dualEntry.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
-                                description={translate('workspace.dualEntry.cardProgramAccount.label')}
+                            <MenuItemField
+                                name={translate('workspace.dualEntry.cardProgramAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT.getRoute(policyID)) : undefined)}
-                                shouldShowRightIcon
-                                brickRoadIndicator={
-                                    areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, dualentryConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                                }
-                            />
+                                value={translate('workspace.dualEntry.cardProgramAccount.countInfo', cardProgramsUsingCustomAccountsCount)}
+                            >
+                                {areSettingsInErrorFields(cardProgramsOfflineFeedbackKeys, dualentryConfig?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback
                             pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT)}
                         >
-                            <MenuItemWithTopDescription
-                                title={translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
-                                description={translate('workspace.dualEntry.cardAccount.label')}
+                            <MenuItemField
+                                name={translate('workspace.dualEntry.cardAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
-                                shouldShowRightIcon
-                                brickRoadIndicator={
-                                    areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT)
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                            />
+                                value={translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.totalCount)}
+                            >
+                                {areCardsCustomExportInErrorFields(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                     </Accordion>
                 </>

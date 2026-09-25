@@ -1,4 +1,5 @@
-import {normalizeNumericInput} from '@components/NumericEditingController/utils';
+import type {NumericEditingSelection} from '@components/NumericEditingController/types';
+import {normalizeNumericInput, toCanonicalValueDefault, toDisplayTextDefault} from '@components/NumericEditingController/utils';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -20,6 +21,12 @@ type UseNumericEditingControllerParams = {
 
     /** Maximum number of integer digits accepted by the controller. */
     maxLength?: number;
+
+    /** Maps canonical values to displayed text. Defaults to identity. */
+    toDisplayText?: (canonicalValue: string) => string;
+
+    /** Maps validated text to a canonical value, given the selection the edit replaced. Defaults to identity. */
+    toCanonicalValue?: (displayText: string, previousCanonicalValue: string, previousSelection: NumericEditingSelection) => string;
 };
 
 /** Runs on mount and whenever `decimals` changes, sanitizing values that exceed the new precision. */
@@ -38,7 +45,15 @@ function useDecimalsChangeEffect(decimals: number, sanitizeForDecimals: (decimal
 }
 
 /** Owns numeric value, formatting, validation, and commits while delegating caret state to `useNumericSelection`. */
-function useNumericEditingController({value: externalValueProp, onInputChange, allowNegative = false, decimals = 0, maxLength}: UseNumericEditingControllerParams) {
+function useNumericEditingController({
+    value: externalValueProp,
+    onInputChange,
+    allowNegative = false,
+    decimals = 0,
+    maxLength,
+    toDisplayText = toDisplayTextDefault,
+    toCanonicalValue = toCanonicalValueDefault,
+}: UseNumericEditingControllerParams) {
     const {fromLocaleDigit, toLocaleDigit} = useLocalize();
 
     const externalValue = externalValueProp ?? '';
@@ -49,7 +64,7 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
     // Keep the latest committed value available across batched state updates.
     const committedValueRef = useRef(externalValue);
 
-    const formattedNumber = replaceAllDigits(currentValue, toLocaleDigit);
+    const formattedNumber = replaceAllDigits(toDisplayText(currentValue), toLocaleDigit);
 
     const {selection, collapse, reset, syncToEnd, syncAfterEdit, handleKeyPress, rejectEdit, handleNativeSelectionChange} = useNumericSelection({displayText: formattedNumber});
 
@@ -84,15 +99,22 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
             return;
         }
 
-        const previousValue = applyValue(numberWithLeadingZero);
+        // The change event lands before the native selection event, so this is still the selection the edit replaced.
+        const nextValue = toCanonicalValue(numberWithLeadingZero, committedValueRef.current, selection);
+        const previousValue = applyValue(nextValue);
 
-        syncAfterEdit({previousText: previousValue, nextText: numberWithLeadingZero});
+        syncAfterEdit({previousText: toDisplayText(previousValue), nextText: toDisplayText(nextValue)});
     };
 
     // Replaces the canonical value without validation or notification and moves the caret to the end.
     const updateNumber = (newNumber: string) => {
         applyValue(newNumber, {notify: false});
-        syncToEnd(newNumber);
+        syncToEnd(toDisplayText(newNumber));
+    };
+
+    // Commits a canonical value without validation and without moving the caret, notifying the parent by default.
+    const setCanonicalValue = (nextValue: string, {notify = true}: {notify?: boolean} = {}) => {
+        applyValue(nextValue, {notify});
     };
 
     const getNumber = () => committedValueRef.current;
@@ -104,11 +126,15 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
 
     useDecimalsChangeEffect(decimals, (newDecimals) => {
         // Empty values and values already valid at the new precision need no update.
-        if (externalValue === '' || validateAmount(currentValue, newDecimals, maxLength, allowNegative)) {
+        if (currentValue === '' || validateAmount(currentValue, newDecimals, maxLength, allowNegative)) {
             return;
         }
 
-        setNumber(stripDecimalsFromAmount(currentValue));
+        // Preserve the canonical sign because text conversion treats a full selection as a replacement.
+        const nextValue = stripDecimalsFromAmount(currentValue);
+        const previousValue = applyValue(nextValue);
+
+        syncAfterEdit({previousText: toDisplayText(previousValue), nextText: toDisplayText(nextValue)});
     });
 
     return {
@@ -116,6 +142,7 @@ function useNumericEditingController({value: externalValueProp, onInputChange, a
         formattedNumber,
         selection,
         setNumber,
+        setCanonicalValue,
         updateNumber,
         getNumber,
         clearSelection: collapse,

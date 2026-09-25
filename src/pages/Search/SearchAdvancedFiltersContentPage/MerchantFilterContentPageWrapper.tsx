@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-function MerchantFilterContentPageWrapper({baseFilterKey, value, isNegated, merchantOperator, onChange}: MerchantFilterContentWrapperProps) {
+function MerchantFilterContentPageWrapper({baseFilterKey, value, isNegated, merchantOperator, buttonText, onChange}: MerchantFilterContentWrapperProps) {
     return (
         <MerchantFilterContent
             baseFilterKey={baseFilterKey}
@@ -13,6 +13,7 @@ function MerchantFilterContentPageWrapper({baseFilterKey, value, isNegated, merc
             isNegated={isNegated}
             merchantOperator={merchantOperator}
             buttonSize={CONST.BUTTON_SIZE.LARGE}
+            buttonText={buttonText}
             autoFocus
             onChange={onChange}
         />

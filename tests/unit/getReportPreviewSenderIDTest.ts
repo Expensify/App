@@ -1,4 +1,5 @@
-import type {OriginalMessageIOU, Report, ReportAction, Transaction} from '../../src/types/onyx';
+import type {PersonalDetailsByLogin} from '../../src/components/PersonalDetailsByLoginProvider';
+import type {OriginalMessageIOU, PersonalDetails, Report, ReportAction, Transaction} from '../../src/types/onyx';
 
 import {getReportPreviewSenderID} from '../../src/components/ReportActionAvatars/useReportPreviewSenderID';
 import CONST from '../../src/CONST';
@@ -53,11 +54,16 @@ function makeIOUAction(type: OriginalMessageIOU['type'], overrides: Partial<Repo
     });
 }
 
+const ATTENDEE_LOGINS = ['user@test.com', 'user1@test.com', 'user2@test.com'];
+
+const attendeesPersonalDetails: PersonalDetailsByLogin = Object.fromEntries(ATTENDEE_LOGINS.map((login, index) => [login, createMock<PersonalDetails>({accountID: 400 + index, login})]));
+
 const baseParams = {
     chatReport: undefined,
     splits: undefined,
     policy: undefined,
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+    attendeesPersonalDetails,
 };
 
 describe('getReportPreviewSenderID', () => {
@@ -477,9 +483,8 @@ describe('getReportPreviewSenderID', () => {
     });
 
     it('returns undefined for multi-sender: multiple attendees', () => {
-        // Two transactions with different attendees (different emails resolve to different accountIDs)
-        // Since getPersonalDetailByEmail returns undefined in test (no Onyx), attendeesIDs will be filtered out
-        // and the set size will be 0, which is <= 1, so we need to use splits to create multiple attendees
+        // Two split transactions with different attendees. Splits don't resolve their attendees through
+        // `attendeesPersonalDetails`, so the two different split authors are what makes this multi-sender.
         const splitTr1 = createMock<Transaction>({
             transactionID: '111',
             amount: 100,

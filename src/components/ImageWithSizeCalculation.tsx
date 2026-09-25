@@ -4,7 +4,7 @@ import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useMemo} from 'react';
 
@@ -43,7 +43,7 @@ type ImageWithSizeCalculationProps = {
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 
-    resizeMode?: ImageResizeMode;
+    resizeMode?: ImageProps['resizeMode'];
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;

@@ -44,8 +44,6 @@ const personalDetails = createCollection<PersonalDetails>(
     PERSONAL_DETAILS_LIST_COUNT,
 );
 
-const mockedBetas = Object.values(CONST.BETAS);
-
 const currentReportId = '1';
 const transactionViolations = {} as OnyxCollection<TransactionViolation[]>;
 describe('SidebarUtils', () => {
@@ -107,7 +105,7 @@ describe('SidebarUtils', () => {
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
                 reports: allReports,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations,
@@ -128,7 +126,7 @@ describe('SidebarUtils', () => {
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
                 reports: allReports,
-                betas: mockedBetas,
+                isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.GSD,
                 draftComments: {},
                 transactionViolations,

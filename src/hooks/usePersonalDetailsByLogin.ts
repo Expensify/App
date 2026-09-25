@@ -1,16 +1,15 @@
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 
 import {useMemo} from 'react';
 
-import useOnyx from './useOnyx';
+import {useAllPersonalDetails} from './usePersonalDetails';
 
 /**
  * Hook that returns personal details indexed by login email.
  * Enables case-insensitive lookups.
  */
 function usePersonalDetailsByLogin(): Record<string, PersonalDetails> {
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
 
     return useMemo(() => {
         if (!personalDetails) {

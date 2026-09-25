@@ -1,6 +1,7 @@
 import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -117,7 +118,7 @@ function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, real
 
                 remapReportParticipants(optimisticAccountID, realAccountID);
 
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[optimisticAccountID]: null});
+                Onyx.update([buildPersonalDetailsUpdate({[optimisticAccountID]: null})]);
                 Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`, null);
                 Onyx.merge(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING, {[optimisticAccountID]: null});
             },

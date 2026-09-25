@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -53,20 +54,20 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                         onToggle={() => {}}
                     />
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.pendingFields)}>
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.certinia.import.tagsMappedTo')}
-                            title={getParentTagMappingLabel(coding?.parentTagMapping, translate)}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            name={translate('workspace.certinia.import.tagsMappedTo')}
                             onPress={() => {
                                 if (!policyID) {
                                     return;
                                 }
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING.getRoute(policyID));
                             }}
-                            brickRoadIndicator={
-                                areSettingsInErrorFields([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                            }
-                        />
+                            value={getParentTagMappingLabel(coding?.parentTagMapping, translate)}
+                        >
+                            {areSettingsInErrorFields([CONST.CERTINIA_CONFIG.PARENT_TAG_MAPPING], config?.errorFields) && (
+                                <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                            )}
+                        </MenuItemField>
                     </OfflineWithFeedback>
                     <ToggleSettingOptionRow
                         wrapperStyle={[styles.mv3, styles.ph5]}
@@ -103,18 +104,18 @@ function CertiniaImportPage({policy}: WithPolicyConnectionsProps) {
                             key={dimension}
                             pendingAction={settingsPendingAction([dimension], config?.pendingFields)}
                         >
-                            <MenuItemWithTopDescription
-                                description={getDimensionLabel(dimension, translate)}
-                                title={getDisplayTypeLabel(coding?.[dimension], translate)}
-                                shouldShowRightIcon
+                            <MenuItemField
+                                name={getDimensionLabel(dimension, translate)}
                                 onPress={() => {
                                     if (!policyID) {
                                         return;
                                     }
                                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CERTINIA_DIMENSION_MAPPING.getRoute(policyID, dimension));
                                 }}
-                                brickRoadIndicator={areSettingsInErrorFields([dimension], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
+                                value={getDisplayTypeLabel(coding?.[dimension], translate)}
+                            >
+                                {areSettingsInErrorFields([dimension], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                     ))}
                     <ToggleSettingOptionRow

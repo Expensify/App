@@ -1,0 +1,49 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index 6799c8a..4324707 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -75,6 +75,10 @@ const RecyclerViewComponent = (props, ref) => {
+         if (internalViewRef.current && firstChildViewRef.current) {
+             // Measure the outer container size and inner container layout
+             const outerViewSize = measureParentSize(internalViewRef.current);
++            if (outerViewSize.width === 0 && outerViewSize.height === 0) {
++                containerViewSizeRef.current = outerViewSize;
++                return;
++            }
+             const firstChildViewLayout = measureFirstChildLayout(firstChildViewRef.current, internalViewRef.current);
+             containerViewSizeRef.current = outerViewSize;
+             // firstChildViewLayout is already relative to the outer container,
+@@ -104,6 +108,10 @@ const RecyclerViewComponent = (props, ref) => {
+         if (pendingChildIds.size > 0) {
+             return;
+         }
++        if (((_a = containerViewSizeRef.current) === null || _a === void 0 ? void 0 : _a.width) === 0 &&
++            ((_b = containerViewSizeRef.current) === null || _b === void 0 ? void 0 : _b.height) === 0) {
++            return;
++        }
+         const layoutInfo = Array.from(refHolder, ([index, viewHolderRef]) => {
+             const layout = measureItemLayout(viewHolderRef.current, recyclerViewManager.tryGetLayout(index));
+             // comapre height with stored layout
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+index 08724d1..bc5b0ae 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+@@ -175,7 +175,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                 const { horizontal } = recyclerViewManager.props;
+                 if (scrollViewRef.current) {
+                     // Adjust offset for RTL layouts in horizontal mode
+-                    if (I18nManager.isRTL && horizontal) {
++                    if (I18nManager.isRTL && horizontal && recyclerViewManager.hasLayout()) {
+                         // eslint-disable-next-line no-param-reassign
+                         offset =
+                             adjustOffsetForRTL(offset, recyclerViewManager.getChildContainerDimensions().width, recyclerViewManager.getWindowSize().width) +
+@@ -245,6 +245,9 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+              * Returns a Promise that resolves when the scroll is complete.
+              */
+             scrollToIndex: ({ index, animated, viewPosition, viewOffset, }) => {
++                if (!recyclerViewManager.hasLayout()) {
++                    return Promise.resolve();
++                }
+                 return new Promise((resolve) => {
+                     const { horizontal } = recyclerViewManager.props;
+                     if (scrollViewRef.current &&

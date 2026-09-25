@@ -16,19 +16,21 @@ import type {MerchantFilterContentProps} from './MerchantFilterContent';
 import type {ReportFieldFilterContentProps} from './ReportFieldFilterContent';
 import type {TextInputFilterContentProps} from './TextInputFilterContent';
 
-type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'onChange'>;
-type MerchantFilterContentWrapperProps = Pick<MerchantFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'merchantOperator' | 'onChange'>;
-type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'baseFilterKey' | 'value' | 'onChange'>;
-type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'>;
-type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'>;
+type TextInputFilterContentWrapperProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'onChange' | 'buttonText'>;
+type AmountFilterContentWrapperProps = Pick<AmountFilterContentProps, 'baseFilterKey' | 'value' | 'onChange' | 'buttonText'>;
+type DateFilterContentWrapperProps = Pick<DateFilterContentProps, 'baseFilterKey' | 'value' | 'hasFeed' | 'onChange'> & {buttonText?: string};
+type ReportFieldFilterContentWrapperProps = Pick<ReportFieldFilterContentProps, 'values' | 'onChange'> & {buttonText?: string};
+type MerchantFilterContentWrapperProps = Pick<MerchantFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'merchantOperator' | 'onChange' | 'buttonText'>;
 type ListFilterContentWrapperProps = Omit<ListFilterContentProps, 'onChange' | 'onNegationChange' | 'selectionListTextInputStyle' | 'selectionListStyle' | 'autoFocus' | 'footer'> & {
     onChange: (value: ListFilterContentProps['value'], isNegated: boolean) => void;
+    buttonText?: string;
 };
 
 type SearchAdvancedFiltersContentProps = {
     baseFilterKey: SearchFilter['key'];
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     ready?: boolean;
+    buttonText?: string;
     components: {
         Merchant: React.ComponentType<MerchantFilterContentWrapperProps>;
         Text: React.ComponentType<TextInputFilterContentWrapperProps>;
@@ -40,7 +42,7 @@ type SearchAdvancedFiltersContentProps = {
     onChange: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components, onChange}: SearchAdvancedFiltersContentProps) {
+function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components, buttonText, onChange}: SearchAdvancedFiltersContentProps) {
     if (isAmountFilterKey(baseFilterKey)) {
         const AmountFilter = components.Amount;
         return (
@@ -52,6 +54,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
                     [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`],
                     [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: values?.[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`],
                 }}
+                buttonText={buttonText}
                 onChange={onChange}
             />
         );
@@ -75,6 +78,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
                     [rangeModifier]: values?.[`${baseFilterKey}${rangeModifier}`],
                 }}
                 hasFeed={!!values?.feed}
+                buttonText={buttonText}
                 onChange={(newValues) =>
                     onChange({
                         [`${baseFilterKey}${onModifier}`]: newValues[onModifier],
@@ -92,6 +96,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
         return (
             <ReportFieldFilter
                 values={values}
+                buttonText={buttonText}
                 onChange={onChange}
             />
         );
@@ -109,6 +114,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
                 value={value}
                 isNegated={isNegated}
                 merchantOperator={merchantOperator}
+                buttonText={buttonText}
                 onChange={onChange}
             />
         );
@@ -123,6 +129,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
                 baseFilterKey={baseFilterKey}
                 value={value}
                 isNegated={isNegated}
+                buttonText={buttonText}
                 onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
             />
         );
@@ -138,6 +145,7 @@ function SearchAdvancedFiltersContent({baseFilterKey, values, ready, components,
             type={values?.type}
             policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, values)}
             ready={ready}
+            buttonText={buttonText}
             isNegated={isNegated}
             onChange={(newValue, negated) => onChange(getFilterFormValues(baseFilterKey, newValue, negated))}
         />

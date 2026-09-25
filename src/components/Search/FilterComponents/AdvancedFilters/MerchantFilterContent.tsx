@@ -40,6 +40,9 @@ type MerchantFilterContentProps = {
     /** The button size used for confirmation. */
     buttonSize?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
 
+    /** The label used when the filter applies immediately. */
+    buttonText?: string;
+
     /** Whether the input should receive focus automatically. */
     autoFocus?: boolean;
 
@@ -60,6 +63,7 @@ function MerchantFilterContent({
     isNegated: initialIsNegated,
     merchantOperator: initialMerchantOperator,
     buttonSize,
+    buttonText,
     autoFocus,
     style,
     onChange,
@@ -130,7 +134,7 @@ function MerchantFilterContent({
                 onPress={updateMerchantFilter}
             >
                 <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.confirm')}</Button.Text>
+                <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
             </Button>
         </View>
     );

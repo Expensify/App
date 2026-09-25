@@ -70,6 +70,7 @@ function ExportWithDropdownMenu({
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'GustoSquare',
     ]);
 

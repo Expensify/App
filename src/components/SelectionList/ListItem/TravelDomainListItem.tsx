@@ -8,9 +8,19 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type {ListItem, TravelDomainListItemProps} from './types';
+import type {ListItem, SelectableListItemProps} from './types';
 
 import SelectableListItem from './SelectableListItem';
+
+type TravelDomainListItemProps<TItem extends ListItem> = SelectableListItemProps<
+    TItem & {
+        /** Value of the domain */
+        value?: string;
+
+        /** Should display tag 'Recommended' */
+        isRecommended?: boolean;
+    }
+>;
 
 /**
  * A text row with a left-side checkbox and an optional "Recommended" badge. Used in the
@@ -48,13 +58,15 @@ function TravelDomainListItem<TItem extends ListItem>({
             onSelectionButtonPress={onSelectionButtonPress}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            rightHandSideComponent={showRecommendedTag ? <Badge text={translate('travel.domainSelector.recommended')} /> : undefined}
             selectionButtonPosition={selectionButtonPosition}
         >
-            <ListItemComposed.Title
-                text={item.text ?? ''}
-                style={titleStyle}
-            />
+            <>
+                <ListItemComposed.Title
+                    text={item.text ?? ''}
+                    style={titleStyle}
+                />
+                {showRecommendedTag && <Badge text={translate('travel.domainSelector.recommended')} />}
+            </>
         </SelectableListItem>
     );
 }

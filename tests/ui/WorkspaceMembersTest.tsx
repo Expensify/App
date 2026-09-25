@@ -662,4 +662,44 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
     });
+
+    describe('Selection and search', () => {
+        it('should clear a Select All made inside a search once the search field is cleared', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // Given a search that narrows the list to a subset of the members
+            const searchInput = screen.getByPlaceholderText(TestHelper.translateLocal('workspace.people.findMember'));
+            fireEvent.changeText(searchInput, auditorEmail);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.queryByText(ADMIN_OPTION)).not.toBeOnTheScreen();
+
+            // When every visible row is selected via the header checkbox
+            // The table renders a second, hidden header for width measurement, so the label is not unique
+            const selectAllLabel = TestHelper.translateLocal('workspace.common.selectAll');
+            const getSelectAllCheckbox = () => {
+                const checkbox = screen.getAllByLabelText(selectAllLabel).at(0);
+                if (!checkbox) {
+                    throw new Error('No Select all checkbox rendered');
+                }
+                return checkbox;
+            };
+            fireEvent.press(getSelectAllCheckbox());
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).toBeOnTheScreen();
+
+            // Then clearing the search drops the selection, because it only ever applied to the searched rows
+            fireEvent.changeText(searchInput, '');
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            expect(screen.queryByTestId('WorkspaceMembersPage-header-dropdown-menu-button')).not.toBeOnTheScreen();
+            expect(getSelectAllCheckbox()).not.toBeChecked();
+
+            unmount();
+        });
+    });
 });

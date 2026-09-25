@@ -1,4 +1,5 @@
 import Clipboard from '@libs/Clipboard';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
 import ROUTES from '@src/ROUTES';
 
@@ -24,7 +25,7 @@ function useShareSavedSearch() {
     }, []);
 
     const handleShare = (itemID: string, itemQuery: string) => {
-        const url = `${environmentURL}/${ROUTES.SEARCH_ROOT.getRoute({query: itemQuery})}`;
+        const url = `${environmentURL}/${ROUTES.SEARCH_ROOT.getRoute({query: itemQuery, searchKey: savedSearchIDToSearchKey(itemID)})}`;
         Clipboard.setString(url);
         setCopiedID(itemID);
 

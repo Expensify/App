@@ -227,6 +227,50 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Member.requestWorkspaceOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
+        });
+
+        it('Keep the existing payer when the workspace has a bank account', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: createMock<PolicyType['achAccount']>({bankAccountID: 1234, reimburser: 'owner@gmail.com'}),
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Member.requestWorkspaceOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe('owner@gmail.com');
+        });
     });
     describe('addBillingCardAndRequestPolicyOwnerChange', () => {
         it('Add billing card and change the workspace`s owner', async () => {
@@ -246,7 +290,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -292,7 +336,7 @@ describe('actions/PolicyMember', () => {
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -308,6 +352,37 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '123456',
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail, fakeCard);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
+        });
     });
 
     describe('verifySetupIntentAndRequestPolicyOwnerChange', () => {
@@ -318,7 +393,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -342,7 +417,7 @@ describe('actions/PolicyMember', () => {
             const fakeAccountID = 42;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -358,6 +433,28 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
+        });
+
+        it('Reassign the payer to the new owner when the outgoing owner was the payer', async () => {
+            const fakeEmail = 'fake@gmail.com';
+            const fakeAccountID = 1;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0),
+                owner: 'owner@gmail.com',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                reimburser: 'owner@gmail.com',
+                achAccount: undefined,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(policy?.owner).toBe(fakeEmail);
+            expect(policy?.reimburser).toBe(fakeEmail);
         });
     });
 

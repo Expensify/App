@@ -17,7 +17,7 @@ type UpcomingReservation = ReservationData & {
 };
 
 function isCurrentUserTraveler(reportNameValuePairs: Pick<ReportNameValuePairs, 'tripData'> | undefined, currentUserEmail: string): boolean {
-    return reportNameValuePairs?.tripData?.payload?.pnrs.some((pnr) => pnr.data.travelers.some((traveler) => traveler.user.email === currentUserEmail)) ?? false;
+    return reportNameValuePairs?.tripData?.payload?.pnrs.some((pnr) => pnr.data.travelers.some((traveler) => traveler.user?.email === currentUserEmail)) ?? false;
 }
 
 function useUpcomingTravelReservations(): UpcomingReservation[] {
@@ -43,6 +43,9 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
             }
             const reservations = getReservationsFromTripReport(report, tripReportNameValuePairs);
             for (const resData of reservations) {
+                if (resData.isCancelled) {
+                    continue;
+                }
                 const startDate = new Date(resData.reservation.start.date);
                 if (Number.isNaN(startDate.getTime())) {
                     continue;

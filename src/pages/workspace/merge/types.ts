@@ -29,6 +29,9 @@ type MergeProviderConfigRow = {
     /** Optional icon shown at the start of the row. */
     icon?: MenuItemProps['icon'];
 
+    /** Maximum number of lines the row title can span before it is truncated */
+    numberOfLinesTitle?: MenuItemProps['numberOfLinesTitle'];
+
     /** Renders the row as a plain `MenuItem` instead of the default `MenuItemWithTopDescription`. Use it for rows that are a plain label rather than a labelled value. */
     shouldRenderAsMenuItem?: boolean;
 

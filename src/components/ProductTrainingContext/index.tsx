@@ -12,7 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
-import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+import isProductTrainingElementDismissed, {hasDismissalExpired} from '@libs/TooltipUtils';
 
 import variables from '@styles/variables';
 
@@ -130,12 +130,16 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
+            const tooltipConfig = TOOLTIPS[tooltipName];
+
             const isDismissed = isProductTrainingElementDismissed(tooltipName, dismissedProductTraining);
 
-            if (isDismissed) {
+            // Tooltips with a reappear window are shown again once that long has passed since the last dismissal.
+            const canReappear = !!tooltipConfig.reappearsAfterMs && hasDismissalExpired(tooltipName, dismissedProductTraining, tooltipConfig.reappearsAfterMs);
+
+            if (isDismissed && !canReappear) {
                 return false;
             }
-            const tooltipConfig = TOOLTIPS[tooltipName];
 
             // if hasBeenAddedToNudgeMigration is true, and welcome modal is not dismissed, don't show tooltip
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.[CONST.MIGRATED_USER_WELCOME_MODAL]) {
@@ -273,6 +277,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
 
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
+        const content = typeof tooltip.content === 'function' ? tooltip.content() : tooltip.content;
 
         return (
             <View
@@ -286,7 +291,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         size={CONST.ICON_SIZE.MEDIUM}
                     />
                     <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
-                        <RenderHTML html={translate(tooltip.content)} />
+                        <RenderHTML html={translate(content)} />
                     </View>
                     <PressableWithoutFeedback
                         sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}

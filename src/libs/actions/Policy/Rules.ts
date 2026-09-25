@@ -286,8 +286,9 @@ function setPolicyCodingRule(policyID: string, form: MerchantRuleForm, policy: P
  * @param policyID - The ID of the policy to import the rules into
  * @param rules - Coding rule values keyed by client-generated ruleID
  * @param invalidCategoryCount - Number of imported categories that don't exist on the policy, reported in the confirmation modal
+ * @param invalidVendorCount - Number of imported vendors that don't exist on the policy, reported in the confirmation modal
  */
-async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0): Promise<ImportFinalModal> {
+async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<string, ImportedMerchantRule>, invalidCategoryCount = 0, invalidVendorCount = 0): Promise<ImportFinalModal> {
     // The API rejects an empty rules object, so fail fast when the spreadsheet produced no importable rules
     if (Object.keys(rules).length === 0) {
         return getImportFailedFinalModal();
@@ -300,6 +301,10 @@ async function importMerchantRulesSpreadsheet(policyID: string, rules: Record<st
         ...(invalidCategoryCount > 0 && {
             pendingMessageKey: 'spreadsheet.importMerchantRulesSkippedCategories',
             pendingMessageKeyParams: {count: invalidCategoryCount},
+        }),
+        ...(invalidVendorCount > 0 && {
+            secondaryPendingMessageKey: 'spreadsheet.importMerchantRulesSkippedVendors',
+            secondaryPendingMessageKeyParams: {count: invalidVendorCount},
         }),
     };
 

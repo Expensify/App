@@ -34,8 +34,6 @@ jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: Rea
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/QRShare/QRShareWithDownload', () => jest.fn(() => null));
 jest.mock('@components/ContextMenuItem', () => jest.fn(() => null));
-jest.mock('@components/MenuItem', () => jest.fn(() => null));
-jest.mock('@components/MenuItem/presets/MenuItemNavigation', () => jest.fn(() => null));
 
 jest.mock('@libs/Avatars/AvatarLookup', () => ({
     ...jest.requireActual<typeof AvatarLookup>('@libs/Avatars/AvatarLookup'),
@@ -89,7 +87,7 @@ describe('ShareCodePage', () => {
         await waitForBatchedUpdates();
 
         // Each participant's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({hiddenTranslation: 'common.hidden'}));
     });
 
     describe('profile QR code avatar logo', () => {

@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {ReactNode, RefObject} from 'react';
+import type {ComponentRef, ReactNode, RefObject} from 'react';
 
 import React, {useDeferredValue, useEffect, useId, useState} from 'react';
 import {View} from 'react-native';
@@ -44,7 +44,7 @@ type EditableCellProps = {
     onStartEditing: () => void;
 
     /** Ref attached to the cell wrapper — used as popover anchor for date/category pickers */
-    anchorRef?: RefObject<View | null>;
+    anchorRef?: RefObject<ComponentRef<typeof View> | null>;
 
     /** Which side should show the edit icon in display mode */
     editIconPosition?: EditIconPosition;

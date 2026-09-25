@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, ReportMetadata} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -140,7 +141,7 @@ function AnimatedSettlementButton({
         icon = expensifyIcons.Checkmark;
     }
 
-    const animatedViewRef = (el: View | null) => {
+    const animatedViewRef = (el: ComponentRef<typeof View> | null) => {
         if (!el || !isAnimationRunning) {
             return;
         }

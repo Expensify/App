@@ -7,6 +7,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,6 +31,8 @@ type RuleTaxesDisabledEmptyStateProps = {
 function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const illustrations = useMemoizedLazyIllustrations(['Coins']);
     const policyData = usePolicyData(policyID);
     const {showConfirmModal} = useConfirmModal();
@@ -51,7 +54,7 @@ function RuleTaxesDisabledEmptyState({policyID}: RuleTaxesDisabledEmptyStateProp
             return;
         }
 
-        enablePolicyTaxes(policyID, true, policyData.policy?.taxRates, policyData);
+        enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, policyData.policy?.taxRates, policyData);
     };
 
     return (

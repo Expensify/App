@@ -2,7 +2,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -95,18 +95,16 @@ function SpendRuleMerchantsBase({policyID, action, merchants, getEditMerchantRou
                             // `name`/`matchType` are edited on the detail screen — keying by content would remount the row on save and lose the captured focus-return target. No per-merchant backend ID.
                             const rowId = `merchant-${index}`;
                             return (
-                                <MenuItemWithTopDescription
+                                <MenuItemField
                                     key={rowId}
-                                    pressableTestID={rowId}
-                                    description={
+                                    testID={rowId}
+                                    name={
                                         matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
                                             ? translate('workspace.rules.spendRules.merchantExactlyMatches')
                                             : translate('workspace.rules.spendRules.merchantContains')
                                     }
                                     onPress={() => navigateToMerchantEdit(String(index))}
-                                    shouldShowRightIcon
-                                    title={name}
-                                    titleStyle={styles.flex1}
+                                    value={name}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                 />
                             );

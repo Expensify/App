@@ -140,7 +140,13 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-function getLeaveWorkspaceConfirmationPrompt(policy: OnyxEntry<Policy>, userEmail: string, ownerDisplayName: string, translate: LocaleContextProps['translate']): string {
+function getLeaveWorkspaceConfirmationPrompt(
+    policy: OnyxEntry<Policy>,
+    userEmail: string,
+    ownerDisplayName: string,
+    translate: LocaleContextProps['translate'],
+    isApproverOfOutstandingReports = false,
+): string {
     const exporters = getConnectionExporters(policy);
 
     if (policy?.achAccount?.reimburser === userEmail) {
@@ -155,7 +161,7 @@ function getLeaveWorkspaceConfirmationPrompt(policy: OnyxEntry<Policy>, userEmai
         return translate('common.leaveWorkspaceConfirmationExporter', ownerDisplayName);
     }
 
-    if (isPolicyApprover(policy, userEmail)) {
+    if (isPolicyApprover(policy, userEmail) || isApproverOfOutstandingReports) {
         return translate('common.leaveWorkspaceConfirmationApprover', ownerDisplayName);
     }
 

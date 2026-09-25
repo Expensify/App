@@ -35,7 +35,8 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     const reportName = report?.reportName ?? '';
     const {isOffline} = useNetwork();
 
-    const hasFinishedPDFDownload = !!reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
+    const hasPDFDownloadFailed = reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
+    const hasFinishedPDFDownload = !!reportPDFFilename && !hasPDFDownloadFailed;
 
     // reportPDFFilename only ever resolves via a backend-pushed Onyx update (no client timeout), so a filename
     // that never arrives and never errors leaves the spinner stuck with nothing else to log it. See Expensify#667674.
@@ -47,7 +48,7 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     });
 
     const message = (() => {
-        if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
+        if (hasPDFDownloadFailed) {
             return translate('reportDetailsPage.errorPDF');
         }
         if (!hasFinishedPDFDownload) {
@@ -72,9 +73,10 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
             onClose={handleClose}
             onModalHide={onModalHide}
             hasFinishedPDFDownload={hasFinishedPDFDownload}
+            hasPDFDownloadFailed={hasPDFDownloadFailed}
             message={message}
             onDownloadPDF={() => {
-                if (!reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
+                if (!hasFinishedPDFDownload) {
                     return;
                 }
                 downloadReportPDF(reportPDFFilename, reportName, translate, currentUserLogin, encryptedAuthToken);

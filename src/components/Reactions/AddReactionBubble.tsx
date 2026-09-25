@@ -23,6 +23,8 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
+import type {ComponentRef} from 'react';
+
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -57,7 +59,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const ref = useRef<View | HTMLDivElement>(null);
+    const ref = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const {translate} = useLocalize();
 
     useEffect(() => resetEmojiPopoverAnchor, []);

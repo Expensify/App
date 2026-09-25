@@ -2,7 +2,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {updatePersonalCardConnection} from '@libs/actions/PersonalCards';
-import {getBankName, getPlaidInstitutionId, isCardConnectionBroken} from '@libs/CardUtils';
+import {getBankName, getPlaidInstitutionId, isPersonalCardBrokenConnection} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
@@ -24,7 +24,7 @@ function useFixPersonalCardConnection(cardID: string) {
     const isPlaid = !!(card?.bank && getPlaidInstitutionId(card.bank as CompanyCardFeed));
     const url = isPlaid ? null : getPersonalCardBankConnection(bankDisplayName);
     const country = card?.nameValuePairs?.country ?? CONST.COUNTRY.US;
-    const isCardBroken = card ? isCardConnectionBroken(card) : false;
+    const isCardBroken = isPersonalCardBrokenConnection(card);
 
     useEffect(() => {
         if (isLoadingOnyxValue(cardListMetadata)) {

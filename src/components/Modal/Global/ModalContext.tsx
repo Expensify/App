@@ -27,12 +27,14 @@ type ModalContextType = {
         isCloseable?: boolean;
     }): Promise<ModalStateChangePayload>;
     closeModal(data?: ModalStateChangePayload): void;
+    closeModalByID(id: string, data?: ModalStateChangePayload): void;
     resolveModal(data?: ModalStateChangePayload): void;
 };
 
 const ModalContext = React.createContext<ModalContextType>({
     showModal: () => Promise.resolve({action: 'CLOSE'}),
     closeModal: noop,
+    closeModalByID: noop,
     resolveModal: noop,
 });
 
@@ -131,11 +133,33 @@ function ModalProvider({children}: {children: React.ReactNode}) {
         });
     };
 
+    // Closes one named entry wherever it sits in the stack, which a caller needs when the thing its modal was asking
+    // about has gone away and the user never answered. Such a caller cannot use `closeModal`, because by then another
+    // modal may sit above it and that is the one `closeModal` would take down.
+    const closeModalByID: ModalContextType['closeModalByID'] = (id, data = {action: ModalActions.CLOSE}) => {
+        setModalStack((prevState) => {
+            if (!prevState.modals.some((modal) => modal.id === id)) {
+                return prevState;
+            }
+
+            const modalPromise = modalPromisesStack.current?.[id];
+            if (modalPromise) {
+                modalPromise.resolve(data);
+                delete modalPromisesStack.current[id];
+            }
+
+            return {
+                ...prevState,
+                modals: prevState.modals.filter((modal) => modal.id !== id),
+            };
+        });
+    };
+
     const modalToRender = modalStack.modals.length > 0 ? modalStack.modals.at(modalStack.modals.length - 1) : null;
     const ModalComponent = modalToRender?.component;
 
     return (
-        <ModalContext.Provider value={{showModal, closeModal, resolveModal}}>
+        <ModalContext.Provider value={{showModal, closeModal, closeModalByID, resolveModal}}>
             {children}
             {!!ModalComponent && (
                 <ModalComponent

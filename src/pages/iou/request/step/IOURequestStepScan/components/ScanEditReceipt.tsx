@@ -3,6 +3,7 @@ import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -42,6 +43,8 @@ type ScanEditReceiptProps = {
  */
 function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditReceiptProps) {
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -70,6 +73,7 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
             replaceReceipt({
+                isVendorMatchingBetaEnabled,
                 transaction,
                 file: file as File,
                 source,

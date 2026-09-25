@@ -3,7 +3,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
 
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -114,7 +114,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          */
         shouldDisableBottomSafeAreaPadding?: boolean;
 
-        ref?: ForwardedRef<View>;
+        ref?: ForwardedRef<ComponentRef<typeof View>>;
 
         /**
          * Whether the modal should display under the side panel.
@@ -128,6 +128,13 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * See https://github.com/Expensify/App/issues/88645 for more details.
          */
         shouldKeepRightDockedBackdropInNarrowPane?: boolean;
+
+        /**
+         * Whether a modal type that hides its backdrop by default should show one anyway.
+         * POPOVER modals hide the backdrop so menus and tooltips do not dim the screen.
+         * Set this to true for a popover that reads as a dialog and should dim what sits behind it.
+         */
+        shouldShowBackdrop?: boolean;
 
         /**
          * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.

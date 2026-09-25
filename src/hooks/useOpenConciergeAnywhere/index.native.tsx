@@ -14,13 +14,12 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 function useOpenConciergeAnywhere() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const openConciergeAnywhere = (_options?: {forceConcierge?: boolean}) => {
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+    const openConciergeAnywhere = (_options?: {forceConcierge?: boolean; reportID?: string}) => {
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed});
     };
 
     return {openConciergeAnywhere, isInSidePanel: false};

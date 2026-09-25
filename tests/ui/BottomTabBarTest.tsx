@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 
 import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -53,6 +54,11 @@ const setMockFocusedTab = (tabName: string) => {
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: jest.fn(),
+}));
+
+jest.mock('@hooks/useSidePanelDisplayStatus', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({shouldHideSidePanel: true})),
 }));
 
 jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 1280})));
@@ -198,7 +204,17 @@ describe('DebugTabView', () => {
 
     describe('Wide layout', () => {
         beforeEach(() => {
-            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: false}));
+            jest.mocked(useResponsiveLayout).mockReturnValue(
+                createMock<ReturnType<typeof useResponsiveLayout>>({
+                    shouldUseNarrowLayout: false,
+                    isExtraLargeScreenWidth: false,
+                }),
+            );
+            jest.mocked(useSidePanelDisplayStatus).mockReturnValue(
+                createMock<ReturnType<typeof useSidePanelDisplayStatus>>({
+                    shouldHideSidePanel: true,
+                }),
+            );
             Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             Onyx.set(ONYXKEYS.LOGINS, {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -250,6 +266,55 @@ describe('DebugTabView', () => {
                     bottom: 0,
                     left: variables.navigationTabBarSize,
                     width: 1280 - variables.navigationTabBarSize,
+                }),
+            );
+        });
+
+        it('positions at full width for domains tab', async () => {
+            setMockFocusedTab(SCREENS.DOMAINS_LIST);
+
+            renderWithNavigation(<DebugTabView selectedTab={NAVIGATION_TABS.WORKSPACES} />);
+
+            const container = await screen.findByTestId('DebugTabViewContainer');
+            const style: unknown = container.props.style;
+            if (!Array.isArray(style)) {
+                throw new Error('Expected DebugTabViewContainer style to be an array.');
+            }
+            expect(style.at(0)).toEqual(
+                expect.objectContaining({
+                    bottom: 0,
+                    left: variables.navigationTabBarSize,
+                    width: 1280 - variables.navigationTabBarSize,
+                }),
+            );
+        });
+
+        it('excludes side panel width when Concierge is open on the workspaces root', async () => {
+            jest.mocked(useResponsiveLayout).mockReturnValue(
+                createMock<ReturnType<typeof useResponsiveLayout>>({
+                    shouldUseNarrowLayout: false,
+                    isExtraLargeScreenWidth: true,
+                }),
+            );
+            jest.mocked(useSidePanelDisplayStatus).mockReturnValue(
+                createMock<ReturnType<typeof useSidePanelDisplayStatus>>({
+                    shouldHideSidePanel: false,
+                }),
+            );
+            setMockFocusedTab(SCREENS.WORKSPACES_LIST);
+
+            renderWithNavigation(<DebugTabView selectedTab={NAVIGATION_TABS.WORKSPACES} />);
+
+            const container = await screen.findByTestId('DebugTabViewContainer');
+            const style: unknown = container.props.style;
+            if (!Array.isArray(style)) {
+                throw new Error('Expected DebugTabViewContainer style to be an array.');
+            }
+            expect(style.at(0)).toEqual(
+                expect.objectContaining({
+                    bottom: 0,
+                    left: variables.navigationTabBarSize,
+                    width: 1280 - variables.navigationTabBarSize - variables.sidePanelWidth,
                 }),
             );
         });

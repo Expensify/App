@@ -78,7 +78,7 @@ function createOption(
             accountID: personalDetail.accountID,
             formatPhoneNumber,
             personalDetailsData: {[personalDetail.accountID]: personalDetail},
-            translate,
+            hiddenTranslation: translate?.('common.hidden'),
         }) || formatPhoneNumber(personalDetail.login ?? '');
     result.icons = [
         {
@@ -531,7 +531,7 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
  * `recentAttendees`, which rebuilds the full options (matching personal details or creating optimistic ones).
  */
 function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Attendee[], currentUserEmail: string): string[] {
-    const allRecentAttendees = [...recentAttendees];
+    const allRecentAttendees = Array.isArray(recentAttendees) ? [...recentAttendees] : [];
     if (currentUserEmail && !allRecentAttendees.some((attendee) => attendee.email === currentUserEmail)) {
         allRecentAttendees.push({email: currentUserEmail, displayName: currentUserEmail, avatarUrl: ''});
     }

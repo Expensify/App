@@ -71,6 +71,23 @@ You can give any member permission to manage domain settings by promoting them t
 3. Open **Domain Admins**.
 4. Add the member’s email address or phone number.
 
+---
+
+## How to review a Domain Admin request
+
+When someone requests Domain Admin access to a domain you administer, a green dot appears on **Workspaces**, the domain's row on the **Domains** tab, and **Domain admins** for that domain.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
+2. Select the **Domains** tab.
+3. Select the domain.
+4. Select **Domain admins**.
+5. Find the person in the **Requests** section.
+6. Click **Approve** to make them a Domain Admin, or **Deny** to clear the request.
+
+The **Requests** section only appears when a request is waiting. After the last request is approved or denied, the section and green dot disappear.
+
+---
+
 ## How to move a Domain Member to a different domain group
 
 Domain Admins can move a member from one domain group to another to change which domain-level rules apply to them.

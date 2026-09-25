@@ -15,7 +15,7 @@ Managing expenses in reports helps you keep everything organized and ready for a
 - **Move expenses to a new report**: The member who created the report, and Workspace Admins (Admins can create new reports on behalf of employees by moving expenses).
 - **Delete an expense**: Only the member who created that specific expense.
 
-To edit expenses in Approved or Paid reports, a workspace admin will need to unapprove the report first. 
+To edit expenses in Approved or Paid reports, a Workspace Admin will need to unapprove the report first. The one exception is receipts: a Workspace Admin can attach or replace a receipt on an expense in an Approved report without unapproving it. [Learn how to attach or replace a receipt on an Approved report](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses).
 
 ---
 
@@ -45,16 +45,19 @@ You can move expenses to a different report, create a new report, or remove them
 **To move or remove a single expense from a report:**
 
 1. Open the draft report. 
-2. Click the checkbox next to the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
-4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report**.
+2. Click the checkbox next to the expense you want to move. 
+3. Click the green **1 selected** button > **Move to report**.
+4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expense to your personal space.
 
 **To move or remove all expenses from a report**
 
 1. In the left side tabs, choose **Spend** > **Reports**
 2. Click the report with the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
-4. Choose a destination report, select **Create report** to create a new report, or select **Remove from report**.
+3. Click the checkbox next to each expense you want to move.
+4. Click the green **1 selected** button > **Move to report**. The count in the button label matches the number of expenses you selected.
+5. Choose a destination report, select **Create report** to create a new report, or select **Remove from report** to move the expenses to your personal space.
+
+**Note:** A system message records the move in the expense when you move an expense into a submitted report or select **Remove from report**. Moving an expense into a draft report does not add a system message, because a draft report is not yet part of the audit trail.
 
 **Note:** Reports are limited to 500 expenses. If you choose a destination report that already has 500 expenses, the move is blocked and a message appears: *Reports are limited to 500 expenses. Please move some to another report.* Move some expenses out of that report or pick a different destination.
 
@@ -79,11 +82,13 @@ You can move expenses to a different report, create a new report, or remove them
 
 ## How to Edit Expenses in Approved or Paid Reports
 
-Approved and Paid reports are locked for editing. To make changes:
+Apart from a Workspace Admin attaching or replacing a receipt, Approved and Paid reports are locked for editing. To make other changes:
 
-1. (Admins only) Open the report.
-2. Click **More > Cancel Payment** (if Paid).
+1. Open the report.
+2. Click **More > Cancel payment** (if Paid).
 3. Then select **More > Unapprove**.
+
+**Cancel payment** is only offered to the report’s **Payer**, or — on a workspace that tracks payments made elsewhere — to a member with edit access to the **Payments** section of **Workflows**. Learn more about [who can cancel a payment on a report](articles/new-expensify/reports-and-expenses/Expense-and-Report-Actions#who-can-cancel-a-payment-on-a-report).
 
 After it’s unapproved:
   - The member can select **More** > **Undo Submit**.

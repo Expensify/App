@@ -1,7 +1,8 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -89,13 +90,12 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                             {avatarButton}
                         </View>
                         <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                title={copyableName}
-                                copyValue={copyableName}
-                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                interactive={false}
-                                copyable
-                            />
+                            <MenuItemField
+                                name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                value={copyableName}
+                            >
+                                <MenuItem.Copy value={copyableName} />
+                            </MenuItemField>
                             {children}
                             <MenuItemNavigation
                                 title={translate('common.profile')}

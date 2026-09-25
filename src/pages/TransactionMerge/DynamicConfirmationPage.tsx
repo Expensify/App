@@ -66,7 +66,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
@@ -92,7 +93,11 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`);
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
-    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceIOUAction?.childReportID)}`);
+    const selfDMSourceIOUAction =
+        selfDMReport?.reportID && sourceTransaction ? getIOUActionForTransactionID(Object.values(selfDMReportActions ?? {}), sourceTransaction.transactionID) : undefined;
+    const sourceThreadReportID = sourceIOUAction?.childReportID ?? selfDMSourceIOUAction?.childReportID;
+    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
+    const [sourceIOUActionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -112,6 +117,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         setIsMergingExpenses(true);
 
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
             mergeTransactionID: transactionID,
@@ -135,6 +141,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             reportPolicyTags,
             sourceTransactionThreadReportActions,
             sourceIOUAction,
+            sourceIOUActionThreadReport,
             rules,
         });
 
