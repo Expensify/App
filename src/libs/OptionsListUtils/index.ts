@@ -143,12 +143,6 @@ Onyx.connect({
     },
 });
 
-let deprecatedActivePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (deprecatedActivePolicyID = value),
-});
-
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
  */
@@ -1621,8 +1615,8 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 function orderReportOptionsWithSearch(
     options: SearchOptionData[],
     searchValue: string,
+    activePolicyID: OnyxEntry<string>,
     {preferChatRoomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
-    activePolicyID: OnyxEntry<string> = deprecatedActivePolicyID,
 ) {
     const orderedByDate = orderReportOptions(options);
 
@@ -1702,11 +1696,21 @@ function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDeta
 /**
  * Sorts reports and personal details independently, but prioritizes the search value.
  */
-function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T>;
-function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, searchValue?: string, config?: OrderReportOptionsConfig): ReportAndPersonalDetailOptions<T> {
+function orderOptions<T extends SearchOptionData>(
+    options: ReportAndPersonalDetailOptions<T>,
+    searchValue: string,
+    activePolicyID: OnyxEntry<string>,
+    config?: OrderReportOptionsConfig,
+): ReportAndPersonalDetailOptions<T>;
+function orderOptions<T extends SearchOptionData>(
+    options: ReportAndPersonalDetailOptions<T>,
+    searchValue?: string,
+    activePolicyID?: OnyxEntry<string>,
+    config?: OrderReportOptionsConfig,
+): ReportAndPersonalDetailOptions<T> {
     let orderedReportOptions: SearchOptionData[];
     if (searchValue) {
-        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, config);
+        orderedReportOptions = orderReportOptionsWithSearch(options.recentReports, searchValue, activePolicyID, config);
     } else {
         orderedReportOptions = orderReportOptions(options.recentReports);
     }
@@ -3063,10 +3067,10 @@ function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
         const reportsAndPersonalDetails = options.recentReports.concat(personalDetailsWithoutDMs);
-        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
+        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, activePolicyID, orderReportOptionsConfig);
     }
 
-    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig, activePolicyID);
+    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, activePolicyID, orderReportOptionsConfig);
     if (typeof maxRecentReportsToShow === 'number') {
         orderedReports = orderedReports.slice(0, maxRecentReportsToShow);
     }
