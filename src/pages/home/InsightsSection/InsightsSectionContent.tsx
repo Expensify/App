@@ -40,13 +40,12 @@ function InsightsSectionContent() {
     const {isBetaEnabled} = usePermissions();
     const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
-    const {configs: insightConfigs, isResolved: areConfigsResolved} = useHomeInsightConfigs();
+    const {configs: insightConfigs, isResolved: isConfigResolved} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
 
     // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
     const config = insightConfigs.find((insightConfig) => insightConfig.key === selectedKey) ?? insightConfigs.at(0);
-    const isConfigResolved = areConfigsResolved && selectedKeyMetadata.status === 'loaded';
-    const {queryJSON, groupBy, view, sortedData, state, retry} = useInsightData(config, isConfigResolved);
+    const {queryJSON, groupBy, view, sortedData, state, retry} = useInsightData(config, isConfigResolved && selectedKeyMetadata.status === 'loaded');
 
     const onSelectInsight = (key: SearchKey) => {
         if (key === config?.key) {
