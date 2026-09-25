@@ -13,6 +13,8 @@ Book flights easily with Expensify Travel. This guide walks you through finding 
 
 Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
+You can also select **Search** (the magnifying glass icon), type **Book travel**, then select the **Book travel** result. **Book travel** appears in both places only when Expensify Travel is enabled on your active workspace.
+
 If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
 # How to book a flight
