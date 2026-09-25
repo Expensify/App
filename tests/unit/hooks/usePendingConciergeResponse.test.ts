@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
+import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
@@ -18,6 +19,9 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const REPORT_ID = '1';
 const REPORT_ACTION_ID = '100';
+const QUESTION_ID = '90';
+const NEWER_MESSAGE_ID = '95';
+const USER_ACCOUNT_ID = 12345;
 
 /** Short delay used for tests where we need the timer to actually fire (ms) */
 const SHORT_DELAY = 80;
@@ -46,6 +50,30 @@ function delay(ms: number): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
+}
+
+function makeUserComment(reportActionID: string, created: string): ReportAction {
+    return {
+        ...fakeConciergeAction,
+        reportActionID,
+        actorAccountID: USER_ACCOUNT_ID,
+        created,
+        message: [{html: 'A user message', text: 'A user message', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+    };
+}
+
+function canonicalFollowupAction(created: string): ReportAction {
+    return {
+        ...fakeConciergeAction,
+        created,
+        message: [
+            {
+                html: '<p>Pick one:</p><followup-list><followup><followup-text>Yes</followup-text></followup><followup><followup-text>No</followup-text></followup></followup-list>',
+                text: 'Pick one:',
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
+    };
 }
 
 describe('usePendingConciergeResponse', () => {
@@ -441,6 +469,102 @@ describe('usePendingConciergeResponse', () => {
             // Then the reconciliation effect clears the flag so the skeleton stops rendering
             const flagAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
             expect(flagAfter).toBeUndefined();
+
+            unmount();
+        });
+
+        it('preserves the Concierge processing indicator when the user sent another message during the followup turn', async () => {
+            // Given a followup turn: the user's question, a second user message sent while the turn
+            // was still in flight, and the pregenerated Concierge reply — which is future-stamped, so
+            // it sorts AFTER the second message even though that message is the newer request
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [QUESTION_ID]: makeUserComment(QUESTION_ID, '2026-07-27 10:00:00.000'),
+                [NEWER_MESSAGE_ID]: makeUserComment(NEWER_MESSAGE_ID, '2026-07-27 10:00:02.000'),
+                [REPORT_ACTION_ID]: {...fakeConciergeAction, created: '2026-07-27 10:00:04.000'},
+            });
+            // And the server-driven processing indicator is set for the newer request
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`, {
+                agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: 'Thinking...'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now(),
+                questionReportActionID: QUESTION_ID,
+            });
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // When the canonical reply lands with a real followup-list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: canonicalFollowupAction('2026-07-27 10:00:04.000')});
+            await waitForBatchedUpdates();
+
+            // Then the skeleton flag is cleared, but the processing indicator survives — it tracks
+            // the second message's in-flight request, not the completed turn
+            const flag = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
+            expect(flag).toBeUndefined();
+            const nameValuePairs = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}` as const);
+            expect(getAgentZeroProcessingLabel(nameValuePairs, CONST.ACCOUNT_ID.CONCIERGE)).toBe('Thinking...');
+
+            unmount();
+        });
+
+        it('still clears the Concierge processing indicator when no message followed the question', async () => {
+            // Given a followup turn with no user activity after the question
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [QUESTION_ID]: makeUserComment(QUESTION_ID, '2026-07-27 10:00:00.000'),
+                [REPORT_ACTION_ID]: {...fakeConciergeAction, created: '2026-07-27 10:00:04.000'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`, {
+                agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: 'Thinking...'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now(),
+                questionReportActionID: QUESTION_ID,
+            });
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            // When the canonical reply lands with a real followup-list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: canonicalFollowupAction('2026-07-27 10:00:04.000')});
+            await waitForBatchedUpdates();
+
+            // Then the defensive clear still runs — a missed server NVP clear must not leave a stuck label
+            const nameValuePairs = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}` as const);
+            expect(getAgentZeroProcessingLabel(nameValuePairs, CONST.ACCOUNT_ID.CONCIERGE)).toBe('');
+
+            unmount();
+        });
+
+        it('clears the Concierge processing indicator when the pending flag predates questionReportActionID', async () => {
+            // Given a pending flag persisted by an older client, without the question anchor
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [QUESTION_ID]: makeUserComment(QUESTION_ID, '2026-07-27 10:00:00.000'),
+                [NEWER_MESSAGE_ID]: makeUserComment(NEWER_MESSAGE_ID, '2026-07-27 10:00:02.000'),
+                [REPORT_ACTION_ID]: {...fakeConciergeAction, created: '2026-07-27 10:00:04.000'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`, {
+                agentZeroProcessingRequestIndicator: {[CONST.ACCOUNT_ID.CONCIERGE]: 'Thinking...'},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPORT_ACTION_ID,
+                createdAt: Date.now(),
+            });
+            await waitForBatchedUpdates();
+
+            const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
+            await waitForBatchedUpdates();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: canonicalFollowupAction('2026-07-27 10:00:04.000')});
+            await waitForBatchedUpdates();
+
+            // Then the clear falls back to the pre-anchor behavior instead of guessing
+            const nameValuePairs = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}` as const);
+            expect(getAgentZeroProcessingLabel(nameValuePairs, CONST.ACCOUNT_ID.CONCIERGE)).toBe('');
 
             unmount();
         });

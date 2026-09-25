@@ -215,5 +215,37 @@ describe('SuggestedFollowup actions — followup-list skeleton flag', () => {
 
             addCommentSpy.mockRestore();
         });
+
+        it('anchors the pending pre-generated response to the question reportActionID it was asked with', async () => {
+            // Given addComment is stubbed and a followup that carries a pre-generated Concierge response
+            const addCommentSpy = jest.spyOn(ReportActions, 'addComment').mockImplementation(() => {});
+            const selectedFollowup: Followup = {
+                text: 'Why was this flagged?',
+                response: 'Because it was a duplicate.',
+            };
+
+            // When the followup is resolved
+            resolveSuggestedFollowup(
+                followupReport,
+                undefined,
+                followupListReportAction,
+                selectedFollowup,
+                timezone,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                CONCIERGE_REPORT_ID,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the queued pending response records the same reportActionID the question was posted
+            // with — the anchor later used to detect a newer user message during the turn
+            const questionReportActionID = addCommentSpy.mock.calls.at(0)?.at(0)?.reportActionID;
+            expect(questionReportActionID).toBeTruthy();
+            const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);
+            expect(pendingResponse?.questionReportActionID).toBe(questionReportActionID);
+
+            addCommentSpy.mockRestore();
+        });
     });
 });
