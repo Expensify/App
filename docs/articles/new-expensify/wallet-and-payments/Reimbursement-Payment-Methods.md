@@ -75,7 +75,9 @@ To pay reports in bulk:
 1. From the navigation tabs (on the left on web, and at the bottom on mobile) choose **Spend > Reports**.
 2. Under **To-do**, select **Pay**.
 3. Select the checkbox next to each Approved report you want to pay.
-4. Select **Selected**.
+4. Open the bulk actions:
+   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On mobile:** Tap **Selected**.
 5. Choose **Pay**.
 6. Choose a payment method:
    - Select a connected Workspace business bank account to send direct reimbursement.
