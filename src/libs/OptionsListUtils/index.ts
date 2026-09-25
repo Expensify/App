@@ -1662,15 +1662,15 @@ function orderReportOptionsWithSearch(
     );
 }
 
-function orderWorkspaceOptions(options: SearchOptionData[]): SearchOptionData[] {
+function orderWorkspaceOptions(options: SearchOptionData[], activePolicyID: OnyxEntry<string>): SearchOptionData[] {
     return options.sort((a, b) => {
         // Check if `a` is the default workspace
-        if (a.isPolicyExpenseChat && a.policyID === deprecatedActivePolicyID) {
+        if (a.isPolicyExpenseChat && a.policyID === activePolicyID) {
             return -1;
         }
 
         // Check if `b` is the default workspace
-        if (b.isPolicyExpenseChat && b.policyID === deprecatedActivePolicyID) {
+        if (b.isPolicyExpenseChat && b.policyID === activePolicyID) {
             return 1;
         }
 
@@ -1691,21 +1691,21 @@ function sortComparatorReportOptionByDate(options: SearchOptionData) {
 /**
  * Sorts reports and personal details independently.
  */
-function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>): ReportAndPersonalDetailOptions<T>;
+function orderOptions<T extends SearchOptionData>(options: ReportAndPersonalDetailOptions<T>, activePolicyID: OnyxEntry<string>): ReportAndPersonalDetailOptions<T>;
 
 /**
  * Sorts reports and personal details independently, but prioritizes the search value.
  */
 function orderOptions<T extends SearchOptionData>(
     options: ReportAndPersonalDetailOptions<T>,
-    searchValue: string,
     activePolicyID: OnyxEntry<string>,
+    searchValue: string,
     config?: OrderReportOptionsConfig,
 ): ReportAndPersonalDetailOptions<T>;
 function orderOptions<T extends SearchOptionData>(
     options: ReportAndPersonalDetailOptions<T>,
+    activePolicyID: OnyxEntry<string>,
     searchValue?: string,
-    activePolicyID?: OnyxEntry<string>,
     config?: OrderReportOptionsConfig,
 ): ReportAndPersonalDetailOptions<T> {
     let orderedReportOptions: SearchOptionData[];
@@ -1715,7 +1715,7 @@ function orderOptions<T extends SearchOptionData>(
         orderedReportOptions = orderReportOptions(options.recentReports);
     }
     const orderedPersonalDetailsOptions = orderPersonalDetailsOptions(options.personalDetails);
-    const orderedWorkspaceChats = orderWorkspaceOptions(options?.workspaceChats ?? []);
+    const orderedWorkspaceChats = orderWorkspaceOptions(options?.workspaceChats ?? [], activePolicyID);
 
     return {
         recentReports: orderedReportOptions,
