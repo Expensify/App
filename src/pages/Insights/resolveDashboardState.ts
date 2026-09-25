@@ -1,4 +1,6 @@
-import {isGroupEntry} from '@libs/SearchUIUtils';
+import type {SearchQueryJSON} from '@components/Search/types';
+
+import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import type {InsightsDashboard} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -18,17 +20,24 @@ const INSIGHTS_DASHBOARD_STATE = {
 type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 
 /** Resolves the page's state from the record stored for the query on screen, which the key it is read under already scopes. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, headlineSnapshot: OnyxEntry<SearchResults>): InsightsDashboardState {
-    // Only a response sets `inputQuery`, so until one lands the record holds nothing to draw.
-    const isDataLoaded = !!dashboard?.inputQuery;
+function getDashboardState(
+    dashboard: OnyxEntry<InsightsDashboard>,
+    isOffline: boolean,
+    headlineSnapshot: OnyxEntry<SearchResults>,
+    headlineQueryJSON?: Readonly<SearchQueryJSON>,
+): InsightsDashboardState {
+    // Only a GetInsights response sets `inputQuery`.
+    const hasDashboardResponse = !!dashboard?.inputQuery;
+    const isHeadlineLoaded = isSearchDataLoaded(headlineSnapshot, headlineQueryJSON);
+    const isWaitingForData = !hasDashboardResponse && !isHeadlineLoaded;
 
-    if (isOffline && !isDataLoaded) {
+    if (isOffline && isWaitingForData) {
         return INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return INSIGHTS_DASHBOARD_STATE.ERROR;
     }
-    if (!isDataLoaded) {
+    if (isWaitingForData) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
     if (dashboard?.hasResults === false) {

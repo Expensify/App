@@ -1,6 +1,7 @@
 import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -15,7 +16,7 @@ import type {InsightsChartData} from './resolveChartData';
 import {applyInsightsFilters} from './insightsQueries';
 import {resolveInsightsChartData} from './resolveChartData';
 
-/** Resolves one chart's data from the snapshot the dashboard record names for it. */
+/** Resolves one chart's data from the snapshot stored under its own query, the same one GetInsights and Search write to. */
 function useInsightsChartData(
     dashboardID: InsightsDashboardID,
     hash: number | undefined,
@@ -24,10 +25,11 @@ function useInsightsChartData(
 ): InsightsChartData & {queryJSON: Readonly<SearchQueryJSON> | undefined} {
     const queryJSON = buildSearchQueryJSON(applyInsightsFilters(chart, filters));
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${dashboard?.graphs?.[chart.graphKey]?.snapshotHash}`);
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const sortedData = useGroupedItems(snapshot, queryJSON);
+    const {isOffline} = useNetwork();
 
-    return {queryJSON, ...resolveInsightsChartData({chart, dashboard, snapshot, sortedData})};
+    return {queryJSON, ...resolveInsightsChartData({chart, dashboard, snapshot, queryJSON, sortedData, isOffline})};
 }
 
 export default useInsightsChartData;

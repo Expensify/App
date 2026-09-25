@@ -2,6 +2,7 @@ import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
@@ -39,7 +40,15 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     ];
 
-    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData});
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = snapshotHashes.map((snapshotHash) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
+        value: {
+            search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hash: snapshotHash},
+        },
+    }));
+
+    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData, finallyData});
 }
 
 // eslint-disable-next-line import/prefer-default-export
