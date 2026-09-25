@@ -11,6 +11,8 @@ import Button from '@src/components/Button';
 import {useButtonState} from '@src/components/Button/context';
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
+
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ActivityIndicator as RNActivityIndicator, StyleSheet, Text, View} from 'react-native';
@@ -470,7 +472,7 @@ describe('Button', () => {
 
         it('forwards ref to the underlying pressable', () => {
             // Given a ref attached to the Button
-            const ref = React.createRef<View>();
+            const ref = React.createRef<ComponentRef<typeof View>>();
             renderButton({ref});
 
             // Then the ref is populated after mount (non-null means the native element

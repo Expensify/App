@@ -22,6 +22,7 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getConnectedIntegration,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -59,6 +60,7 @@ import {
     getTagGLCode,
     isTagInPolicy,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
@@ -77,6 +79,7 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
+    isBusinessCentralVendorMatchingActive,
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
     isInvoiceFieldsEnabled,
@@ -1866,6 +1869,42 @@ describe('PolicyUtils', () => {
             const tag = {name: 'Roadshow', enabled: true, parentTagsFilter: '^Marketing$', rules: {parentTagsFilter: '^Engineering$'}};
             expect(matchesParentTagPath(tag, 'Engineering')).toBe(true);
             expect(matchesParentTagPath(tag, 'Marketing')).toBe(false);
+        });
+    });
+
+    describe('matchesParentTagsFilter', () => {
+        it('matches an escaped literal filter against the exact parent tag path', () => {
+            // Given literal filters with escaped characters, as the backend writes them
+            const filter = '^TW Strategic Initiative \\- AI Workforce Design$';
+            const colonFilter = '^Sales\\\\:EMEA$';
+
+            // When matching them against parent tag paths
+            // Then only the unescaped path matches, not a prefix or a longer path
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design')).toBe(true);
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative')).toBe(false);
+            expect(matchesParentTagsFilter(filter, 'TW Strategic Initiative - AI Workforce Design:Team')).toBe(false);
+            expect(matchesParentTagsFilter(colonFilter, 'Sales\\:EMEA')).toBe(true);
+            expect(matchesParentTagsFilter(colonFilter, 'Sales:EMEA')).toBe(false);
+        });
+
+        it('unescapes an escaped line terminator like RegExp does', () => {
+            // Given a literal filter with a backslash before a newline, which RegExp reads as a literal newline
+            const filter = '^Line\\\nBreak$';
+
+            // When matching it against a parent tag path containing that newline
+            // Then the literal fast path agrees with RegExp
+            expect(new RegExp(filter).test('Line\nBreak')).toBe(true);
+            expect(matchesParentTagsFilter(filter, 'Line\nBreak')).toBe(true);
+        });
+
+        it('evaluates filters with regex operators as regular expressions', () => {
+            // Given filters that are not plain anchored literals
+            // When matching them against parent tag paths
+            // Then they keep regex semantics - character classes, alternation and unanchored matches
+            expect(matchesParentTagsFilter('^Region\\d$', 'Region7')).toBe(true);
+            expect(matchesParentTagsFilter('^Region\\d$', 'RegionX')).toBe(false);
+            expect(matchesParentTagsFilter('^(Sales|Marketing)$', 'Marketing')).toBe(true);
+            expect(matchesParentTagsFilter('Sales', 'EMEA Sales')).toBe(true);
         });
     });
 
@@ -4033,6 +4072,43 @@ describe('PolicyUtils', () => {
             });
             expect(hasDependentTags(policy, policyTagList)).toBe(true);
         });
+
+        it('returns true when a later tag list has a dependent tag', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            const policyTagList: PolicyTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0, tags: {acme: {name: 'Acme Corp', enabled: true}}},
+                Department: {name: 'Department', required: false, orderWeight: 1, tags: {admin: {name: 'Admin', enabled: true, rules: {parentTagsFilter: '^Acme Corp$'}}}},
+            };
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('skips a tag list left as null or without tags by an Onyx merge', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            // An Onyx merge leaves a deleted tag list as null, and an empty one without the `tags` key
+            const mergedTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0},
+                Department: null,
+                GLCode: {name: 'GL code', required: false, orderWeight: 2, tags: {gl100: {name: 'GL-100', enabled: true, parentTagsFilter: '^Acme Corp:Admin$'}}},
+            };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns false when every tag list is empty or missing its tags', () => {
+            const policy = createMock<Policy>({hasMultipleTagLists: true});
+            // A tag list arrives without the `tags` key when it holds no tags
+            const mergedTagLists = {
+                Company: {name: 'Company', required: false, orderWeight: 0, tags: {}},
+                Department: {name: 'Department', required: false, orderWeight: 1},
+            };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const policyTagList = mergedTagLists as unknown as PolicyTagLists;
+
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
     });
 
     describe('hasIndependentTags', () => {
@@ -4528,6 +4604,91 @@ describe('PolicyUtils', () => {
                 },
             });
 
+        const BUSINESS_CENTRAL_VENDORS_UNSYNCED = Symbol('BUSINESS_CENTRAL_VENDORS_UNSYNCED');
+        const businessCentralVendor = (id: string, name: string, email = '', blocked: string = CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE) => ({
+            id,
+            number: '',
+            name,
+            email,
+            blocked,
+            expensifyVendorId: '',
+            lastModifiedDateTime: '',
+        });
+        const buildBusinessCentralPolicy = (
+            vendors: Array<ReturnType<typeof businessCentralVendor>> | typeof BUSINESS_CENTRAL_VENDORS_UNSYNCED = [businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com')],
+            {isConfigured = true}: {isConfigured?: boolean} = {},
+        ): Policy =>
+            createMock<Policy>({
+                ...createRandomPolicy(0),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                        config: {isConfigured},
+                        data: vendors === BUSINESS_CENTRAL_VENDORS_UNSYNCED ? {} : {vendors},
+                    },
+                },
+            });
+
+        describe('Business Central vendors', () => {
+            it('requires a configured connection and the matching beta', () => {
+                const policy = buildBusinessCentralPolicy();
+                expect(isBusinessCentralVendorMatchingActive(policy)).toBe(true);
+                expect(hasVendorFeature(policy, true)).toBe(true);
+                expect(hasVendorFeature(policy, false)).toBe(false);
+                expect(hasVendorFeature(buildBusinessCentralPolicy(undefined, {isConfigured: false}), true)).toBe(false);
+                expect(isBusinessCentralVendorMatchingActive(undefined)).toBe(false);
+            });
+
+            it('normalizes the synced vendors for matching', () => {
+                const policy = buildBusinessCentralPolicy();
+                expect(getMatchingVendors(policy)).toEqual([{id: 'bc-1', name: 'Contoso Supplies', currency: '', email: 'ap@contoso.com'}]);
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL);
+            });
+
+            // A company switch removes data.vendors while the connection stays configured, so the
+            // unloaded state has to stay distinguishable from a company that has no vendors.
+            it('distinguishes an unloaded list from a loaded empty list', () => {
+                expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toBe(false);
+                expect(isMatchingVendorListLoaded(buildBusinessCentralPolicy([]))).toBe(true);
+                expect(getMatchingVendors(buildBusinessCentralPolicy(BUSINESS_CENTRAL_VENDORS_UNSYNCED))).toEqual([]);
+            });
+
+            it('uses the Business Central empty state when the synced list has no vendors', () => {
+                const translate = TestHelper.translateLocal;
+                expect(getVendorEmptyState(buildBusinessCentralPolicy([]), translate)).toEqual({
+                    title: translate('workspace.businessCentral.noVendorsFound'),
+                    subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
+                });
+            });
+
+            it('excludes vendors blocked as All but keeps ones blocked as Payment', () => {
+                // Given a synced list holding one unblocked, one payment-blocked, and one fully blocked vendor
+                const policy = buildBusinessCentralPolicy([
+                    businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com'),
+                    businessCentralVendor('bc-2', 'Fabrikam', '', CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.PAYMENT),
+                    businessCentralVendor('bc-3', 'Adventure Works', '', CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL),
+                ]);
+
+                // When the matching list is read
+                const vendorIDs = getMatchingVendors(policy).map((vendor) => vendor.id);
+
+                // Then only the All-blocked vendor is dropped, because Business Central still posts
+                // purchase invoices for a payment-blocked vendor but rejects every transaction for an All-blocked one
+                expect(vendorIDs).toEqual(['bc-1', 'bc-2']);
+                expect(getMatchingVendorByID(policy, 'bc-3')).toBeUndefined();
+
+                // And the permissive historical lookup still resolves its name, so an expense coded
+                // before the block renders the vendor instead of the raw external ID
+                expect(findVendorByID(policy, 'bc-3')?.name).toBe('Adventure Works');
+            });
+
+            it('yields to Rillet, which precedes it in the matching order', () => {
+                const policy = buildBusinessCentralPolicy();
+                policy.connections = {...policy.connections, ...buildRilletPolicy().connections};
+                expect(getActiveVendorMatchingIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.RILLET);
+                expect(getMatchingVendors(policy).map((vendor) => vendor.id)).toEqual(['rv-1']);
+            });
+        });
+
         describe('DualEntry vendors', () => {
             const vendors: DualEntryVendor[] = [
                 {id: '1', name: 'Company vendor', companyID: '10', email: 'vendor@example.com', isActive: true},
@@ -4681,8 +4842,12 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled and Rillet is connected because Rillet is still pre-GA', () => {
-                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(false);
+            it('returns true when beta is disabled and Rillet is connected because Rillet is generally available', () => {
+                expect(hasVendorFeature(buildRilletPolicy(), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and Rillet is connected but isConfigured=false because GA did not widen the configuration gate', () => {
+                expect(hasVendorFeature(buildRilletPolicy(undefined, {isConfigured: false}), false)).toBe(false);
             });
 
             it('returns false when QBO non-reimbursable export is Vendor Bill', () => {
@@ -4948,6 +5113,11 @@ describe('PolicyUtils', () => {
             it('resolves a Rillet vendor (normalized) from connections.rillet.data.vendors', () => {
                 const policy = buildRilletPolicy([{id: 'rv-1', name: 'Acme Rillet', email: 'acme@rillet.com'}]);
                 expect(findVendorByID(policy, 'rv-1')).toEqual({id: 'rv-1', name: 'Acme Rillet', currency: '', email: 'acme@rillet.com'});
+            });
+
+            it('resolves a Business Central vendor (normalized) from connections.businessCentral.data.vendors', () => {
+                const policy = buildBusinessCentralPolicy([businessCentralVendor('bc-1', 'Contoso Supplies', 'ap@contoso.com')]);
+                expect(findVendorByID(policy, 'bc-1')).toEqual({id: 'bc-1', name: 'Contoso Supplies', currency: '', email: 'ap@contoso.com'});
             });
 
             it('prefers the active Xero integration over stale Rillet data when both hold the same vendor ID', () => {
@@ -5792,6 +5962,23 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('getConnectedIntegration', () => {
+    it('returns the connected accounting integration when present on the policy', () => {
+        const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+        expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('returns undefined when there is no connected integration', () => {
+        expect(getConnectedIntegration(undefined)).toBeUndefined();
+        expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
+    });
+
+    it('ignores non-accounting connections (e.g. HR integrations)', () => {
+        const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
+        expect(getConnectedIntegration(policy)).toBeUndefined();
     });
 });
 
