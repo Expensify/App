@@ -904,6 +904,7 @@ function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: stri
     NetworkStore.setLastShortAuthToken(authToken);
 
     const signInPromise = Device.getDeviceInfoWithID().then((deviceInfo) =>
+        // We use makeRequestWithSideEffects here because the caller needs to inspect the response to detect a SESSION_MISMATCH error
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(
             SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
