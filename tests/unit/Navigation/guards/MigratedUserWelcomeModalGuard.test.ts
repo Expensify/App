@@ -2,6 +2,8 @@ import MigratedUserWelcomeModalGuard, {onSessionOrLoadingAppChanged, resetDismis
 import type {GuardContext} from '@libs/Navigation/guards/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
+import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -446,6 +448,8 @@ describe('MigratedUserWelcomeModalGuard', () => {
         });
 
         it('should not navigate while cleared Onyx data is reloading', async () => {
+            // Given an eligible migrated user who dismissed the welcome modal before the app finished loading.
+            const session = {authToken: 'test-token', accountID: 123};
             mockActiveRoute = ROUTES.SETTINGS_TROUBLESHOOT;
             await Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {
                 nudgeMigration: {
@@ -459,15 +463,26 @@ describe('MigratedUserWelcomeModalGuard', () => {
                     dismissedMethod: 'click',
                 },
             });
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
             await waitForBatchedUpdates();
-            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, false);
+            onSessionOrLoadingAppChanged(session, false);
             mockNavigate.mockClear();
 
-            // clearOnyxAndResetApp atomically sets IS_LOADING_APP before clearing account-scoped data.
-            onSessionOrLoadingAppChanged({authToken: 'test-token', accountID: 123}, true);
-            await Onyx.clear([ONYXKEYS.NVP_TRY_NEW_DOT]);
-            await waitForBatchedUpdates();
+            const loadingAppConnection = Onyx.connect({
+                key: ONYXKEYS.IS_LOADING_APP,
+                callback: (isLoadingApp) => onSessionOrLoadingAppChanged(session, isLoadingApp ?? true),
+            });
 
+            // When a full reconnect starts and clears the dismissed state. Preserve migration eligibility
+            // so this test isolates whether the helper raises the loading gate before the clear callbacks.
+            try {
+                await clearOnyxAndSeedFullReconnect([ONYXKEYS.IS_LOADING_APP, ONYXKEYS.NVP_TRY_NEW_DOT]);
+                await waitForBatchedUpdates();
+            } finally {
+                Onyx.disconnect(loadingAppConnection);
+            }
+
+            // Then the guard must not navigate using the transient post-clear state.
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 
