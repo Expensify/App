@@ -554,6 +554,31 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:12345 amount<100');
         });
 
+        test('vendor filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                vendor: ['Acme', 'none'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense vendor:Acme,none');
+        });
+
+        test('negated vendor filter value', () => {
+            // Given a filter form that excludes a vendor
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                vendorNot: ['Acme'],
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the vendor filter keeps its negation so the exclusion is not turned into a match
+            expect(result).toEqual('type:expense -vendor:Acme');
+        });
+
         test('receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1383,6 +1408,40 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 category: ['Maintenance', 'none'],
+            });
+        });
+
+        test('vendor filter keeps the typed names and the empty value', () => {
+            const queryString = 'sortBy:date sortOrder:desc type:expense vendor:"Acme Tools",none';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            expect(result).toEqual({
+                type: 'expense',
+                vendor: ['Acme Tools', 'none'],
+            });
+        });
+
+        test('negated vendor filter is kept in the negated form key', () => {
+            // Given a typed query that excludes a vendor
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -vendor:"Acme Tools"');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the filter form is built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the exclusion lands in vendorNot so applying the form keeps it an exclusion
+            expect(result).toEqual({
+                type: 'expense',
+                vendorNot: ['Acme Tools'],
             });
         });
 

@@ -34,6 +34,7 @@ import TagSelector from './TagSelector';
 import TaxRateSelector from './TaxRateSelector';
 import TypeSelector from './TypeSelector';
 import UserSelector from './UserSelector';
+import VendorSelector from './VendorSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | SearchTextFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
@@ -194,6 +195,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
             const Component = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: FeedSelector,
@@ -203,6 +205,7 @@ function ListFilterContent({
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: TaxRateSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: ExportedToSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: TagSelector,
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: VendorSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: CategorySelector,
             }[baseFilterKey];
             content = (

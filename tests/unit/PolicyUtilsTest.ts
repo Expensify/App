@@ -17,6 +17,7 @@ import {
     findVendorByID,
     getVendorDisplayName,
     hasVendorFeatureOnAnyPolicy,
+    getVendorFeaturePolicyIDs,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -5049,7 +5050,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy', () => {
+        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const plainPolicy: Policy = {...createRandomPolicy(3), connections: undefined, id: 'plain'};
@@ -5071,6 +5072,11 @@ describe('PolicyUtils', () => {
 
             it('ignores beta-gated integrations while the beta is off', () => {
                 expect(hasVendorFeatureOnAnyPolicy({[xeroKey]: xeroPolicy}, false)).toBe(false);
+            });
+
+            it('lists the workspaces that have the vendor feature', () => {
+                expect(getVendorFeaturePolicyIDs({[xeroKey]: xeroPolicy, [qboKey]: qboPolicy, [plainKey]: plainPolicy}, true).toSorted()).toEqual(['qbo', 'xero']);
+                expect(getVendorFeaturePolicyIDs({[xeroKey]: xeroPolicy, [plainKey]: plainPolicy}, false)).toEqual([]);
             });
         });
 
