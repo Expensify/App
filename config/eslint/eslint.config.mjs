@@ -815,6 +815,15 @@ const config = defineConfig([
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
+        // Oxlint migration harness, deleted with ESLint (see oxlint-migration/README.md).
+        // config/oxlint/ is deliberately NOT ignored: it is production lint config, not an artifact.
+        'oxlint-migration/**',
+        // Conductor scratch directory, gitignored. Oxlint already skips it, so ESLint has to as
+        // well or the two legs lint different file sets.
+        '.context/**',
+        // Oxlint's own config. Its rule names are quoted object keys, which naming-convention flags by the
+        // hundred; `**/*.config.mjs` below is ignored for the same kind of reason.
+        'oxlint.config.mts',
         '.github/actions/**/index.js',
         '**/*.config.js',
         '**/*.config.mjs',
