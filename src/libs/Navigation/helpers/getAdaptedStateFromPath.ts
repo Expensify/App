@@ -22,7 +22,6 @@ import SCREENS from '@src/SCREENS';
 
 import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
 
-import {findFocusedRoute} from '@react-navigation/native';
 import pick from 'lodash/pick';
 
 import buildTabNavigatorNestedState from './buildTabNavigatorNestedState';
@@ -37,6 +36,7 @@ import getParamsFromRoute from './getParamsFromRoute';
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
+import replacePathInNestedState from './replacePathInNestedState';
 
 type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
 
@@ -434,10 +434,7 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
 
     const state = getStateFromPath(normalizedPath);
     if (shouldReplacePathInNestedState) {
-        const focusedRoute = findFocusedRoute(state);
-        if (focusedRoute) {
-            focusedRoute.path = normalizedPath;
-        }
+        replacePathInNestedState(state, normalizedPath);
     }
 
     if (state === undefined) {
