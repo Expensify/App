@@ -1228,7 +1228,7 @@ describe('OptionsListUtils', () => {
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
             // When we call orderOptions()
-            results = orderOptions(results);
+            results = orderOptions(results, activePolicyID);
 
             // Then all personalDetails except the currently logged in user should be returned
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
@@ -1271,7 +1271,7 @@ describe('OptionsListUtils', () => {
             );
             let results: Pick<Options, 'personalDetails' | 'recentReports'> = validOptions;
             // When we call orderOptions()
-            results = orderOptions(results);
+            results = orderOptions(results, activePolicyID);
 
             const expected = [
                 'Black Panther',
@@ -5492,7 +5492,7 @@ describe('OptionsListUtils', () => {
         it('should put the default workspace on top of the list', () => {
             // Given a list of expense chats
             // When we call orderWorkspaceOptions
-            const result = orderWorkspaceOptions(WORKSPACE_CHATS);
+            const result = orderWorkspaceOptions(WORKSPACE_CHATS, activePolicyID);
 
             // Then the first item in the list should be the default workspace
             expect(result.at(0)?.text).toEqual('Notion Workspace for Marketing');

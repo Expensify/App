@@ -3067,7 +3067,7 @@ function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
         const reportsAndPersonalDetails = options.recentReports.concat(personalDetailsWithoutDMs);
-        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, activePolicyID, orderReportOptionsConfig);
+        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, activePolicyID, searchInputValue, orderReportOptionsConfig);
     }
 
     let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, activePolicyID, orderReportOptionsConfig);
