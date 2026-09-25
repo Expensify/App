@@ -125,6 +125,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
             SCREENS.TRAVEL.MY_TRIPS,
             SCREENS.WORKSPACE.TRAVEL,
+            SCREENS.WORKSPACES_ADD_DOMAIN,
         ],
     },
     CONTACT_METHODS: {
@@ -5211,7 +5212,6 @@ const ROUTES = {
         getRoute: (domainAccountID: number) => `workspaces/domain-verified/${domainAccountID}` as const,
     },
     WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
-    WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT: `workspaces/add-domain/${VERIFY_ACCOUNT}`,
     WORKSPACES_DOMAIN_ADDED: {
         route: 'workspaces/domain-added/:domainAccountID',
         getRoute: (domainAccountID: number) => `workspaces/domain-added/${domainAccountID}` as const,
