@@ -63,7 +63,7 @@ function useReportPreviewActionDecision({
         currentUserDetails.accountID,
         transactions,
         false,
-        undefined,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
@@ -77,7 +77,7 @@ function useReportPreviewActionDecision({
             currentUserDetails.accountID,
             transactions,
             true,
-            undefined,
+            isChatReportArchived,
             invoiceReceiverPolicy,
         );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
