@@ -68,6 +68,7 @@ function RulesNewPromptForm({onSubmit, onBuildManually, isLoading, onCreateAgent
             ref={formRef}
             formID={ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM}
             validate={validate}
+            addBottomSafeAreaPadding
             onSubmit={onSubmit}
             isLoading={isLoading}
             submitButtonText={translate('common.next')}

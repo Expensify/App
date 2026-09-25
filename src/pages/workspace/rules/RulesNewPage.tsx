@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -105,7 +106,6 @@ function seedDraftAndNavigate(rule: GeneratedRule, policyID: string, policyCateg
 /** Routes a generated rule to either the matching rule form or the inline error explaining why it could not be used. */
 function applyGeneratedRule(rule: GeneratedRule, policyID: string, policyCategories: OnyxEntry<PolicyCategories>, translate: LocaleContextProps['translate']) {
     if (rule.state === CONST.GENERATED_RULE.STATE.RULE) {
-        clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
         seedDraftAndNavigate(rule, policyID, policyCategories, translate);
         return;
     }
@@ -169,6 +169,14 @@ function RulesNewPage({route}: RulesNewPageProps) {
         applyGeneratedRule(generatedRuleForCurrentPrompt, policyID, policyCategories, translate);
     }, [generatedRuleForCurrentPrompt, policyID, policyCategories, translate]);
 
+    useEffect(
+        () => () => {
+            clearDraftValues(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
+            clearNewRulePromptError();
+        },
+        [],
+    );
+
     const describeRule = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM>) => {
         const prompt = values.prompt.trim();
         clearNewRulePromptError();
@@ -184,10 +192,13 @@ function RulesNewPage({route}: RulesNewPageProps) {
     const handleBackButtonPress = () => {
         if (canDescribeRule && shouldShowRuleTypes) {
             setShouldShowRuleTypes(false);
-            return;
+            return true;
         }
         Navigation.goBack();
+        return true;
     };
+
+    useAndroidBackButtonHandler(handleBackButtonPress);
 
     const newRuleOptions: NewRuleOption[] = [
         {
