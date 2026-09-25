@@ -256,6 +256,82 @@ describe('DynamicFormFlow', () => {
         expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ssn: '123456789'}));
     });
 
+    it('resumes a reopened form at the sensitive page instead of trusting answers carried from an abandoned visit', async () => {
+        const fields: DynamicFormField[] = [
+            {key: 'ssn', label: 'SSN', group: 'Identity', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+            {key: 'nickname', label: 'Nickname', group: 'Profile', type: 'text', required: true, refreshOnChange: false},
+        ];
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {nickname: 'Ali'});
+        });
+        mockRouteParams.subPage = 'identity';
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={FORM_ID}
+                headerTitle="Identity"
+                testID="DynamicFormFlowStaleCarry"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('SSN'), '123456789');
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        screen.unmount();
+        delete mockRouteParams.subPage;
+        mockSetParams.mockClear();
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={FORM_ID}
+                headerTitle="Identity"
+                testID="DynamicFormFlowStaleCarry"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={jest.fn()}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'identity'});
+    });
+
+    it('submits the stored answers when the confirmation button forwards its press event', async () => {
+        const fields: DynamicFormField[] = [{key: 'type', label: 'Type', group: 'Kind', type: 'text', required: true, refreshOnChange: false}];
+        const onSubmit = jest.fn();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {type: 'individual'});
+        });
+        mockRouteParams.subPage = 'confirm';
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={FORM_ID}
+                headerTitle="Identity"
+                testID="DynamicFormFlowPressEvent"
+                hasConfirmation
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText('common.confirm'), {type: 'press', nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith({type: 'individual'});
+    });
+
     it('skips a group whose fields are all hidden', async () => {
         mockRouteParams.subPage = 'account-details';
         await act(async () => {

@@ -13,6 +13,7 @@ import {View} from 'react-native';
 
 import type {DynamicFormValues} from './types';
 
+import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getInputComponentForField, {getFieldDescription, getFieldLabel} from './getInputComponentForField';
 import isFieldVisible from './isFieldVisible';
 
@@ -51,7 +52,6 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, on
             {visibleFields.map((field) => {
                 const label = getFieldLabel(field, translate);
                 if (field.readonly) {
-                    const answer = values[field.key];
                     return (
                         <View
                             key={field.key}
@@ -60,7 +60,7 @@ function DynamicFormFields({fields, values, currency, shouldSaveDraft = true, on
                             <MenuItemWithTopDescription
                                 interactive={false}
                                 description={label}
-                                title={typeof answer === 'string' ? answer : ''}
+                                title={formatDynamicFieldValue(field, values, translate)}
                             />
                         </View>
                     );
