@@ -5560,7 +5560,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         typeFiltersPopupContainer: {
-            width: CONST.ADVANCED_FILTERS_POPOVER_WIDTH - CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
             borderRightWidth: 1,
             borderRightColor: theme.border,
             paddingVertical: 8,
@@ -6777,11 +6776,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: '50%',
             width: 12,
             height: 12,
-        },
-        discoverSectionImage: {
-            width: '100%',
-            height: undefined,
-            aspectRatio: 2.2,
         },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,

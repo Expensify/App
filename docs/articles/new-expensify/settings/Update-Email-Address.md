@@ -31,7 +31,7 @@ To add or update a contact method:
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Profile**.
 2. In the **Public** section, select **Contact methods**.
-3. Select **New Contact Method**.
+3. Select **New contact method**.
 4. Enter the verification code sent to your current default contact method. 
 5. Enter the new email address or phone number you want to add.
 6. Click **Add**.

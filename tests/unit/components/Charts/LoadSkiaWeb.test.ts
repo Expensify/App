@@ -1,5 +1,5 @@
 /**
- * Covers patches/@shopify/react-native-skia/@shopify+react-native-skia+2.11.2+004+load-skia-web-fail-closed.patch.
+ * Covers patches/@shopify/react-native-skia/@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch.
  * `LoadSkiaWeb` must refuse a CanvasKit that initialized without its bindings (glue and wasm from different releases,
  * https://github.com/Expensify/App/issues/102042) and must not cache a failed init for the rest of the session.
  */

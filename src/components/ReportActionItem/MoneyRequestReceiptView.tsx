@@ -153,7 +153,6 @@ function MoneyRequestReceiptView({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(chatReport?.ownerAccountID)});
@@ -474,7 +473,6 @@ function MoneyRequestReceiptView({
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed,
-                    betas,
                     chatReportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
@@ -529,7 +527,6 @@ function MoneyRequestReceiptView({
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed,
-                betas,
                 reportOwnerPersonalDetail,
                 currentUserPersonalDetail,
                 conciergePersonalDetail,
