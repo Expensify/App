@@ -461,6 +461,38 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('legalEntityShareholders~new', 'edit'));
     });
 
+    it('submits a sensitive answer typed on the last page of a form with no confirmation page', async () => {
+        const fields: DynamicFormField[] = [
+            {key: 'nickname', label: 'Nickname', group: 'Profile', type: 'text', required: true, refreshOnChange: false},
+            {key: 'ssn', label: 'SSN', group: 'Identity', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+        ];
+        const onSubmit = jest.fn();
+        mockRouteParams.subPage = 'identity';
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM_DRAFT, {nickname: 'Ali'});
+        });
+        render(
+            <DynamicFormFlow
+                fields={fields}
+                formID={FORM_ID}
+                headerTitle="Identity"
+                testID="DynamicFormFlowLastPageSensitive"
+                buildRoute={buildRoute}
+                onSubmit={onSubmit}
+                onBack={jest.fn()}
+                confirmationTitle="Confirm"
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByLabelText('SSN'), '123456789');
+        fireEvent.press(screen.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith({nickname: 'Ali', ssn: '123456789'});
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(buildRoute('identity'));
+    });
+
     it('leaves the flow from Back on the first shown page when the first group is hidden', async () => {
         mockRouteParams.subPage = 'account-holder-details';
         const hiddenFirstGroup = allFieldTypes.map((field) => (field.group === 'Account details' ? {...field, showWhen: {key: 'legalType', equals: ['NEVER']}} : field));

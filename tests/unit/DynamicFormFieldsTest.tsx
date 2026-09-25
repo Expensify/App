@@ -231,6 +231,11 @@ describe('DynamicFormFields', () => {
 
         expect(rendered.get('numberOfEmployees')?.inputMode).toBe('numeric');
         expect(rendered.get('numberOfEmployees')?.hint).toBe('common.exampleValue');
+        const described = renderFields([
+            {key: 'headcount', label: 'Headcount', description: 'Full-time staff only', group: 'Business', type: 'number', required: true, refreshOnChange: false},
+        ]);
+        expect(described.get('headcount')?.hint).toBe('Full-time staff only');
+        expect(screen.queryByText('Full-time staff only')).not.toBeOnTheScreen();
         expect(rendered.get('operatingCountries')?.canSelectMultiple).toBe(true);
         expect(Object.keys(rendered.get('operatingCountries')?.optionsList ?? {}).length).toBeGreaterThan(200);
         expect(rendered.get('operatingCountries')?.optionsList?.GB).toBe('allCountries.GB');
