@@ -53,11 +53,11 @@ type ColumnScrollOverrideProps = Record<string, unknown> & {
  * Hands the horizontal axis to the list's scroller and marks it for the page-header hover rule in `web/index.html`,
  * keeping whatever `overrideProps` the consumer passed.
  */
-function getColumnScrollOverrideProps(overrideProps: ColumnScrollOverrideProps = {}) {
+function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overrideProps: ColumnScrollOverrideProps = {}) {
     return {
         ...overrideProps,
         dataSet: {...overrideProps.dataSet, tableColumnScroller: true},
-        style: [overrideProps.style, {overflowX: 'auto'}],
+        style: [overrideProps.style, overflowXAutoStyle],
     };
 }
 
@@ -206,7 +206,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
 
-    // Columns wider than the table, so this list's scroller takes the horizontal axis (see `columnScrollOverrideStyle`).
+    // Columns wider than the table, so this list's scroller takes the horizontal axis (see `getColumnScrollOverrideProps`).
     // Only tables keeping their filter bar in the list scroll here. The rest are scrolled by an ancestor (see
     // `TableSemanticContainer`). Web-only: native can't measure text, so it never content-sizes columns.
     const isColumnScrollEnabled = !!scrollWidth && tableListMetadata.hasPageHeader && hasRows;
@@ -500,7 +500,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 }}
                 {...restListProps}
                 scrollEnabled={scrollEnabled}
-                overrideProps={isColumnScrollEnabled ? getColumnScrollOverrideProps(overrideProps) : overrideProps}
+                overrideProps={isColumnScrollEnabled ? getColumnScrollOverrideProps(styles.overflowXAuto, overrideProps) : overrideProps}
             />
         </View>
     );
