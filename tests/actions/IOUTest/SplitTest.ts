@@ -9381,6 +9381,33 @@ describe('removeSplitExpenseField', () => {
         removeSplitExpenseField(undefined, 'split-123', getCurrencyDecimalsLocal);
         await waitForBatchedUpdates();
     });
+
+    it('should return the remaining split with the full amount when removing one of two splits', () => {
+        // Given a draft with two splits, where the edit page commits the result right away when only one split is left
+        const draftTransaction: Transaction = {
+            transactionID: 'draft-remove-return',
+            amount: 10000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                originalTransactionID: 'orig-remove-return',
+                splitExpenses: [
+                    {transactionID: 'split-keep', amount: 5000, created: DateUtils.getDBTime()},
+                    {transactionID: 'split-remove', amount: 5000, created: DateUtils.getDBTime()},
+                ],
+            },
+            created: DateUtils.getDBTime(),
+            reportID: 'rep-remove-return',
+        };
+
+        // When one of the splits is removed
+        const remainingSplitExpenses = removeSplitExpenseField(draftTransaction, 'split-remove', getCurrencyDecimalsLocal);
+
+        // Then the caller gets the single remaining split holding the whole amount, so it can revert the split without reading Onyx back
+        expect(remainingSplitExpenses).toHaveLength(1);
+        expect(remainingSplitExpenses?.at(0)?.transactionID).toBe('split-keep');
+        expect(remainingSplitExpenses?.at(0)?.amount).toBe(10000);
+    });
 });
 
 describe('updateSplitExpenseField', () => {

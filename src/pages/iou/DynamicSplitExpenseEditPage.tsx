@@ -26,6 +26,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useSaveSplitExpenses from '@hooks/useSaveSplitExpenses';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ViolationField} from '@hooks/useViolations';
@@ -50,6 +51,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
+    getChildTransactions,
     getDistanceInMeters,
     getRateID,
     getTag,
@@ -210,6 +212,17 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     const isSplitPerDiemRequest = isPerDiemRequest(transaction);
+
+    // Skip the per diem revert when the overview's Save would reject it for a rate that is out of policy.
+    const [originalTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
+    const hasCustomUnitOutOfPolicyViolation = !!originalTransactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const shouldRevertSplitOnRemove = isSplitPerDiemRequest && getChildTransactions(allTransactions, transactionID).length > 0 && !hasCustomUnitOutOfPolicyViolation;
+    const saveSplitExpenses = useSaveSplitExpenses({
+        originalTransactionID: transactionID,
+        reportID,
+        isSearchBackPath: backTo.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route),
+    });
+
     const isSplitTimeRequest = isTimeRequest(transaction);
     const isTaxEnabled =
         (isPolicyExpenseChat || isExpenseUnreported) &&
@@ -554,7 +567,14 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
-                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, getCurrencyDecimals);
+                                    const remainingSplitExpenses = removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, getCurrencyDecimals);
+
+                                    // Deleting a per diem split opens this page instead of deleting it, so a removal that leaves one
+                                    // split must revert the split right away rather than leave it as an unsaved draft change.
+                                    if (shouldRevertSplitOnRemove && remainingSplitExpenses?.length === 1) {
+                                        saveSplitExpenses(remainingSplitExpenses);
+                                        return;
+                                    }
                                     Navigation.goBack(backTo);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}

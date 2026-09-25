@@ -744,7 +744,7 @@ function removeSplitExpenseField(
     draftTransaction: OnyxEntry<OnyxTypes.Transaction>,
     splitExpenseTransactionID: string,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-) {
+): SplitExpense[] | undefined {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
@@ -775,6 +775,8 @@ function removeSplitExpenseField(
             splitsEndDate: null,
         },
     });
+
+    return redistributedSplitExpenses;
 }
 
 function updateSplitExpenseField(
