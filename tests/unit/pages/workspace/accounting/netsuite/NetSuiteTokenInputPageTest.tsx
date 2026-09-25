@@ -1,12 +1,14 @@
 import {render, screen} from '@testing-library/react-native';
 
 import useEnvironment from '@hooks/useEnvironment';
-import usePermissions from '@hooks/usePermissions';
+
+import {isAuthenticationError} from '@libs/actions/connections';
 
 import NetSuiteTokenInputPage from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenInputPage';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 
 import CONST from '@src/CONST';
+import type Policy from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
 
@@ -50,7 +52,6 @@ jest.mock('@hooks/useThemeStyles', () =>
     ),
 );
 jest.mock('@hooks/useEnvironment');
-jest.mock('@hooks/usePermissions');
 jest.mock('@libs/actions/connections', () => ({
     isAuthenticationError: jest.fn(() => false),
 }));
@@ -88,26 +89,22 @@ jest.mock(
 jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent', () => () => null);
 
 const mockedUseEnvironment = jest.mocked(useEnvironment);
-const mockedUsePermissions = jest.mocked(usePermissions);
+const mockedIsAuthenticationError = jest.mocked(isAuthenticationError);
 
-function setEnvironment({environment, isOAuthBetaEnabled}: {environment: ValueOf<typeof CONST.ENVIRONMENT>; isOAuthBetaEnabled: boolean}) {
+function setEnvironment(environment: ValueOf<typeof CONST.ENVIRONMENT>) {
     mockedUseEnvironment.mockReturnValue({
         environment,
         environmentURL: 'https://new.expensify.com',
         isProduction: environment === CONST.ENVIRONMENT.PRODUCTION,
         isDevelopment: environment === CONST.ENVIRONMENT.DEV,
     });
-    mockedUsePermissions.mockReturnValue({
-        isBetaEnabled: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
-        isBetaEnabledOrUnknown: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
-    });
 }
 
-function renderPage(subPage: string, authType?: string) {
+function renderPage(subPage: string, authType?: string, policy?: Partial<Policy>) {
     mockRoute.current = {...mockRoute.current, params: {policyID: POLICY_ID, subPage, authType}};
     render(
         <NetSuiteTokenInputPage
-            policy={undefined}
+            policy={policy as Policy}
             policyDraft={undefined}
             isLoadingPolicy={false}
             // @ts-expect-error - route type from navigator
@@ -120,46 +117,83 @@ describe('NetSuiteTokenInputPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockStepNames.current = undefined;
+        mockedIsAuthenticationError.mockReturnValue(false);
     });
 
-    it('runs the token-based authentication flow without the netSuiteOAuth beta', () => {
-        setEnvironment({environment: CONST.ENVIRONMENT.PRODUCTION, isOAuthBetaEnabled: false});
+    it('runs the OAuth flow by default for fresh connections in production', () => {
+        // Given a fresh connection (no auth error) in production
+        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+
+        // When the credentials page is rendered
         renderPage(PAGE_NAME.CREDENTIALS);
 
-        expect(screen.getByTestId('token-form')).toBeOnTheScreen();
-        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
-    });
-
-    it('runs the OAuth flow with the netSuiteOAuth beta and hides the token-based link in production', () => {
-        setEnvironment({environment: CONST.ENVIRONMENT.PRODUCTION, isOAuthBetaEnabled: true});
-        renderPage(PAGE_NAME.CREDENTIALS);
-
+        // Then the OAuth form and OAuth step names are shown, with no TBA fallback link
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
         expect(screen.queryByTestId('token-authentication-link')).toBeNull();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
-    it('ignores the token-based route param in production', () => {
-        setEnvironment({environment: CONST.ENVIRONMENT.PRODUCTION, isOAuthBetaEnabled: true});
+    it('ignores the TBA route param in production and keeps OAuth', () => {
+        // Given a fresh connection in production with a TBA auth type in the route
+        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+
+        // When the credentials page is rendered with the TBA param
         renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
 
+        // Then production ignores the param and still shows the OAuth form
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
     });
 
-    it('offers the token-based link to beta members on staging', () => {
-        setEnvironment({environment: CONST.ENVIRONMENT.STAGING, isOAuthBetaEnabled: true});
+    it('offers the TBA fallback link on staging when using OAuth', () => {
+        // Given a fresh connection on staging (non-production)
+        setEnvironment(CONST.ENVIRONMENT.STAGING);
+
+        // When the credentials page is rendered
         renderPage(PAGE_NAME.CREDENTIALS);
 
+        // Then the OAuth form is shown along with the TBA fallback link
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
         expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
     });
 
-    it('runs the token-based authentication flow on dev when the route asks for it', () => {
-        setEnvironment({environment: CONST.ENVIRONMENT.DEV, isOAuthBetaEnabled: true});
+    it('runs the TBA flow on dev when the route asks for it', () => {
+        // Given a fresh connection on dev with TBA auth type in the route
+        setEnvironment(CONST.ENVIRONMENT.DEV);
+
+        // When the credentials page is rendered with the TBA param
         renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
 
+        // Then the TBA form and TBA step names are shown, with no TBA fallback link
         expect(screen.getByTestId('token-form')).toBeOnTheScreen();
         expect(screen.queryByTestId('token-authentication-link')).toBeNull();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
+    });
+
+    it('shows the TBA credentials form when reconnecting after an auth error on a TBA connection', () => {
+        // Given an existing TBA connection (tokenID present) that has an auth error
+        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+        mockedIsAuthenticationError.mockReturnValue(true);
+        const policy = {connections: {netsuite: {tokenID: 'encrypted-token-id', tokenSecret: 'encrypted-token-secret', accountID: 'NS_ACCOUNT'}}} as unknown as Partial<Policy>;
+
+        // When the credentials page is rendered for reconnection
+        renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
+
+        // Then the TBA credentials form is shown (OAuth not used for TBA reconnect until Release 5)
+        expect(screen.getByTestId('token-form')).toBeOnTheScreen();
+        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
+    });
+
+    it('shows the OAuth credentials form when reconnecting after an auth error on an OAuth connection', () => {
+        // Given an existing OAuth connection (no tokenID) that has an auth error
+        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+        mockedIsAuthenticationError.mockReturnValue(true);
+        const policy = {connections: {netsuite: {tokenID: '', accountID: 'NS_ACCOUNT'}}} as unknown as Partial<Policy>;
+
+        // When the credentials page is rendered for reconnection
+        renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
+
+        // Then the OAuth credentials form is shown
+        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 });

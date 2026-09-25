@@ -3,7 +3,6 @@ import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHead
 
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -50,19 +49,19 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const {isBetaEnabled} = usePermissions();
     const {params} = useRoute<NetSuiteTokenInputRoute>();
     const {authType} = params;
 
-    const canUseNetSuiteOAuth = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
-    // Only dev and staging can move a beta member back to token-based authentication. Production ignores the route param.
-    const canSwitchToTokenAuthentication = canUseNetSuiteOAuth && !isProduction;
+    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    // Only dev and staging can switch back to the token-based (TBA/SOAP) flow via route param, for testing.
+    const canSwitchToTokenAuthentication = !isProduction;
     const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
-    const isOAuthFlow = canUseNetSuiteOAuth && !isTokenAuthenticationSelected;
+    // TBA connections store a tokenID while OAuth connections do not so this is used to pick the correct credentials
+    // form upon reconnection. Fresh connections will always use the OAuth wizard.
+    const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    const isOAuthFlow = !(hasAuthError && !!netSuiteConnection?.tokenID) && !isTokenAuthenticationSelected;
     const pages = isOAuthFlow ? oauthPages : tokenPages;
     const stepNames = isOAuthFlow ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
-
-    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
     const submit = () => {
         Navigation.dismissModal();
