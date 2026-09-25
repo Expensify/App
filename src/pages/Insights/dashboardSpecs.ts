@@ -2,8 +2,7 @@
 
 import type {ChartView, SearchGroupBy} from '@components/Search/types';
 
-import {isGroupPolicy} from '@libs/PolicyUtils';
-import {isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
 import colors from '@styles/theme/colors';
 
@@ -82,7 +81,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
-                isPolicyEligible: (policy) => isGroupPolicy(policy) && policy.areCategoriesEnabled === true,
+                isPolicyEligible: isPolicyEligibleForTopCategories,
             },
         ],
     },

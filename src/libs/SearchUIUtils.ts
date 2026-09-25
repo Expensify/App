@@ -686,6 +686,10 @@ function isPolicyEligibleForTopSpenders(policy: OnyxTypes.Policy, currentUserEma
     return isPolicyEligibleForSpendOverTime(policy, currentUserEmail) && Object.keys(policy.employeeList ?? {}).length >= 2;
 }
 
+function isPolicyEligibleForTopCategories(policy: OnyxTypes.Policy): boolean {
+    return isGroupPolicy(policy) && policy.areCategoriesEnabled === true;
+}
+
 /**
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
@@ -760,7 +764,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
-        const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
+        const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
             isControlPolicy(policy) &&
@@ -7340,6 +7344,7 @@ export {
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     isPolicyEligibleForTopSpenders,
+    isPolicyEligibleForTopCategories,
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,

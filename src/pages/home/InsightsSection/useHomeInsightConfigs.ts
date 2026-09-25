@@ -54,7 +54,7 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
  * Builds the configs for the Home insights the current user should see, in display order.
  * With the Insights page beta, the charts and their visibility match the Insights Spend dashboard, otherwise the Spend menu.
  */
-function useHomeInsightConfigs(): HomeInsightConfig[] {
+function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; isResolved: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
@@ -66,14 +66,12 @@ function useHomeInsightConfigs(): HomeInsightConfig[] {
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
         const {visibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(session?.email, cardFeedsByPolicy, policies, defaultExpensifyCard, false, !!isTrackIntentUser);
         const suggestedSearches = getSuggestedSearches(session?.accountID, (defaultCardFeed ?? defaultExpensifyCard)?.id, shouldShowExpensifyCard);
-        return SPEND_INSIGHT_KEYS.filter((key) => visibility[key]).map((key) => suggestedSearches[key]);
+        return {configs: SPEND_INSIGHT_KEYS.filter((key) => visibility[key]).map((key) => suggestedSearches[key]), isResolved: true};
     }
 
-    if (!areFiltersResolved) {
-        return [];
-    }
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    return getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
+    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
+    return {configs, isResolved: areFiltersResolved};
 }
 
 export default useHomeInsightConfigs;
