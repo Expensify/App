@@ -390,13 +390,15 @@ describe('DynamicFormFields', () => {
     it('renders a readonly field as a plain row, skips drafts for sensitive fields and grows multiline text', () => {
         const fields: DynamicFormField[] = [
             {key: 'legalName', label: 'Legal business name', group: 'Business', type: 'text', required: true, readonly: true, refreshOnChange: false},
+            {key: 'country', label: 'Country', group: 'Business', type: 'country', required: true, readonly: true, refreshOnChange: false},
             {key: 'ssn', label: 'SSN', group: 'Business', type: 'text', required: true, sensitive: true, refreshOnChange: false},
             {key: 'about', label: 'About', group: 'Business', type: 'text', required: true, multiline: true, maxLength: 500, refreshOnChange: false},
         ];
-        const rendered = renderFields(fields, {legalName: 'Acme Inc'});
+        const rendered = renderFields(fields, {legalName: 'Acme Inc', country: 'GB'});
 
         expect(rendered.has('legalName')).toBe(false);
         expect(screen.getByText('Acme Inc')).toBeOnTheScreen();
+        expect(screen.getByText('allCountries.GB')).toBeOnTheScreen();
         expect(rendered.get('ssn')?.shouldSaveDraft).toBe(false);
         expect(rendered.get('about')?.multiline).toBe(true);
     });

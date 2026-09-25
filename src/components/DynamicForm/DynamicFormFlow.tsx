@@ -18,6 +18,7 @@ import type {DynamicFormField} from '@src/types/onyx';
 import type {DynamicFormListItem} from '@src/types/onyx/DynamicFormField';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
@@ -117,7 +118,8 @@ function DynamicFormFlow({
 }: DynamicFormFlowProps) {
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
-    const [carriedAnswers, setCarriedAnswers] = useState<DynamicFormValues>(() => carriedAnswersByForm.get(formID) ?? {});
+    const hasRoutedPage = !!(useRoute().params as {subPage?: string} | undefined)?.subPage;
+    const [carriedAnswers, setCarriedAnswers] = useState<DynamicFormValues>(() => (hasRoutedPage ? carriedAnswersByForm.get(formID) : undefined) ?? {});
     const groupPages = groupFieldsIntoPages(fields);
     const draftValues: DynamicFormValues = {...draft, ...carriedAnswers};
     const hasVisibleField = (page: DynamicFormPageSchema) => page.fields.some((field) => isFieldVisible(field, draftValues));
@@ -360,7 +362,7 @@ function DynamicFormFlow({
                 isLoading={isSubmitting}
                 error={submitError}
                 isEditing={false}
-                onNext={nextPage}
+                onNext={() => nextPage()}
                 onMove={moveTo}
             />
         );
