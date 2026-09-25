@@ -817,10 +817,15 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
  * Creates a selector for useOnyx that computes the filtered member count.
  * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
  */
-function createFilteredMemberCountSelector(employeeList: PolicyEmployeeList | undefined, policyOwner: string | undefined, currentUserLogin: string | undefined) {
+function createFilteredMemberCountSelector(
+    employeeList: PolicyEmployeeList | undefined,
+    policyOwner: string | undefined,
+    currentUserLogin: string | undefined,
+    personalDetailsByLogins: PersonalDetailsByLogin,
+) {
     return (personalDetails: PersonalDetailsList | undefined): number => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, undefined, false, false);
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins, false, false);
 
         return Object.keys(policyMemberEmailsToAccountIDs).reduce((count, email) => {
             const accountID = policyMemberEmailsToAccountIDs[email];
@@ -1155,14 +1160,36 @@ function hasTags(policyTagList: OnyxEntry<PolicyTagLists>): boolean {
     return tagLists.some((tagList) => Object.keys(tagList.tags ?? {}).length > 0);
 }
 
+// An anchored filter with no regex operators. Letter and digit escapes (\d, \w, ...) are classes, not literals.
+const LITERAL_PARENT_TAGS_FILTER = /^\^((?:\\[^A-Za-z0-9]|[^\\.*+?()[\]{}|^$])*)\$$/;
+const ESCAPED_CHARACTER = /\\([\s\S])/g;
+
+/**
+ * Whether a parentTagsFilter matches a parent tag path.
+ * Filters are almost always an anchored, escaped parent path, which is compared as a string -
+ * compiling a RegExp per tag dominates scans over large tag lists.
+ */
+function matchesParentTagsFilter(filter: string | undefined, parentTagPath: string): boolean {
+    if (!filter) {
+        return true;
+    }
+
+    const literal = LITERAL_PARENT_TAGS_FILTER.exec(filter)?.[1];
+
+    if (literal !== undefined) {
+        return literal.replaceAll(ESCAPED_CHARACTER, '$1') === parentTagPath;
+    }
+
+    return new RegExp(filter).test(parentTagPath);
+}
+
 /**
  * Checks whether a policy tag is selectable under a given parent tag path.
  * Tags of a dependent list only apply below the parents their parentTagsFilter matches,
  * while tags without a filter apply everywhere.
  */
 function matchesParentTagPath(policyTag: ValueOf<PolicyTags>, parentTagPath: string): boolean {
-    const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
-    return !filterRegex || new RegExp(filterRegex).test(parentTagPath);
+    return matchesParentTagsFilter(policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter, parentTagPath);
 }
 
 /**
@@ -2282,8 +2309,31 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
+
+    // Walks the records instead of `Object.values(...).some(...)`: a tag list can hold thousands of tags, and copying
+    // them into an array to ask whether any of them has a filter costs that copy on every caller render.
     // An empty tag list arrives without the `tags` key, despite the type.
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    for (const tagListName in policyTagList) {
+        if (!Object.hasOwn(policyTagList, tagListName)) {
+            continue;
+        }
+
+        const tags = policyTagList[tagListName]?.tags;
+
+        for (const tagName in tags) {
+            if (!Object.hasOwn(tags, tagName)) {
+                continue;
+            }
+
+            const tag = tags[tagName];
+
+            if (tag?.rules?.parentTagsFilter || tag?.parentTagsFilter) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
@@ -2753,9 +2803,16 @@ function isBusinessCentralVendorMatchingActive(policy: OnyxEntry<Policy>): boole
 }
 
 /**
+ * True when Campfire is connected AND configured.
+ */
+function isCampfireVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config?.isConfigured;
+}
+
+/**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry → Business Central → Campfire) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2771,22 +2828,23 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO and Sage Intacct or Dual Entry:
+ * `isVendorMatchingBetaEnabled` is consulted on every branch but QBO, Sage Intacct, Rillet, and DualEntry:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. GA, so no beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
- *   - Rillet (R4) configured connection. Beta required
+ *   - Rillet (R4) configured connection. GA, so no beta required
  *   - DualEntry configured connection. GA, so no beta required
  *   - Business Central configured connection. Beta required
+ *   - Campfire has no export destination enum, so a configured connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
         return false;
     }
-    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
+    if (isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isXeroVendorMatchingActive(policy) || isBusinessCentralVendorMatchingActive(policy) || isCampfireVendorMatchingActive(policy));
 }
 
 /**
@@ -2798,7 +2856,7 @@ function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorM
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Business Central) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2841,6 +2899,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isBusinessCentralVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
     }
     return undefined;
 }
@@ -2904,12 +2965,15 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
                 email: vendor.email,
             }));
     }
+    if (isCampfireVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors === undefined ? undefined : getCampfireVendors(policy);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, or Business Central). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, DualEntry, Business Central, or Campfire). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -3008,6 +3072,10 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: businessCentralVendor.email ?? '',
         };
     }
+    const campfireVendor = getCampfireVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (campfireVendor) {
+        return campfireVendor;
+    }
     return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
@@ -3075,6 +3143,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.businessCentral.noVendorsFound'),
                 subtitle: translate('workspace.businessCentral.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            return {
+                title: translate('workspace.campfire.noVendorsFound'),
+                subtitle: translate('workspace.campfire.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -3099,6 +3172,14 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
         return [];
     }
     return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/** Campfire vendor matching uses only active vendor-type records, never customers or inactive vendors */
+function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.data?.vendors;
+    return (vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.CAMPFIRE_VENDOR_TYPE.VENDOR)
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
 /** DualEntry export settings and expense matching must use vendors available to the selected company */
@@ -3505,6 +3586,7 @@ function getConnectionExporters(policy: OnyxInputOrEntry<Policy>): Array<string 
         policy?.connections?.netsuite?.options?.config?.exporter,
         policy?.connections?.rillet?.config?.export?.exporter,
         policy?.connections?.dualEntry?.config?.export?.exporter,
+        policy?.connections?.campfire?.config?.export?.exporter,
     ];
 }
 
@@ -3603,6 +3685,7 @@ export {
     getXeroSupplierByID,
     getXeroSuppliers,
     getDualEntryVendors,
+    getCampfireVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
@@ -3632,6 +3715,7 @@ export {
     isTagInPolicy,
     findPolicyTagAtLevel,
     matchesParentTagPath,
+    matchesParentTagsFilter,
     hasCustomCategories,
     hasConfiguredRules,
     isMaxExpenseAmountSet,
