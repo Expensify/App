@@ -5611,23 +5611,29 @@ describe('actions/Report', () => {
         });
 
         it("clears the previous search's result order so a new query does not reuse it", async () => {
+            // Given an ordered result list from a previous report search
             await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['1', '2', '3']);
             await waitForBatchedUpdates();
 
+            // When a new report search starts
             Report.searchInServer('new query');
             await waitForBatchedUpdates();
 
+            // Then the previous result order is cleared
             const orderedReportIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
             expect(orderedReportIDs).toBeUndefined();
         });
 
         it('keeps report search ordering when searching rooms to mention', async () => {
+            // Given an ordered result list from a report search
             await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['1', '2', '3']);
             await waitForBatchedUpdates();
 
+            // When a room mention search starts
             Report.searchInServer('room', 'policyID');
             await waitForBatchedUpdates();
 
+            // Then the report search order remains available
             const orderedReportIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
             expect(orderedReportIDs).toEqual(['1', '2', '3']);
         });
@@ -5643,12 +5649,15 @@ describe('actions/Report', () => {
         });
 
         it('keeps report search ordering', async () => {
+            // Given an ordered result list from a report search
             await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['1', '2', '3']);
             await waitForBatchedUpdates();
 
+            // When a user search starts
             Report.searchUserInServer('user');
             await waitForBatchedUpdates();
 
+            // Then the report search order remains available
             const orderedReportIDs = await getOnyxValue(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
             expect(orderedReportIDs).toEqual(['1', '2', '3']);
         });

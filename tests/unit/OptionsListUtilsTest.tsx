@@ -6429,6 +6429,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('matches an uppercase accented query against a group participant', () => {
+            // Given a group report with an accented participant name
             // cspell:ignore José JOSÉ
             const groupReport: SearchOption<Report> = {
                 ...report,
@@ -6436,10 +6437,15 @@ describe('OptionsListUtils', () => {
                 participantsList: [{accountID: 2, displayName: 'José', login: 'jose@example.com'}],
             };
 
-            expect(doesReportMatchSearchTerms(groupReport, ['JOSÉ'])).toBe(true);
+            // When the query uses the same accented name in uppercase
+            const doesMatch = doesReportMatchSearchTerms(groupReport, ['JOSÉ']);
+
+            // Then the group report matches
+            expect(doesMatch).toBe(true);
         });
 
         it('matches a non-Latin group participant', () => {
+            // Given a group report with a non-Latin participant name
             // cspell:ignore 김민수
             const groupReport: SearchOption<Report> = {
                 ...report,
@@ -6447,7 +6453,11 @@ describe('OptionsListUtils', () => {
                 participantsList: [{accountID: 2, displayName: '김민수', login: 'minsu@example.com'}],
             };
 
-            expect(doesReportMatchSearchTerms(groupReport, ['김민수'])).toBe(true);
+            // When the query uses that participant name
+            const doesMatch = doesReportMatchSearchTerms(groupReport, ['김민수']);
+
+            // Then the group report matches
+            expect(doesMatch).toBe(true);
         });
     });
 

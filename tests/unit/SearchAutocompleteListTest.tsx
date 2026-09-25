@@ -648,6 +648,7 @@ describe('SearchAutocompleteList', () => {
         });
 
         it('should cap Recent chats after a completed search is cleared', async () => {
+            // Given more recent chats than the suggestion limit and a completed search
             const recentReports = Array.from({length: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS + 1}, (_, index) => {
                 const reportID = String(index + 1);
                 return {reportID, keyForList: reportID, text: `Recent ${reportID}`, alternateText: '', lastMessageText: ''};
@@ -915,6 +916,7 @@ describe('SearchAutocompleteList', () => {
         });
 
         it('keeps a matched self-DM first in Recent chats when Auth returns it', async () => {
+            // Given a matched self-DM, a local report, and a server report
             const selfDM = {reportID: 'self', keyForList: 'self', text: 'My space', alternateText: '', lastMessageText: '', isSelfDM: true};
             const localReport = {reportID: 'local', keyForList: 'local', text: 'My space local', alternateText: '', lastMessageText: ''};
             const serverReport = {reportID: 'server', keyForList: 'server', text: 'My space server', alternateText: '', lastMessageText: ''};
@@ -934,13 +936,16 @@ describe('SearchAutocompleteList', () => {
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
+            // And the search router is open
             render(<SearchRouterWrapper />);
             await flushAllUpdates();
 
+            // When the user enters a query matching all three reports
             const textInput = screen.getByTestId('search-autocomplete-text-input');
             fireEvent.changeText(textInput, 'space');
             await flushAllUpdates();
 
+            // And Auth returns the server report before the self-DM
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['server', 'self']);
                 await Onyx.set(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS, false);
@@ -949,6 +954,7 @@ describe('SearchAutocompleteList', () => {
 
             const names = screen.queryAllByText(/My space/).map((element) => (typeof element.props.children === 'string' ? element.props.children : ''));
 
+            // Then the self-DM remains first, followed by the other local and server matches
             expect(names).toEqual(['My space', 'My space local', 'My space server']);
         });
 
