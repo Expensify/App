@@ -153,7 +153,6 @@ function MoneyRequestReceiptView({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
     const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const [chatReportOwnerPersonalDetail] = usePersonalDetail(chatReport?.ownerAccountID);
