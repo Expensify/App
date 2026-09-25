@@ -20,6 +20,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -39,7 +40,6 @@ type ChatTransactionPreviewProps = {
     /** Whether the preview should navigate to the split bill details screen on press */
     shouldShowSplitPreview: boolean;
 
-    /** The ID of the transaction to preview */
     transactionID: string | undefined;
 };
 
@@ -50,9 +50,9 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
     const personalDetail = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
@@ -78,9 +78,10 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
                         const createdTransactionThreadReport = createTransactionThreadReport({
                             introSelected,
                             conciergeChat,
+                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                             currentUserLogin: personalDetail.email ?? '',
                             currentUserAccountID: personalDetail.accountID,
-                            betas,
                             iouReport,
                             iouReportAction: action,
                             personalDetails,

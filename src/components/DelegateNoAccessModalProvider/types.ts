@@ -7,7 +7,6 @@ type DelegateNoAccessStateContextType = {
 };
 
 type DelegateNoAccessActionsContextType = {
-    /** Function to show the delegate no access modal */
     showDelegateNoAccessModal: () => void;
 };
 

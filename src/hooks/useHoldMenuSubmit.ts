@@ -48,7 +48,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, undefined);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -56,6 +55,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -87,11 +87,11 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             approveMoneyRequest({
                 getCurrencyDecimals,
                 expenseReport: currentMoneyRequestReport,
+                rules,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -105,6 +105,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,
@@ -116,7 +117,6 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 activePolicy,
                 policy,
                 chatReportPolicy,
-                betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
                 amountOwed,
@@ -127,6 +127,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                rules,
             });
         }
         onClose();

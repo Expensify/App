@@ -1,9 +1,9 @@
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -33,9 +33,12 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData, currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
+    const {areAllMatchingItemsSelected} = useSearchSelectionContext();
 
     const hash = queryJSON?.hash;
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
+    // Without this, a plain page-level fetch during active select-all clears totals on arrival
+    // (shouldClearTotals in getOnyxLoadingData), wiping a total the Search-internal effect already fetched.
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
@@ -90,7 +93,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             return;
         }
 
-        const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        const shouldSkipWaitForWrites = hasPendingSearchWrite();
         requestedHashesRef.current.add(hash);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);

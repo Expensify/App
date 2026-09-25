@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,6 +12,7 @@ import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +23,7 @@ import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -54,7 +57,7 @@ import type {DismissedProductTraining} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -98,6 +101,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -115,9 +119,15 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
+
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+    const currentSelection = draftPolicyID ?? report.policyID;
+
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -154,10 +164,11 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 submitterLogin,
                 doesSubmitterPersonalDetailExist ?? false,
                 getCurrencyDecimals,
+                rules,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
-                moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, false, reportTransactions);
+                moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, rules, false, reportTransactions);
             }
             refreshSearch();
             return;
@@ -188,6 +199,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportPreviewAction,
                 isTrackIntentUser,
                 reportTransactions,
+                rules,
+                delegateAccountID,
             });
             refreshSearch();
             return;
@@ -209,6 +222,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportPreviewAction,
             isTrackIntentUser,
             reportTransactions,
+            rules,
+            delegateAccountID,
         });
         refreshSearch();
     };
@@ -217,7 +232,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
+        selectedPolicyIDs: currentSelection ? [currentSelection] : undefined,
+        policyIDsToSortToTop: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => {
@@ -237,6 +253,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
     };
 
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => selectPolicy(currentSelection),
+        isDisabled: !currentSelection || currentSelection === report.policyID,
+    };
+
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || hasCommuterExclusionDistanceRequest) {
         return <NotFoundPage />;
     }
@@ -244,17 +267,19 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     return (
         <ScreenWrapper
             testID="DynamicReportChangeWorkspacePage"
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('iou.changeWorkspace')}
-                        onBackButtonPress={() => {
-                            Navigation.goBack(navigateBackFromChangeWorkspacePath);
-                        }}
-                    />
+                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                        <HeaderWithBackButton
+                            title={translate('iou.changeWorkspace')}
+                            onBackButtonPress={() => {
+                                Navigation.goBack(navigateBackFromChangeWorkspacePath);
+                            }}
+                        />
+                    </CollapsibleHeaderOnKeyboard>
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
@@ -263,11 +288,14 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}
                             data={data}
-                            onSelectRow={(option) => selectPolicy(option.policyID)}
+                            onSelectRow={(option) => setDraftPolicyID(option.policyID)}
                             textInputOptions={textInputOptions}
+                            confirmButtonOptions={confirmButtonOptions}
                             initiallyFocusedItemKey={report.policyID}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
+                            addBottomSafeAreaPadding
+                            shouldFooterBeInsideList={shouldFooterBeInsideList}
                         />
                     )}
                 </>

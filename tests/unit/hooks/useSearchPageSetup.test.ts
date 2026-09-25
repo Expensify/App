@@ -16,6 +16,7 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchKey: 'expenses'}),
     useSearchResultsContext: () => ({currentSearchResults: mockCurrentSearchResults, shouldUseLiveData: false}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
+    useSearchSelectionContext: () => ({areAllMatchingItemsSelected: false}),
 }));
 
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
@@ -29,10 +30,6 @@ jest.mock('@libs/actions/ReportNavigation', () => ({
 jest.mock('@libs/actions/Search', () => ({
     openSearch: jest.fn(),
     search: (...args: unknown[]) => mockSearch(...args),
-}));
-
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    hasDeferredWrite: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => ({

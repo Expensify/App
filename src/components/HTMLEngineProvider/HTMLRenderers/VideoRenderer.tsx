@@ -16,7 +16,6 @@ import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import React from 'react';
 
 type VideoRendererProps = CustomRendererProps<TBlock> & {
-    /** Key of the element */
     key?: string;
 };
 

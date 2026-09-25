@@ -57,13 +57,6 @@ jest.mock('@hooks/useLocalize', () =>
         },
     })),
 );
-jest.mock('@components/Button', () => {
-    function MockButton({text}: {text: string}) {
-        return text;
-    }
-
-    return MockButton;
-});
 jest.mock('@components/Icon', () => {
     function MockIcon() {
         return null;

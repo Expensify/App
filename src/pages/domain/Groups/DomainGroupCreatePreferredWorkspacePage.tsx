@@ -1,19 +1,8 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
-
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-
-import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 import {setDomainGroupCreatePreferredPolicyID} from '@userActions/Domain';
 
@@ -21,67 +10,28 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {createAdminPoliciesSelector} from '@selectors/Policy';
 import React from 'react';
 
-type WorkspaceListItem = {
-    /** The ID of the policy/workspace */
-    policyID: string;
-
-    /** The timestamp of when the policy was created */
-    created?: string;
-} & ListItem;
+import BaseDomainGroupPreferredWorkspacePage from './BaseDomainGroupPreferredWorkspacePage';
 
 type DomainGroupCreatePreferredWorkspacePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_CREATE_PREFERRED_WORKSPACE>;
 
 function DomainGroupCreatePreferredWorkspacePage({route}: DomainGroupCreatePreferredWorkspacePageProps) {
     const {domainAccountID} = route.params;
 
-    const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
-
     const [currentPolicyID] = useOnyx(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(currentPolicyID)});
-
-    const workspaceOptions: WorkspaceListItem[] = [];
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy?.name || !policy?.id) {
-            continue;
-        }
-
-        workspaceOptions.push({
-            text: policy.name,
-            policyID: policy.id,
-            created: policy.created,
-            keyForList: policy.id,
-            isSelected: currentPolicyID === policy.id,
-        });
-    }
 
     return (
-        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                testID="DomainGroupCreatePreferredWorkspacePage"
-                includeSafeAreaPaddingBottom
-            >
-                <HeaderWithBackButton
-                    title={translate('domain.groups.preferredWorkspace')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
-                />
-                <Text style={[styles.ph5, styles.mb3]}>{translate('domain.groups.preferredWorkspaceSelectDescription')}</Text>
-                <SelectionList<WorkspaceListItem>
-                    data={workspaceOptions.sort((a, b) => localeCompare(a.created ?? '', b.created ?? ''))}
-                    ListItem={UserListItem}
-                    onSelectRow={(item: WorkspaceListItem) => {
-                        setDomainGroupCreatePreferredPolicyID(item.policyID);
-                        Navigation.goBack(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID));
-                    }}
-                    initiallyFocusedItemKey={currentPolicyID}
-                    shouldUpdateFocusedIndex
-                />
-            </ScreenWrapper>
-        </DomainNotFoundPageWrapper>
+        <BaseDomainGroupPreferredWorkspacePage
+            domainAccountID={domainAccountID}
+            testID="DomainGroupCreatePreferredWorkspacePage"
+            selectedPolicyID={currentPolicyID}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
+            onSelectWorkspace={(policyID: string) => {
+                setDomainGroupCreatePreferredPolicyID(policyID);
+                Navigation.goBack(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID));
+            }}
+        />
     );
 }
 

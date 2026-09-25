@@ -15,7 +15,6 @@ type AccountAvatarProps = {
     /** Account ID of the user to display the avatar for */
     accountID: number;
 
-    /** Size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Display name used as a fallback for the avatar tooltip */

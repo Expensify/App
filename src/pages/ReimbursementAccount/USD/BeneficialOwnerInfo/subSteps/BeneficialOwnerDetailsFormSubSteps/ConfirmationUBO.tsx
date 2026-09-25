@@ -46,8 +46,8 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
-            id: 'ssn',
-            description: translate('beneficialOwnerInfoStep.last4SSN'),
+            id: 'ssnLast4',
+            description: translate('personalInfoStep.last4SSN'),
             title: values.ssnLast4,
             shouldShowRightIcon: true,
             onPress: () => {
@@ -75,6 +75,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             showOnfidoLinks
             onfidoLinksTitle={`${translate('beneficialOwnerInfoStep.byAddingThisBankAccount')} `}
             error={error}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
