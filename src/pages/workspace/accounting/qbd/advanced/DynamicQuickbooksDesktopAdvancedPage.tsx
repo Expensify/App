@@ -26,7 +26,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const fxExpenseAccountSettings = [CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT];
 
@@ -40,7 +40,11 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path);
     const accountingMethod = qbdConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
-    const selectedFxExpenseAccountName = useMemo(() => expenseAccounts?.find(({id}) => id === qbdConfig?.fxExpenseAccount)?.name, [expenseAccounts, qbdConfig?.fxExpenseAccount]);
+    // The conversion cost rides on the bill, and it is only known once the reimbursement has run, so an accrual
+    // export at approval can never carry it
+    const isExportingOnPayment = accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+
+    const selectedFxExpenseAccountName = expenseAccounts?.find(({id}) => id === qbdConfig?.fxExpenseAccount)?.name;
 
     const qbdToggleSettingItems = [
         {
@@ -82,16 +86,20 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     {!!qbdConfig?.autoSync?.enabled && <MenuItem.HelpText message={translate(`workspace.qbd.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)} />}
                 </MenuItemSectionRoot>
             </OfflineWithFeedback>
-            {canConfigureCurrencyConversionFees && (
-                <OfflineWithFeedback pendingAction={settingsPendingAction(fxExpenseAccountSettings, qbdConfig?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        title={selectedFxExpenseAccountName}
-                        description={translate('workspace.qbd.advancedConfig.fxExpenseAccount')}
-                        shouldShowRightIcon
-                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
-                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path))}
-                        brickRoadIndicator={areSettingsInErrorFields(fxExpenseAccountSettings, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+            {canConfigureCurrencyConversionFees && isExportingOnPayment && (
+                <OfflineWithFeedback
+                    pendingAction={settingsPendingAction(fxExpenseAccountSettings, qbdConfig?.pendingFields)}
+                    style={styles.mt3}
+                >
+                    <MenuItemSectionRoot onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path))}>
+                        <MenuItemField.Row
+                            name={translate('workspace.qbd.advancedConfig.fxExpenseAccount')}
+                            value={selectedFxExpenseAccountName}
+                        >
+                            {areSettingsInErrorFields(fxExpenseAccountSettings, qbdConfig?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                    </MenuItemSectionRoot>
                 </OfflineWithFeedback>
             )}
             {qbdToggleSettingItems.map((item) => (

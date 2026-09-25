@@ -409,11 +409,17 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR,
                     CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
                 ],
-                subscribedAdvancedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC],
+                subscribedAdvancedSettings: [
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC,
+                    CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT,
+                ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.quickbooksDesktop.alias,
                     backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForQBD(),
                 },
+                pendingFields: policy?.connections?.quickbooksDesktop?.config?.pendingFields,
+                errorFields: policy?.connections?.quickbooksDesktop?.config?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA: {
             const certiniaConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA];

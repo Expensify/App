@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionScreen from '@components/SelectionScreen';
 
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 
 import {updateQuickbooksDesktopFxExpenseAccount} from '@libs/actions/connections/QuickbooksDesktop';
@@ -11,7 +12,9 @@ import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
+import type {ValueOf} from 'type-fest';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 
 import createMock from '../../../../../utils/createMock';
@@ -26,7 +29,7 @@ jest.mock('@components/SelectionScreen', () => jest.fn(() => null));
 
 jest.mock('@hooks/useCanConfigureCurrencyConversionFees', () => ({
     __esModule: true,
-    default: () => true,
+    default: jest.fn(() => true),
 }));
 
 jest.mock('@hooks/useDynamicBackPath', () => ({
@@ -72,9 +75,11 @@ const TRAVEL_ACCOUNT = {id: 'a1', name: 'Travel'};
 function buildPolicy({
     fxExpenseAccount,
     expenseAccounts = [],
+    accountingMethod,
 }: {
     fxExpenseAccount?: string;
     expenseAccounts?: Array<{id: string; name: string}>;
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 } = {}): Policy {
     return createMock<Policy>({
         id: '1',
@@ -82,6 +87,7 @@ function buildPolicy({
             quickbooksDesktop: {
                 config: {
                     fxExpenseAccount,
+                    export: {accountingMethod},
                 },
                 data: {expenseAccounts},
             },
@@ -105,6 +111,27 @@ function getSelectionScreenProps() {
 describe('DynamicQuickbooksDesktopFxExpenseAccountSelectPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it('blocks the picker when out-of-pocket expenses export before they are paid', () => {
+        // Given a workspace exporting on accrual, where the bill leaves at approval and the conversion cost is not
+        // known yet, so the Advanced page hides the row
+        // When the picker is opened by deep link anyway
+        const selectionScreenProps = renderPicker({expenseAccounts: [TRAVEL_ACCOUNT], accountingMethod: COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL});
+
+        // Then it is blocked, since an account set here could never reach the export
+        expect(selectionScreenProps.shouldBeBlocked).toBe(true);
+    });
+
+    it('blocks the picker when the workspace cannot configure currency conversion fees', () => {
+        // Given a workspace that cannot configure currency conversion fees, so the Advanced page hides the row
+        jest.mocked(useCanConfigureCurrencyConversionFees).mockReturnValueOnce(false);
+
+        // When the picker is opened anyway, as a deep link can still reach it
+        const selectionScreenProps = renderPicker({expenseAccounts: [TRAVEL_ACCOUNT]});
+
+        // Then it is blocked rather than letting the account be set from a route the workspace should not reach
+        expect(selectionScreenProps.shouldBeBlocked).toBe(true);
     });
 
     it('puts None at the top, selected, when no account is saved', () => {
