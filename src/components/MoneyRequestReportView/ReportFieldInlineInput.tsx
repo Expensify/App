@@ -26,8 +26,9 @@ import CONST from '@src/CONST';
 import type {PolicyReportField} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 
 type ReportFieldInlineInputProps = {
     reportField: PolicyReportField;
@@ -69,6 +70,11 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     // Tracks the value that was last sent to the server so a second save attempt for the same value, for example when
     // the input is blurred right after it was submitted, is skipped while the update is still in flight.
     const [lastSavedValue, setLastSavedValue] = useState(value);
+
+    // On Android a tap on the list field's input reports the same press twice, once as `onPress` and once as
+    // `onPressOut`, and the dropdown trigger toggles. Remembering the last press lets each tap open the list once
+    // instead of opening and then closing it.
+    const lastOptionsPressEventRef = useRef<GestureResponderEvent | KeyboardEvent | null>(null);
 
     // The saved value changes while this input is mounted whenever the field is updated elsewhere, for example from
     // another device or by an optimistic update, so the draft follows it.
@@ -202,35 +208,45 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
             // popovers and wide ones open oversized.
             <FilterPopupButton
                 PopoverComponent={renderOptionsPopup}
-                renderButton={({onPress, ref, isExpanded}) => (
-                    <View ref={ref}>
-                        <TextInput
-                            inputID={fieldKey}
-                            label={label}
-                            accessibilityLabel={label}
-                            role={CONST.ROLE.COMBOBOX}
-                            accessibilityState={{expanded: isExpanded}}
-                            value={value}
-                            errorText={violationError}
-                            inputStyle={styles.pointerEventsNone}
-                            icon={icons.DownArrow}
-                            // `pr0` makes the icon container's padding asymmetric, so it has to flip in place.
-                            // `flipUpsideDown` would rotate that padding too and shift the caret left when open.
-                            iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDownInPlace]}
-                            onPress={onPress}
-                            onBlur={() => setHasBeenBlurred(true)}
-                            onSubmitEditing={onPress}
-                            disableKeyboard
-                            // The field is focused so it stays keyboard reachable, but it holds a value picked from a
-                            // list rather than typed text, so the caret would be a caret you cannot type into.
-                            // `disableKeyboard` only suppresses the software keyboard, it does not hide the caret.
-                            caretHidden
-                            // Keeps the label raised like the date field's, so a value that goes empty and back while
-                            // the next report loads does not drop the label into the field and animate it back up.
-                            forceActiveLabel
-                        />
-                    </View>
-                )}
+                renderButton={({onPress, ref, isExpanded}) => {
+                    const openOptions = (event: GestureResponderEvent | KeyboardEvent) => {
+                        if (event === lastOptionsPressEventRef.current) {
+                            return;
+                        }
+                        lastOptionsPressEventRef.current = event;
+                        onPress();
+                    };
+
+                    return (
+                        <View ref={ref}>
+                            <TextInput
+                                inputID={fieldKey}
+                                label={label}
+                                accessibilityLabel={label}
+                                role={CONST.ROLE.COMBOBOX}
+                                accessibilityState={{expanded: isExpanded}}
+                                value={value}
+                                errorText={violationError}
+                                inputStyle={styles.pointerEventsNone}
+                                icon={icons.DownArrow}
+                                // `pr0` makes the icon container's padding asymmetric, so it has to flip in place.
+                                // `flipUpsideDown` would rotate that padding too and shift the caret left when open.
+                                iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDownInPlace]}
+                                onPress={openOptions}
+                                onBlur={() => setHasBeenBlurred(true)}
+                                onSubmitEditing={onPress}
+                                disableKeyboard
+                                // The field is focused so it stays keyboard reachable, but it holds a value picked from a
+                                // list rather than typed text, so the caret would be a caret you cannot type into.
+                                // `disableKeyboard` only suppresses the software keyboard, it does not hide the caret.
+                                caretHidden
+                                // Keeps the label raised like the date field's, so a value that goes empty and back while
+                                // the next report loads does not drop the label into the field and animate it back up.
+                                forceActiveLabel
+                            />
+                        </View>
+                    );
+                }}
             />
         );
     }

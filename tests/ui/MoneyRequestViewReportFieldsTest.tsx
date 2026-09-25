@@ -431,6 +431,24 @@ describe('MoneyRequestViewReportFields', () => {
         expect(screen.getByText('Option2')).toBeOnTheScreen();
     });
 
+    it('keeps the option list open when one tap reaches the list field as both a press and a press out', async () => {
+        // Given a report holding a list field
+        await renderReportFields(1, [buildListField()]);
+        const listField = screen.getByLabelText('ListField');
+        const tapEvent = {nativeEvent: {}};
+
+        // When a single tap reaches the field twice with the same event, the way the Android input reports it
+        // through both `onPressOut` and `onPress`
+        fireEvent(listField, 'pressOut', tapEvent);
+        fireEvent.press(listField, tapEvent);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list stays open. The dropdown trigger toggles, so if the repeated report were not ignored the
+        // second call would close the list the first one opened, which is the list auto-closing on Android
+        expect(listField).toHaveProp('accessibilityState', {expanded: true});
+        expect(screen.getByText('Option2')).toBeOnTheScreen();
+    });
+
     it('keeps the caret in the same place when the option list opens', async () => {
         // Given a closed list field whose caret sits in a container padded on one side only
         await renderReportFields(1, [buildListField()]);
