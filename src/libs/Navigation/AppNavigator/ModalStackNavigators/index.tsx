@@ -1425,7 +1425,6 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesDomainVerifiedPage').default,
     [SCREENS.WORKSPACES_ADD_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/AddDomainPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ADDED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAddedPage').default,
-    [SCREENS.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/domain/AddDomainVerifyAccountPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAccessRestrictedPage').default,
     [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: () => require<ReactComponentModule>('../../../../pages/domain/DomainAlreadyExistsPage').default,
 });
