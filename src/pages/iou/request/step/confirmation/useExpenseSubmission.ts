@@ -365,7 +365,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const hasManualDistanceOverride = hasManualMapDistanceOverride(transaction);
-    const distanceRequestType = hasManualDistanceOverride ? CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL : getDistanceRequestType(transaction);
+    const distanceRequestType = getDistanceRequestType(transaction);
 
     const customUnitRateID = getRateID(transaction) ?? '';
     const transactionDistance =
@@ -915,7 +915,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
-                    distanceRequestType: hasItemManualDistanceOverride ? CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL : getDistanceRequestType(item),
+                    distanceRequestType: getDistanceRequestType(item),
                     selectedRouteDistance: getSelectedRouteDistance(item),
                 },
                 accountantParams: {

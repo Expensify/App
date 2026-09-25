@@ -361,6 +361,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
     });
 
     it('should render both Map and Manual tabs when creating a map distance expense', async () => {
+        // Given a draft the user started on the Map tab, which is the only kind whose route distance can be overridden
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         const transaction = createDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP});
         const report = createTestReport();
@@ -371,6 +372,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
+        // When the distance step opens in the create flow
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
@@ -383,11 +385,14 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
+        // Then the waypoints and the distance field are both there, because the user can now correct the mileage
+        // before the expense exists rather than only after creating it
         expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
         expect(screen.getAllByLabelText(/common\.distance/).some((element) => 'value' in element.props)).toBe(true);
     });
 
     it('should not render the Manual tab when the draft is not a map distance expense', async () => {
+        // Given a draft the user started on the Manual tab, which has no route to override in the first place
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
         await act(async () => {
@@ -396,6 +401,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
+        // When the distance step opens
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
@@ -408,11 +414,13 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
+        // Then only the waypoints render, because a draft that never had a route has nothing to override
         expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
         expect(screen.queryAllByLabelText(/common\.distance/).some((element) => 'value' in element.props)).toBe(false);
     });
 
     it('should not render the Manual tab when the destination workspace excludes commutes', async () => {
+        // Given a map draft headed for a workspace that deducts a fixed commute from every trip
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
         await act(async () => {
@@ -425,6 +433,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
+        // When the distance step opens
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
@@ -437,11 +446,14 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
+        // Then the Manual tab is gone, matching the rule the Distance start page already applies: a typed distance
+        // cannot honor the commute deduction, so the server would flag the amount as differing from the calculated one
         expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
         expect(screen.queryAllByLabelText(/common\.distance/).some((element) => 'value' in element.props)).toBe(false);
     });
 
     it('should keep a manually entered distance when returning to confirmation', async () => {
+        // Given a map draft opened from the confirmation step, where a backup of the original transaction is held
         const {restoreOriginalTransactionFromBackup, removeBackupTransaction} = jest.requireMock<{
             restoreOriginalTransactionFromBackup: jest.Mock;
             removeBackupTransaction: jest.Mock;
@@ -466,11 +478,14 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
+        // When a distance is typed, saved, and the step closes
         const distanceInput = screen.getAllByLabelText(/common\.distance/).find((element) => 'value' in element.props)!;
         fireEvent.changeText(distanceInput, '29');
         fireEvent.press(screen.getAllByText('common.save').at(-1)!);
         unmount();
 
+        // Then the backup is discarded rather than restored, because restoring it would put the route distance back
+        // over the value the user just typed
         expect(restoreOriginalTransactionFromBackup).not.toHaveBeenCalled();
         expect(removeBackupTransaction).toHaveBeenCalledWith(TRANSACTION_ID);
     });
@@ -652,6 +667,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
     });
 
     it('uses the explicit step-distance route as backTo in the tabbed map-create flow', async () => {
+        // Given a map draft in the create flow, where the step is wrapped in the tab navigator
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
 
         await act(async () => {
@@ -675,6 +691,8 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
         fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
 
+        // Then backTo is built explicitly instead of read from the active route, because the active route carries the
+        // tab suffix and goBack would replace the screen instead of popping it
         expect(Navigation.navigate).toHaveBeenCalledWith(
             createDynamicRoute(
                 DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(0),
