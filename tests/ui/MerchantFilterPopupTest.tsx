@@ -87,6 +87,21 @@ describe('MerchantFilterPopup', () => {
         });
     });
 
+    it('retains the value when changing a stored negative filter back to positive', () => {
+        const {updateFilterForm} = renderMerchantPopup(true, {merchant: undefined, merchantNot: 'Prime', merchantOperator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO});
+
+        fireEvent.press(screen.getByText('search.filters.filterType.is.positive'));
+        expect(screen.getByDisplayValue('Prime')).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('search.filters.merchant.contains'));
+        fireEvent.press(screen.getByText('common.apply'));
+
+        expect(updateFilterForm).toHaveBeenCalledWith({
+            [FILTER_KEYS.MERCHANT]: 'Prime',
+            [FILTER_KEYS.MERCHANT_NOT]: undefined,
+            [FILTER_KEYS.MERCHANT_OPERATOR]: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+        });
+    });
+
     it('hides the match type and submits exact matching for a negated Merchant', () => {
         const {updateFilterForm} = renderMerchantPopup();
 

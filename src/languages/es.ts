@@ -9432,7 +9432,7 @@ ${reportName}`,
             },
             reportField: (name, value) => `${name} es ${value}`,
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
-            merchant: {matchType: 'Tipo de coincidencia', contains: 'Contiene', exactMatch: 'Coincide exactamente'},
+            merchant: {matchType: 'Tipo de coincidencia', contains: 'Contiene', exactMatch: 'Igual a'},
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

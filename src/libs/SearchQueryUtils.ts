@@ -983,16 +983,18 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, groupBy, view, columns, limit, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
-    const merchantFilters =
-        options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT && !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO)) ?? [];
-    const lastMerchantFilter = merchantFilters.at(-1);
-    const isMerchantValueUnchanged = supportedFilterValues.merchant === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
-    // The form displays the last positive Merchant clause. Preserve all original clauses until that field changes.
-    const shouldPreserveMerchantFilters =
-        merchantFilters.length > 0 &&
-        isMerchantValueUnchanged &&
-        getMerchantOperator(merchantOperator) ===
-            (lastMerchantFilter?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : DEFAULT_MERCHANT_OPERATOR);
+    const merchantFilters = options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT) ?? [];
+    const positiveMerchantFilters = merchantFilters.filter((filter) => !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    const negativeMerchantFilters = merchantFilters.filter((filter) => filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    const wasMerchantNegated = negativeMerchantFilters.length > 0;
+    const isMerchantNegated = !!supportedFilterValues.merchantNot;
+    const hasMerchantNegationChanged = wasMerchantNegated !== isMerchantNegated;
+    const lastVisibleMerchantFilter = (wasMerchantNegated ? negativeMerchantFilters : positiveMerchantFilters).at(-1);
+    const selectedMerchantOperator = getMerchantOperator(merchantOperator);
+    const currentMerchantOperator = positiveMerchantFilters.at(-1)?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+        ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+        : DEFAULT_MERCHANT_OPERATOR;
+    const hasMerchantOperatorChanged = !isMerchantNegated && selectedMerchantOperator !== currentMerchantOperator;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1052,22 +1054,27 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
                     let operator: ValueOf<typeof operatorToCharMap> | typeof EXPLICIT_EQUAL_TO_OPERATOR = operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
-                    if (filterKey === FILTER_KEYS.MERCHANT && !isNegated) {
-                        if (shouldPreserveMerchantFilters) {
-                            return merchantFilters.map((filter) => buildFilterValuesString(FILTER_KEYS.MERCHANT, filter.filters).trim()).join(' ');
-                        }
-
+                    if (filterKey === FILTER_KEYS.MERCHANT) {
+                        const originalMerchantFilters = isNegated ? negativeMerchantFilters : positiveMerchantFilters;
+                        const lastMerchantFilter = hasMerchantNegationChanged ? lastVisibleMerchantFilter : originalMerchantFilters.at(-1);
+                        const isMerchantValueUnchanged = filterValue === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
                         if (lastMerchantFilter && isMerchantValueUnchanged) {
-                            // The form string cannot distinguish a list from a Merchant name containing a comma.
-                            const updatedOperator = getMerchantOperator(merchantOperator);
-                            const updatedFilters = lastMerchantFilter.filters.map((filter) => ({...filter, operator: updatedOperator}));
-                            return buildFilterValuesString(FILTER_KEYS.MERCHANT, updatedFilters).trim();
+                            const hasMerchantConditionChanged = hasMerchantNegationChanged || hasMerchantOperatorChanged;
+                            const filtersToUpdate = hasMerchantConditionChanged ? merchantFilters : originalMerchantFilters;
+                            const updatedOperator = isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : selectedMerchantOperator;
+                            // The single field cannot represent every clause or distinguish lists from names containing commas.
+                            const merchantClauses = filtersToUpdate.map((filter) => {
+                                const clauseFilters = hasMerchantConditionChanged ? filter.filters.map((item) => ({...item, operator: updatedOperator})) : filter.filters;
+                                return buildFilterValuesString(FILTER_KEYS.MERCHANT, clauseFilters).trim();
+                            });
+                            // Different operators can become identical clauses after the change.
+                            return [...new Set(merchantClauses)].join(' ');
                         }
 
-                        operator =
-                            getMerchantOperator(merchantOperator) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
-                                ? EXPLICIT_EQUAL_TO_OPERATOR
-                                : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
+                        if (!isNegated) {
+                            operator =
+                                selectedMerchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? EXPLICIT_EQUAL_TO_OPERATOR : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
+                        }
                     }
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operator}${sanitizeSearchValue(filterValue as string)}`;
                 }
