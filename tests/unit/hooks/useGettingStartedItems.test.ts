@@ -386,7 +386,7 @@ describe('useGettingStartedItems', () => {
             await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
-            expect(connectItem?.route).toBe(ROUTES.WORKSPACE_ACCOUNTING.getRoute(POLICY_ID));
+            expect(connectItem?.route).toBe(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID));
         });
 
         it('should be not completed when workspace has no accounting connection', async () => {

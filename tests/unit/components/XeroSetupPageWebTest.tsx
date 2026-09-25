@@ -60,7 +60,7 @@ describe('XeroSetupPage (web)', () => {
     it('returns to the workspace accounting page', () => {
         renderXeroSetupPage();
 
-        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
+        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID));
     });
 
     it('renders nothing', () => {

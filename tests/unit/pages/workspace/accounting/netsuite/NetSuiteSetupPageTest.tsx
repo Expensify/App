@@ -95,7 +95,7 @@ describe('NetSuiteSetupPage', () => {
 
         mockHeaderProps.current?.onBackButtonPress?.();
 
-        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING.getRoute(POLICY_ID));
+        expect(mockedGoBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_CONNECTIONS.getRoute(POLICY_ID));
     });
 
     it('renders nothing when the account ID is missing from the route', () => {

@@ -543,7 +543,7 @@ describe('GettingStartedSection', () => {
             const row = screen.getByText(/homePage\.gettingStartedSection\.connectAccounting:/);
             fireEvent.press(row);
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_ACCOUNTING.getRoute(TEST_POLICY_ID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_CONNECTIONS.getRoute(TEST_POLICY_ID));
         });
 
         it('navigates to workspace categories when "Customize categories" row is pressed', async () => {
