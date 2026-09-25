@@ -248,6 +248,7 @@ describe('Wise KYC requirements pages', () => {
         await renderRequirementFormPage('ACCOUNT_PURPOSE');
 
         expect(getWiseKYCRequirements).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
+        expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(screen.queryByText('common.confirm')).not.toBeOnTheScreen();
 
         await act(async () => {
