@@ -1,78 +1,36 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import TabBarBlurTarget from '@components/Navigation/NavigationTabBar/TabBarBlur/TabBarBlurTarget';
+import TabBarBlurTargetContextProvider from '@components/Navigation/NavigationTabBar/TabBarBlur/TabBarBlurTargetContext';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
-import {getSpan} from '@libs/telemetry/activeSpans';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 /**
  * Tab Navigator containing Home, Inbox (Reports), Search, Insights, Settings, and Workspaces pages.
  */
-import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
+import type {BottomTabBarProps, BottomTabNavigationOptions, BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import type {NavigationAction, ParamListBase, Router, ScreenLayoutArgs, TabNavigationState} from '@react-navigation/native';
 
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {lazy, Suspense, useEffect} from 'react';
-import {View} from 'react-native';
+import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 
 // Do not lazy load Search navigator for performance reasons
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
-
-const LazyHomePage = lazy(() => import('@pages/home/HomePage'));
-const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
-const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
-const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
-const LazyInsightsPage = lazy(() => import('@pages/Insights/InsightsPage'));
-
-type LazyFallbackProps = {
-    /** Sentry span to tag when this fallback renders. */
-    tabSpanName?: string;
-};
-
-function LazyFallback({tabSpanName}: LazyFallbackProps) {
-    const styles = useThemeStyles();
-
-    // Lets Sentry split slow tab navigations into "lazy chunk fetch" vs "screen render" buckets.
-    useEffect(() => {
-        if (!tabSpanName) {
-            return;
-        }
-        getSpan(tabSpanName)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN, true);
-    }, [tabSpanName]);
-
-    return (
-        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-            <ActivityIndicator size="large" />
-        </View>
-    );
-}
-
-function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>, tabSpanName?: string) {
-    function SuspenseWrapper(props: P) {
-        return (
-            <Suspense fallback={<LazyFallback tabSpanName={tabSpanName} />}>
-                <LazyComponent {...props} />
-            </Suspense>
-        );
-    }
-    return SuspenseWrapper;
-}
-
-const HomePageScreen = withSuspense(LazyHomePage);
-const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
-const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
-const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
-const InsightsPageScreen = withSuspense(LazyInsightsPage);
+import {HomePageScreen, InsightsPageScreen, ReportsSplitNavigatorScreen, SettingsSplitNavigatorScreen, WorkspaceNavigatorScreen} from './tabScreens';
 
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
+
+const renderTabScreenLayout = (args: ScreenLayoutArgs<ParamListBase, string, BottomTabNavigationOptions, BottomTabNavigationProp<ParamListBase>>) => (
+    <TabBarBlurTarget>{bottomTabScreenLayoutWrapper(args)}</TabBarBlurTarget>
+);
 
 const Tab = createBottomTabNavigator<TabNavigatorParamList>();
 
@@ -96,6 +54,12 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const route = useRoute();
+    // The Tab.Navigator's own state lives at `parentState.routes[i].state`. We can't read it via
+    // `useNavigationState((s) => s)` here because TabNavigator's body runs before <Tab.Navigator>
+    // mounts, so the nearest navigation listener context is still the parent stack's.
+    const tabState = useNavigationState((parentState) => parentState.routes.find((r) => r.key === route.key)?.state);
+
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;
@@ -104,6 +68,27 @@ function TabNavigator() {
         parentNavigation.setOptions({gestureEnabled: !isRootScreen});
     }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
 
+    useEffect(() => {
+        // stale === false distinguishes a fully realized NavigationState from a PartialState.
+        if (!tabState || tabState.stale !== false) {
+            return;
+        }
+        setPreservedNavigatorState(route.key, tabState);
+    }, [tabState, route.key]);
+
+    // The slicing optimization in useCustomRootStackNavigatorState can unmount and later remount
+    // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
+    // state by overriding the bottom-tab router's getInitialState - the same pattern SplitRouter
+    // uses for its split navigators.
+    const tabRouterOverride = <Action extends NavigationAction>(
+        originalRouter: Router<TabNavigationState<TabNavigatorParamList>, Action>,
+    ): Partial<Router<TabNavigationState<TabNavigatorParamList>, Action>> => ({
+        getInitialState: (configOptions) => {
+            const preserved = getPreservedNavigatorState<TabNavigationState<TabNavigatorParamList>>(route.key);
+            return preserved ? originalRouter.getRehydratedState(preserved, configOptions) : originalRouter.getInitialState(configOptions);
+        },
+    });
+
     const screenOptions = {
         ...TAB_SCREEN_OPTIONS_BASE,
         sceneStyle: {flex: 1, backgroundColor: theme.appBG},
@@ -111,37 +96,40 @@ function TabNavigator() {
     };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
-            screenLayout={bottomTabScreenLayoutWrapper}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigatorScreen}
-            />
-        </Tab.Navigator>
+        <TabBarBlurTargetContextProvider>
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                tabBar={renderTabBar}
+                screenOptions={screenOptions}
+                screenLayout={renderTabScreenLayout}
+                UNSTABLE_router={tabRouterOverride}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigatorScreen}
+                />
+            </Tab.Navigator>
+        </TabBarBlurTargetContextProvider>
     );
 }
 

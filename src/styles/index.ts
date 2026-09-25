@@ -730,20 +730,65 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        // The narrow tab bar is a capsule floating above the screen content, drawn by Android and mobile web.
+        // iOS hands the bottom bar over to UIKit, which paints its own material, so nothing here reaches it.
         navigationTabBarContainer: {
             flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
-            backgroundColor: theme.appBG,
+            height: variables.floatingTabBarHeight,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
+            backgroundColor: theme.floatingTabBarBG,
+            borderWidth: variables.hairlineBorderWidth,
+            borderColor: theme.border,
+            // Insets the row so the selected item's capsule keeps a margin inside the bar's rounded edge.
+            ...spacing.p1,
+            // Clips each item's hover and press background to the capsule's rounded ends.
+            overflow: 'hidden',
         },
 
+        // Sits behind the row and inside the container's rounded clip, so the blur stops at the capsule's edge.
+        navigationTabBarBlur: {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+        },
+
+        navigationTabBarItemSelected: {
+            backgroundColor: theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // The padding widens the pill while the matching negative margin keeps it from taking that width
+            // away from the label, so the pill reaches past its tab instead of squeezing what it wraps.
+            paddingHorizontal: variables.floatingTabBarSelectedOverhang,
+            marginHorizontal: -variables.floatingTabBarSelectedOverhang,
+        },
+
+        // Ends a tab root screen's scrollable content above the floating bar, so its last row stays reachable
+        // while everything scrolled past it still passes behind the glass.
+        floatingTabBarContentInset: {
+            paddingBottom: variables.floatingTabBarContentInset,
+        },
+
+        // Used both for a tab's pressable and for the wrapper around its icon and label. As the wrapper it sizes
+        // to those two rather than to the tab's share of the bar, so a long label pushes the selected pill past
+        // its tab instead of spilling out of it.
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingHorizontal: 4,
+        },
+
+        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
+        // against it without taking part in the tab screen's layout.
+        nativeTabBarFloatingButtons: {
+            position: 'absolute',
+            right: 0,
+            bottom: variables.bottomTabHeight + spacing.gap3.gap,
+            left: 0,
+            height: 0,
+            zIndex: 10,
         },
 
         navigationTabBarFABItem: {

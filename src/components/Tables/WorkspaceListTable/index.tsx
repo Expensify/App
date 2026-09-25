@@ -1,6 +1,7 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -73,6 +74,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const illustrations = useMemoizedLazyIllustrations(['PlanetWithMobileApp']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey>> = [
@@ -222,7 +224,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             />
 
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={floatingTabBarContentInsetStyle} />
         </Table>
     );
 }

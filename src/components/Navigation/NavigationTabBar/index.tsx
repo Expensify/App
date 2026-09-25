@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
@@ -23,6 +24,7 @@ import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButto
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
@@ -33,6 +35,7 @@ import InboxTabButton from './InboxTabButton';
 import InsightsTabButton from './InsightsTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
+import TabBarBlur from './TabBarBlur';
 import TabBarItem from './TabBarItem';
 import WorkspacesTabButton from './WorkspacesTabButton';
 
@@ -46,7 +49,9 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const {isBetaEnabled} = usePermissions();
-    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
+    // iOS drives its bar from the native tab navigator, which registers five items and leaves Insights out, so the
+    // wide layout's own bar must not offer a tab the navigator cannot route to.
+    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (TAB_SCREENS as readonly string[]).includes(SCREENS.INSIGHTS);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -69,8 +74,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         });
     };
 
-    // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
-    // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
+    // The navigator drops shouldShowFloatingButtons while it hides the bar, and the debug view rides along
+    // so it cannot linger over a screen the bar has already left.
     const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
 
     if (!shouldUseNarrowLayout) {
@@ -157,6 +162,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
+                <TabBarBlur />
                 <PressableWithFeedback
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}

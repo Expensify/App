@@ -1,13 +1,12 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -47,6 +46,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
@@ -102,8 +102,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         <ScreenWrapper
             testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            bottomContentStyle={styles.overflowVisible}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}
@@ -121,7 +119,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayAccountButton
                 />
 
-                <ScrollView contentContainerStyle={styles.flexColumn}>
+                <ScrollView contentContainerStyle={[styles.flexColumn, floatingTabBarContentInsetStyle]}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.

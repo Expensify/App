@@ -1,12 +1,12 @@
 # `@react-navigation` patches
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
-#### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+bottom-tabs+7.16.2+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.16.2+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.9.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native+7.2.6+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.2.6+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch)
 
@@ -24,7 +24,7 @@
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097)
 
-### [@react-navigation+native+7.1.33+001+initial.patch](@react-navigation+native+7.1.33+001+initial.patch)
+### [@react-navigation+native+7.2.6+001+initial.patch](@react-navigation+native+7.2.6+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12751 (`route.history` + `pushParams`, added upstream for this use case); originating issue https://github.com/react-navigation/react-navigation/issues/12460. On the v8 upgrade, evaluate adopting `pushParams` to shrink this patch.
@@ -49,7 +49,7 @@
 - PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
 - Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — re-evaluate this patch then.
 
-### [@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch)
+### [@react-navigation+native+7.2.6+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.2.6+003+increase-history-go-popstate-fallback-timeout.patch)
 
 - Reason:
 

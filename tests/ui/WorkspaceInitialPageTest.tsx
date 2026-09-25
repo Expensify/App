@@ -66,7 +66,6 @@ jest.mock('@hooks/useWorkspaceAccountID', () => jest.fn());
 jest.mock('@components/BlockingViews/FullPageNotFoundView', () => (props: {children: React.ReactNode; shouldShow: boolean}) => mockFullPageNotFoundView(props));
 jest.mock('@components/HeaderWithBackButton', () => jest.fn());
 jest.mock('@components/HighlightableMenuItem', () => jest.fn());
-jest.mock('@components/Navigation/TabBarBottomContent', () => jest.fn());
 jest.mock(
     '@components/OfflineWithFeedback',
     () =>

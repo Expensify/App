@@ -1,12 +1,11 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -52,6 +51,7 @@ type InsightsDashboardContentProps = {
 
 function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -101,7 +101,7 @@ function InsightsDashboardContent({dashboardID, hash, state, filters, onRetry}: 
 
     return (
         <ScrollView
-            contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}
+            contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5, floatingTabBarContentInsetStyle]}
             addBottomSafeAreaPadding
         >
             <View style={styles.insightsDashboardLayout}>
@@ -169,7 +169,6 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INSIGHTS} />}
             testID="InsightsPage"
         >
             <TopBar

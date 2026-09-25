@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,15 +34,17 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
 function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
-        <>
+        <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
             <View>
                 <Icon
                     src={icon}
                     fill={getIconFill(isSelected, isHovered, theme)}
-                    width={variables.iconBottomBar}
-                    height={variables.iconBottomBar}
+                    width={iconSize}
+                    height={iconSize}
                 />
                 {!!statusIndicatorColor && (
                     <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
@@ -49,11 +52,17 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
             </View>
             <Text
                 numberOfLines={numberOfLines}
-                style={[styles.textSmall, styles.textAlignCenter, styles.mt1Half, isSelected ? styles.textBold : styles.textSupporting, styles.navigationTabBarLabel]}
+                style={[
+                    styles.textSmall,
+                    styles.textAlignCenter,
+                    shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half,
+                    isSelected ? styles.textBold : styles.textSupporting,
+                    styles.navigationTabBarLabel,
+                ]}
             >
                 {label}
             </Text>
-        </>
+        </View>
     );
 }
 

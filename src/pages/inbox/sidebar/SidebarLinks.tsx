@@ -2,6 +2,7 @@ import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
@@ -14,6 +15,8 @@ import type {OptionData} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +47,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
@@ -79,7 +83,11 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
+    // The floating tab bar covers the end of the list above the home indicator, so its footprint adds to the safe
+    // area padding instead of replacing it. Only the platforms that draw that bar in JS report an inset.
+    const safeAreaMarginBottom = StyleUtils.getSafeAreaMargins(insets).marginBottom;
+    const safeAreaPaddingBottom = typeof safeAreaMarginBottom === 'number' ? safeAreaMarginBottom : 0;
+    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: safeAreaPaddingBottom + (floatingTabBarContentInsetStyle ? variables.floatingTabBarContentInset : 0)}]);
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
 

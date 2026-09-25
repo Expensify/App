@@ -2521,11 +2521,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
     },
 
+    // The negative top margin keeps the bar out of the layout flow, so the screen content it floats above
+    // reaches the bottom edge of the screen instead of ending where the bar starts.
     getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-        paddingBottom: safeAreaPaddingBottom,
-        backgroundColor: theme.appBG,
+        marginTop: -(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
+        paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
+        backgroundColor: theme.transparent,
     }),
 
     getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
