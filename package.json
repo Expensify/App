@@ -145,7 +145,7 @@
     "domhandler": "^5.0.3",
     "expensify-common": "2.0.207",
     "expo": "57.0.8",
-    "expasset": "57.0.7",
+    "expo-asset": "57.0.7",
     "expo-audio": "57.0.3",
     "expo-font": "57.0.1",
     "expo-image": "57.0.1",
