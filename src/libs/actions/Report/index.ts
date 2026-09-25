@@ -242,6 +242,7 @@ import type {
     PolicyEmployeeList,
     PolicyReportField,
     PolicyTagLists,
+    ReadonlyOnyxEntry,
     RecentlyUsedReportFields,
     Report,
     ReportAction,
@@ -393,7 +394,7 @@ type PregeneratedResponseParams = {
 };
 
 type AddCommentParams = {
-    report: OnyxEntry<Report>;
+    report: ReadonlyOnyxEntry<Report>;
     notifyReportID: string;
     ancestors: Ancestor[];
     text: string;
@@ -411,7 +412,7 @@ type AddCommentParams = {
 };
 
 type AddActionsParams = {
-    report: OnyxEntry<Report>;
+    report: ReadonlyOnyxEntry<Report>;
     notifyReportID: string | string[];
     ancestors: Ancestor[];
     timezoneParam: Timezone;
@@ -3367,7 +3368,7 @@ function broadcastUserIsLeavingRoom(reportID: string, currentUserAccountID: numb
 
 /** Deletes a comment from the report, basically sets it as empty string */
 function deleteReportComment(
-    report: OnyxEntry<Report>,
+    report: ReadonlyOnyxEntry<Report>,
     reportAction: ReportAction,
     originalReportActions: OnyxEntry<ReportActions>,
     reportActions: OnyxEntry<ReportActions>,

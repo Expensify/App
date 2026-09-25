@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-unsafe-onyx-read -- dev-console-only reads: every read runs from a window getter, never from a component, and the body is skipped on production builds */
 import {isProduction as isProductionLib} from '@libs/Environment/Environment';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -13,167 +14,142 @@ import Onyx from 'react-native-onyx';
  * This is used to inject development/debugging utilities into the window object on web.
  * We do this only on non-production builds - these should not be used in any application code.
  */
-export default function addUtilsToWindow() {
+export default async function addUtilsToWindow() {
     if (!window) {
         return;
     }
 
-    isProductionLib().then((isProduction) => {
-        if (isProduction) {
-            return;
+    if (await isProductionLib()) {
+        return;
+    }
+
+    window.Onyx = Onyx as typeof Onyx & {
+        log: (key: CollectionKeyBase) => Promise<void>;
+    };
+
+    window.Onyx.log = async function (key: CollectionKeyBase) {
+        const value = await Onyx.get(key);
+
+        /* eslint-disable-next-line no-console */
+        console.log(value);
+    };
+
+    window.setSupportToken = setSupportAuthToken;
+
+    const getRouteParams = () => {
+        return navigationRef.current?.getCurrentRoute()?.params as Record<string, string> | undefined;
+    };
+
+    const getIOUTransactionID = (action: unknown) => (action as {originalMessage?: {IOUTransactionID?: string}} | undefined)?.originalMessage?.IOUTransactionID;
+
+    const getReportID = async (params: Record<string, string> | undefined) => {
+        if (params?.reportID) {
+            return params.reportID;
+        }
+        if (params?.transactionID) {
+            const transaction = await Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`);
+            return transaction?.reportID;
+        }
+        return undefined;
+    };
+
+    const getTransactionIDFromReport = async (reportID: string) => {
+        const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+        if (report?.parentReportID && report?.parentReportActionID) {
+            const parentReportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`);
+            const parentAction = parentReportActions?.[report.parentReportActionID];
+            const parentTransactionID = getIOUTransactionID(parentAction);
+            if (parentTransactionID) {
+                return parentTransactionID;
+            }
         }
 
-        window.Onyx = Onyx as typeof Onyx & {
-            get: (key: CollectionKeyBase) => Promise<unknown>;
-            log: (key: CollectionKeyBase) => void;
-        };
-
-        // We intentionally do not offer an Onyx.get API because we believe it will lead to code patterns we don't want to use in this repo, but we can offer a workaround for the sake of debugging
-        window.Onyx.get = function (key: CollectionKeyBase) {
-            return new Promise((resolve) => {
-                // We have opted for `connectWithoutView` here as this is a debugging utility and does not relate to any view.
-                const connection = Onyx.connectWithoutView({
-                    key,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-        };
-
-        window.Onyx.log = function (key: CollectionKeyBase) {
-            window.Onyx.get(key).then((value) => {
-                /* eslint-disable-next-line no-console */
-                console.log(value);
-            });
-        };
-
-        window.setSupportToken = setSupportAuthToken;
-
-        // Helper to get current route params
-        const getRouteParams = () => {
-            return navigationRef.current?.getCurrentRoute()?.params as Record<string, string> | undefined;
-        };
-
-        // Helper to get reportID from various sources
-        const getReportID = async (params: Record<string, string> | undefined) => {
-            if (params?.reportID) {
-                return params.reportID;
+        const reportActions = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+        for (const action of Object.values(reportActions ?? {})) {
+            const transactionID = getIOUTransactionID(action);
+            if (transactionID) {
+                return transactionID;
             }
-            if (params?.transactionID) {
-                const transaction = await window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}` as CollectionKeyBase);
-                return (transaction as {reportID?: string} | undefined)?.reportID;
-            }
-            return undefined;
-        };
+        }
 
-        // Helper to get transactionID from one expense report
-        const getTransactionIDFromReport = async (reportID: string) => {
-            const report = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as CollectionKeyBase);
-            const typedReport = report as {parentReportID?: string; parentReportActionID?: string} | undefined;
+        return undefined;
+    };
 
-            // First try: Get from parent report action (for transaction thread reports)
-            if (typedReport?.parentReportID && typedReport?.parentReportActionID) {
-                const parentReportActions = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${typedReport.parentReportID}` as CollectionKeyBase);
-                const parentAction = (parentReportActions as Record<string, {originalMessage?: {IOUTransactionID?: string}}> | undefined)?.[typedReport.parentReportActionID];
-                if (parentAction?.originalMessage?.IOUTransactionID) {
-                    return parentAction.originalMessage.IOUTransactionID;
+    const getPolicyIDFromReport = async (reportID: string) => {
+        const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+        if (report?.policyID) {
+            return report.policyID;
+        }
+
+        if (report?.parentReportID) {
+            const parentReport = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
+            return parentReport?.policyID;
+        }
+
+        return undefined;
+    };
+
+    Object.defineProperties(window, {
+        policy: {
+            configurable: true,
+            get: async () => {
+                const params = getRouteParams();
+
+                if (params?.policyID) {
+                    return Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`);
                 }
-            }
 
-            // Fallback: Search the report's own report actions (for expense reports with one transaction)
-            const reportActions = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as CollectionKeyBase);
-            const actions = reportActions as Record<string, {originalMessage?: {IOUTransactionID?: string}}> | undefined;
-            if (actions) {
-                for (const action of Object.values(actions)) {
-                    if (action?.originalMessage?.IOUTransactionID) {
-                        return action.originalMessage.IOUTransactionID;
+                const reportID = await getReportID(params);
+                if (reportID) {
+                    const policyID = await getPolicyIDFromReport(reportID);
+                    if (policyID) {
+                        return Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     }
                 }
-            }
 
-            return undefined;
-        };
-
-        // Helper to get policyID from report (checks parent report for one expense reports)
-        const getPolicyIDFromReport = async (reportID: string) => {
-            const report = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as CollectionKeyBase);
-            const typedReport = report as {policyID?: string; parentReportID?: string} | undefined;
-
-            if (typedReport?.policyID) {
-                return typedReport.policyID;
-            }
-
-            if (typedReport?.parentReportID) {
-                const parentReport = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${typedReport.parentReportID}` as CollectionKeyBase);
-                return (parentReport as {policyID?: string} | undefined)?.policyID;
-            }
-
-            return undefined;
-        };
-
-        // Define lazy getters for debug data
-        Object.defineProperties(window, {
-            policy: {
-                configurable: true,
-                get: async () => {
-                    const params = getRouteParams();
-
-                    if (params?.policyID) {
-                        return window.Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}` as CollectionKeyBase);
-                    }
-
-                    const reportID = await getReportID(params);
-                    if (reportID) {
-                        const policyID = await getPolicyIDFromReport(reportID);
-                        if (policyID) {
-                            return window.Onyx.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as CollectionKeyBase);
-                        }
-                    }
-
-                    return undefined;
-                },
+                return undefined;
             },
-            report: {
-                configurable: true,
-                get: async () => {
-                    const params = getRouteParams();
-                    const reportID = await getReportID(params);
+        },
+        report: {
+            configurable: true,
+            get: async () => {
+                const params = getRouteParams();
+                const reportID = await getReportID(params);
 
-                    if (reportID) {
-                        return window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as CollectionKeyBase);
-                    }
+                if (reportID) {
+                    return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                }
 
-                    return undefined;
-                },
+                return undefined;
             },
-            transaction: {
-                configurable: true,
-                get: async () => {
-                    const params = getRouteParams();
+        },
+        transaction: {
+            configurable: true,
+            get: async () => {
+                const params = getRouteParams();
 
-                    if (params?.transactionID) {
-                        return window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}` as CollectionKeyBase);
+                if (params?.transactionID) {
+                    return Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`);
+                }
+
+                if (params?.reportID) {
+                    const transactionID = await getTransactionIDFromReport(params.reportID);
+                    if (transactionID) {
+                        return Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                     }
+                }
 
-                    if (params?.reportID) {
-                        const transactionID = await getTransactionIDFromReport(params.reportID);
-                        if (transactionID) {
-                            return window.Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as CollectionKeyBase);
-                        }
-                    }
-
-                    return undefined;
-                },
+                return undefined;
             },
-            receipt: {
-                configurable: true,
-                get: async () => {
-                    const transaction = await (window as {transaction?: Promise<{receipt?: unknown}>}).transaction;
-                    return transaction?.receipt;
-                },
+        },
+        receipt: {
+            configurable: true,
+            get: async () => {
+                const transaction = await window.transaction;
+                return transaction?.receipt;
             },
-        });
+        },
     });
 }

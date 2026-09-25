@@ -15,6 +15,7 @@ import type {
     PolicyEmployeeList,
     PolicyTagLists,
     PolicyTags,
+    ReadonlyOnyxEntry,
     Report,
     TaxRate,
     Transaction,
@@ -1960,7 +1961,7 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
-function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>, ownerLogin: string | undefined) {
+function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: ReadonlyOnyxEntry<Report>, ownerLogin: string | undefined) {
     // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
     // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
     const rulesMap: Record<'category' | 'tag', Record<string, string>> = {
@@ -2152,7 +2153,7 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, ownerLogin: string | und
  */
 function getSubmitToEmail(
     policy: OnyxEntry<Policy>,
-    expenseReport: OnyxEntry<Report>,
+    expenseReport: ReadonlyOnyxEntry<Report>,
     ownerLogin: string | undefined,
     rules: OnyxCollection<Rule>,
     shouldFallBackWhenManagerIsNotMember = false,
@@ -2186,7 +2187,7 @@ function getSubmitToEmail(
  */
 function getSubmitToAccountID(
     policy: OnyxEntry<Policy>,
-    expenseReport: OnyxEntry<Report>,
+    expenseReport: ReadonlyOnyxEntry<Report>,
     ownerLogin: string | undefined,
     rules: OnyxCollection<Rule>,
     shouldFallBackWhenManagerIsNotMember = false,

@@ -13,7 +13,6 @@ import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
@@ -189,7 +188,7 @@ describe('OnyxDerived', () => {
 
         it('returns empty reports when dependencies are not set', async () => {
             await waitForBatchedUpdates();
-            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
             expect(derivedReportAttributes).toMatchObject({
                 reports: {},
             });
@@ -199,7 +198,7 @@ describe('OnyxDerived', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await waitForBatchedUpdates();
 
-            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
                 reports: {
@@ -214,7 +213,7 @@ describe('OnyxDerived', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await waitForBatchedUpdates();
 
-            let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            let derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
                 reports: {
@@ -226,7 +225,7 @@ describe('OnyxDerived', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, null);
 
-            derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
                 reports: {},
@@ -239,7 +238,7 @@ describe('OnyxDerived', () => {
             // Derived recomputes are coalesced onto a microtask; pump it so the locale change is applied.
             await waitForBatchedUpdates();
 
-            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
                 locale: 'es',
@@ -282,7 +281,7 @@ describe('OnyxDerived', () => {
                 expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBeLessThan(3);
 
                 // And the coalesced compute must not drop any of the batched changes.
-                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derived = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed report');
 
                 setDerivedValueSpy.mockRestore();
@@ -301,7 +300,7 @@ describe('OnyxDerived', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`, {isOptimisticReport: false});
                 await waitForBatchedUpdates();
 
-                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derived = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed again');
             });
         });
@@ -389,7 +388,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // Get initial computed value
-            const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const initialDerivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // Spy on generateReportAttributes - this function should NOT be called
             // when the optimization kicks in and skips the computation
@@ -408,7 +407,7 @@ describe('OnyxDerived', () => {
             expect(generateReportAttributesSpy).not.toHaveBeenCalled();
 
             // Get the computed value after login change
-            const derivedReportAttributesAfterLoginChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const derivedReportAttributesAfterLoginChange = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // And the values should be preserved correctly
             expect(derivedReportAttributesAfterLoginChange).toEqual(initialDerivedReportAttributes);
@@ -431,7 +430,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // Get initial computed value reference
-            const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const initialDerivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // Change the displayName - this should trigger full recomputation
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -443,7 +442,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // Get the computed value after displayName change
-            const derivedReportAttributesAfterDisplayNameChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+            const derivedReportAttributesAfterDisplayNameChange = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // The computed value should not be the same object (new computation happened)
             expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
@@ -547,7 +546,7 @@ describe('OnyxDerived', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await waitForBatchedUpdates();
 
-                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[report.reportID].reportErrors).toEqual({});
             });
 
@@ -580,7 +579,7 @@ describe('OnyxDerived', () => {
 
                 await waitForBatchedUpdates();
 
-                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
                 await waitForBatchedUpdates();
 
@@ -632,7 +631,7 @@ describe('OnyxDerived', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await waitForBatchedUpdates();
 
-                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[report.reportID].reportErrors).toEqual({
                     '1234567890': 'Error message 1',
                     '1234567891': 'Error message 2',
@@ -677,7 +676,7 @@ describe('OnyxDerived', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
                 await waitForBatchedUpdates();
 
-                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[report.reportID].reportErrors).toEqual({
                     '1234567890': 'Error message 1',
                     '1234567891': 'Error message 2',
@@ -708,7 +707,7 @@ describe('OnyxDerived', () => {
 
                 // --- Assertion 1: Propagation Works ---
                 // The parent report should have an error RBR because the child IOU report has an error.
-                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                let derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
 
                 // --- Action: Resolve Error ---
@@ -718,7 +717,7 @@ describe('OnyxDerived', () => {
 
                 // --- Assertion 2: RBR is Cleared ---
                 // The parent report's RBR should be cleared now that the child's error is gone.
-                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                derivedReportAttributes = await Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
             });
         });
@@ -746,7 +745,7 @@ describe('OnyxDerived', () => {
             await Onyx.update(updates);
             await waitForBatchedUpdates();
 
-            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+            const derived = await Onyx.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
 
             // The batched violations change for B must not be dropped...
             expect(derived?.rB?.violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}B`]).toEqual([violation]);
@@ -781,7 +780,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // Precondition: while it is a CHAT, no transaction thread is resolved for the report.
-            let derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            let derived = await Onyx.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.transactionThreadIDs?.[expenseReportID]).toBeUndefined();
 
             // One logical update: flip the report to EXPENSE (a REPORT change that resolves its thread) batched
@@ -798,7 +797,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // The batched REPORT change must be applied: the expense report's transaction thread now resolves.
-            derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            derived = await Onyx.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
         });
     });
@@ -812,7 +811,7 @@ describe('OnyxDerived', () => {
 
         it('returns empty object when dependencies are not set', async () => {
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
             expect(derivedCardList).toEqual({});
         });
 
@@ -830,7 +829,7 @@ describe('OnyxDerived', () => {
                 '3': workspaceCard3,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -852,7 +851,7 @@ describe('OnyxDerived', () => {
                 '3': workspaceCard,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList?.['1']).toBeDefined();
             expect(derivedCardList?.['1']).toMatchObject({cardID: 1});
@@ -869,7 +868,7 @@ describe('OnyxDerived', () => {
                 '1': workspaceCard,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -883,7 +882,7 @@ describe('OnyxDerived', () => {
                 '1': nonPersonalCard,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -902,7 +901,7 @@ describe('OnyxDerived', () => {
                 '2': card2,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -928,7 +927,7 @@ describe('OnyxDerived', () => {
                 '4': workspaceCard3,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -946,7 +945,7 @@ describe('OnyxDerived', () => {
                 '1': workspaceCard,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -960,7 +959,7 @@ describe('OnyxDerived', () => {
                 '1': nonPersonalCard,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
@@ -979,7 +978,7 @@ describe('OnyxDerived', () => {
                 '2': card2,
             });
             await waitForBatchedUpdates();
-            const derivedCardList = await OnyxUtils.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+            const derivedCardList = await Onyx.get(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
 
             expect(derivedCardList).toMatchObject({
                 '1': expect.objectContaining({cardID: 1}),
