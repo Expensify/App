@@ -89,6 +89,8 @@ export default function TableRow({
         shouldEnableSelectionInNarrowPaneModal = false,
         tableListMetadata,
         dynamicGridTemplateColumns,
+        listProps,
+        shouldFooterRenderAsLastRow,
     } = useTableContext();
     const semanticRowID = useTableRowSemanticID();
     const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
@@ -111,7 +113,9 @@ export default function TableRow({
 
     const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
-    const isLastRow = rowIndex === rowCount - 1;
+    // A footer that continues the rows owns the rounded bottom corners instead of the last row.
+    const doesFooterOwnBottomRadius = !!shouldFooterRenderAsLastRow && !!listProps?.ListFooterComponent;
+    const isLastRow = rowIndex === rowCount - 1 && !doesFooterOwnBottomRadius;
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);

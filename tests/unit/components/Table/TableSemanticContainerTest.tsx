@@ -9,6 +9,14 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
+// Jest resolves the native implementation, which cannot measure text, so dynamic columns would be inert. The remount
+// these tests guard against only happens where measurement is possible.
+jest.mock('@libs/measureTextWidth', () => ({
+    __esModule: true,
+    default: () => null,
+    canMeasureText: () => true,
+}));
+
 // `TableSemanticContainer` only reads styles from the theme hook, so stub it to a plain object (no provider needed).
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
@@ -47,12 +55,14 @@ function renderContainer(
         rowCount = 3,
         hasHeaderRow = true,
         rendersBodyWhenEmpty = false,
+        shouldUseDynamicColumns = false,
         onLayout,
     }: {
         isEnabled?: boolean;
         rowCount?: number;
         hasHeaderRow?: boolean;
         rendersBodyWhenEmpty?: boolean;
+        shouldUseDynamicColumns?: boolean;
         onLayout?: React.ComponentProps<typeof TableSemanticContainer>['onLayout'];
     } = {},
 ) {
@@ -64,6 +74,7 @@ function renderContainer(
             columnCount={4}
             hasHeaderRow={hasHeaderRow}
             rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+            shouldUseDynamicColumns={shouldUseDynamicColumns}
             scrollWidth={undefined}
             onLayout={onLayout}
         >
@@ -165,6 +176,7 @@ describe('TableSemanticContainer', () => {
                 columnCount={4}
                 hasHeaderRow
                 rendersBodyWhenEmpty={false}
+                shouldUseDynamicColumns={false}
                 scrollWidth={undefined}
                 onLayout={undefined}
             >
@@ -182,6 +194,43 @@ describe('TableSemanticContainer', () => {
         rerender(element(3));
 
         // The filter bar instance survived both transitions, so its search-clearing cleanup never fired.
+        expect(mockTrackedFilterBarUnmount).not.toHaveBeenCalled();
+        expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not remount children when a dynamically sized table crosses the narrow layout breakpoint', () => {
+        // A table sized from its content only measures and scrolls in the wide layout, so `onLayout` and `scrollWidth`
+        // both fall away below the breakpoint. `shouldUseDynamicColumns` holds the wrapper in place across that change,
+        // because dropping it would swap the returned tree and remount the body, losing its scroll position and
+        // wiping the active search string through `Table.FilterBar`'s unmount cleanup.
+        mockTrackedFilterBarMount.mockClear();
+        mockTrackedFilterBarUnmount.mockClear();
+
+        const onLayout = jest.fn();
+        const element = (isWideLayout: boolean) => (
+            <TableSemanticContainer
+                isEnabled={false}
+                title="Members"
+                rowCount={3}
+                columnCount={4}
+                rendersBodyWhenEmpty={false}
+                shouldUseDynamicColumns
+                scrollWidth={undefined}
+                onLayout={isWideLayout ? onLayout : undefined}
+            >
+                <TrackedFilterBar />
+                <TableHeader />
+                <TableBody />
+            </TableSemanticContainer>
+        );
+
+        const {rerender} = render(element(true));
+        expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
+
+        // Resized below the breakpoint and back above it.
+        rerender(element(false));
+        rerender(element(true));
+
         expect(mockTrackedFilterBarUnmount).not.toHaveBeenCalled();
         expect(mockTrackedFilterBarMount).toHaveBeenCalledTimes(1);
     });

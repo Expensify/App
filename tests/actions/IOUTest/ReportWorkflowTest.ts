@@ -96,26 +96,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const RORY_EMAIL = 'rory@expensifail.com';
@@ -186,7 +168,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -814,7 +795,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                         currentUserEmailParam: CARLOS_EMAIL,
                         currency: undefined,
                         isSelfTourViewed: false,
-                        betas: undefined,
                         hasActiveAdminPolicies: false,
                         hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
@@ -905,7 +885,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
                             isSelfTourViewed: false,
-                            betas: undefined,
                             hasActiveAdminPolicies: false,
                             hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
@@ -1208,7 +1187,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             currency: undefined,
                             isSelfTourViewed: false,
-                            betas: undefined,
                             hasActiveAdminPolicies: false,
                             hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
@@ -1441,7 +1419,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -1687,7 +1664,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 currency: undefined,
                 isSelfTourViewed: false,
-                betas: undefined,
                 hasActiveAdminPolicies: false,
                 hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
@@ -3983,6 +3959,53 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(formatPhoneNumberSpy).toHaveBeenCalledWith(approverLogin);
             expect(reportAction.message).toEqual([expect.objectContaining({text: `changed the approver to ${formatPhoneNumber(approverLogin)}`})]);
         });
+
+        it('names the skipped approver and flags the action when the new approver is a reassignment', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write optimistic data to verify the reassignment wording.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policy = createRandomPolicy(1);
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'reassign-approver-report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: policy.id,
+                managerID: CARLOS_ACCOUNT_ID,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            addReportApprover({
+                report,
+                newApproverEmail: RORY_EMAIL,
+                newApproverAccountID: RORY_ACCOUNT_ID,
+                accountID: CARLOS_ACCOUNT_ID,
+                email: CARLOS_EMAIL,
+                policy,
+                rules: undefined,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                isReassignment: true,
+            });
+
+            const [, params, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            expect(params).toEqual(expect.objectContaining({isReassignment: true}));
+
+            const reportActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, Onyx.METHOD.MERGE, true);
+            const reportAction = getRequiredReportAction(reportActionsUpdate);
+
+            expect(reportAction.message).toEqual([
+                expect.objectContaining({
+                    html: `changed the approver to <mention-user accountID="${RORY_ACCOUNT_ID}"/>, skipped <mention-user accountID="${CARLOS_ACCOUNT_ID}"/>`,
+                }),
+            ]);
+            expect(reportAction.originalMessage).toEqual(
+                expect.objectContaining({isReassignment: true, previousApproverID: CARLOS_ACCOUNT_ID, mentionedAccountIDs: [RORY_ACCOUNT_ID, CARLOS_ACCOUNT_ID]}),
+            );
+
+            const reportActionsSuccessUpdate = getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, Onyx.METHOD.MERGE, true);
+            expect(getRequiredReportAction(reportActionsSuccessUpdate)).toEqual(expect.objectContaining({pendingAction: null, isOptimisticAction: null, errors: null}));
+        });
     });
 
     describe('approveMoneyRequest Submit workspace upgrade', () => {
@@ -4019,7 +4042,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             hasViolations: false,
             isTrackIntentUser: false,
             isASAPSubmitBetaEnabled: false,
-            betas: [CONST.BETAS.ALL],
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,

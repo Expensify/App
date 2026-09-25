@@ -82,6 +82,7 @@ import {
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
     isReportManager as isReportManagerUtils,
+    isReportOwner as isReportOwnerUtils,
     isSelfDM as isSelfDMReportUtils,
     isSettled,
     isTrackExpenseReportNew,
@@ -443,17 +444,6 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
     return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
 }
 
-function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
-    if (!action) {
-        return false;
-    }
-    const now = new Date();
-    const paymentDatetime = new Date(action.created);
-    const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
-    const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-    return nowUTC.getTime() > cutoffTimeUTC.getTime();
-}
-
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -509,19 +499,8 @@ function isCancelPaymentAction(
         return true;
     }
 
-    // Bank payment is processing when:
-    // 1. In BILLING state (ACH batch submitted), OR
-    // 2. In APPROVED + REIMBURSED state (immediately after paying via bank, before batch is sent), OR
-    // 3. In AUTOREIMBURSED state (automatically reimbursed)
-    const isInBillingState = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isApprovedAndReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isAutoReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
-    const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
-
-    const hasDailyNachaCutoffPassed = hasPayActionPassedNachaCutoff(latestPayAction);
-
-    return isPaymentProcessing && !hasDailyNachaCutoffPassed;
+    // Only Auth knows whether a bank reimbursement, queued or in flight, can still be cancelled (fast ACH posts the credit right away).
+    return !!report.canCancelReimbursement;
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
@@ -745,8 +724,16 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions, report);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, rules: OnyxCollection<Rule>, reportActions?: ReportAction[]): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules);
+function isDeleteAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    currentUserAccountID: number,
+    rules: OnyxCollection<Rule>,
+    reportActions?: ReportAction[],
+    policy?: Policy,
+    isReportLevelDelete = false,
+): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions ?? [], currentUserAccountID, rules, policy, isReportLevelDelete);
 }
 
 function shouldShowEditSplitInDeleteAction(
@@ -990,6 +977,18 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     return true;
 }
 
+function isDownloadPDFAction(report: Report, currentUserAccountID: number): boolean {
+    // An open report has no finalized report on the backend, and `ExportReportToPDF` re-runs its access check against the
+    // report's current owner/manager. After a rejection the report goes back to open and is owned by the submitter again,
+    // so anyone else (e.g. the approver who rejected it, or their vacation delegate) gets a 404 instead of a PDF.
+    // The owner can still export their own draft, so only hide the action for everyone else.
+    if (isOpenReportUtils(report) && !isReportOwnerUtils(report, currentUserAccountID)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserLogin,
     currentUserAccountID,
@@ -1156,7 +1155,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    if (isDownloadPDFAction(report, currentUserAccountID)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+    }
 
     if (reportTransactions.some(hasReceiptTransactionUtils)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS);
@@ -1198,7 +1199,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [])) {
+    if (isDeleteAction(report, reportTransactions, currentUserAccountID, rules, reportActions ?? [], policy, true)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
@@ -1327,7 +1328,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [])) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, reportAction ? [reportAction] : [], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 
