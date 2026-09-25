@@ -35,8 +35,6 @@ const personalDetailsDisplayNameSelector =
             formatPhoneNumber,
         });
 
-const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
-
 type DisplayDetails = Pick<PersonalDetails, 'accountID' | 'displayName' | 'login' | 'avatar'>;
 
 /**
@@ -82,15 +80,6 @@ function isPersonalDetailOptimistic(personalDetail: PersonalDetails | null | und
     return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
 }
 
-const isOptimisticPersonalDetailSelector =
-    (accountID: number) =>
-    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean => {
-        if (!personalDetailsList) {
-            return true;
-        }
-        return isPersonalDetailOptimistic(personalDetailsList[accountID]);
-    };
-
 /**
  * Returns only the personal details that were created optimistically. The optimistic set is tiny compared to the whole
  * personal details list, so subscribers using it don't re-render every time an unrelated (server-backed) detail changes.
@@ -132,10 +121,8 @@ export {
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
-    conciergePersonalDetailSelector,
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
-    isOptimisticPersonalDetailSelector,
     isPersonalDetailOptimistic,
     optimisticPersonalDetailsSelector,
     createDisplayDetailsByAccountIDsSelector,
