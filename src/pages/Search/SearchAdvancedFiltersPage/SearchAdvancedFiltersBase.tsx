@@ -5,6 +5,7 @@ import FilterList from '@components/Search/FilterComponents/AdvancedFilters/Filt
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +24,8 @@ function SearchAdvancedFiltersBase() {
     const {currentDraftFilters, shouldShowResetFilters} = useContext(SearchAdvancedFiltersContext);
     const {applyFilters, resetFilters} = useContext(SearchAdvancedFiltersActionContext);
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {isBetaEnabled} = usePermissions();
+    const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
 
     return (
         <ScreenWrapper
@@ -32,6 +35,15 @@ function SearchAdvancedFiltersBase() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.filtersHeader')} />
+            {canUseNLFilters && (
+                <Button
+                    style={[styles.mh5, styles.mb3]}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH_NL_FILTER)}
+                >
+                    <Button.Text>{translate('search.filters.describeSearch.title')}</Button.Text>
+                </Button>
+            )}
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}

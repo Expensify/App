@@ -1369,6 +1369,7 @@ const MergeATSApprovalModalStackNavigator = createModalStackNavigator<MergeATSAp
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersContentPage').default,
+    [SCREENS.SEARCH.NL_FILTER_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchNLFilterPage').default,
 });
 
 const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSavedSearchParamList>({
