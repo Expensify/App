@@ -12,6 +12,7 @@ import type {ReportActions} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
 
+import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
@@ -138,6 +139,27 @@ describe('useReportActionsVisibility scopes VISIBLE_REPORT_ACTIONS per report', 
         expect(renders).toBeGreaterThan(rendersBefore);
 
         unmount();
+    });
+});
+
+describe('reportVisibleActionsSelector', () => {
+    it('caches the selected report snapshot while reacting to changes for that report', () => {
+        const selector = reportVisibleActionsSelector(REPORT_A);
+        const initialValue = {
+            [REPORT_A]: {a1: true},
+            [REPORT_B]: {b1: true},
+        };
+
+        const initialResult = selector(initialValue);
+
+        // The same snapshot must keep its identity so useSyncExternalStore does not re-render indefinitely.
+        expect(selector(initialValue)).toBe(initialResult);
+
+        // Changes to another report should not change this report's selected snapshot.
+        expect(selector({...initialValue, [REPORT_B]: {b1: true, b2: true}})).toBe(initialResult);
+
+        // A replacement visibility map for the selected report must be observed.
+        expect(selector({...initialValue, [REPORT_A]: {a1: true, a2: true}})).not.toBe(initialResult);
     });
 });
 

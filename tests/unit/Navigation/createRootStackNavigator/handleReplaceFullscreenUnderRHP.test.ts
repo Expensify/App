@@ -589,4 +589,73 @@ describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — s
         expect(getBufferRoute(removeResult)).toBeUndefined();
         expect(removeResult?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
     });
+
+    it('does not duplicate the buffer route on subsequent replace actions when a buffer already exists (tab-switch path)', () => {
+        // Given an existing state that already has a pre-mount buffer route under RHP
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const firstInsertResult = handleReplaceFullscreenUnderRHP(makeExistingState(undefined), makeAction(true), CONFIG_OPTIONS, stackRouter);
+        expect(firstInsertResult?.routes.filter((r) => r.name === SCREENS.PRE_MOUNT_BUFFER).length).toBe(1);
+        if (!firstInsertResult) {
+            throw new Error('Expected handleReplaceFullscreenUnderRHP to return a state.');
+        }
+
+        // When another replace action runs on top of the state that already has a buffer
+        mockStubbedParsedState = makeParsedState(INCOMING_WITH_LIST);
+        const secondInsertResult = handleReplaceFullscreenUnderRHP(firstInsertResult, makeAction(true), CONFIG_OPTIONS, stackRouter);
+
+        // Then there is still only exactly one buffer route with a unique key
+        const bufferRoutes = secondInsertResult?.routes.filter((r) => r.name === SCREENS.PRE_MOUNT_BUFFER);
+        expect(bufferRoutes?.length).toBe(1);
+        expect(secondInsertResult?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
+        expect(secondInsertResult?.routes.at(-1)?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    });
+
+    it('does not duplicate the buffer route on subsequent replace actions when a buffer already exists (push path)', () => {
+        // Given a pushed fullscreen destination with an existing buffer under ShareModalNavigator
+        const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.SHARE_MODAL_NAVIGATOR];
+        const realStackRouter = StackRouter({});
+        const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
+        mockStubbedParsedState = {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]};
+        const existing = makeStackState([
+            makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-key'),
+            makeRoute(NAVIGATORS.SHARE_MODAL_NAVIGATOR, undefined, undefined, 'share-modal-key'),
+        ]);
+
+        const firstInsertResult = handleReplaceFullscreenUnderRHP(existing, makeAction(true), configOptions, realStackRouter);
+        expect(firstInsertResult?.routes.filter((r) => r.name === SCREENS.PRE_MOUNT_BUFFER).length).toBe(1);
+        if (!firstInsertResult) {
+            throw new Error('Expected handleReplaceFullscreenUnderRHP to return a state.');
+        }
+
+        // When another replace action runs on the state already containing a buffer
+        const secondInsertResult = handleReplaceFullscreenUnderRHP(firstInsertResult, makeAction(true), configOptions, realStackRouter);
+
+        // Then there is only one buffer route and no duplicated keys
+        const bufferRoutes = secondInsertResult?.routes.filter((r) => r.name === SCREENS.PRE_MOUNT_BUFFER);
+        expect(bufferRoutes?.length).toBe(1);
+        expect(secondInsertResult?.routes.at(-2)?.name).toBe(SCREENS.PRE_MOUNT_BUFFER);
+        expect(secondInsertResult?.routes.at(-1)?.name).toBe(NAVIGATORS.SHARE_MODAL_NAVIGATOR);
+    });
+
+    it('removes the buffer and pre-inserted route when ShareModalNavigator is cancelled', () => {
+        const routeNames = [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, NAVIGATORS.SHARE_MODAL_NAVIGATOR];
+        const realStackRouter = StackRouter({});
+        const configOptions: RouterConfigOptions = {routeNames, routeParamList: {}, routeGetIdList: {}};
+        mockStubbedParsedState = {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]};
+        const existing = makeStackState([
+            makeRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, undefined, undefined, 'search-key'),
+            makeRoute(NAVIGATORS.SHARE_MODAL_NAVIGATOR, undefined, undefined, 'share-modal-key'),
+        ]);
+
+        const insertResult = handleReplaceFullscreenUnderRHP(existing, makeAction(true), configOptions, realStackRouter);
+        if (!insertResult) {
+            throw new Error('Expected the ShareModal pre-insert to return a navigation state.');
+        }
+
+        const removeResult = handleRemoveFullscreenUnderRHP(insertResult, makeRemoveAction(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR), configOptions, realStackRouter);
+
+        expect(getBufferRoute(removeResult)).toBeUndefined();
+        expect(removeResult?.routes).toHaveLength(2);
+        expect(removeResult?.routes.at(-1)?.name).toBe(NAVIGATORS.SHARE_MODAL_NAVIGATOR);
+    });
 });

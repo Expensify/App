@@ -64,7 +64,6 @@ function OptionRowLHNData({
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(fullReport?.parentReportID)}`);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionThreadReportID)}`);
 
-    // Scoped VISIBLE_REPORT_ACTIONS selector
     const visibleActionsSelector = useCallback(
         (data: VisibleReportActionsDerivedValue | undefined) => {
             if (!data) {

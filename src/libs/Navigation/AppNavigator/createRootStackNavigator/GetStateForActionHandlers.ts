@@ -512,7 +512,7 @@ function handleReplaceFullscreenUnderRHP(
         return null;
     }
 
-    const routesWithoutRHP = state.routes.slice(0, -1);
+    const routesWithoutRHP = state.routes.slice(0, -1).filter((r) => r.name !== SCREENS.PRE_MOUNT_BUFFER);
 
     // When the target is a TAB_NAVIGATOR screen, switch tabs within the existing instance
     // rather than pushing a duplicate navigator.
@@ -560,11 +560,6 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     // For non-tab fullscreen targets: push the route underneath the RHP (existing behavior).
-    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
-    if (!stateAfterPop) {
-        return null;
-    }
-
     let pushParams = targetRoute.params as Record<string, unknown> | undefined;
     const nestedRoute = getFocusedRouteFromNavigatorState(targetRoute.state);
     if (nestedRoute) {
@@ -575,8 +570,22 @@ function handleReplaceFullscreenUnderRHP(
         };
     }
 
+    const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions);
+    if (!stateAfterPop) {
+        return null;
+    }
+
     const rehydratedStateAfterPop = stackRouter.getRehydratedState(stateAfterPop, configOptions);
-    const stateAfterPush = stackRouter.getStateForAction(rehydratedStateAfterPop, StackActions.push(targetRoute.name, pushParams), configOptions);
+    const routesWithoutBuffer = rehydratedStateAfterPop.routes.filter((route) => route.name !== SCREENS.PRE_MOUNT_BUFFER);
+    const stateAfterPush = stackRouter.getStateForAction(
+        {
+            ...rehydratedStateAfterPop,
+            routes: routesWithoutBuffer,
+            index: routesWithoutBuffer.length - 1,
+        },
+        StackActions.push(targetRoute.name, pushParams),
+        configOptions,
+    );
     if (!stateAfterPush) {
         return null;
     }

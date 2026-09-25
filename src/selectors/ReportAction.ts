@@ -15,8 +15,28 @@ type NewestReportAction = Pick<ReportAction, 'reportActionID' | 'actorAccountID'
  * `isReportActionVisible` expects. Built here (not inline in the hook) so the consumer has no computed-key
  * literal, which the React Compiler won't memoize; `useOnyx` returns a stable ref while the slice is unchanged.
  */
-const reportVisibleActionsSelector = (reportID: string | undefined) => (data: VisibleReportActionsDerivedValue | undefined) =>
-    reportID && data?.[reportID] ? {[reportID]: data[reportID]} : undefined;
+const reportVisibleActionsSelector = (reportID: string | undefined) => {
+    let prevReportEntry: Record<string, boolean> | undefined;
+    let cachedResult: VisibleReportActionsDerivedValue | undefined;
+    let hasRun = false;
+
+    return (data: VisibleReportActionsDerivedValue | undefined) => {
+        if (!reportID || !data?.[reportID]) {
+            prevReportEntry = undefined;
+            cachedResult = undefined;
+            hasRun = true;
+            return undefined;
+        }
+        const reportEntry = data[reportID];
+        if (hasRun && reportEntry === prevReportEntry) {
+            return cachedResult;
+        }
+        hasRun = true;
+        prevReportEntry = reportEntry;
+        cachedResult = {[reportID]: reportEntry};
+        return cachedResult;
+    };
+};
 
 function getParentReportActionSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): OnyxEntry<ReportAction> {
     if (!parentReportActions || !parentReportActionID) {

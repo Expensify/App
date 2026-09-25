@@ -318,7 +318,7 @@ function SubmitDetailsPage({
 
     // Single entry point for the pending-navigation reveal — the ref guard makes it safe to call from either
     // path below, so whichever fires first wins and the other becomes a no-op.
-    const revealPendingNavigation = (reportID: string) => {
+    const revealPendingNavigation = useCallback((reportID: string) => {
         if (hasStartedPendingNavigation.current) {
             return;
         }
@@ -328,7 +328,7 @@ function SubmitDetailsPage({
                 setIsConfirming(false);
             },
         });
-    };
+    }, []);
 
     // Once the optimistically created destination report lands in Onyx, reveal it directly over the modal —
     // navigating before it exists would dismiss to the inbox and flash it while the report screen mounts.
@@ -681,8 +681,11 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
-                        onOpenParticipantPicker={() => {}}
+                        shouldAllowParticipantEdit={iouType === CONST.IOU.TYPE.SUBMIT}
+                        onOpenParticipantPicker={() => {
+                            cleanupPreMount();
+                            Navigation.goBack();
+                        }}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
