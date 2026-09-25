@@ -91,4 +91,4 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
 
 export default SearchQueryListItem;
 export {isSearchQueryItem};
-export type {SearchQueryItem, SearchQueryListItemProps};
+export type {SearchQueryItem};
