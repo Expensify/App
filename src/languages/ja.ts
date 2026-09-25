@@ -983,7 +983,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
-            validateAccount: {title: 'アカウントを認証してください', subtitle: 'アカウント', cta: '検証する'},
             addHomeAddress: {title: '距離の追跡用に自宅住所を追加してください', subtitle: 'アカウント', cta: '追加'},
             fixFailedBilling: {title: '登録されているカードから請求できませんでした', subtitle: 'サブスクリプション'},
             unlockBankAccount: {
@@ -999,12 +998,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `サービス中断を防ぐため、${date}までに請求書をお支払いください`,
                 overdueTitle: 'お支払いの期限が過ぎています。請求書をお支払いください。',
             },
-        },
-        discoverSection: {
-            title: '発見',
-            menuItemTitleNonAdmin: '経費の作成方法とレポートの提出方法を学びましょう。',
-            menuItemTitleAdmin: 'メンバーの招待方法、承認ワークフローの編集方法、会社カードの照合方法を確認しましょう。',
-            menuItemDescription: 'Expensify でできることを 2 分で確認',
+            renewSubscription: {
+                title: '現在の料金を維持するには自動更新をオンにしてください',
+                subtitle: ({date}: {date: string}) => `サブスクリプションは${date}に終了`,
+                cta: '管理',
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1484,6 +1482,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `銀行口座（末尾${last4Digits}）で${amount}を支払いました` : `銀行口座（下4桁 ${last4Digits}）で支払い済み`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>に従い、銀行口座（下4桁 ${last4Digits}）で${amount ? `${amount} ` : ''}を支払いました`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}。${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `個人アカウント・${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `ビジネスアカウント・${lastFour}`,
         nextStep: '次のステップ',
@@ -1806,6 +1805,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `このレポートの承認者を変更する方法を選択してください。（すべてのレポートで恒久的に変更するには、<a href="${workflowSettingLink}">ワークスペース設定</a>を更新してください。）`,
             changedApproverMessage: (managerID: number) => `承認者を <mention-user accountID="${managerID}"/> に変更しました`,
+            changedFinalApproverMessage: (managerID: number) => `最終承認者を <mention-user accountID="${managerID}"/> に変更しました`,
             reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -2731,6 +2731,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
             askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
             reconnectBank: '銀行連携の再認証が必要です',
+            pending: '保留中',
         },
         bankAccountStatus: {
             active: 'アクティブ',
@@ -4237,7 +4238,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
         enterTheDateOfBirthOfTheOwner: '所有者の生年月日はいつですか？',
-        enterTheSSN: '所有者の社会保障番号は何ですか？',
+        enterTheSSN: '所有者の社会保障番号の下4桁は何ですか？',
         dontWorry: 'ご安心ください。個人信用情報の審査は一切行いません。',
         enterTheOwnersAddress: 'オーナーの住所は何ですか？',
         letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',
@@ -8579,6 +8580,23 @@ ${reportName}`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター'},
+            filters: {
+                description: (providerName: string) => `${providerName} からインポートするメンバーを選択してください。採用ステージ、タグ、オフィスから選択できます。`,
+                stages: {
+                    title: 'ジョブの段階',
+                    description: 'このワークスペースと同期したい候補者の選考ステージを選択してください',
+                    toggleTitle: 'ジョブのステージ',
+                    allSelected: 'すべての採用ステージ',
+                },
+                tags: {
+                    title: 'タグ',
+                    description: 'このワークスペースと同期したい候補者のタグを選択してください',
+                    toggleTitle: 'タグ',
+                    allSelected: 'すべてのタグ',
+                },
+                offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
+                enableJobStagesOrTags: '続行するにはジョブステージまたはタグを有効にしてください',
+            },
             subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
                 importedCount: () => ({
@@ -8686,6 +8704,9 @@ ${reportName}`,
             noCompaniesFoundDescription: 'Dynamics 365 Business Central に会社を追加して、接続をもう一度同期してください',
             noVendorsFound: '取引先が見つかりませんでした',
             noVendorsFoundDescription: 'Business Central に仕入先を追加してから、もう一度接続を同期してください',
+            importDescription: 'Dynamics 365 Business Central からインポートするコーディング構成を選択してください。',
+            items: 'アイテム',
+            enableNewCategories: '新しくインポートされたカテゴリを有効にする',
         },
     },
     getAssistancePage: {
@@ -9626,12 +9647,6 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支払う',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'エクスポート',
-            },
-            describeSearch: {
-                title: '検索内容を入力してください',
-                inputLabel: '検索結果',
-                description: '「先月 50 ドルを超える食事」のように、探している内容を平易な英語で入力してください。',
-                buttonText: '適用',
             },
             filterType: {label: 'フィルタータイプ', has: {positive: '持っています', negative: '持っていません'}, is: {positive: 'は', negative: 'ではありません'}},
             created: '作成しました',
@@ -10628,6 +10643,11 @@ ${reportName}`,
             trialEnded: {
                 title: '無料トライアル期間は終了しました',
                 subtitle: 'すべてのお気に入り機能を引き続き利用するには、支払い用カードを追加してください。',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `サブスクリプションは${date}に終了します`,
+                subtitle: '現在の料金を維持するには、自動更新をオンにしてください。',
+                manage: '管理',
             },
             earlyDiscount: {
                 claimOffer: 'オファーを獲得',

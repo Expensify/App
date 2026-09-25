@@ -958,7 +958,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会计`,
             },
-            validateAccount: {title: '验证您的账户', subtitle: '账户', cta: '验证'},
             addHomeAddress: {title: '添加您的家庭住址以进行距离跟踪', subtitle: '账户', cta: '添加'},
             fixFailedBilling: {title: '我们无法向您档案中的银行卡收费', subtitle: '订阅'},
             unlockBankAccount: {
@@ -974,12 +973,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 dueSoonTitle: ({date}: {date: string}) => `请在 ${date} 前支付您的发票，以避免服务中断`,
                 overdueTitle: '您的付款已逾期，请支付您的发票',
             },
-        },
-        discoverSection: {
-            title: '发现',
-            menuItemTitleNonAdmin: '了解如何创建报销和提交报表。',
-            menuItemTitleAdmin: '了解如何邀请成员、编辑审批流程以及对公司卡进行对账。',
-            menuItemDescription: '了解 Expensify 的强大功能，只需 2 分钟',
+            renewSubscription: {
+                title: '开启自动续订以保留您当前的价格',
+                subtitle: ({date}: {date: string}) => `订阅将于 ${date} 结束`,
+                cta: '管理',
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -1444,6 +1442,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `使用银行账户尾号为 ${last4Digits} 支付了 ${amount}` : `通过银行账户 ${last4Digits} 支付`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `已通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用尾号为 ${last4Digits} 的银行账户支付了 ${amount ? `${amount} ` : ''}`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}。${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `个人账户 • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `企业账户 • ${lastFour}`,
         nextStep: '后续步骤',
@@ -1760,6 +1759,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '更改审批人',
             header: (workflowSettingLink: string) => `选择一个选项来更改此报表的审批人。（更新你的<a href="${workflowSettingLink}">工作区设置</a>，以将其永久应用于所有报表。）`,
             changedApproverMessage: (managerID: number) => `已将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `已将最终审批人更改为 <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -2658,6 +2658,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `请在<a href="${companyCardsRoute}">公司卡</a>中修复此连接`,
             askAdminToFixConnection: '请联系管理员修复此连接',
             reconnectBank: '您的银行连接需要重新验证',
+            pending: '待处理',
         },
         bankAccountStatus: {
             active: '活跃',
@@ -4140,7 +4141,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         legalFirstName: '法定名（名）',
         legalLastName: '法定姓氏',
         enterTheDateOfBirthOfTheOwner: '所有者的出生日期是什么？',
-        enterTheSSN: '所有者的社会安全号码是多少？',
+        enterTheSSN: '所有者的社会安全号码后4位数字是多少？',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         enterTheOwnersAddress: '所有者的地址是什么？',
         letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
@@ -8358,6 +8359,18 @@ ${reportName}`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            filters: {
+                description: (providerName: string) => `选择要从 ${providerName} 导入的成员。您可以按工作阶段、标签和办公室进行选择。`,
+                stages: {
+                    title: '职位阶段',
+                    description: '选择你希望与此工作区同步的候选人职位阶段',
+                    toggleTitle: '工作阶段',
+                    allSelected: '所有职位阶段',
+                },
+                tags: {title: '标签', description: '选择要与此工作区同步的候选人标签', toggleTitle: '标签', allSelected: '所有标签'},
+                offices: {title: '办公室', description: '选择你想与此工作区同步的候选人办公地点', toggleTitle: '办公室', allSelected: '所有办公室'},
+                enableJobStagesOrTags: '启用职位阶段或标签以继续',
+            },
             subtitle: '连接招聘工具并保持候选人审批同步。',
             syncResults: {
                 importedCount: () => ({
@@ -8456,6 +8469,9 @@ ${reportName}`,
             noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
             noVendorsFound: '未找到供应商',
             noVendorsFoundDescription: '请在 Business Central 中添加供应商，然后再次同步连接',
+            importDescription: '选择要从 Dynamics 365 Business Central 导入的编码配置。',
+            items: '项目',
+            enableNewCategories: '启用新导入的类别',
         },
     },
     getAssistancePage: {
@@ -9369,12 +9385,6 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: '支付',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: '导出',
-            },
-            describeSearch: {
-                title: '描述您的搜索',
-                inputLabel: '您的搜索',
-                description: '请用简单的英文描述你要查找的内容，例如："meals over $50 last month（上个月超过 50 美元的餐饮）"。',
-                buttonText: '应用',
             },
             filterType: {label: '筛选类型', has: {positive: '有', negative: '没有'}, is: {positive: '是', negative: '不是'}},
             created: '已创建',
@@ -10356,6 +10366,11 @@ ${reportName}`,
             trialEnded: {
                 title: '您的免费试用已结束',
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
+            },
+            subscriptionExpiringSoon: {
+                title: ({date}: {date: string}) => `您的订阅将于 ${date} 结束`,
+                subtitle: '开启自动续订以保留您当前的价格。',
+                manage: '管理',
             },
             earlyDiscount: {
                 claimOffer: '领取优惠',

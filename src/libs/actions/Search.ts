@@ -78,7 +78,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
-    Beta,
     BillingGraceEndPeriod,
     ExportTemplate,
     IntroSelected,
@@ -270,7 +269,6 @@ type HandleActionButtonPressParams = {
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -313,7 +311,6 @@ function handleActionButtonPress({
     consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -366,7 +363,6 @@ function handleActionButtonPress({
                 currentUserAccountID,
                 currentUserLogin,
                 introSelected,
-                betas,
                 isASAPSubmitBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
@@ -609,7 +605,6 @@ type GetPayActionCallbackParams = {
     currentUserAccountID?: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -640,7 +635,6 @@ function getPayActionCallback({
     currentUserAccountID,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -695,7 +689,6 @@ function getPayActionCallback({
         activePolicy,
         policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
@@ -1058,21 +1051,6 @@ function openSearchCardFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
-type ParseExpenseFiltersResult = {success: true; searchURL: string; humanReadableSummary: string} | {success: false; message: string};
-
-function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseExpenseFiltersResult | undefined> {
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS, {nlQuery, policyID, today})
-        .then((response) => {
-            if (response?.success === true && response.searchURL) {
-                return {success: true, searchURL: response.searchURL, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
-            }
-            return {success: false, message: response?.message ?? ''} as const;
-        })
-        .catch(() => ({success: false, message: ''}) as const);
-}
-
 function openSearchCategoryFiltersPage() {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
         {
@@ -1256,9 +1234,10 @@ function search({
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
-     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Tells the backend whether this query was submitted by the user, so it may be saved to the recent searches NVP.
      * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
-     * refreshes) must not evict the user's real recent searches.
+     * refreshes) must not evict the user's real recent searches. Always serialized, even when false, because the
+     * backend treats a missing flag as true for backwards compatibility with older clients.
      */
     shouldSaveRecentSearch?: boolean;
     /**
@@ -1315,7 +1294,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
+        shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
@@ -2585,7 +2564,6 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
-    parseExpenseFilters,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
     setSearchTagFiltersPagination,

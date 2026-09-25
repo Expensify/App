@@ -1452,6 +1452,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_IMPORT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
@@ -2943,6 +2946,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: NavigatorScreenParams<SearchReportActionsParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
+    [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS]: NavigatorScreenParams<MergeATSFiltersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL]: NavigatorScreenParams<MergeATSApprovalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: undefined;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
@@ -3548,6 +3552,16 @@ type SearchFullscreenNavigatorParamList = {
     };
 };
 
+type MergeATSFiltersNavigatorParamList = {
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER]: {
+        policyID: string;
+        filterType: ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>;
+    };
+};
+
 type MergeATSApprovalNavigatorParamList = {
     [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: {
         policyID: string;
@@ -3562,7 +3576,6 @@ type MergeATSApprovalNavigatorParamList = {
 
 type SearchAdvancedFiltersParamList = {
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: Record<string, never>;
-    [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIBE_RHP]: Record<string, never>;
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: {
         filterKey: string;
         applyDirectly?: string;
@@ -3787,6 +3800,7 @@ export type {
     ReportChangeApproverParamList,
     TestToolsModalModalNavigatorParamList,
     MergeTransactionNavigatorParamList,
+    MergeATSFiltersNavigatorParamList,
     AttachmentModalScreensParamList,
     ReportCardActivateNavigatorParamList,
     WorkspacesDomainModalNavigatorParamList,

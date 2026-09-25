@@ -2520,28 +2520,15 @@ type BusinessCentralCompany = {
 };
 
 /**
- * Value of a dimension retrieved from Business Central.
- */
-type BusinessCentralDimensionValue = {
-    /** Code identifying the value within its dimension */
-    code: string;
-
-    /** Name of the value */
-    name: string;
-};
-
-/**
  * Dimension retrieved from Business Central. Dimensions are imported as tags.
+ * Integration-Server caches only the code and the name, which is all the Import page needs to list a row per dimension.
  */
 type BusinessCentralDimension = {
-    /** Code identifying the dimension */
-    code: string;
+    /** Code identifying the dimension, also the key of its entry in `fieldMappings` */
+    id: string;
 
     /** Name of the dimension */
     name: string;
-
-    /** Values the dimension can take */
-    values: BusinessCentralDimensionValue[];
 };
 
 /**
@@ -2599,23 +2586,6 @@ type BusinessCentralBankAccount = {
 };
 
 /**
- * VAT posting setup retrieved from Business Central. VAT posting setups are imported as tax rates.
- */
-type BusinessCentralVATPostingSetup = {
-    /** VAT business posting group the setup applies to */
-    vatBusinessPostingGroup: string;
-
-    /** VAT product posting group the setup applies to */
-    vatProductPostingGroup: string;
-
-    /** Identifier of the VAT rate */
-    vatIdentifier: string;
-
-    /** VAT percentage the setup applies */
-    vatPercentage: number;
-};
-
-/**
  * Connection data retrieved from Business Central.
  */
 type BusinessCentralConnectionData = {
@@ -2634,8 +2604,8 @@ type BusinessCentralConnectionData = {
     /** Bank accounts of the selected company */
     bankAccounts?: BusinessCentralBankAccount[];
 
-    /** VAT posting setups of the selected company */
-    vatPostingSetups?: BusinessCentralVATPostingSetup[];
+    /** Whether the selected company has VAT posting setups that can be imported as tax rates. A US company has none, so it gets no tax row */
+    hasVATPostingSetups?: boolean;
 };
 
 /**
@@ -3822,6 +3792,7 @@ export type {
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
+    MergeATSConnectionData,
     MergeATSFilters,
     MergeATSApproverField,
     GustoConnectionConfig,
@@ -3855,4 +3826,6 @@ export type {
     CampfireAccount,
     CampfireExport,
     BusinessCentralCompany,
+    BusinessCentralCoding,
+    BusinessCentralCodingOfflineFeedbackKeys,
 };

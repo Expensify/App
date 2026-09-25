@@ -1,35 +1,22 @@
-import Icon from '@components/Icon';
-import {PressableWithFeedback} from '@components/Pressable';
 import SafeTriangle from '@components/SafeTriangle';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
 import SearchAdvancedFiltersContent from '@components/Search/FilterComponents/AdvancedFilters/SearchAdvancedFiltersContent';
-import SearchNLFilterContent from '@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SpacerView from '@components/SpacerView';
-import Text from '@components/Text';
 
 import {useDebounceWithControls} from '@hooks/useDebounce';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePointerMovement from '@hooks/usePointerMovement';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import getButtonState from '@libs/getButtonState';
-import Navigation from '@libs/Navigation/Navigation';
 import {hasFilterContentValuesChanged} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import type {ComponentRef} from 'react';
@@ -44,11 +31,7 @@ import ReportFieldFilterContentPopupWrapper from './ReportFieldFilterContentPopu
 import TextInputFilterContentPopupWrapper from './TextInputFilterContentPopupWrapper';
 
 type SearchAdvancedFiltersPopupProps = {
-    /** Query JSON to build the current filter state */
     queryJSON: SearchQueryJSON;
-
-    /** Closes the filters popover overlay */
-    closeOverlay: () => void;
 };
 
 /** Which filter contents are mounted and what each was given. */
@@ -124,11 +107,9 @@ function MountedFilterContent({filterKey, values, ready, onChange}: MountedFilte
     );
 }
 
-function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFiltersPopupProps) {
+function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-    const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
@@ -145,7 +126,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     }));
     const {activeFilter, mountedFilters, formWhileHidden, contentVersions, readyFilters} = mountedFilterState;
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
-    const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
 
     // Shows a filter's content. A visited one stays mounted, so a return reveals it rather than building it again.
     const showFilter = (filterKey: SearchFilter['key']) => {
@@ -188,7 +168,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     const {invoke: debouncedMarkShownFilterReady, cancel: cancelReadyWait} = useDebounceWithControls(markShownFilterReady, CONST.TIMING.SEARCH_FILTER_HOVER_INTENT_DELAY);
 
     const hoverFilter = (filterKey: SearchFilter['key']) => {
-        setIsDescribeMode(false);
         showFilter(filterKey);
         debouncedMarkShownFilterReady();
     };
@@ -210,28 +189,12 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
 
     // Moving the focus is deliberate and never passes over rows on the way, so nothing is withheld from it.
     const focusFilter = (filterKey: SearchFilter['key']) => {
-        setIsDescribeMode(false);
         cancelReadyWait();
         showFilter(filterKey);
         markShownFilterReady();
     };
 
     const mayDeriveContent = (filterKey: SearchFilter['key']) => !DEFERRED_CONTENT_FILTERS.has(filterKey) || readyFilters.includes(filterKey);
-
-    const getDescribeButtonBackground = (pressed: boolean) => {
-        if (pressed) {
-            return styles.buttonHoveredBG;
-        }
-        if (isDescribeMode) {
-            return styles.hoveredComponentBG;
-        }
-        return undefined;
-    };
-
-    const handleNLSuccess = (route: Route) => {
-        closeOverlay();
-        Navigation.navigate(route);
-    };
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
@@ -286,25 +249,21 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                     ref={filterContentRef}
                     style={[styles.filterContentContainer]}
                 >
-                    {isDescribeMode ? (
-                        <SearchNLFilterContent onSuccess={handleNLSuccess} />
-                    ) : (
-                        mountedFilters.map((filterKey) => (
-                            // `Activity` keeps a hidden content mounted while taking it out of layout and unmounting its
-                            // effects, so it holds no Onyx subscriptions until it is shown again.
-                            <Activity
-                                key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
-                                mode={filterKey === activeFilter ? 'visible' : 'hidden'}
-                            >
-                                <MountedFilterContent
-                                    filterKey={filterKey}
-                                    values={filterKey === activeFilter ? searchAdvancedFiltersForm : formWhileHidden[filterKey]}
-                                    ready={mayDeriveContent(filterKey)}
-                                    onChange={updateFilterQueryParams}
-                                />
-                            </Activity>
-                        ))
-                    )}
+                    {mountedFilters.map((filterKey) => (
+                        // `Activity` keeps a hidden content mounted while taking it out of layout and unmounting its
+                        // effects, so it holds no Onyx subscriptions until it is shown again.
+                        <Activity
+                            key={`${filterKey}-${contentVersions[filterKey] ?? 0}`}
+                            mode={filterKey === activeFilter ? 'visible' : 'hidden'}
+                        >
+                            <MountedFilterContent
+                                filterKey={filterKey}
+                                values={filterKey === activeFilter ? searchAdvancedFiltersForm : formWhileHidden[filterKey]}
+                                ready={mayDeriveContent(filterKey)}
+                                onChange={updateFilterQueryParams}
+                            />
+                        </Activity>
+                    ))}
                 </View>
             </View>
         </SafeTriangle>
