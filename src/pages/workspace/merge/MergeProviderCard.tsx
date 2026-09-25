@@ -42,6 +42,9 @@ type MergeProviderCardProps = {
     /** Callback invoked when the user taps the "Connect" or "Reconnect" button. */
     handleConnect: () => void;
 
+    /** Called once the user confirms disconnecting, right before the connection is removed */
+    onDisconnect?: () => void;
+
     /** Whether the current user can edit this Merge connection. */
     canWriteMoreFeatures: boolean;
 
@@ -49,7 +52,7 @@ type MergeProviderCardProps = {
     showReadOnlyModal: () => void;
 };
 
-function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal}: MergeProviderCardProps) {
+function MergeProviderCard({card, policy, handleConnect, onDisconnect, canWriteMoreFeatures, showReadOnlyModal}: MergeProviderCardProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -144,6 +147,7 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
                     if (result?.action !== ModalActions.CONFIRM || !policy) {
                         return;
                     }
+                    onDisconnect?.();
                     removePolicyConnection(policy, card.connectionName);
                 });
             },
