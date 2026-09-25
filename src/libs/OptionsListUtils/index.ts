@@ -3066,7 +3066,7 @@ function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
         return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
     }
 
-    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig);
+    let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig, activePolicyID);
     if (typeof maxRecentReportsToShow === 'number') {
         orderedReports = orderedReports.slice(0, maxRecentReportsToShow);
     }
