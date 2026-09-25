@@ -8,13 +8,13 @@ import type {BarChartProps} from './types';
 
 const getBarChartContent = () => import('./BarChartContent');
 function BarChart(props: BarChartProps) {
-    // Horizontal bars on wide layouts, vertical on narrow (mobile/RHP). A single lazy module receives orientation as a prop.
-    const {isHorizontal} = useBarChartOrientation();
+    // Horizontal bars on wide layouts, vertical on narrow (mobile/RHP) unless labels don't fit. A single lazy module receives orientation as a prop.
+    const {isHorizontal, canFallBackToHorizontalBars} = useBarChartOrientation();
 
     return (
         <SkiaWebChart
             getComponent={getBarChartContent}
-            componentProps={{...props, isHorizontal}}
+            componentProps={{...props, isHorizontal, canFallBackToHorizontalBars}}
         />
     );
 }

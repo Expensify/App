@@ -9,6 +9,7 @@ import {
     getAdditionalOffset,
     getHorizontalChartHeight,
     getNiceYAxisTicks,
+    getVerticalBarPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -746,5 +747,37 @@ describe('getHorizontalChartHeight', () => {
         // When computing the height
         // Then it falls back to the minimum rather than collapsing to just the padding
         expect(getHorizontalChartHeight(0, MIN_ROW_HEIGHT, PADDING, MIN_HEIGHT)).toBe(MIN_HEIGHT);
+    });
+});
+
+describe('getVerticalBarPlotBounds', () => {
+    // labelGap = 12, padding.right = 5 (from VictoryTheme.axis)
+    const LABEL_GAP = VictoryTheme.axis.labelGap;
+    const PADDING_RIGHT = VictoryTheme.axis.padding.right;
+
+    it('reserves the left gutter for labels and the right base padding', () => {
+        // Given a 300px container with a 30px left gutter
+        // When computing the plot bounds
+        // Then the plot starts past the gutter+labelGap and ends before the right padding
+        expect(getVerticalBarPlotBounds(300, 30)).toEqual({left: 30 + LABEL_GAP, right: 300 - PADDING_RIGHT, width: 300 - PADDING_RIGHT - (30 + LABEL_GAP)});
+    });
+
+    it('grows the plot width one-for-one with the container width', () => {
+        // Given the same left gutter but a wider container
+        // When comparing plot widths
+        // Then every extra container pixel becomes plot width (lets a horizontal chart switch back to vertical as it grows)
+        const narrow = getVerticalBarPlotBounds(300, 30).width;
+        const wide = getVerticalBarPlotBounds(360, 30).width;
+        expect(wide - narrow).toBe(60);
+    });
+
+    it('clamps to a zero-width plot when the container is too small for the gutters', () => {
+        // Given a container narrower than the left gutter itself
+        // When computing the plot bounds
+        // Then the right edge clamps to the left edge instead of going negative
+        const bounds = getVerticalBarPlotBounds(10, 30);
+        expect(bounds.left).toBe(30 + LABEL_GAP);
+        expect(bounds.right).toBe(30 + LABEL_GAP);
+        expect(bounds.width).toBe(0);
     });
 });
