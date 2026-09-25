@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {render, screen, waitFor} from '@testing-library/react-native';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -488,6 +488,126 @@ describe('ReportActionsList (body)', () => {
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
             expect((getCapturedListProps()?.extraData as unknown[]).at(DRAFT_PENDING_EXTRA_DATA_INDEX)).toBe(false);
+        });
+
+        it('reconciles a pending draft when the matching persisted action has identical HTML', async () => {
+            // Given a saved reply matching the last draft update while its completion event is missing
+            const persistedReportAction = mockReportActions.at(-1);
+            const revealDraftFromReportAction = jest.fn();
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: persistedReportAction ?? null,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft: jest.fn(),
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction,
+            });
+
+            // When the saved reply reaches the list
+            renderReportActionsList();
+
+            // Then the saved identity completes reconciliation even without a change to its HTML
+            await waitFor(() => {
+                expect(revealDraftFromReportAction).toHaveBeenCalledWith(persistedReportAction);
+            });
+        });
+
+        it('clears a completed draft when its saved action is outside the visible page', async () => {
+            // Given a saved reply outside the pagination window while its draft is still revealing
+            const persistedReportAction: OnyxTypes.ReportAction = {
+                ...conciergeDraftReportAction,
+                reportActionID: 'persisted-outside-visible-page',
+            };
+            const revealingDraft: OnyxTypes.ReportAction = {...persistedReportAction, message: [{type: 'COMMENT', html: 'Bot', text: 'Bot'}]};
+            const clearDraft = jest.fn();
+            const revealDraftFromReportAction = jest.fn();
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: mockReportActions,
+                sortedAllReportActions: [...mockReportActions, persistedReportAction],
+            });
+            const revealingDraftState = {
+                draftReportAction: revealingDraft,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            };
+            const TestDraftContext = React.createContext(revealingDraftState);
+            const useTestConciergeDraft = () => React.useContext(TestDraftContext);
+            mockUseConciergeDraft.mockImplementation(useTestConciergeDraft);
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft,
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction,
+            });
+
+            // When the list reconciles against all saved actions
+            const {rerender} = render(
+                <TestDraftContext.Provider value={revealingDraftState}>
+                    <ReportActionsList
+                        reportID={mockReport.reportID}
+                        conciergeChat={undefined}
+                    />
+                </TestDraftContext.Provider>,
+            );
+
+            // Then the partial draft remains visible until its saved content finishes revealing
+            await waitFor(() => {
+                expect(revealDraftFromReportAction).toHaveBeenCalledWith(persistedReportAction);
+            });
+            expect(getCapturedVisibleActions()).toContain(revealingDraft);
+            expect(clearDraft).not.toHaveBeenCalled();
+
+            // When the reveal completes without changing the visible pagination window
+            rerender(
+                <TestDraftContext.Provider value={{draftReportAction: persistedReportAction, hasActiveDraft: true, isDraftPendingCompletion: false}}>
+                    <ReportActionsList
+                        reportID={mockReport.reportID}
+                        conciergeChat={undefined}
+                    />
+                </TestDraftContext.Provider>,
+            );
+
+            // Then the synthetic bubble disappears and its cached draft is cleared
+            await waitFor(() => {
+                expect(clearDraft).toHaveBeenCalledTimes(1);
+            });
+            expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === persistedReportAction.reportActionID)).toBe(false);
+        });
+
+        it.each([true, false])('does not reconcile from an optimistic action when draft completion is pending: %s', (isDraftPendingCompletion) => {
+            // Given a matching optimistic placeholder that has not been saved, even if streaming completed
+            const optimisticReportAction: OnyxTypes.ReportAction = {
+                ...conciergeDraftReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                isOptimisticAction: true,
+            };
+            const clearDraft = jest.fn();
+            const revealDraftFromReportAction = jest.fn();
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, optimisticReportAction],
+                sortedAllReportActions: [...mockReportActions, optimisticReportAction],
+            });
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: optimisticReportAction,
+                hasActiveDraft: true,
+                isDraftPendingCompletion,
+            });
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft,
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction,
+            });
+
+            // When the list renders the draft beside that placeholder
+            renderReportActionsList();
+
+            // Then the placeholder cannot complete reconciliation or clear the draft
+            expect(revealDraftFromReportAction).not.toHaveBeenCalled();
+            expect(clearDraft).not.toHaveBeenCalled();
+            expect(getCapturedVisibleActions()).toContain(optimisticReportAction);
         });
     });
 

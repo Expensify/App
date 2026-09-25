@@ -621,6 +621,45 @@ describe('ConciergeDraftContext', () => {
         }
     });
 
+    it('completes a pending draft from a matching persisted action with identical HTML', async () => {
+        // Given a fully revealed draft whose terminal completion event never arrived
+        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const {result, unmount} = renderHook(
+            () => ({
+                actions: useConciergeDraftActions(),
+                state: useConciergeDraft(),
+            }),
+            {wrapper},
+        );
+
+        try {
+            await waitFor(() => {
+                expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
+            });
+            jest.useFakeTimers();
+
+            act(() => {
+                emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('OK'));
+                jest.advanceTimersByTime(100);
+            });
+
+            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('OK');
+            expect(result.current.state.isDraftPendingCompletion).toBe(true);
+
+            // When the saved action provides the same content as the last streamed update
+            act(() => {
+                result.current.actions.revealDraftFromReportAction(createReportAction(SHORT_FINAL_RENDERED_HTML));
+            });
+
+            // Then the durable reply completes the draft without requiring another Pusher event
+            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('OK');
+            expect(result.current.state.isDraftPendingCompletion).toBe(false);
+        } finally {
+            unmount();
+            jest.useRealTimers();
+        }
+    });
+
     it('applies ordered batched Pusher draft events', async () => {
         const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
         const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
