@@ -68,7 +68,7 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, onGrou
     ) : null;
 
     const headerMenu =
-        state === INSIGHTS_CHART_STATE.READY ? (
+        state === INSIGHTS_CHART_STATE.READY || isLoading ? (
             <WidgetHeaderMenu
                 testID={`insightsChartMenu-${chart.graphKey}`}
                 sentryLabel="InsightsChartMenu"
