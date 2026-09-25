@@ -1,20 +1,19 @@
 ---
 title: Enable Report Fields
-description: Enable and create Report Fields for your Workspaces.
-keywords: [New Expensify, report fields, custom report fields, workspace headers, Control plan, project tracking]
+description: Turn on Report fields for a workspace, create text, date, list, and formula fields, and understand which fields an accounting connection locks while it's connected.
+keywords: [New Expensify, report fields, enable report fields, add field, list values, imported report fields, accounting connection, disconnect accounting, Control plan]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling Report fields, creating fields, deleting fields, how fields imported from an accounting connection behave while that connection is active, and how those leftover fields behave after the connection is disconnected or replaced. Does not cover choosing which accounting dimensions import as report fields, which is covered in each connection's configuration article.
 ---
+
+# Enable Report Fields
 
 Report Fields let workspace admins collect additional header-level information on reports, such as project names, client codes, or trip types. This feature is only available on the **Control plan**.
 
 Report Fields apply to expense reports. They don't appear on invoices. To collect extra details on invoices, [learn how to enable Invoice fields](/articles/new-expensify/workspaces/Enable-Invoice-Fields).
 
-**Note:** Field names must be unique across the whole workspace. If you name a report field the same as an existing invoice field, you'll see the error *An invoice field with this name already exists*.
-
-**Note:** If your workspace is connected to an accounting system like QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite, Report Fields must be created in that system directly. [Learn more about connecting integrations.](#)
-
 ---
 
-# Enable Report Fields
+## How to Enable Report Fields for a Workspace
 
 To enable Report Fields in a workspace:
 
@@ -27,7 +26,7 @@ To enable Report Fields in a workspace:
 
 ---
 
-# Create New Report Fields
+## How to Create a Report Field
 
 Once Report Fields are enabled, follow these steps to create a new field:
 
@@ -45,7 +44,7 @@ Once Report Fields are enabled, follow these steps to create a new field:
 
 ---
 
-# Edit or Delete Report Fields
+## How to Edit or Delete a Report Field
 
 To modify or remove an existing Report Field:
 
