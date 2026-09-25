@@ -304,6 +304,55 @@ describe('DynamicFormFlow', () => {
         expect(mockSetParams).toHaveBeenLastCalledWith({subPage: 'identity'});
     });
 
+    it('keeps answers carried on later pages when an earlier page mount presses Next again', async () => {
+        const fields: DynamicFormField[] = [
+            {key: 'ssn', label: 'SSN', group: 'Identity', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+            {key: 'pin', label: 'PIN', group: 'Security', type: 'text', required: true, sensitive: true, refreshOnChange: false},
+        ];
+        const onSubmit = jest.fn();
+        const renderPage = (subPage: string) => {
+            mockRouteParams.subPage = subPage;
+            return render(
+                <DynamicFormFlow
+                    fields={fields}
+                    formID={FORM_ID}
+                    headerTitle="Identity"
+                    testID="DynamicFormFlowStaleMount"
+                    hasConfirmation
+                    buildRoute={buildRoute}
+                    onSubmit={onSubmit}
+                    onBack={jest.fn()}
+                    confirmationTitle="Confirm"
+                />,
+            );
+        };
+
+        const identityPage = renderPage('identity');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(identityPage.getByLabelText('SSN'), '123456789');
+        fireEvent.press(identityPage.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        const securityPage = renderPage('security');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(securityPage.getByLabelText('PIN'), '4321');
+        fireEvent.press(securityPage.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+        securityPage.unmount();
+
+        mockRouteParams.subPage = 'identity';
+        fireEvent.press(identityPage.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+        identityPage.unmount();
+
+        const confirmPage = renderPage('confirm');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(confirmPage.getByText('common.confirm'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith({ssn: '123456789', pin: '4321'});
+    });
+
     it('submits the stored answers when the confirmation button forwards its press event', async () => {
         const fields: DynamicFormField[] = [{key: 'type', label: 'Type', group: 'Kind', type: 'text', required: true, refreshOnChange: false}];
         const onSubmit = jest.fn();

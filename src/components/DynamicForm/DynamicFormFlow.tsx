@@ -234,8 +234,8 @@ function DynamicFormFlow({
         setDraftValues(formID, {[editorField.key]: editingItem ? editorItems.map((existing) => (existing.id === id ? item : existing)) : [...editorItems, item]});
         if (Object.keys(sensitiveAnswers).length > 0) {
             const carriedItemKey = getCarriedItemKey(editorField.key, id);
-            const existing = carriedAnswers[carriedItemKey];
-            const nextCarried = {...carriedAnswers, [carriedItemKey]: {...(isRecord(existing) ? existing : {}), ...sensitiveAnswers}};
+            const existing = carriedAnswersByForm.get(formID)?.[carriedItemKey] ?? carriedAnswers[carriedItemKey];
+            const nextCarried = {...carriedAnswers, ...carriedAnswersByForm.get(formID), [carriedItemKey]: {...(isRecord(existing) ? existing : {}), ...sensitiveAnswers}};
             carriedAnswersByForm.set(formID, nextCarried);
             setCarriedAnswers(nextCarried);
         }
@@ -268,7 +268,7 @@ function DynamicFormFlow({
     const handleNext = (values: DynamicFormValues) => {
         const carriedKeys = currentGroupPage?.fields.filter(isCarriedOutsideDraft).map((field) => field.key) ?? [];
         if (carriedKeys.length > 0) {
-            const nextCarried = {...carriedAnswers, ...Object.fromEntries(carriedKeys.map((key) => [key, values[key]]))};
+            const nextCarried = {...carriedAnswers, ...carriedAnswersByForm.get(formID), ...Object.fromEntries(carriedKeys.map((key) => [key, values[key]]))};
             carriedAnswersByForm.set(formID, nextCarried);
             setCarriedAnswers(nextCarried);
         }
