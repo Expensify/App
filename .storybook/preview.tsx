@@ -10,6 +10,7 @@ import colors from '@styles/theme/colors';
 
 import ComposeProviders from '@src/components/ComposeProviders';
 import HTMLEngineProvider from '@src/components/HTMLEngineProvider';
+import KeyboardProvider from '@src/components/KeyboardProvider';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import {ModalProvider} from '@src/components/Modal/Global/ModalContext';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
@@ -36,6 +37,8 @@ Onyx.init({
 
 IntlStore.load(CONST.LOCALES.EN);
 
+const STORY_FRAME_INSET = '2rem';
+
 const decorators = [
     (Story: React.ElementType) => (
         <ComposeProviders
@@ -46,6 +49,7 @@ const decorators = [
                 HTMLEngineProvider,
                 SafeAreaProvider,
                 PortalProvider,
+                KeyboardProvider,
                 ModalProvider,
                 EnvironmentProvider,
                 KeyboardStateProvider,
@@ -53,7 +57,10 @@ const decorators = [
             ]}
         >
             <ScreenWrapperStatusContext.Provider value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
-                <Story />
+                {/* Screens size to their window, so a story gets the viewport as its frame */}
+                <div style={{display: 'flex', flexDirection: 'column', height: `calc(100vh - ${STORY_FRAME_INSET})`}}>
+                    <Story />
+                </div>
             </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>
     ),
