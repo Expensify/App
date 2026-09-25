@@ -565,12 +565,11 @@ function openReportFromDeepLink(
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
 
-                        const deeplinkRoute = route as Route;
-
-                        const navigateHandler = (reportParam?: OnyxEntry<Report>): boolean => {
-                            // Already on the deeplinked route, so the destination is reached without navigating.
+                        const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                            // Skip if the user already is in the deeplinked route.
+                            const deeplinkRoute = route as Route;
                             if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
-                                return true;
+                                return;
                             }
 
                             // Check if the report exists in the collection
@@ -582,38 +581,35 @@ function openReportFromDeepLink(
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
-                                    return true;
+                                    return;
                                 }
                                 navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
-                                return true;
+                                return;
                             }
 
                             // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
                             const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
                             Navigation.navigate(deeplinkRoute, {forceReplace, waitForTransition: true});
-                            return true;
                         };
 
-                        const openDeepLink = (): boolean => {
-                            // If we log with deeplink with reportID and data for this report is not available yet,
-                            // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
+                        const openDeepLink = () => {
+                            // OpenApp and OpenReport may not have written this report yet, and navigateHandler would read the missing
+                            // report as "does not exist" and send the user to the last accessed report or Concierge instead.
                             if (reportID && !isAuthenticated && !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
                                 const reportConnection = Onyx.connectWithoutView({
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                                    // The callback stays subscribed until the report resolves, so there is no early return to take.
-                                    // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
-                                        if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
-                                            Onyx.disconnect(reportConnection);
-                                            navigateHandler(report);
+                                        if (!report?.errorFields?.notFound && !report?.reportID && !(report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
+                                            return;
                                         }
+                                        Onyx.disconnect(reportConnection);
+                                        navigateHandler(report);
                                     },
                                 });
-                                // Nothing has navigated yet, so a replay still needs its default destination.
-                                return false;
+                                return;
                             }
 
-                            return navigateHandler();
+                            navigateHandler();
                         };
 
                         // Shared with the onboarding branch below, which sits above this check and would otherwise let a parked link
@@ -628,16 +624,17 @@ function openReportFromDeepLink(
                             }
 
                             setDeepLinkToOpenAfterOnboarding(() => {
-                                // Onboarding can finish before OpenApp has, and a report route opened then sits on its loading skeleton.
+                                // A new account can finish onboarding before OpenApp does. Opening the link then shows its loading
+                                // skeleton, so wait until report data has loaded. This runs in navigation code, outside React, so
+                                // useOnyx is not available.
                                 const loadingConnection = Onyx.connectWithoutView({
                                     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                    // Stays subscribed until the data is loaded, so there is no early return to take.
-                                    // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (isLoadingReportData) => {
-                                        if (!isLoadingReportData) {
-                                            Onyx.disconnect(loadingConnection);
-                                            openDeepLink();
+                                        if (isLoadingReportData) {
+                                            return;
                                         }
+                                        Onyx.disconnect(loadingConnection);
+                                        openDeepLink();
                                     },
                                 });
                                 return true;
