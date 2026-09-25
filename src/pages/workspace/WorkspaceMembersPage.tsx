@@ -288,7 +288,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                 title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 prompt: translate('workspace.people.removeMemberPromptExpensifyCard', {
-                    memberName: getDisplayNameForParticipant({accountID: policyMemberEmailsToAccountIDs[cardholderEmail], formatPhoneNumber, translate}),
+                    memberName: getDisplayNameForParticipant({accountID: policyMemberEmailsToAccountIDs[cardholderEmail], formatPhoneNumber, hiddenTranslation: translate('common.hidden')}),
                 }),
                 confirmText: translate('common.buttonConfirm'),
                 cancelText: translate('common.cancel'),
