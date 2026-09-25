@@ -626,6 +626,12 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: '请重新登录。',
         notValid: '此链接无法使用。',
         sessionMismatch: '您打开的链接对当前会话无效。',
+        switchAccount: {
+            title: '切换账户？',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `您当前登录的账号是 ${currentEmail}。此登录链接是为 ${newEmail} 准备的。`,
+            confirm: '切换账户',
+            staySignedIn: '保持登录状态',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

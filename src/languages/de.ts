@@ -630,6 +630,12 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Bitte melde dich erneut an.',
         notValid: 'Dieser Link konnte nicht verwendet werden.',
         sessionMismatch: 'Der Link, den Sie geöffnet haben, ist für Ihre aktuelle Sitzung nicht gültig.',
+        switchAccount: {
+            title: 'Konten wechseln?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Sie sind bei ${currentEmail} angemeldet. Dieser Anmeldelink ist für ${newEmail}.`,
+            confirm: 'Konten wechseln',
+            staySignedIn: 'Angemeldet bleiben',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

@@ -630,6 +630,12 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Veuillez vous reconnecter.',
         notValid: 'Ce lien n’a pas pu être utilisé.',
         sessionMismatch: 'Le lien que vous avez ouvert n’est pas valide pour votre session actuelle.',
+        switchAccount: {
+            title: 'Changer de compte ?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Vous êtes connecté à ${currentEmail}. Ce lien de connexion est destiné à ${newEmail}.`,
+            confirm: 'Changer de compte',
+            staySignedIn: 'Rester connecté',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {

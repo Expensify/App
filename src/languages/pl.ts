@@ -631,7 +631,13 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
         notValid: 'Nie udało się użyć tego linku.',
-        sessionMismatch: 'Link, który otworzyłeś, nie jest ważny dla twojej bieżącej sesji.',
+        sessionMismatch: 'Link, który otworzyłeś, nie jest prawidłowy dla twojej obecnej sesji.',
+        switchAccount: {
+            title: 'Przełączyć konta?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Jesteś zalogowany jako ${currentEmail}. Ten link logowania jest dla ${newEmail}.`,
+            confirm: 'Przełącz konta',
+            staySignedIn: 'Pozostań zalogowany',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
