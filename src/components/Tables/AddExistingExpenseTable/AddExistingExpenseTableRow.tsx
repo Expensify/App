@@ -5,7 +5,6 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -28,8 +27,6 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {tableMethods, processedData} = useTableContext<UnreportedExpenseTableRowData>();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const rowData = processedData.at(rowIndex);
     const isSelected = !!rowData?.selected;
     const isRowDisabled = !!rowData?.disabled;
@@ -49,14 +46,8 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM}
             offlineWithFeedback={{pendingAction: item.pendingAction}}
-            // This list has no per-row navigation, so the whole row is the selection target. On small screens the row is
-            // only a target once selection mode is on, which the user enters by long pressing, as in the other tables.
-            onPress={() => {
-                if (isSmallScreenWidth) {
-                    return;
-                }
-                tableMethods.handleSingleRowSelection(item.keyForList);
-            }}
+            // This list has no per-row navigation, so the whole row is the selection target.
+            onPress={() => tableMethods.handleSingleRowSelection(item.keyForList)}
         >
             <View style={styles.flex1}>
                 <TransactionItemRow

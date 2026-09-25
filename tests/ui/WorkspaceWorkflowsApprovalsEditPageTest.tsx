@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -19,7 +19,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import {buildPersonalDetails} from '../utils/TestHelper';
+import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'workflow-approvals-edit-test-policy';
@@ -191,5 +191,48 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
         expect(emails.length).toBeGreaterThan(0);
         expect(emails).toHaveLength(uniqueEmails.length);
         expect(emails).toContain(ALICE_EMAIL);
+    });
+
+    describe('shared approver hint', () => {
+        const aliceApprover: Approver = {
+            email: ALICE_EMAIL,
+            displayName: 'alice',
+        };
+
+        // Alice also approves another workflow, which is the case the hint is about.
+        const workflowWithSharedApprover: ApprovalWorkflowOnyx = {
+            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+            approvers: [aliceApprover],
+            originalApprovers: [aliceApprover],
+            members: [{email: 'member@example.com', displayName: 'Member'}],
+            availableMembers: [],
+            usedApproverEmails: [ALICE_EMAIL],
+            isDefault: false,
+        };
+
+        it('is shown without the multiple approvers beta', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, workflowWithSharedApprover);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('workflowsPage.approverInMultipleWorkflows'))).toBeOnTheScreen();
+        });
+
+        it('is hidden with the multiple approvers beta, since each workflow routes through its own rules', async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+                await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, workflowWithSharedApprover);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderEditPage();
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText(translateLocal('workflowsPage.approverInMultipleWorkflows'))).not.toBeOnTheScreen();
+        });
     });
 });

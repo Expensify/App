@@ -23,7 +23,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
-import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
+import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
     getTagArrayFromName,
@@ -283,6 +283,7 @@ function SearchEditMultiplePage() {
     // TODO: Currency editing and currency symbol should be handled in a separate PR
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
+    const shouldShowTagList = hasDependentTags ? getDependentTagVisibility(policyTagLists, draftTransaction?.tag) : [];
     const tagFields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = areTagsEnabled
         ? policyTagLists.flatMap((tagList, tagListIndex) => {
               const tagName = tagsArray.at(tagListIndex) ?? '';
@@ -291,7 +292,7 @@ function SearchEditMultiplePage() {
               let shouldShow = true;
 
               if (hasDependentTags) {
-                  shouldShow = shouldShowDependentTagList(tagListIndex, draftTransaction?.tag, tagList.tags);
+                  shouldShow = !!shouldShowTagList.at(tagListIndex);
               }
 
               if (!shouldShow) {

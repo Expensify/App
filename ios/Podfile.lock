@@ -2251,7 +2251,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context (5.6.2):
+  - react-native-safe-area-context (5.9.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2263,8 +2263,8 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-safe-area-context/common (= 5.6.2)
-    - react-native-safe-area-context/fabric (= 5.6.2)
+    - react-native-safe-area-context/common (= 5.9.1)
+    - react-native-safe-area-context/fabric (= 5.9.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2275,7 +2275,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context/common (5.6.2):
+  - react-native-safe-area-context/common (5.9.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2297,7 +2297,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context/fabric (5.6.2):
+  - react-native-safe-area-context/fabric (5.9.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3978,7 +3978,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: cef4da13a0175c7858fc0fd91e9c26d331631577
+  hermes-engine: 4749bc1144addfa799bc34648e721fc85989901d
   JWTDecode: 2eed97c2fa46ccaf3049a787004eedf0be474a87
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
@@ -4008,7 +4008,7 @@ SPEC CHECKSUMS:
   React: 2574546f2d017abd14d0c9b48cf2b6a0547c2591
   React-callinvoker: 03cd4b931d1d583d87aae99b8f7b6fe26bf571ee
   React-Core: 1c824d9c7dd8aa760b5f1b50d5a54c2a3f598f87
-  React-Core-prebuilt: 44c9f5df2296f57835c4bed0149bfd0f5c40e943
+  React-Core-prebuilt: df2215d5387f03898c940262af212a63f190c9fe
   React-CoreModules: 2f9ed75bca7f6dea2b70e8a1f4a5ca9b6be52d76
   React-cxxreact: 7103d5ba69848c039e11079e74ceede05efe795e
   React-debug: e47fe49e67816470d183595746b1d0e20cd09fab
@@ -4052,7 +4052,7 @@ SPEC CHECKSUMS:
   react-native-pdf: f5336904e04a95103a90fcdf349bbd8e278350b9
   react-native-plaid-link-sdk: a2df4f145f61869507d730062764abca085b6a00
   react-native-quick-base64: e254a406ac7d7f20857c9fbcbfb57fbf91ae21be
-  react-native-safe-area-context: 4b3960e27c8a3ca0c1523348f97513e27f8509b7
+  react-native-safe-area-context: 6acf61f42ee0862bbe00ed7e6c11cd0b81b7f6e3
   react-native-skia: b3c25cbcfdc2d4f68b73390ff1b50ef2a9bc5968
   react-native-view-shot: 6da2aaa0404b8d617ab1689550acdb251d759af9
   react-native-wallet: 69c8fde0b0e16899b95b2689f7cb737f4ec247f9
