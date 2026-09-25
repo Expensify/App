@@ -19,7 +19,7 @@ To get started, enable the **Workflows** feature for your workspace.
 
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
-3. Click **More Features**.
+3. Click **More features**.
 4. Under the **Spend** section, toggle on **Workflows**.
 
 ![Click Account Settings > Workspaces > click on the workspace]({{site.url}}/assets/images/submissions-01.png){:width="100%"}
@@ -33,8 +33,8 @@ To get started, enable the **Workflows** feature for your workspace.
 Once enabled, go to the **Workflows** tab in the left menu to customize your submission and approval logic.
 
 1. Click **Workflows**.
-2. Use the toggles to enable the workflows you want to use.
-
+2. Open the tab you want to change: **Submissions**, **Approvals**, **Payments**, or **Advanced**.
+3. 
 ![Enable workflow features]({{site.url}}/assets/images/submissions-03.png){:width="100%"}
 
 ## How to enable Approvals
@@ -71,7 +71,7 @@ To reimburse employees or pay invoices directly from Expensify, connect your bus
 
 1. Go to **Workflows**.
 2. Toggle on **Payments**.
-3. Click **Connect Bank Account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
+3. Click **Add bank account** and follow the [bank connection guide](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account).
 4. Choose an **authorized expense payer**—a Workspace Admin who has access to the bank account and will be the default reimburser.
 
 Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Pay-Expenses#how-to-pay-expenses-submitted-to-a-workspace).
@@ -82,7 +82,7 @@ Learn how to [pay expenses submitted on a workspace](https://help.expensify.com/
 
 If you reimburse employees through another method, such as payroll or cash, you can enable **Payments** without connecting a bank account. This allows you to use **Mark as Paid** to record reimbursements processed outside of Expensify.
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name > Workflows**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
 2. Enable **Payments**.
 
 Once enabled, you can use **Mark as Paid** to keep track of reimbursements made outside of Expensify.
@@ -121,8 +121,6 @@ You can export your workspace's workflow configuration to a CSV file—for examp
 A CSV file containing your workspace's member and approval workflow details downloads to your device.
 
 **Note:** Downloading requires an internet connection. If you're offline, you'll be prompted to reconnect before the download can start.
-
-**Note:** If your workspace's approval workflow is set up and maintained by Expensify, the **Workflows** page shows the message "A custom approval workflow is enabled on this workspace" and the **More** menu is hidden, so neither **Download workflows** nor **Import workflows** is available. Reach out to your Account Manager or Concierge for the workflow details. [Learn why the approval workflows are hidden](/articles/new-expensify/workspaces/Add-Approvals#why-cant-i-see-the-approval-workflows-on-my-workspace).
 
 ---
 
