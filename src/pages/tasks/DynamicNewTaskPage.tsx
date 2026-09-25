@@ -19,7 +19,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePressLoading from '@hooks/usePressLoading';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createTaskAndNavigate, dismissModalAndClearOutTaskInfo, getAssignee, getShareDestination, setShareDestinationValue} from '@libs/actions/Task';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 import {isAllowedToComment} from '@libs/ReportUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -79,7 +80,7 @@ function DynamicNewTaskPage() {
     const derivedSharedDestinationReportName = useDerivedReportNameByReportID(parentReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
-    const [taskCreatorAndAssigneeDetails] = usePersonalDetailsByIDs([currentUserPersonalDetails.accountID, task?.assigneeAccountID]);
+    const taskCreatorAndAssigneeDetails = getPersonalDetailsListByIDs([currentUserPersonalDetails.accountID, task?.assigneeAccountID], personalDetails);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails, translate, formatPhoneNumber);

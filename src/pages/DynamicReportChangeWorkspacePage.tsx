@@ -56,6 +56,7 @@ import type {DismissedProductTraining} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasPersonalDetailSelector, loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -92,10 +93,9 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
     const ownerAccountID = report?.ownerAccountID;
     const managerID = report?.managerID;
-    const [submitter] = usePersonalDetail(ownerAccountID);
-    const [manager] = usePersonalDetail(managerID);
-    const submitterLogin = submitter?.login;
-    const managerLogin = manager?.login;
+    const [submitterLogin] = usePersonalDetail(ownerAccountID, loginSelector);
+    const [hasSubmitterPersonalDetail = false] = usePersonalDetail(ownerAccountID, hasPersonalDetailSelector);
+    const [managerLogin] = usePersonalDetail(managerID, loginSelector);
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -161,7 +161,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportPreviewAction,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 submitterLogin,
-                !!submitter,
+                hasSubmitterPersonalDetail,
                 getCurrencyDecimals,
                 rules,
                 reportTransactions,

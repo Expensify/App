@@ -65,12 +65,10 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 // flag, billing/violations, country code) is deliberately `undefined` so a newly added dependency fails loudly here
 // rather than silently receiving the submitter login.
 jest.mock('@hooks/useOnyx', () =>
-    jest.fn((key: string, options?: {selector?: unknown}) => {
+    jest.fn((key: string) => {
         switch (key) {
             case mockPersonalDetailsListKey:
-                // With a selector this read is the report owner's personal detail. Without one it is the full
-                // personal-details map.
-                return options?.selector ? [{login: 'submitter@example.com'}] : [mockPersonalDetailsList];
+                return [mockPersonalDetailsList];
             case mockLoginsKey:
                 return [{}];
             default:
@@ -92,6 +90,7 @@ jest.mock('@libs/OptionsListUtils', () => ({
 }));
 jest.mock('@libs/PersonalDetailsUtils', () => ({
     getKnownAccountIDByLogin: jest.fn(() => undefined),
+    getLoginByAccountID: jest.fn(() => 'submitter@example.com'),
     getPersonalDetailsByID: jest.fn(() => undefined),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
@@ -118,7 +117,6 @@ jest.mock('@userActions/IOU/ReportWorkflow', () => ({submitReport: jest.fn()}));
 
 jest.mock('@selectors/Account', () => ({delegateEmailSelector: jest.fn()}));
 jest.mock('@selectors/Onboarding', () => ({isTrackIntentUserSelector: jest.fn()}));
-jest.mock('@src/selectors/PersonalDetails', () => ({personalDetailsSelector: jest.fn(() => jest.fn())}));
 
 // Read the props off the real `SelectionList` mock (no re-derived narrowed shape), so the test stops compiling if a
 // prop it reads (`confirmButtonOptions`, `listEmptyContent`, `textInputOptions`, `children`…) is renamed or retyped.

@@ -26,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {domainNameSelector, groupsSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
 
 import useDomainGroupMoveValidation from './useDomainGroupMoveValidation';
@@ -46,8 +47,7 @@ function MoveUserBetweenGroupsPage({route}: MoveUserBetweenGroupsPageProps) {
     const [securityGroups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: groupsSelector});
 
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: selectSecurityGroupForAccount(accountID)});
-    const [member] = usePersonalDetail(accountID);
-    const memberLogin = member?.login;
+    const [memberLogin] = usePersonalDetail(accountID, loginSelector);
 
     const currentGroupId = userSecurityGroup?.key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, '');
 

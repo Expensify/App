@@ -37,7 +37,6 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import Permissions from '@libs/Permissions';
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     extractLinksFromMessageHtml,
     getIOUReportIDFromReportActionPreview,
@@ -84,6 +83,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef, useState} from 'react';
@@ -203,8 +203,7 @@ function ReportActionItem({
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const [actorPersonalDetail] = usePersonalDetail(action.actorAccountID);
-    const actorDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorPersonalDetail, translate, formatPhoneNumber});
+    const [actorDisplayName] = usePersonalDetail(action.actorAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();

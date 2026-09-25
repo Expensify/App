@@ -121,8 +121,7 @@ function ReportActionItemSingle({
     };
 
     const optimisticCheckAccountID = delegateAccountID ? Number(delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const [optimisticCheckPersonalDetail] = usePersonalDetail(optimisticCheckAccountID);
-    const isOptimistic = isPersonalDetailOptimistic(optimisticCheckPersonalDetail);
+    const [isOptimistic] = usePersonalDetail(optimisticCheckAccountID, isPersonalDetailOptimistic);
     const shouldDisableDetailPage = CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) || (!details.isWorkspaceActor && !!isOptimistic);
 
     const getBackgroundColor = () => {

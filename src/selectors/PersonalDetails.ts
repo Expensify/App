@@ -116,6 +116,15 @@ const displayNameSelector = (personalDetails: PersonalDetails | undefined) => pe
 
 const accountIDSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.accountID;
 
+const loginSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.login;
+
+const hasPersonalDetailSelector = (personalDetails: PersonalDetails | undefined) => !!personalDetails;
+
+const firstNameSelector = (personalDetails: PersonalDetails | undefined) => (personalDetails?.firstName?.trim() ? personalDetails.firstName : undefined);
+
+const displayNameOrDefaultSelector = (translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: PersonalDetails | undefined) =>
+    temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
+
 export {
     avatarStyleColorSelector,
     personalDetailsSelector,
@@ -134,4 +143,8 @@ export {
     newAccountIDsAndLoginsSelector,
     displayNameSelector,
     accountIDSelector,
+    loginSelector,
+    hasPersonalDetailSelector,
+    firstNameSelector,
+    displayNameOrDefaultSelector,
 };

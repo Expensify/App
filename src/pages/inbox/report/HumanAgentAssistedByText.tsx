@@ -10,6 +10,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {firstNameSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type HumanAgentAssistedByTextProps = {
@@ -20,8 +21,7 @@ type HumanAgentAssistedByTextProps = {
 function HumanAgentAssistedByText({action}: HumanAgentAssistedByTextProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [humanAgent] = usePersonalDetail(getHumanAgentAccountIDFromReportAction(action));
-    const humanAgentName = humanAgent?.firstName?.trim() ? humanAgent.firstName : undefined;
+    const [humanAgentName] = usePersonalDetail(getHumanAgentAccountIDFromReportAction(action), firstNameSelector);
     return <Text style={[styles.chatDelegateMessage]}>{translate('reportAction.assistedBy', humanAgentName ?? translate('reportAction.humanSupportAgent'))}</Text>;
 }
 

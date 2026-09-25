@@ -9,6 +9,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import type {ReportAction} from '@src/types/onyx';
 
+import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 type ReimbursedContentProps = {
@@ -20,10 +21,8 @@ function ReimbursedContent({action, reportOwnerAccountID}: ReimbursedContentProp
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [submitter] = usePersonalDetail(reportOwnerAccountID);
-    const [actor] = usePersonalDetail(action.actorAccountID);
-    const submitterLogin = submitter?.login;
-    const actorLogin = actor?.login;
+    const [submitterLogin] = usePersonalDetail(reportOwnerAccountID, loginSelector);
+    const [actorLogin] = usePersonalDetail(action.actorAccountID, loginSelector);
     const message = getReimbursedMessage(translate, dateFnsLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
 
     return <ReportActionItemBasicMessage message={message} />;

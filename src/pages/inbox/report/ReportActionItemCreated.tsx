@@ -56,8 +56,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         Object.keys(report?.participants ?? {})
             .map(Number)
             .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [otherParticipantPersonalDetail] = usePersonalDetail(otherParticipantAccountID);
-    const isParticipantOptimistic = isPersonalDetailOptimistic(otherParticipantPersonalDetail);
+    const [isParticipantOptimistic = true] = usePersonalDetail(otherParticipantAccountID, isPersonalDetailOptimistic);
 
     if (!isChatReport(report)) {
         return null;

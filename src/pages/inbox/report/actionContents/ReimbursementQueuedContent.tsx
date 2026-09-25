@@ -9,7 +9,6 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {getIndicatedMissingPaymentMethod, isChatThread} from '@libs/ReportUtils';
 
@@ -25,6 +24,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isUserValidatedSelector} from '@selectors/Account';
+import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
 import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useContext} from 'react';
 
@@ -48,8 +48,7 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const targetReport = isChatThread(report) ? parentReport : report;
-    const [owner] = usePersonalDetail(targetReport?.ownerAccountID);
-    const submitterDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: owner, translate, formatPhoneNumber});
+    const [submitterDisplayName = ''] = usePersonalDetail(targetReport?.ownerAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const paymentType = getOriginalMessage(action)?.paymentType ?? '';
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 

@@ -27,7 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
-import {useAllPersonalDetails, usePersonalDetail} from '@hooks/usePersonalDetails';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -313,8 +313,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const [firstParticipantPersonalDetail] = usePersonalDetail(firstParticipantAccountID);
-    const isParticipantOptimistic = isPersonalDetailOptimistic(firstParticipantPersonalDetail);
+    const isParticipantOptimistic = isPersonalDetailOptimistic(personalDetails?.[firstParticipantAccountID]);
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
