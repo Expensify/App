@@ -665,6 +665,7 @@ function MenuItem({
                     <Text
                         style={descriptionTextStyles}
                         numberOfLines={numberOfLinesDescription}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: isTitleSelectable}}
                     >
                         {description}
                     </Text>
