@@ -84,8 +84,9 @@ function summarizeItem(item: DynamicFormListItem, itemFields: DynamicFormField[]
         }
         titleFields.push(field);
     }
-    if (titleFields.length === 0 && shownFields.length > 0) {
-        titleFields.push(shownFields[0]);
+    const firstShownField = shownFields.at(0);
+    if (titleFields.length === 0 && firstShownField) {
+        titleFields.push(firstShownField);
     }
     const title = titleFields.map((field) => formatDynamicFieldValue(field, item, translate)).join(' ');
     const description = shownFields
