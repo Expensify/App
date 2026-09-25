@@ -202,5 +202,15 @@ describe('MoneyRequestReportUtils', () => {
 
             expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
         });
+
+        test('stops waiting for a nonzero report total once the report has loaded without transactions', () => {
+            // Given a report with a nonzero total whose OpenReport already succeeded but brought no transactions into Onyx
+            const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true};
+
+            // When checking whether to keep showing the skeleton, with and without a later refetch in flight
+            // Then it stops waiting, because transactions from the completed load would already be in Onyx and the skeleton would never clear
+            expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(false);
+            expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, true, false)).toBe(false);
+        });
     });
 });
