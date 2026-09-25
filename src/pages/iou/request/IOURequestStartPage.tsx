@@ -281,6 +281,9 @@ function IOURequestStartPage({
 
         focusTimeoutRef.current = setTimeout(() => {
             focusTimeoutRef.current = null;
+            if (isDiscardModalOpenRef.current) {
+                return;
+            }
             restoreFocus();
         }, CONST.ANIMATED_TRANSITION);
     };
@@ -305,8 +308,14 @@ function IOURequestStartPage({
         onCancel: restoreLastFocusedInput,
         onVisibilityChange: (isVisible) => {
             isDiscardModalOpenRef.current = isVisible;
-            if (isVisible && blurTimeoutRef.current) {
-                clearTimeout(blurTimeoutRef.current);
+            if (isVisible) {
+                if (focusTimeoutRef.current) {
+                    clearTimeout(focusTimeoutRef.current);
+                    focusTimeoutRef.current = null;
+                }
+                if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                }
             }
         },
         onConfirm: cleanupPreInsertedDestination,

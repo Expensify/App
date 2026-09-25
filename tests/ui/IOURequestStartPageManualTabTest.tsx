@@ -432,7 +432,18 @@ describe('IOURequestStartPage manual tab content', () => {
         // Focus should be restored to Description
         expect(restoreFocusDescription).toHaveBeenCalledTimes(1);
 
-        // 5. Switching tabs resets last focused input
+        // 5. Immediately opening another discard modal cancels the first modal's pending focus restoration.
+        act(() => {
+            mockOnVisibilityChange?.(true);
+            mockOnVisibilityChange?.(false);
+            mockOnCancel?.();
+            mockOnVisibilityChange?.(true);
+            jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION);
+        });
+
+        expect(restoreFocusDescription).toHaveBeenCalledTimes(1);
+
+        // 6. Switching tabs resets last focused input
         act(() => {
             mockOnInputFocus?.(restoreFocusDescription);
             mockOnTabSelected?.(CONST.TAB_REQUEST.SCAN);
