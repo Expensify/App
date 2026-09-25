@@ -1,5 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useRedirectOnDomainAccessChange from '@hooks/useRedirectOnDomainAccessChange';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRequestAdminshipError, requestDomainAdminship} from '@libs/actions/Domain';
@@ -36,14 +38,25 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+    });
     const [hasPendingRequest] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: hasPendingAdminshipRequestSelector(currentUserAccountID)});
     const [isRequestPending] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: (pendingActions) => !!pendingActions?.requestAdminship});
     const [requestError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: (errors) => errors?.requestAdminshipError});
 
+    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {
+        whenAccessLost: ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID),
+        shouldDismissWhenAdmin: true,
+    });
+
     useEffect(() => {
         return () => clearRequestAdminshipError(domainAccountID);
     }, [domainAccountID]);
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+    }
 
     return (
         <DomainNameOrNotFoundWrapper
