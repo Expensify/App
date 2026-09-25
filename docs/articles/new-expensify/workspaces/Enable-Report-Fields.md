@@ -32,6 +32,10 @@ Report fields are available on the **Control** plan only. If your workspace is c
 
 ![The workspace Reports page with Report fields enabled and the Add field button below it]({{site.url}}/assets/images/ExpensifyHelp-ReportFields_01.png){:width="100%"}
 
+**Note:** Field names must be unique across the workspace, and report fields share the same set of names as invoice fields. If the name is already used by another report field or by an invoice field, Expensify shows an error telling you a field with that name already exists and doesn't save the field. The check ignores capitalization.
+
+Learn how to [add invoice fields to a workspace](/articles/new-expensify/workspaces/Add-Invoice-Fields).
+
 ---
 
 ## How to create a report field in a workspace

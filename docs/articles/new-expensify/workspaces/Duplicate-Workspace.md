@@ -64,6 +64,8 @@ No. Once the new workspace is created, you’ll need to manually adjust any sett
 ## Does duplicating a workspace copy my invoicing details?
 No. When you select **Invoices**, the new workspace has invoicing enabled, but the **Invoicing details**—including **Company name**, **Company website**, and the connected bank account—are not copied. Because these details are set up per workspace, you’ll need to enter them again in the new workspace before sending an invoice.
 
+Your invoice fields are copied. The **Invoices** row shows how many invoice fields will carry over, for example `1 invoice fields`. [Learn how to add invoice fields to a workspace](/articles/new-expensify/workspaces/Add-Invoice-Fields).
+
 ## Does duplicating a workspace affect the original one?
 No. The original workspace remains unchanged. Duplication creates a separate, independent workspace with the settings you selected.
 
