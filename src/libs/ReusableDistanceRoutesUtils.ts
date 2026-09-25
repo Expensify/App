@@ -1,6 +1,7 @@
 import DateUtils from '@libs/DateUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {getWaypointIndex} from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import CONST from '@src/CONST';
 import type {ReusableDistanceRoute} from '@src/types/onyx';
@@ -41,4 +42,19 @@ function formatLastUsed(inserted: string): string {
     return DateUtils.formatWithUTCTimeZone(inserted, CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
 }
 
-export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed};
+/**
+ * Builds the large thumbnail URL for the source expense receipt. Map receipts are stored as PDF, and
+ * resized copies of a PDF live under a .jpg key, same convention as ReceiptUtils.getThumbnailAndImageURIs.
+ */
+function getRouteThumbnailSource(receiptSource: string | undefined): string | undefined {
+    if (!receiptSource) {
+        return undefined;
+    }
+    const resolvedSource = tryResolveUrlFromApiRoot(receiptSource);
+    if (resolvedSource.endsWith('.pdf')) {
+        return `${resolvedSource.slice(0, -'.pdf'.length)}.jpg.1024.jpg`;
+    }
+    return `${resolvedSource}.1024.jpg`;
+}
+
+export {getOrderedWaypoints, getRouteEndpoints, filterRoutes, formatLastUsed, getRouteThumbnailSource};

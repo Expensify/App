@@ -1,4 +1,5 @@
 import Badge from '@components/Badge';
+import Icon from '@components/Icon';
 import ReceiptImage from '@components/ReceiptImage';
 import SelectableListItem from '@components/SelectionList/ListItem/SelectableListItem';
 import type {ListItem, SelectableListItemProps} from '@components/SelectionList/ListItem/types';
@@ -9,8 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatLastUsed, getRouteEndpoints} from '@libs/ReusableDistanceRoutesUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import {formatLastUsed, getRouteEndpoints, getRouteThumbnailSource} from '@libs/ReusableDistanceRoutesUtils';
+
+import variables from '@styles/variables';
 
 import type {ReusableDistanceRoute} from '@src/types/onyx';
 
@@ -24,16 +26,16 @@ type ReuseRouteListItemData = ListItem & {
 type ReuseRouteListItemProps = SelectableListItemProps<ReuseRouteListItemData>;
 
 /**
- * Card for the Reuse prior route list. Shows the map receipt thumbnail of the source expense with a
- * Last used badge, plus the addresses of the first and last waypoint.
+ * Card for the Reuse prior route list. Shows the map receipt of the source expense with a Last used
+ * badge, plus Start and End rows that mirror the waypoint icons of the distance map tab.
  */
 function ReuseRouteListItem({item, isFocused, isFocusVisible, showTooltip, isDisabled, onSelectRow, onDismissError, onFocus, shouldSyncFocus}: ReuseRouteListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'DotIndicatorUnfilled', 'Location']);
     const {start, end} = getRouteEndpoints(item.route);
-    const thumbnailSource = item.route.receiptSource ? tryResolveUrlFromApiRoot(`${item.route.receiptSource}.320.jpg`) : undefined;
+    const thumbnailSource = getRouteThumbnailSource(item.route.receiptSource);
 
     return (
         <SelectableListItem
@@ -46,38 +48,52 @@ function ReuseRouteListItem({item, isFocused, isFocusVisible, showTooltip, isDis
             onDismissError={onDismissError}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            pressableStyle={styles.reuseRouteCard}
         >
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap4, styles.p4]}>
-                <View>
-                    <View style={styles.reuseRouteThumbnail}>
-                        {!!thumbnailSource && (
-                            <ReceiptImage
-                                source={thumbnailSource}
-                                transactionID={item.route.transactionID}
-                                isThumbnail
-                                shouldUseThumbnailImage
-                                isAuthTokenRequired
-                                fallbackIcon={icons.Receipt}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                            />
-                        )}
-                    </View>
-                    <Badge
-                        text={translate('distance.lastUsed', {date: formatLastUsed(item.route.inserted)})}
-                        badgeStyles={styles.reuseRouteLastUsedBadge}
-                        isCondensed
-                    />
+            <View style={styles.reuseRouteThumbnailWrapper}>
+                <View style={styles.reuseRouteThumbnail}>
+                    {!!thumbnailSource && (
+                        <ReceiptImage
+                            source={thumbnailSource}
+                            transactionID={item.route.transactionID}
+                            shouldUseThumbnailImage
+                            isAuthTokenRequired
+                            fallbackIcon={icons.Receipt}
+                            fallbackIconSize={variables.iconSizeExtraLarge}
+                            fallbackIconColor={theme.icon}
+                        />
+                    )}
                 </View>
-                <View style={[styles.flex1, styles.gap1]}>
-                    <Text numberOfLines={1}>
-                        <Text style={styles.textSupporting}>{translate('distance.waypointDescription.start')}: </Text>
-                        {start}
-                    </Text>
-                    <Text numberOfLines={1}>
-                        <Text style={styles.textSupporting}>{translate('distance.end')}: </Text>
-                        {end}
-                    </Text>
+            </View>
+            <Badge
+                text={translate('distance.lastUsed', {date: formatLastUsed(item.route.inserted)})}
+                badgeStyles={styles.reuseRouteLastUsedBadge}
+                textStyles={styles.reuseRouteLastUsedBadgeText}
+            />
+            <View style={styles.pv2}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph5, styles.pv3]}>
+                    <Icon
+                        src={icons.DotIndicatorUnfilled}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                        fill={theme.icon}
+                    />
+                    <View style={[styles.flex1, styles.gap1]}>
+                        <Text style={styles.textLabelSupporting}>{translate('distance.waypointDescription.start')}</Text>
+                        <Text numberOfLines={1}>{start}</Text>
+                    </View>
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph5, styles.pv3]}>
+                    <Icon
+                        src={icons.Location}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                        fill={theme.icon}
+                    />
+                    <View style={[styles.flex1, styles.gap1]}>
+                        <Text style={styles.textLabelSupporting}>{translate('distance.end')}</Text>
+                        <Text numberOfLines={1}>{end}</Text>
+                    </View>
                 </View>
             </View>
         </SelectableListItem>
