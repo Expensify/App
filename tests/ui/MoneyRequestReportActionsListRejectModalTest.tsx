@@ -84,6 +84,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getDeepestFocusedScreen: jest.fn(() => undefined),
+    setParams: jest.fn(),
 }));
 
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {

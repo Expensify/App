@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Beta, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -456,6 +456,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
+        case 'manuallyMarkedUnreadReportActionID':
         case 'lastMentionedTime':
         case 'policyAvatar':
         case 'policyName':
@@ -477,6 +478,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'welcomeMessage':
         case 'origin':
         case 'originalID':
+        case 'conciergeFeedbackForReportActionID':
         case 'submitterUserID':
         case 'submitterPayrollID':
         case 'orderDealNumbers':
@@ -490,6 +492,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasParentAccess':
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
+        case 'canCancelReimbursement':
         case 'hasReportBeenRetracted':
         case 'isCancelledIOU':
         case 'hasReportBeenReopened':
@@ -639,6 +642,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 lastMessageText: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastVisibleActionCreated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                manuallyMarkedUnreadReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastReadSequenceNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastMentionedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 policyAvatar: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -669,6 +673,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 reimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                canCancelReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -703,6 +708,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 transactionCount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 origin: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 originalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                conciergeFeedbackForReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
         case 'expensify_text_title':
             return validateObject<ObjectElement<ReportNameValuePairs, 'expensify_text_title'>>(value, {
@@ -1009,6 +1015,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
+        case 'rejectFailedFromReportID':
         case 'reportName':
         case 'currency':
         case 'tag':
@@ -1217,6 +1224,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    rejectFailedFromReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1516,12 +1524,13 @@ function getReasonForShowingRowInLHN({
     hasRBR = false,
     isReportArchived,
     isInFocusMode = false,
-    betas = undefined,
+    isDefaultRoomsBetaEnabled = false,
     draftComment,
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
     hasGuidesEmails,
+    derivedIsEmptyReport,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1529,12 +1538,13 @@ function getReasonForShowingRowInLHN({
     hasRBR?: boolean;
     isReportArchived: boolean | undefined;
     isInFocusMode?: boolean;
-    betas?: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled?: boolean;
     draftComment: string | undefined;
     currentUserLogin?: string;
     currentUserAccountID?: number;
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
+    derivedIsEmptyReport: boolean | undefined;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1546,7 +1556,7 @@ function getReasonForShowingRowInLHN({
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
         isInFocusMode,
-        betas,
+        isDefaultRoomsBetaEnabled,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,
@@ -1555,6 +1565,7 @@ function getReasonForShowingRowInLHN({
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,
+        derivedIsEmptyReport,
         hasGuidesEmails,
     });
 

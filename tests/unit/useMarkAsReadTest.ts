@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
 import type Navigation from '@libs/Navigation/Navigation';
@@ -10,6 +11,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import React from 'react';
+
 import createRandomReportAction from '../utils/collections/reportActions';
 
 const REPORT_ID = '1';
@@ -19,6 +22,7 @@ let mockIsVisible = true;
 let mockHasFocus = true;
 let mockIsFocused = true;
 let mockReferrer: string | undefined;
+let mockIsInPreloadedTab = false;
 
 jest.mock('@libs/Visibility', () => ({
     __esModule: true,
@@ -74,17 +78,24 @@ const REPORT = {
     lastVisibleActionCreated: '2023-01-01 11:00:00.000',
 } as OnyxTypes.Report;
 
+/** Renders with the preloaded-tab flag the Reports tab provides while it is warmed but not yet opened. */
+function PreloadedTabWrapper({children}: {children: React.ReactNode}) {
+    return React.createElement(IsInPreloadedTabContext.Provider, {value: mockIsInPreloadedTab}, children);
+}
+
 function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> = {}) {
-    return renderHook(() =>
-        useMarkAsRead({
-            reportID: REPORT_ID,
-            report: REPORT as OnyxEntry<OnyxTypes.Report>,
-            transactionThreadReport: undefined,
-            sortedVisibleReportActions: [],
-            isScrolledToEnd: true,
-            hasNewerActions: false,
-            ...params,
-        }),
+    return renderHook(
+        () =>
+            useMarkAsRead({
+                reportID: REPORT_ID,
+                report: REPORT as OnyxEntry<OnyxTypes.Report>,
+                transactionThreadReport: undefined,
+                sortedVisibleReportActions: [],
+                isScrolledToEnd: true,
+                hasNewerActions: false,
+                ...params,
+            }),
+        {wrapper: PreloadedTabWrapper},
     );
 }
 
@@ -97,6 +108,89 @@ describe('useMarkAsRead', () => {
         mockHasFocus = true;
         mockIsFocused = true;
         mockReferrer = undefined;
+        mockIsInPreloadedTab = false;
+    });
+
+    it('holds the mark-as-read while the Inbox tab is preloaded, and marks read once the tab opens', () => {
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderMarkAsRead({isScrolledToEnd: true});
+
+        expect(readNewestAction).not.toHaveBeenCalled();
+
+        // The user taps Inbox, which drops the preloaded flag in the same commit that focuses the tab.
+        mockIsInPreloadedTab = false;
+        rerender(undefined);
+
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, false);
+    });
+
+    it('holds the report-change mark-as-read while the Inbox tab is preloaded', () => {
+        const readReport = {reportID: REPORT_ID, lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportWithNewMessage = {...readReport, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const incomingAction: OnyxTypes.ReportAction = {...createRandomReportAction(2), created: '2023-01-01 11:00:00.000', actorAccountID: 2};
+
+        mockIsUnread = false;
+        mockIsInPreloadedTab = true;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report; actions: OnyxTypes.ReportAction[]}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: props.actions,
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                }),
+            {
+                initialProps: {report: readReport, actions: [] as OnyxTypes.ReportAction[]},
+                wrapper: PreloadedTabWrapper,
+            },
+        );
+        readNewestAction.mockClear();
+
+        // A message lands while the tab is still unopened. Cached actions make isReportActionsLoaded true, so
+        // without the hold the report-change path would mark the unseen report read.
+        mockIsUnread = true;
+        rerender({report: reportWithNewMessage, actions: [incomingAction]});
+
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    // The notification referrer is only cleared by the report-change path, so it proves that specific pass
+    // re-runs on open rather than the initial mark-as-read covering for it.
+    it('runs the held report-change pass once the Inbox tab opens', () => {
+        const readReport = {reportID: REPORT_ID, lastReadTime: '2023-01-01 10:00:00.000', lastVisibleActionCreated: '2023-01-01 10:00:00.000'} as OnyxTypes.Report;
+        const reportWithNewMessage = {...readReport, lastVisibleActionCreated: '2023-01-01 11:00:00.000'} as OnyxTypes.Report;
+        const incomingAction: OnyxTypes.ReportAction = {...createRandomReportAction(2), created: '2023-01-01 11:00:00.000', actorAccountID: 2};
+
+        mockIsUnread = false;
+        mockIsInPreloadedTab = true;
+        mockReferrer = CONST.REFERRER.NOTIFICATION;
+        const {rerender} = renderHook(
+            (props: {report: OnyxTypes.Report; actions: OnyxTypes.ReportAction[]}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: props.actions,
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                }),
+            {
+                initialProps: {report: readReport, actions: [] as OnyxTypes.ReportAction[]},
+                wrapper: PreloadedTabWrapper,
+            },
+        );
+
+        mockIsUnread = true;
+        rerender({report: reportWithNewMessage, actions: [incomingAction]});
+        expect(NavigationMock.setParams).not.toHaveBeenCalled();
+
+        // The user opens the tab, which drops the preloaded flag.
+        mockIsInPreloadedTab = false;
+        rerender({report: reportWithNewMessage, actions: [incomingAction]});
+
+        expect(NavigationMock.setParams).toHaveBeenCalledWith({referrer: undefined});
     });
 
     it('marks the report as read on mount when it is unread, visible, and scrolled to the end', () => {

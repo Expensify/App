@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, remove limit, remove approval limit, reassign approver, automatic approver reassignment, change approver workflow, approval workflow change message, admins room system message, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -39,10 +39,12 @@ Set up default or custom approval workflows to route expenses through one or mor
 4. Open the **Approvals** tab. On the workflow where **Expenses from** is **Everyone**, click **Approver**.
 5. Choose the first approver from the list of workspace members.
 6. (Optional) Set an additional approval when a report exceeds a specific amount:
- - Enter a dollar amount in the Report amount field.
- - Select an Additional approver who should approve reports that exceed this amount. This adds another approval level and does not replace the existing approver.
+ - Enter a dollar amount in the **Report amount** field.
+ - Select an **Additional approver** who should approve reports that exceed this amount. This adds another approval level and does not replace the existing approver.
 7. Under **Additional approver**, continue adding members as needed. 
 8. Click **Save**.
+
+Once the limit is set, the approver's row shows a hint such as `Reports above $100.00 forward to second-approver@company.com`.
 
 **Note:** When approvals are enabled, a default workflow is required for the workspace.
 
@@ -54,13 +56,29 @@ Set up default or custom approval workflows to route expenses through one or mor
 4. Click **Next**. If you selected someone who isn't a workspace member, the **Invite new member** screen appears. Click **Invite** to add them to the workspace and continue.
 5. Select the first approver for their expenses.
 6. (Optional) Set an additional approval when a report exceeds a specific amount:
- - Enter a dollar amount in the Report amount field.
- - Select an Additional approver who should approve reports that exceed this amount. This adds another approval level and does not replace the existing approver.
+ - Enter a dollar amount in the **Report amount** field.
+ - Select an **Additional approver** who should approve reports that exceed this amount. This adds another approval level and does not replace the existing approver.
 7. Click **Next**.
 8. Use **Additional approver** to add more approvers.
 9. Click **Add workflow** to save.
 
 **Note:** Custom workflows are only available on the Control plan. To enable custom workflows, upgrade to the Control plan in Settings > Billing & Subscriptions.
+
+---
+
+## How to import approval workflows from a spreadsheet
+
+Instead of adding workflows one member at a time, you can set up multiple members' approval workflows at once by importing a spreadsheet directly from the **Workflows** page.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Workflows**.
+4. Select **More**, then choose **Import workflows**.
+5. Drag and drop your file or click **Upload File** to browse.
+6. Map each column in your file to a member field, then complete the import.
+
+To route each member's expenses through the right approvers, map the **Submit to**, **Forward to**,**Approval limit** and **Over limit forward to** columns. These fields set up each member's approval workflow, which you can review under **Workflows** after the import completes.
+
+**Note:** The **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
 
 ---
 
@@ -82,6 +100,18 @@ You can update or remove approval workflows at any time as your team or process 
 1. On the **Approvals** tab of the **Workflows** page, click the workflow you want to delete.
 2. Click **Delete**.
 3. In the confirmation window, click **Delete** again.
+
+## How to change or remove the over-limit Additional approver
+
+1. On the **Workflows** page, click the workflow you want to update.
+2. Click the approver whose limit you want to change.
+3. Do one of the following:
+ - To change the threshold, enter a new amount in the **Report amount** field.
+ - To change who reviews reports above the threshold, select a different member under **Additional approver**.
+ - To stop forwarding reports above the threshold, click **Remove limit**.
+4. Click **Save**.
+
+Removing the limit doesn't remove the first approver — reports keep routing through the rest of the workflow.
 
 ---
 
@@ -168,4 +198,8 @@ Yes. Reports are not automatically reassigned in these cases:
 
 ## What happens when a report exceeds the over-limit threshold?
 
-If a report exceeds the configured dollar amount in the Report amount field, it is automatically forwarded to the selected Additional approver for another review step.
+If a report exceeds the configured dollar amount in the **Report amount** field, it is automatically forwarded to the selected **Additional approver** for another review step.
+
+## Where can I see who changed the over-limit approver or threshold?
+
+Every change to the over-limit **Additional approver** or the **Report amount** is posted as a system message in the workspace **#admins** room. Open that room to see who made the change, the new threshold and approver, and the previous setting.
