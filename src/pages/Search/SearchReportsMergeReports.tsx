@@ -211,6 +211,16 @@ function SearchMergeReports() {
         setDestinationReportID(item.reportID);
     };
 
+    // Loading while `allReports` is being hydrated.
+    // Or while reports are being hydrated from snapshot data.
+    const isLoading =
+        isLoadingAllReports ||
+        (reportItems.length === 0 &&
+            selectedReports.some(({reportID}) => {
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+                return !allReports?.[reportKey] && !!currentSearchResults?.data[reportKey];
+            }));
+
     if (!isReportMergeBetaEnabled) {
         return null;
     }
@@ -223,29 +233,27 @@ function SearchMergeReports() {
             testID="SearchMergeReports"
             includeSafeAreaPaddingBottom
         >
-            {reportItems.length > 0 || isLoadingAllReports ? (
-                <>
-                    {!isLoadingAllReports && <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>}
-                    <SelectionList
-                        data={reportItems}
-                        onSelectRow={onSelection}
-                        ListItem={SearchMergeReportsListItem}
-                        isRowMultilineSupported
-                        shouldSingleExecuteRowSelect
-                        canSelectMultiple={false}
-                        shouldShowLoadingPlaceholder={isLoadingAllReports}
-                        footerContent={
-                            !isLoadingAllReports && (
-                                <FormAlertWithSubmitButton
-                                    buttonText={translate('common.confirm')}
-                                    onSubmit={mergeSelectedReports}
-                                    isDisabled={!isValidForMerge}
-                                    enabledWhenOffline
-                                />
-                            )
-                        }
-                    />
-                </>
+            {reportItems.length > 0 || isLoading ? (
+                <SelectionList
+                    data={reportItems}
+                    onSelectRow={onSelection}
+                    ListItem={SearchMergeReportsListItem}
+                    isRowMultilineSupported
+                    shouldSingleExecuteRowSelect
+                    canSelectMultiple={false}
+                    shouldShowLoadingPlaceholder={isLoading}
+                    customListHeader={<Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>}
+                    footerContent={
+                        !isLoading && (
+                            <FormAlertWithSubmitButton
+                                buttonText={translate('common.confirm')}
+                                onSubmit={mergeSelectedReports}
+                                isDisabled={!isValidForMerge}
+                                enabledWhenOffline
+                            />
+                        )
+                    }
+                />
             ) : (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <EmptyStateComponent
