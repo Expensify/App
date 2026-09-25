@@ -1038,11 +1038,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Κάρτα Expensify',
                 cta: 'Ανασκόπηση',
             },
-            validateAccount: {
-                title: 'Επικυρώστε τον λογαριασμό σας',
-                subtitle: 'Λογαριασμός',
-                cta: 'Επικυρώστε',
-            },
             addHomeAddress: {title: 'Προσθέστε τη διεύθυνση κατοικίας σας για παρακολούθηση αποστάσεων', subtitle: 'Λογαριασμός', cta: 'Προσθήκη'},
             fixFailedBilling: {
                 title: 'Δεν μπορέσαμε να χρεώσουμε την αποθηκευμένη κάρτα σας',
@@ -1091,12 +1086,6 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Εξοφλήθηκε τις τελευταίες 30 ημέρες',
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
-        discoverSection: {
-            title: 'Ανακαλύψτε',
-            menuItemTitleNonAdmin: 'Μάθετε πώς να δημιουργείτε δαπάνες και να υποβάλλετε αναφορές.',
-            menuItemTitleAdmin: 'Μάθετε πώς να προσκαλείτε μέλη, να επεξεργάζεστε ροές έγκρισης και να πραγματοποιείτε συμφωνία εταιρικών καρτών.',
-            menuItemDescription: 'Δείτε τι μπορεί να κάνει το Expensify σε 2 λεπτά',
-        },
         forYouSection: {
             reviewExpenses: ({count}: {count: number}) => ({
                 one: 'Ελέγξτε 1 δαπάνη',
@@ -1568,6 +1557,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amount ? `πληρώθηκε ${amount} με τραπεζικό λογαριασμό ${last4Digits}` : `πληρώθηκε με τραπεζικό λογαριασμό ${last4Digits}`,
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `πληρώθηκε ${amount ? `${amount} ` : ''}με τραπεζικό λογαριασμό ${last4Digits} μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
+        paymentWithExpectedDate: ({paymentMessage, expectedDateMessage}: {paymentMessage: string; expectedDateMessage: string}) => `${paymentMessage}. ${expectedDateMessage}`,
         invoicePersonalBank: (lastFour: string) => `Προσωπικός λογαριασμός • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Επαγγελματικός λογαριασμός • ${lastFour}`,
         nextStep: 'Επόμενα βήματα',
@@ -2835,6 +2825,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnectionIn: (companyCardsRoute: string) => `Παρακαλούμε διορθώστε αυτήν τη σύνδεση στις <a href="${companyCardsRoute}">εταιρικές κάρτες</a>`,
             askAdminToFixConnection: 'Παρακαλούμε ζητήστε από έναν διαχειριστή να διορθώσει αυτήν τη σύνδεση',
             reconnectBank: 'Η σύνδεσή σας με την τράπεζα χρειάζεται επαναπιστοποίηση',
+            pending: 'Σε εκκρεμότητα',
         },
         bankAccountStatus: {
             active: 'Ενεργό',
@@ -4361,7 +4352,7 @@ ${amount} για ${merchant} - ${date}`,
         legalFirstName: 'Επίσημο μικρό όνομα',
         legalLastName: 'Επώνυμο (όπως αναγράφεται στα επίσημα έγγραφα)',
         enterTheDateOfBirthOfTheOwner: 'Ποια είναι η ημερομηνία γέννησης του κατόχου;',
-        enterTheSSN: 'Ποιος είναι ο αριθμός κοινωνικής ασφάλισης του ιδιοκτήτη;',
+        enterTheSSN: 'Ποια είναι τα τελευταία 4 ψηφία του Αριθμού Κοινωνικής Ασφάλισης του ιδιοκτήτη;',
         dontWorry: 'Μην ανησυχείτε, δεν κάνουμε κανέναν προσωπικό έλεγχο πιστοληπτικής ικανότητας!',
         enterTheOwnersAddress: 'Ποια είναι η διεύθυνση του ιδιοκτήτη;',
         letsDoubleCheck: 'Ας ελέγξουμε διπλά ότι όλα φαίνονται σωστά.',
@@ -7733,6 +7724,28 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            filters: {
+                description: (providerName: string) => `Επιλέξτε ποια μέλη θα εισαχθούν από το ${providerName}. Μπορείτε να επιλέξετε από στάδια εργασίας, ετικέτες και γραφεία.`,
+                stages: {
+                    title: 'Στάδιο εργασίας',
+                    description: 'Επιλέξτε το στάδιο πρόσληψης των υποψηφίων που θέλετε να συγχρονίζονται με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Στάδια εργασίας',
+                    allSelected: 'Όλα τα στάδια εργασίας',
+                },
+                tags: {
+                    title: 'Ετικέτα',
+                    description: 'Επιλέξτε τις ετικέτες υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Ετικέτες',
+                    allSelected: 'Όλες οι ετικέτες',
+                },
+                offices: {
+                    title: 'Γραφείο',
+                    description: 'Επιλέξτε τα γραφεία των υποψηφίων που θέλετε να συγχρονίσετε με αυτόν τον χώρο εργασίας',
+                    toggleTitle: 'Γραφεία',
+                    allSelected: 'Όλα τα γραφεία',
+                },
+                enableJobStagesOrTags: 'Ενεργοποιήστε τα στάδια εργασίας ή τις ετικέτες για να συνεχίσετε',
+            },
             subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
                 importedCount: () => ({

@@ -16,7 +16,7 @@ import {getEmailFromTransitionURL, isLoggingInAsDelegate as isLoggingInAsDelegat
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 
-import {isAnonymousUser, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {isAnonymousUser, isDelegateSession, signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -58,6 +58,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
         if (isLoggingInAsNewUser) {
             if (isSupportalLogin) {
+                Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                    isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                    isDelegateSession: isDelegateSession(session),
+                    isSupportalLogin,
+                });
                 // We don't want to close react-native app in this particular case.
                 signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
                 return;
@@ -80,6 +85,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                         // We must call goBack() to remove the /transition route from history
                         Navigation.goBack();
                     }
+                    Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                        isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                        isDelegateSession: isDelegateSession(session),
+                        isSupportalLogin,
+                    });
                     signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
                 });
                 return;
@@ -97,6 +107,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     setHasCancelledSwitch(true);
                     return;
                 }
+                Log.info('[LogOutPreviousUserPage] Signing out for a transition to another user', false, {
+                    isLinkNamingDelegator: isLoggingInAsDelegateSessionUtils(transitionURL ?? undefined),
+                    isDelegateSession: isDelegateSession(session),
+                    isSupportalLogin,
+                });
                 // We don't want to close react-native app in this particular case.
                 signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             });
