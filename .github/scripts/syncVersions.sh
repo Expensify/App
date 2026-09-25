@@ -33,8 +33,6 @@
 #   - `sync` commits and pushes to App main.
 #   - `sync` never re-runs `git submodule update --remote`, because Mobile-Expensify main can
 #     advance while Node is being set up between the two steps.
-#   - Never stage with `git add -A`: setupNode leaves an untracked normalized-package-lock.json
-#     in the working tree.
 #
 # Requirements: macOS (BSD sed, PlistBuddy), bash 3.2, git, jq, and npm for the full sync path.
 # The version math mirrors generateAndroidVersionCode in scripts/bumpVersion.ts.
@@ -46,7 +44,7 @@ TARGET_VERSION="${TARGET_VERSION:-}"
 NEED_FULL_VERSION_SYNC="${NEED_FULL_VERSION_SYNC:-}"
 EXPECTED_SUBMODULE_SHA="${EXPECTED_SUBMODULE_SHA:-}"
 
-# Writes a step output. Centralized so consecutive outputs don't need individual redirects.
+# Centralized so consecutive outputs don't each need their own redirect.
 function set_output {
     echo "$1=$2" >> "$GITHUB_OUTPUT"
 }
@@ -157,22 +155,26 @@ function sync_full_version {
     target="$(resolve_target_version)"
     echo "::notice::Syncing E/App to version $target"
 
-    # Update version using npm (this updates package.json and package-lock.json)
+    # npm's default is to commit and tag; this path makes its own commit below, the same way
+    # scripts/bumpVersion.ts does.
     npm --no-git-tag-version version "$target"
 
     compute_version_components "$target"
     update_android_version "$target"
     update_ios_versions
 
-    # Commit version changes
+    # Listed out rather than `git add -A`: setupNode leaves an untracked normalized-package-lock.json
+    # in the working tree.
     git add package.json package-lock.json android/app/build.gradle ios/*/Info.plist
     git commit -m "Update version to $target (sync recovery)"
 
-    # Update submodule reference
+    # Stages the submodule's checked-out HEAD, which is the commit `check` moved it to with
+    # --remote, not whatever main currently records.
     git add Mobile-Expensify
     git commit -m "Update Mobile-Expensify submodule version to $target (sync recovery)"
 
-    # Push changes
+    # main is busy enough that another merge can land between `check` and here, which makes this
+    # push non fast-forward.
     if ! git push origin main; then
         echo "::warning::Push failed, attempting rebase..."
         git fetch origin main
@@ -195,6 +197,8 @@ function sync_submodule_only {
     git add Mobile-Expensify
     git commit -m "Bump Mobile-Expensify submodule to latest main ($current_sha)"
 
+    # Whatever landed on main in the meantime may itself have moved the pointer, so re-resolve it
+    # rather than replaying a gitlink that is now stale.
     if ! git push origin main; then
         echo "::warning::Push failed, attempting rebase..."
         git fetch origin main
