@@ -463,6 +463,25 @@ function getNiceValueTicks(domain: [number, number], tickCount: number): number[
     return scaleLinear().domain(domain).ticks(tickCount);
 }
 
+/**
+ * Horizontal plot bounds of a vertical bar chart for a container width, mirroring victory-native's layout.
+ * Deriving it from the width (not post-mount) lets the wrapper re-decide orientation on every resize.
+ */
+function getVerticalBarPlotBounds(chartWidth: number, paddingLeft: number): {left: number; right: number; width: number} {
+    const left = paddingLeft + VictoryTheme.axis.labelGap;
+    const right = Math.max(left, chartWidth - VictoryTheme.axis.padding.right);
+    return {left, right, width: right - left};
+}
+
+/**
+ * Height of a horizontal bar chart. Grows with the row count so every category row gets at least
+ * `minRowHeight` of vertical space, keeping all category labels visible instead of thinning them out.
+ * Never smaller than `minHeight`, so small datasets keep the shared minimum.
+ */
+function getHorizontalChartHeight(rowCount: number, minRowHeight: number, verticalPadding: number, minHeight: number): number {
+    return Math.max(minHeight, rowCount * minRowHeight + verticalPadding);
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -512,6 +531,8 @@ export {
     getNiceValueDomain,
     getNiceValueTicks,
     getYAxisLabelWidth,
+    getHorizontalChartHeight,
+    getVerticalBarPlotBounds,
 };
 
 export type {ChartLabelHitTestParams};
