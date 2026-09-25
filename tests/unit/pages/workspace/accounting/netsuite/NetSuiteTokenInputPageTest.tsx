@@ -100,11 +100,61 @@ function setEnvironment(environment: ValueOf<typeof CONST.ENVIRONMENT>) {
     });
 }
 
-function renderPage(subPage: string, authType?: string, policy?: Partial<Policy>) {
+function buildNetsuitePolicy(tokenID: string): Policy {
+    return {
+        id: POLICY_ID,
+        name: '',
+        role: CONST.POLICY.ROLE.ADMIN,
+        type: CONST.POLICY.TYPE.TEAM,
+        owner: '',
+        outputCurrency: 'USD',
+        connections: {
+            netsuite: {
+                accountID: 'NS_ACCOUNT',
+                tokenID,
+                tokenSecret: '',
+                verified: false,
+                lastSyncDate: '',
+                lastErrorSyncDate: '',
+                options: {
+                    data: {customLists: [], subsidiaryList: [], payableList: []},
+                    config: {
+                        exportToNextOpenPeriod: false,
+                        reimbursableExpensesExportDestination: 'EXPENSE_REPORT',
+                        subsidiary: '',
+                        autoCreateEntities: false,
+                        nonreimbursableExpensesExportDestination: 'VENDOR_BILL',
+                        reimbursablePayableAccount: '',
+                        approvalAccount: '',
+                        payableAcct: '',
+                        syncOptions: {
+                            mapping: {classes: 'NETSUITE_DEFAULT', jobs: 'NETSUITE_DEFAULT', locations: 'NETSUITE_DEFAULT', customers: 'NETSUITE_DEFAULT', departments: 'NETSUITE_DEFAULT'},
+                            crossSubsidiaryCustomers: false,
+                            syncApprovalWorkflow: false,
+                            exportReportsTo: 'REPORTS_APPROVED_NONE',
+                            exportVendorBillsTo: 'VENDOR_BILLS_APPROVED_NONE',
+                            setFinalApprover: false,
+                            syncReimbursedReports: false,
+                            syncPeople: false,
+                            hasChosenAutoSyncOption: false,
+                            finalApprover: '',
+                            syncCategories: false,
+                            hasChosenSyncReimbursedReportsOption: false,
+                            exportJournalsTo: 'JOURNALS_APPROVED_NONE',
+                        },
+                    },
+                },
+                config: {autoSync: {enabled: false, jobID: ''}},
+            },
+        },
+    };
+}
+
+function renderPage(subPage: string, authType?: string, policy?: Policy) {
     mockRoute.current = {...mockRoute.current, params: {policyID: POLICY_ID, subPage, authType}};
     render(
         <NetSuiteTokenInputPage
-            policy={policy as Policy}
+            policy={policy}
             policyDraft={undefined}
             isLoadingPolicy={false}
             // @ts-expect-error - route type from navigator
@@ -173,7 +223,7 @@ describe('NetSuiteTokenInputPage', () => {
         // Given an existing TBA connection (tokenID present) that has an auth error
         setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
         mockedIsAuthenticationError.mockReturnValue(true);
-        const policy = {connections: {netsuite: {tokenID: 'encrypted-token-id', tokenSecret: 'encrypted-token-secret', accountID: 'NS_ACCOUNT'}}} as unknown as Partial<Policy>;
+        const policy = buildNetsuitePolicy('encrypted-token-id');
 
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
@@ -187,7 +237,7 @@ describe('NetSuiteTokenInputPage', () => {
         // Given an existing OAuth connection (no tokenID) that has an auth error
         setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
         mockedIsAuthenticationError.mockReturnValue(true);
-        const policy = {connections: {netsuite: {tokenID: '', accountID: 'NS_ACCOUNT'}}} as unknown as Partial<Policy>;
+        const policy = buildNetsuitePolicy('');
 
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
