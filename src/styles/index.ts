@@ -6780,11 +6780,6 @@ const staticStyles = (theme: ThemeColors) =>
         chartInlineTable: {
             marginTop: 20,
         },
-        discoverSectionImage: {
-            width: '100%',
-            height: undefined,
-            aspectRatio: 2.2,
-        },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,

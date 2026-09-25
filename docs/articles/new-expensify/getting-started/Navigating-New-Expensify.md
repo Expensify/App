@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, Domains, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, go to Domains, jump to destination, domain search suggestions, Domain admin navigation]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions, including the Domains suggestions available to Domain Admins. Does not explain the detailed behavior of the Home tab sections, and does not cover how to claim, verify, or configure a domain.
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, how to filter and clear the Inbox using the Inbox tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -77,12 +77,6 @@ At the top of the **Inbox**, three tabs let you filter your chats:
 The **Unread** and **To-dos** tabs show a count badge with the number of chats in each. The badge is hidden when the count is zero.
 
 Your selected tab is remembered, so the Inbox reopens to the same tab the next time you return.
-
-<!-- SCREENSHOT:
-Suggestion: Inbox with the All, Unread, and To-dos tabs visible at the top, with a count badge on Unread or To-dos
-Location: After the "How to filter your Inbox using tabs" section
-Purpose: Show users where the filter tabs appear and what the count badge looks like
--->
 
 ---
 
@@ -198,35 +192,13 @@ If you’re not sure where to go:
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
 1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains** or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
 
 - Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux), then enter a report ID to open that report.
 - Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux), from a report, to jump directly to the workspace that the report belongs to.
-
----
-
-## How to jump to a domain page using Search
-
-If you are a Domain Admin, **Search** also suggests the pages of each domain you administer, so you can open them without going through **Workspaces** > **Domains**.
-
-1. Select **Search** (the magnifying glass icon).
-2. Type the name of the page you want to open — **Domain members**, **Domain admins**, **Groups**, or **SAML** — or type the domain name, such as **example.com**.
-3. Select the suggestion to open that page for that domain.
-
-Each domain suggestion shows the domain name on the right of the row, so you can tell the suggestions apart when you administer more than one domain.
-
-These suggestions only appear for domains you administer. If you are not a Domain Admin of any domain, only **Go to Domains** appears.
-
-Learn more about [what Domain Admins can manage](/articles/new-expensify/domains/Domain-Admins).
-
-<!-- SCREENSHOT:
-Suggestion: Search with a domain page suggestion visible, showing the Go to Domain members row with the domain name displayed on the right
-Location: After the "How to jump to a domain page using Search" section
-Purpose: Shows Domain Admins that the domain name identifies which domain a suggestion belongs to, which prevents opening the wrong domain when they administer several
--->
 
 ---
 
@@ -238,15 +210,7 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 ## Can I use Search to move between sections of Expensify?
 
-Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
-
-## Can I use Search to open a specific domain's pages?
-
-Yes, if you are a Domain Admin. Type **Domain members**, **Domain admins**, **Groups**, **SAML**, or the domain name in **Search**, then select the suggestion. Suggestions appear only for domains you administer.
-
-## Why don't I see domain suggestions in Search?
-
-Domain page suggestions appear only for domains where you are a Domain Admin. If you are not a Domain Admin of any domain, only the **Go to Domains** result appears. Suggestions are also hidden for a domain that is being deleted.
+Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
 
 ## Where do I manage workspace settings?
 
