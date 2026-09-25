@@ -218,14 +218,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.splitExportsByPostingPeriod'),
             isActive: !!config?.splitExportsByPostingPeriod,
             switchAccessibilityLabel: translate('workspace.netsuite.splitExportsByPostingPeriod'),
-            subtitle: !config?.exportToNextOpenPeriod ? translate('workspace.netsuite.splitExportsByPostingPeriodSubtitle') : undefined,
+            subtitle: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod ? translate('workspace.netsuite.splitExportsByPostingPeriodSubtitle') : undefined,
             onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
             onToggle: () => (!policyID ? null : updateNetSuiteSplitExportsByPostingPeriod(policyID, !config?.splitExportsByPostingPeriod, config?.splitExportsByPostingPeriod ?? false)),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD], config?.pendingFields),
             errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
-            // Splitting moves expenses to earlier dates which can land in closed periods, so it needs the next-open-period fallback
-            disabled: !config?.exportToNextOpenPeriod,
-            showLockIcon: !config?.exportToNextOpenPeriod,
+            // Splitting moves expenses to earlier dates which can land in closed periods, so it needs the next-open-period fallback. An active split stays editable so a bad config state can always be undone.
+            disabled: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
+            showLockIcon: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
         },
     ];
 
