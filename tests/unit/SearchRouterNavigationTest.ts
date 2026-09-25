@@ -827,11 +827,9 @@ describe('Workspace Search Router navigation source', () => {
             expect.objectContaining({
                 policy: activePolicy,
                 isVendorMatchingBetaEnabled: true,
-                isRecruitingBetaEnabled: true,
             }),
         );
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
-        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });
 });
 

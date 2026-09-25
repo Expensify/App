@@ -2,7 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import PolicyAccountingPage from '@pages/workspace/accounting/PolicyAccountingPage';
+import WorkspaceConnectionsPage from '@pages/workspace/connections/WorkspaceConnectionsPage';
 
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -94,12 +94,16 @@ jest.mock('@components/ScrollView', () => ({
 }));
 
 jest.mock('@components/HeaderWithBackButton', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/MenuItemList', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/MenuItem', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/Section', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
-jest.mock('@components/CollapsibleSection', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/ThreeDotsMenu', () => ({__esModule: true, default: () => null}));
-jest.mock('@components/ActivityIndicator', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/SearchBar/CompactSearchBar', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/TabSelector/TabSelectorBase', () => ({__esModule: true, default: () => null}));
+jest.mock('@components/TextLink', () => ({__esModule: true, default: () => null}));
+jest.mock('@pages/workspace/connections/ConnectionsGrid', () => ({__esModule: true, default: () => null}));
+jest.mock('@pages/workspace/connections/useAccountingConnectionListings', () => ({__esModule: true, default: () => []}));
+jest.mock('@pages/workspace/connections/useMergeConnectionListings', () => ({__esModule: true, default: () => []}));
+jest.mock('@pages/workspace/connections/useReceiptPartnerConnectionListings', () => ({__esModule: true, default: () => []}));
+jest.mock('@pages/workspace/connections/useMCPConnectionListings', () => ({__esModule: true, default: () => []}));
+jest.mock('@libs/actions/PolicyConnections', () => ({openPolicyHRPage: jest.fn(), openPolicyRecruitingPage: jest.fn()}));
+jest.mock('@userActions/Policy/Policy', () => ({openPolicyReceiptPartnersPage: jest.fn()}));
 
 jest.mock('@libs/PolicyUtils', () => {
     const actual = jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils');
@@ -117,13 +121,13 @@ jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
 // The real `withPolicyConnections` HOC reads `policy` from Onyx and strips it from the component's public props. It is
 // mocked to an identity wrapper above, so the component under test takes `policy` directly.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the HOC that would inject `policy` is mocked out, so it is passed as a prop here
-const PolicyAccountingPageUnderTest = PolicyAccountingPage as unknown as React.ComponentType<{policy: Policy}>;
+const WorkspaceConnectionsPageUnderTest = WorkspaceConnectionsPage as unknown as React.ComponentType<{policy: Policy}>;
 
 function buildPolicy(overrides: Partial<Policy> = {}): Policy {
     return {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace'), id: POLICY_ID, ...overrides};
 }
 
-describe('PolicyAccountingPage auto-started connect flow', () => {
+describe('WorkspaceConnectionsPage auto-started connect flow', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockPendingParams = undefined;
@@ -137,7 +141,7 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
     it('should start the flow once when the effect re-runs before the cleared param has landed', async () => {
         // Given the page opened by a route that asks for a connect flow, which starts it and asks for the param to be
         // cleared so it cannot be acted on twice
-        const {rerender} = render(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
+        const {rerender} = render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
@@ -145,7 +149,7 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
 
         // When anything re-creates `startIntegrationFlow` and re-runs the effect before that clear has landed, which a
         // policy update does. This is the window the guard exists for: `newConnectionName` is still set here.
-        rerender(<PolicyAccountingPageUnderTest policy={buildPolicy({name: 'Renamed workspace'})} />);
+        rerender(<WorkspaceConnectionsPageUnderTest policy={buildPolicy({name: 'Renamed workspace'})} />);
         await waitForBatchedUpdates();
 
         // Then the flow is not started again, because a second start is what used to stack a second confirmation
@@ -156,13 +160,13 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
     it('should start the flow again for a later round-trip that asks for the same integration', async () => {
         // Given a connect flow that was started from the route param and then let the clear land, so nothing is
         // pending any more
-        const {rerender} = render(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
+        const {rerender} = render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
 
         landPendingParamsUpdate();
-        rerender(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
+        rerender(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(1);
@@ -173,7 +177,7 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
             integrationToDisconnect: CONST.POLICY.CONNECTIONS.NAME.XERO,
             shouldDisconnectIntegrationBeforeConnecting: true,
         };
-        rerender(<PolicyAccountingPageUnderTest policy={buildPolicy()} />);
+        rerender(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
         await waitForBatchedUpdates();
 
         // Then it is honoured rather than swallowed as a repeat of the first run, or the connect flow would silently

@@ -41,4 +41,4 @@ type ConnectionListing = {
     registerConnectButton?: (button: ComponentRef<typeof View> | null) => void;
 };
 
-export type {ConnectionsTab, ConnectionCategory, ConnectionStatus, ConnectionListing};
+export type {ConnectionsTab, ConnectionStatus, ConnectionListing};
