@@ -2064,8 +2064,10 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>, rules: OnyxColl
         return false;
     }
 
+    // An optimistic personal detail carries an empty login, which would otherwise reach the approval lookup and match no employee.
+    const providedOwnerLogin = reportOwnerLogin === '' ? undefined : reportOwnerLogin;
     // TODO: Callers are threaded in PRs A2 through A10. Remove this fallback in PR A10 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
-    const resolvedOwnerLogin = reportOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
+    const resolvedOwnerLogin = providedOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
     const submitsToAccountID = getSubmitToAccountID(policy, report, resolvedOwnerLogin, rules);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
