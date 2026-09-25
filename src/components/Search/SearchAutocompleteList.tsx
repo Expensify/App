@@ -528,7 +528,7 @@ function SearchAutocompleteList({
 
         // Preserve locally matched rows first. Auth orders only the remaining slots, so a server response cannot
         // remove chats, contacts, or invite options that were already visible locally. The combined list remains capped at 20.
-        if (hasActiveSearchResults && searchResultReportIDs?.length) {
+        if (orderedSearchResultReportIDs.length > 0) {
             return reportOptions;
         }
         return reportOptions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
