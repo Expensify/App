@@ -211,6 +211,14 @@ type SearchQueryActionsValue = {
 
 type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
+    /**
+     * The snapshot the table is actually rendering, which is not always `currentSearchResults`: it holds the
+     * previous non-empty snapshot while a sort is in flight and substitutes an empty `data` object once a
+     * search resolves with no results. Anything that has to agree with what is on screen (e.g. deriving the
+     * visible columns) must read this rather than `currentSearchResults`, or it will see no data across
+     * those two gaps and fall back to defaults while the table still shows the old rows.
+     */
+    displayedSearchResults: SearchResults | undefined;
     currentSearchTransactionsByReportID: Map<string, Transaction[]>;
     currentSearchViolations: OnyxCollection<TransactionViolation[]>;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
@@ -224,6 +232,8 @@ type SearchResultsActionsValue = {
     setSortedReportIDs: (ids: ReadonlyArray<string | undefined>) => void;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
+    /** Marks a sort as in flight so `displayedSearchResults` keeps the previous rows until the new snapshot lands. */
+    setIsSorting: (isSorting: boolean) => void;
 };
 
 type SearchSelectionContextValue = {

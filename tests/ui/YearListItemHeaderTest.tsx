@@ -35,6 +35,7 @@ const mockSearchStateContext = {
     currentDefaultSearchQueryJSON: undefined,
     currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
+    displayedSearchResults: undefined,
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
@@ -56,6 +57,7 @@ const mockSearchStateContext = {
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
+    setIsSorting: jest.fn(),
     setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     applySelection: jest.fn(),
