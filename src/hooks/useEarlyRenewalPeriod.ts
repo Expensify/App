@@ -1,4 +1,4 @@
-import isNonIncentivizedEarlyRenewalPeriod from '@libs/EarlyRenewalOfferUtils';
+import isNonIncentivizedEarlyRenewalPeriod, {isIncentivizedEarlyRenewalPeriod} from '@libs/EarlyRenewalOfferUtils';
 
 import CONST from '@src/CONST';
 
@@ -9,6 +9,7 @@ const MAX_TIMEOUT_MS = 2_147_483_647;
 function getNextPhaseBoundary(timestamp: number): number | null {
     const nonIncentivizedStart = Date.parse(CONST.SUBSCRIPTION.EARLY_RENEWAL.NON_INCENTIVIZED_START);
     const incentivizedStart = Date.parse(CONST.SUBSCRIPTION.EARLY_RENEWAL.INCENTIVIZED_START);
+    const campaignEnd = Date.parse(CONST.SUBSCRIPTION.EARLY_RENEWAL.CAMPAIGN_END);
 
     if (timestamp < nonIncentivizedStart) {
         return nonIncentivizedStart;
@@ -16,31 +17,37 @@ function getNextPhaseBoundary(timestamp: number): number | null {
     if (timestamp < incentivizedStart) {
         return incentivizedStart;
     }
+    if (timestamp < campaignEnd) {
+        return campaignEnd;
+    }
     return null;
 }
 
-function useIsNonIncentivizedEarlyRenewalPeriod(): boolean {
-    const [isNonIncentivizedPeriod, setIsNonIncentivizedPeriod] = useState(isNonIncentivizedEarlyRenewalPeriod);
+function useEarlyRenewalPeriod() {
+    const [timestamp, setTimestamp] = useState(Date.now);
 
     useEffect(() => {
         let timeoutID: ReturnType<typeof setTimeout> | undefined;
 
         const updatePeriod = () => {
-            const timestamp = Date.now();
-            setIsNonIncentivizedPeriod(isNonIncentivizedEarlyRenewalPeriod(timestamp));
+            const currentTimestamp = Date.now();
+            setTimestamp(currentTimestamp);
 
-            const nextPhaseBoundary = getNextPhaseBoundary(timestamp);
+            const nextPhaseBoundary = getNextPhaseBoundary(currentTimestamp);
             if (nextPhaseBoundary === null) {
                 return;
             }
-            timeoutID = setTimeout(updatePeriod, Math.min(nextPhaseBoundary - timestamp + 1, MAX_TIMEOUT_MS));
+            timeoutID = setTimeout(updatePeriod, Math.min(nextPhaseBoundary - currentTimestamp + 1, MAX_TIMEOUT_MS));
         };
 
         updatePeriod();
         return () => clearTimeout(timeoutID);
     }, []);
 
-    return isNonIncentivizedPeriod;
+    return {
+        isNonIncentivizedPeriod: isNonIncentivizedEarlyRenewalPeriod(timestamp),
+        isIncentivizedPeriod: isIncentivizedEarlyRenewalPeriod(timestamp),
+    };
 }
 
-export default useIsNonIncentivizedEarlyRenewalPeriod;
+export default useEarlyRenewalPeriod;

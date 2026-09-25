@@ -5502,6 +5502,7 @@ const CONST = {
         EARLY_RENEWAL: {
             NON_INCENTIVIZED_START: '2026-10-01T00:00:00Z',
             INCENTIVIZED_START: '2026-10-15T00:00:00Z',
+            CAMPAIGN_END: '2027-01-01T00:00:00Z',
             COPY: {
                 BILLING_OWNER: {
                     HOME_TITLE: 'Renew your Expensify subscription',
@@ -5509,14 +5510,6 @@ const CONST = {
                     HEADER_TITLE: 'Confirm renewal',
                     CONFIRMATION_DESCRIPTION: 'Renewing your subscription will extend your subscription for another year starting on October 1, 2026 to Sep 1, 2027.',
                     CTA: 'Renew',
-                },
-                WORKSPACE_ADMIN: {
-                    HOME_TITLE: 'Ask your billing owner to renew',
-                    HOME_SUBTITLE: 'Help your workspace keep its current pricing for another year.',
-                    HEADER_TITLE: 'Nudge your billing owner',
-                    TITLE: 'Ask your billing owner to renew',
-                    DESCRIPTION: "Send a message in your workspace's #admins room asking the billing owner to renew early and keep the current pricing for another year.",
-                    CTA: 'Nudge',
                 },
             },
             OFFER_ID: {

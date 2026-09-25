@@ -2,7 +2,7 @@
 import Button from '@components/Button';
 
 import useEarlyRenewalConfirmation from '@hooks/useEarlyRenewalConfirmation';
-import useIsNonIncentivizedEarlyRenewalPeriod from '@hooks/useIsNonIncentivizedEarlyRenewalPeriod';
+import useEarlyRenewalPeriod from '@hooks/useEarlyRenewalPeriod';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +18,7 @@ import type EarlyRenewalBillingBannerProps from './types';
 
 function EarlyRenewalBillingBanner({fallback}: EarlyRenewalBillingBannerProps) {
     const [eligibility, eligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
-    const isNonIncentivizedPeriod = useIsNonIncentivizedEarlyRenewalPeriod();
+    const {isNonIncentivizedPeriod} = useEarlyRenewalPeriod();
     const showEarlyRenewalConfirmation = useEarlyRenewalConfirmation();
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['MoneyBadge']);

@@ -593,7 +593,6 @@ export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from 
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
 export type {default as AcceptEarlyRenewalOfferParams} from './AcceptEarlyRenewalOfferParams';
-export type {default as NudgeBillingOwnerEarlyRenewalParams} from './NudgeBillingOwnerEarlyRenewalParams';
 export type {default as DomainParams} from './DomainParams';
 export type {default as OpenDomainPageParams} from './OpenDomainPageParams';
 export type {default as RequestDomainAdminshipParams} from './RequestDomainAdminshipParams';
