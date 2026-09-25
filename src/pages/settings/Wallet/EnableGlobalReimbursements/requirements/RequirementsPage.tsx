@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {getWiseKYCRequirements, getWiseKYCReviewEmbeddedLink} from '@userActions/BankAccounts/wise';
+import {getWiseKYCRequirements} from '@userActions/BankAccounts/wise';
 import {clearDraftValues, clearErrors} from '@userActions/FormActions';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -46,7 +46,6 @@ function RequirementsPage({route}: RequirementsPageProps) {
 
     const openRequirement = (requirement: WiseKYCRequirement) => {
         if (requirement.hostedOnly) {
-            getWiseKYCReviewEmbeddedLink(bankAccountID);
             Navigation.navigate(ROUTES.SETTINGS_WALLET_WISE_KYC_EMBEDDED.getRoute(bankAccountID));
             return;
         }

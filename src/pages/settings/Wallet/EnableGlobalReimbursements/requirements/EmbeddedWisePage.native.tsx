@@ -12,13 +12,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {getWiseKYCRequirements} from '@userActions/BankAccounts/wise';
+import {getWiseKYCRequirements, getWiseKYCReviewEmbeddedLink} from '@userActions/BankAccounts/wise';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {WebView} from 'react-native-webview';
 
@@ -44,6 +44,10 @@ function EmbeddedWisePage({route}: EmbeddedWisePageProps) {
     const styles = useThemeStyles();
     const bankAccountID = Number(route.params.bankAccountID);
     const [embeddedLink] = useOnyx(ONYXKEYS.WISE_KYC_REVIEW_EMBEDDED_LINK);
+
+    useEffect(() => {
+        getWiseKYCReviewEmbeddedLink(bankAccountID);
+    }, [bankAccountID]);
 
     const finish = () => {
         getWiseKYCRequirements(bankAccountID);

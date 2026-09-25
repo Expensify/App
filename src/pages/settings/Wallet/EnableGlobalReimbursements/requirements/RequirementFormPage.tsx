@@ -26,18 +26,28 @@ function RequirementFormPage({route}: RequirementFormPageProps) {
     const {translate} = useLocalize();
     const bankAccountID = Number(route.params.bankAccountID);
     const {requirementKey} = route.params;
-    const [requirement] = useOnyx(ONYXKEYS.WISE_KYC_REQUIREMENTS, {selector: (requirements) => requirements?.find((item) => item.key === requirementKey)});
+    const [requirements, requirementsResult] = useOnyx(ONYXKEYS.WISE_KYC_REQUIREMENTS);
+    const requirement = requirements?.find((item) => item.key === requirementKey);
     const [form] = useOnyx(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM);
     const fields = requirement?.fields ?? [];
 
     const goBackToList = () => Navigation.goBack(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(bankAccountID));
 
     useEffect(() => {
-        if (requirement !== undefined) {
+        if (requirements !== undefined) {
             return;
         }
         getWiseKYCRequirements(bankAccountID);
-    }, [bankAccountID, requirement]);
+    }, [bankAccountID, requirements]);
+
+    const hasFormRequirement = requirement !== undefined && !requirement.hostedOnly;
+    const isListLoaded = requirementsResult.status === 'loaded' && requirements !== undefined;
+    useEffect(() => {
+        if (!isListLoaded || hasFormRequirement) {
+            return;
+        }
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(bankAccountID));
+    }, [isListLoaded, hasFormRequirement, bankAccountID]);
 
     const isSubmitting = !!form?.isLoading;
     const hasSubmitError = !isEmptyObject(form?.errors ?? {});
@@ -54,7 +64,7 @@ function RequirementFormPage({route}: RequirementFormPageProps) {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(bankAccountID));
     }, [isSubmitting, hasSubmitError, bankAccountID]);
 
-    if (requirement === undefined) {
+    if (!hasFormRequirement) {
         return <FullScreenLoadingIndicator />;
     }
 

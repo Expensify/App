@@ -4,6 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import EmbeddedWisePage from '@pages/settings/Wallet/EnableGlobalReimbursements/requirements/EmbeddedWisePage.native';
 import RequirementFormPage from '@pages/settings/Wallet/EnableGlobalReimbursements/requirements/RequirementFormPage';
 import RequirementsPage from '@pages/settings/Wallet/EnableGlobalReimbursements/requirements/RequirementsPage';
 
@@ -59,6 +60,8 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('react-native-webview', () => ({WebView: jest.fn(() => null)}));
+
 jest.mock('@components/UploadFile', () => {
     const RN = jest.requireActual<typeof ReactNative>('react-native');
     function MockUploadFile() {
@@ -91,6 +94,8 @@ const BANK_ACCOUNT_ID = 123;
 type ListRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENTS>['route'];
 type ListNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENTS>['navigation'];
 type FormRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENT_FORM>['route'];
+type EmbeddedRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_KYC_EMBEDDED>['route'];
+type EmbeddedNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_KYC_EMBEDDED>['navigation'];
 type FormNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.WISE_KYC_REQUIREMENT_FORM>['navigation'];
 
 async function renderRequirementsPage() {
@@ -174,6 +179,7 @@ describe('Wise KYC requirements pages', () => {
         });
         await act(async () => {
             await Onyx.merge(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM, {isLoading: false});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_KYC_REQUIREMENT_FORM_DRAFT, null);
         });
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(BANK_ACCOUNT_ID));
     });
@@ -206,8 +212,31 @@ describe('Wise KYC requirements pages', () => {
 
         fireEvent.press(screen.getByText('wiseKYC.requirement.LIVENESS_CHECK'), {nativeEvent: {}});
 
-        expect(getWiseKYCReviewEmbeddedLink).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_EMBEDDED.getRoute(BANK_ACCOUNT_ID));
+    });
+
+    it('fetches the embedded Wise link when the embedded page mounts', async () => {
+        render(
+            <EmbeddedWisePage
+                route={createMock<EmbeddedRoute>({params: {bankAccountID: String(BANK_ACCOUNT_ID)}})}
+                navigation={createMock<EmbeddedNavigation>({})}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getWiseKYCReviewEmbeddedLink).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
+    });
+
+    it('sends a form URL for a hosted-only or unknown requirement back to the list once the list has loaded', async () => {
+        mockRouteParams.subPage = 'liveness-check';
+        await renderRequirementFormPage('LIVENESS_CHECK');
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(BANK_ACCOUNT_ID));
+
+        screen.unmount();
+        jest.clearAllMocks();
+        await renderRequirementFormPage('NOT_A_REQUIREMENT');
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_WISE_KYC_REQUIREMENTS.getRoute(BANK_ACCOUNT_ID));
+        expect(getWiseKYCRequirements).not.toHaveBeenCalled();
     });
 
     it('shows a loading indicator and fetches requirements when the form page mounts on an empty cache', async () => {

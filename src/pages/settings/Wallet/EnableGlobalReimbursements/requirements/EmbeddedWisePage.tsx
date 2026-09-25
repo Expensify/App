@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {getWiseKYCRequirements} from '@userActions/BankAccounts/wise';
+import {getWiseKYCRequirements, getWiseKYCReviewEmbeddedLink} from '@userActions/BankAccounts/wise';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +43,10 @@ function EmbeddedWisePage({route}: EmbeddedWisePageProps) {
     const styles = useThemeStyles();
     const bankAccountID = Number(route.params.bankAccountID);
     const [embeddedLink] = useOnyx(ONYXKEYS.WISE_KYC_REVIEW_EMBEDDED_LINK);
+
+    useEffect(() => {
+        getWiseKYCReviewEmbeddedLink(bankAccountID);
+    }, [bankAccountID]);
 
     useEffect(() => {
         const onMessage = (event: MessageEvent) => {
