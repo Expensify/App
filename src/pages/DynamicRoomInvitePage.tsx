@@ -14,6 +14,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePressLoading from '@hooks/usePressLoading';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
@@ -24,6 +25,7 @@ import {inviteToRoom, inviteToRoomAction, searchUserInServer} from '@libs/action
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -69,12 +71,11 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
-    const [participantLogins = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata)),
-    });
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
+    const [participantLogins = getEmptyArray<string>()] = usePersonalDetailsByIDs(participantAccountIDs, personalDetailsLoginsSelector(participantAccountIDs));
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const isReportArchived = useReportIsArchived(report.reportID);
     const {isLoading, startWithLoading} = usePressLoading();
 
@@ -145,7 +146,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
         acc[login] = accountID;
         return acc;
     }, {} as MemberEmailsToAccountIDs);
-    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs)});
+    const [newAccountIDsAndLogins] = useAllPersonalDetails(newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs));
 
     const inviteUsers = () => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
@@ -247,12 +248,14 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                     confirmButtonOptions={{
                         isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
+                        isFooterConfirmEnabled: validSelectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+                    isLoadingNewOptions={!!isSearchingForUsers}
                     shouldShowTextInput
                     canSelectMultiple
                     footerContent={footerContent}

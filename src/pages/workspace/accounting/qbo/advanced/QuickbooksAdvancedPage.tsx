@@ -1,10 +1,12 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
-import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -38,7 +40,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
 
     const policyID = policy?.id;
@@ -90,7 +92,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: areSettingsInErrorFields(collectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             pendingAction: settingsPendingAction(collectionAccountIDs, qboConfig?.pendingFields),
         },
-        ...(isGlobalReimbursementFXEnabled
+        ...(canConfigureCurrencyConversionFees
             ? [
                   {
                       key: 'qboFxExpenseAccount',
@@ -112,14 +114,15 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     key={item.key}
                     pendingAction={item.pendingAction}
                 >
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={item.title}
-                        description={item.description}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                        onPress={item.onPress}
-                        brickRoadIndicator={item.brickRoadIndicator}
-                    />
+                    <MenuItemSectionRoot onPress={item.onPress}>
+                        <MenuItemField.Row
+                            name={item.description}
+                            value={item.title}
+                        >
+                            {!!item.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={item.brickRoadIndicator} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                    </MenuItemSectionRoot>
                 </OfflineWithFeedback>
             ))}
         </View>
@@ -190,24 +193,22 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qboConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={qboConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
-                    description={translate('workspace.accounting.autoSync')}
-                    shouldShowRightIcon
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path))}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qboConfig?.errorFields)
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                    }
-                    hintText={(() => {
-                        if (!qboConfig?.autoSync?.enabled) {
-                            return undefined;
-                        }
-                        return translate(`workspace.qbo.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths);
-                    })()}
-                />
+                <MenuItemSectionRoot onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path))}>
+                    <MenuItemField.Row
+                        name={translate('workspace.accounting.autoSync')}
+                        value={qboConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                    >
+                        {areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qboConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!qboConfig?.autoSync?.enabled && (
+                        <MenuItem.HelpText
+                            message={translate(`workspace.qbo.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)}
+                        />
+                    )}
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             {qboToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow

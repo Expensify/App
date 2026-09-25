@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
 
 import useLocalize from '@hooks/useLocalize';

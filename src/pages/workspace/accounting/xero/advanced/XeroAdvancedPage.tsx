@@ -1,9 +1,12 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -29,11 +32,12 @@ import React, {useMemo} from 'react';
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
     const {pendingFields, errorFields, sync} = xeroConfig ?? {};
-    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    const {bankAccounts, expenseAccounts} = policy?.connections?.xero?.data ?? {};
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
     const accountingMethod = xeroConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
@@ -51,6 +55,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
     const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID);
+    const selectedFxExpenseAccountName = (expenseAccounts ?? []).find((account) => account.id === xeroConfig?.fxExpenseAccount)?.name;
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
@@ -68,24 +73,18 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={xeroConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
-                    description={translate('workspace.accounting.autoSync')}
-                    shouldShowRightIcon
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path))}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.errorFields)
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                    }
-                    hintText={(() => {
-                        if (!xeroConfig?.autoSync?.enabled) {
-                            return undefined;
-                        }
-                        return translate(`workspace.xero.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths);
-                    })()}
-                />
+                <MenuItemSectionRoot onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path))}>
+                    <MenuItemField.Row
+                        name={translate('workspace.accounting.autoSync')}
+                        value={xeroConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                    >
+                        {areSettingsInErrorFields([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!xeroConfig?.autoSync?.enabled && <MenuItem.HelpText message={translate(`workspace.xero.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)} />}
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             <ToggleSettingOptionRow
                 key={translate('workspace.accounting.reimbursedReports')}
@@ -106,28 +105,45 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <>
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={selectedBillPaymentAccountName ? String(selectedBillPaymentAccountName) : undefined}
-                            description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
-                            key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
-                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
-                            brickRoadIndicator={areSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
+                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}>
+                            <MenuItemField.Row
+                                name={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
+                                value={selectedBillPaymentAccountName ? String(selectedBillPaymentAccountName) : undefined}
+                            >
+                                {areSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                                <MenuItem.Chevron />
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
                     </OfflineWithFeedback>
+                    {canConfigureCurrencyConversionFees && (
+                        <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], pendingFields)}>
+                            <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))}>
+                                <MenuItemField.Row
+                                    name={translate('workspace.xero.advancedConfig.xeroFxExpenseAccount')}
+                                    value={selectedFxExpenseAccountName}
+                                >
+                                    {areSettingsInErrorFields([CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                    <MenuItem.Chevron />
+                                </MenuItemField.Row>
+                            </MenuItemSectionRoot>
+                        </OfflineWithFeedback>
+                    )}
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], pendingFields)}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={selectedBankAccountName ? String(selectedBankAccountName) : undefined}
-                            description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
-                            key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
-                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID))}
-                            brickRoadIndicator={
-                                areSettingsInErrorFields([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                            }
-                        />
+                        <MenuItemSectionRoot onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID))}>
+                            <MenuItemField.Row
+                                name={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
+                                value={selectedBankAccountName ? String(selectedBankAccountName) : undefined}
+                            >
+                                {areSettingsInErrorFields([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                                <MenuItem.Chevron />
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
                     </OfflineWithFeedback>
                 </>
             </Accordion>

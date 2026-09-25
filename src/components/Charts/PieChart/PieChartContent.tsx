@@ -7,6 +7,7 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -21,7 +22,6 @@ import {Pie, PolarChart} from 'victory-native';
 import PaddedPieSlice from './PaddedPieSlice';
 
 type PieChartProps = ChartProps & {
-    /** Callback when a slice is pressed */
     onSlicePress?: (dataPoint: ChartDataPoint, index: number) => void;
 
     /** Symbol/unit for value labels in tooltip (e.g., '$', '€'). */
@@ -29,10 +29,14 @@ type PieChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
+
+    /** Whether to draw the slice legend below the donut */
+    shouldShowLegend?: boolean;
 };
 
-function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
+function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true}: PieChartProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
@@ -144,7 +148,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                     setActiveSliceIndex(-1);
                 }}
             >
-                <View style={[styles.pieChartLegendDot, {backgroundColor: slice.color}]} />
+                <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />
                 <Text style={[styles.textNormal, styles.ml2]}>{slice.label}</Text>
             </View>
         );
@@ -164,7 +168,10 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
 
     return (
         <>
-            <GestureDetector gesture={combinedGesture}>
+            <GestureDetector
+                gesture={combinedGesture}
+                touchAction="pan-y"
+            >
                 <Animated.View
                     style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
                     onLayout={handleLayout}
@@ -218,7 +225,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
                     )}
                 </Animated.View>
             </GestureDetector>
-            <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>
+            {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
         </>
     );
 }

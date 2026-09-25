@@ -1,11 +1,11 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -22,7 +22,6 @@ function BaseImportOnyxState({
 }) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -37,16 +36,20 @@ function BaseImportOnyxState({
             >
                 {({openPicker}) => {
                     return (
-                        <MenuItem
-                            icon={icons.Upload}
-                            title={translate('initialSettingsPage.troubleshoot.importOnyxState')}
-                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        <MenuItemSectionRoot
                             onPress={() => {
                                 openPicker({
                                     onPicked: (data) => onFileRead(data.at(0) ?? {}),
                                 });
                             }}
-                        />
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Icon src={icons.Upload} />
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('initialSettingsPage.troubleshoot.importOnyxState')}</MenuItem.Title>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItemSectionRoot>
                     );
                 }}
             </AttachmentPicker>

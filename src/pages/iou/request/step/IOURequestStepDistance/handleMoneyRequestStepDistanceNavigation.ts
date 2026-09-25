@@ -35,7 +35,6 @@ import type {TranslationParameters, TranslationPaths} from '@src/languages/types
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
-    Beta,
     BillingGraceEndPeriod,
     IntroSelected,
     LastSelectedDistanceRates,
@@ -47,6 +46,7 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    Rule,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -95,7 +95,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerEnd?: number;
     odometerDistance?: number;
     previousOdometerDraft?: OnyxEntry<OdometerDraft>;
-    betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
@@ -106,6 +105,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
+    isDraftChatReport: boolean;
     action: IOUAction;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -115,6 +115,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
+    rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -198,7 +200,6 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerEnd,
     odometerDistance,
     previousOdometerDraft,
-    betas,
     recentWaypoints,
     unit,
     personalOutputCurrency,
@@ -209,6 +210,7 @@ function handleMoneyRequestStepDistanceNavigation({
     conciergeChat,
     optimisticTransactionID,
     optimisticChatReportID,
+    isDraftChatReport,
     action,
     isTrackIntentUser,
     delegateAccountID,
@@ -219,6 +221,8 @@ function handleMoneyRequestStepDistanceNavigation({
     participants,
     participantsPolicyTags,
     isOffline = false,
+    rules,
+    isVendorMatchingBetaEnabled,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -298,6 +302,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         trackExpense({
                             report,
                             isDraftPolicy: false,
+                            isDraftChatReport,
                             existingTransaction: transaction,
                             participantParams: {
                                 payeeEmail: currentUserLogin,
@@ -342,7 +347,6 @@ function handleMoneyRequestStepDistanceNavigation({
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
-                            betas,
                             isSelfTourViewed,
                             previousOdometerDraft,
                             optimisticTransactionID,
@@ -351,6 +355,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             delegateAccountID,
                             reportActionsList: undefined,
                             getCurrencyDecimals,
+                            rules,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -385,6 +390,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 isSelfDMDestination,
                 executeWrite: (overrides) => {
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
+                        isVendorMatchingBetaEnabled,
                         report,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
@@ -427,7 +433,6 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         personalDetails,
                         recentWaypoints,
-                        betas,
                         previousOdometerDraft,
                         policyParams: {
                             policyTagList,
@@ -437,6 +442,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         formatPhoneNumber,
                         getCurrencyDecimals,
                         participantsPolicyTags,
+                        rules,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

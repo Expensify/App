@@ -16,7 +16,6 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Custom field 2 of the member in the policy */
     employeePayrollID?: string;
 
-    /** Email of the user */
     email?: string;
 
     /** Determines if this employee should approve a report. If report total > approvalLimit, next approver will be 'overLimitForwardsTo', otherwise 'forwardsTo'. Set to null to clear. */

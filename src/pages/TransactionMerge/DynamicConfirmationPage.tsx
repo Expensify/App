@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -66,7 +66,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
@@ -85,6 +86,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const selfDMReport = useSelfDMReport();
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReport?.reportID)}`);
@@ -93,8 +95,8 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
     const selfDMSourceIOUAction =
         selfDMReport?.reportID && sourceTransaction ? getIOUActionForTransactionID(Object.values(selfDMReportActions ?? {}), sourceTransaction.transactionID) : undefined;
-    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceIOUAction?.childReportID)}`);
     const sourceThreadReportID = sourceIOUAction?.childReportID ?? selfDMSourceIOUAction?.childReportID;
+    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
     const [sourceIOUActionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
     const sourceIOUReportID = isMoneyRequestAction(sourceIOUAction) ? sourceIOUAction?.reportID : undefined;
     const [sourceActionIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceIOUReportID)}`);
@@ -117,6 +119,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
         setIsMergingExpenses(true);
 
         mergeTransactionRequest({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
             mergeTransactionID: transactionID,
@@ -143,6 +146,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             sourceIOUActionThreadReport,
             sourceActionIOUReport,
             sourceActionChatReport,
+            rules,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;

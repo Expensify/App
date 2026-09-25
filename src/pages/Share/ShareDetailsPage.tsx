@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAncestors from '@hooks/useAncestors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -60,15 +61,16 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [isDraftReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportOrAccountID}`, {selector: isDraftReportSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
@@ -89,6 +91,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         () =>
             getReportDisplayOption({
                 dateFnsLocale,
+                convertToDisplayString,
                 report,
                 unknownUserDetails,
                 personalDetails,
@@ -98,8 +101,22 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 translate,
                 currentUserAccountID,
                 reportAttributesDerived,
+                rules,
             }),
-        [report, unknownUserDetails, personalDetails, privateIsArchived, policy, conciergeReportID, translate, currentUserAccountID, reportAttributesDerived, dateFnsLocale],
+        [
+            report,
+            unknownUserDetails,
+            personalDetails,
+            privateIsArchived,
+            policy,
+            conciergeReportID,
+            translate,
+            currentUserAccountID,
+            reportAttributesDerived,
+            dateFnsLocale,
+            convertToDisplayString,
+            rules,
+        ],
     );
 
     const shouldShowAttachment = !isTextShared;
@@ -177,7 +194,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                                 })) ?? [],
                         personalDetails,
                         newReportObject: report,
-                        betas,
                         conciergeChat,
                         hasReportActions: false,
                         currentUserAccountID: personalDetail.accountID,

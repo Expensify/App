@@ -10,7 +10,6 @@ type AvatarCropImage = {
     /** Image, as a base64 data URL (web) or file URI (native) */
     uri: string;
 
-    /** Name of the image */
     name: string;
 
     /** MIME type of the image */
