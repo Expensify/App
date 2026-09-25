@@ -2000,14 +2000,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
-    if (activeReportID && !isMoneyRequestReport) {
-        Navigation.setNavigationActionToMicrotaskQueue(() =>
-            setTimeout(() => {
-                notifyNewAction(activeReportID, reportPreviewAction, payeeAccountID === currentUserAccountIDParam);
-            }, CONST.TIMING.NOTIFY_NEW_ACTION_DELAY),
-        );
-    }
-
     return {iouReport, transactionID: transaction.transactionID};
 }
 
@@ -2973,9 +2965,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     if (!isNotificationDeferredToWrite) {
         notifyTrackedAction();
-
-        return {iouReport, transactionID: transaction?.transactionID};
     }
+
+    return {iouReport, transactionID: transaction?.transactionID};
 }
 
 /**

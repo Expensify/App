@@ -72,7 +72,6 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
 
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -139,7 +138,6 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
                 conciergeChat,
                 currentUserLogin: currentUserPersonalDetails?.login ?? '',
                 currentUserAccountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                betas,
                 iouReport,
                 iouReportAction: iouAction,
                 transaction,

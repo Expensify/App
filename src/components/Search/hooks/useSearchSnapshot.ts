@@ -95,7 +95,7 @@ const EMPTY_COLUMNS: SearchColumnType[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
 
-/** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked or highlighted row. */
+/** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked row. */
 function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransactions: SelectedTransactions | undefined, isOffline: boolean): number {
     const isKeySelected = (key: string | undefined) => !!key && !!selectedTransactions?.[key]?.isSelected;
     let shownRowCount = 0;
@@ -107,7 +107,7 @@ function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransa
         }
         shownRowCount += 1;
         const isRowSelected = isKeySelected(row.keyForList) || (isTransactionGroupListItemType(row) && row.transactions.some((transaction) => isKeySelected(transaction.keyForList)));
-        if (shownRowCount <= rowLimit || !!row.shouldAnimateInHighlight || isRowSelected) {
+        if (shownRowCount <= rowLimit || isRowSelected) {
             end = index + 1;
         }
     }
@@ -124,15 +124,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * the optimistic-row resilience. Returns the sorted rows plus the list-level meta and the
  * optimistic-tracking carriers that `<Search>` consumes.
  */
-function useSearchSnapshot({
-    queryJSON,
-    searchResults,
-
-    transactions,
-    reportActions,
-    visibleRowLimit,
-    selectedTransactions,
-}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({queryJSON, searchResults, transactions, reportActions, visibleRowLimit, selectedTransactions}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();

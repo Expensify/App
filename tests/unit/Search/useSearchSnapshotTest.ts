@@ -419,7 +419,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit,
@@ -453,7 +452,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -477,7 +475,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 3,
@@ -500,7 +497,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -530,7 +526,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -540,34 +535,6 @@ describe('useSearchSnapshot', () => {
         expect(result.current.data.map((item) => item.keyForList)).toEqual(['group0', 'group1']);
         // cap slices whole groups, so group2's transactions must be unreachable for bulk actions
         expect(result.current.filteredData).toEqual(groups.slice(0, 2).map((group) => expect.objectContaining({keyForList: group.keyForList, transactions: group.transactions})));
-    });
-
-    it('keeps a highlighted row past visibleRowLimit on screen', () => {
-        // Given a live list capped at two groups, where a new expense just landed in the last group
-        const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        const groups = Array.from({length: 5}, (_value, index) => ({
-            groupID: `group${index}`,
-            keyForList: `group${index}`,
-            transactions: [{transactionID: `${index}`}],
-        }));
-        mockGetSections.mockReturnValue([groups, groups.length, false]);
-        mockGetSortedSections.mockReturnValue(groups);
-
-        // When the snapshot is projected with that expense queued for highlight
-        const {result} = renderHook(() =>
-            useSearchSnapshot({
-                queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
-                searchResults,
-                newSearchResultKeys: new Set([`${ONYXKEYS.COLLECTION.TRANSACTION}4`]),
-                transactions: undefined,
-                reportActions: undefined,
-                visibleRowLimit: 2,
-            }),
-        );
-
-        // Then the highlighted group still renders, or the scroll-to-new-expense has no row to land on
-        expect(result.current.data.map((item) => item.keyForList)).toContain('group4');
     });
 
     it('does not spend visibleRowLimit on rows being deleted online', () => {
@@ -587,7 +554,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -616,7 +582,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,
@@ -646,7 +611,6 @@ describe('useSearchSnapshot', () => {
             useSearchSnapshot({
                 queryJSON: makeQueryJSON(),
                 searchResults,
-                newSearchResultKeys: undefined,
                 transactions: undefined,
                 reportActions: undefined,
                 visibleRowLimit: 2,

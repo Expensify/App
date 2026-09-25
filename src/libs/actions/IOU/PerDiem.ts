@@ -1277,17 +1277,17 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
 
     playSound(SOUNDS.DONE);
 
-    const apiWrite = () => {
-        API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
-    };
+    API.writeWhenReady(
+        WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST,
+        parameters,
+        onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(chatReport.reportID, undefined, true)},
+    );
 
-    deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: false,
-        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-    });
-
-    notifyNewAction(chatReport.reportID, undefined, true);
+    if (isFromGlobalCreate) {
+        signalExpenseAddedGrowl(transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 }
 
 export {
