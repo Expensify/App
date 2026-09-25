@@ -102,7 +102,6 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal, headerCompo
                     isCentralPane
                     renderTitle={renderTitle}
                     renderSubtitle={renderSubtitle}
-                    containerStyles={styles.mh5}
                 >
                     <AgentRulesList
                         policyID={policyID}

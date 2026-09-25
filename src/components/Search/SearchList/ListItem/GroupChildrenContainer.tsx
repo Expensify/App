@@ -1,4 +1,5 @@
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,6 +34,7 @@ function GroupChildrenContainer({
     newTransactionID,
 }: GroupChildrenContainerProps) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const hasBorder = !isFirstItem;
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, isExpanded && hasBorder, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
@@ -53,7 +55,7 @@ function GroupChildrenContainer({
     }
 
     return (
-        <Animated.View style={[styles.mh5, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}>
+        <Animated.View style={[pageGutterMargin, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden], hasBorder && styles.tableBorder]}>
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View

@@ -1,4 +1,4 @@
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -39,7 +39,7 @@ type BaseWidgetItemProps = {
 function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVariant}: BaseWidgetItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
 
     return (
         <PressableWithoutFeedback
@@ -49,7 +49,7 @@ function BaseWidgetItem({icon, title, subtitle, ctaText, onCtaPress, buttonVaria
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
         >
             {({hovered}) => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, hovered && styles.hoveredComponentBG]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, cardPaddingHorizontal, hovered && styles.hoveredComponentBG]}>
                     <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={icon}

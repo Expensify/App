@@ -6,6 +6,7 @@ import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -75,6 +76,7 @@ function SearchStaticList({
     columns = DEFAULT_COLUMNS,
 }: SearchStaticListProps) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -202,7 +204,7 @@ function SearchStaticList({
             >
                 <View
                     style={[
-                        styles.mh5,
+                        pageGutterMargin,
                         styles.flex1,
                         styles.userSelectNone,
                         {backgroundColor: theme.highlightBG},
@@ -266,7 +268,14 @@ function SearchStaticList({
 
         return (
             <View
-                style={[styles.mh5, styles.flex1, {backgroundColor: theme.highlightBG}, styles.userSelectNone, isLastItem && styles.tableBottomRadius, isLastItem && styles.overflowHidden]}
+                style={[
+                    pageGutterMargin,
+                    styles.flex1,
+                    {backgroundColor: theme.highlightBG},
+                    styles.userSelectNone,
+                    isLastItem && styles.tableBottomRadius,
+                    isLastItem && styles.overflowHidden,
+                ]}
             >
                 <PressableWithoutFeedback
                     sentryLabel="SearchStaticList-wide-item"
@@ -344,7 +353,7 @@ function SearchStaticList({
             onLayout={onLayout}
         >
             {!shouldUseNarrowLayout && columns.length > 0 && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5]}>
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, pageGutterMargin]}>
                     {canSelectMultiple && (
                         <View
                             accessibilityElementsHidden

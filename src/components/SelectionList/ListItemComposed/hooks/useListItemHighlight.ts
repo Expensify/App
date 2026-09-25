@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,13 +16,14 @@ type UseListItemHighlightParams = {
  */
 function useListItemHighlight({shouldHighlight = false, isSelected = false}: UseListItemHighlightParams = {}) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
 
     const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight, borderRadius: styles.selectionListPressableItemWrapper.borderRadius});
 
     return {
         animatedHighlightStyle,
         pressableStyle: [styles.selectionListPressableItemWrapper, styles.mh0, styles.bgTransparent, isSelected && styles.activeComponentBG],
-        pressableWrapperStyle: [styles.mh5, animatedHighlightStyle],
+        pressableWrapperStyle: [pageGutterMargin, animatedHighlightStyle],
     };
 }
 
