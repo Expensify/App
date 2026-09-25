@@ -110,6 +110,8 @@ All PR titles should follow a consistent format to improve clarity, searchabilit
 
 > **The best explanations will explain why the change is being done, not just what is changing.**
 
+Lead with **why** the change was made and a short summary of **what** changed — not a full narrative of the investigation/reasoning process. If deep rationale is genuinely needed for review, put it in a collapsed `<details>` block instead of the main body.
+
 ### Minimum Requirements
 
 Even a single sentence is acceptable:
@@ -299,6 +301,7 @@ This reduces async delays and keeps development moving smoothly across time zone
 - Fundamental architectural issues that affect the approach
 - Critical logic bugs that would require substantial rewrite
 - Security vulnerabilities
+- PR description narrates the investigation/implementation process instead of stating why + what concisely (see [Explanation of Change](#explanation-of-change))
 
 ---
 
