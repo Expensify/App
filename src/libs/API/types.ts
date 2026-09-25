@@ -421,7 +421,6 @@ const WRITE_COMMANDS = {
     UPDATE_MERGE_GROUPS: 'UpdateMergeGroups',
     SYNC_POLICY_TO_MERGE: 'SyncPolicyToMerge',
     UPDATE_MERGE_ATS_FILTERS: 'UpdateMergeATSFilters',
-    UPDATE_MERGE_ATS_APPROVER_FIELD: 'UpdateMergeATSApproverField',
     UPDATE_ZENEFITS_APPROVAL_MODE: 'UpdateZenefitsApprovalMode',
     UPDATE_ZENEFITS_FINAL_APPROVER: 'UpdateZenefitsFinalApprover',
     DOWNGRADE_TO_TEAM: 'Policy_DowngradeToTeam',
@@ -461,6 +460,7 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_TAX_POSTING_ACCOUNT: 'UpdateNetSuiteTaxPostingAccount',
     UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY: 'UpdateNetSuiteAllowForeignCurrency',
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
+    UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD: 'UpdateNetSuiteSplitExportsByPostingPeriod',
     UPDATE_NETSUITE_CUSTOM_SEGMENTS: 'UpdateNetSuiteCustomSegments',
     UPDATE_NETSUITE_CUSTOM_LISTS: 'UpdateNetSuiteCustomLists',
     UPDATE_NETSUITE_AUTO_SYNC: 'UpdateNetSuiteAutoSync',
@@ -1157,7 +1157,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MERGE_GROUPS]: Parameters.UpdateMergeGroupsParams;
     [WRITE_COMMANDS.SYNC_POLICY_TO_MERGE]: Parameters.SyncPolicyToMergeParams;
     [WRITE_COMMANDS.UPDATE_MERGE_ATS_FILTERS]: Parameters.UpdateMergeATSFiltersParams;
-    [WRITE_COMMANDS.UPDATE_MERGE_ATS_APPROVER_FIELD]: Parameters.UpdateMergeATSApproverFieldParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE]: Parameters.UpdateZenefitsApprovalModeParams;
     [WRITE_COMMANDS.UPDATE_ZENEFITS_FINAL_APPROVER]: Parameters.UpdateZenefitsFinalApproverParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
@@ -1327,6 +1326,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_TAX_POSTING_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customSegments', string>; // JSON string NetSuiteCustomSegment[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customLists', string>; // JSON string NetSuiteCustomList[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;

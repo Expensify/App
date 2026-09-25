@@ -53,9 +53,7 @@ function useCompleteOnboarding() {
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
@@ -63,7 +61,7 @@ function useCompleteOnboarding() {
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [isLoading, setIsLoading] = useState(false);
 
-    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.email));
 
     const completeOnboardingFlow = async ({featuresMap, userReportedIntegration, userReportedIntegrationName}: CompleteOnboardingParams) => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
@@ -98,7 +96,6 @@ function useCompleteOnboarding() {
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: email,
                       shouldAddGuideWelcomeMessage: false,
-                      betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       hasOwnedPaidPolicy,
@@ -128,6 +125,7 @@ function useCompleteOnboarding() {
                 isSelfTourViewed,
                 conciergeChat,
                 adminsChatReport,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
                 delegateAccountID,
             });
             const rhpVariant = isSidePanelReportSupported ? extractRHPVariantFromResponse(response) : undefined;
@@ -147,7 +145,7 @@ function useCompleteOnboarding() {
                 reportNameValuePairs,
                 policyID,
                 adminsChatReportID,
-                (session?.email ?? '').includes('+'),
+                (currentUserPersonalDetails.email ?? '').includes('+'),
                 {
                     variantOverride: rhpVariant,
                 },

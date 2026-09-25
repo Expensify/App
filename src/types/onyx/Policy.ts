@@ -1127,6 +1127,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether we should export to the most recent open period if the current one is closed  */
         exportToNextOpenPeriod: boolean;
 
+        /** Whether non-reimbursable exports are split into one transaction per calendar month */
+        splitExportsByPostingPeriod?: boolean;
+
         /** Whether we will include the original foreign amount of a transaction to NetSuite */
         allowForeignCurrency?: boolean;
 
@@ -1448,8 +1451,8 @@ type FinancialForceSyncedEntity = {
 
 /** Data synced from Certinia (parent sync service); arrays may be empty until sync completes */
 type FinancialForceConnectionData = {
-    /** Salesforce Accounts used as Default Vendor options (FFA) */
-    vendors: FinancialForceSyncedEntity[];
+    /** Salesforce Accounts used as Default Vendor options (FFA); undefined means the sync has not written the list yet */
+    vendors?: FinancialForceSyncedEntity[];
 
     /** Certinia companies (c2g__codaCompany__c); FFA validates presence when applicable */
     companies: FinancialForceSyncedEntity[];
@@ -2520,28 +2523,15 @@ type BusinessCentralCompany = {
 };
 
 /**
- * Value of a dimension retrieved from Business Central.
- */
-type BusinessCentralDimensionValue = {
-    /** Code identifying the value within its dimension */
-    code: string;
-
-    /** Name of the value */
-    name: string;
-};
-
-/**
  * Dimension retrieved from Business Central. Dimensions are imported as tags.
+ * Integration-Server caches only the code and the name, which is all the Import page needs to list a row per dimension.
  */
 type BusinessCentralDimension = {
-    /** Code identifying the dimension */
-    code: string;
+    /** Code identifying the dimension, also the key of its entry in `fieldMappings` */
+    id: string;
 
     /** Name of the dimension */
     name: string;
-
-    /** Values the dimension can take */
-    values: BusinessCentralDimensionValue[];
 };
 
 /**
@@ -2599,23 +2589,6 @@ type BusinessCentralBankAccount = {
 };
 
 /**
- * VAT posting setup retrieved from Business Central. VAT posting setups are imported as tax rates.
- */
-type BusinessCentralVATPostingSetup = {
-    /** VAT business posting group the setup applies to */
-    vatBusinessPostingGroup: string;
-
-    /** VAT product posting group the setup applies to */
-    vatProductPostingGroup: string;
-
-    /** Identifier of the VAT rate */
-    vatIdentifier: string;
-
-    /** VAT percentage the setup applies */
-    vatPercentage: number;
-};
-
-/**
  * Connection data retrieved from Business Central.
  */
 type BusinessCentralConnectionData = {
@@ -2634,8 +2607,8 @@ type BusinessCentralConnectionData = {
     /** Bank accounts of the selected company */
     bankAccounts?: BusinessCentralBankAccount[];
 
-    /** VAT posting setups of the selected company */
-    vatPostingSetups?: BusinessCentralVATPostingSetup[];
+    /** Whether the selected company has VAT posting setups that can be imported as tax rates. A US company has none, so it gets no tax row */
+    hasVATPostingSetups?: boolean;
 };
 
 /**
@@ -2761,6 +2734,9 @@ type GustoConnectionConfig = HRConnectionConfigBase & {
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 };
 
+/** Approval mode controlling how reports are routed for approval in the Merge-backed integrations (Merge HR, Merge ATS) */
+type MergeApprovalMode = ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+
 /** Shared config for the Merge-backed integrations (Merge HR, Merge ATS), parameterized by the union of provider slugs that integration supports */
 type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
     OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -2768,7 +2744,7 @@ type MergeConnectionConfigBase<Integration> = HRConnectionConfigBase &
         integration: Integration;
 
         /** Approval mode controlling how reports are routed for approval */
-        approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+        approvalMode: MergeApprovalMode | null;
     }>;
 
 /** A group of employees the admin can choose to import from (e.g. a company, cost center, department). */
@@ -2850,6 +2826,9 @@ type MergeATSFilters = {
     offices?: string[];
 };
 
+/** The ATS field a candidate's default approver is read from in the Merge ATS connection */
+type MergeATSApproverField = ValueOf<typeof CONST.MERGE.ATS_APPROVER_FIELD>;
+
 /** Merge ATS (recruiting) connection config */
 type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> &
     OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -2862,7 +2841,7 @@ type MergeATSConnectionConfig = MergeConnectionConfigBase<MergeATSProviderSlug> 
             filters: MergeATSFilters | null;
 
             /** The ATS field whose value identifies the default approver for a candidate (e.g. the recruiter or hiring manager field), or `null` when not set */
-            approverField: string | null;
+            approverField: MergeATSApproverField | null;
         },
         'filters' | 'approverField'
     >;
@@ -3818,10 +3797,13 @@ export type {
     ProhibitedExpenses,
     CommuterExclusions,
     NetSuiteConnectionData,
+    MergeApprovalMode,
     MergeHRConnectionConfig,
     MergeConnectionLastSync,
     MergeATSConnectionConfig,
+    MergeATSConnectionData,
     MergeATSFilters,
+    MergeATSApproverField,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
@@ -3845,6 +3827,7 @@ export type {
     DualEntryExport,
     DualEntryAutoSync,
     DualEntrySync,
+    FinancialForceSyncedEntity,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     CampfireCoding,
@@ -3853,4 +3836,6 @@ export type {
     CampfireAccount,
     CampfireExport,
     BusinessCentralCompany,
+    BusinessCentralCoding,
+    BusinessCentralCodingOfflineFeedbackKeys,
 };

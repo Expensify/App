@@ -300,6 +300,7 @@ function getAccountingIntegrationData(
                     ...(!shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, netsuiteSelectedSubsidiary, netsuiteConfig) ? [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT] : []),
                     ...(!shouldHideExportForeignCurrencyAmount(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY] : []),
                     CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD,
+                    CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD,
                 ],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
@@ -652,8 +653,13 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.BUSINESS_CENTRAL_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.BUSINESS_CENTRAL_CONFIG.SYNC_ITEMS,
+                    CONST.BUSINESS_CENTRAL_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.businessCentral?.data?.dimensions?.map((dimension) => `${CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${dimension.id}`) ?? []),
+                ],
                 onExportPagePress: () => null,
                 subscribedExportSettings: [],
                 onAdvancedPagePress: () => null,

@@ -165,7 +165,6 @@ import {
     hasEmptyReportsForPolicy,
     hasExpensifyGuidesEmails,
     hasExportError,
-    hasNonReimbursableTransactions,
     hasReceiptError,
     hasReportBeenForwardedSinceLastSubmit,
     hasSmartscanError,
@@ -185,7 +184,6 @@ import {
     isEmptyReport,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
-    isInvoiceReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
@@ -1485,6 +1483,63 @@ describe('ReportUtils', () => {
 
         it('should recognize inboxAdminsBespoke as a valid onboarding RHP variant', () => {
             expect(CONST.ONBOARDING_RHP_VARIANT.INBOX_ADMINS_BESPOKE).toBe('inboxAdminsBespoke');
+        });
+
+        it('should restore the correct last visible action if onboarding fails', async () => {
+            const EXPLICIT_ACCOUNT_ID = 42;
+            const OTHER_ACCOUNT_ID = 99;
+            const CONCIERGE_CHAT_REPORT_ID = '7777';
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'test+test@example.com', accountID: OTHER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const existingAction = {
+                ...createRandomReportAction(200),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '200',
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created: '2024-01-15 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'existing message', text: 'existing message'}],
+                originalMessage: {html: 'existing message', lastModified: '2024-01-15 12:00:00.000'},
+            };
+
+            const chatReport: Report = {
+                reportID: CONCIERGE_CHAT_REPORT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [EXPLICIT_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_CHAT_REPORT_ID}`, {
+                [existingAction.reportActionID]: existingAction,
+            });
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {message: 'test', tasks: []},
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                conciergeChat: chatReport,
+                currentUserAccountID: EXPLICIT_ACCOUNT_ID,
+                delegateAccountID: undefined,
+            });
+
+            expect(result).toBeTruthy();
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx update value needs narrowing for test assertions
+            const failureReport = result?.failureData.find((d) => d.key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`)?.value as Partial<Report> | undefined;
+
+            expect(failureReport?.lastVisibleActionCreated).toBe(existingAction.created);
+            expect(failureReport?.lastActorAccountID).toBe(existingAction.actorAccountID);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_CHAT_REPORT_ID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_CHAT_REPORT_ID}`, null);
+            await waitForBatchedUpdates();
         });
     });
 
@@ -4614,7 +4669,7 @@ describe('ReportUtils', () => {
         describe('return empty iou options if', () => {
             it('participants array contains excluded expensify iou emails', () => {
                 const allEmpty = CONST.EXPENSIFY_ACCOUNT_IDS.every((accountID) => {
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(undefined, undefined, [currentUserAccountID, accountID], [CONST.BETAS.ALL], undefined);
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(undefined, undefined, [currentUserAccountID, accountID], undefined);
                     return moneyRequestOptions.length === 0;
                 });
                 expect(allEmpty).toBe(true);
@@ -4625,7 +4680,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4635,7 +4690,7 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: false,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4645,7 +4700,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.IOU,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4656,7 +4711,7 @@ describe('ReportUtils', () => {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4666,7 +4721,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined, true);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined, true);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4676,7 +4731,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4686,7 +4741,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                     statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
@@ -4700,7 +4755,7 @@ describe('ReportUtils', () => {
                         parentReportID: '100',
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
@@ -4710,7 +4765,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
             });
             it('the current user is an invited user of the iou report', () => {
@@ -4720,42 +4775,8 @@ describe('ReportUtils', () => {
                     ownerAccountID: 20,
                     managerID: 21,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20, 21], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, 20, 21], undefined);
                 expect(moneyRequestOptions.length).toBe(0);
-            });
-        });
-
-        describe('betas parameter handling', () => {
-            it('passes betas to getMoneyRequestOptions which affects canCreateRequest result', () => {
-                const report: Report = {
-                    ...LHNTestUtils.getFakeReport([currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]),
-                    type: CONST.REPORT.TYPE.CHAT,
-                };
-
-                // Both calls should work with explicitly passed betas
-                const withAllBetas = canCreateRequest(report, undefined, CONST.IOU.TYPE.SUBMIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withEmptyBetas = canCreateRequest(report, undefined, CONST.IOU.TYPE.SUBMIT, false, [], undefined, false);
-
-                // With BETAS.ALL, SUBMIT should be allowed in a 1:1 DM
-                expect(withAllBetas).toBe(true);
-                // With empty betas, behavior depends on whether betas are required for the action
-                expect(typeof withEmptyBetas).toBe('boolean');
-            });
-
-            it('temporary_getMoneyRequestOptions returns different results based on passed betas', () => {
-                const report: Report = {
-                    ...LHNTestUtils.getFakeReport([currentUserAccountID]),
-                    type: CONST.REPORT.TYPE.CHAT,
-                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                };
-
-                // Self DM should return TRACK option regardless of betas
-                const withBetas = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined, false, false);
-                const withoutBetas = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [], undefined, false, false);
-
-                // Both should include TRACK for self DM
-                expect(withBetas).toContain(CONST.IOU.TYPE.TRACK);
-                expect(withoutBetas).toContain(CONST.IOU.TYPE.TRACK);
             });
         });
 
@@ -4770,7 +4791,6 @@ describe('ReportUtils', () => {
                         report,
                         undefined,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
@@ -4783,7 +4803,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
@@ -4793,7 +4813,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
@@ -4804,7 +4824,7 @@ describe('ReportUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     participantsAccountIDs: [currentUserAccountID, ...participantsAccountIDs],
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs.map(Number)], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs.map(Number)], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
@@ -4819,13 +4839,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4838,13 +4852,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4864,7 +4872,7 @@ describe('ReportUtils', () => {
                         ownerAccountID: currentUserAccountID,
                     };
                     mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
-                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], [CONST.BETAS.ALL], undefined);
+                    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID], undefined);
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -4898,7 +4906,6 @@ describe('ReportUtils', () => {
                         report,
                         paidPolicy,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     expect(moneyRequestOptions.length).toBe(2);
@@ -4916,13 +4923,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4935,13 +4936,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
             });
@@ -4987,7 +4982,6 @@ describe('ReportUtils', () => {
                         report,
                         paidPolicy,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     expect(moneyRequestOptions.length).toBe(2);
@@ -5004,13 +4998,7 @@ describe('ReportUtils', () => {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.CHAT,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
                 expect(moneyRequestOptions.length).toBe(3);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -5049,7 +5037,6 @@ describe('ReportUtils', () => {
                         report,
                         paidPolicy,
                         [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                        [CONST.BETAS.ALL],
                         undefined,
                     );
                     expect(moneyRequestOptions.length).toBe(2);
@@ -5065,7 +5052,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                     managerID: currentUserAccountID,
                 };
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, ...participantsAccountIDs], undefined);
                 expect(moneyRequestOptions.length).toBe(2);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -5085,13 +5072,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
 
                 // Should not include SUBMIT (Create Expense) or TRACK (Track distance) — members can only split
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
@@ -5109,13 +5090,7 @@ describe('ReportUtils', () => {
                     isOwnPolicyExpenseChat: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(
-                    report,
-                    undefined,
-                    [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
-                    undefined,
-                );
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID], undefined);
 
                 // Should include SUBMIT (Create Expense)
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
@@ -5140,7 +5115,6 @@ describe('ReportUtils', () => {
                     expenseReport,
                     undefined,
                     [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID],
-                    [CONST.BETAS.ALL],
                     undefined,
                 );
 
@@ -5162,8 +5136,8 @@ describe('ReportUtils', () => {
                 };
                 const selfDMParticipants = [currentUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(selfDMReport, undefined, selfDMParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
@@ -5182,8 +5156,8 @@ describe('ReportUtils', () => {
                 };
                 const dmParticipants = [currentUserAccountID, otherUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SUBMIT)).toBe(false);
@@ -5201,8 +5175,8 @@ describe('ReportUtils', () => {
                 };
                 const dmParticipants = [currentUserAccountID, otherUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, true);
 
                 if (withoutRestrictionsResult.includes(CONST.IOU.TYPE.PAY)) {
                     expect(withRestrictionsResult.includes(CONST.IOU.TYPE.PAY)).toBe(false);
@@ -5221,8 +5195,8 @@ describe('ReportUtils', () => {
                 };
                 const dmParticipants = [currentUserAccountID, otherUserAccountID];
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(dmReport, undefined, dmParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
@@ -5238,8 +5212,8 @@ describe('ReportUtils', () => {
                     chatType: undefined,
                 };
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(groupChatReport, undefined, groupParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
@@ -5255,8 +5229,8 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, [CONST.BETAS.ALL], undefined, false, false);
-                const withRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, [CONST.BETAS.ALL], undefined, false, true);
+                const withoutRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, undefined, false, false);
+                const withRestrictionsResult = temporary_getMoneyRequestOptions(policyRoomReport, undefined, policyRoomParticipants, undefined, false, true);
 
                 expect(withoutRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(withRestrictionsResult.includes(CONST.IOU.TYPE.SPLIT)).toBe(false);
@@ -5278,7 +5252,7 @@ describe('ReportUtils', () => {
                     areInvoicesEnabled: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, adminInvoicePolicy, invoiceRoomParticipants, [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, adminInvoicePolicy, invoiceRoomParticipants, undefined);
 
                 expect(moneyRequestOptions).toContain(CONST.IOU.TYPE.INVOICE);
             });
@@ -5290,7 +5264,7 @@ describe('ReportUtils', () => {
                     areInvoicesEnabled: true,
                 };
 
-                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, memberInvoicePolicy, invoiceRoomParticipants, [CONST.BETAS.ALL], undefined);
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(invoiceRoom, memberInvoicePolicy, invoiceRoomParticipants, undefined);
 
                 expect(moneyRequestOptions).not.toContain(CONST.IOU.TYPE.INVOICE);
             });
@@ -5312,8 +5286,8 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(true);
@@ -5332,8 +5306,8 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -5344,8 +5318,8 @@ describe('ReportUtils', () => {
             it('should restrict SPLIT requests for group chats', () => {
                 const groupChat = LHNTestUtils.getFakeReport([currentUserAccountID, ...participantsAccountIDs.slice(0, 3)]);
 
-                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -5359,8 +5333,8 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, false);
-                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], undefined, true);
+                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, false);
+                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -5796,6 +5770,7 @@ describe('ReportUtils', () => {
                 chatReport,
                 expenseReport,
                 getCurrencyDecimalsLocal,
+                undefined,
                 '',
                 expenseTransaction,
                 expenseReport.reportID,
@@ -8978,7 +8953,6 @@ describe('ReportUtils', () => {
                 chatReport: mockedChatReport,
                 currentReportId: '',
                 isInFocusMode: false,
-                betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: true,
                 draftComment: '',
@@ -9446,7 +9420,6 @@ describe('ReportUtils', () => {
                     chatReport: mockedChatReport,
                     currentReportId: '',
                     isInFocusMode: false,
-                    betas: [CONST.BETAS.DEFAULT_ROOMS],
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     draftComment: '',
@@ -12096,13 +12069,15 @@ describe('ReportUtils', () => {
         });
 
         it('should use allReportActionsParam when provided instead of module-level Onyx data', async () => {
-            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx)
+            // Given a submitted expense report with a DEW_APPROVE_FAILED action stored ONLY in the passed param (not in Onyx),
+            // with the current user as the manager so it passes the approver gate on the DEW branch
             const report: OptionData = {
                 ...createRandomReport(70000, undefined),
                 keyForList: 'SomeKey',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
@@ -12128,6 +12103,166 @@ describe('ReportUtils', () => {
             // With the param, the function should find DEW_APPROVE_FAILED from the passed param
             const resultWith = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
             expect(resultWith).toHaveProperty('reason', CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+        });
+
+        describe('DEW approve failed audience', () => {
+            // A failed DEW approval is only actionable by the routed approver, so only they should get the green dot.
+            // Owner A, approver B (managerID) and bystander C are three distinct accounts, because the obvious repro
+            // (someone approving their own report) has ownerAccountID === managerID and cannot tell the two gates apart.
+            const ownerA = 71001;
+            const bystanderC = 71003;
+
+            /** Builds a SUBMITTED DEW expense report plus one active DEW_APPROVE_FAILED action, passed in via the param. */
+            const buildDEWReport = (reportID: number, managerID: number | undefined, automaticAction?: boolean) => {
+                const report: Report = {
+                    ...createExpenseReport(reportID),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    ownerAccountID: ownerA,
+                    managerID,
+                };
+                const dewApproveFailedAction: ReportAction = {
+                    ...createRandomReportAction(reportID),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                    created: '2024-08-08 18:00:00.000',
+                    originalMessage: {message: 'DEW blocked approval', automaticAction},
+                };
+                const allReportActionsParam: OnyxCollection<ReportActions> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                        [dewApproveFailedAction.reportActionID]: dewApproveFailedAction,
+                    },
+                };
+                return {report, allReportActionsParam};
+            };
+
+            it('should return HAS_DEW_APPROVE_FAILED only for the approver, not the owner or a bystander', async () => {
+                // Given a submitted DEW report that failed a manual approval, where the current user is the approver
+                const {report, allReportActionsParam} = buildDEWReport(71010, currentUserAccountID);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for the approver
+                const approverResult = getReasonAndReportActionThatRequiresAttention(
+                    report,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived.current,
+                    allReportActionsParam,
+                );
+
+                // Then the approver gets the DEW reason, carrying the failure action so the row deep-links to it
+                expect(approverResult?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(approverResult?.reportAction?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
+
+                // When the same report is viewed by the owner and by an unrelated participant
+                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, allReportActionsParam);
+                const bystanderResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, bystanderC, undefined, isReportArchived.current, allReportActionsParam);
+
+                // Then neither gets the DEW reason, so they get no green dot and no pinned LHN row
+                expect(ownerResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(bystanderResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+            });
+
+            it('should still return HAS_DEW_APPROVE_FAILED for the approver when the failure was an auto-approval block', async () => {
+                // Given an auto-approval block (automaticAction: true), which is still actionable because the Approve
+                // button stays enabled so the approver can approve manually. Only the next step differs, not the green dot.
+                const {report, allReportActionsParam} = buildDEWReport(71020, currentUserAccountID, true);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for the approver, the owner and a bystander
+                const approverResult = getReasonAndReportActionThatRequiresAttention(
+                    report,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived.current,
+                    allReportActionsParam,
+                );
+                const ownerResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, ownerA, undefined, isReportArchived.current, allReportActionsParam);
+                const bystanderResult = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, bystanderC, undefined, isReportArchived.current, allReportActionsParam);
+
+                // Then the approver still gets the dot, and nobody else does
+                expect(approverResult?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(ownerResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(bystanderResult?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+            });
+
+            it('should not return HAS_DEW_APPROVE_FAILED for anyone when managerID is unset', async () => {
+                // Given a DEW report whose managerID the backend has not written yet, so the App cannot identify the approver
+                const {report, allReportActionsParam} = buildDEWReport(71030, undefined);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for each account
+                const results = [currentUserAccountID, ownerA, bystanderC].map((accountID) =>
+                    getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, accountID, undefined, isReportArchived.current, allReportActionsParam),
+                );
+
+                // Then the gate fails closed, so nobody gets a dot rather than everybody getting one
+                for (const result of results) {
+                    expect(result?.reason).not.toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                }
+            });
+
+            it('should not return HAS_DEW_APPROVE_FAILED for the approver when the report is archived', async () => {
+                // Given an archived DEW report that failed approval, where there is nothing left to action on it
+                const {report, allReportActionsParam} = buildDEWReport(71040, currentUserAccountID);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+                // When the reason is retrieved for the approver
+                const result = getReasonAndReportActionThatRequiresAttention(report, currentUserEmail, currentUserAccountID, undefined, isReportArchived.current, allReportActionsParam);
+
+                // Then no reason is returned
+                expect(result).toBe(null);
+            });
+
+            it('should keep DEW precedence over IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION for an approver without parent access', async () => {
+                // Given the hasParentAccess=false fixture that otherwise yields IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with an
+                // APPROVE badge, plus a DEW approve failure. The bare DEW dot is intentional: it deep-links to the failure message,
+                // and useOptimisticNextStep keys the "fix the issues" next step off this reason.
+                const policyID = 'testPolicyDEW123';
+                const fakePolicy: Policy = {
+                    ...createRandomPolicy(1),
+                    id: policyID,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    type: CONST.POLICY.TYPE.TEAM,
+                };
+                const {report, allReportActionsParam} = buildDEWReport(71050, currentUserAccountID);
+                const expenseReport: Report = {...report, policyID, hasParentAccess: false};
+                const fakeTransaction: Transaction = {
+                    ...createRandomTransaction(0),
+                    reportID: expenseReport.reportID,
+                    amount: 100,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    bank: '',
+                };
+
+                await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+                await waitForBatchedUpdates();
+
+                // When the reason is retrieved for the approver
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+                const result = getReasonAndReportActionThatRequiresAttention(
+                    expenseReport,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    undefined,
+                    isReportArchived.current,
+                    allReportActionsParam,
+                );
+
+                // Then the DEW reason still wins over the assignee badge
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED);
+                expect(result?.actionBadge).toBeUndefined();
+            });
         });
 
         it('should return null for an archived report when there is a policy pending join request', async () => {
@@ -15109,7 +15244,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined);
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
@@ -15131,7 +15266,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, undefined);
             const updatedPreviewAction = updateReportPreview(
                 iouReport,
                 reportPreviewAction,
@@ -19736,6 +19871,32 @@ describe('ReportUtils', () => {
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
             });
+
+            it('returns the English "spent" message when the report contains a non-reimbursable transaction, and matches en.ts', async () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-en-spent-report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(90001),
+                    reportID: report.reportID,
+                    reimbursable: false,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+
+                // The hardcoded English string must match the en.ts translation produced by the localized function
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toContain('spent');
+            });
         });
     });
 
@@ -24306,7 +24467,7 @@ describe('ReportUtils', () => {
         };
 
         // REPORT_PREVIEW action that sits in the chat report and links to the expense report
-        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, '', transaction);
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, undefined, '', transaction);
 
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
@@ -25715,56 +25876,6 @@ describe('getAllPolicyExpenseChatReportActions', () => {
 
     it('returns an empty object for undefined collections', () => {
         expect(getAllPolicyExpenseChatReportActions(undefined, undefined)).toEqual({});
-    });
-});
-
-describe('hasNonReimbursableTransactions', () => {
-    it('returns false when all transactions are reimbursable', () => {
-        const transactions: Transaction[] = [
-            {...createRandomTransaction(1), reimbursable: true},
-            {...createRandomTransaction(2), reimbursable: true},
-        ];
-        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(false);
-    });
-
-    it('returns true when at least one transaction is non-reimbursable', () => {
-        const transactions: Transaction[] = [
-            {...createRandomTransaction(1), reimbursable: true},
-            {...createRandomTransaction(2), reimbursable: false},
-        ];
-        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(true);
-    });
-
-    it('returns false for an empty transaction list', () => {
-        expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
-    });
-});
-
-describe('isInvoiceReport', () => {
-    it('returns true for invoice reports passed as object', () => {
-        const invoiceReport = {
-            ...LHNTestUtils.getFakeReport(),
-            type: CONST.REPORT.TYPE.INVOICE,
-        };
-        expect(isInvoiceReport(invoiceReport)).toBe(true);
-    });
-
-    it('returns false for non-invoice reports passed as object', () => {
-        const expenseReport = {
-            ...LHNTestUtils.getFakeReport(),
-            type: CONST.REPORT.TYPE.EXPENSE,
-        };
-        expect(isInvoiceReport(expenseReport)).toBe(false);
-    });
-
-    it('returns false for null/undefined', () => {
-        expect(isInvoiceReport(null)).toBe(false);
-        expect(isInvoiceReport(undefined)).toBe(false);
-    });
-
-    it('returns false for a report with no type', () => {
-        const report = LHNTestUtils.getFakeReport();
-        expect(isInvoiceReport(report)).toBe(false);
     });
 });
 
