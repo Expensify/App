@@ -12,7 +12,7 @@ function setPullRequestContext(body: string, additions: number, deletions: numbe
     // this action reads can be assigned directly without mocking the @actions/github module.
     context.payload = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        pull_request: {body, additions, deletions},
+        pull_request: {number: 123, body, additions, deletions},
     };
 }
 
