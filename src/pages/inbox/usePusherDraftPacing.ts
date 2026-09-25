@@ -3,6 +3,7 @@ import {ACCELERATED_REMAINING_MS, easeOut, getRevealDurationMS, MIN_TRICKLE_TOKE
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
+import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
@@ -219,7 +220,9 @@ function publishVisibleEvent(
         visibleSourceOffsetRef.current = visibleMarkdown.sourceOffset;
     }
 
-    visibleSequenceRef.current += 1;
+    // Local optimistic reveals also advance the draft sequence. Reconciliation must
+    // publish a newer event even when the Pusher pacer has not emitted those stages.
+    visibleSequenceRef.current = Math.max(visibleSequenceRef.current, runtime.currentDraftRef.current?.sequence ?? 0) + 1;
     const visibleStatus = status ?? event.status;
     const visibleEvent = {
         ...event,
@@ -366,7 +369,7 @@ function getRevealStageForCurrentDraft(runtime: PusherDraftPacingRuntime, event:
         return 0;
     }
 
-    const currentHTML = getReportActionHtml(currentDraft.reportAction);
+    const currentHTML = stripFollowupListFromHtml(getReportActionHtml(currentDraft.reportAction));
     if (!currentHTML) {
         return 0;
     }
@@ -397,7 +400,7 @@ function tickFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime) {
     const shouldComplete = progress >= 1 || elapsed >= TRICKLE_HARD_CAP_MS;
 
     if (shouldComplete) {
-        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
+        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, finalRenderedHTML);
         stopFinalRenderedHTMLReveal(runtime);
         return;
     }
@@ -429,7 +432,9 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
         return;
     }
 
-    const tokens = tokenizeForReveal(finalRenderedHTML);
+    // Followups include hidden pregenerated answers. Reveal only the visible answer body,
+    // then publish the complete original HTML so buttons never expose partial responses.
+    const tokens = tokenizeForReveal(stripFollowupListFromHtml(finalRenderedHTML) ?? '');
     stopPusherDraftPace(runtime);
     stopFinalRenderedHTMLReveal(runtime);
     completedPusherDraftEventRef.current = null;
@@ -439,17 +444,17 @@ function startFinalRenderedHTMLReveal(runtime: PusherDraftPacingRuntime, event: 
     visibleSourceOffsetRef.current = 0;
     latestPusherDraftEventRef.current = event;
 
-    if (tokens.length < MIN_TRICKLE_TOKEN_COUNT) {
+    const currentStage = getRevealStageForCurrentDraft(runtime, event, tokens);
+    if (tokens.length < MIN_TRICKLE_TOKEN_COUNT || currentStage === tokens.length - 1) {
         finalRenderedHTMLRevealDurationRef.current = 0;
         finalRenderedHTMLRevealTokensRef.current = [];
         finalRenderedHTMLRevealStartedAtRef.current = 0;
         finalRenderedHTMLRevealLastStageRef.current = 0;
-        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, tokens.at(-1) ?? finalRenderedHTML);
+        publishVisibleEvent(runtime, event, undefined, CONCIERGE_DRAFT_STATUS.COMPLETED, finalRenderedHTML);
         return;
     }
 
     const lastIndex = tokens.length - 1;
-    const currentStage = getRevealStageForCurrentDraft(runtime, event, tokens);
     const initialStage = Math.max(1, Math.min(lastIndex, currentStage));
     const initialProgress = initialStage / lastIndex;
     const initialElapsedRatio = 1 - Math.sqrt(1 - initialProgress);
@@ -929,7 +934,10 @@ function usePusherDraftPacing(reportID: string, isGroupPolicyReport: boolean) {
             return;
         }
 
-        if (getReportActionHtml(currentDraft.reportAction) === finalRenderedHTML && currentDraft.status === CONCIERGE_DRAFT_STATUS.COMPLETED) {
+        // A completed reply belongs to the persisted action. Followup selection or other
+        // later edits must not turn it back into a streaming draft.
+        if (currentDraft.status === CONCIERGE_DRAFT_STATUS.COMPLETED && !currentDraft.pusherPendingCompletionEvent) {
+            clearDraft();
             return;
         }
 
