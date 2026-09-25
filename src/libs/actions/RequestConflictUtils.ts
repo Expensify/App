@@ -275,12 +275,34 @@ function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests
     };
 }
 
+/**
+ * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
+ * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
+ */
+function renameQueuedAttachment(file: unknown, name: string): unknown {
+    // An unnamed multipart part leaves the server to name the attachment after the form field, so an empty label
+    // has to leave the file alone rather than blank out the name it already has.
+    if (!name) {
+        return file;
+    }
+    if (typeof File !== 'undefined' && file instanceof File) {
+        // `uri` and `source` are ours, not part of `File`, and the native upload path reads them back off the object
+        // to find the file on disk, so the rebuild has to carry them over.
+        return Object.assign(new File([file], name, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
+    }
+    if (typeof file !== 'object' || file === null) {
+        return file;
+    }
+    return {...file, name};
+}
+
 function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
     persistedRequests: Array<OnyxRequest<TKey>>,
     parameters: UpdateCommentParams,
     reportActionID: string,
     addCommentIndex: number,
     shouldRemoveQueuedAttachment = false,
+    renamedAttachmentLabel?: string,
 ): ConflictActionData {
     const indicesToDelete: number[] = [];
     for (const [index, request] of persistedRequests.entries()) {
@@ -300,6 +322,8 @@ function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
             delete currentAddComment.data.file;
             delete currentAddComment.data.attachmentID;
             currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+        } else if (renamedAttachmentLabel && currentAddComment.data?.file) {
+            currentAddComment.data.file = renameQueuedAttachment(currentAddComment.data.file, renamedAttachmentLabel);
         }
 
         nextAction = {

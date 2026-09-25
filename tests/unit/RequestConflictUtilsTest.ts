@@ -162,6 +162,74 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should rename the queued attachment when the edit renamed it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'renamed.csv'}, attachmentID: '5'},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should rebuild a renamed File, whose name cannot be reassigned', () => {
+        const reportActionID = '2';
+        const file = new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID: '5'}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        const renamedFile = queuedRequest.data.file;
+
+        expect(renamedFile).toBeInstanceOf(File);
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.type).toBe('text/csv');
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the uri and source a rebuilt File needs to upload', () => {
+        // Given a queued File carrying the uri and source the native upload path reads off it
+        const reportActionID = '2';
+        const file = Object.assign(new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'}), {uri: 'file:///receipts/data_1.csv', source: 'file:///receipts/data_1.csv'});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID: '5'}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an edit renames it
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
+        const renamedFile = queuedRequest.data.file;
+
+        // Then the rebuilt File still points at the file on disk, otherwise the upload has nothing to send
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.uri).toBe('file:///receipts/data_1.csv');
+        expect(renamedFile.source).toBe('file:///receipts/data_1.csv');
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should leave the queued attachment name alone when the label is empty', () => {
+        // Given a queued attachment and an edit that produced no label for it
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When the conflict is resolved
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, '');
+
+        // Then the filename is untouched, because a part sent without one is stored under the form field name
+        expect(persistedRequests.at(0)?.data?.file).toEqual({uri: 'blob:local', name: 'data.csv'});
+    });
+
     it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
