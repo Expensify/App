@@ -11,6 +11,7 @@ import {
     inAppBackTapPoint,
     scrollDistance,
     scrollFastBothWays,
+    showTab,
     spendSectionTapPoint,
     waitForTab,
 } from '@scripts/pgo/journeyWorkload';
@@ -233,6 +234,40 @@ describe('PGO journey safeguards', () => {
         );
         const device = {snapshot: () => nodes};
         await expect(waitForTab(device, 'Account')).resolves.toBeUndefined();
+    });
+
+    it('waits through Android relaunch loading before navigating from a restored page', async () => {
+        // Given a loading view, then a restored nested page, then the Inbox tab after app Back.
+        const screen = {type: 'android.widget.ScrollView', rect: {x: 0, y: 0, width: 1080, height: 2280}};
+        const snapshots = [
+            [screen],
+            [screen, {type: 'android.widget.Button', label: 'Back', rect: {x: 21, y: 144, width: 67, height: 105}}],
+            [screen, {type: 'android.view.View', label: 'Inbox. Your review is required', rect: {x: 216, y: 1968, width: 216, height: 186}}],
+        ].map((nodes) => parseJourneySnapshot({appBundleId: 'test.app', nodes}, 'test.app'));
+        const commands: string[][] = [];
+        let read = 0;
+        const device: Parameters<typeof showTab>[0] = {
+            platform: 'android',
+            snapshot: () => snapshots[Math.min(read++, snapshots.length - 1)],
+            command: (...args: string[]) => commands.push(args),
+            wait: () => {},
+            press: () => {},
+            hasLabel: () => false,
+            pressLabel: () => {},
+            waitLabel: () => {},
+            fill: () => {},
+            back: () => commands.push(['hardware back']),
+            open: () => {},
+        };
+
+        // When the benchmark navigates to Inbox after relaunch.
+        await showTab(device, 'Inbox');
+
+        // Then loading does not trigger Back, and the app's Back control is used once.
+        expect(commands).toEqual([
+            ['press', '55', '197', '--settle'],
+            ['press', '324', '2061', '--settle'],
+        ]);
     });
 
     it('accepts a duplicated Android navigation subtree but rejects distinct tab targets', () => {
