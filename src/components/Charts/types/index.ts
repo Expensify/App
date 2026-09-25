@@ -24,6 +24,9 @@ type ChartDataPoint = {
 
     /** One amount per series (pre-formatted, e.g., dollars not cents), keyed by that series' key */
     values: Record<string, number>;
+
+    /** The point's signed share of total spend, in percentage points */
+    percentOfTotal?: number;
 };
 
 /**
@@ -62,7 +65,7 @@ type PieSlice = {
     /** Hex color assigned based on sorted rank */
     color: string;
 
-    /** Percentage of the total pie this slice represents */
+    /** Percentage of the drawn donut this slice represents */
     percentage: number;
 
     /** Starting angle in degrees (0 = 3 o'clock) */
@@ -85,7 +88,4 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-/** Where a chart tooltip sits relative to the data point it describes. */
-type ChartTooltipPlacement = 'above' | 'right';
-
-export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, ChartTooltipPlacement, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};

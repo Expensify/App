@@ -7,6 +7,7 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LayoutChangeEvent} from 'react-native';
@@ -28,10 +29,14 @@ type PieChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
+
+    /** Whether to draw the slice legend below the donut */
+    shouldShowLegend?: boolean;
 };
 
-function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition, onSlicePress}: PieChartProps) {
+function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true}: PieChartProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [canvasWidth, setCanvasWidth] = useState(0);
     const [canvasHeight, setCanvasHeight] = useState(0);
@@ -145,7 +150,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
                     setActiveSliceIndex(-1);
                 }}
             >
-                <View style={[styles.pieChartLegendDot, {backgroundColor: slice.color}]} />
+                <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />
                 <Text style={[styles.textNormal, styles.ml2]}>{slice.label}</Text>
             </View>
         );
@@ -221,7 +226,7 @@ function PieChartContent({data, series, isLoading, valueUnit, valueUnitPosition,
                     )}
                 </Animated.View>
             </GestureDetector>
-            <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>
+            {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
         </>
     );
 }

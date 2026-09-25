@@ -1,9 +1,16 @@
-import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
+import type {ChartDataPoint, ChartSeries} from '@components/Charts';
+import VictoryTheme from '@components/Charts/VictoryTheme';
+
+import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
+import {isShareWorthDrawing} from '@libs/PercentageUtils';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
 
 import {differenceInCalendarDays, differenceInCalendarMonths, differenceInCalendarQuarters, differenceInCalendarWeeks, differenceInCalendarYears, parseISO} from 'date-fns';
 
 import type {ChartBucketUnit} from './chartGroupByConfig';
-import type {GroupedItem, SearchGroupBy} from './types';
+import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 
@@ -23,7 +30,7 @@ const BUCKET_DIFFERENCE: Record<ChartBucketUnit, (later: Date, earlier: Date) =>
 
 /** One window plotted as a series: the rows it groups, how the legend names it, and where the window starts. */
 type ChartSeriesWindow = {
-    /** The window's grouped rows, sorted the way the chart plots them */
+    /** The window's grouped rows, in the order the search returned them */
     rows: GroupedItem[];
 
     /** Name shown in the legend and the tooltip, left out by a chart plotting one unnamed series */
@@ -42,34 +49,45 @@ type BuildChartSeriesParams = {
     /** The window drawn beside it, left out when nothing is compared */
     comparison?: ChartSeriesWindow;
 
+    /** The chart type the rows are plotted on, which decides how groups are colored */
+    view: ChartView;
+
     /** What the rows are grouped by, which decides how the two windows' rows pair up */
     groupBy: SearchGroupBy;
 
+    /** Returns the full label of a group */
     getLabel: (item: GroupedItem) => string;
 
+    /** Returns the compact axis label of a group, or undefined to fall back to the full label */
     getShortLabel?: (item: GroupedItem) => string | undefined;
 
-    /** The row's amount in the units the chart draws (dollars, not cents) */
-    getAmount: (item: GroupedItem) => number;
-};
-
-/** One plotted group: the point the chart draws, and the rows behind each of its values. */
-type SearchChartDataRow = {
-    point: ChartDataPoint;
-
-    /** The row the primary series' value came from */
-    item: GroupedItem;
-
-    /** The comparison window's row paired with `item`, absent when that window has nothing for this group */
-    comparisonItem?: GroupedItem;
+    /** Returns how many decimals a currency is displayed with */
+    getCurrencyDecimals: (currency: string) => number;
 };
 
 type SearchChartModel = {
     /** Metadata for each plotted series, primary first */
     series: ChartSeries[];
 
+    /** One row per plotted group, holding the point the chart draws and the rows its values came from */
     rows: SearchChartDataRow[];
 };
+
+/** Pie colors follow the slice ranking rather than the array order. Groups the donut leaves out get no color. */
+function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undefined> {
+    const colors: Array<string | undefined> = Array.from({length: data.length});
+
+    const ranked = data
+        .map((point, index) => ({absTotal: Math.abs(point.values[CHART_SERIES_KEY.PRIMARY] ?? 0), percentOfTotal: point.percentOfTotal, index}))
+        .filter((entry) => isShareWorthDrawing(entry.percentOfTotal))
+        .sort((a, b) => b.absTotal - a.absTotal);
+
+    for (const [rank, entry] of ranked.entries()) {
+        colors[entry.index] = VictoryTheme.colors.getColor(rank);
+    }
+
+    return colors;
+}
 
 /**
  * The key a row shares with its counterpart in the other window.
@@ -90,49 +108,52 @@ function getPairingKey(item: GroupedItem, windowStart: string | undefined, group
 }
 
 /**
- * Prepares what a chart draws: the series it plots and one row per group, each row keeping the grouped items its
- * values were read from so a press on it can be traced back to the window it belongs to.
+ * Prepares what a chart draws: the series it plots, and one row per group.
+ *
+ * This is the single place group totals are turned into plotted values. A row keeps the grouped items its values
+ * were read from, so a press on it can be traced back to the window it belongs to.
  */
-function buildChartSeries({primary, comparison, groupBy, getLabel, getShortLabel, getAmount}: BuildChartSeriesParams): SearchChartModel {
-    const series: ChartSeries[] = [
-        {
-            key: CHART_SERIES_KEY.PRIMARY,
-            label: primary.label,
-            color: primary.color,
-        },
-    ];
+function buildChartSeries({primary, comparison, view, groupBy, getLabel, getShortLabel, getCurrencyDecimals}: BuildChartSeriesParams): SearchChartModel {
+    const series: ChartSeries[] = [{key: CHART_SERIES_KEY.PRIMARY, label: primary.label, color: primary.color}];
     if (comparison) {
-        series.push({
-            key: CHART_SERIES_KEY.COMPARISON,
-            label: comparison.label,
-            color: comparison.color,
-        });
+        series.push({key: CHART_SERIES_KEY.COMPARISON, label: comparison.label, color: comparison.color});
     }
 
+    const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
     const comparisonByPairingKey = new Map((comparison?.rows ?? []).map((item) => [getPairingKey(item, comparison?.start, groupBy), item]));
 
     const rows = primary.rows.map((item) => {
         const comparisonItem = comparison ? comparisonByPairingKey.get(getPairingKey(item, primary.start, groupBy)) : undefined;
-
-        return {
-            item,
-            comparisonItem,
-            point: {
-                label: getLabel(item),
-                shortLabel: getShortLabel?.(item),
-                values: {
-                    [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
-                    ...(!!comparison && {
-                        [CHART_SERIES_KEY.COMPARISON]: comparisonItem ? getAmount(comparisonItem) : 0,
-                    }),
-                },
+        const point: ChartDataPoint = {
+            label: StringUtils.normalize(getLabel(item)),
+            shortLabel: getShortLabel?.(item),
+            values: {
+                [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
+                ...(!!comparison && {[CHART_SERIES_KEY.COMPARISON]: comparisonItem ? getAmount(comparisonItem) : 0}),
             },
+            percentOfTotal: item.percentOfTotal,
         };
+
+        return {point, item, comparisonItem};
     });
 
-    return {series, rows};
+    const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
+
+    return {
+        series,
+        rows: rows.map((row, index) => {
+            let color;
+            if (pieColors) {
+                color = pieColors.at(index);
+                // Comparing tells the windows apart by color, so the per-group palette is only for a lone series.
+            } else if (view === CONST.SEARCH.VIEW.BAR && !comparison) {
+                color = primary.color ?? VictoryTheme.colors.getColor(index);
+            }
+
+            return {...row, color};
+        }),
+    };
 }
 
-export default buildChartSeries;
-export {CHART_SERIES_KEY};
-export type {BuildChartSeriesParams, ChartSeriesWindow, SearchChartDataRow, SearchChartModel};
+export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
+export type {BuildChartSeriesParams, ChartSeriesWindow, SearchChartModel};

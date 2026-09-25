@@ -79,7 +79,6 @@
 "../../src/components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AutoCompleteSuggestions/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/AutoSubmitModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/Avatar/primitives/AvatarLetter.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/AvatarCropModal/ImageCropView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarCropModal/Slider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AvatarSelector.tsx"	"no-restricted-syntax"	2
@@ -108,7 +107,6 @@
 "../../src/components/CountryPicker/CountrySelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/CountryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/createOnyxContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/CurrentUserPersonalDetailsProvider.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/DatePicker/CalendarPicker/MonthPickerModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/DatePicker/CalendarPicker/YearPickerModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/DatePicker/DatePickerModal.tsx"	"react-hooks/set-state-in-effect"	1
@@ -164,7 +162,6 @@
 "../../src/components/HTMLEngineProvider/HTMLRenderers/RBRRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/ShortMentionRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/TransactionHistoryLinkRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/HTMLEngineProvider/HTMLRenderers/UserDetailsRenderer.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/components/VictoryChartPie.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getSkiaLineMetrics.ts"	"rulesdir/no-raw-typography"	1
 "../../src/components/HTMLEngineProvider/index.tsx"	"no-restricted-syntax"	1
@@ -184,7 +181,6 @@
 "../../src/components/InitialURLContextProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
-"../../src/components/KYCWall/BaseKYCWall.tsx"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/components/LHNOptionsList/LHNEmptyState.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -200,11 +196,6 @@
 "../../src/components/Modal/Global/ModalContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
 "../../src/components/MoneyReportHeaderActions/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/MoneyReportHeaderActions/MoneyReportHeaderSecondaryActions.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyReportHeaderActions/MoneyReportHeaderSelectionDropdown.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyReportHeaderPrimaryAction/ReviewDuplicatesPrimaryAction.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyReportHeaderPrimaryAction/SubmitPrimaryAction.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyReportHeaderPrimaryAction/useConfirmApproval.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/MoneyRequestAmountInput.tsx"	"react-hooks/immutability"	2
 "../../src/components/MoneyRequestConfirmationList.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/MoneyRequestConfirmationList/ConfirmationFooterContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -218,10 +209,6 @@
 "../../src/components/MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationListFooter/sections/ReceiptSection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestHeader.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyRequestHeaderPrimaryAction.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyRequestHeaderSecondaryActions.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionList.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestViewReportFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MultifactorAuthentication/components/Modals/createCancelConfirmModal.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
@@ -270,11 +257,6 @@
 "../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"rulesdir/no-direct-personal-details-list"	3
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionButtonData.ts"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionDecision.ts"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewCarousel.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/components/ReportActionItem/MoneyRequestView.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -317,12 +299,10 @@
 "../../src/components/Search/SearchList/ListItem/TransactionGroupListExpanded.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TransactionGroupListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	18
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/components/Search/SearchList/ListItem/TransactionListItem/index.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemNarrow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemWide.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchList/ListItem/WithdrawalIDListItemHeader.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchPageHeader/SearchFilterBar.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/components/Search/SearchQueryProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/Search/SearchRouter/buildSubstitutionsMap.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/getAutocompleteSelectionSubstitutionKey.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/SearchRouter/getQueryWithSubstitutions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -361,9 +341,7 @@
 "../../src/components/Table/Table.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Table/TableContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Tables/WorkspaceCategoryRulesTable/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Tables/WorkspaceCompanyCardsTable/index.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/Tables/WorkspaceCompanyCardsTable/WorkspaceCompanyCardsTableRow.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Tables/WorkspaceListTable/LeaveWorkspaceFlow.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/TabSelector/getBackground.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TaxPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -930,7 +908,6 @@
 "../../src/pages/domain/Members/TwoFactorAuth/DomainMemberForceTwoFactorAuthPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Members/TwoFactorAuth/DomainMemberResetTwoFactorAuthPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/DynamicReportChangeApproverPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"rulesdir/no-direct-personal-details-list"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
@@ -1039,8 +1016,6 @@
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/iou/request/step/IOURequestStepConfirmation.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
-"../../src/pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow/index.ios.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/GPSButtons/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/index.native.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1108,7 +1083,6 @@
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReportSubmitToContent.tsx"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/pages/Search/SavedSearchRenamePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/Search/SearchAddApproverPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Search/SearchChangeApproverPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultiplePage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Search/SearchEditMultiple/SearchEditMultipleTagPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

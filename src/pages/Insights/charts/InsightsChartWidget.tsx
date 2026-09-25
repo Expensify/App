@@ -24,10 +24,10 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
+
+import InsightsDataTable from './InsightsDataTable';
 
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
@@ -42,11 +42,9 @@ type InsightsChartWidgetProps = {
 
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
-
-    containerStyles?: StyleProp<ViewStyle>;
 };
 
-function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, containerStyles}: InsightsChartWidgetProps) {
+function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -60,18 +58,14 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
         isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && previousPeriodData && windows
             ? {
                   data: previousPeriodData,
-                  current: {
-                      ...windows.current,
-                      color: chart.color ?? VictoryTheme.colors.default,
-                  },
-                  previous: {
-                      ...windows.previous,
-                      color: chart.comparisonColor ?? VictoryTheme.colors.defaultDot,
-                  },
+                  current: {...windows.current, color: chart.color ?? VictoryTheme.colors.default},
+                  previous: {...windows.previous, color: chart.comparisonColor ?? VictoryTheme.colors.defaultDot},
               }
             : undefined;
     // A pie shows one period at a time, so a compared pie is drawn as a bar chart instead.
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
+    const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
+    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     if (!queryJSON || !groupBy) {
         return null;
@@ -80,7 +74,6 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
     return (
         <WidgetContainer
             title={translate(chart.titleKey)}
-            containerStyles={containerStyles}
             titleRightContent={
                 state === INSIGHTS_CHART_STATE.READY ? (
                     <WidgetHeaderMenu
@@ -106,15 +99,29 @@ function InsightsChartWidget({dashboardID, hash, chart, filters, onRetry, contai
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={[shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3], view === CONST.SEARCH.VIEW.PIE && styles.pb6]}>
+                <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={data}
-                        isLoading={state === INSIGHTS_CHART_STATE.LOADING}
+                        isLoading={isLoading}
                         color={chart.color}
                         comparison={comparison}
+                        chartContainerStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        renderDetails={
+                            shouldShowTable
+                                ? ({rows, series}) => (
+                                      <InsightsDataTable
+                                          rows={rows}
+                                          series={series}
+                                          view={view}
+                                          groupBy={groupBy}
+                                          isLoading={isLoading}
+                                      />
+                                  )
+                                : undefined
+                        }
                     />
                 </View>
             )}

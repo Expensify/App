@@ -78,7 +78,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
-    Beta,
     BillingGraceEndPeriod,
     ExportTemplate,
     IntroSelected,
@@ -270,7 +269,6 @@ type HandleActionButtonPressParams = {
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -313,7 +311,6 @@ function handleActionButtonPress({
     consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -366,7 +363,6 @@ function handleActionButtonPress({
                 currentUserAccountID,
                 currentUserLogin,
                 introSelected,
-                betas,
                 isASAPSubmitBetaEnabled,
                 isSelfTourViewed,
                 activePolicy,
@@ -609,7 +605,6 @@ type GetPayActionCallbackParams = {
     currentUserAccountID?: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
-    betas?: OnyxEntry<Beta[]>;
     isASAPSubmitBetaEnabled: boolean;
     isSelfTourViewed?: boolean;
     activePolicy?: OnyxEntry<Policy>;
@@ -640,7 +635,6 @@ function getPayActionCallback({
     currentUserAccountID,
     currentUserLogin,
     introSelected,
-    betas,
     isASAPSubmitBetaEnabled,
     isSelfTourViewed,
     activePolicy,
@@ -695,7 +689,6 @@ function getPayActionCallback({
         activePolicy,
         policy: snapshotPolicy ?? policy,
         chatReportPolicy: chatReportPolicyForPayment,
-        betas,
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         userBillingGracePeriodEnds,
@@ -1178,6 +1171,27 @@ type InFlightSearchRequest = {
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
+// Search mounts only after the page's request has finished, so the map above no longer holds it.
+// One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
+let pageRequestedSearch: {hash: number; shouldCalculateTotals: boolean} | undefined;
+
+function markPageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    pageRequestedSearch = {hash, shouldCalculateTotals};
+}
+
+/** True once for the query the page just requested, and only if that request also asked for the totals wanted here. */
+function consumePageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    if (pageRequestedSearch?.hash !== hash || (shouldCalculateTotals && !pageRequestedSearch.shouldCalculateTotals)) {
+        return false;
+    }
+    pageRequestedSearch = undefined;
+    return true;
+}
+
+function clearPageRequestedSearch() {
+    pageRequestedSearch = undefined;
+}
+
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
@@ -1241,9 +1255,10 @@ function search({
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
-     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Tells the backend whether this query was submitted by the user, so it may be saved to the recent searches NVP.
      * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
-     * refreshes) must not evict the user's real recent searches.
+     * refreshes) must not evict the user's real recent searches. Always serialized, even when false, because the
+     * backend treats a missing flag as true for backwards compatibility with older clients.
      */
     shouldSaveRecentSearch?: boolean;
     /**
@@ -1300,7 +1315,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
+        shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
@@ -2578,5 +2593,8 @@ export {
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
+    markPageRequestedSearch,
+    consumePageRequestedSearch,
+    clearPageRequestedSearch,
 };
 export type {TransactionPreviewData};

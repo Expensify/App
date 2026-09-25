@@ -1,46 +1,48 @@
+import {BarChart, LineChart, PieChart} from '@components/Charts';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
-import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
-import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
+import {View} from 'react-native';
 
+import type {SearchChartModel} from './buildChartSeries';
 import type {ChartBucketRange} from './chartGroupByConfig';
-import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
-import buildChartSeries, {CHART_SERIES_KEY} from './buildChartSeries';
+import {buildChartSeries, CHART_SERIES_KEY} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
-import SearchBarChart from './SearchBarChart';
 import {useSearchQueryContext} from './SearchContext';
-import SearchLineChart from './SearchLineChart';
-import SearchPieChart from './SearchPieChart';
 
-/** How one of the compared windows is named, colored and bounded */
+/** How one of the compared periods is named, colored and bounded */
 type SearchChartWindow = {
     /** Name shown in the legend and the tooltip */
     label: string;
 
     color: string;
 
-    /** The dates the window covers, which a drill-down into one of its ranking bars narrows to */
+    /** The dates the period covers, which a drill-down into one of its ranking bars narrows to */
     range: ChartBucketRange;
 };
 
 type SearchChartComparison = {
-    /** The counterpart window's grouped rows, paired to the plotted ones */
+    /** The compared period's grouped rows, paired to the plotted ones */
     data: GroupedItem[];
 
-    /** The window `data` was plotted from */
+    /** The period `data` was plotted from */
     current: SearchChartWindow;
 
-    /** The window drawn beside it */
+    /** The period drawn beside it */
     previous: SearchChartWindow;
 };
 
@@ -61,53 +63,38 @@ type SearchChartViewProps = {
     /** Color every bar is drawn in. Only a bar chart reads it. */
     color?: string;
 
-    /** The window drawn beside `data` as a second series, left out when nothing is compared */
+    /** The period drawn beside `data` as a second series, left out when nothing is compared */
     comparison?: SearchChartComparison;
-};
 
-/**
- * Map of chart view types to their corresponding chart components.
- */
-const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChartProps>> = {
-    [CONST.SEARCH.VIEW.BAR]: SearchBarChart,
-    [CONST.SEARCH.VIEW.LINE]: SearchLineChart,
-    [CONST.SEARCH.VIEW.PIE]: SearchPieChart,
+    /** Renders the details of the plotted groups below the chart */
+    renderDetails?: (model: SearchChartModel) => React.ReactNode;
+
+    /** Style of the view around the chart, which the details below it don't share */
+    chartContainerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
  * Layer 3 component - dispatches to the appropriate chart type based on view parameter
  * and handles navigation/drill-down logic
  */
-function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comparison}: SearchChartViewProps) {
+function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comparison, renderDetails, chartContainerStyle}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getFilterQuery, getBucketRange} = CHART_GROUP_BY_CONFIG[groupBy];
-    const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
-    const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
-
-    const {series, rows} = buildChartSeries({
-        primary: {
-            rows: data,
-            label: comparison?.current.label,
-            color: comparison?.current.color ?? color,
-            start: comparison?.current.range.start,
-        },
-        comparison: comparison
-            ? {
-                  rows: comparison.data,
-                  label: comparison.previous.label,
-                  color: comparison.previous.color,
-                  start: comparison.previous.range.start,
-              }
-            : undefined,
+    const model = buildChartSeries({
+        primary: {rows: data, label: comparison?.current.label, color: comparison?.current.color ?? color, start: comparison?.current.range.start},
+        comparison: comparison ? {rows: comparison.data, label: comparison.previous.label, color: comparison.previous.color, start: comparison.previous.range.start} : undefined,
+        view,
         groupBy,
-        getLabel: (item) => StringUtils.normalize(getLabel(item)),
+        getLabel,
         getShortLabel,
-        getAmount,
+        getCurrencyDecimals,
     });
+    const {series, rows} = model;
+    const points = rows.map((row) => row.point);
 
     const handleItemPress = (index: number, seriesKey: string) => {
         const row = rows.at(index);
@@ -118,11 +105,9 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
         const isComparisonSeries = seriesKey === CHART_SERIES_KEY.COMPARISON;
         const pressedWindow = isComparisonSeries ? comparison?.previous : comparison?.current;
         const pressedItem = (isComparisonSeries ? row.comparisonItem : row.item) ?? row.item;
+        // A time bucket opens the dates it covers; a ranking group opens its own rows over the period its series plots.
         const dateRange = getBucketRange ? getBucketRange(pressedItem) : pressedWindow?.range;
-        const query = buildChartDrillDownQuery(queryJSON, {
-            groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem),
-            dateRange,
-        });
+        const query = buildChartDrillDownQuery(queryJSON, {groupFilter: getBucketRange ? undefined : getFilterQuery(pressedItem), dateRange});
 
         if (!query) {
             return;
@@ -139,15 +124,46 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, color, comp
     const unit = {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
+    const CHART_VIEW_TO_CHART: Record<ChartView, React.ReactNode> = {
+        [CONST.SEARCH.VIEW.BAR]: (
+            <BarChart
+                data={points}
+                series={series}
+                isLoading={isLoading}
+                onBarPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
+                yAxisUnit={unit}
+                yAxisUnitPosition={unitPosition}
+                color={color}
+            />
+        ),
+        [CONST.SEARCH.VIEW.LINE]: (
+            <LineChart
+                data={points}
+                series={series}
+                isLoading={isLoading}
+                onPointPress={(dataPoint, index, seriesKey) => handleItemPress(index, seriesKey)}
+                yAxisUnit={unit}
+                yAxisUnitPosition={unitPosition}
+            />
+        ),
+        [CONST.SEARCH.VIEW.PIE]: (
+            <PieChart
+                data={points}
+                series={series}
+                isLoading={isLoading}
+                onSlicePress={(dataPoint, index) => handleItemPress(index, CHART_SERIES_KEY.PRIMARY)}
+                valueUnit={unit.value}
+                valueUnitPosition={unitPosition}
+                shouldShowLegend={!renderDetails}
+            />
+        ),
+    };
+
     return (
-        <ChartComponent
-            data={rows.map((row) => row.point)}
-            series={series}
-            onItemPress={handleItemPress}
-            isLoading={isLoading}
-            unit={unit}
-            unitPosition={unitPosition}
-        />
+        <>
+            <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
+            {renderDetails?.(model)}
+        </>
     );
 }
 

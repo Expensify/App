@@ -1,4 +1,4 @@
-import type {ChartDataPoint, ChartSeries, UnitPosition, UnitWithFallback} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
@@ -454,23 +454,18 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
-type SearchChartProps = {
-    /** The points to plot, one per group, each holding one value per series */
-    data: ChartDataPoint[];
+type SearchChartDataRow = {
+    /** The point plotted on the chart */
+    point: ChartDataPoint;
 
-    /** The plotted series, primary first */
-    series: ChartSeries[];
+    /** The grouped search result the point was built from */
+    item: GroupedItem;
 
-    /** Callback when a chart item is pressed - receives the point's index and the series whose bar or point was pressed */
-    onItemPress?: (index: number, seriesKey: string) => void;
+    /** The compared window's row paired with `item`, absent unless a comparison is drawn */
+    comparisonItem?: GroupedItem;
 
-    isLoading?: boolean;
-
-    /** Currency unit with font fallback support */
-    unit?: UnitWithFallback;
-
-    /** Position of currency symbol relative to value */
-    unitPosition?: UnitPosition;
+    /** Palette color the chart assigns this group */
+    color?: string;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -539,6 +534,6 @@ export type {
     BankAccountMenuItem,
     SearchCustomColumnIds,
     GroupedItem,
-    SearchChartProps,
+    SearchChartDataRow,
     SearchFilterCommonProps,
 };
