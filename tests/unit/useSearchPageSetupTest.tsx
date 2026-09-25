@@ -17,7 +17,7 @@ const mockClearPageRequestedSearch = jest.fn<void, []>();
 let mockSearchResults: SearchResults | undefined;
 let mockIsOffline = false;
 let mockLastFocusCallback: (() => void) | undefined;
-// useFocusEffect cleanups run on blur. Holding them lets a test blur the page instead of only focusing it.
+// Held so a test can blur the page, not only focus it.
 let mockFocusCleanups: Array<() => void> = [];
 // Mutable so a test can move a real effect dependency and force the effect to run again.
 let mockSearchKey: SearchKey | undefined;
@@ -86,9 +86,8 @@ function buildErroredSnapshot(hash: number): SearchResults {
 }
 
 /**
- * Cached data with a first-page request still in flight, which is what a reload during a pending
- * request leaves behind. This is the one state that reaches the token guard: the effect's earlier
- * return only fires when data is loaded and nothing is pending.
+ * Cached data with a request still in flight, as a reload during one leaves behind. With data simply
+ * loaded the effect returns earlier and never reaches the token guard.
  */
 function buildLoadedButPendingSnapshot(hash: number): SearchResults {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -128,20 +127,19 @@ describe('useSearchPageSetup', () => {
         // Given a query with no snapshot yet, so this page owns the first request
         renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
 
-        // Then it leaves a token, so the Search mount behind the skeleton does not repeat that request
+        // Then it leaves a token, so the mount behind the skeleton does not repeat the request
         expect(mockMarkPageRequestedSearch).toHaveBeenCalledTimes(1);
         expect(mockMarkPageRequestedSearch).toHaveBeenCalledWith(queryJSON?.hash, false);
     });
 
     it('does not claim the first page when data is already on screen', () => {
-        // Given cached data with a first-page request still in flight, so the page restarts it but Search is already mounted
+        // Given cached data with a request still in flight, so Search is mounted while the page restarts it
         mockSearchResults = buildLoadedButPendingSnapshot(queryJSON?.hash ?? 0);
 
         // When the page sets up
         renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
 
-        // Then it requests the page but leaves no token: nothing is waiting behind a skeleton to read it,
-        // and a token left here would silence the next revisit instead
+        // Then it requests the page but leaves no token, which would only silence the next revisit
         expect(mockSearch).toHaveBeenCalledTimes(1);
         expect(mockMarkPageRequestedSearch).not.toHaveBeenCalled();
     });
@@ -156,7 +154,7 @@ describe('useSearchPageSetup', () => {
             cleanup();
         }
 
-        // Then the claim is dropped, so a response that lands while the user is away cannot silence the refresh on return
+        // Then the claim is dropped, so a response landing while away cannot silence the refresh on return
         expect(mockClearPageRequestedSearch).toHaveBeenCalledTimes(1);
     });
 
