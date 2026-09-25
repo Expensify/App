@@ -3094,13 +3094,14 @@ function filterAndOrderOptions<T extends SearchOptionData>(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     config: FilterAndOrderConfig,
     rules: OnyxCollection<Rule>,
+    activePolicyID: OnyxEntry<string>,
 ): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
         filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, rules);
     }
 
-    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, deprecatedActivePolicyID, config);
+    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, activePolicyID, config);
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
     const uniqueLogins = new Set<string>();
