@@ -592,7 +592,6 @@
 "../../src/libs/actions/Policy/Member.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-deprecated/ReportUtils.getReportTransactions"	1
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/actions/Policy/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../src/libs/actions/Policy/Policy.ts"	"no-restricted-imports"	2
@@ -609,7 +608,7 @@
 "../../src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/ReimbursementAccount/resetUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/replaceOptimisticReportWithActualReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	3
+"../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/reportAction.originalMessage"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	7
