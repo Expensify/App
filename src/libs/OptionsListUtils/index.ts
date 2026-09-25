@@ -143,10 +143,10 @@ Onyx.connect({
     },
 });
 
-let activePolicyID: OnyxEntry<string>;
+let deprecatedActivePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyID = value),
+    callback: (value) => (deprecatedActivePolicyID = value),
 });
 
 /**
@@ -1622,6 +1622,7 @@ function orderReportOptionsWithSearch(
     options: SearchOptionData[],
     searchValue: string,
     {preferChatRoomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
+    activePolicyID: OnyxEntry<string> = deprecatedActivePolicyID,
 ) {
     const orderedByDate = orderReportOptions(options);
 
@@ -1670,12 +1671,12 @@ function orderReportOptionsWithSearch(
 function orderWorkspaceOptions(options: SearchOptionData[]): SearchOptionData[] {
     return options.sort((a, b) => {
         // Check if `a` is the default workspace
-        if (a.isPolicyExpenseChat && a.policyID === activePolicyID) {
+        if (a.isPolicyExpenseChat && a.policyID === deprecatedActivePolicyID) {
             return -1;
         }
 
         // Check if `b` is the default workspace
-        if (b.isPolicyExpenseChat && b.policyID === activePolicyID) {
+        if (b.isPolicyExpenseChat && b.policyID === deprecatedActivePolicyID) {
             return 1;
         }
 
@@ -3055,6 +3056,7 @@ type FilterAndOrderConfig = FilterUserToInviteConfig & AllOrderConfigs;
 function combineOrderingOfReportsAndPersonalDetails<T extends SearchOptionData>(
     options: ReportAndPersonalDetailOptions<T>,
     searchInputValue: string,
+    activePolicyID: OnyxEntry<string>,
     {maxRecentReportsToShow, sortByReportTypeInSearch, ...orderReportOptionsConfig}: AllOrderConfigs = {},
 ): ReportAndPersonalDetailOptions<T> {
     // sortByReportTypeInSearch will show the personal details as part of the recent reports
@@ -3098,7 +3100,7 @@ function filterAndOrderOptions<T extends SearchOptionData>(
         filterResult = filterOptions(options, searchInputValue, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, config, rules);
     }
 
-    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
+    const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, deprecatedActivePolicyID, config);
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
     const uniqueLogins = new Set<string>();
