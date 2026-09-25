@@ -25,7 +25,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
-    Beta,
     GuideAccountIDsDerivedValue,
     IntroSelected,
     OnyxInputOrEntry,
@@ -9262,6 +9261,8 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
 /**
  * Builds the report action for a change of approver. Pass isReassignment when the new approver replaces the
  * report's current one instead of being added to the workflow, so the message names the skipped approver.
+ * Pass isFinalApprover when the new approver bypasses the remaining approvers in the chain, so the message
+ * calls them the final approver.
  */
 function buildOptimisticChangeApproverReportAction(
     managerID: number,
@@ -9269,11 +9270,12 @@ function buildOptimisticChangeApproverReportAction(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isReassignment = false,
     previousApproverID?: number,
+    isFinalApprover?: boolean,
 ): OptimisticChangedApproverReportAction {
     const created = DateUtils.getDBTime();
     const newApproverName = getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber});
-    let text = `changed the approver to ${newApproverName}`;
-    let html = `changed the approver to <mention-user accountID="${managerID}"/>`;
+    let text = `changed the ${isFinalApprover ? 'final ' : ''}approver to ${newApproverName}`;
+    let html = `changed the ${isFinalApprover ? 'final ' : ''}approver to <mention-user accountID="${managerID}"/>`;
     if (isReassignment && previousApproverID) {
         text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
         html += `, skipped <mention-user accountID="${previousApproverID}"/>`;
@@ -9304,6 +9306,7 @@ function buildOptimisticChangeApproverReportAction(
         originalMessage: {
             lastModified: created,
             mentionedAccountIDs,
+            isFinalApprover,
             ...(isReassignment ? {isReassignment: true, previousApproverID} : {}),
         },
         shouldShow: false,
@@ -10881,7 +10884,6 @@ function getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    betas: OnyxEntry<Beta[]>,
     rules: OnyxCollection<Rule>,
     filterDeprecatedTypes = false,
     isReportArchived = false,
@@ -10986,13 +10988,12 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
-    betas: OnyxEntry<Beta[]>,
     rules: OnyxCollection<Rule>,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
     currentUserAccountID?: number,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, betas, rules, true, isReportArchived, isRestrictedToPreferredPolicy, currentUserAccountID) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, rules, true, isReportArchived, isRestrictedToPreferredPolicy, currentUserAccountID) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -11249,7 +11250,6 @@ function canCreateRequest(
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     isReportArchived: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
     rules: OnyxCollection<Rule>,
     isRestrictedToPreferredPolicy = false,
 ): boolean {
@@ -11259,7 +11259,7 @@ function canCreateRequest(
         return false;
     }
 
-    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, betas, rules, false, isReportArchived, isRestrictedToPreferredPolicy);
+    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, rules, false, isReportArchived, isRestrictedToPreferredPolicy);
     requestOptions.push(CONST.IOU.TYPE.CREATE);
 
     return requestOptions.includes(iouType);

@@ -87,7 +87,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
     });
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionThreadParentReport?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: isTrackIntentUserSelector,
     });
@@ -141,7 +140,6 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
                 introSelected,
                 currentUserLogin: currentUserEmailParam,
                 currentUserAccountID: currentUserAccountIDParam,
-                betas,
                 iouReport: targetTransactionReport,
                 iouReportAction: targetIOUAction,
                 transaction: targetTransaction,
