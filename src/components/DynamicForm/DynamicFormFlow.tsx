@@ -26,6 +26,7 @@ import type {DynamicFormPage as DynamicFormPageSchema} from './groupFieldsIntoPa
 import type {DynamicFormValues} from './types';
 
 import {summarizeItem} from './adapters/ListFieldAdapter';
+import carriedAnswersByForm from './carriedAnswersByForm';
 import DynamicFormPage from './DynamicFormPage';
 import DynamicFormShell from './DynamicFormShell';
 import formatDynamicFieldValue from './formatDynamicFieldValue';
@@ -71,9 +72,6 @@ type DynamicFormFlowProps = {
 function EmptyPage() {
     return null;
 }
-
-/** Each sub page is a separate route mount, so answers kept out of the draft live here for the length of one visit to the flow */
-const carriedAnswersByForm = new Map<string, DynamicFormValues>();
 
 function isCarriedOutsideDraft(field: DynamicFormField): boolean {
     return !!field.sensitive;
