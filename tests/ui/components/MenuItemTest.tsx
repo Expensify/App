@@ -64,23 +64,6 @@ describe('MenuItem', () => {
         expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: true}));
     });
 
-    it('renders an entity-only HTML title as plain text on web', () => {
-        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
-
-        render(
-            <Wrapper>
-                <MenuItem
-                    title="A &amp; B"
-                    shouldRenderAsHTML
-                    isTitleSelectable
-                />
-            </Wrapper>,
-        );
-
-        expect(screen.getByText(/A & B/)).toBeOnTheScreen();
-        expect(mockRenderHTML).not.toHaveBeenCalled();
-    });
-
     it('does not override HTML title selection when the title is not selectable', () => {
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
 

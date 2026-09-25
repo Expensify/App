@@ -688,7 +688,7 @@ function MenuItem({
         return Parser.replace(helperText, {shouldEscapeText});
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
-    const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && /<[^>]+>/.test(title);
+    const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
     const shouldOverrideHTMLTitleSelection = isTitleSelectable && getPlatform() === CONST.PLATFORM.WEB;
 
     const processedTitle = useMemo(() => {
