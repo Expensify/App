@@ -1831,6 +1831,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink) =>
                 `Elige una opción para cambiar el aprobador de este informe. (Actualiza la <a href="${workflowSettingLink}">configuración del espacio de trabajo</a> para cambiarlo de forma permanente en todos los informes.)`,
             changedApproverMessage: (managerID) => `cambió el aprobador a <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID) => `cambió el aprobador final a <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID) => `reasignó el aprobador a <mention-user accountID="${managerID}"/> mediante una actualización de flujo de trabajo`,
             reassignedApprovalMessage: (newApproverID, previousApproverID) =>
                 previousApproverID
@@ -9674,6 +9675,12 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
             reportField: (name, value) => `${name} es ${value}`,
+            describeSearch: {
+                title: 'Describe tu búsqueda',
+                inputLabel: 'Tu búsqueda',
+                description: 'Utiliza un inglés sencillo para describir lo que buscas, como "comidas de más de 50 $ el mes pasado".',
+                buttonText: 'Aplicar',
+            },
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
             created: 'Creado',
             createdDate: 'Fecha de creación',

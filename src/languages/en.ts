@@ -1932,6 +1932,7 @@ const translations = {
             header: (workflowSettingLink: string) =>
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
+            changedFinalApproverMessage: (managerID: number) => `changed the final approver to <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
@@ -10014,6 +10015,12 @@ const translations = {
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approve',
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Pay',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Export',
+            },
+            describeSearch: {
+                title: 'Describe your search',
+                inputLabel: 'Your search',
+                description: 'Use plain English to describe what you\'re looking for, like "meals over $50 last month."',
+                buttonText: 'Apply',
             },
             filterType: {
                 label: 'Filter type',
