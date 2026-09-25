@@ -192,7 +192,7 @@ If you’re not sure where to go:
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
 1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains** or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
