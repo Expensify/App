@@ -403,7 +403,20 @@ describe('useReportActionsScroll', () => {
                 result.current.scrollToActionBadgeTarget();
             });
 
-            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+
+        it('requests an animated scroll so native matches web instead of jumping instantly', async () => {
+            // Given a valid action badge target.
+            const {result} = await renderScroll({actionBadgeTargetIndex: 3});
+
+            // When the list follows the badge to its next target.
+            act(() => {
+                result.current.scrollToActionBadgeTarget();
+            });
+
+            // Then the scroll is explicitly animated, because native would otherwise jump instantly.
+            expect(mockScrollToIndex).toHaveBeenCalledWith(3, expect.objectContaining({animated: true}));
         });
     });
 
