@@ -64,8 +64,8 @@ type Props = {
     isUnreportedManagedCardTransaction?: boolean;
     /** Whether the expenses being moved belong to more than one submitter */
     hasMultipleSubmitters?: boolean;
-    /** Whether every expense being moved sits on a managed card, which "Auto report" needs to resolve a destination */
-    areAllManagedCardTransactions?: boolean;
+    /** Whether every expense being moved sits on a card this user can resolve, which "Auto report" requires */
+    areAllManagedCardsResolvable?: boolean;
     /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
     autoReport?: () => void;
 };
@@ -90,7 +90,7 @@ function IOURequestEditReportCommon({
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
     hasMultipleSubmitters = false,
-    areAllManagedCardTransactions = false,
+    areAllManagedCardsResolvable = false,
     autoReport,
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
@@ -373,9 +373,9 @@ function IOURequestEditReportCommon({
             return undefined;
         }
 
-        // The backend resolves each destination through the expense's card, so an expense without one fails the whole
-        // request with "404 Card not found".
-        if (!areAllManagedCardTransactions) {
+        // A card this user cannot resolve, because it is missing or on a feed they do not administer, fails the
+        // whole move.
+        if (!areAllManagedCardsResolvable) {
             return undefined;
         }
 
@@ -396,7 +396,7 @@ function IOURequestEditReportCommon({
         );
     }, [
         icons.DocumentMagicWand,
-        areAllManagedCardTransactions,
+        areAllManagedCardsResolvable,
         autoReport,
         handleAutoReport,
         hasMultipleSubmitters,
