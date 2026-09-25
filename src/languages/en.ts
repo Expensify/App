@@ -7983,6 +7983,9 @@ const translations = {
                 CA: 'Canada',
                 GB: 'Great Britain',
                 AU: 'Australia',
+                NO: 'Norway',
+                SE: 'Sweden',
+                ZA: 'South Africa',
             },
             errors: {
                 rateNameRequired: 'Rate name is required',
