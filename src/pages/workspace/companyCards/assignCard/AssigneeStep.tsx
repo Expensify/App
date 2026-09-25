@@ -24,7 +24,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {
+    canMemberWrite,
+    filterGuideAndAccountManager,
+    getGuideAndAccountManagerInfo,
+    getIneligibleInvitees,
+    isDeletedPolicyEmployee,
+    isExpensifyTeam,
+    shouldFilterExpensifyTeam,
+} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
@@ -214,8 +222,16 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
+        // Expensify staff (guides, support) are hidden from the Workspace Members page, so they must not be offered as
+        // cardholders either. The already-assigned cardholder stays visible so editing an assignment doesn't blank out.
+        const shouldFilterExpensifyStaff = shouldFilterExpensifyTeam(policy?.owner, session?.email);
+
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+                continue;
+            }
+
+            if (shouldFilterExpensifyStaff && email !== initialAssigneeEmail && isExpensifyTeam(email)) {
                 continue;
             }
 
