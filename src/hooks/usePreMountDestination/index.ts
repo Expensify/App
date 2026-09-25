@@ -1,4 +1,3 @@
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -21,12 +20,14 @@ type TransitionCancelHandle = {
 /**
  * Pre-mounts a fullscreen destination behind an open RHP so modal dismissal reveals an already-rendered screen.
  *
- * Use this for RHP-to-fullscreen flows where the destination route is known at mount time. For flows that
- * start on narrow layout, pre-insert is scheduled after the RHP open transition. Without pre-mounting,
- * dismiss creates a visible gap (narrow) or flashes the previous page (wide) while React mounts the destination tree.
+ * Use this for RHP-to-fullscreen flows where the destination route is known at mount time. The pre-insert is scheduled
+ * after the RHP open transition; narrow layout inserts the route under the RHP, wide layout pre-mounts it under the
+ * current fullscreen (see Navigation.preInsertFullscreenUnderRHP).
+ * Without pre-mounting, dismiss creates a visible gap (narrow) or flashes the previous page (wide) while React mounts
+ * the destination tree.
  */
 function usePreMountDestination(route: Route | undefined, options?: UsePreMountDestinationOptions): UsePreMountDestinationResult {
-    const {narrowDestinationStrategy = CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT, shouldPreservePreInsertedRouteOnUnmount} = options ?? {};
+    const {destinationStrategy = CONST.DESTINATION_STRATEGY.PRE_INSERT, shouldPreservePreInsertedRouteOnUnmount} = options ?? {};
 
     const preInsertTaskRef = useRef<IdleTask | undefined>(undefined);
     const transitionCancelHandleRef = useRef<TransitionCancelHandle | undefined>(undefined);
@@ -72,8 +73,14 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         cancelPreInsert();
 
         if (route && preInsertedRouteRef.current === route && Navigation.getIsFullscreenPreInsertedUnderRHP()) {
-            Navigation.clearFullscreenPreInsertedFlag();
             preInsertedRouteRef.current = undefined;
+            // Only wide layout records a pre-mounted route key (see Navigation.preInsertFullscreenUnderRHP). There the destination
+            // already sits under the current fullscreen, so reveal drops the current one instead of inserting anything.
+            if (Navigation.getPreMountedFullscreenRouteKey(route)) {
+                Navigation.revealRouteBeforeDismissingModal(route, {afterTransition});
+                return;
+            }
+            Navigation.clearFullscreenPreInsertedFlag();
             Navigation.dismissModal({afterTransition});
             return;
         }
@@ -123,7 +130,7 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
     }, [route]);
 
     useEffect(() => {
-        if (route && narrowDestinationStrategy === CONST.NARROW_DESTINATION_STRATEGY.PRE_INSERT && getIsNarrowLayout() && preInsertedRouteRef.current !== route) {
+        if (route && destinationStrategy === CONST.DESTINATION_STRATEGY.PRE_INSERT && preInsertedRouteRef.current !== route) {
             transitionCancelHandleRef.current = TransitionTracker.runAfterTransitions({
                 callback: () => {
                     preInsertTaskRef.current = Scheduler.scheduleWhenIdle(() => runPreInsert(route));
@@ -136,7 +143,7 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         return () => {
             cancelPreInsert();
         };
-    }, [route, narrowDestinationStrategy]);
+    }, [route, destinationStrategy]);
 
     return {
         reveal: revealDestination,

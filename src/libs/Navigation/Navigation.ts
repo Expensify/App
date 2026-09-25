@@ -35,7 +35,7 @@ import Onyx from 'react-native-onyx';
 import type {LinkToOptions} from './helpers/linkTo/types';
 import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RightModalNavigatorParamList, State} from './types';
 
-import {getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {getFocusedRouteFromNavigatorState, getPreInsertedOriginalTabRoute, getTabStateWithFreshTarget} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
@@ -56,11 +56,16 @@ import {
     captureBufferTransaction,
     clearFullscreenPreInsertedFlag,
     getIsFullscreenPreInsertedUnderRHP,
+    getIsRevealingPreMountedFullscreen,
     getPreInsertedFullscreenRouteName,
+    getPreMountedFullscreenRouteKey,
     markFullscreenPreInsertedUnderRHP,
     recoverFromPreMountBuffer,
     removePreInsertedFullscreenIfNeeded,
+    setIsRevealingPreMountedFullscreen,
+    takePreMountedFullscreenForReveal,
 } from './helpers/preMountBuffer';
+import {createPreMountedUnderCurrentFullscreenRouteKey} from './helpers/preMountedUnderCurrentFullscreenRouteKey';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {linkingConfig} from './linkingConfig';
@@ -1203,20 +1208,76 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
         return;
     }
 
+    const preMountedRouteKey = takePreMountedFullscreenForReveal(route);
+    // Revealing ends with the dismiss transition, or a later Search focus would skip its overlay and re-arm.
+    const afterTransition =
+        options?.afterTransition || preMountedRouteKey
+            ? () => {
+                  setIsRevealingPreMountedFullscreen(false);
+                  options?.afterTransition?.();
+              }
+            : undefined;
+
     requestAnimationFrame(() => {
         navigationRef.current?.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-            payload: {route},
+            payload: {route, preMountedRouteKey},
         });
+        removeUnconsumedPreMount(preMountedRouteKey);
         // Nested rAF: the first frame commits the route insertion, the second
         // frame starts the dismiss. This ensures React processes the two dispatches
         // in separate renders so the dismiss animation is preserved. On narrow,
         // wait for the hidden destination transition first so the RHP slides out
         // over the final page instead of briefly revealing the previous page.
         requestAnimationFrame(() => {
-            dismissModal({afterTransition: options?.afterTransition, waitForTransition: getIsNarrowLayout()});
+            dismissModal({afterTransition, waitForTransition: getIsNarrowLayout()});
         });
     });
+}
+
+/** Drops a wide pre-mount the REPLACE did not reveal (e.g. it bailed out), or it would stay mounted and out of history. */
+function removeUnconsumedPreMount(preMountedRouteKey: string | undefined) {
+    if (!preMountedRouteKey || !navigationRef.current) {
+        return;
+    }
+    const routes = navigationRef.current.getRootState().routes;
+    const preMountedIndex = routes.findIndex((r) => r.key === preMountedRouteKey);
+    if (preMountedIndex < 0 || preMountedIndex === routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR)) {
+        return;
+    }
+    Log.hmmm('[Navigation] REPLACE did not reveal the wide pre-mount, removing it', {preMountedRouteKey});
+    navigationRef.current.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP, payload: {expectedRouteName: '', preMountedRouteKey}});
+}
+
+/**
+ * Wide layout counterpart of the narrow pre-insert. The destination is visible next to the RHP on wide, so it cannot go
+ * under the RHP; instead it is mounted as a second TAB_NAVIGATOR directly under the current one, where the root stack
+ * keeps it laid out and painted. revealRouteBeforeDismissingModal later drops the current instance via REPLACE.
+ */
+function preMountFullscreenOnWide(route: Route, outermostFullScreen: NavigationPartialRoute | undefined, targetRouteName: string | undefined) {
+    // Only TAB_NAVIGATOR is a persistent root screen, so only it stays mounted and painted while covered.
+    if (outermostFullScreen?.name !== NAVIGATORS.TAB_NAVIGATOR || !navigationRef.current) {
+        return;
+    }
+
+    const focusedTargetTab = getFocusedRouteFromNavigatorState(outermostFullScreen.state);
+    // Copy the other tabs and tab history from the visible navigator, which the reveal drops, so they survive it.
+    const currentTabState = navigationRef.current.getRootState().routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR)?.state;
+    const freshTabState = focusedTargetTab && getTabStateWithFreshTarget(currentTabState, focusedTargetTab);
+    if (!freshTabState) {
+        return;
+    }
+    // An empty key lets rehydration give the pre-mounted navigator its own key instead of the visible one's.
+    const tabState = {...freshTabState, key: ''};
+
+    const preMountedRouteKey = createPreMountedUnderCurrentFullscreenRouteKey();
+    navigationRef.current.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN, payload: {routeKey: preMountedRouteKey, tabState}});
+    if (!navigationRef.current.getRootState().routes.some((r) => r.key === preMountedRouteKey)) {
+        Log.hmmm(`[Navigation] preMountFullscreenOnWide insert dispatch was ignored`, {targetRouteName});
+        return;
+    }
+
+    markFullscreenPreInsertedUnderRHP(targetRouteName, {routeKey: preMountedRouteKey, route});
 }
 
 /**
@@ -1230,10 +1291,6 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
  * the user is still filling in details.
  */
 function preInsertFullscreenUnderRHP(route: Route) {
-    if (!getIsNarrowLayout()) {
-        return;
-    }
-
     if (getIsFullscreenPreInsertedUnderRHP()) {
         return;
     }
@@ -1248,6 +1305,11 @@ function preInsertFullscreenUnderRHP(route: Route) {
     // Use the active inner tab name (e.g. REPORTS_SPLIT_NAVIGATOR) when the outermost
     // fullscreen is a TAB_NAVIGATOR wrapper, so callers comparing against specific tab names match.
     const targetRouteName = getActiveTabName(outermostFullScreen);
+
+    if (!getIsNarrowLayout()) {
+        preMountFullscreenOnWide(route, outermostFullScreen, targetRouteName);
+        return;
+    }
 
     const stateBefore = navigationRef.current.getRootState();
     const routeCountBefore = stateBefore.routes.length;
@@ -1336,6 +1398,8 @@ export default {
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
     revealRouteBeforeDismissingModal,
+    getPreMountedFullscreenRouteKey,
+    getIsRevealingPreMountedFullscreen,
     preInsertFullscreenUnderRHP,
     getIsFullscreenPreInsertedUnderRHP,
     getPreInsertedFullscreenRouteName,

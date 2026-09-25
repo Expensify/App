@@ -80,7 +80,8 @@ function submitWithDismissFirst({
         return;
     }
 
-    if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+    // A wide pre-mount is only shown by a reveal, so it goes through the destination branch below instead of a plain dismiss.
+    if (Navigation.getIsFullscreenPreInsertedUnderRHP() && !Navigation.getPreMountedFullscreenRouteKey()) {
         Navigation.clearFullscreenPreInsertedFlag();
         startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         Navigation.dismissModal({

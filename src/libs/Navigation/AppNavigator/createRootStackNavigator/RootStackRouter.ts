@@ -16,6 +16,7 @@ import {CommonActions, StackRouter} from '@react-navigation/native';
 import type {
     DismissModalActionType,
     PreloadActionType,
+    PreMountUnderCurrentFullscreenActionType,
     PushActionType,
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
@@ -30,6 +31,7 @@ import type {
 import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
+    handlePreMountUnderCurrentFullscreen,
     handlePushFullscreenAction,
     handleRemoveFullscreenUnderRHP,
     handleReplaceFullscreenUnderRHP,
@@ -59,6 +61,10 @@ function isReplaceFullscreenUnderRHPAction(action: RootStackNavigatorAction): ac
 
 function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is RemoveFullscreenUnderRHPActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
+}
+
+function isPreMountUnderCurrentFullscreenAction(action: RootStackNavigatorAction): action is PreMountUnderCurrentFullscreenActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN;
 }
 
 function isToggleSidePanelWithHistoryAction(action: RootStackNavigatorAction): action is ToggleSidePanelWithHistoryActionType {
@@ -224,6 +230,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isRemoveFullscreenUnderRHPAction(action)) {
                 return handleRemoveFullscreenUnderRHP(state, action, configOptions, stackRouter);
+            }
+
+            if (isPreMountUnderCurrentFullscreenAction(action)) {
+                return handlePreMountUnderCurrentFullscreen(state, action, configOptions, stackRouter);
             }
 
             if (isReplaceAction(action) && (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || getTabScreenParam(action.payload) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {

@@ -355,7 +355,7 @@ const CONST = {
     /**
      * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
      */
-    NARROW_DESTINATION_STRATEGY: {
+    DESTINATION_STRATEGY: {
         /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
         PRE_INSERT: 'preInsert',
 
@@ -6804,6 +6804,7 @@ const CONST = {
             DISMISS_MODAL: 'DISMISS_MODAL',
             REPLACE_FULLSCREEN_UNDER_RHP: 'REPLACE_FULLSCREEN_UNDER_RHP',
             REMOVE_FULLSCREEN_UNDER_RHP: 'REMOVE_FULLSCREEN_UNDER_RHP',
+            PRE_MOUNT_UNDER_CURRENT_FULLSCREEN: 'PRE_MOUNT_UNDER_CURRENT_FULLSCREEN',
             PUSH_PARAMS: 'PUSH_PARAMS',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
             TOGGLE_SIDE_PANEL_WITH_HISTORY: 'TOGGLE_SIDE_PANEL_WITH_HISTORY',

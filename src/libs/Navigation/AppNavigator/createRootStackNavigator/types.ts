@@ -1,7 +1,7 @@
 import type CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
-import type {CommonActions, StackActionType, StackRouterOptions} from '@react-navigation/native';
+import type {CommonActions, NavigationState, PartialState, StackActionType, StackRouterOptions} from '@react-navigation/native';
 
 type RootStackNavigatorActionType =
     | {
@@ -28,11 +28,15 @@ type RootStackNavigatorActionType =
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-          payload: {route: Route; shouldInsertPreMountBuffer?: boolean};
+          payload: {route: Route; shouldInsertPreMountBuffer?: boolean; preMountedRouteKey?: string};
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
-          payload: {expectedRouteName: string};
+          payload: {expectedRouteName: string; preMountedRouteKey?: string};
+      }
+    | {
+          type: typeof CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN;
+          payload: {routeKey: string; tabState: PartialState<NavigationState> | NavigationState};
       }
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
@@ -69,12 +73,17 @@ type DismissModalActionType = RootStackNavigatorActionType & {
 
 type ReplaceFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
-    payload: {route: Route; shouldInsertPreMountBuffer?: boolean};
+    payload: {route: Route; shouldInsertPreMountBuffer?: boolean; preMountedRouteKey?: string};
 };
 
 type RemoveFullscreenUnderRHPActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
-    payload: {expectedRouteName: string};
+    payload: {expectedRouteName: string; preMountedRouteKey?: string};
+};
+
+type PreMountUnderCurrentFullscreenActionType = RootStackNavigatorActionType & {
+    type: typeof CONST.NAVIGATION.ACTION_TYPE.PRE_MOUNT_UNDER_CURRENT_FULLSCREEN;
+    payload: {routeKey: string; tabState: PartialState<NavigationState> | NavigationState};
 };
 
 type RootStackNavigatorRouterOptions = StackRouterOptions;
@@ -88,6 +97,7 @@ export type {
     PreloadActionType,
     ReplaceFullscreenUnderRHPActionType,
     RemoveFullscreenUnderRHPActionType,
+    PreMountUnderCurrentFullscreenActionType,
     RootStackNavigatorAction,
     RootStackNavigatorRouterOptions,
     ToggleSidePanelWithHistoryActionType,

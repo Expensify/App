@@ -1,3 +1,4 @@
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
@@ -5,6 +6,7 @@ import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavig
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
 import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
+import {clearPreMountedUnderCurrentFullscreenRouteKey, setPreMountedUnderCurrentFullscreenRouteKey} from '@libs/Navigation/helpers/preMountedUnderCurrentFullscreenRouteKey';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isRecord} from '@libs/ObjectUtils';
@@ -19,6 +21,7 @@ import type {ParamListBase, Router} from '@react-navigation/routers';
 import {StackActions} from '@react-navigation/native';
 
 import type {
+    PreMountUnderCurrentFullscreenActionType,
     PushActionType,
     RemoveFullscreenUnderRHPActionType,
     ReplaceActionType,
@@ -122,7 +125,7 @@ type TabRouteForReplacement = NavigationState['routes'][number] | NavigationPart
 type TabStateForReplacement = Omit<NavigationState, 'routes' | 'stale'> & {routes: TabRouteForReplacement[]; stale?: true | false};
 type StaleTabStateOverrides = {routes: TabRouteForReplacement[]; index: number; routeNames?: string[]};
 
-function toStaleTabState(existingTabState: NavigationState | undefined, overrides: StaleTabStateOverrides): TabStateForReplacement {
+function toStaleTabState(existingTabState: NavigationState | PartialState<NavigationState> | undefined, overrides: StaleTabStateOverrides): TabStateForReplacement {
     return {
         type: existingTabState?.type ?? 'tab',
         key: existingTabState?.key ?? '',
@@ -353,6 +356,14 @@ function getTabStateWithFocusedTarget(existingTabState: NavigationState | undefi
         }
     }
 
+    return getTabStateWithFreshTarget(existingTabState, focusedTargetTab);
+}
+
+/** Builds the target tab with fresh keys, keeping the other tabs and tab history from `existingTabState`. */
+function getTabStateWithFreshTarget(
+    existingTabState: NavigationState | PartialState<NavigationState> | undefined,
+    focusedTargetTab: NavigationPartialRoute,
+): TabStateForReplacement | undefined {
     const completeTabState = buildTabNavigatorNestedState(focusedTargetTab);
     const completeTargetTabIndex = completeTabState.routes.findIndex((route) => route.name === focusedTargetTab.name);
     if (completeTargetTabIndex < 0) {
@@ -530,11 +541,29 @@ function handleReplaceFullscreenUnderRHP(
         if (!focusedTargetTab) {
             return null;
         }
+
+        // Wide layout pre-mounted the destination as a second TAB_NAVIGATOR directly under the current one, so the reveal
+        // drops the current instance and lets the mounted one show with its screens' identity intact.
+        const preMountedIndex = action.payload.preMountedRouteKey ? routesWithoutRHP.findIndex((r) => r.key === action.payload.preMountedRouteKey) : -1;
+        // From here the pre-mount is revealed or already visible, so history must include it again.
+        if (action.payload.preMountedRouteKey) {
+            clearPreMountedUnderCurrentFullscreenRouteKey();
+            if (preMountedIndex < 0) {
+                Log.hmmm('[Navigation] Wide pre-mount missing on reveal, falling back to the tab replace', {preMountedRouteKey: action.payload.preMountedRouteKey});
+            }
+        }
+        if (preMountedIndex >= 0 && preMountedIndex < tabNavIndex) {
+            const newRoutes = [...routesWithoutRHP.filter((_, index) => index !== tabNavIndex), rhpRoute];
+            return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
+        }
+
         const updatedTabState = getTabStateWithFocusedTarget(existingTabState, focusedTargetTab);
         if (!updatedTabState) {
             return null;
         }
-        const staleTabState = existingTabState ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : updatedTabState;
+        // The remount guards against a push-transition flash on narrow layout (#90985). Wide layout renders split screens
+        // without a push animation, so keeping the key there avoids remounting the whole split navigator with its sidebar.
+        const staleTabState = existingTabState && getIsNarrowLayout() ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : updatedTabState;
 
         // Drop consumed deep-link hints before remounting, or React Navigation can replay the old target over the new state.
         const updatedTabRoute = {...withSanitizedDeepLinkParams(existingTabRoute, undefined), state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
@@ -614,6 +643,16 @@ function handleRemoveFullscreenUnderRHP(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
+    // Wide layout: the pre-mounted destination sits under the current fullscreen, so dropping that route is the whole cleanup.
+    if (action.payload.preMountedRouteKey) {
+        const routes = state.routes.filter((r) => r.key !== action.payload.preMountedRouteKey);
+        if (routes.length === state.routes.length) {
+            return null;
+        }
+        clearPreMountedUnderCurrentFullscreenRouteKey();
+        return stackRouter.getRehydratedState({...state, routes, index: routes.length - 1}, configOptions);
+    }
+
     const rhpRoute = state.routes.at(-1);
     if (!isPreMountBufferHostName(rhpRoute?.name)) {
         return null;
@@ -647,6 +686,29 @@ function handleRemoveFullscreenUnderRHP(
     const routesWithoutPreInserted = routesWithoutRHP.slice(0, -1);
     const newRoutes = [...routesWithoutPreInserted, rhpRoute];
     return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
+}
+
+/**
+ * Mounts the wide-layout submit destination as a TAB_NAVIGATOR directly under the current one. TAB_NAVIGATOR is a
+ * persistent root screen, so the covered instance is laid out and painted behind the current one and can be revealed later
+ * without a remount. The route stays out of root history until then (see preMountedUnderCurrentFullscreenRouteKey).
+ */
+function handlePreMountUnderCurrentFullscreen(
+    state: StackNavigationState<ParamListBase>,
+    action: PreMountUnderCurrentFullscreenActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    // Only meaningful while a modal (the submit RHP) covers the top fullscreen; otherwise there is nothing to pre-mount behind.
+    const topRoute = state.routes.at(-1);
+    const tabNavIndex = state.routes.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+    if (!topRoute || isFullScreenName(topRoute.name) || tabNavIndex < 0) {
+        return null;
+    }
+    setPreMountedUnderCurrentFullscreenRouteKey(action.payload.routeKey);
+    const newRoute = {name: NAVIGATORS.TAB_NAVIGATOR, key: action.payload.routeKey, state: action.payload.tabState} as StackNavigationState<ParamListBase>['routes'][number];
+    const routes = [...state.routes.slice(0, tabNavIndex), newRoute, ...state.routes.slice(tabNavIndex)];
+    return stackRouter.getRehydratedState({...state, routes, index: routes.length - 1}, configOptions);
 }
 
 /**
@@ -761,6 +823,7 @@ export {
     handlePushFullscreenAction,
     handleReplaceFullscreenUnderRHP,
     handleRemoveFullscreenUnderRHP,
+    handlePreMountUnderCurrentFullscreen,
     handleReplaceReportsSplitNavigatorAction,
     screensWithEnteringAnimation,
     handleToggleSidePanelWithHistoryAction,
@@ -769,6 +832,8 @@ export {
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
     MODAL_ROUTES_TO_DISMISS,
+    getFocusedRouteFromNavigatorState,
+    getTabStateWithFreshTarget,
     // Exported for unit-test access; not used outside of testing.
     withSanitizedDeepLinkParams,
     getTabStateWithFocusedTarget,

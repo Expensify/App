@@ -41,12 +41,12 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
         jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(false);
     });
 
-    it('returns undefined on wide layout', () => {
-        // Given a wide layout where the RHP does not cover fullscreen content
+    it('resolves the destination on wide layout too', () => {
+        // Given a wide layout, where the destination gets pre-mounted as a preloaded route instead of under the RHP
         mockGetIsNarrowLayout.mockReturnValue(false);
 
         // When submission evaluates speculative navigation
-        // Then no route is returned because wide layouts do not need pre-mounting
+        // Then the Search route is returned like on narrow layout
         expect(
             getSubmitExpensePreMountDestinationRoute({
                 isTransactionReady: true,
@@ -61,7 +61,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 isLookingAroundUser: false,
                 isMovingTransactionFromTrackExpense: false,
             }),
-        ).toBeUndefined();
+        ).toEqual(expect.stringContaining('search'));
     });
 
     it('returns undefined when the transaction is not ready', () => {
