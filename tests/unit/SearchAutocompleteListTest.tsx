@@ -802,7 +802,7 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
-            // Then the final visible list is capped and follows Auth's order.
+            // Then local matches are preserved and the remaining slots follow Auth's order.
             await waitFor(() => {
                 expect(screen.getByText('Search results')).toBeTruthy();
             });
@@ -812,7 +812,13 @@ describe('SearchAutocompleteList', () => {
                 .map((el) => (typeof el.props.children === 'string' ? el.props.children : ''))
                 .filter((name) => [...fakeRecentReports.map(({text}) => text), ...serverReports.map(({text}) => text)].includes(name));
 
-            expect(names).toEqual(serverReports.map(({text}) => text).reverse());
+            expect(names).toEqual([
+                ...fakeRecentReports.map(({text}) => text),
+                ...serverReports
+                    .map(({text}) => text)
+                    .reverse()
+                    .slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - fakeRecentReports.length),
+            ]);
         });
 
         it('keeps the local candidate pool capped once the server returns an order', async () => {
