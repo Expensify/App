@@ -27,6 +27,8 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect, useState} from 'react';
 
+import NotFoundPage from './ErrorPage/NotFoundPage';
+
 type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 // This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
@@ -34,7 +36,7 @@ type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList
 //
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
-    const {initialURL} = useInitialURLState();
+    const {initialURL, isLoadingInitialURL} = useInitialURLState();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
@@ -168,6 +170,13 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading, hasCancelledSwitch]);
+
+    // Linking.getInitialURL() only ever resolves the URL that launched the app.
+    // If it's still unset once it has settled, this mount came from tapping a link inside the app (e.g. a link in a message), which this page can't process.
+    // Show a not-found page instead of hanging here.
+    if (!isLoadingInitialURL && !initialURL) {
+        return <NotFoundPage />;
+    }
 
     return <FullScreenLoadingIndicator />;
 }

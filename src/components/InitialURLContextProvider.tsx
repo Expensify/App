@@ -7,6 +7,7 @@ import {Linking} from 'react-native';
 
 type InitialUrlStateContextType = {
     initialURL: Route | null;
+    isLoadingInitialURL: boolean;
     isAuthenticatedAtStartup: boolean;
 };
 
@@ -23,6 +24,7 @@ const defaultInitialURLActionsContext: InitialUrlActionsContextType = {
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
 const InitialURLStateContext = createContext<InitialUrlStateContextType>({
     initialURL: null,
+    isLoadingInitialURL: true,
     isAuthenticatedAtStartup: false,
 });
 
@@ -35,21 +37,25 @@ type InitialURLContextProviderProps = {
 
 function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
     const [initialURL, setInitialURL] = useState<Route | null>(null);
+    const [isLoadingInitialURL, setIsLoadingInitialURL] = useState<boolean>(true);
     const [isAuthenticatedAtStartup, setIsAuthenticatedAtStartup] = useState<boolean>(false);
 
     useEffect(() => {
-        Linking.getInitialURL().then((initURL) => {
-            if (!initURL) {
-                return;
-            }
-            setInitialURL(initURL as Route);
-        });
+        Linking.getInitialURL()
+            .then((initURL) => {
+                if (!initURL) {
+                    return;
+                }
+                setInitialURL(initURL as Route);
+            })
+            .finally(() => setIsLoadingInitialURL(false));
     }, []);
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateContextValue = {
         initialURL,
+        isLoadingInitialURL,
         isAuthenticatedAtStartup,
     };
 
