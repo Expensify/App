@@ -35,14 +35,14 @@ type SkiaWebChartProps<TProps> = {
 };
 
 type ChartUnavailableProps = {
-    /** Explains why the chart can't be shown; defaults to the WebGL message. */
+    /** Explains why the chart can't be shown. Defaults to the WebGL message. */
     description?: TranslationPaths;
 };
 
 /**
  * The CanvasKit glue asks `locateFile` where to fetch `canvaskit.wasm` from. The binary is emitted under a
  * versioned name (see `CANVASKIT_WASM_FILENAME` in `config/rsbuild/rsbuild.common.ts`) so this bundle's glue
- * can never be handed another release's binary; every other file keeps the default root-relative path.
+ * can never be handed another release's binary. Every other file keeps the default root-relative path.
  */
 const locateCanvasKitFile = (file: string) => (file === 'canvaskit.wasm' ? __CANVASKIT_WASM_URL__ : `/${file}`);
 

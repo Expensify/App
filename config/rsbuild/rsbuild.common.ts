@@ -420,7 +420,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
                 // Group‑IB web SDK injection file
                 {from: 'web/snippets/gib.js', to: 'gib.js'},
                 // CanvasKit WASM binary for @shopify/react-native-skia web support (uses the full build). Emitted
-                // under a versioned name so it can't be served stale against newer glue; the URL is passed to
+                // under a versioned name so it can't be served stale against newer glue. The URL is passed to
                 // the app through the `__CANVASKIT_WASM_URL__` define above.
                 {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm', to: CANVASKIT_WASM_FILENAME},
             ],

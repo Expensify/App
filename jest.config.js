@@ -49,7 +49,7 @@ module.exports = {
     globals: {
         __DEV__: true,
         WebSocket: {},
-        // Build-time define from config/rsbuild/rsbuild.common.ts; SkiaWebChart reads it when mounting CanvasKit.
+        // Build-time define from config/rsbuild/rsbuild.common.ts. SkiaWebChart reads it when mounting CanvasKit.
         __CANVASKIT_WASM_URL__: '/canvaskit-test.wasm',
     },
     fakeTimers: {
