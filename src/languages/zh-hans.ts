@@ -9479,6 +9479,7 @@ ${reportName}`,
             violationsBySubmitter: '提交人违规',
         },
         mergeReports: {title: '合并报表', description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。'},
+        saveEdits: {title: '保存编辑', prompt: ({name}: {name: string}) => `更新对“${name}”的更改或创建新项`, createNew: '新建', updateExisting: '更新现有项'},
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

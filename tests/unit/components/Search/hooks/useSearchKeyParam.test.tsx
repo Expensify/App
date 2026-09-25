@@ -192,13 +192,17 @@ describe('useSearchKeyParam', () => {
             expect(result.current.currentDefaultSearchQueryJSON?.hash).toBe(buildSearchQueryJSON(RECONCILIATION_QUERY)?.hash);
         });
 
-        it('is undefined for a saved search because saved searches have no default filters', () => {
-            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}}});
+        it('exposes the query a saved search was saved with', () => {
+            // Given a saved search the user is on
+            const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`;
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: {[SAVED_SEARCH_ID]: {query: savedSearchQuery, name: 'My search'}}});
 
-            const {result} = renderSearchKeyParam(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+            // When the hook resolves the search key of an edited version of that query
+            const {result} = renderSearchKeyParam(`${savedSearchQuery} category:Food`, {searchKey: savedSearchIDToSearchKey(SAVED_SEARCH_ID)});
 
+            // Then the saved query is the default to compare against, so the edit reads as a change and can be reset
             expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
-            expect(result.current.currentDefaultSearchQueryJSON).toBeUndefined();
+            expect(result.current.currentDefaultSearchQueryJSON?.hash).toBe(buildSearchQueryJSON(savedSearchQuery)?.hash);
         });
     });
 
@@ -243,11 +247,15 @@ describe('useSearchKeyParam', () => {
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
-        it('keeps a saved search key whatever the query is, since saved searches have no default filters', () => {
+        it('keeps a saved search key whatever the query is, since a saved search is named by its ID', () => {
+            // Given a saved search the user is on
             mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
 
+            // When the query drops every filter the search was saved with, and even changes type
             const {result} = renderSearchKeyParam(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} category:Food`, {searchKey: savedSearchIDToSearchKey(SAVED_SEARCH_ID)});
 
+            // Then the key survives: unlike a suggested search, a saved search isn't identified by its filters, so
+            // the user stays on it while editing and can still reset or save the edits
             expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
         });
 

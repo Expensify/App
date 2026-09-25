@@ -12,6 +12,7 @@ import HeaderTitle from './HeaderTitle';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
+import Text from './Text';
 
 type DecisionModalProps = {
     /** Title describing purpose of modal */
@@ -57,6 +58,9 @@ type DecisionModalProps = {
 
     /** Whether to handle browser navigation back to close the modal */
     shouldHandleNavigationBack?: boolean;
+
+    /** Whether to render the prompt as HTML or plain text */
+    shouldRenderPromptAsHTML?: boolean;
 };
 
 function DecisionModal({
@@ -75,6 +79,7 @@ function DecisionModal({
     isSecondOptionSuccess = false,
     isSecondOptionDanger = false,
     shouldHandleNavigationBack,
+    shouldRenderPromptAsHTML = true,
 }: DecisionModalProps) {
     const styles = useThemeStyles();
 
@@ -114,7 +119,7 @@ function DecisionModal({
                             <HeaderTitle.Text>{title}</HeaderTitle.Text>
                         </HeaderTitle>
                     </View>
-                    <RenderHTML html={prompt} />
+                    {shouldRenderPromptAsHTML ? <RenderHTML html={prompt} /> : <Text>{prompt}</Text>}
                 </View>
                 {!!firstOptionText && (
                     <Button

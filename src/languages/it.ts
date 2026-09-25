@@ -9888,6 +9888,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             violationsBySubmitter: 'Violazioni da parte dell’autore dell’invio',
         },
         mergeReports: {title: 'Unisci report', description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.'},
+        saveEdits: {
+            title: 'Salva modifiche',
+            prompt: ({name}: {name: string}) => `Aggiorna le modifiche a “${name}” o creane una nuova`,
+            createNew: 'Crea nuovo',
+            updateExisting: 'Aggiorna esistente',
+        },
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',

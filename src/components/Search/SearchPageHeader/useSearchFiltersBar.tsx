@@ -17,6 +17,7 @@ import {shouldShowInitialCategoryFilterLoading} from '@hooks/useSearchFilterSync
 import {close} from '@libs/actions/Modal';
 import {setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildQueryStringWithResetFilters, hasFiltersChangedFromDefault, removeNegation} from '@libs/SearchQueryUtils';
 import {getFilterViewLabelKey, isAmountFilterKey, isDateFilterKey, isReportFieldKey, isTextFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
@@ -45,7 +46,7 @@ type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
-    shouldShowResetFilters: boolean;
+    hasFiltersChanged: boolean;
     resetFilters: () => void;
 };
 
@@ -150,8 +151,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const {isOffline} = useNetwork();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchResultsContext();
-    const {currentSearchQueryJSON, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
+    const {currentSearchQueryJSON, currentSearchKey, currentDefaultSearchQueryJSON, currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
     const {updateFilterQueryParams} = useUpdateFilterQuery(queryJSON);
+    const isSavedSearch = !!searchKeyToSavedSearchID(currentSearchKey);
     const filters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
@@ -175,39 +177,40 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
             ),
             sentryLabel: getFilterSentryLabel(filterKey),
             onLandscapePress: () => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(removeNegation(filterKey), true)),
-            onClosePress: isDefault
-                ? undefined
-                : () => {
-                      if (isAmountFilterKey(filterKey)) {
-                          const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
-                          const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
-                          const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
-                          updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
-                          return;
-                      }
+            onClosePress:
+                isDefault && !isSavedSearch
+                    ? undefined
+                    : () => {
+                          if (isAmountFilterKey(filterKey)) {
+                              const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`;
+                              const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
+                              const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
+                              updateFilterQueryParams({[equalToKey]: undefined, [greaterThanKey]: undefined, [lessThanKey]: undefined});
+                              return;
+                          }
 
-                      if (isDateFilterKey(filterKey)) {
-                          const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`;
-                          const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
-                          const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
-                          const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
-                          updateFilterQueryParams({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
-                          return;
-                      }
+                          if (isDateFilterKey(filterKey)) {
+                              const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`;
+                              const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
+                              const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
+                              const rangeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`;
+                              updateFilterQueryParams({[onKey]: undefined, [beforeKey]: undefined, [afterKey]: undefined, [rangeKey]: undefined});
+                              return;
+                          }
 
-                      if (filterKey === CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) {
-                          const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
-                              if (isReportFieldKey(curr)) {
-                                  acc[curr] = undefined;
-                              }
-                              return acc;
-                          }, {} as Partial<SearchAdvancedFiltersForm>);
-                          updateFilterQueryParams(formValues);
-                          return;
-                      }
+                          if (filterKey === CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) {
+                              const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
+                                  if (isReportFieldKey(curr)) {
+                                      acc[curr] = undefined;
+                                  }
+                                  return acc;
+                              }, {} as Partial<SearchAdvancedFiltersForm>);
+                              updateFilterQueryParams(formValues);
+                              return;
+                          }
 
-                      updateFilterQueryParams({[filterKey]: undefined});
-                  },
+                          updateFilterQueryParams({[filterKey]: undefined});
+                      },
         }),
     );
 
@@ -225,8 +228,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         filters,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading: shouldShowFiltersBarLoading || isCategoryFilterLoading,
-        shouldShowResetFilters:
-            currentDefaultSearchQueryJSON && currentSearchQueryJSON ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
+        hasFiltersChanged: currentDefaultSearchQueryJSON && currentSearchQueryJSON ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON) : filters.length > 0,
         resetFilters,
     };
 }

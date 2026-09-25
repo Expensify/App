@@ -9874,6 +9874,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
         mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        saveEdits: {
+            title: 'Zapisz zmiany',
+            prompt: ({name}: {name: string}) => `Zaktualizuj zmiany w „${name}” lub utwórz nowy`,
+            createNew: 'Utwórz nowy',
+            updateExisting: 'Zaktualizuj istniejące',
+        },
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
