@@ -203,8 +203,7 @@ const workspaceIcons = {
     Users: mockIcon,
     Hashtag: mockIcon,
     Document: mockIcon,
-    Sync: mockIcon,
-    Receipt: mockIcon,
+    Connect: mockIcon,
     Briefcase: mockIcon,
     Folder: mockIcon,
     Tag: mockIcon,
@@ -220,8 +219,6 @@ const workspaceIcons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
-    Bot: mockIcon,
-    UserPlus: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
@@ -712,7 +709,6 @@ describe('Workspace Search Router navigation source', () => {
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,
-            isRecruitingBetaEnabled: false,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -721,7 +717,7 @@ describe('Workspace Search Router navigation source', () => {
                     ['workspace.common.members', 'Members'],
                     ['workspace.common.rooms', 'Rooms'],
                     ['workspace.common.workflows', 'Workflows'],
-                    ['workspace.common.hr', 'HR'],
+                    ['workspace.common.connections', 'Connections'],
                 ]);
                 return labels.get(item.translationKey) ?? item.translationKey;
             },
@@ -748,12 +744,12 @@ describe('Workspace Search Router navigation source', () => {
         expect(items.some((item) => item.keyForList === `workspace_1_${SCREENS.WORKSPACE.WORKFLOWS}`)).toBe(false);
     });
 
-    it('supports the short HR query and alphabetizes equal-priority Workspace rows', () => {
-        const items = buildItems([createWorkspacePolicy('1', 'Beta Workspace', {isHREnabled: true}), createWorkspacePolicy('2', 'Alpha Workspace', {isHREnabled: true})]);
+    it('alphabetizes equal-priority Workspace rows', () => {
+        const items = buildItems([createWorkspacePolicy('1', 'Beta Workspace'), createWorkspacePolicy('2', 'Alpha Workspace')]);
 
-        expect(buildNavigationSuggestions('hr', [items], localeCompare).map((item) => item.keyForList)).toEqual([
-            `workspace_2_${SCREENS.WORKSPACE.HR}`,
-            `workspace_1_${SCREENS.WORKSPACE.HR}`,
+        expect(buildNavigationSuggestions('connections', [items], localeCompare).map((item) => item.keyForList)).toEqual([
+            `workspace_2_${SCREENS.WORKSPACE.CONNECTIONS}`,
+            `workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`,
         ]);
     });
 
@@ -831,11 +827,9 @@ describe('Workspace Search Router navigation source', () => {
             expect.objectContaining({
                 policy: activePolicy,
                 isVendorMatchingBetaEnabled: true,
-                isRecruitingBetaEnabled: true,
             }),
         );
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
-        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });
 });
 

@@ -548,6 +548,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR]: {
                             path: ROUTES.POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {path: ROUTES.POLICY_ACCOUNTING.route},
+                        [SCREENS.WORKSPACE.HR]: {path: ROUTES.WORKSPACE_HR.route},
+                        [SCREENS.WORKSPACE.RECRUITING]: {path: ROUTES.WORKSPACE_RECRUITING.route},
+                        [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
@@ -2416,11 +2420,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 [SCREENS.WORKSPACE.PER_DIEM]: {
                                     path: ROUTES.WORKSPACE_PER_DIEM.route,
                                 },
-                                [SCREENS.WORKSPACE.MCP]: {
-                                    path: ROUTES.WORKSPACE_MCP.route,
-                                },
-                                [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
-                                    path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,
+                                [SCREENS.WORKSPACE.CONNECTIONS]: {
+                                    path: ROUTES.WORKSPACE_CONNECTIONS.route,
                                 },
                                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
@@ -2434,9 +2435,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 [SCREENS.WORKSPACE.ROOMS]: {
                                     path: ROUTES.WORKSPACE_ROOMS.route,
                                 },
-                                [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
-                                    path: ROUTES.POLICY_ACCOUNTING.route,
-                                },
                                 [SCREENS.WORKSPACE.CATEGORIES]: {
                                     path: ROUTES.WORKSPACE_CATEGORIES.route,
                                 },
@@ -2445,12 +2443,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.MORE_FEATURES]: {
                                     path: ROUTES.WORKSPACE_MORE_FEATURES.route,
-                                },
-                                [SCREENS.WORKSPACE.HR]: {
-                                    path: ROUTES.WORKSPACE_HR.route,
-                                },
-                                [SCREENS.WORKSPACE.RECRUITING]: {
-                                    path: ROUTES.WORKSPACE_RECRUITING.route,
                                 },
                                 [SCREENS.WORKSPACE.TAGS]: {
                                     path: ROUTES.WORKSPACE_TAGS.route,
