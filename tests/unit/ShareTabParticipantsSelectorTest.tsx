@@ -8,7 +8,8 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useUserSecurityGroup from '@hooks/useUserSecurityGroup';
 
-import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
+import {clearMoneyRequest, clearMoneyRequestPolicyFields} from '@libs/actions/IOU/MoneyRequest';
+import {clearUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -32,6 +33,11 @@ jest.mock('@hooks/usePreferredPolicy');
 jest.mock('@hooks/useUserSecurityGroup');
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     clearMoneyRequest: jest.fn(),
+    clearMoneyRequestPolicyFields: jest.fn(),
+}));
+jest.mock('@libs/actions/Share', () => ({
+    clearUnknownUserDetails: jest.fn(),
+    saveUnknownUserDetails: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -157,7 +163,7 @@ describe('ShareTabParticipantsSelector', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('clears draft transaction on fresh manual participant selection, but preserves it on subsequent re-selections', async () => {
+    it('clears draft transaction on fresh manual participant selection and clears policy fields on subsequent re-selections', async () => {
         render(<ShareTabParticipantsSelector detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS} />);
         await waitForBatchedUpdatesWithAct();
 
@@ -170,11 +176,13 @@ describe('ShareTabParticipantsSelector', () => {
 
         jest.clearAllMocks();
 
-        // Subsequent selection (e.g. backing out from confirmation to change destination) -> preserves draft
+        // Subsequent selection keeps general draft data but clears fields tied to the previous destination policy.
         fireEvent.press(screen.getByTestId('mock-select-participant'));
         await waitForBatchedUpdatesWithAct();
 
         expect(clearMoneyRequest).not.toHaveBeenCalled();
+        expect(clearMoneyRequestPolicyFields).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+        expect(clearUnknownUserDetails).toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_SUBMIT_DETAILS.getRoute('selected-report-1'));
     });
 });

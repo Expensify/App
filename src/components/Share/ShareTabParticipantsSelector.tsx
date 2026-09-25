@@ -4,8 +4,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useUserSecurityGroup from '@hooks/useUserSecurityGroup';
 
-import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
-import {saveUnknownUserDetails} from '@libs/actions/Share';
+import {clearMoneyRequest, clearMoneyRequestPolicyFields} from '@libs/actions/IOU/MoneyRequest';
+import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -140,11 +140,12 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             iouType={CONST.IOU.TYPE.SUBMIT}
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
-                // Clear the existing draft transaction only when starting a fresh share flow, to prevent leftover data
-                // from previous sessions from being displayed. When editing the destination after auto-navigating or
-                // selecting a report, we preserve the active draft so that user edits (amount, merchant, receipt, etc.) are kept.
+                // Start fresh on the initial pick. On a destination change retain the general draft while clearing fields
+                // that belong to the previous workspace's policy, so they cannot be submitted to the new destination.
                 if (!hasAutoNavigatedToReport && !selectedReportID) {
                     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+                } else {
+                    clearMoneyRequestPolicyFields(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
                 }
 
                 const participant = value.at(0);
@@ -177,6 +178,7 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
                         Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                     });
                 } else {
+                    clearUnknownUserDetails();
                     setSelectedReportID(reportID);
                     Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                 }
