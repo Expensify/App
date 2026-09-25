@@ -1,7 +1,7 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline]
+keywords: [New Expensify, manage expenses, add expense, add existing expense, find expense, sort expenses by date, sort expenses by amount, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline]
 ---
 
 Managing expenses in reports helps you keep everything organized and ready for approval, payment, or export. This guide covers adding, moving, deleting, and editing expenses, as well as understanding audit trails and collaboration.
@@ -31,10 +31,22 @@ You can add expenses in two ways:
 
 **Add existing unreported expenses**
 1. Open the draft report.
-2. Click **More** > **Add expense** > **Add existing expense**.
-3. (Optional) Use the **Status** filter to show only **Unreported** or **Draft** expenses.
-3. Click one or more expenses.
-4. Click **Add to report**.
+2. Click **More** > **Add expense** > **Add existing expense**. Your expenses are listed by date, newest first.
+3. (Optional) Enter a merchant, description, or amount in **Find expense** to narrow the list.
+4. (Optional) Use the **Status** filter to show only **Unreported** or **Draft** expenses.
+5. (Optional) Click the **Display** icon to set **Sort by** to **Date** or **Amount** and **Sort order** to **Ascending** or **Descending**.
+6. Click one or more expenses.
+7. Click **Add to report**.
+
+Expenses you select stay selected when you search or change the **Status** filter, so you can build one selection across several searches. If you click **Add to report** without selecting an expense, the message **Select at least one expense to add to the report.** appears.
+
+<!-- SCREENSHOT:
+Suggestion: The Add existing expense pane with an expense selected, showing the Find expense field, the Status filter, and the Display icon.
+Location: Immediately after the Add existing unreported expenses steps.
+Purpose: Members ask where to filter and sort this list; the search field, Status filter, and Display icon sit together in one small row that is easy to miss.
+-->
+
+The list loads expenses in batches. Scroll to the bottom to load more, and the sort order applies to the expenses that have loaded.
 
 ---
 
