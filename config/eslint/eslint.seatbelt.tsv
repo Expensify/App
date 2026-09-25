@@ -248,7 +248,6 @@
 "../../src/components/RadioButtonWithLabel.tsx"	"no-restricted-syntax"	1
 "../../src/components/Reactions/AddReactionBubble.tsx"	"react-hooks/refs"	1
 "../../src/components/Reactions/MiniQuickEmojiReactions.tsx"	"react-hooks/refs"	1
-"../../src/components/Reactions/ReactionTooltipContent.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/ReceiptCropView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReceiptHoverZoom/useReceiptHoverZoom.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionAvatars/useReportPreviewSenderID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -872,7 +871,6 @@
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-syntax"	1
 "../../src/pages/Debug/TransactionViolation/DebugTransactionViolationCreatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/pages/Debug/TransactionViolation/DebugTransactionViolationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/domain/Admins/DomainAddAdminPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Admins/DomainAddPrimaryContactPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Admins/DomainAdminDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/domain/Admins/DomainAdminsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
@@ -890,8 +888,6 @@
 "../../src/pages/DynamicReportDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/DynamicReportDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/DynamicReportParticipantsInvitePage.tsx"	"rulesdir/no-direct-personal-details-list"	2
-"../../src/pages/DynamicRoomInvitePage.tsx"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
@@ -919,7 +915,6 @@
 "../../src/pages/inbox/report/actionContents/ReimbursementDeQueuedContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/actionContents/ReimbursementQueuedContent.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/inbox/report/actionContents/RemovedFromApprovalChainContent.tsx"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/pages/inbox/report/AncestorReportActionItem.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/inbox/report/comment/TextCommentFragment.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/pages/inbox/report/ContextMenu/BaseReportActionContextMenu.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/report/ContextMenu/BaseReportActionContextMenu.tsx"	"react-hooks/refs"	1
@@ -1022,7 +1017,6 @@
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/pages/MissingPersonalDetails/subPages/Address.tsx"	"react-hooks/refs"	4
 "../../src/pages/MultifactorAuthentication/AuthorizeTransactionPage/AuthorizeCardTransactionPreview.tsx"	"@typescript-eslint/no-deprecated/fontSize"	2
-"../../src/pages/NewChatConfirmPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/OnboardingPrivateDomain/BaseOnboardingPrivateDomain.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
