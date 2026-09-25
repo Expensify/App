@@ -202,10 +202,8 @@ function GPSMapViewContent({
                             return;
                         }
 
-                        // Only spend the immediate transition once follow mode has actually been reached. A transition
-                        // that ended in failure (e.g. no location fix arrived) also reports `from.kind === 'transition'`,
-                        // and clearing the flag there would leave the camera with the default, time-boxed transition and
-                        // nothing to fall back on, because the JS layer discards every camera stop while following.
+                        // Clear the flag only once following actually succeeds. A failed transition (e.g. no location fix yet)
+                        // would otherwise leave the retry with Mapbox's default transition, which can time out and leave the camera stuck.
                         if (event.from.kind === 'transition' && event.from.toState.kind === 'followPuck' && event.reason === 'TransitionSucceeded') {
                             setShouldUseImmediateFollowTransition(false);
                         }
