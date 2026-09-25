@@ -43,6 +43,10 @@ type GetSearchOnyxUpdateParams = {
     isFromOneTransactionReport?: boolean;
     isInvoice?: boolean;
     transactionThreadReportID: string | undefined;
+    previousMoneyRequestAction?: {
+        reportID: string;
+        reportActionID: string;
+    };
 };
 
 //  Determines whether the current search results should be optimistically updated
@@ -62,12 +66,14 @@ function shouldOptimisticallyUpdateSearch(
     }
 
     const currentSearchPolicyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
-    if (currentSearchPolicyIDs.value?.length && iouReport?.policyID) {
-        if (!currentSearchPolicyIDs.isNegated && !currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
+    if (currentSearchPolicyIDs.value?.length) {
+        if (!iouReport?.policyID) {
+            if (!currentSearchPolicyIDs.isNegated) {
+                return false;
+            }
+        } else if (!currentSearchPolicyIDs.isNegated && !currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
             return false;
-        }
-
-        if (currentSearchPolicyIDs.isNegated && currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
+        } else if (currentSearchPolicyIDs.isNegated && currentSearchPolicyIDs.value.includes(iouReport.policyID)) {
             return false;
         }
     }
@@ -149,6 +155,7 @@ function getSearchOnyxUpdate({
     transactionThreadReportID,
     isFromOneTransactionReport,
     isInvoice,
+    previousMoneyRequestAction,
 }: GetSearchOnyxUpdateParams): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
     const toAccountID = participant?.accountID;
     const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
@@ -189,8 +196,20 @@ function getSearchOnyxUpdate({
     if (iouReport) {
         baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
     }
-    if (iouReport && iouAction) {
-        baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+    if (iouAction?.reportActionID) {
+        const actionReportID = iouReport?.reportID ?? iouAction.reportID;
+        if (actionReportID && actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+            baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`] = {[iouAction.reportActionID]: iouAction};
+        }
+    }
+    if (previousMoneyRequestAction) {
+        baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${previousMoneyRequestAction.reportID}`] = {
+            [previousMoneyRequestAction.reportActionID]: {
+                originalMessage: {
+                    IOUTransactionID: null,
+                },
+            },
+        };
     }
 
     const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
@@ -209,7 +228,9 @@ function getSearchOnyxUpdate({
 
         const snapshotData: NullishDeep<SearchResultDataType> = {...baseSnapshotData};
 
-        if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}` as const;
+        const alreadyInSnapshot = !!existingSnapshot?.data?.[transactionKey];
+        if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM && !alreadyInSnapshot) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
             const existingGroup = existingSnapshot?.data?.[groupKey];
             snapshotData[groupKey] = {
