@@ -1,6 +1,7 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
+import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
 import CopilotPage from '@pages/settings/Copilot/CopilotPage';
 
@@ -92,6 +93,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/PersonalDetailsUtils', () => ({
+    ...jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils'),
     getPersonalDetailByEmail: jest.fn(() => undefined),
 }));
 

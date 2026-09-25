@@ -2072,6 +2072,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS]: {
+                    screens: {
+                        [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS.route,
+                        [SCREENS.WORKSPACE.RECRUITING_MERGE_IMPORT_SETTINGS_FILTER]: ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL]: {
                     screens: {
                         [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: {
@@ -2089,7 +2095,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.route,
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_DESCRIBE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DESCRIBE,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: ROUTES.SEARCH_SAVE,

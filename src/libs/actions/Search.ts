@@ -56,7 +56,6 @@ import {
     generateReportID,
     getParsedComment,
     getReportOrDraftReport,
-    getReportTransactions,
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
@@ -94,6 +93,7 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
@@ -1051,21 +1051,6 @@ function openSearchCardFiltersPage() {
     read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
-type ParseExpenseFiltersResult = {success: true; searchURL: string; humanReadableSummary: string} | {success: false; message: string};
-
-function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseExpenseFiltersResult | undefined> {
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS, {nlQuery, policyID, today})
-        .then((response) => {
-            if (response?.success === true && response.searchURL) {
-                return {success: true, searchURL: response.searchURL, humanReadableSummary: response.humanReadableSummary ?? ''} as const;
-            }
-            return {success: false, message: response?.message ?? ''} as const;
-        })
-        .catch(() => ({success: false, message: ''}) as const);
-}
-
 function openSearchCategoryFiltersPage() {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA>> = [
         {
@@ -1186,6 +1171,27 @@ type InFlightSearchRequest = {
 // request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
+// Search mounts only after the page's request has finished, so the map above no longer holds it.
+// One slot, not a set: a new query replaces the old token, so a token left behind by an abandoned query cannot skip a later refresh of it.
+let pageRequestedSearch: {hash: number; shouldCalculateTotals: boolean} | undefined;
+
+function markPageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    pageRequestedSearch = {hash, shouldCalculateTotals};
+}
+
+/** True once for the query the page just requested, and only if that request also asked for the totals wanted here. */
+function consumePageRequestedSearch(hash: number, shouldCalculateTotals: boolean) {
+    if (pageRequestedSearch?.hash !== hash || (shouldCalculateTotals && !pageRequestedSearch.shouldCalculateTotals)) {
+        return false;
+    }
+    pageRequestedSearch = undefined;
+    return true;
+}
+
+function clearPageRequestedSearch() {
+    pageRequestedSearch = undefined;
+}
+
 let shouldPreventSearchAPI = false;
 function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
@@ -1249,9 +1255,10 @@ function search({
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
     /**
-     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Tells the backend whether this query was submitted by the user, so it may be saved to the recent searches NVP.
      * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
-     * refreshes) must not evict the user's real recent searches.
+     * refreshes) must not evict the user's real recent searches. Always serialized, even when false, because the
+     * backend treats a missing flag as true for backwards compatibility with older clients.
      */
     shouldSaveRecentSearch?: boolean;
     /**
@@ -1308,7 +1315,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
-        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
+        shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
@@ -1833,21 +1840,33 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
-function rejectMoneyRequestsOnSearch(
-    hash: number,
-    selectedTransactions: Record<string, TransactionReportInfo>,
-    comment: string,
-    allPolicies: OnyxCollection<Policy>,
-    allReports: OnyxCollection<Report>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    isASAPSubmitBetaEnabled: boolean,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
-) {
+function rejectMoneyRequestsOnSearch({
+    hash,
+    selectedTransactions,
+    comment,
+    allPolicies,
+    allReports,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    isASAPSubmitBetaEnabled,
+    delegateAccountID,
+    getCurrencyDecimals,
+    allReportsTransactionsAndViolations,
+    rules,
+}: {
+    hash: number;
+    selectedTransactions: Record<string, TransactionReportInfo>;
+    comment: string;
+    allPolicies: OnyxCollection<Policy>;
+    allReports: OnyxCollection<Report>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    isASAPSubmitBetaEnabled: boolean;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined;
+    rules: OnyxCollection<Rule>;
+}) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
@@ -1876,7 +1895,9 @@ function rejectMoneyRequestsOnSearch(
         const totalReportTransactions = report?.transactionCount ?? 0;
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
-        const pendingDeleteCount = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+        const pendingDeleteCount = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {}).filter(
+            (transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        ).length;
         const effectiveTransactionCount = totalReportTransactions - pendingDeleteCount;
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -1947,11 +1968,12 @@ function exportSearchItemsToCSV(
     {jsonQuery, reportIDList, transactionIDList, excludedTransactionIDList, isBasicExport, exportColumnLabels, exportName, isGroupExport}: ExportSearchItemsToCSVParams,
     onDownloadFailed: () => void,
     translate: LocalizedTranslate,
+    allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined,
 ) {
     const reportIDSet = new Set<string>();
     const transactionIDSet = new Set(transactionIDList);
     for (const reportID of reportIDList) {
-        const allReportTransactions = getReportTransactions(reportID);
+        const allReportTransactions = Object.values(allReportsTransactionsAndViolations?.[reportID]?.transactions ?? {});
 
         // We'll include the report if all of its transactions are included in the transactionIDList
         let areAllTransactionsIncludedInList = true;
@@ -2578,7 +2600,6 @@ export {
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,
     openSearchCardFiltersPage,
-    parseExpenseFilters,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
     setSearchTagFiltersPagination,
@@ -2587,5 +2608,8 @@ export {
     getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot,
     resolveSearchPayPaymentMethod,
+    markPageRequestedSearch,
+    consumePageRequestedSearch,
+    clearPageRequestedSearch,
 };
 export type {TransactionPreviewData};
