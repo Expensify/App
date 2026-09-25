@@ -27,7 +27,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
-import type {UnassignedCard} from '@src/types/onyx/Card';
+import type {IssueNewCardData, UnassignedCard} from '@src/types/onyx/Card';
 import type {
     BankName,
     CardFeed,
@@ -1216,6 +1216,11 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
+/** Admins can enter where a physical card ships only on the US program, since UK/EU cards need a PIN first */
+function shouldShowShippingAddressStep(data: Partial<IssueNewCardData> | undefined): boolean {
+    return data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL && data?.currency === CONST.CURRENCY.USD;
+}
+
 /** Resolves a company card's custom name, preferring the shared workspace NVP over the personal NVP. */
 function getCompanyCardCustomName(
     cardID: string | number | undefined,
@@ -2303,6 +2308,7 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
+    shouldShowShippingAddressStep,
     getCompanyCardCustomName,
     getCardAssignmentDateOption,
     getCardAssignmentStartDate,

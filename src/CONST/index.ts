@@ -5175,14 +5175,21 @@ const CONST = {
         LIMIT_VALUE: 21474836,
         STEP_NAMES: ['1', '2', '3', '4', '5'],
         ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4'],
+        SHIPPING_ADDRESS_STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        SHIPPING_ADDRESS_ASSIGNEE_EXCLUDED_STEP_NAMES: ['1', '2', '3', '4', '5'],
         STEP: {
             ASSIGNEE: 'Assignee',
             CARD_TYPE: 'CardType',
             LIMIT_TYPE: 'LimitType',
             CARD_NAME: 'CardName',
+            SHIPPING_ADDRESS: 'ShippingAddress',
             CONFIRMATION: 'Confirmation',
             INVITE_NEW_MEMBER: 'InviteNewMember',
             SPEND_RULES: 'SpendRules',
+        },
+        SHIPPING_ADDRESS_OPTION: {
+            PROMPT_CARDHOLDER: 'promptCardholder',
+            ENTER_ADDRESS: 'enterAddress',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',
