@@ -41,7 +41,6 @@ type AmountSubmitData = Pick<
     | 'duplicateTransactions'
     | 'duplicateTransactionViolations'
     | 'reportAttributesDerivedValue'
-    | 'betas'
     | 'isASAPSubmitBetaEnabled'
     | 'quickAction'
     | 'onboarding'
@@ -94,7 +93,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`, {selector: isDraftReportSelector});
     const [reportAttributesDerivedValue] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -132,7 +130,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             duplicateTransactions,
             duplicateTransactionViolations,
             reportAttributesDerivedValue,
-            betas,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             quickAction,
             onboarding,
@@ -164,7 +161,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         duplicateTransactions,
         duplicateTransactionViolations,
         reportAttributesDerivedValue,
-        betas,
         isBetaEnabled,
         quickAction,
         onboarding,

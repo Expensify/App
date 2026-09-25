@@ -2,6 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
+import type {WriteReadyBarrier} from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -12,7 +13,7 @@ import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDistanceRateCustomUnit, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, getReimbursementChoice, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -209,6 +210,8 @@ type RequestMoneyInformation = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
@@ -1716,7 +1719,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         : {};
 
     const predictedNextStatus =
-        iouReport.statusNum ?? (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
+        iouReport.statusNum ?? (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN);
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam);
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
@@ -1924,9 +1927,9 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
     return mergedCategories;
 }
 
-function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
+function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: OnyxEntry<string[]>) {
     let mergedCurrencies: string[];
-    const currenciesArray = policyRecentlyUsedCurrencies ?? [];
+    const currenciesArray = Array.isArray(policyRecentlyUsedCurrencies) ? policyRecentlyUsedCurrencies : [];
     if (currency) {
         const currenciesWithNew = [currency, ...currenciesArray];
         mergedCurrencies = Array.from(new Set(currenciesWithNew));

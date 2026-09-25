@@ -93,29 +93,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-// In production, requestMoney defers its API.write() call until the target screen's
-// content lays out (or a safety timeout fires). In tests there is no target component
-// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -280,7 +260,6 @@ describe('actions/Transaction', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -729,7 +708,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
@@ -916,7 +894,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: RORY_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
@@ -1107,7 +1084,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
@@ -1307,7 +1283,6 @@ describe('actions/Transaction', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     currency: undefined,
                     isSelfTourViewed: false,
-                    betas: undefined,
                     hasActiveAdminPolicies: false,
                     hasOwnedPaidPolicy: false,
                     activePolicy: undefined,
