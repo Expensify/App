@@ -69,9 +69,9 @@ Purpose: Confirms which tab a member is on, since the rules that used to sit tog
 
 ## How to restrict Expensify Card spend on the Card restrictions tab
 
-The **Card restrictions** tab holds Expensify Card Spend rules, which approve or decline card transactions in real time based on currency, amount, merchant, and merchant type. The tab appears once the [Expensify Card](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card) is enabled for the workspace.
+The **Card restrictions** tab holds Expensify Card Spend rules, which approve or decline card transactions in real time based on currency, amount, merchant, and merchant type. If the [Expensify Card](/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card) isn't enabled for the workspace, the tab shows **Get the Expensify Card and control spend** instead, with a **Get the card** button.
 
-Every Expensify Card includes built-in protection that always declines charges for adult services, ATMs, gambling, and money transfers. Those default protections are listed under **Default** on this tab and can't be edited or removed.
+Every Expensify Card includes built-in protection that always declines charges for adult services, ATMs, gambling, and money transfers. Those default protections are listed under **Default** on this tab as the **All cards** rule and can't be edited or removed.
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
@@ -98,7 +98,9 @@ The **Expense defaults** tab holds rules that fill in expense fields automatical
 6. Select **Merchant** to update fields on expenses from a specific merchant, or **Category** to set a default tax rate for a specific category.
 7. Configure the rule and click **Save rule**.
 
-Default categories based on the merchant's MCC (Merchant Category Code) also live on this tab. They appear as rules with a condition of **Merchant type is** and a rule of **Update category to**.
+A category default tax rate applies only to new expenses in that category. Expenses that already exist don't change.
+
+Default categories based on the merchant's MCC (Merchant Category Code) also live on this tab. They appear as rules with a condition of **Merchant type is** and a rule of **Update category to**. You can change the category a merchant type maps to, but you can't edit the merchant type or delete these rules.
 
 [Learn how Merchant Rules work](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
 
@@ -106,7 +108,7 @@ Default categories based on the merchant's MCC (Merchant Category Code) also liv
 
 ## How to require expense fields on the Field requirements tab
 
-The **Field requirements** tab holds rules that require or waive specific expense fields for a category. Use it to require a description, attendees, a receipt, or an itemized receipt on expenses in a given category, or to waive a requirement that the **General** tab sets for everyone.
+The **Field requirements** tab holds rules that require or waive specific expense fields for a category. Use **Require** to require a description, attendees, a receipt, or an itemized receipt on expenses in a given category. Use **Don't require** to waive a receipt or itemized receipt requirement that the **General** tab sets for everyone.
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
@@ -210,9 +212,9 @@ This violation is triggered when an expense meets **any** of the following condi
 
 This rule only appears after at least one company card feed is connected to the workspace. If all company card feeds are removed, the rule automatically disables.
 
-## Why don't I see the Card restrictions tab?
+## Why don't I see any rules on the Card restrictions tab?
 
-The **Card restrictions** tab only appears after the Expensify Card is enabled for the workspace. Enable it under **Workspaces > [workspace name] > More features**, then return to the **Rules** page.
+Card restrictions apply only to the Expensify Card. If the Expensify Card isn't enabled for the workspace, the tab shows **Get the Expensify Card and control spend** instead of a rules list. Click **Get the card** to enable it, or enable it under **Workspaces > [workspace name] > More features**.
 
 ## Why does selecting a tab ask me to upgrade?
 

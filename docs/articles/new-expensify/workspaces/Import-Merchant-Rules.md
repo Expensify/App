@@ -18,7 +18,7 @@ To import Merchant Rules, you must be:
 - A Workspace Admin.
 - On a workspace with **Rules** enabled (available on the Control plan).
 
-If **Rules** is not enabled, [learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
+If **Rules** is not enabled, [learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#how-to-enable-workspace-rules).
 
 ---
 
@@ -27,7 +27,7 @@ If **Rules** is not enabled, [learn how to enable Workspace Rules](/articles/new
 Prepare a spreadsheet where each row is one rule. Include a column for the merchant to match and a column for each field you want the rule to update (for example, Tag).
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Workspaces > [workspace name]**.
-2. Click **Rules**.
+2. Click **Rules**, then open the **Expense defaults** tab.
 3. Click **More**, then select **Import merchant rules**.
 4. Upload your spreadsheet file.
 5. Map each column to a merchant rule field. Map the merchant column to **Merchant is** or **Merchant contains**, and map at least one field to update, such as **Updated merchant**, **Updated category**, **Updated tag**, or **Updated description**.
@@ -49,7 +49,7 @@ How a colon in a Tag cell is read depends on how your workspace tags are set up 
 ## What happens after you import Merchant Rules
 
 - A confirmation message shows how many Merchant Rules were added.
-- Each new rule appears under the **Expense defaults** section of the **Rules** page and is applied to matching expenses going forward.
+- Each new rule appears on the **Expense defaults** tab of the **Rules** page and is applied to matching expenses going forward.
 
 ---
 

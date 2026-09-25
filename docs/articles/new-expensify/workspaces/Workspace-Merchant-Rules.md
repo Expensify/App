@@ -137,7 +137,7 @@ The rule stays in place and keeps applying its other updates, but the deleted ta
 
 You'll see this in two places:
 
-- In the **Merchant** section of the **Rules** page, the rule summary no longer lists the tag update.
+- On the **Expense defaults** tab of the **Rules** page, the rule summary no longer lists the tag update.
 - When you open the rule, the **Tag** field is empty.
 
 To have the rule set a tag again, open the rule, select a value in the **Tag** field, then select **Save rule**. If you recreate a tag with the same name, the rule applies that tag again. Learn how to [create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
