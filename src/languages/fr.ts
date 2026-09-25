@@ -9816,6 +9816,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             past: 'Passé',
             submitted: 'Soumis',
             approved: 'Approuvé',
+            anyApproval: 'Toute approbation',
             firstApprover: 'Premier approbateur',
             firstApproved: 'Approuvé en premier',
             paidBy: 'Payé par',

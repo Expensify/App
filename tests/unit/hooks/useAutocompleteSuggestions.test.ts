@@ -425,6 +425,19 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     });
 
+    it('suggests date presets after anyApproval:', () => {
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, value: ''},
+            ranges: [],
+        });
+
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'anyApproval:'}));
+
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ANY_APPROVAL);
+        expect(result.current.map((item) => item.text)).toEqual(['today', 'yesterday', 'lastWeek', 'lastMonth'].sort());
+    });
+
     it('returns boolean suggestions for reimbursable key', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE, value: ''},

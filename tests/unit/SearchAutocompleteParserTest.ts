@@ -772,6 +772,48 @@ const nameFieldContinuationTests: Array<{query: string; expected: ExpectedAutoco
         },
         description: 'Negates multiple from and has values',
     },
+    {
+        query: 'anyApproval:last-month',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: 'last-month',
+                negated: false,
+                start: 12,
+                length: 10,
+            },
+            ranges: [{key: 'anyApproval', value: 'last-month', negated: false, start: 12, length: 10}],
+        },
+        description: 'anyApproval date filter provides autocomplete',
+    },
+    {
+        query: 'anyApproval:',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: '',
+                negated: false,
+                start: 12,
+                length: 0,
+            },
+            ranges: [],
+        },
+        description: 'anyApproval with an empty value still identifies the filter key',
+    },
+    {
+        query: 'any-approval:last-month',
+        expected: {
+            autocomplete: {
+                key: 'anyApproval',
+                value: 'last-month',
+                negated: false,
+                start: 13,
+                length: 10,
+            },
+            ranges: [{key: 'anyApproval', value: 'last-month', negated: false, start: 13, length: 10}],
+        },
+        description: 'any-approval user-friendly alias maps to anyApproval',
+    },
 ];
 
 describe('autocomplete parser', () => {
