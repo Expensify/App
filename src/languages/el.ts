@@ -10137,6 +10137,7 @@ ${reportName}`,
             title: 'Λήψη κατάστασης',
             oneFeedAtATime: 'Παρακαλούμε επιλέγετε διακανονισμούς από μία ροή Κάρτας Expensify κάθε φορά.',
         },
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} των δαπανών`,
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',

@@ -10060,6 +10060,8 @@ const translations = {
             line: 'Line',
             pie: 'Pie',
         },
+        // @context Chart label showing a segment's share of total spending. "percent" already includes the percent sign (e.g. "42%").
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} of spend`,
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',

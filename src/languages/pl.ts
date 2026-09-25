@@ -9880,6 +9880,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
         mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        percentOfSpend: ({percent}: {percent: string}) => `${percent} wydatków`,
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',

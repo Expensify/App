@@ -18,6 +18,7 @@ import useLiveReportActionsForViolations from '@hooks/useLiveReportActionsForVio
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -39,7 +40,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
@@ -133,7 +134,7 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const [parentReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(transactionItem?.report?.ownerAccountID)});
+    const [submitterLogin] = usePersonalDetail(transactionItem?.report?.ownerAccountID, loginSelector);
     const [transaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}` as const;
     const [transactionViolationsForRow] = useOnyxWithoutSnapshots(transactionViolationsKey);

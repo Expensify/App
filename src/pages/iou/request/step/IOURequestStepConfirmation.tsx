@@ -30,6 +30,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreMountDestination from '@hooks/usePreMountDestination';
+import usePreviousDefined from '@hooks/usePreviousDefined';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
@@ -163,10 +164,16 @@ function IOURequestStepConfirmationContent({
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
-    const transaction = useMemo(
+    const currentTransaction = useMemo(
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
+    // `useOnyx` drops back to a loading state whenever its key changes, so switching between transactions leaves
+    // `currentTransaction` undefined for a render. Hold the previous one across that gap: `MoneyRequestConfirmationList`
+    // picks its variant from the request type, so an undefined transaction falls to the manual variant and remounts the
+    // whole list, losing the state the scan variant holds.
+    const lastDefinedTransaction = usePreviousDefined(currentTransaction);
+    const transaction = isLoadingCurrentTransaction ? lastDefinedTransaction : currentTransaction;
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1184,17 +1191,19 @@ function IOURequestStepConfirmationContent({
                                     showRemoveExpenseConfirmModal={() => {
                                         confirmRemoveCurrentTransaction();
                                     }}
-                                    receiptPath={receiptPath}
-                                    receiptFilename={receiptFilename}
+                                    receiptOptions={{
+                                        receiptPath,
+                                        receiptFilename,
+                                        shouldDisplayReceipt:
+                                            !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest,
+                                        isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
+                                        isReceiptEditable: true,
+                                    }}
                                     iouType={iouType as Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>}
                                     reportID={reportID}
-                                    shouldDisplayReceipt={
-                                        !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest
-                                    }
                                     isPolicyExpenseChat={isPolicyExpenseChat}
                                     policyID={policyID}
                                     isOdometerDistanceRequest={isOdometerDistanceRequest}
-                                    isLoadingReceipt={isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs)}
                                     receiptStitchError={stitchError}
                                     isPerDiemRequest={isPerDiemRequest}
                                     shouldShowSmartScanFields={shouldShowSmartScanFields}
@@ -1206,7 +1215,6 @@ function IOURequestStepConfirmationContent({
                                     isConfirming={isConfirming}
                                     onToggleReimbursable={setReimbursable}
                                     expensesNumber={transactions.length}
-                                    isReceiptEditable
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
                                 />
