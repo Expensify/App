@@ -2,7 +2,9 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
@@ -160,14 +162,16 @@ function SubscriptionSettings() {
                         clearUpdateSubscriptionSizeError();
                     }}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('subscription.details.subscriptionSize')}
-                        shouldShowRightIcon
-                        onPress={onSubscriptionSizePress}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        style={styles.mt5}
-                        title={`${privateSubscription?.userCount ?? ''}`}
-                    />
+                    <View style={styles.mt5}>
+                        <MenuItemSectionRoot onPress={onSubscriptionSizePress}>
+                            <MenuItemField.Row
+                                name={translate('subscription.details.subscriptionSize')}
+                                value={privateSubscription?.userCount ? String(privateSubscription.userCount) : undefined}
+                            >
+                                <MenuItem.Chevron />
+                            </MenuItemField.Row>
+                        </MenuItemSectionRoot>
+                    </View>
                 </OfflineWithFeedback>
                 {!privateSubscription?.userCount && <Text style={[styles.mt2, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>}
             </>
@@ -324,41 +328,56 @@ function SubscriptionSettings() {
                         ) : null}
                     </>
                 )}
-                <MenuItemWithTopDescription
-                    description={translate('subscription.expensifyCode.title')}
-                    shouldShowRightIcon={!isExpensifyCodeApplied}
-                    onPress={onExpensifyCodePress}
-                    interactive={!isExpensifyCodeApplied}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mt5}
-                    title={isSecretPromoCode ? '' : privatePromoCode}
-                    hintText={
-                        shouldShowExpensifyCodeHintText
-                            ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
-                            : undefined
-                    }
-                />
+                <View style={styles.mt5}>
+                    <MenuItemSectionRoot onPress={isExpensifyCodeApplied ? undefined : onExpensifyCodePress}>
+                        <MenuItemField.Row
+                            name={translate('subscription.expensifyCode.title')}
+                            value={isSecretPromoCode ? undefined : privatePromoCode}
+                        >
+                            {!isExpensifyCodeApplied && <MenuItem.Chevron />}
+                        </MenuItemField.Row>
+                        {shouldShowExpensifyCodeHintText && (
+                            <MenuItem.HelpText
+                                message={translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)}
+                            />
+                        )}
+                    </MenuItemSectionRoot>
+                </View>
                 {!!freebieCredits && freebieCredits > 0 && (
-                    <MenuItemWithTopDescription
-                        description={translate('subscription.details.creditBalance')}
-                        title={convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}
-                        interactive={false}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                    />
+                    <MenuItemSectionRoot>
+                        <MenuItemField.Row
+                            name={translate('subscription.details.creditBalance')}
+                            value={convertToDisplayString(freebieCredits, defaultCard?.accountData?.currency ?? CONST.CURRENCY.USD)}
+                        />
+                    </MenuItemSectionRoot>
                 )}
-                <MenuItemWithTopDescription
-                    description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
-                    shouldShowRightIcon
-                    onPress={() => {
-                        requestTaxExempt();
-                        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
-                    }}
-                    icon={icons.Coins}
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mb5}
-                    titleStyle={privateTaxExempt ? undefined : styles.textBold}
-                    title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
-                />
+                <View style={styles.mb5}>
+                    <MenuItemSectionRoot
+                        onPress={() => {
+                            requestTaxExempt();
+                            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+                        }}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Coins} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                {privateTaxExempt ? (
+                                    <>
+                                        <MenuItem.FieldName>{translate('subscription.details.taxExemptStatus')}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue>{translate('subscription.details.taxExemptEnabled')}</MenuItem.FieldValue>
+                                    </>
+                                ) : (
+                                    <MenuItem.Title>{translate('subscription.details.taxExempt')}</MenuItem.Title>
+                                )}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
+                </View>
             </ScrollView>
         </ScreenWrapper>
     );
