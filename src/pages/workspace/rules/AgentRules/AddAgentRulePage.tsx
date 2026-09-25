@@ -75,6 +75,12 @@ function AddAgentRulePage({
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
 
+    const [didOpenTabForDraft, setDidOpenTabForDraft] = useState(false);
+    if (!didOpenTabForDraft && hasDraftPrompt) {
+        setDidOpenTabForDraft(true);
+        setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
+    }
+
     // Reset the active tab to Suggestions when the workspace changes.
     if (activeTabPolicyID !== policyID) {
         setActiveTabPolicyID(policyID);
@@ -124,14 +130,6 @@ function AddAgentRulePage({
             return;
         }
         setActiveTab(key);
-    };
-
-    const handleBackButtonPress = () => {
-        if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
-            setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
-            return;
-        }
-        Navigation.goBack();
     };
 
     const navigateBackToAgentsTab = () => {
@@ -210,7 +208,6 @@ function AddAgentRulePage({
                     <HeaderWithBackButton
                         title={translate('workspace.rules.agentRules.newRuleTitle')}
                         shouldDisplayHelpButton
-                        onBackButtonPress={handleBackButtonPress}
                     />
                     <View style={[styles.flexShrink0, styles.w100]}>
                         <TabSelectorContextProvider activeTabKey={activeTab}>

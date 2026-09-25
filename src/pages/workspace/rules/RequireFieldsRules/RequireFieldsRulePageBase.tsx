@@ -50,10 +50,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+const SETTING_FIELD_KEYS = [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const;
 
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
@@ -119,7 +122,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
             // Preserve whatever is currently shown (edit often displays category overrides
             // without those fields being in touchedFields yet).
-            for (const fieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+            for (const fieldKey of SETTING_FIELD_KEYS) {
                 const displayedSetting = getRequireFieldsDisplayedSetting({
                     fieldKey,
                     category: previousCategory,
@@ -156,9 +159,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
     // Remount after a category change loses local touched state — rebuild it from the draft.
     if (isEditing && categoryName && selectedCategoryName && selectedCategoryName !== categoryName && form) {
-        const draftSettingKeys = ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).filter(
-            (fieldKey) => form[fieldKey] !== undefined,
-        );
+        const draftSettingKeys = SETTING_FIELD_KEYS.filter((fieldKey) => form[fieldKey] !== undefined);
         if (draftSettingKeys.some((fieldKey) => !touchedFields.has(fieldKey))) {
             setTouchedFields(new Set([...touchedFields, ...draftSettingKeys]));
         }
@@ -171,7 +172,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                if (!isEmptyObject(form)) {
+                    // eslint-disable-next-line react-hooks/set-state-in-effect -- seeds local selection state from the seeded draft
+                    setTouchedFields(new Set(SETTING_FIELD_KEYS.filter((fieldKey) => form?.[fieldKey] !== undefined)));
+                } else {
+                    setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                }
             }
             return;
         }
@@ -194,7 +200,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         // Always reseed from the category so a leftover new-rule draft cannot leave a stale Require/Don't require.
         initializedDraftForRuleKeyRef.current = ruleKey;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state when opening an edit rule.
         setTouchedFields(new Set());
         setClearedFields(new Set());
         setCouplingInteractionFields(new Set());
@@ -304,7 +309,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 const nextDraft: Partial<RequireFieldsRuleForm> = {
                     [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY],
                 };
-                for (const settingFieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+                for (const settingFieldKey of SETTING_FIELD_KEYS) {
                     if (keysToClear.includes(settingFieldKey) || form[settingFieldKey] === undefined) {
                         continue;
                     }

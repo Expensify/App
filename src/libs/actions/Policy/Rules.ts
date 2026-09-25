@@ -5,6 +5,7 @@ import type {
     DeletePolicyAgentRuleParams,
     GetAgentRuleSuggestionsParams,
     ImportMerchantRulesSpreadsheetParams,
+    GenerateRuleParams,
     UpdatePolicyAgentRuleParams,
 } from '@libs/API/parameters';
 import type OpenPolicyRulesPageParams from '@libs/API/parameters/OpenPolicyRulesPageParams';
@@ -18,10 +19,11 @@ import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MerchantRuleForm} from '@src/types/form';
+import NEW_RULE_PROMPT_INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type Policy from '@src/types/onyx/Policy';
 import type {AgentRule, CodingRule, CodingRuleFilter, CodingRuleTax} from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -422,6 +424,39 @@ function deletePolicyCodingRule(policy: Policy, ruleID: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_CODING_RULE, parameters, onyxData);
 }
 
+/** @returns the generationID the answer is written under in Onyx */
+function generateRule(policyID: string, prompt: string): string {
+    const generationID = NumberUtils.rand64();
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.GENERATED_RULE,
+            value: {generationID, state: CONST.GENERATED_RULE.STATE.FAILED},
+        },
+    ];
+
+    const parameters: GenerateRuleParams = {policyID, generationID, prompt};
+
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {failureData});
+
+    return generationID;
+}
+
+function setNewRulePromptError(message: string) {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {
+        errorFields: {[NEW_RULE_PROMPT_INPUT_IDS.PROMPT]: ErrorUtils.getMicroSecondOnyxErrorWithMessage(message)},
+    });
+}
+
+function clearNewRulePromptError() {
+    Onyx.merge(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM, {errors: null, errorFields: null});
+}
+
+function clearGeneratedRule() {
+    Onyx.set(ONYXKEYS.GENERATED_RULE, null);
+}
+
 function addPolicyAgentRule(policyID: string, agentRuleID: string, prompt: string) {
     if (!policyID || !agentRuleID || !prompt) {
         Log.warn('Invalid params for addPolicyAgentRule', {policyID, agentRuleID, prompt});
@@ -698,6 +733,10 @@ export {
     deletePolicyCodingRule,
     getTransactionsMatchingCodingRule,
     addPolicyAgentRule,
+    generateRule,
+    clearGeneratedRule,
+    setNewRulePromptError,
+    clearNewRulePromptError,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearPolicyCodingRuleErrors,
